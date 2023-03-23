@@ -1,0 +1,71 @@
+#pragma once
+#include "UIWindow.h"
+#include "..\..\xrServerEntities\alife_space.h"
+
+class CUIXml;
+class CUIStatic;
+class CUITextWnd;
+class UIArtefactParamItem;
+class CUICellItem;
+
+enum EImmunityTypes {
+	eBurnImmunity = 0,
+	eShockImmunity,
+	eChemBurnImmunity,
+	eRadiationImmunity,
+	eTelepaticImmunity,
+	eStrikeImmunity,
+	eExplosionImmunity,
+	eImmunityTypeMax
+};
+
+enum EConditionRestoreTypes {
+	eRadiationSpeed = 0,
+	ePainkillSpeed,
+	eRegenerationSpeed,
+	eRecuperationSpeed,
+	eRestoreTypeMax
+};
+
+class CUIArtefactParams : public CUIWindow
+{
+public:
+					CUIArtefactParams		();
+	virtual			~CUIArtefactParams		();
+			void	InitFromXml				(CUIXml& xml);
+			void	SetInfo					(CUICellItem* itm);
+
+protected:
+	UIArtefactParamItem*	m_immunity_item[eImmunityTypeMax];
+	UIArtefactParamItem*	m_restore_item[eRestoreTypeMax];
+	UIArtefactParamItem*	m_drain_factor;
+	UIArtefactParamItem*	m_weight_dump;
+	UIArtefactParamItem*	m_armor;
+
+	CUIStatic*				m_Prop_line;
+
+}; // class CUIArtefactParams
+
+// -----------------------------------
+
+class UIArtefactParamItem : public CUIWindow
+{
+public:
+				UIArtefactParamItem	();
+	virtual		~UIArtefactParamItem();
+		
+		void	Init				( CUIXml& xml, LPCSTR section );
+		void	SetCaption			( LPCSTR name );
+		void	SetValue			( float value );
+	
+private:
+	CUIStatic*	m_caption;
+	CUITextWnd*	m_value;
+	float		m_magnitude;
+	bool		m_sign_inverse;
+	bool		m_perc_unit;
+	shared_str	m_unit_str;
+	shared_str	m_texture_minus;
+	shared_str	m_texture_plus;
+
+}; // class UIArtefactParamItem
