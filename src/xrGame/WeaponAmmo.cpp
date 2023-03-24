@@ -118,8 +118,7 @@ void CWeaponAmmo::Load(LPCSTR section)
 	m_boxSize				= (u16)floor(1.f/m_volume);
 	m_boxCurr				= m_boxSize;
 
-	m_AmmoClass		= pSettings->r_string(section, "ammo_class");
-	m_bHeap			= pSettings->r_bool(m_section_id, "heap");
+	m_bHeap = pSettings->r_bool(m_section_id, "heap");
 }
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 

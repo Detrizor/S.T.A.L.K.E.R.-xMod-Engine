@@ -6,7 +6,8 @@ enum eScopeType { eOptics, eCollimator };
 class CUIStatic;
 class CBinocularsVision;
 class CNightVisionEffector;
-class hud_item_measures;
+
+struct hud_item_measures;
 
 struct SRangeFloat
 {

@@ -49,8 +49,8 @@ void CMagazine::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_she
 	{
 	case GE_TRADE_BUY:
 	case GE_OWNERSHIP_TAKE:
-		if (m_Heaps.size() < idx)
-			m_Heaps.resize			(idx);
+		if (m_Heaps.size() <= idx)
+			m_Heaps.resize			(idx+1);
 		m_Heaps[idx]				= heap;
 		m_iHeapsCount++;
 		break;

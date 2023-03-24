@@ -97,7 +97,6 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-			shared_str		m_AmmoClass;
 			bool			m_bHeap;
 
 public:
