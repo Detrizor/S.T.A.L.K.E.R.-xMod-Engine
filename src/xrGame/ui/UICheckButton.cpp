@@ -60,13 +60,10 @@ void CUICheckButton::UndoOptValue()
 	CUIOptionsItem::UndoOptValue();
 }
 
-
 void CUICheckButton::InitCheckButton(Fvector2 pos, Fvector2 size, LPCSTR texture_name)
 {
-	InitButton				(pos, size);
-	InitTexture2			(texture_name);
-	TextItemControl()->m_wndPos.set	(pos);
-	TextItemControl()->m_wndSize.set	(Fvector2().set(size.x,m_background->Get(S_Enabled)->GetStaticItem()->GetSize().y));
+	InitButton							(pos, size);
+	InitTexture2						(texture_name);
 }
 
 void CUICheckButton::InitTexture2(LPCSTR texture_name)

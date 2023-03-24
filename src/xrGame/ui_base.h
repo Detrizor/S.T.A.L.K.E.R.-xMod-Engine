@@ -1,11 +1,9 @@
 #pragma once
+#include "ui_defs.h"
 
 class CUICursor;
 class CUIGameCustom;
-
-#include "ui_defs.h"
-
-
+enum EScaling;
 
 class CDeviceResetNotifier :public pureDeviceReset
 {
@@ -41,11 +39,9 @@ struct CFontManager :public pureDeviceReset			{
 
 	void					InitializeFonts			();
 	void					InitializeFont			(CGameFont*& F, LPCSTR section, u32 flags = 0);
-	LPCSTR					GetFontTexName			(LPCSTR section);				
 
 	virtual void			OnDeviceReset			();
 };
-
 
 class ui_core: public CDeviceResetNotifier
 {
@@ -58,10 +54,6 @@ class ui_core: public CDeviceResetNotifier
 	CFontManager*	m_pFontManager;
 	CUICursor*		m_pUICursor;
 
-	Fvector2		m_pp_scale_;
-	Fvector2		m_scale_;
-	Fvector2*		m_current_scale;
-
 public:
 	xr_stack<Frect> m_Scissors;
 	
@@ -70,13 +62,11 @@ public:
 	CFontManager&	Font							()								{return *m_pFontManager;}
 	CUICursor&		GetUICursor						()								{return *m_pUICursor;}
 
-	IC float		ClientToScreenScaledX			(float left)	const			{return left * m_current_scale->x;};
-	IC float		ClientToScreenScaledY			(float top)		const			{return top * m_current_scale->y;};
-	void			ClientToScreenScaled			(Fvector2& dest, float left, float top)	const;
-	void			ClientToScreenScaled			(Fvector2& src_and_dest)const;
-	void			ClientToScreenScaledWidth		(float& src_and_dest)	const;
-	void			ClientToScreenScaledHeight		(float& src_and_dest)	const;
-	void			AlignPixel						(float& src_and_dest)	const;
+	float			ClientToScreenScaledX			(float left)								const;
+	float			ClientToScreenScaledY			(float top)									const;
+	void			ClientToScreenScaled			(Fvector2& dest, float left, float top)		const;
+	void			ClientToScreenScaled			(Fvector2& src_and_dest)					const;
+	void			AlignPixel						(float& src_and_dest)						const;
 
 	const C2DFrustum& ScreenFrustum					()	const						{return (m_bPostprocess)?m_2DFrustumPP:m_2DFrustum;}
 	C2DFrustum&		ScreenFrustumLIT				()								{return m_FrustumLIT;}
@@ -89,13 +79,28 @@ public:
 
 	virtual void	OnDeviceReset					();
 	static	bool	is_widescreen					();
-	static	float	widescreen_factor				();
 	static	float	get_current_kx					();
 	shared_str		get_xml_name					(LPCSTR fn);
 	
 	IUIRender::ePointType		m_currentPointType;
-};
 
+private:
+			Fvector2		m_device_res;
+			Fvector2		m_pp_res;
+			float			m_height_scale;
+			float			m_width_scale;
+			float			m_layout_unit;
+			float			m_layout_factor;
+			float			m_fonts_layout_factor;
+
+			void			SetCurScale				(const Fvector2& res);
+
+public:
+	const	float			GetScale				(EScaling scaling)				const;
+	const	float			GetScaleFactor			()								const;
+	const	float			GetTextScale			(EScaling scaling)				const;
+	const	float			GetTextScaleFactor		()								const	{ return m_fonts_layout_factor; }
+};
 
 extern CUICursor&		GetUICursor				();
 extern ui_core&			UI						();

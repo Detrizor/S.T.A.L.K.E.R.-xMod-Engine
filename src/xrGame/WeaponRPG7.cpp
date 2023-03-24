@@ -19,9 +19,6 @@ void CWeaponRPG7::Load	(LPCSTR section)
 {
 	inherited::Load						(section);
 	CRocketLauncher::Load				(section);
-
-	m_zoom_params.m_fScopeZoomFactor = 1.f;
-
 	m_sRocketSection					= pSettings->r_string	(section,"rocket_class");
 }
 
@@ -48,14 +45,14 @@ void CWeaponRPG7::UpdateMissileVisibility()
 	vis_hud		= (!!iAmmoElapsed || GetState()==eReload);
 	vis_weap	= !!iAmmoElapsed;
 
-	if(GetHUDmode())
-	{
+	if (GetHUDmode())
 		HudItemData()->set_bone_visible("grenade",vis_hud,TRUE);
-	}
 
 	IKinematics* pWeaponVisual	= smart_cast<IKinematics*>(Visual()); 
 	VERIFY						(pWeaponVisual);
 	pWeaponVisual->LL_SetBoneVisible(pWeaponVisual->LL_BoneID("grenade"), vis_weap, TRUE);
+
+	SetInvIconType((u8)vis_weap);
 }
 
 BOOL CWeaponRPG7::net_Spawn(CSE_Abstract* DC) 
@@ -75,10 +72,11 @@ void CWeaponRPG7::OnStateSwitch(u32 S, u32 oldState)
 	UpdateMissileVisibility();
 }
 
-void CWeaponRPG7::Discharge(bool spawn_ammo)
+bool CWeaponRPG7::Discharge(CCartridge& destination)
 {
-	inherited::Discharge		(spawn_ammo);
-	UpdateMissileVisibility		();
+	bool res						= inherited::Discharge(destination);
+	UpdateMissileVisibility			();
+	return							res;
 }
 
 void CWeaponRPG7::ReloadMagazine() 

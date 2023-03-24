@@ -82,9 +82,12 @@ void SBullet::Init(const Fvector& position,
 	
 	air_resistance			= cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletAirResistanceScale;
 	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? (cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletWallMarkSizeScale) : cartridge.param_s.fWMS;
-	bullet_mass				= cartridge.param_s.fBulletMass * 0.001f;
+	if (cartridge.param_s.mHollowPoint)
+		wallmark_size		*= Level().BulletManager().m_fBulletHollowPointResistFactor;
+	bullet_mass				= cartridge.param_s.fBulletMass;
 	bullet_resist			= cartridge.param_s.fBulletResist;
 	hollow_point			= cartridge.param_s.mHollowPoint;
+	armor_piercing			= cartridge.param_s.mArmorPiercing;
 	m_u8ColorID				= cartridge.param_s.u8ColorID;
 	
 	max_dist				= (maximum_distance > 0.f) ? maximum_distance : (Level().BulletManager().m_fBulletFireDistanceScale * bullet_mass * pow(speed, 2) / air_resistance);
@@ -93,15 +96,12 @@ void SBullet::Init(const Fvector& position,
 	VERIFY					( u16(-1) != bullet_material_idx );
 
 	flags.allow_tracer = !!cartridge.m_flags.test(CCartridge::cfTracer);
-	
-	//Alundaio: Tracer for every 5th bullet
-	if (flags.allow_tracer && cartridge.m_4to1_tracer && iShotNum % 5 != 0)
-		flags.allow_tracer = false;
-	//-Alundaio
 
 	flags.allow_ricochet	= !!cartridge.m_flags.test(CCartridge::cfRicochet);
 	flags.explosive			= !!cartridge.m_flags.test(CCartridge::cfExplosive);
 	flags.magnetic_beam		= !!cartridge.m_flags.test(CCartridge::cfMagneticBeam);
+
+	flags.piercing_was = 0;
 //	flags.skipped_frame		= 0;
 
 	init_frame_num			= Device.dwFrame;
@@ -152,23 +152,26 @@ void CBulletManager::Load		()
 	m_fBulletWallMarkSizeScale		= pSettings->r_float(bullet_manager_sect, "wallmark_size_scale");
 	m_fBulletFireDistanceScale		= pSettings->r_float(bullet_manager_sect, "fire_distance_scale");
 
-	m_fBulletArmorPiercingScale			= pSettings->r_float(bullet_manager_sect, "armor_piercing_scale");
+	m_fBulletAPScale					= pSettings->r_float(bullet_manager_sect, "ap_scale");
+	m_fBulletArmorPiercingAPFactor		= pSettings->r_float(bullet_manager_sect, "armor_piercing_ap_factor");
 	m_fBulletHollowPointAPFactor		= pSettings->r_float(bullet_manager_sect, "hollow_point_ap_factor");
 	m_fBulletHollowPointResistFactor	= pSettings->r_float(bullet_manager_sect, "hollow_point_resist_factor");
-	m_fBulletArmorPiercingLose			= pSettings->r_float(bullet_manager_sect, "armor_piercing_lose");
+	m_fBulletAPLossOnPierce				= pSettings->r_float(bullet_manager_sect, "ap_loss_on_pierce");
 
-	m_fBulletHitImpulseScale		= pSettings->r_float(bullet_manager_sect, "hit_impulse_scale");
-	m_fBulletArmorDamageScale		= pSettings->r_float(bullet_manager_sect, "armor_damage_scale");
-	
-	m_fBulletPierceDamageResistFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_resist_factor");
-	m_fBulletPierceDamageResistPower		= pSettings->r_float(bullet_manager_sect, "pierce_damage_resist_power");
-	m_fBulletPierceDamageSpeedFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_speed_factor");
-	m_fBulletPierceDamageSpeedPower			= pSettings->r_float(bullet_manager_sect, "pierce_damage_speed_power");
-	m_fBulletPierceDamageDensityFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_density_factor");
-	m_fBulletPierceDamageDensityPower		= pSettings->r_float(bullet_manager_sect, "pierce_damage_density_power");
+	m_fBulletHitImpulseScale			= pSettings->r_float(bullet_manager_sect, "hit_impulse_scale");
+	m_fBulletArmorDamageScale			= pSettings->r_float(bullet_manager_sect, "armor_damage_scale");
+	m_fBulletPierceDamageScale			= pSettings->r_float(bullet_manager_sect, "pierce_damage_scale");
+	m_fBulletArmorPierceDamageScale		= pSettings->r_float(bullet_manager_sect, "armor_pierce_damage_scale");
 
-	m_fBulletPierceDamageScale				= pSettings->r_float(bullet_manager_sect, "pierce_damage_scale");
-	m_fBulletPierceDamageArmorScale			= pSettings->r_float(bullet_manager_sect, "pierce_damage_armor_scale");
+	m_fBulletPierceDamageFromResist.Load		(bullet_manager_sect, "pierce_damage_from_resist");
+	m_fBulletPierceDamageFromKAP.Load			(bullet_manager_sect, "pierce_damage_from_kap");
+	m_fBulletPierceDamageFromSpeed.Load			(bullet_manager_sect, "pierce_damage_from_speed");
+
+	m_fBulletPierceDamageFromSpeedScale.Load	(bullet_manager_sect, "pierce_damage_from_speed_scale");
+	m_fBulletPierceDamageFromHydroshock.Load	(bullet_manager_sect, "pierce_damage_from_hydroshock");
+	m_fBulletPierceDamageFromStability.Load		(bullet_manager_sect, "pierce_damage_from_stability");
+	m_fBulletPierceDamageFromDensity.Load		(bullet_manager_sect, "pierce_damage_from_density");
+	m_fBulletPierceDamageFromPierce.Load		(bullet_manager_sect, "pierce_damage_from_pierce");
 
 	if (pSettings->line_exist(bullet_manager_sect, "bullet_velocity_time_factor"))
 		g_bullet_time_factor	= pSettings->r_float(bullet_manager_sect, "bullet_velocity_time_factor");

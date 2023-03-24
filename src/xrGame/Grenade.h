@@ -33,8 +33,6 @@ public:
 	virtual void 			Throw();
 	virtual void 			Destroy();
 
-	
-	virtual bool			Action								(u16 cmd, u32 flags);
 	virtual bool			Useful								() const;
 	virtual void			State                               (u32 state, u32 old_state);
 

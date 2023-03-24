@@ -125,10 +125,8 @@ void CActor::g_cl_ValidateMState(float dt, u32 mstate_wf)
 		}
 	}
 
-	if(!CanAccelerate()&&isActorAccelerated(mstate_real, IsZoomAimingMode()))
-	{
+	if (!CanAccelerate() && isActorAccelerated(mstate_real, IsZoomADSMode()))
 		mstate_real				^=mcAccel;
-	};	
 
 	if (this == Level().CurrentControlEntity())
 	{
@@ -247,7 +245,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			mstate_real|=mcSprint;
 		else
 			mstate_real&=~mcSprint;
-		if(!(mstate_real&(mcFwd|mcLStrafe|mcRStrafe))||mstate_real&(mcCrouch|mcClimb)|| !isActorAccelerated(mstate_wf, IsZoomAimingMode()))
+		if (!(mstate_real&(mcFwd | mcLStrafe | mcRStrafe)) || mstate_real&(mcCrouch | mcClimb) || !isActorAccelerated(mstate_wf, IsZoomAimingMode()))
 		{
 			mstate_real&=~mcSprint;
 			mstate_wishful&=~mcSprint;
@@ -256,7 +254,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		// check player move state
 		if(mstate_real&mcAnyMove)
 		{
-			BOOL	bAccelerated		= isActorAccelerated(mstate_real, IsZoomAimingMode())&&CanAccelerate();
+			BOOL	bAccelerated		= isActorAccelerated(mstate_real, IsZoomADSMode())&&CanAccelerate();
 
 			// correct "mstate_real" if opposite keys pressed
 			if (_abs(vControlAccel.z)<EPS)	mstate_real &= ~(mcFwd+mcBack		);
@@ -551,7 +549,7 @@ bool CActor::CanAccelerate()
 
 bool CActor::CanRun()
 {
-	bool can_run		= !IsZoomAimingMode() && !(mstate_real&mcLookout);
+	bool can_run		= !IsZoomADSMode() && !(mstate_real&mcLookout);
 	return can_run;
 }
 
@@ -571,7 +569,7 @@ bool CActor::CanJump()
 {
 	bool can_Jump = 
 		!conditions().IsCantSprint() && !character_physics_support()->movement()->PHCapture() &&((mstate_real&mcJump)==0) && (m_fJumpTime<=0.f) 
-		&& !m_bJumpKeyPressed &&!IsZoomAimingMode();
+		&& !m_bJumpKeyPressed &&!IsZoomADSMode();
 
 	return can_Jump;
 }

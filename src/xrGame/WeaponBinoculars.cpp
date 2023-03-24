@@ -95,46 +95,13 @@ void	CWeaponBinoculars::UpdateCL()
 
 bool CWeaponBinoculars::render_item_ui_query()
 {
-	bool b_is_active_item = m_pInventory->ActiveItem()==this;
-	return b_is_active_item && H_Parent() && IsZoomed() && !IsRotatingToZoom() && m_binoc_vision;
+	return inherited::render_item_ui_query() && m_binoc_vision;
 }
 
 void CWeaponBinoculars::render_item_ui()
 {
 	m_binoc_vision->Draw();
-	inherited::render_item_ui	();
-}
-
-void CWeaponBinoculars::ZoomInc()
-{
-	if (m_zoom_params.m_fScopeMinZoomFactor != m_zoom_params.m_fScopeZoomFactor)
-	{
-		float f				= CurrentZoomFactor() + ZOOM_DELTA;
-		clamp				(f, m_zoom_params.m_fScopeMinZoomFactor, m_zoom_params.m_fScopeZoomFactor);
-		SetCurrentZoom		(f);
-	}
-}
-
-void CWeaponBinoculars::ZoomDec()
-{
-	if (m_zoom_params.m_fScopeMinZoomFactor != m_zoom_params.m_fScopeZoomFactor)
-	{
-		float f				= CurrentZoomFactor() - ZOOM_DELTA;
-		clamp				(f, m_zoom_params.m_fScopeMinZoomFactor, m_zoom_params.m_fScopeZoomFactor);
-		SetCurrentZoom		(f);
-	}
-}
-
-void CWeaponBinoculars::save(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	save_data		(m_fRTZoomFactor,output_packet);
-}
-
-void CWeaponBinoculars::load(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	load_data		(m_fRTZoomFactor,input_packet);
+	inherited::render_item_ui();
 }
 
 bool CWeaponBinoculars::GetBriefInfo( II_BriefInfo& info )

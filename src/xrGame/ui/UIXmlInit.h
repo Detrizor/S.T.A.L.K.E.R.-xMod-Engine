@@ -31,6 +31,7 @@ class CUITabButtonMP;
 class CUITrackBar;
 class CUILines;
 class CUITextWnd;
+enum EScaling;
 
 class CUIXmlInit
 {
@@ -47,8 +48,7 @@ public:
 	static bool 	InitTextWnd				(CUIXml& xml_doc, LPCSTR path, int index, CUITextWnd* pWnd);
 	static bool		InitCheck				(CUIXml& xml_doc, LPCSTR path, int index, CUICheckButton* pWnd);
 	static bool 	InitSpin				(CUIXml& xml_doc, LPCSTR path, int index, CUICustomSpin* pWnd);
-	static bool 	InitText				(CUIXml& xml_doc, LPCSTR path, int index, CUIStatic* pWnd);
-	static bool 	InitText				(CUIXml& xml_doc, LPCSTR path, int index, CUILines* pLines);
+	static bool 	InitText				(CUIXml& xml_doc, LPCSTR path, int index, CUIWindow* pWnd, CUILines* pLines);
 	static bool 	Init3tButton			(CUIXml& xml_doc, LPCSTR path, int index, CUI3tButton* pWnd);
 	static bool 	InitDragDropListEx		(CUIXml& xml_doc, LPCSTR path, int index, CUIDragDropListEx* pWnd);
 	static bool 	InitProgressBar			(CUIXml& xml_doc, LPCSTR path, int index, CUIProgressBar* pWnd);
@@ -67,20 +67,11 @@ public:
 	static bool 	InitListBox				(CUIXml& xml_doc, LPCSTR path, int index, CUIListBox* pWnd);
 	static bool		InitComboBox			(CUIXml& xml_doc, LPCSTR path, int index, CUIComboBox* pWnd);
 	static bool		InitTrackBar			(CUIXml& xml_doc, LPCSTR path, int index, CUITrackBar* pWnd);
-	static Frect	GetFRect				(CUIXml& xml_doc, LPCSTR path, int index);
 	static u32		GetColor				(CUIXml& xml_doc, LPCSTR path, int index, u32 def_clr);
+
 public:
-
-	static bool		InitAlignment(CUIXml &xml_doc, const char *path,
-											  int index, float &x, float &y,CUIWindow* pWnd);
-
-
 	static void		InitAutoStaticGroup(CUIXml& xml_doc, LPCSTR path, int index, CUIWindow* pParentWnd);
 	static void		InitAutoFrameLineGroup(CUIXml& xml_doc, LPCSTR path, int index, CUIWindow* pParentWnd);
-
-	static float	ApplyAlignX(float coord, u32 align);
-	static float	ApplyAlignY(float coord, u32 align);
-	static void		ApplyAlign(float &x, float &y, u32 align);
 
 	// Initialize and store predefined colors
 	DEF_MAP			(ColorDefs, shared_str, u32);
@@ -91,5 +82,15 @@ public:
 	static void		DeleteColorDefs				()	{ xr_delete(m_pColorDefs); }
 	static void		AssignColor					(LPCSTR name, u32 clr);
 private:
-	static	ColorDefs			*m_pColorDefs;    
+	static	ColorDefs			*m_pColorDefs;
+
+public:
+	static	bool			ReadParamWithScaling	(CUIXml& xml_doc, const LPCSTR path, const int index, const LPCSTR param, const LPCSTR mask, float& dest_value, EScaling& dest_scaling, EScaling scaling);
+	static	bool			ReadParamWithScaling	(CUIXml& xml_doc, const LPCSTR path, const int index, const LPCSTR param, float& dest_value, EScaling& dest_scaling);
+	
+	static	void			ReadPosSize				(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd, const LPCSTR param, const u8 idx);
+	static	void			ReadPosSize				(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd);
+	
+	static	u8				AlignmentStrToValue		(const shared_str str);
+	static	void			ReadAlignment			(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd);
 };

@@ -347,7 +347,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 	else							
 		ST 		= &m_anims->m_normal;
 
-	bool bAccelerated = isActorAccelerated(mstate_rl, IsZoomAimingMode());
+	bool bAccelerated = isActorAccelerated(mstate_rl, IsZoomADSMode());
 	if ( bAccelerated )
 	{
 		AS							= &ST->m_run;
@@ -550,7 +550,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 
 	if (!M_legs)
 	{
-		if((mstate_rl&mcCrouch)&&!isActorAccelerated(mstate_rl, IsZoomAimingMode()))//!(mstate_rl&mcAccel))
+		if ((mstate_rl&mcCrouch) && !isActorAccelerated(mstate_rl, IsZoomADSMode()))//!(mstate_rl&mcAccel))
 		{
 			M_legs=smart_cast<IKinematicsAnimated*>(Visual())->ID_Cycle("cr_idle_1");
 		}

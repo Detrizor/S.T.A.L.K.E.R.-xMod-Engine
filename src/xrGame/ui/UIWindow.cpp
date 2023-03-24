@@ -5,10 +5,10 @@
 
 #include "../Include/xrRender/DebugRender.h"
 #include "../Include/xrRender/UIRender.h"
+#include "UIScrollView.h"
 //#include "UIHelper.h"
 //#include "UIHint.h"
 //#include "../ScriptXMLInit.h"
-
 
 poolSS< _12b, 128>	ui_allocator;
 
@@ -111,7 +111,11 @@ m_dwFocusReceiveTime(0),
 //dwHintDelay(1000),
 //bShowHint(false),
 //m_sHint(""),
-m_bCustomDraw(false)
+m_bCustomDraw(false),
+m_alignment(aLeftTop),
+m_anchor(aLeftTop),
+m_offsetTag(""),
+m_offset("")
 {
 	Show					(true);
 	Enable					(true);
@@ -257,20 +261,15 @@ void CUIWindow::DetachAll()
 	}
 }
 
-void CUIWindow::GetAbsoluteRect(Frect& r) 
+void CUIWindow::GetAbsoluteRect(Frect& arect)
 {
-	if(GetParent() == NULL){
-		GetWndRect		(r);
-		return;
+	GetWndRect						(arect);
+	if (GetParent())
+	{
+		Fvector2					pos;
+		GetParent()->GetAbsolutePos	(pos);
+		arect.add					(pos.x, pos.y);
 	}
-	GetParent()->GetAbsoluteRect(r);
-
-	Frect			rr;
-	GetWndRect		(rr);
-	r.left			+= rr.left;
-	r.top			+= rr.top;
-	r.right			= r.left + GetWidth();
-	r.bottom		= r.top	+ GetHeight();
 }
 
 //реакция на мышь
@@ -576,11 +575,10 @@ bool CUIWindow::IsChild(CUIWindow *pPossibleChild) const
 	return it != m_ChildWndList.end();
 }
 
-
-CUIWindow*	CUIWindow::FindChild(const shared_str name)
+CUIWindow*	CUIWindow::FindChild(const shared_str name) const
 {
 	if(WindowName()==name)
-		return this;
+		return (CUIWindow*)this;
 
 	WINDOW_LIST::const_iterator it = m_ChildWndList.begin();
 	WINDOW_LIST::const_iterator it_e = m_ChildWndList.end();
@@ -638,6 +636,60 @@ bool fit_in_rect(CUIWindow* w, Frect const& vis_rect, float border, float dx16po
 
 	w->SetWndPos( rect.lt );
 	return true;
+}
+
+CUIWindow* CUIWindow::GetOffset() const
+{
+	if (m_offset.size())
+	{
+		if (GetParent())
+		{
+			for (WINDOW_LIST::const_iterator it = GetParent()->m_ChildWndList.begin(), it_e = GetParent()->m_ChildWndList.end(); it != it_e; ++it)
+			{
+				if ((*it)->m_offsetTag == m_offset)
+					return	*it;
+			}
+		}
+		else
+		{
+			//--xd доделать
+		}
+	}
+	
+	return					GetParent();
+}
+
+void CUIWindow::GetWndRect(Frect& res) const
+{
+	Fvector2 pos			= GetWndPos();
+	Fvector2 size			= GetWndSize();
+	
+	CUIWindow* offset		= GetOffset();
+	float tmp				= offset ? offset->GetWidth() : 0.f;
+	if (fIsZero(tmp))
+		tmp					= UI_BASE_WIDTH;
+	pos.x					+= float(m_alignment % 3) * tmp / 2.f;
+	tmp						= offset ? offset->GetHeight() : 0.f;
+	if (fIsZero(tmp))
+		tmp					= UI_BASE_HEIGHT;
+	pos.y					+= float(m_alignment / 3) * tmp / 2.f;
+
+	pos.x					-= float(m_anchor % 3) * size.x / 2.f;
+	pos.y					-= float(m_anchor / 3) * size.y / 2.f;
+
+	if (m_offset.size())
+		pos.add				(offset->GetWndRect().lt);
+
+	res.lt					= pos;
+	res.rb.set				(res.lt);
+	res.rb.add				(size);
+}
+
+void CUIWindow::SetScale(float scale)
+{
+	m_scale = scale;
+	for (WINDOW_LIST_it it = m_ChildWndList.begin(); m_ChildWndList.end() != it; ++it)
+		(*it)->SetScale(scale);
 }
 
 /*

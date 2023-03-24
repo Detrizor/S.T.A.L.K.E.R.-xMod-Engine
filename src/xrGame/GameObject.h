@@ -308,6 +308,10 @@ public:
 	}
 
 	virtual void			on_matrix_change	(const Fmatrix &previous);
+
+			CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count = 1, float condition = 1.f, bool dont_reg = false);
+			CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
+			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 };
 
 #endif // !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)

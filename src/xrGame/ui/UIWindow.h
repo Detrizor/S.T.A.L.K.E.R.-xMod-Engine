@@ -8,6 +8,18 @@ class CUIWindow;
 struct _12b	{ DWORD _[3]; };
 extern poolSS< _12b, 128>	ui_allocator;
 
+enum EAlignment
+{
+	aLeftTop,
+	aTop,
+	aRightTop,
+	aLeft,
+	aCenter,
+	aRight,
+	aLeftBottom,
+	aBottom,
+	aRightBottom
+};
 
 template <class T>
 class	uialloc	{
@@ -154,10 +166,10 @@ public:
 			void			ShowChildren		(bool show);
 	
 	//абсолютные координаты
-	IC void					GetAbsoluteRect		(Frect& r) ;
-	IC void					GetAbsolutePos		(Fvector2& p) 	{Frect abs; GetAbsoluteRect(abs); p.set(abs.x1,abs.y1);}
+	IC void					GetAbsoluteRect		(Frect& arect) ;
+	IC void					GetAbsolutePos		(Fvector2& p) 	{Frect abs; GetAbsoluteRect(abs); p.set(abs.lt);}
 
-
+	
 			void			SetWndRect_script	(Frect rect)										{CUISimpleWindow::SetWndRect(rect);}
 			void			SetWndPos_script	(Fvector2 pos)										{CUISimpleWindow::SetWndPos(pos);}
 			void			SetWndSize_script	(Fvector2 size)										{CUISimpleWindow::SetWndSize(size);}
@@ -188,7 +200,7 @@ public:
 	const shared_str		WindowName			() const					{ return m_windowName; }
 	void					SetWindowName		(LPCSTR wn)					{ m_windowName = wn; }
 	LPCSTR					WindowName_script	()							{return m_windowName.c_str();}
-	CUIWindow*				FindChild			(const shared_str name);
+	CUIWindow*				FindChild			(const shared_str name) const;
 
 	IC bool					CursorOverWindow	() const					{ return m_bCursorOverWindow; }
 	IC u32					FocusReceiveTime	() const					{ return m_dwFocusReceiveTime; }
@@ -239,6 +251,27 @@ protected:
 
 public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+			u8				m_anchor;
+			u8				m_alignment;
+			shared_str		m_offsetTag;
+			shared_str		m_offset;
+
+public:
+			void			SetAnchor				(u8 val)								{ m_anchor = val; }
+			void			SetAlignment			(u8 val)								{ m_alignment = val; }
+			void			CopyAlignment			(const CUIWindow& from)					{ m_alignment = from.m_alignment; m_anchor = from.m_anchor; }
+			
+			void			SetOffsetTag			(LPCSTR val)							{ m_offsetTag = val; }
+			void			SetOffset				(LPCSTR val)							{ m_offset = val; }
+			void			CopyOffsetFrom			(CUIWindow& src)						{ m_offset = src.m_offset; }
+			CUIWindow*		GetOffset				()								const;
+	
+			void			GetWndRect				(Frect& res)					const;
+			Frect			GetWndRect				()								const	{ Frect r; GetWndRect(r); return r; }
+
+			void			SetScale				(float scale);
 };
 
 bool fit_in_rect(CUIWindow* w, Frect const& vis_rect, float border = 0.0f, float dx16pos = 0.0f );

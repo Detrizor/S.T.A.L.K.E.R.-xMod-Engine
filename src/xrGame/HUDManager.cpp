@@ -17,6 +17,8 @@
 #include "phdebug.h"
 #endif
 
+#include "ui\UIStatic.h"
+
 extern CUIGameCustom*	CurrentGameUI()
 {
     return HUD().GetGameUI();
@@ -62,48 +64,14 @@ void CFontManager::InitializeFonts()
     pFontStat->SetInterval(0.75f, 1.0f);
 }
 
-LPCSTR CFontManager::GetFontTexName(LPCSTR section)
-{
-    static char* tex_names[] = {"texture800", "texture", "texture1600"};
-    int def_idx = 1;//default 1024x768
-    int idx = def_idx;
-#if 0
-    u32 w = Device.dwWidth;
-
-    if(w<=800)		idx = 0;
-    else if(w<=1280)idx = 1;
-    else 			idx = 2;
-#else
-    u32 h = Device.dwHeight;
-
-    if (h <= 600)		idx = 0;
-    else if (h < 1024)	idx = 1;
-    else 			idx = 2;
-#endif
-
-    while (idx >= 0)
-    {
-        if (pSettings->line_exist(section, tex_names[idx]))
-            return pSettings->r_string(section, tex_names[idx]);
-        --idx;
-    }
-    return pSettings->r_string(section, tex_names[def_idx]);
-}
-
 void CFontManager::InitializeFont(CGameFont*& F, LPCSTR section, u32 flags)
 {
-    LPCSTR font_tex_name = GetFontTexName(section);
-    R_ASSERT(font_tex_name);
-
-    LPCSTR sh_name = pSettings->r_string(section, "shader");
+	LPCSTR font_tex_name	= pSettings->r_string(section, "texture");
+    LPCSTR sh_name			= pSettings->r_string(section, "shader");
     if (!F)
-        F = xr_new<CGameFont>(sh_name, font_tex_name, flags);
+        F					= xr_new<CGameFont>(sh_name, font_tex_name, flags);
     else
-        F->Initialize(sh_name, font_tex_name);
-
-#ifdef DEBUG
-    F->m_font_name = section;
-#endif
+        F->Initialize		(sh_name, font_tex_name);
 }
 
 CFontManager::~CFontManager()
@@ -157,8 +125,6 @@ void CHUDManager::OnFrame()
     m_pHUDTarget->CursorOnFrame();
 }
 //--------------------------------------------------------------------
-
-ENGINE_API extern float psHUD_FOV;
 
 void CHUDManager::Render_First()
 {
@@ -334,7 +300,8 @@ void CHUDManager::SetGrenadeMarkType(LPCSTR tex_name)
 // ------------------------------------------------------------------------------------
 
 #include "ui\UIMainInGameWnd.h"
-extern CUIXml*			pWpnScopeXml;
+extern CUIStatic*	pUILenseCircle;
+extern CUIStatic*	pUILenseGlass;
 
 void CHUDManager::Load()
 {
@@ -352,7 +319,8 @@ void CHUDManager::OnScreenResolutionChanged()
 {
     pUIGame->HideShownDialogs();
 
-    xr_delete(pWpnScopeXml);
+	xr_delete(pUILenseCircle);
+	xr_delete(pUILenseGlass);
 
     pUIGame->UnLoad();
     pUIGame->Load();

@@ -14,11 +14,7 @@ void CWeaponBM16::Load	(LPCSTR section)
 bool CWeaponBM16::SingleCartridgeReload()
 {
 	if (ParentIsActor())
-	{
-		PIItem to_reload = GetToReload();
-		CWeaponAmmo* cartridge = smart_cast<CWeaponAmmo*>(to_reload);
-		return ((iAmmoElapsed == 1) || (cartridge && cartridge->m_boxCurr == 1));
-	}
+		return ((iAmmoElapsed == 1) || (m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() == 1));
 	else
 	{
 		bool b_both = HaveCartridgeInInventory(2);

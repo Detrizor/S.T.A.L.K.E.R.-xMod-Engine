@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class CSE_Abstract;
 class CPhysicItem;
@@ -69,6 +69,7 @@ protected:
 		u32						m_startedMotionState;
 		u8						m_started_rnd_anim_idx;
 		bool					m_bStopAtEndAnimIsRunning;
+		bool					m_bStopAtHalf;
 	};
 public:
 	virtual void				Load				(LPCSTR section);
@@ -87,7 +88,7 @@ public:
 	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}
 			void				OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
 	
-	virtual	u8					GetCurrentHudOffsetIdx ()							{return 0;}
+	virtual	u8					GetCurrentHudOffsetIdx () const						{return 0;}
 
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
@@ -121,19 +122,17 @@ public:
 	virtual void				UpdateCL			();
 	virtual void				renderable_Render	();
 
-
-	virtual void				UpdateHudAdditonal	(Fmatrix&);
-
+	virtual void				UpdateHudAdditional	(Fmatrix&);
 
 	virtual	void				UpdateXForm			()						= 0;
 
-	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state);
+	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, bool stop_at_half = false);
 	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
 	void						StopCurrentAnimWithoutCallback();
 
 	IC void						RenderHud				(BOOL B)	{ m_huditem_flags.set(fl_renderhud, B);}
 	IC BOOL						RenderHud				()			{ return m_huditem_flags.test(fl_renderhud);}
-	attachable_hud_item*		HudItemData				();
+	attachable_hud_item*		HudItemData				() const;
 	virtual void				on_a_hud_attach			();
 	virtual void				on_b_hud_detach			();
 	IC BOOL						HudInertionEnabled		()	const			{ return m_huditem_flags.test(fl_inertion_enable);}
@@ -149,7 +148,7 @@ protected:
 	IC		void				SetPending			(BOOL H)			{ m_huditem_flags.set(fl_pending, H);}
 	shared_str					hud_sect;
 
-	//����� ������� ��������� XFORM � FirePos
+	//кадры момента пересчета XFORM и FirePos
 	u32							dwFP_Frame;
 	u32							dwXF_Frame;
 
@@ -165,8 +164,6 @@ private:
 	CInventoryItem				*m_item;
 
 public:
-	shared_str					hud_section;
-
 	const shared_str&			HudSection				() const		{ return hud_sect;}
 	IC CPhysicItem&				object					() const		{ VERIFY(m_object); return(*m_object);}
 	IC CInventoryItem&			item					() const		{ VERIFY(m_item); return(*m_item);}
@@ -178,6 +175,21 @@ public:
 	virtual CHudItem*			cast_hud_item			()				{ return this; }
     void PlayAnimCrouchIdleMoving(); //AVO: new crouch idle animation
     bool HudAnimationExist(LPCSTR anim_name);
+
+protected:
+			float			m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
+			float			m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
+			float			m_fLR_InertiaFactor; // Фактор горизонтальной инерции худа при движении камеры [-1; +1]
+			float			m_fUD_InertiaFactor; // Фактор вертикальной инерции худа при движении камеры [-1; +1]
+
+			void			PlayBlendAnm			(LPCSTR name, float speed = 1.f, float power = 1.f, bool stop_old = true);
+
+public:
+	virtual	bool			NeedBlendAnm			();
+	virtual void			UpdateHudBonesVisibility()										{}
+	virtual void			OnMotionHalf			()										{}
+
+	virtual void				UpdateAddonsTransform() {}; // Обновление положения аддонов на худе каждый кадр
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

@@ -27,6 +27,8 @@
 #include "CustomOutfit.h"
 #include "ActorHelmet.h"
 #include "Bolt.h"
+#include "Magazine.h"
+#include "IItemContainer.h"
 
 CInventoryOwner::CInventoryOwner()
 {
@@ -81,9 +83,10 @@ void CInventoryOwner::Load(LPCSTR section)
 
 void CInventoryOwner::reload(LPCSTR section)
 {
-    inventory().Clear();
-    inventory().m_pOwner = this;
-    inventory().SetSlotsUseful(true);
+    inventory().Clear			();
+    inventory().m_pOwner		= this;
+	inventory().m_bActors		= !!smart_cast<CActor*>(this);
+    inventory().SetSlotsUseful	(true);
 
     m_money = 0;
     m_bTrading = false;
@@ -527,42 +530,6 @@ CHelmet* CInventoryOwner::GetHelmet() const
 	return (smart_cast<const CActor*>(this)) ? smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT)) : smart_cast<CHelmet*>(inventory().SameSlot(HELMET_SLOT, NULL));
 }
 
-extern CSE_Abstract* CALifeSimulator__spawn_item(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, float condition, bool reg);
-CSE_Abstract* CInventoryOwner::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
-{
-	CALifeSimulator* alife			= const_cast<CALifeSimulator*>(ai().get_alife());
-	CGameObject* obj				= smart_cast<CGameObject*>(this);
-	const Fvector& position			= obj->Position();
-	const u32& level_vertex_id		= obj->ai_location().level_vertex_id();
-	const u16& game_vertex_id		= obj->ai_location().game_vertex_id();
-	const ALife::_OBJECT_ID& id		= obj->ID();
-
-	CSE_Abstract* result			= NULL;
-	for (u32 i = 0; i < count; i++)
-		result						= CALifeSimulator__spawn_item(alife, section, position, level_vertex_id, game_vertex_id, id, condition, !dont_reg);
-
-	return							result;
-}
-
-extern CSE_Abstract* CALifeSimulator__spawn_ammo(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, u16 ammo_to_spawn);
-CSE_Abstract* CInventoryOwner::GiveAmmo(LPCSTR section, u16 count)
-{
-	CALifeSimulator* alife				= const_cast<CALifeSimulator*>(ai().get_alife());
-	CGameObject* obj					= smart_cast<CGameObject*>(this);
-	const Fvector& position				= obj->Position();
-	const u32& level_vertex_id			= obj->ai_location().level_vertex_id();
-	const u16& game_vertex_id			= obj->ai_location().game_vertex_id();
-	const ALife::_OBJECT_ID& id			= obj->ID();
-
-	u8 box_size							= pSettings->r_u8(section, "box_size");
-	while (count > box_size)
-	{
-		CALifeSimulator__spawn_item		(alife, section, position, level_vertex_id, game_vertex_id, id, 1.f, true);
-		count							-= box_size;
-	}
-	return								CALifeSimulator__spawn_ammo(alife, section, position, level_vertex_id, game_vertex_id, id, count);
-}
-
 void CInventoryOwner::on_weapon_shot_start(CWeapon *weapon)
 {
 }
@@ -690,4 +657,79 @@ void CInventoryOwner::deadbody_closed(bool status)
     P.w_u8((m_deadbody_can_take) ? 1 : 0);
     P.w_u8((m_deadbody_closed) ? 1 : 0);
     CGameObject::u_EventSend(P);
+}
+
+bool CInventoryOwner::Discharge(PIItem item, bool full)
+{
+	CMagazine* mag							= smart_cast<CMagazine*>(item);
+	CWeaponMagazined* wpn					= smart_cast<CWeaponMagazined*>(item);
+	CCartridge								cartridge;
+	bool flag								= false;
+	while ((mag) ? mag->GetCartridge(cartridge) : wpn->Discharge(cartridge))
+	{
+		bool given							= false;
+		if (pSettings->r_bool(cartridge.m_ammoSect, "heap"))
+		{
+			for (TIItemContainer::iterator I = inventory().m_all.begin(), E = inventory().m_all.end(); I != E; ++I)
+			{
+				CWeaponAmmo* heap			= smart_cast<CWeaponAmmo*>(*I);
+				if (heap && heap->m_section_id == cartridge.m_ammoSect && fEqual(heap->GetCondition(), cartridge.m_fCondition))
+				{
+					heap->ChangeAmmoCount	(1);
+					given					= true;
+					break;
+				}
+			}
+		}
+		if (!given)
+			GiveAmmo						(*cartridge.m_ammoSect, 1, cartridge.m_fCondition);
+
+		if (!full)
+			return							true;
+		flag								= true;
+	}
+
+	return									flag;
+}
+
+float CInventoryOwner::GetProtection(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const
+{
+	float res				= 0.f;
+	outfit					= GetOutfit();
+	helmet					= GetHelmet();
+
+	if (SHit::DamageType(hit_type) == 1)
+	{
+		res					= outfit ? outfit->GetBoneArmor(bone_id) : -1.f;
+		if (fEqual(res, -1.f))
+		{
+			res				= helmet ? helmet->GetBoneArmor(bone_id) : -1.f;
+			if (fEqual(res, -1.f))
+			{
+				res			= 0.f;
+				outfit		= NULL;
+				helmet		= NULL;
+			}
+			else
+				outfit		= NULL;
+		}
+		else
+			helmet			= NULL;
+	}
+
+	return res + GetProtectionArtefacts(hit_type);
+}
+
+float CInventoryOwner::GetProtectionArtefacts(ALife::EHitType hit_type) const
+{
+	float res	= 0.f;
+	for (xr_vector<CArtefact*>::const_iterator I = inventory().m_artefacts.begin(), E = inventory().m_artefacts.end(); I != E; I++)
+		res		+= (*I)->HitProtection(hit_type);
+	return		res;
+}
+
+void CInventoryOwner::HitArtefacts(float d_damage, ALife::EHitType hit_type) const
+{
+	for (xr_vector<CArtefact*>::const_iterator I = inventory().m_artefacts.begin(), E = inventory().m_artefacts.end(); I != E; I++)
+		(*I)->ProcessHit(d_damage, hit_type);
 }

@@ -51,7 +51,6 @@ void CEncyclopediaArticle::Load	(shared_str  id)
 	inherited_shared::load_shared(m_ArticleId, NULL);
 }
 
-
 void CEncyclopediaArticle::load_shared	(LPCSTR)
 {
 	const ITEM_DATA& item_data = *id_to_index::GetById(m_ArticleId);
@@ -73,15 +72,11 @@ void CEncyclopediaArticle::load_shared	(LPCSTR)
 	LPCSTR ltx = pXML->Read(pNode, "ltx", 0, NULL);
 
 
-	if(ltx)
+	if (ltx)
 	{
-		data()->image.SetShader(InventoryUtilities::GetEquipmentIconsShader());
-		Frect				tex_rect;
-		tex_rect.x1			= float(pSettings->r_u32(ltx, "inv_grid_x") * INV_GRID_WIDTH);
-		tex_rect.y1			= float(pSettings->r_u32(ltx, "inv_grid_y") * INV_GRID_HEIGHT);
-		tex_rect.x2			= float(pSettings->r_u32(ltx, "inv_grid_width") * INV_GRID_WIDTH);
-		tex_rect.y2			= float(pSettings->r_u32(ltx, "inv_grid_height") * INV_GRID_HEIGHT);
-		tex_rect.rb.add		(tex_rect.lt);
+		data()->image.SetShader(InventoryUtilities::GetEquipmentIconsShader(ltx));
+		Frect tex_rect;
+		CInventoryItem::ReadIcon(tex_rect, ltx);
 		data()->image.GetUIStaticItem().SetTextureRect(tex_rect);
 	}
 	else 

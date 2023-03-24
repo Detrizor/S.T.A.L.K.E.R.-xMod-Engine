@@ -36,6 +36,38 @@
 
 extern u32 hud_adj_mode;
 
+bool TryCustomUse(PIItem item)
+{
+	shared_str					functor_field;
+	LPCSTR functor_name			= NULL;
+	CGameObject* GO				= item->cast_game_object();
+	LPCSTR section_name			= *GO->cNameSect();
+
+	for (u8 i = 1; i <= 4; ++i)
+	{
+		functor_field.printf	("use%d_query_functor", i);
+		functor_name			= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+		if (functor_name)
+		{
+			luabind::functor<bool>			funct;
+			ai().script_engine().functor	(functor_name, funct);
+			if (funct(GO->lua_game_object(), i))
+			{
+				functor_field.printf		("use%d_action_functor", i);
+				functor_name				= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+				if (functor_name)
+				{
+					ai().script_engine().functor	(functor_name, funct);
+					funct							(GO->lua_game_object(), i);
+					return							true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 void CActor::IR_OnKeyboardPress(int cmd)
 {
 	if(hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
@@ -47,23 +79,31 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	
 	switch (cmd)
 	{
-	case kWPN_FIRE:
+	case kWPN_FIRE:{
+		u16 slot					= inventory().GetActiveSlot();
+		if (inventory().ActiveItem() && (slot == KNIFE_SLOT || slot == PISTOL_SLOT || slot == PRIMARY_SLOT || slot == SECONDARY_SLOT))
+			mstate_wishful			&=~mcSprint;
+		else if ((CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined))
 		{
-			u16 slot = inventory().GetActiveSlot();
-			if (inventory().ActiveItem() && (slot == KNIFE_SLOT || slot == PISTOL_SLOT || slot == PRIMARY_SLOT || slot == SECONDARY_SLOT))
-				mstate_wishful &=~mcSprint;
-			//-----------------------------
-			if (OnServer())
+			PIItem active_item		= inventory().ActiveItem();
+			if (!active_item || !TryCustomUse(active_item))
 			{
-				NET_Packet P;
-				P.w_begin(M_PLAYER_FIRE); 
-				P.w_u16(ID());
-				u_EventSend(P);
+				PIItem left_item	= inventory().LeftItem();
+				if (left_item)
+					TryCustomUse	(left_item);
 			}
+		}
+		//-----------------------------
+		if (OnServer())
+		{
+			NET_Packet P;
+			P.w_begin(M_PLAYER_FIRE); 
+			P.w_u16(ID());
+			u_EventSend(P);
+		}
 		}break;
 	default:
-		{
-		}break;
+		break;
 	}
 
 	if (!g_Alive()) return;
@@ -162,54 +202,28 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	case kQUICK_USE_9:
 	case kQUICK_USE_10:
 		{
-			u8 idx							= u8(cmd - kQUICK_USE_1);
-			const shared_str& item_name		= g_quick_use_slots[idx];
+			u8 idx									= u8(cmd - kQUICK_USE_1);
+			const shared_str& item_name				= g_quick_use_slots[idx];
 			if (item_name.size())
 			{
-				PIItem tmp					= NULL;
+				PIItem tmp							= NULL;
 
-				PIItem active_item			= inventory().ActiveItem();
-				PIItem left_item			= inventory().LeftItem();
-				PIItem itm					= inventory().Get(*item_name, idx);
-				if (active_item && active_item->m_section_id == item_name)
-					tmp						= active_item;
-				else if (left_item && left_item->m_section_id == item_name)
-					tmp						= left_item;
-				else if (itm)
-					tmp						= itm;
+				PIItem active_item					= inventory().ActiveItem();
+				PIItem left_item					= inventory().LeftItem();
+				if (active_item && active_item->Section(true) == item_name)
+					tmp								= active_item;
+				else if (left_item && left_item->Section(true) == item_name)
+					tmp								= left_item;
+				else
+					tmp								= inventory().Get(*item_name, idx, true);
 
 				if (tmp)
-				{
-					bool flag = false;
-					if (active_item)
-					{
-						CWeaponMagazined* wpn = smart_cast<CWeaponMagazined*>(active_item);
-						if (tmp->m_main_class == "magazine")
-						{
-							if (wpn)
-								flag = wpn->LoadMagazine(smart_cast<CEatableItem*>(tmp));
-						}
-						else if (tmp->FullClass() == "ammo.cartridge")
-						{
-							if (wpn)
-								flag = wpn->LoadCartridge(smart_cast<CWeaponAmmo*>(tmp));
-						}
-						else if (tmp->FullClass() == "ammo.grenade")
-						{
-							CWeaponMagazinedWGrenade* wpn_grenade = smart_cast<CWeaponMagazinedWGrenade*>(wpn);
-							if (wpn_grenade)
-								flag = wpn_grenade->LoadGrenade(smart_cast<CWeaponAmmo*>(tmp));
-						}
-					}
-
-					if (!flag)
-					{
-						if (tmp->InHands())
-							inventory().ActivateItem		(tmp, eItemPlacePocket, idx);
-						else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
-							inventory().ActivateItem		(tmp);
-					}
-				}
+					if (tmp->InHands() || active_item && tmp->BaseSlot() == active_item->BaseSlot() || left_item && tmp->HandSlot() == LEFT_HAND_SLOT)
+						inventory().ActivateItem	(tmp, eItemPlacePocket, idx);
+					else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
+						inventory().ActivateItem	(tmp);
+					else 
+						TryCustomUse				(tmp);
 			}
 		}break;
 	case kKICK:
@@ -218,6 +232,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	}
 }
 
+BOOL g_invert_zoom = 0;
 void CActor::IR_OnMouseWheel(int direction)
 {
 	if(hud_adj_mode)
@@ -226,12 +241,13 @@ void CActor::IR_OnMouseWheel(int direction)
 		return;
 	}
 
-	inventory().Action((direction > 0) ? (u16)kWPN_ZOOM_DEC : (u16)kWPN_ZOOM_INC, CMD_START);
+	inventory().Action((0 < direction != g_invert_zoom) ? (u16)kWPN_ZOOM_DEC : (u16)kWPN_ZOOM_INC, CMD_START);
 }
 
+extern BOOL g_hud_adjusment_mode;
 void CActor::IR_OnKeyboardRelease(int cmd)
 {
-	if(hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
+	if (hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
 
 	if (Remote())	return;
 
@@ -239,16 +255,18 @@ void CActor::IR_OnKeyboardRelease(int cmd)
 
 	if (g_Alive())	
 	{
-		if(m_holder)
+		if (m_holder)
 		{
 			m_holder->OnKeyboardRelease(cmd);
 			
 			if(m_holder->allowWeapon() && inventory().Action((u16)cmd, CMD_STOP))		return;
 			return;
-		}else
-			if(inventory().Action((u16)cmd, CMD_STOP))		return;
+		}
+		else if(inventory().Action((u16)cmd, CMD_STOP))
+			return;
 
-
+		if (g_hud_adjusment_mode)
+			return;
 
 		switch(cmd)
 		{
@@ -268,7 +286,7 @@ void CActor::IR_OnKeyboardRelease(int cmd)
 
 void CActor::IR_OnKeyboardHold(int cmd)
 {
-	if(hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
+	if (hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
 
 	if (Remote() || !g_Alive())					return;
 	if (m_input_external_handler && !m_input_external_handler->authorized(cmd))	return;
@@ -288,6 +306,10 @@ void CActor::IR_OnKeyboardHold(int cmd)
 		return;
 	}
 #endif //DEBUG
+
+	if (g_hud_adjusment_mode)
+		return;
+
 	float LookFactor = GetLookFactor();
 	switch(cmd)
 	{
@@ -304,7 +326,7 @@ void CActor::IR_OnKeyboardHold(int cmd)
 	case kSPRINT_TOGGLE:{
 		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
 		{
-			if (!isActorAccelerated(mstate_wishful, IsZoomAimingMode()))
+			if (!isActorAccelerated(mstate_wishful, IsZoomADSMode()))
 				mstate_wishful ^= mcAccel;
 			mstate_wishful |= mcSprint;
 			m_state_last_tg = Device.dwTimeGlobal;
@@ -351,17 +373,21 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 
 	float LookFactor = GetLookFactor();
 
-	CCameraBase* C	= cameras	[cam_active];
-	float scale		= (C->f_fov/g_fov)*psMouseSens * psMouseSensScale/50.f  / LookFactor;
-	if (dx){
-		float d = float(dx)*scale;
-		cam_Active()->Move((d<0)?kLEFT:kRIGHT, _abs(d));
+	float fov		= (Device.m_SecondViewport.IsSVPActive()) ? g_pGamePersistent->m_pGShaderConstants->hud_params.y : cameras[cam_active]->f_fov;
+	float scale		= (fov / g_fov) * psMouseSens * psMouseSensScale / 50.f / LookFactor;
+
+	if (dx)
+	{
+		float d				= float(dx) * scale;
+		cam_Active()->Move	((d < 0) ? kLEFT : kRIGHT, _abs(d));
 	}
-	if (dy){
-		float d = ((psMouseInvert.test(1))?-1:1)*float(dy)*scale*3.f/4.f;
-		cam_Active()->Move((d>0)?kUP:kDOWN, _abs(d));
+	if (dy)
+	{
+		float d				= ((psMouseInvert.test(1)) ? -1 : 1) * float(dy) * scale;
+		cam_Active()->Move	((d > 0) ? kUP : kDOWN, _abs(d));
 	}
 }
+
 #include "HudItem.h"
 bool CActor::use_Holder				(CHolderCustom* holder)
 {
@@ -407,133 +433,94 @@ bool CActor::use_Holder				(CHolderCustom* holder)
 	}
 }
 
-bool TryCustomUse(PIItem item)
+void CActor::ActorUse()
 {
-	if (item->cast_weapon() || smart_cast<CCustomDetector*>(item) || (item->InHands() && item->cast_hud_item()->GetState() != CHUDState::eIdle))
-		return false;
+	if (CurrentGameUI()->GetActorMenu().GetMenuMode() != mmUndefined)
+		return;
 
-	shared_str functor_field;
-	LPCSTR functor_name = NULL;
-	CGameObject* GO = item->cast_game_object();
-	shared_str section_name = GO->cNameSect();
-
-	for (u8 i = 1; i <= 4; ++i)
+	if (m_holder)
 	{
-		functor_field.printf("use%d_functor", i);
-		functor_name = READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
-		if (functor_name)
+		CGameObject*				GO = smart_cast<CGameObject*>(m_holder);
+		NET_Packet					P;
+		CGameObject::u_EventGen		(P, GEG_PLAYER_DETACH_HOLDER, ID());
+		P.w_u16						(GO->ID());
+		CGameObject::u_EventSend	(P);
+		return;
+	}
+
+	if (character_physics_support()->movement()->PHCapture())
+		character_physics_support()->movement()->PHReleaseObject();
+
+	if (m_pUsableObject && !m_pObjectWeLookingAt->cast_inventory_item())
+		m_pUsableObject->use(this);
+
+	if (m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
+	{
+		CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
+		if (pGameSP && !m_pInvBoxWeLookingAt->closed())
 		{
-			luabind::functor<bool>funct;
-			ai().script_engine().functor(functor_name, funct);
-			if (funct(GO->lua_game_object()))
-			{
-				functor_field.printf("use%d_action_functor", i);
-				functor_name = READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
-				if (functor_name)
-				{
-					ai().script_engine().functor(functor_name, funct);
-					funct(GO->lua_game_object(), i);
-					return true;
-				}
-			}
+			pGameSP->StartCarBody		(this, mmInvBoxSearch, (void*)m_pInvBoxWeLookingAt);
+			return;
 		}
 	}
 
-	return false;
-}
-
-void CActor::ActorUse()
-{
-	if (CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined)
+	if (m_pContainerWeLookingAt && !Level().IR_GetKeyState(DIK_LSHIFT))
 	{
-		if (m_holder)
+		CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
+		if (pGameSP)
 		{
-			CGameObject*				GO = smart_cast<CGameObject*>(m_holder);
+			pGameSP->StartCarBody		(this, mmContainerSearch, (void*)m_pContainerWeLookingAt);
+			return;
+		}
+	}
+
+	if (m_pUsableObject && !m_pUsableObject->nonscript_usable())
+		return;
+
+	bool bCaptured						= false;
+	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
+	CPhysicsShellHolder* object			= smart_cast<CPhysicsShellHolder*>(RQ.O);
+	if (object)
+	{
+		u16 element						= (u16)RQ.element;
+		if (Level().IR_GetKeyState(DIK_LSHIFT))
+		{
+			bool b_allow				= !!pSettings->line_exist("ph_capture_visuals", object->cNameVisual());
+			if (b_allow && !character_physics_support()->movement()->PHCapture())
+			{
+				character_physics_support()->movement()->PHCaptureObject(object, element);
+				bCaptured				= true;
+			}
+		}
+		else if (smart_cast<CHolderCustom*>(object))
+		{
 			NET_Packet					P;
-			CGameObject::u_EventGen		(P, GEG_PLAYER_DETACH_HOLDER, ID());
-			P.w_u16						(GO->ID());
+			CGameObject::u_EventGen		(P, GEG_PLAYER_ATTACH_HOLDER, ID());
+			P.w_u16						(object->ID());
 			CGameObject::u_EventSend	(P);
 			return;
 		}
+	}
 
-		if (character_physics_support()->movement()->PHCapture())
-			character_physics_support()->movement()->PHReleaseObject();
-
-		if (m_pUsableObject && !m_pObjectWeLookingAt->cast_inventory_item())
-			m_pUsableObject->use(this);
-
-		if (m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
+	if (m_pPersonWeLookingAt)
+	{
+		CEntityAlive* pEntityAliveWeLookingAt	= smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
+		VERIFY									(pEntityAliveWeLookingAt);
+		if (pEntityAliveWeLookingAt->g_Alive())
 		{
-			CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
-			if (pGameSP && !m_pInvBoxWeLookingAt->closed())
+			TryToTalk							();
+			return;
+		}
+		if (!bCaptured)
+		{
+			//только если находимся в режиме single
+			CUIGameSP* pGameSP					= smart_cast<CUIGameSP*>(CurrentGameUI());
+			if (pGameSP && !m_pPersonWeLookingAt->deadbody_closed_status() && pEntityAliveWeLookingAt->AlreadyDie())
 			{
-				pGameSP->StartCarBody		(this, m_pInvBoxWeLookingAt);
+				pGameSP->StartCarBody			(this, mmDeadBodySearch, (void*)m_pPersonWeLookingAt);
 				return;
 			}
 		}
-
-		if (!m_pUsableObject || m_pUsableObject->nonscript_usable())
-		{
-			bool bCaptured						= false;
-			collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
-			CPhysicsShellHolder* object			= smart_cast<CPhysicsShellHolder*>(RQ.O);
-			u16 element							= BI_NONE;
-			if (object)
-			{
-				element							= (u16)RQ.element;
-				if (Level().IR_GetKeyState(DIK_LSHIFT))
-				{
-					bool b_allow				= !!pSettings->line_exist("ph_capture_visuals", object->cNameVisual());
-					if (b_allow && !character_physics_support()->movement()->PHCapture())
-					{
-						character_physics_support()->movement()->PHCaptureObject(object, element);
-						bCaptured				= true;
-					}
-				}
-				else if (smart_cast<CHolderCustom*>(object))
-				{
-					NET_Packet					P;
-					CGameObject::u_EventGen		(P, GEG_PLAYER_ATTACH_HOLDER, ID());
-					P.w_u16						(object->ID());
-					CGameObject::u_EventSend	(P);
-					return;
-				}
-			}
-
-			if (m_pPersonWeLookingAt)
-			{
-				CEntityAlive* pEntityAliveWeLookingAt	= smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
-				VERIFY									(pEntityAliveWeLookingAt);
-				if (pEntityAliveWeLookingAt->g_Alive())
-				{
-					TryToTalk							();
-					return;
-				}
-				if (!bCaptured)
-				{
-					//только если находимся в режиме single
-					CUIGameSP* pGameSP					= smart_cast<CUIGameSP*>(CurrentGameUI());
-					if (pGameSP && !m_pPersonWeLookingAt->deadbody_closed_status() && pEntityAliveWeLookingAt->AlreadyDie())
-					{
-						pGameSP->StartCarBody			(this, m_pPersonWeLookingAt);
-						return;
-					}
-				}
-			}
-		}
-	}
-
-	if ((CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined) ? !m_bPickupMode : m_bPickupMode)
-	{
-		bool used					= false;
-		PIItem active_item			= inventory().ActiveItem();
-		PIItem left_item			= inventory().LeftItem();
-		if (active_item)
-			used					= TryCustomUse(active_item);
-		if (!used && left_item)
-			used					= TryCustomUse(left_item);
-		if (used)
-			m_bPickupMode			= false;
 	}
 }
 
@@ -684,7 +671,7 @@ void CActor::SwitchTorch()
 		if (det_active)
 		{
 			CCustomDetector* det = smart_cast<CCustomDetector*>(det_active);
-			if (det && det->FullClass() == "device.torch" && !det->IsHiding() && !det->IsShowing())
+			if (det && det->Category("device", "torch") && !det->IsHiding() && !det->IsShowing())
 				flashlight = true;
 		}
 		if (inventory().ItemFromSlot(HEADLAMP_SLOT) || flashlight)

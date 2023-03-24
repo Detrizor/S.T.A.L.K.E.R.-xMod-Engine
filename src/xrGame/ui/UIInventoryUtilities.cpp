@@ -11,6 +11,7 @@
 #include "../Inventory.h"
 #include "../InventoryOwner.h"
 #include "../InventoryBox.h"
+#include "../IItemContainer.h"
 
 #include "../InfoPortion.h"
 #include "game_base_space.h"
@@ -25,6 +26,9 @@
 #define CHAR_ICONS		 "ui\\ui_icons_npc"
 #define MAP_ICONS		 "ui\\ui_icons_map"
 #define MP_CHAR_ICONS	 "ui\\ui_models_multiplayer"
+
+const float inv_grid_size			= pSettings->r_float("miscellaneous", "inv_grid_size");
+const float inv_icon_spacing		= pSettings->r_float("miscellaneous", "inv_icon_spacing");
 
 const LPCSTR relationsLtxSection	= "game_relations";
 const LPCSTR ratingField			= "rating_names";
@@ -47,8 +51,9 @@ const LPCSTR st_months[12]= // StringTable for GetDateAsString()
 	"month_december"
 };
 
+associative_vector<shared_str, ui_shader*> g_EquipmentIconsShader;
+
 ui_shader	*g_BuyMenuShader			= NULL;
-ui_shader	*g_EquipmentIconsShader		= NULL;
 ui_shader	*g_MPCharIconsShader		= NULL;
 ui_shader	*g_OutfitUpgradeIconsShader	= NULL;
 ui_shader	*g_WeaponUpgradeIconsShader	= NULL;
@@ -67,15 +72,14 @@ void InventoryUtilities::CreateShaders()
 	g_tmpWMShader = xr_new<ui_shader>();
 	(*g_tmpWMShader)->create("effects\\wallmark",  "wm\\wm_grenade");
 	//g_tmpWMShader.create("effects\\wallmark",  "wm\\wm_grenade");
+
+	g_EquipmentIconsShader.clear();
 }
 
 void InventoryUtilities::DestroyShaders()
 {
 	xr_delete(g_BuyMenuShader);
 	g_BuyMenuShader = 0;
-
-	xr_delete(g_EquipmentIconsShader);
-	g_EquipmentIconsShader = 0;
 
 	xr_delete(g_MPCharIconsShader);
 	g_MPCharIconsShader = 0;
@@ -88,13 +92,16 @@ void InventoryUtilities::DestroyShaders()
 
 	xr_delete(g_tmpWMShader);
 	g_tmpWMShader = 0;
+
+	for (associative_vector<shared_str, ui_shader*>::iterator it = g_EquipmentIconsShader.begin(), it_e = g_EquipmentIconsShader.end(); it != it_e; it++)
+		xr_delete(it->second);
+	g_EquipmentIconsShader.clear();
 }
 
 bool InventoryUtilities::GreaterRoomInRuck(PIItem item1, PIItem item2)
 {
-	Ivector2 r1,r2;
-	r1				= item1->GetInvGridRect().rb;
-	r2				= item2->GetInvGridRect().rb;
+	Ivector2 r1 = CalculateIconSize(item1->GetIconRect(), pSettings->r_float(item1->m_section_id, "icon_scale"));
+	Ivector2 r2 = CalculateIconSize(item2->GetIconRect(), pSettings->r_float(item2->m_section_id, "icon_scale"));
 
 	if(r1.x > r2.x)			return true;
 	
@@ -137,7 +144,7 @@ bool InventoryUtilities::FreeRoom_inBelt	(TIItemContainer& item_list, PIItem _it
 	for(xr_vector<PIItem>::iterator it = item_list.begin(); (item_list.end() != it) && found_place; ++it) 
 	{
 		PIItem pItem = *it;
-		Ivector2 iWH = pItem->GetInvGridRect().rb; 
+		Ivector2 iWH = CalculateIconSize(pItem->GetIconRect(), pSettings->r_float(pItem->m_section_id, "icon_scale"));
 		//проверить можно ли разместить элемент,
 		//проверяем последовательно каждую клеточку
 		found_place = false;
@@ -200,15 +207,19 @@ const ui_shader& InventoryUtilities::GetBuyMenuShader()
 	return *g_BuyMenuShader;
 }
 
-const ui_shader& InventoryUtilities::GetEquipmentIconsShader()
-{	
-	if(!g_EquipmentIconsShader)
+const ui_shader& InventoryUtilities::GetEquipmentIconsShader(const shared_str& section)
+{
+	shared_str tex = pSettings->line_exist(section, "icon_texture") ? pSettings->r_string(section, "icon_texture") : pSettings->r_string(section, "category");
+	associative_vector<shared_str, ui_shader*>::iterator it = g_EquipmentIconsShader.find(tex);
+	if (it  == g_EquipmentIconsShader.end())
 	{
-		g_EquipmentIconsShader = xr_new<ui_shader>();
-		(*g_EquipmentIconsShader)->create("hud\\default", "ui\\ui_icon_equipment");
+		ui_shader* tmp = xr_new<ui_shader>();
+		(*tmp)->create("hud\\default", shared_str().printf("ui\\icon\\%s", *tex).c_str());
+		g_EquipmentIconsShader.insert(std::make_pair(tex, tmp));
+		it = g_EquipmentIconsShader.find(tex);
 	}
 
-	return *g_EquipmentIconsShader;
+	return *it->second;
 }
 
 const ui_shader&	InventoryUtilities::GetMPCharIconsShader()
@@ -388,28 +399,23 @@ LPCSTR InventoryUtilities::GetTimePeriodAsString(LPSTR _buff, u32 buff_sz, ALife
 
 //////////////////////////////////////////////////////////////////////////
 
-void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryBox* pInventoryBox)
+void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryContainer* cont)
 {
-	float								total_weight, total_volume;
-	float max_volume					= 0.f;
-	CActor* actor						= (pInventoryOwner) ? smart_cast<CActor*>(pInventoryOwner) : NULL;
+	float								total_weight, total_volume, max_volume;
 	if (pInventoryOwner)
 	{
 		total_weight					= pInventoryOwner->inventory().CalcTotalWeight();
 		total_volume					= pInventoryOwner->inventory().CalcTotalVolume();
-		if (actor)
-		{
-			CInventoryBox* container	= smart_cast<CInventoryBox*>(Level().Objects.net_Find((u16)pInventoryOwner->inventory().m_iRuckVboxID));
-			max_volume					= (container) ? container->GetCapacity() : pInventoryOwner->inventory().m_fRuckVboxCapacity;
-		}
+		max_volume						= 666.f;
 	}
 	else
 	{
-		total_weight					= pInventoryBox->CalcItemsWeight();
-		total_volume					= pInventoryBox->CalcItemsVolume();
-		max_volume						= pInventoryBox->GetCapacity();
+		total_weight					= cont->ItemsWeight();
+		total_volume					= cont->ItemsVolume();
+		max_volume						= cont->GetCapacity();
 	}
-
+	
+	bool actors							= !!smart_cast<CActor*>(pInventoryOwner);
 	u32									color_weight, color_volume;
 	if (pInventoryOwner && pInventoryOwner->is_alive())
 	{
@@ -420,7 +426,7 @@ void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVo
 		u32 green						= u32(255.f * (1 - d_weight)) * 2;
 		clamp<u32>						(green, 0, 255);
 		color_weight					= color_argb(255, red, green, 0);
-		color_volume					= ((actor || pInventoryBox) && (total_volume > max_volume)) ? color_argb(255, 255, 0, 0) : color_argb(255, 255, 255, 255);
+		color_volume					= ((actors || cont) && (total_volume > max_volume)) ? color_argb(255, 255, 0, 0) : color_argb(255, 255, 255, 255);
 	}
 	else
 		color_weight = color_volume		= color_argb(255, 255, 255, 255);
@@ -434,7 +440,7 @@ void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVo
 	pWeight->AdjustWidthToText			();
 
 	LPCSTR li_str						= CStringTable().translate("st_li").c_str();
-	if (actor || pInventoryBox)
+	if (actors || cont)
 		xr_sprintf						(buf, "%.2f/%.2f %s", total_volume, max_volume, li_str);
 	else
 		xr_sprintf						(buf, "%.2f %s", total_volume, li_str);
@@ -644,4 +650,43 @@ u32	InventoryUtilities::GetRelationColor(ALife::ERelationType relation)
 #ifdef DEBUG
 	return 0xffffffff;
 #endif
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, float icon_scale)
+{
+	Ivector2 res;
+	res.x = iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size);
+	res.y = iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size);
+	return res;
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, float icon_scale, Frect& margin)
+{
+	Ivector2 res = CalculateIconSize(icon_rect, icon_scale);
+
+	float cell_width = float(res.x) * inv_grid_size;
+	float cell_height = float(res.y) * inv_grid_size;
+	margin.x1 = margin.x2 = .5f * (cell_width - icon_scale * icon_rect.width()) / cell_width;
+	margin.y1 = margin.y2 = .5f * (cell_height - icon_scale * icon_rect.height()) / cell_height;
+
+	return res;
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, Frect& margin, const Frect& addons_rect)
+{
+	Ivector2 res = CalculateIconSize(addons_rect, 1.f);
+
+	float cell_width = float(res.x) * inv_grid_size;
+	float cell_height = float(res.y) * inv_grid_size;
+	margin.left = (icon_rect.left - addons_rect.left + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.top = (icon_rect.top - addons_rect.top + .5f * (cell_height - addons_rect.height())) / cell_height;
+	margin.right = (addons_rect.right - icon_rect.right + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.bottom = (addons_rect.bottom - icon_rect.bottom + .5f * (cell_height - addons_rect.height())) / cell_height;
+
+	return res;
+}
+
+const float& InventoryUtilities::GetInvGridSize()
+{
+	return inv_grid_size;
 }

@@ -107,7 +107,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
-
+	/*--xd
 	xr_vector<shared_str>				mag_types;
 	if (wpn)
 		mag_types						= wpn->m_magazineTypes;
@@ -184,7 +184,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	}
 	else
 		str._set						("---");
-	m_textGLauncherValue.SetText		(*str);
+	m_textGLauncherValue.SetText		(*str);*/
 }
 
 // -------------------------------------------------------------------------------------------------

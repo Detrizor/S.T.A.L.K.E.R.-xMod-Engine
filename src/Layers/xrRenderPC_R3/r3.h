@@ -342,6 +342,9 @@ public:
     virtual void					rmFar						();
     virtual void					rmNormal					();
     virtual u32 active_phase() {return phase;}; //Swatz: actor shadow
+
+	void RenderToTarget				() override;
+
     // Constructor/destructor/loader
     CRender							();
     virtual ~CRender				();

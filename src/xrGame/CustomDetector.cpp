@@ -78,43 +78,43 @@ bool  CCustomDetector::CheckCompatibility(CHudItem* itm)
 
 void CCustomDetector::HideDetector(bool bFastMode)
 {
-	if(GetState()==eIdle)
+	if (GetState() == eIdle || GetState() == eShowing)
 		ToggleDetector(bFastMode);
 }
 
 void CCustomDetector::ShowDetector(bool bFastMode)
 {
-	if(GetState()==eHidden)
+	if (GetState() == eHidden || GetState() == eHiding)
 		ToggleDetector(bFastMode);
 }
 
 void CCustomDetector::ToggleDetector(bool bFastMode)
 {
-	m_bNeedActivation		= false;
-	m_bFastAnimMode			= bFastMode;
+	m_bNeedActivation					= false;
+	m_bFastAnimMode						= bFastMode;
 
-	if(GetState()==eHidden)
+	if (GetState() == eHidden || GetState() == eHiding)
 	{
-		PIItem iitem = m_pInventory->ActiveItem();
-		CHudItem* itm = (iitem)?iitem->cast_hud_item():NULL;
-		u16 slot_to_activate = NO_ACTIVE_SLOT;
+		PIItem iitem					= m_pInventory->ActiveItem();
+		CHudItem* itm					= (iitem)?iitem->cast_hud_item():NULL;
+		u16 slot_to_activate			= NO_ACTIVE_SLOT;
 
-		if(CheckCompatibilityInt(itm, &slot_to_activate))
+		if (CheckCompatibilityInt(itm, &slot_to_activate))
 		{
-			if(slot_to_activate!=NO_ACTIVE_SLOT)
+			if (slot_to_activate != NO_ACTIVE_SLOT)
 			{
-				m_pInventory->Activate(slot_to_activate);
+				m_pInventory->Activate	(slot_to_activate);
 				m_bNeedActivation		= true;
-			}else
+			}
+			else
 			{
 				SwitchState				(eShowing);
 				TurnDetectorInternal	(true);
 			}
 		}
-	}else
-	if(GetState()==eIdle)
-		SwitchState					(eHiding);
-
+	}
+	else if (GetState() == eIdle || GetState() == eShowing)
+		SwitchState						(eHiding);
 }
 
 void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
@@ -197,6 +197,13 @@ CCustomDetector::~CCustomDetector()
 	xr_delete				(m_ui);
 }
 
+DLL_Pure* CCustomDetector::_construct()
+{
+	CItemAmountable::_construct	();
+	inherited::_construct		();
+	return						this;
+}
+
 BOOL CCustomDetector::net_Spawn(CSE_Abstract* DC) 
 {
 	TurnDetectorInternal(false);
@@ -206,6 +213,7 @@ BOOL CCustomDetector::net_Spawn(CSE_Abstract* DC)
 void CCustomDetector::Load(LPCSTR section) 
 {
 	inherited::Load			(section);
+	CItemAmountable::Load	(section);
 
 	m_fAfDetectRadius		= pSettings->r_float(section,"af_radius");
 	m_fAfVisRadius			= pSettings->r_float(section,"af_vis_radius");
@@ -215,7 +223,6 @@ void CCustomDetector::Load(LPCSTR section)
 	m_sounds.LoadSound( section, "snd_draw", "sndShow");
 	m_sounds.LoadSound( section, "snd_holster", "sndHide");
 }
-
 
 void CCustomDetector::shedule_Update(u32 dt) 
 {
@@ -346,6 +353,11 @@ void CCustomDetector::TurnDetectorInternal(bool b)
 	}
 
 	UpdateNightVisionMode	(b);
+}
+
+u32 CCustomDetector::Cost() const
+{
+	return					inherited::Cost() - NetCost();
 }
 
 

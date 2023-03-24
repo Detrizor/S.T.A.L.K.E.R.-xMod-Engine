@@ -1,6 +1,6 @@
 #pragma once
 #include "firedeps.h"
-
+#include "../xrEngine/ObjectAnimator.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "actor_defs.h"
@@ -28,17 +28,149 @@ struct player_hud_motion_container
 {
 	xr_vector<player_hud_motion>	m_anims;
 	player_hud_motion*				find_motion(const shared_str& name);
-	void		load				(IKinematicsAnimated* model, const shared_str& sect);
+	void		load				(IKinematicsAnimated* model, LPCSTR sect);
+};
+
+enum eMovementLayers
+{
+	eAimWalk = 0,
+	eAimCrouch,
+	eCrouch,
+	eWalk,
+	eRun,
+	eSprint,
+	move_anms_end
+};
+
+struct movement_layer
+{
+	CObjectAnimator* anm;
+	float blend_amount[2];
+	bool active;
+	float m_power;
+	Fmatrix blend;
+	u8 m_part;
+
+	movement_layer()
+	{
+		blend.identity();
+		anm = xr_new<CObjectAnimator>();
+		blend_amount[0] = 0.f;
+		blend_amount[1] = 0.f;
+		active = false;
+		m_power = 1.f;
+	}
+
+	void Load(LPCSTR name)
+	{
+		if (xr_strcmp(name, anm->Name()))
+			anm->Load(name);
+	}
+
+	void Play(bool bLoop = true)
+	{
+		if (!anm->Name())
+			return;
+
+		if (IsPlaying())
+		{
+			active = true;
+			return;
+		}
+		
+		anm->Play(bLoop);
+		active = true;
+	}
+
+	bool IsPlaying()
+	{
+		return anm->IsPlaying();
+	}
+
+	void Stop(bool bForce)
+	{
+		if (bForce)
+		{
+			anm->Stop();
+			blend_amount[0] = 0.f;
+			blend_amount[1] = 0.f;
+			blend.identity();
+		}
+
+		active = false;
+	}
+
+	const Fmatrix& XFORM(u8 part)
+	{
+		blend.set(anm->XFORM());
+		blend.mul(blend_amount[part] * m_power);
+		blend.m[0][0] = 1.f;
+		blend.m[1][1] = 1.f;
+		blend.m[2][2] = 1.f;
+
+		return blend;
+	}
+};
+
+struct script_layer
+{
+	shared_str m_name;
+	CObjectAnimator* anm;
+	float blend_amount;
+	float m_power;
+	bool active;
+	Fmatrix blend;
+	u8 m_part;
+
+	script_layer(LPCSTR name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true)
+	{
+		m_name = name;
+		m_part = part;
+		m_power = power;
+		blend.identity();
+		anm = xr_new<CObjectAnimator>();
+		anm->Load(name);
+		anm->Play(looped);
+		anm->Speed() = speed;
+		blend_amount = 0.f;
+		active = true;
+	}
+
+	bool IsPlaying()
+	{
+		return anm->IsPlaying();
+	}
+
+	void Stop(bool bForce)
+	{
+		if (bForce)
+		{
+			anm->Stop();
+			blend_amount = 0.f;
+			blend.identity();
+		}
+
+		active = false;
+	}
+
+	const Fmatrix& XFORM()
+	{
+		blend.set(anm->XFORM());
+		blend.mul(blend_amount * m_power);
+		blend.m[0][0] = 1.f;
+		blend.m[1][1] = 1.f;
+		blend.m[2][2] = 1.f;
+
+		return blend;
+	}
 };
 
 struct hud_item_measures
 {
-	enum{e_fire_point=(1<<0), e_fire_point2=(1<<1), e_shell_point=(1<<2), e_16x9_mode_now=(1<<3)};
+	enum{e_fire_point=(1<<0), e_fire_point2=(1<<1), e_shell_point=(1<<2)};
 	Flags8							m_prop_flags;
 
 	Fvector							m_item_attach[2];//pos,rot
-
-	Fvector							m_hands_offset[2][3];//pos,rot/ normal,aim,GL
 
 	u16								m_fire_bone;
 	Fvector							m_fire_point_offset;
@@ -49,15 +181,31 @@ struct hud_item_measures
 
 	Fvector							m_hands_attach[2];//pos,rot
 
-	void load						(const shared_str& sect_name, IKinematics* K);
+	void load						(LPCSTR hud_section, IKinematics* K);
+
+	Fvector							m_strafe_offset[4][2]; // pos,rot,data1,data2/ normal,aim-GL	 --#SM+#--
+
+	struct inertion_params
+	{
+		float m_tendto_speed;
+		float m_tendto_speed_aim;
+		float m_tendto_ret_speed;
+		float m_tendto_ret_speed_aim;
+
+		float m_min_angle;
+		float m_min_angle_aim;
+
+		Fvector4 m_offset_LRUD;
+		Fvector4 m_offset_LRUD_aim;
+	} m_inertion_params; //--#SM+#--
 };
 
 struct attachable_hud_item
 {
 	player_hud*						m_parent;
 	CHudItem*						m_parent_hud_item;
-	shared_str						m_sect_name;
-	shared_str						m_section_name;
+	shared_str						m_hud_section;
+	shared_str						m_object_section;
 	IKinematics*					m_model;
 	u16								m_attach_place_idx;
 	hud_item_measures				m_measures;
@@ -70,7 +218,7 @@ struct attachable_hud_item
 			
 			attachable_hud_item		(player_hud* pparent):m_parent(pparent),m_upd_firedeps_frame(u32(-1)),m_parent_hud_item(NULL){}
 			~attachable_hud_item	();
-	void load						(const shared_str& sect_name, const shared_str& section);
+	void load						(LPCSTR hud_section, LPCSTR object_section);
 	void update						(bool bForce);
 	void update_hud_additional		(Fmatrix& trans);
 	void setup_firedeps				(firedeps& fd);
@@ -82,26 +230,18 @@ struct attachable_hud_item
 	void debug_draw_firedeps		();
 
 	//hands bind position
-	Fvector&						hands_attach_pos();
-	Fvector&						hands_attach_rot();
-
-	//hands runtime offset
-	Fvector&						hands_offset_pos();
-	Fvector&						hands_offset_rot();
+	const Fvector&					hands_attach_pos() { return m_measures.m_hands_attach[0]; };
+	const Fvector&					hands_attach_rot() { return m_measures.m_hands_attach[1]; };
 
 //props
 	u32								m_upd_firedeps_frame;
 	void		tune				(Ivector values);
 	u32			anim_play			(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd);
-
 };
 
 class player_hud
 {
 public: 
-	static Fvector	m_hud_offset_pos;
-	static Fvector	m_hand_offset_pos;
-
 					player_hud			();
 					~player_hud			();
 	void			load				(const shared_str& model_name);
@@ -113,7 +253,11 @@ public:
 	u32				anim_play			(u16 part, const MotionID& M, BOOL bMixIn, const CMotionDef*& md, float speed);
 	const shared_str& section_name		() const {return m_sect_name;}
 
-	attachable_hud_item* create_hud_item(const shared_str& sect, const shared_str& section);
+	//Movement animation layers: 0 = aim_walk, 1 = aim_crouch, 2 = crouch, 3 = walk, 4 = run, 5 = sprint
+	xr_vector<movement_layer*>			m_movement_layers;
+	xr_vector<script_layer*>			m_script_layers;
+
+	attachable_hud_item* create_hud_item(LPCSTR hud_section, LPCSTR object_section);
 
 	void			attach_item			(CHudItem* item);
 	bool			allow_activation	(CHudItem* item);
@@ -127,10 +271,11 @@ public:
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
 	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
-private:
-	void			update_inertion		(Fmatrix& trans);
-	void			update_additional	(Fmatrix& trans);
 	bool			inertion_allowed	();
+
+private:
+	void			update_additional	(Fmatrix& trans);
+
 private:
 	const Fvector&	attach_rot			() const;
 	const Fvector&	attach_pos			() const;
@@ -145,6 +290,10 @@ private:
 	attachable_hud_item*				m_attached_items[2];
 	xr_vector<attachable_hud_item*>		m_pool;
 
+public:
+			void			updateMovementLayerState();
+			void			PlayBlendAnm			(LPCSTR name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false);
+			void			StopBlendAnm			(LPCSTR name, bool bForce = false);
 };
 
 extern player_hud* g_player_hud;

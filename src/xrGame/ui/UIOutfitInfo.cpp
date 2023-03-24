@@ -13,9 +13,6 @@
 #include "..\player_hud.h"
 #include "purchase_list.h"
 
-float m_max_protections[]			= { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-float m_max_protections_helm[]		= { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-
 LPCSTR protection_sections[] =
 {
 	"burn_protection",
@@ -54,13 +51,13 @@ void CUIOutfitProtection::InitFromXml(CUIXml& xml_doc, LPCSTR base_str, u32 type
 	m_name.TextItemControl()->SetTextST		(protection_captions[type]);
 	strconcat								(sizeof(buf), buf, base_str, ":", protection_sections[type], ":static_value");
 	CUIXmlInit::InitTextWnd					(xml_doc, buf, 0, &m_value);
-	m_levels								= (u8)xml_doc.ReadAttribInt(buf, 0, "levels", 1);
+	m_magnitude								= xml_doc.ReadAttribFlt(buf, 0, "magnitude", 1.f);
 }
 
 void CUIOutfitProtection::SetValue(float value)
 {
 	shared_str			str;
-	str.printf			("%.1f", value * (float)m_levels);
+	str.printf			("%.2f", value * m_magnitude);
 	m_value.SetText		(*str);
 }
 
@@ -91,24 +88,20 @@ void CUIOutfitInfo::InitFromXml(CUIXml& xml_doc)
 	strconcat						(sizeof(buf), buf, base_str, ":", "prop_line");
 	CUIXmlInit::InitStatic			(xml_doc, buf, 0, m_Prop_line);
 
-	Fvector2	pos;
-	pos.set		(0.0f, m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y);
-
 	m_textArmorClass					= xr_new<CUITextWnd>();
 	AttachChild							(m_textArmorClass);
 	m_textArmorClass->SetAutoDelete		(true);
 	strconcat							(sizeof(buf), buf, base_str, ":", "armor_class");
 	CUIXmlInit::InitTextWnd				(xml_doc, buf, 0, m_textArmorClass);
-	m_textArmorClass->SetWndPos			(pos);
-	pos.x								+= m_textArmorClass->GetWndSize().x;
 
 	m_textArmorClassValue					= xr_new<CUITextWnd>();
 	AttachChild								(m_textArmorClassValue);
 	m_textArmorClassValue->SetAutoDelete	(true);
 	strconcat								(sizeof(buf), buf, base_str, ":", "armor_class_value");
 	CUIXmlInit::InitTextWnd					(xml_doc, buf, 0, m_textArmorClassValue);
-	m_textArmorClassValue->SetWndPos		(pos);
-	pos.x									= m_textArmorClass->GetWndPos().x;
+
+	Fvector2								pos;
+	pos.set									(m_textArmorClass->GetWndPos());
 	pos.y									+= m_textArmorClass->GetWndSize().y;
 
 	//Alundaio: Specific Display Order
@@ -146,47 +139,6 @@ void CUIOutfitInfo::InitFromXml(CUIXml& xml_doc)
 	SetWndSize	(pos);
 }
 
-void InitMaxProtValues()
-{
-	extern CItems										ITEMS;
-	MAINCLASS main_class								= ITEMS.Get("outfit");
-	for (SUBCLASS subclass = main_class->second.begin(), subclass_e = main_class->second.end(); subclass != subclass_e; ++subclass)
-	{
-		if (subclass->first == "backpack")
-			continue;
-		if (subclass->first == "helmet")
-		{
-			for (DIVISION division = subclass->second.begin(), division_e = subclass->second.end(); division != division_e; ++division)
-			{
-				for (SECTION section = division->second.begin(), section_e = division->second.end(); section != section_e; ++section)
-				{
-					for (u8 i = 0; i < eProtectionTypeMax; ++i)
-					{
-						float val						= pSettings->r_float(*section, protection_sections[i]);
-						if (val > m_max_protections_helm[i])
-							m_max_protections_helm[i]	= val;
-					}
-				}
-			}
-		}
-		else
-		{
-			for (DIVISION division = subclass->second.begin(), division_e = subclass->second.end(); division != division_e; ++division)
-			{
-				for (SECTION section = division->second.begin(), section_e = division->second.end(); section != section_e; ++section)
-				{
-					for (u8 i = 0; i < eProtectionTypeMax; ++i)
-					{
-						float val						= pSettings->r_float(*section, protection_sections[i]);
-						if (val > m_max_protections[i])
-							m_max_protections[i]		= val;
-					}
-				}
-			}
-		}
-	}
-}
-
 void CUIOutfitInfo::UpdateInfoSuit(CUICellItem* itm)
 {
 	CActor* actor			= smart_cast<CActor*>(Level().CurrentViewEntity());
@@ -200,9 +152,6 @@ void CUIOutfitInfo::UpdateInfoSuit(CUICellItem* itm)
 	for (u32 i = 0; i < eProtectionTypeMax; ++i)
 	{
 		float val					= (outfit) ? outfit->GetHitTypeProtection((ALife::EHitType)i) : pSettings->r_float(itm->m_section, protection_sections[i]);
-		if (m_max_protections[i] == 0.f)
-			InitMaxProtValues		();
-		val							/= m_max_protections[i];
 		m_items[i]->SetValue		(val);
 	}
 
@@ -234,9 +183,6 @@ void CUIOutfitInfo::UpdateInfoHelmet(CUICellItem* itm)
 	for (u32 i = 0; i < eProtectionTypeMax; ++i)
 	{
 		float val					= (helmet) ? helmet->GetHitTypeProtection((ALife::EHitType)i) : pSettings->r_float(itm->m_section, protection_sections[i]);
-		if (m_max_protections_helm[i] == 0.f)
-			InitMaxProtValues		();
-		val							/= m_max_protections_helm[i];
 		m_items[i]->SetValue		(val);
 	}
 

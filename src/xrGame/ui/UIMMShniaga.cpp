@@ -99,10 +99,8 @@ extern CActor*		g_actor;
 
 void CUIMMShniaga::CreateList(xr_vector<CUITextWnd*>& lst, CUIXml& xml_doc, LPCSTR path)
 {
-	CGameFont* pF;
-	u32	color;
-	float button_height				= xml_doc.ReadAttribFlt("button", 0, "h");
-	R_ASSERT						(button_height);
+	CGameFont*						pF;
+	u32								color;
 
 	CUIXmlInit::InitFont			(xml_doc, path, 0, color, pF);
 	R_ASSERT						(pF);
@@ -117,8 +115,9 @@ void CUIMMShniaga::CreateList(xr_vector<CUITextWnd*>& lst, CUIXml& xml_doc, LPCS
 	for (int i = 0; i < nodes_num; ++i)
 	{		
 		st							= xr_new<CUITextWnd>();
-		st->SetWndPos				(Fvector2().set(0,0));
-		st->SetWndSize				(Fvector2().set(m_view->GetDesiredChildWidth(), button_height));
+		//AttachChild					(st);
+		st->SetWidth				(m_view->GetDesiredChildWidth());
+		st->SetHeight				(m_shniaga->GetHeight());
 		st->SetFont					(pF);
 		st->SetTextComplexMode		(false);
 		st->SetTextST				(xml_doc.ReadAttrib	("btn", i, "caption"));

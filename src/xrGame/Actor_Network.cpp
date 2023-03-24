@@ -67,7 +67,7 @@ CActor*			Actor()
 void	CActor::ConvState(u32 mstate_rl, string128 *buf)
 {
 	xr_strcpy(*buf, "");
-	if (isActorAccelerated(mstate_rl, IsZoomAimingMode()))		xr_strcat(*buf, "Accel ");
+	if (isActorAccelerated(mstate_rl, IsZoomADSMode()))		xr_strcat(*buf, "Accel ");
 	if (mstate_rl&mcCrouch)		xr_strcat(*buf, "Crouch ");
 	if (mstate_rl&mcFwd)		xr_strcat(*buf, "Fwd ");
 	if (mstate_rl&mcBack)		xr_strcat(*buf, "Back ");
@@ -1797,8 +1797,4 @@ bool CActor::InventoryAllowSprint()
 
 void CActor::On_B_NotCurrentEntity()
 {
-#ifndef MASTER_GOLD
-	Msg("CActor::On_B_NotCurrentEntity");
-#endif // #ifndef MASTER_GOLD
-	inventory().Items_SetCurrentEntityHud(false);
-};
+}

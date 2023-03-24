@@ -28,8 +28,6 @@ void CWeaponShotgun::Load(LPCSTR section)
 		m_sounds.LoadSound			(section, "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
 		m_sounds.LoadSound			(section, "snd_close_weapon", "sndClose", false, m_eSoundClose);
 	}
-
-	m_bHasChamber					= !!READ_IF_EXISTS(pSettings, r_bool, section, "has_chamber", false);
 }
 
 bool CWeaponShotgun::Action(u16 cmd, u32 flags) 
@@ -179,11 +177,7 @@ bool CWeaponShotgun::HaveCartridgeInInventory(u8 cnt)
 		return						false;
 
 	if (ParentIsActor())
-	{
-		PIItem to_reload			= GetToReload();
-		CWeaponAmmo* cartridges		= smart_cast<CWeaponAmmo*>(to_reload);
-		return						(cartridges && cartridges->m_boxCurr >= cnt);
-	}
+		return						(m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() >= cnt);
 	else
 	{
 		u32 ac						= GetAmmoCount(m_ammoType);
@@ -213,12 +207,11 @@ bool CWeaponShotgun::AddCartridge()
 	CWeaponAmmo*					cartridges;
 	if (ParentIsActor())
 	{
-		PIItem to_reload			= GetToReload();
-		if (!to_reload)
+		if (!m_pCartridgeToReload)
 			return					false;
-
-		FindAmmoClass				(*to_reload->m_section_id, true);
-		cartridges					= smart_cast<CWeaponAmmo*>(to_reload);
+		
+		cartridges					= m_pCartridgeToReload;
+		FindAmmoClass				(*cartridges->m_section_id, true);
 	}
 	else
 	{
@@ -247,9 +240,6 @@ bool CWeaponShotgun::AddCartridge()
 		return						false;
 
 	VERIFY							((u32)iAmmoElapsed == m_magazine.size());
-
-	if (!cartridges->m_boxCurr && OnServer())
-		cartridges->SetDropManual	(TRUE);
 
 	return							true;
 }

@@ -39,7 +39,6 @@ class CDebugRenderer;
 #endif
 
 extern float g_fov;
-extern float g_scope_fov;
 extern int g_objects_per_client_update;
 
 const int maxRP = 64;
@@ -290,6 +289,7 @@ public:
     float GetGameTimeFactor();
     void SetGameTimeFactor(const float fTimeFactor);
     void SetGameTimeFactor(ALife::_TIME_ID GameTime, const float fTimeFactor);
+    void SetEnvironmentGameTimeFactor(float const& fTimeFactor);
     virtual void SetEnvironmentGameTimeFactor(u64 const& GameTime, float const& fTimeFactor);
     // gets current daytime [0..23]
     u8 GetDayTime();

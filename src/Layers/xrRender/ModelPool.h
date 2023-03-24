@@ -48,7 +48,7 @@ public:
 	virtual 				~CModelPool			();
 	dxRender_Visual*			Instance_Create		(u32 Type);
 	dxRender_Visual*			Instance_Duplicate	(dxRender_Visual* V);
-	dxRender_Visual*			Instance_Load		(LPCSTR N, BOOL allow_register);
+	dxRender_Visual*			Instance_Load		(xr_string _N, BOOL allow_register);
 	dxRender_Visual*			Instance_Load		(LPCSTR N, IReader* data, BOOL allow_register);
 	void					Instance_Register	(LPCSTR N, dxRender_Visual* V);
 	dxRender_Visual*			Instance_Find		(LPCSTR N);

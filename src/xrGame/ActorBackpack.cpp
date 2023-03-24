@@ -2,11 +2,11 @@
 #include "ActorBackpack.h"
 #include "Actor.h"
 #include "Inventory.h"
+#include "InventoryBox.h"
 
 CBackpack::CBackpack()
 {
 	m_flags.set		(FUsingCondition, FALSE);
-	m_capacity		= 0.f;
 }
 
 CBackpack::~CBackpack()
@@ -17,7 +17,6 @@ void CBackpack::Load(LPCSTR section)
 {
 	inherited::Load		(section);
 	m_flags.set			(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", TRUE));
-	m_capacity			= READ_IF_EXISTS(pSettings, r_float, section, "capacity", 10.f);
 }
 
 BOOL CBackpack::net_Spawn(CSE_Abstract* DC)
@@ -59,7 +58,11 @@ void CBackpack::Hit(float hit_power, ALife::EHitType hit_type)
 
 bool CBackpack::install_upgrade_impl(LPCSTR section, bool test)
 {
-	bool result		= inherited::install_upgrade_impl(section, test);
-	result			|= process_if_exists(section, "capacity", m_capacity, test);
-	return			result;
+	bool result					= inherited::install_upgrade_impl(section, test);
+	float						tmp;
+	bool result2				= process_if_exists(section, "capacity", tmp, test);
+	if (result2)
+		SetCapacity				(tmp);
+	result						|= result2;
+	return						result;
 }

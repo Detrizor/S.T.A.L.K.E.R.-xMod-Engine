@@ -691,11 +691,10 @@ public:
     }
 };
 
-
-ENGINE_API float psHUD_FOV = 0.45f;
+ENGINE_API float VIEWPORT_NEAR = .2f;
+ENGINE_API float VIEWPORT_NEAR_HUD = .005f;
 
 //extern int psSkeletonUpdate;
-extern int rsDVB_Size;
 extern int rsDIB_Size;
 extern int psNET_ClientUpdate;
 extern int psNET_ClientPending;
@@ -776,7 +775,6 @@ void CCC_Register()
     CMD2(CCC_Gamma, "rs_c_gamma", &ps_gamma);
     CMD2(CCC_Gamma, "rs_c_brightness", &ps_brightness);
     CMD2(CCC_Gamma, "rs_c_contrast", &ps_contrast);
-    // CMD4(CCC_Integer, "rs_vb_size", &rsDVB_Size, 32, 4096);
     // CMD4(CCC_Integer, "rs_ib_size", &rsDIB_Size, 32, 4096);
 
     // Texture manager
@@ -849,9 +847,11 @@ void CCC_Register()
 
     CMD1(CCC_HideConsole, "hide");
 
+	CMD4(CCC_Float, "r_viewport_near", &VIEWPORT_NEAR, 0.f, 1.f);
+	CMD4(CCC_Float, "r_viewport_near_hud", &VIEWPORT_NEAR_HUD, 0.f, 1.f);
+
 #ifdef DEBUG
     extern BOOL debug_destroy;
     CMD4(CCC_Integer, "debug_destroy", &debug_destroy, FALSE, TRUE);
 #endif
 };
-

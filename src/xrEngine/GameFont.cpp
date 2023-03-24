@@ -10,8 +10,7 @@ unsigned short int mbhMulti2Wide
 ( wide_char* WideStr , wide_char* WidePos , const unsigned short int WideStrSize , const char* MultiStr ) {return 0;};
 #endif
 
-extern ENGINE_API BOOL g_bRendering;
-ENGINE_API Fvector2 g_current_font_scale = {1.0f, 1.0f};
+ENGINE_API float g_font_scale = 1.f;
 
 #include "../Include/xrAPI/xrAPI.h"
 #include "../Include/xrRender/RenderFactory.h"
@@ -291,7 +290,7 @@ u16 CGameFont::SplitByWidth(u16* puBuffer, u16 uBufferSize, float fTargetWidth, 
 
 void CGameFont::MasterOut(
     BOOL bCheckDevice, BOOL bUseCoords, BOOL bScaleCoords, BOOL bUseSkip,
-    float _x, float _y, float _skip, LPCSTR fmt, va_list p)
+	float _x, float _y, float _skip, float scale, LPCSTR fmt, va_list p)
 {
     if (bCheckDevice && (!RDEVICE.b_is_Active))
         return;
@@ -303,6 +302,7 @@ void CGameFont::MasterOut(
     rs.c = dwCurrentColor;
     rs.height = fCurrentHeight;
     rs.align = eCurrentAlignment;
+	rs.scale = fMore(scale, 0.f) ? scale : (float)Device.dwHeight / 1080.f;		//--xd костыль, исправить
 #ifndef _EDITOR
     int vs_sz = vsprintf_s(rs.string, fmt, p);
 #else
@@ -323,24 +323,29 @@ void CGameFont::MasterOut(
         OutSkip(_skip);
 }
 
-#define MASTER_OUT(CHECK_DEVICE,USE_COORDS,SCALE_COORDS,USE_SKIP,X,Y,SKIP,FMT) \
+#define MASTER_OUT(CHECK_DEVICE,USE_COORDS,SCALE_COORDS,USE_SKIP,X,Y,SKIP,SCALE,FMT) \
  { va_list p; va_start ( p , fmt ); \
- MasterOut( CHECK_DEVICE , USE_COORDS , SCALE_COORDS , USE_SKIP , X , Y , SKIP , FMT, p ); \
+ MasterOut( CHECK_DEVICE , USE_COORDS , SCALE_COORDS , USE_SKIP , X , Y , SKIP , SCALE , FMT, p ); \
  va_end( p ); }
 
 void __cdecl CGameFont::OutI(float _x, float _y, LPCSTR fmt, ...)
 {
-    MASTER_OUT(FALSE, TRUE, TRUE, FALSE, _x, _y, 0.0f, fmt);
+	MASTER_OUT(FALSE, TRUE, TRUE, FALSE, _x, _y, 0.0f, 0.f, fmt);
+};
+
+void __cdecl CGameFont::OutS(float _x, float _y, float scale, LPCSTR fmt, ...)
+{
+	MASTER_OUT(TRUE, TRUE, FALSE, FALSE, _x, _y, 0.0f, scale, fmt);
 };
 
 void __cdecl CGameFont::Out(float _x, float _y, LPCSTR fmt, ...)
 {
-    MASTER_OUT(TRUE, TRUE, FALSE, FALSE, _x, _y, 0.0f, fmt);
+	MASTER_OUT(TRUE, TRUE, FALSE, FALSE, _x, _y, 0.0f, 0.f, fmt);
 };
 
 void __cdecl CGameFont::OutNext(LPCSTR fmt, ...)
 {
-    MASTER_OUT(TRUE, FALSE, FALSE, TRUE, 0.0f, 0.0f, 1.0f, fmt);
+	MASTER_OUT(TRUE, FALSE, FALSE, TRUE, 0.0f, 0.0f, 1.0f, 0.f, fmt);
 };
 
 

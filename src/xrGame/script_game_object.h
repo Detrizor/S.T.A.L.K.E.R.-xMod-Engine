@@ -19,8 +19,6 @@
 #include "medkit.h"
 #include "antirad.h"
 #include "CustomOutfit.h"
-#include "Scope.h"
-#include "Silencer.h"
 #include "GrenadeLauncher.h"
 #include "Weapon.h"
 #include "WeaponMagazined.h"
@@ -42,6 +40,9 @@
 #include "BottleItem.h"
 #include "danger_object.h"
 #include "danger_manager.h"
+
+#include "xmod\scope.h"
+#include "xmod\silencer.h"
 
 enum EPdaMsg;
 enum ESoundTypes;
@@ -193,7 +194,6 @@ public:
             u32					Cost				() const;
             float				GetCondition		() const;
             void				SetCondition		(float val);
-            void				ChangeCondition		(float val);
 
     // CEntity
     _DECLARE_FUNCTION10	(DeathTime	,	u32		);
@@ -365,20 +365,17 @@ public:
 
             void				ActorLookAtPoint	(Fvector point);
             void				IterateInventory	(luabind::functor<bool> functor, luabind::object object, int division_index = 0);
-            void				IterateInventoryBox	(luabind::functor<bool> functor, luabind::object object);
+            void				IterateInventoryBox	(luabind::functor<bool> functor, luabind::object object) const;
             void				MarkItemDropped		(CScriptGameObject *item, bool flag = true);
             bool				MarkedDropped		(CScriptGameObject *item);
-            void				Discharge			(bool spawn = false);
 
             void				DropItem			(CScriptGameObject* pItem);
             void				DropItemAndTeleport	(CScriptGameObject* pItem, Fvector position);
             void				ForEachInventoryItems(const luabind::functor<bool> &functor);
             void				TransferItem		(CScriptGameObject* pItem, CScriptGameObject* pForWho);
             void				TransferMoney		(int money, CScriptGameObject* pForWho);
-            u32					Money				();
-			bool				InfinitiveMoney		();
-            void				SetMoney			(u32 money);
             void				GiveMoney			(int money);
+            u32					Money				();
             void				MakeItemActive		(CScriptGameObject* pItem);
             
             void				SetRelation			(ALife::ERelationType relation, CScriptGameObject* pWhoToSet);
@@ -411,13 +408,8 @@ public:
             void				RestoreWeapon		();
             void				AllowSprint			(bool b);
 
-            bool				Weapon_IsGrenadeLauncherAttached();
             bool				Weapon_IsScopeAttached			();
             bool				Weapon_IsSilencerAttached		();
-
-            int					Weapon_GrenadeLauncher_Status	();
-            int					Weapon_Scope_Status				();
-            int					Weapon_Silencer_Status			();
 
             LPCSTR				ProfileName			();
             LPCSTR				CharacterName		();
@@ -437,7 +429,6 @@ public:
             u32					GetInventoryObjectCount() const;
 
 			CScriptGameObject*	GetActiveItem();
-			CScriptGameObject*	GetLeftItem();
 
             CScriptGameObject	*GetObjectByName	(LPCSTR caObjectName) const;
             CScriptGameObject	*GetObjectByIndex	(int iIndex) const;
@@ -469,7 +460,6 @@ public:
             LPCSTR				GetPatrolPathName	();
             u32					GetAmmoElapsed		();
             void				SetAmmoElapsed		(int ammo_elapsed);
-            u32					GetSuitableAmmoTotal		() const;
             void				SetQueueSize		(u32 queue_size);
             CScriptGameObject	*GetBestEnemy		();
             const CDangerObject	*GetBestDanger		();
@@ -668,10 +658,6 @@ public:
             CScriptGameObject	*active_detector					() const;
             u32					active_slot							();
             void				activate_slot						(u32 slot_id);
-			void				ActivateItem						(CScriptGameObject* obj, u16 return_place = 0, u16 return_slot = 0);
-			void				Ruck								(CScriptGameObject* obj);
-			void				Slot								(CScriptGameObject* obj, u16 slot_id);
-			void				Pocket								(CScriptGameObject* obj, int pocket_id);
             void				enable_level_changer				(bool b);
             bool				is_level_changer_enabled			();
             void				set_level_changer_invitation		(LPCSTR str);
@@ -854,7 +840,6 @@ public:
 			bool				Use(CScriptGameObject* obj);
 			void				StartTrade(CScriptGameObject* obj);
 			void				StartUpgrade(CScriptGameObject* obj);
-			void				SetWeight(float w);
 			void				IterateFeelTouch(const luabind::functor<bool> &functor);
 			u32					GetSpatialType();
 			void				SetSpatialType(u32 sptype);
@@ -868,19 +853,12 @@ public:
 			void				RemoveMemoryVisibleObject(const MemorySpace::CVisibleObject &memory_object);
 
 			//Weapon
-			void				Weapon_SetCurrentScope(u8 type);
-			u8					Weapon_GetCurrentScope();
 			void				Weapon_AddonAttach(CScriptGameObject* item);
-			void				Weapon_AddonDetach(LPCSTR item_section, bool b_spawn_item);
-			bool				HasAmmoType(u8 type);
-			int					GetAmmoCount(u8 type);
-			void				SetAmmoType(u8 type);
 			void				SetMainWeaponType(u32 type);
 			void				SetWeaponType(u32 type);
 			u32					GetMainWeaponType();
 			u32					GetWeaponType();
 			u8					GetWeaponSubstate();
-			u8					GetAmmoType();
 
 			//CWeaponAmmo
 			u16					AmmoGetCount();
@@ -909,12 +887,6 @@ public:
 			//Anything with PPhysicShell (ie. car, actor, stalker, monster, heli)
 			void				ForceSetPosition(Fvector pos, bool bActivate = false);
 
-			//Eatable items
-			u8					GetMaxUses();
-			u8					GetRemainingUses();
-			void				SetRemainingUses(u8 value);
-			void				ChangeRemainingUses(int value);
-
 			//Phantom
 			void				PhantomSetEnemy(CScriptGameObject*);
 
@@ -934,21 +906,13 @@ public:
 			void		SetCharacterIcon(LPCSTR iconName);
 #endif
 //-Alundaio
-			
+
+//xMod functions
 			float				Volume					() const;
-			void				SetVolume				(float v);
 			float				GetTotalVolume			() const;
-			LPCSTR				CustomData				();
-			void				SetCustomData			(LPCSTR data);
-			void				AppendCustomData		(u8 data);
-			LPCSTR				GetMagazine				();
-			void				SetMagazine				(LPCSTR data);
-			u8					GetGrenade				();
+			u8					GetGrenade				() const;
 			void				SetGrenade				(u8 cnt);
-			u8					MagazineIndex			();
-			void				SetMagazineIndex		(u8 index);
-			bool				LoadMagazine			(CScriptGameObject* obj);
-			bool				LoadCartridge			(CScriptGameObject* obj);
+			void				LoadCartridge			(CScriptGameObject* obj);
 			bool				LoadGrenade				(CScriptGameObject* obj);
 			void				ActorSetHealth			(float h);
 			void				ActorSetPower			(float p);
@@ -957,33 +921,61 @@ public:
 			void				ActorSetAccelBlock		(bool p);
 			float				GetInventoryCapacity	();
 			CSE_Abstract*		GiveObjects				(LPCSTR section, u16 count, float condition, bool dont_reg);
-			CSE_Abstract*		GiveObjects1			(LPCSTR section, u16 count, float condition)					{ return GiveObjects(section, count, condition, false); }
-			CSE_Abstract*		GiveObjects2			(LPCSTR section, u16 count)										{ return GiveObjects1(section, count, 1.f); }
-			CSE_Abstract*		GiveObject				(LPCSTR section, float condition, bool dont_reg)				{ return GiveObjects(section, 1, condition, dont_reg); }
-			CSE_Abstract*		GiveObject1				(LPCSTR section, float condition)								{ return GiveObject(section, condition, false); }
-			CSE_Abstract*		GiveObject2				(LPCSTR section)												{ return GiveObject1(section, 1.f); }
-			CSE_Abstract*		GiveAmmo				(LPCSTR section, u16 count);
-			CSE_Abstract*		GiveAmmo1				(LPCSTR section)												{ return GiveAmmo(section, 1); }
-			LPCSTR				MainClass				();
-			LPCSTR				Subclass				();
-			LPCSTR				Division				();
-			LPCSTR				FullClass				(bool with_division = false);
+			CSE_Abstract*		GiveObjects1			(LPCSTR section, u16 count, float condition)										{ return GiveObjects(section, count, condition, false); }
+			CSE_Abstract*		GiveObjects2			(LPCSTR section, u16 count)															{ return GiveObjects1(section, count, 1.f); }
+			CSE_Abstract*		GiveObjects3			(LPCSTR section)																	{ return GiveObjects2(section, 1); }
+			CSE_Abstract*		GiveObject				(LPCSTR section, float condition, bool dont_reg)									{ return GiveObjects(section, 1, condition, dont_reg); }
+			CSE_Abstract*		GiveObject1				(LPCSTR section, float condition)													{ return GiveObject(section, condition, false); }
+			CSE_Abstract*		GiveObject2				(LPCSTR section)																	{ return GiveObject1(section, 1.f); }
+			CSE_Abstract*		GiveAmmo				(LPCSTR section, u32 count, float condition, bool dont_reg);
+			CSE_Abstract*		GiveAmmo1				(LPCSTR section, u32 count, float condition)										{ return GiveAmmo(section, count, condition, false); };
+			CSE_Abstract*		GiveAmmo2				(LPCSTR section, u32 count)															{ return GiveAmmo1(section, count, 1.f); };
+			CSE_Abstract*		GiveAmmo3				(LPCSTR section)																	{ return GiveAmmo2(section, 0); };
+			bool				Category				(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd) const;
+			bool				Category1				(LPCSTR cmpc, LPCSTR cmps) const													{ return Category(cmpc, cmps, "*"); };
+			bool				Category2				(LPCSTR cmpc) const																	{ return Category1(cmpc, "*"); };
 			bool				InHands					();
-			float				GetCapacity				();
-			void				SetCapacity				(float v);
+            void				SetMoney				(u32 money);
 			float				GetProtection			(u8 type);
 			float				GetArmorLevel			();
 			float				GetWeightDump			();
 			float				GetRecuperationFactor	();
 			float				GetDrainFactor			();
 			float				GetPowerLoss			();
-			float				GetScopeZoomFactor		();
-			void				SetScopeZoomFactor		(float f);
-			float				GetScopeMinZoomFactor	();
-			void				SetScopeMinZoomFactor	(float f);
-			LPCSTR				GetScopeAliveDetector	();
-			void				SetScopeAliveDetector	(LPCSTR p);
 			float				GetInertion				();
+            void				ChangeCondition			(float val);
+			CScriptGameObject*	GetLeftItem				();
+			void				ActivateItem			(CScriptGameObject* obj, u16 return_place = 0, u16 return_slot = 0);
+			void				Ruck					(CScriptGameObject* obj);
+			void				Slot					(CScriptGameObject* obj, u16 slot_id);
+			void				Pocket					(CScriptGameObject* obj, int pocket_id);
+			bool				IsActive				() const;
+			void				Activate				();
+			void				Deactivate				();
+			float				Power					() const;
+			void				AmmoChangeCount			(u16 val);
+            float				GetDepletionRate		() const;
+            float				GetDepletionSpeed		() const;
+            void				SetDepletionSpeed		(float val);
+			float				GetCapacity				() const;
+            float				GetAmount				() const;
+            void				SetAmount				(float val);
+            void				ChangeAmount			(float val);
+            float				GetFill					() const;
+            void				SetFill					(float val);
+            void				ChangeFill				(float val);
+            void				Deplete					();
+			bool				Empty					() const;
+			bool				Full					() const;
+			u32					Amount					() const;
+			u32					Capacity				() const;
+			bool				Discharge				(CScriptGameObject* obj, bool full = false);
+			bool				CanTake					(CScriptGameObject* obj) const;
+			LPCSTR				Stock					() const;
+			u32					StockCount				() const;
+			void				Transfer				(u16 id) const;
+			void				SetInvIcon				(u8 idx);
+			u8					GetInvIconIndex			() const;
 
     doors::door*				m_door;
 

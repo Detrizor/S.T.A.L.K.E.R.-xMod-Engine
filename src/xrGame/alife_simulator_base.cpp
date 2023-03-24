@@ -120,19 +120,12 @@ CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& pos
 	xr_strcat									(s_name_replace,itoa(abstract->ID,S1,10));
 	abstract->set_name_replace					(s_name_replace);
 
+	CSE_ALifeInventoryItem* se_item				= smart_cast<CSE_ALifeInventoryItem*>(abstract);
+	if (se_item)
+		se_item->m_fCondition					= condition;
+
 	CSE_ALifeDynamicObject* dynamic_object		= smart_cast<CSE_ALifeDynamicObject*>(abstract);
 	VERIFY										(dynamic_object);
-
-	//оружие спавним с полным магазином
-	CSE_ALifeItemWeapon* weapon					= smart_cast<CSE_ALifeItemWeapon*>(dynamic_object);
-	if (weapon)
-		weapon->a_elapsed						= (condition == 2.f) ? 0 : weapon->get_ammo_magsize();
-	clamp										(condition, 0.f, 1.f);
-
-	CSE_ALifeInventoryItem* item				= smart_cast<CSE_ALifeInventoryItem*>(abstract);
-	if (item)
-		item->m_fCondition						= condition;
-
 	dynamic_object->m_tNodeID					= level_vertex_id;
 	dynamic_object->m_tGraphID					= game_vertex_id;
 	dynamic_object->m_tSpawnID					= u16(-1);

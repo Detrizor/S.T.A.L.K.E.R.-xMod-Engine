@@ -20,6 +20,8 @@
 #include "Weapon.h"
 #include "CustomOutfit.h"
 #include "ActorHelmet.h"
+#include "Magazine.h"
+#include "../IItemContainer.h"
 
 CUICellItem* CUICellItem::m_mouse_selected_item = NULL;
 
@@ -91,8 +93,8 @@ void CUICellItem::Update()
 	EnableHeading(m_pParentList->GetVerticalPlacement());
 	if(Heading())
 	{
-		SetHeading			( 90.0f * (PI/180.0f) );
-		SetHeadingPivot		(Fvector2().set(0.0f,0.0f), Fvector2().set(0.0f,GetWndSize().y), true);
+		SetHeading			( -90.f * (PI/180.0f) );
+		SetHeadingPivot		(Fvector2().set(0.0f,0.0f), Fvector2().set(GetWidth() * (1.f - m_TextureMargin.top - m_TextureMargin.bottom), 0.f), true);
 	}else
 		ResetHeadingPivot	();
 
@@ -175,6 +177,11 @@ CUIDragItem* CUICellItem::CreateDragItem()
 	Frect r;
 	GetAbsoluteRect(r);
 
+	r.left += GetWidth() * (Heading() ? m_TextureMargin.bottom : m_TextureMargin.left);
+	r.top += GetHeight() * (Heading() ? m_TextureMargin.left : m_TextureMargin.top);
+	r.right -= GetWidth() * (Heading() ? m_TextureMargin.top : m_TextureMargin.right);
+	r.bottom -= GetHeight() * (Heading() ? m_TextureMargin.right : m_TextureMargin.bottom);
+
 	if( m_UIStaticItem.GetFixedLTWhileHeading() )
 	{
 		float t1,t2;
@@ -199,31 +206,30 @@ void CUICellItem::SetOwnerList(CUIDragDropListEx* p)
 
 void CUICellItem::UpdateConditionProgressBar()
 {
-	PIItem item									= (PIItem)m_pData;
-	CEatableItem* eitem							= (CEatableItem*)item;
-	if (m_pParentList && m_pParentList->GetConditionProgBarVisibility() && item && item->IsUsingCondition() && ((item->GetCondition() < (1.f - EPS)) || item->ShowFullCondition()))
+	PIItem item											= (PIItem)m_pData;
+	if (item && m_pParentList && m_pParentList->GetConditionProgBarVisibility() && fMoreOrEqual(item->GetBar(), 0.f))
 	{
-		m_pConditionState->ShowBackground		(true);
-		m_pConditionState->m_bUseGradient		= true;
+		m_pConditionState->ShowBackground				(true);
+		m_pConditionState->m_bUseGradient				= true;
 
-		Ivector2 itm_grid_size		= GetGridSize();
+		Ivector2 itm_grid_size							= GetGridSize();
 		if (m_pParentList->GetVerticalPlacement())
-			std::swap				(itm_grid_size.x, itm_grid_size.y);
-		Ivector2 cell_size			= m_pParentList->CellSize();
-		Ivector2 cell_space			= m_pParentList->CellsSpacing();
-		float x						= 1.f;
-		float y						= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
+			std::swap									(itm_grid_size.x, itm_grid_size.y);
+		Ivector2 cell_size								= m_pParentList->CellSize();
+		Ivector2 cell_space								= m_pParentList->CellsSpacing();
+		float x											= 1.f;
+		float y											= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
 
 		m_pConditionState->SetWndPos					(Fvector2().set(x, y));
 		float width										= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
 		m_pConditionState->SetWidth						(width);
 		m_pConditionState->m_UIProgressItem.SetWidth	(width);
 		m_pConditionState->m_UIBackgroundItem.SetWidth	(width);
-		m_pConditionState->SetProgressPos				(item->GetCondition());
+		m_pConditionState->SetProgressPos				(item->GetBar());
 		m_pConditionState->Show							(true);
 	}
 	else
-		m_pConditionState->Show(false);
+		m_pConditionState->Show							(false);
 }
 
 bool CUICellItem::EqualTo(CUICellItem* itm)

@@ -28,6 +28,7 @@
 #include "UILogsWnd.h"
 
 #include "UIScriptWnd.h"
+#include "../inventory_item_amountable.h"
 
 #define PDA_XML		"pda.xml"
 
@@ -167,14 +168,10 @@ void CUIPdaWnd::Update()
 
 	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(pUILogsWnd,&CUILogsWnd::PerformWork));
 
-	CActor* actor = smart_cast<CActor*>(Level().CurrentEntity());
-	if (actor)
-	{
-		PIItem active_item = actor->inventory().ActiveItem();
-		if (!(active_item && READ_IF_EXISTS(pSettings, r_bool, active_item->m_section_id, "pda_trigger", false) && active_item->GetCondition() > 0.f))
-			HideDialog();
-	}
-	else
+	CActor* actor						= smart_cast<CActor*>(Level().CurrentEntity());
+	PIItem active_item					= (actor) ? actor->inventory().ActiveItem() : NULL;
+	CIIOAmountable* aiitem				= smart_cast<CIIOAmountable*>(active_item);
+	if (!aiitem || aiitem->Empty())
 		HideDialog();
 }
 

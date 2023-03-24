@@ -609,32 +609,10 @@ void	game_sv_Deathmatch::SM_SwitchOnPlayer(CObject* pNewObject)
 
 	Level().SetEntity					(pNewObject);
 
-	if (pNewObject != m_pSM_CurViewEntity)
-	{
-		CActor* pActor					= smart_cast<CActor*>(m_pSM_CurViewEntity);
-		
-		if (pActor)
-			pActor->inventory().Items_SetCurrentEntityHud(false);
-	}
-
-	CActor* pActor = smart_cast<CActor*> (pNewObject);
-	if (pActor)
-	{
-		pActor->inventory().Items_SetCurrentEntityHud(true);
-/*
-		CHudItem* pHudItem = smart_cast<CHudItem*>(pActor->inventory().ActiveItem());
-		if (pHudItem) 
-		{
-			pHudItem->OnStateSwitch(pHudItem->GetState());
-		};
-*/
-	}
-
 	m_pSM_CurViewEntity				= pNewObject;
 	m_dwSM_CurViewEntity			= pNewObject->ID();
 	m_dwSM_LastSwitchTime			= Level().timeServer() + m_dwSM_SwitchDelta;
 }
-
 
 BOOL	game_sv_Deathmatch::AllPlayers_Ready ()
 {
@@ -859,59 +837,7 @@ bool	game_sv_Deathmatch::IsBuyableItem			(LPCSTR	ItemName)
 
 void game_sv_Deathmatch::CheckItem(game_PlayerState* ps, PIItem pItem, xr_vector<s16> *pItemsDesired, xr_vector<u16> *pItemsToDelete, bool ExactMatch = false)
 {
-	if (!pItem || !pItemsDesired || !pItemsToDelete) return;
-
-	if (m_strWeaponsData->GetItemIdx(pItem->object().cNameSect()) == u32(-1)) return;
-	//-------------------------------------------
-	bool	found = false;
-	for (u32 it = 0; it < pItemsDesired->size(); it++)
-	{
-		s16 ItemID = (*pItemsDesired)[it];
-		if ((ItemID & 0x00ff) != u16(m_strWeaponsData->GetItemIdx(pItem->object().cNameSect()))) continue;
-
-		found = true;
-		CWeaponAmmo* pAmmo = 	smart_cast<CWeaponAmmo*>(pItem);
-		if (pAmmo)
-		{
-			if (pAmmo->m_boxCurr != pAmmo->m_boxSize) break;
-		};
-		//----- Check for Addon Changes ---------------------
-		CWeapon		*pWeapon	=	smart_cast<CWeapon*>(pItem);
-		if (pWeapon)
-		{
-			u8 OldAddons  = pWeapon->GetAddonsState();
-			u8 NewAddons  = u8((ItemID&0xff00)>>0x08)/*u8(ItemID&0x00ff)>>0x05*/;
-			if (ExactMatch)
-			{
-				if (OldAddons != NewAddons)
-				{
-					found = false;
-					continue;
-				}
-			}
-			if (OldAddons != NewAddons)
-			{
-				CSE_ALifeItemWeapon* pSWeapon = smart_cast<CSE_ALifeItemWeapon*>(get_entity_from_eid(pWeapon->ID()));
-				if (pSWeapon)
-				{
-					pSWeapon->m_addon_flags.zero();
-					pSWeapon->m_addon_flags.set(NewAddons, TRUE);
-				}
-
-				NET_Packet	P;
-				u_EventGen(P, GE_ADDON_CHANGE, pWeapon->ID());
-				P.w_u8(NewAddons);
-				u_EventSend(P);
-			}
-		};
-		//---------------------------------------------------
-		pItemsDesired->erase(pItemsDesired->begin()+it);
-		break;
-	};
-	if (found) return;
-	pItemsToDelete->push_back(pItem->object().ID());
 };
-
 
 void	game_sv_Deathmatch::OnPlayerBuyFinished		(ClientID id_who, NET_Packet& P)
 {

@@ -10,15 +10,20 @@
 #include "Torch.h"
 #include "BoneProtections.h"
 #include "../Include/xrRender/Kinematics.h"
+#include "ui/UIOutfitInfo.h"
+
+#define MAIN_BONE 15
+const float BASIC_HEALTH = pSettings->r_float("damage_manager", "helmet_basic_health");
 
 CHelmet::CHelmet()
 {
-	m_flags.set(FUsingCondition, TRUE);
-	m_HitTypeProtection.resize(ALife::eHitTypeMax);
-	for(int i=0; i<ALife::eHitTypeMax; i++)
-		m_HitTypeProtection[i] = 1.0f;
-
-	m_boneProtection	= xr_new<SBoneProtections>();
+	m_flags.set					(FUsingCondition, TRUE);
+	m_boneProtection			= xr_new<SBoneProtections>();
+	m_BonesProtectionSect		= NULL;
+	m_fHealth					= 0.f;
+	m_HitTypeProtection.resize	(ALife::eHitTypeMax);
+	for (int i = 0; i < ALife::eHitTypeMax; i++)
+		m_HitTypeProtection[i]	= 0.f;
 }
 
 CHelmet::~CHelmet()
@@ -29,15 +34,16 @@ CHelmet::~CHelmet()
 void CHelmet::Load(LPCSTR section) 
 {
 	inherited::Load					(section);
-
-	m_HitTypeProtection[ALife::eHitTypeBurn]			= pSettings->r_float(section,"burn_protection");
-	m_HitTypeProtection[ALife::eHitTypeShock]			= pSettings->r_float(section,"shock_protection");
-	m_HitTypeProtection[ALife::eHitTypeRadiation]		= pSettings->r_float(section,"radiation_protection");
-	m_HitTypeProtection[ALife::eHitTypeChemicalBurn]	= pSettings->r_float(section,"chemical_burn_protection");
-	m_HitTypeProtection[ALife::eHitTypeTelepatic]		= pSettings->r_float(section,"telepatic_protection");
+	
+	extern LPCSTR										protection_sections[];
+	for (int i = 0; i < eProtectionTypeMax; i++)
+		m_HitTypeProtection[i]							= pSettings->r_float(section, protection_sections[i]);
 	m_HitTypeProtection[ALife::eHitTypeLightBurn]		= m_HitTypeProtection[ALife::eHitTypeBurn];
 
 	m_NightVisionSect				= READ_IF_EXISTS(pSettings, r_string, section, "nightvision_sect", "");
+	if (m_NightVisionSect != "")
+		SetDepletionSpeed			(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+
 	m_fRecuperationFactor			= READ_IF_EXISTS(pSettings, r_float, section, "recuperation_factor", 0.f);
 
 	m_BonesProtectionSect			= READ_IF_EXISTS(pSettings, r_string, section, "bones_koeff_protection",  "" );
@@ -46,6 +52,8 @@ void CHelmet::Load(LPCSTR section)
 
 	// Added by Axel, to enable optional condition use on any item
 	m_flags.set						(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", TRUE));
+
+	m_fHealth						= pSettings->r_float(section, "health");
 }
 
 void CHelmet::ReloadBonesProtection()
@@ -116,24 +124,23 @@ void CHelmet::OnMoveToRuck(const SInvItemPlace& previous_place)
 void CHelmet::Hit(float hit_power, ALife::EHitType hit_type)
 {
 	if (IsUsingCondition() == false) return;
-	hit_power *= GetHitImmunity(hit_type);
-	ChangeCondition(-hit_power);
+
+	hit_power			*= GetHitImmunity(hit_type);
+	hit_power			*= BASIC_HEALTH / Health();
+	ChangeCondition		(-hit_power);
 }
 
 float CHelmet::GetHitTypeProtection(ALife::EHitType hit_type)
 {
-	float protection;
-	if (hit_type == ALife::eHitTypeFireWound || hit_type == ALife::eHitTypeStrike || hit_type == ALife::eHitTypeWound || hit_type == ALife::eHitTypeWound_2)
-		protection = GetBoneArmor(15);
-	else
-		protection = m_HitTypeProtection[hit_type];
-	protection *= GetConditionToWork();
-	return protection;
+	return m_HitTypeProtection[hit_type] * sqrt(GetConditionToWork());
 }
 
 float CHelmet::GetBoneArmor(s16 element)
 {
-	return m_boneProtection->getBoneArmor(element);
+	float res = m_boneProtection->getBoneArmor(element ? element : MAIN_BONE);
+	if (fMore(res, 0.f))
+		res *= sqrt(GetConditionToWork());
+	return res;
 }
 
 float CHelmet::GetBoneArmorLevel(s16 element)
@@ -144,17 +151,19 @@ float CHelmet::GetBoneArmorLevel(s16 element)
 bool CHelmet::install_upgrade_impl( LPCSTR section, bool test )
 {
 	bool result = inherited::install_upgrade_impl(section, test);
-
-	result |= process_if_exists(section, "burn_protection", m_HitTypeProtection[ALife::eHitTypeBurn], test);
-	result |= process_if_exists(section, "shock_protection", m_HitTypeProtection[ALife::eHitTypeShock], test);
-	result |= process_if_exists(section, "radiation_protection", m_HitTypeProtection[ALife::eHitTypeRadiation], test);
-	result |= process_if_exists(section, "telepatic_protection", m_HitTypeProtection[ALife::eHitTypeTelepatic], test);
-	result |= process_if_exists(section, "chemical_burn_protection", m_HitTypeProtection[ALife::eHitTypeChemicalBurn], test);
+	
+	extern LPCSTR protection_sections[];
+	for (int i = 0; i < eProtectionTypeMax; i++)
+		result |= process_if_exists(section, protection_sections[i], m_HitTypeProtection[i], test);
+	m_HitTypeProtection[ALife::eHitTypeLightBurn] = m_HitTypeProtection[ALife::eHitTypeBurn];
 
 	LPCSTR str;
 	bool result2 = process_if_exists(section, "nightvision_sect", str, test);
 	if (result2 && !test)
+	{
 		m_NightVisionSect._set(str);
+		SetDepletionSpeed(pSettings->r_float("nightvision_depletes", str));
+	}
 	result |= result2;
 
 	result |= process_if_exists(section, "nearest_enemies_show_dist", m_fShowNearestEnemiesDistance, test);

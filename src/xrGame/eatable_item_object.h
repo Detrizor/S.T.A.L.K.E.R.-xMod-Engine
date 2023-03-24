@@ -11,11 +11,13 @@
 #include "physic_item.h"
 #include "eatable_item.h"
 #include "HudItem.h"
+#include "inventory_item_amountable.h"
 
 class CEatableItemObject : 
 			public CEatableItem, 
 			public CPhysicItem,
-			public CHudItem
+			public CHudItem,
+			public CItemAmountable
 {
 public:
 							CEatableItemObject	();
@@ -94,4 +96,12 @@ protected:
 	{
 		return CAttachableItem::use_parent_ai_locations();
 	}
+
+public:
+	virtual float			Weight					() const;
+	virtual float			Volume					() const;
+	virtual u32				Cost					() const;
+	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
+	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
+	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
 };

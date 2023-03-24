@@ -21,6 +21,9 @@
 #include "patrol_path.h"
 #include "patrol_path_storage.h"
 
+#include "Level_Bullet_Manager.h"
+#include "ui/ui_af_params.h"
+
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
 
 #define CHOOSE_MAX(x,inst_x,y,inst_y,z,inst_z)\
@@ -39,15 +42,28 @@ CArtefact::CArtefact()
 	m_pTrailLight				= NULL;
 	m_activationObj				= NULL;
 	m_detectorObj				= NULL;
+	m_fChargeThreshold			= .8f;
+	m_bActive					= true;
+
+	for (int i = 0; i < ALife::eHitTypeMax; i++)
+		m_HitAbsorbation[i]		= 0.f;
 }
 
 CArtefact::~CArtefact() 
 {
 }
 
+DLL_Pure* CArtefact::_construct()
+{
+	CItemAmountable::_construct();
+	inherited::_construct();
+	return							this;
+}
+
 void CArtefact::Load(LPCSTR section) 
 {
 	inherited::Load									(section);
+	CItemAmountable::Load							(section);
 
 	if (pSettings->line_exist(section, "particles"))
 		m_sParticlesName							= pSettings->r_string(section, "particles");
@@ -63,10 +79,14 @@ void CArtefact::Load(LPCSTR section)
 	m_fWeightDump									= pSettings->r_float(section, "weight_dump");
 	m_fArmor										= pSettings->r_float(section, "armor");
 
-	if (pSettings->section_exist(pSettings->r_string(section, "hit_absorbation_sect")))
-		m_ArtefactHitImmunities.LoadImmunities		(pSettings->r_string(section, "hit_absorbation_sect"), pSettings);
 	m_bCanSpawnZone									= !!pSettings->line_exist("artefact_spawn_zones", section);
 	m_af_rank										= pSettings->r_u8(section, "af_rank");
+	m_fChargeThreshold								= pSettings->r_float(section, "power_decay_charge_threshold");
+	
+	extern LPCSTR									af_absorbation_names[];
+	for (int i = 0; i < eAbsorbationTypeMax; i++)
+		m_HitAbsorbation[i]							= pSettings->r_float(section, af_absorbation_names[i]);
+	m_HitAbsorbation[ALife::eHitTypeLightBurn]		= m_HitAbsorbation[ALife::eHitTypeBurn];
 }
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
@@ -598,7 +618,50 @@ void CArtefact::OnHiddenItem ()
 	inherited::OnHiddenItem		();
 }
 
-bool CArtefact::IsActivated()
+u32 CArtefact::Cost() const
 {
-	return (GetCondition() < 1.f);
+	return inherited::Cost() - NetCost();
+}
+
+float CArtefact::Power() const
+{
+	if (!IsActive())
+		return		0.f;
+
+	float dfill		= GetFill() / m_fChargeThreshold;
+	if (dfill > 1.f)
+		dfill		= 1.f;
+	return			sqrt(dfill);
+}
+
+float CArtefact::HitProtection(ALife::EHitType hit_type) const
+{
+	return SHit::DamageType(hit_type) ? GetArmor() : HitAbsorbation(hit_type);
+}
+
+void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
+{
+	/*if (pAP && fMore(*pAP, 0.f))
+	{
+		float armor				= GetArmor();
+		float d_ap				= min(*pAP, armor);
+		float bullet_d_ap		= fLess(d_ap, armor) ? d_ap : Level().BulletManager().m_fBulletAPLossOnPierce * d_ap;
+		float bullet_k_energy	= (*pAP - bullet_d_ap) / (*pAP);
+		*pEnergy				*= bullet_k_energy;
+		if (pSpeed)
+			*pSpeed				*= sqrt(bullet_k_energy);
+		*pAP					-= bullet_d_ap;
+		//DepleteAP				(d_ap);		--xd for future energy depletion system
+	}
+	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
+	{
+		//pHDS->main_damage		*= CEntityCondition::ExplDamageResistance.Calc(GetArmor());
+		//DepleteResistance		(pHDS->main_damage);		--xd for future energy depletion system
+	}
+	else
+	{
+		float d_damage			= min(pHDS->main_damage, m_HitAbsorbation[pHDS->hit_type] * Power());
+		pHDS->main_damage		-= d_damage;
+		//DepleteProtection		(d_damage);		--xd for future energy depletion system
+	}*/
 }

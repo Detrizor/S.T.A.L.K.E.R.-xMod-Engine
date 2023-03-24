@@ -104,8 +104,8 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 	frag_fMass				= READ_IF_EXISTS(ini, r_float, section, "fragment_mass", 1.f);
 
 	float size				= READ_IF_EXISTS(ini, r_float, section, "fragment_size", 3.f);
-	float area				= PI * pow((size / 2), 2);
-	frag_fResist			= (size > 0.f) ? (area / 1.5f) : EPS;
+	float sharpness			= READ_IF_EXISTS(ini, r_float, section, "fragment_sharpness", 3.f);
+	frag_fResist			= size / sharpness;
 
 	m_eHitTypeBlast			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_blast"));
 	m_eHitTypeFrag			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_frag"));

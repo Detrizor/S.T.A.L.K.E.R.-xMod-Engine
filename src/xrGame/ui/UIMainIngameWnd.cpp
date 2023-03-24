@@ -79,7 +79,7 @@ const u32	g_clWhite					= 0xffffffff;
 CUIMainIngameWnd::CUIMainIngameWnd()
 :/*m_pGrenade(NULL),m_pItem(NULL),*/m_pPickUpItem(NULL),m_pMPChatWnd(NULL),UIArtefactIcon(NULL),m_pMPLogWnd(NULL)
 {
-	UIZoneMap					= xr_new<CUIZoneMap>();
+	//UIZoneMap					= xr_new<CUIZoneMap>();
 }
 
 #include "UIProgressShape.h"
@@ -88,7 +88,7 @@ extern CUIProgressShape* g_MissileForceShape;
 CUIMainIngameWnd::~CUIMainIngameWnd()
 {
 	DestroyFlashingIcons		();
-	xr_delete					(UIZoneMap);
+	//xr_delete					(UIZoneMap);
 	HUD_SOUND_ITEM::DestroySound(m_contactSnd);
 	xr_delete					(g_MissileForceShape);
 	xr_delete					(UIWeaponJammedIcon);
@@ -121,7 +121,6 @@ void CUIMainIngameWnd::Init()
 	UIWeaponIcon_rect			= UIWeaponIcon.GetWndRect();
 */	//---------------------------------------------------------
 	UIPickUpItemIcon			= UIHelper::CreateStatic		(uiXml, "pick_up_item", this);
-	UIPickUpItemIcon->SetShader	(GetEquipmentIconsShader());
 
 	m_iPickUpItemIconWidth		= UIPickUpItemIcon->GetWidth();
 	m_iPickUpItemIconHeight		= UIPickUpItemIcon->GetHeight();
@@ -130,7 +129,7 @@ void CUIMainIngameWnd::Init()
 	//---------------------------------------------------------
 
 	//индикаторы 
-	UIZoneMap->Init				();
+	//UIZoneMap->Init				();
 
 	// Подсказки, которые возникают при наведении прицела на объект
 	UIStaticQuickHelp			= UIHelper::CreateTextWnd(uiXml, "quick_info", this);
@@ -211,9 +210,9 @@ void CUIMainIngameWnd::Init()
 
 	uiXml.SetLocalRoot						(uiXml.GetRoot());
 	
-	UIMotionIcon							= xr_new<CUIMotionIcon>(); UIMotionIcon->SetAutoDelete(true);
-	UIZoneMap->MapFrame().AttachChild		(UIMotionIcon);
-	UIMotionIcon->Init						(UIZoneMap->MapFrame().GetWndRect());
+	//UIMotionIcon							= xr_new<CUIMotionIcon>(); UIMotionIcon->SetAutoDelete(true);
+	//UIZoneMap->MapFrame().AttachChild		(UIMotionIcon);
+	//UIMotionIcon->Init						(UIZoneMap->MapFrame().GetWndRect());
 
 	UIStaticDiskIO							= UIHelper::CreateStatic(uiXml, "disk_io", this);
 
@@ -244,18 +243,18 @@ void CUIMainIngameWnd::Draw()
 
 	if ( !pActor || !pActor->g_Alive() ) return;
 
-	UIMotionIcon->SetNoise((s16)(0xffff&iFloor(pActor->m_snd_noise*100)));
+	//UIMotionIcon->SetNoise((s16)(0xffff&iFloor(pActor->m_snd_noise*100)));
 
-	UIMotionIcon->Draw();
+	//UIMotionIcon->Draw();
 
 
-	UIZoneMap->visible = true;
-	UIZoneMap->Render();
+	//UIZoneMap->visible = true;
+	//UIZoneMap->Render();
 
-	bool tmp = UIMotionIcon->IsShown();
-	UIMotionIcon->Show(false);
+	//bool tmp = UIMotionIcon->IsShown();
+	//UIMotionIcon->Show(false);
 	CUIWindow::Draw();
-	UIMotionIcon->Show(tmp);
+	//UIMotionIcon->Show(tmp);
 
 	RenderQuickInfos();		
 }
@@ -280,7 +279,7 @@ void CUIMainIngameWnd::Update()
 	if ( !pActor )
 		return;
 
-	UIZoneMap->Update();
+	//UIZoneMap->Update();
 	
 //	UIHealthBar.SetProgressPos	(m_pActor->GetfHealth()*100.0f);
 //	UIMotionIcon->SetPower		(m_pActor->conditions().GetPower()*100.0f);
@@ -469,13 +468,12 @@ void CUIMainIngameWnd::UpdateFlashingIcons()
 
 void CUIMainIngameWnd::AnimateContacts(bool b_snd)
 {
-	UIZoneMap->Counter_ResetClrAnimation();
+	//UIZoneMap->Counter_ResetClrAnimation();
 
 	if(b_snd)
 		HUD_SOUND_ITEM::PlaySound	(m_contactSnd, Fvector().set(0,0,0), 0, true );
 
 }
-
 
 void CUIMainIngameWnd::SetPickUpItem	(CInventoryItem* PickUpItem)
 {
@@ -490,37 +488,22 @@ void CUIMainIngameWnd::UpdatePickUpItem	()
 		return;
 	};
 
-
-	shared_str sect_name	= m_pPickUpItem->object().cNameSect();
-
 	//properties used by inventory menu
-	int m_iGridWidth	= pSettings->r_u32(sect_name, "inv_grid_width");
-	int m_iGridHeight	= pSettings->r_u32(sect_name, "inv_grid_height");
-
-	int m_iXPos			= pSettings->r_u32(sect_name, "inv_grid_x");
-	int m_iYPos			= pSettings->r_u32(sect_name, "inv_grid_y");
-
-	float scale_x = m_iPickUpItemIconWidth/
-		float(m_iGridWidth*INV_GRID_WIDTH);
-
-	float scale_y = m_iPickUpItemIconHeight/
-		float(m_iGridHeight*INV_GRID_HEIGHT);
+	float m_iGridWidth = m_pPickUpItem->GetIconRect().width();
+	float m_iGridHeight = m_pPickUpItem->GetIconRect().height();
+	float scale_x = m_iPickUpItemIconWidth / m_iGridWidth;
+	float scale_y = m_iPickUpItemIconHeight / m_iGridHeight;
 
 	scale_x = (scale_x>1) ? 1.0f : scale_x;
 	scale_y = (scale_y>1) ? 1.0f : scale_y;
 
 	float scale = scale_x<scale_y?scale_x:scale_y;
-
-	Frect					texture_rect;
-	texture_rect.lt.set		(m_iXPos*INV_GRID_WIDTH, m_iYPos*INV_GRID_HEIGHT);
-	texture_rect.rb.set		(m_iGridWidth*INV_GRID_WIDTH, m_iGridHeight*INV_GRID_HEIGHT);
-	texture_rect.rb.add		(texture_rect.lt);
-	UIPickUpItemIcon->GetStaticItem()->SetTextureRect(texture_rect);
+	UIPickUpItemIcon->SetShader(GetEquipmentIconsShader(m_pPickUpItem->m_section_id));
+	UIPickUpItemIcon->GetStaticItem()->SetTextureRect(m_pPickUpItem->GetIconRect());
 	UIPickUpItemIcon->SetStretchTexture(true);
 
-
-	UIPickUpItemIcon->SetWidth(m_iGridWidth*INV_GRID_WIDTH*scale*UI().get_current_kx());
-	UIPickUpItemIcon->SetHeight(m_iGridHeight*INV_GRID_HEIGHT*scale);
+	UIPickUpItemIcon->SetWidth(m_iGridWidth * scale);
+	UIPickUpItemIcon->SetHeight(m_iGridHeight * scale);
 
 	UIPickUpItemIcon->SetWndPos(Fvector2().set(	m_iPickUpItemIconX+(m_iPickUpItemIconWidth-UIPickUpItemIcon->GetWidth())/2.0f,
 												m_iPickUpItemIconY+(m_iPickUpItemIconHeight-UIPickUpItemIcon->GetHeight())/2.0f) );
@@ -531,7 +514,7 @@ void CUIMainIngameWnd::UpdatePickUpItem	()
 
 void CUIMainIngameWnd::OnConnected()
 {
-	UIZoneMap->SetupCurrentMap();
+	//UIZoneMap->SetupCurrentMap();
 	if ( m_ui_hud_states )
 	{
 		m_ui_hud_states->on_connected();
@@ -540,13 +523,13 @@ void CUIMainIngameWnd::OnConnected()
 
 void CUIMainIngameWnd::OnSectorChanged(int sector)
 {
-	UIZoneMap->OnSectorChanged(sector);
+	//UIZoneMap->OnSectorChanged(sector);
 }
 
 void CUIMainIngameWnd::reset_ui()
 {
 	m_pPickUpItem					= NULL;
-	UIMotionIcon->ResetVisibility	();
+	//UIMotionIcon->ResetVisibility	();
 	if ( m_ui_hud_states )
 	{
 		m_ui_hud_states->reset_ui();
@@ -555,17 +538,17 @@ void CUIMainIngameWnd::reset_ui()
 
 void CUIMainIngameWnd::ShowZoneMap( bool status ) 
 { 
-	UIZoneMap->visible = status; 
+	//UIZoneMap->visible = status; 
 }
 
 void CUIMainIngameWnd::DrawZoneMap() 
 { 
-	UIZoneMap->Render(); 
+	//UIZoneMap->Render(); 
 }
 
 void CUIMainIngameWnd::UpdateZoneMap() 
 { 
-	UIZoneMap->Update(); 
+	//UIZoneMap->Update(); 
 }
 
 void CUIMainIngameWnd::UpdateMainIndicators()

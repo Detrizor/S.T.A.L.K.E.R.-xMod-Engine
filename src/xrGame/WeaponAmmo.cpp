@@ -19,23 +19,25 @@ CCartridge::CCartridge()
 	m_ammoSect = NULL;
 	param_s.Init();
 	bullet_material_idx = u16(-1);
-	m_4to1_tracer = false;
+	m_fCondition = 1.f;
 }
 
-void CCartridge::Load(LPCSTR section, u8 LocalAmmoType) 
+void CCartridge::Load(LPCSTR section, u8 LocalAmmoType, float condition)
 {
 	m_ammoSect				= section;
 	m_LocalAmmoType			= LocalAmmoType;
 	param_s.kDisp				= pSettings->r_float(section, "k_disp");
-	param_s.fBulletMass			= pSettings->r_float(section, "bullet_mass");
-	param_s.mHollowPoint		= !!pSettings->r_bool(section, "is_hollow_point");
+	param_s.fBulletMass			= pSettings->r_float(section, "bullet_mass") * 0.001f;
+	param_s.mHollowPoint		= !!pSettings->r_bool(section, "hollow_point");
+	param_s.mArmorPiercing		= !!pSettings->r_bool(section, "armor_piercing");
 	param_s.u8ColorID			= READ_IF_EXISTS(pSettings, r_u8, section, "tracer_color_ID", 0);
-	param_s.kBulletSpeed		= READ_IF_EXISTS(pSettings, r_float, section, "k_bullet_speed", 1.0f);
+	param_s.kBulletSpeed		= READ_IF_EXISTS(pSettings, r_float, section, "k_bullet_speed", 1.f);
 
-	float caliber = pSettings->r_float(section, "caliber");
-	float area = PI * pow((caliber / 2), 2);
-	float k_ap = pSettings->r_float(section, "k_armor_piercing");
-	param_s.fBulletResist		= (area > 0.f) ? (area / k_ap) : EPS;
+	float caliber			= pSettings->r_float(section, "caliber");
+	float area				= PI * pow((caliber / 2.f), 2);
+	float sharpness			= pSettings->r_float(section, "sharpness");
+	param_s.fBulletResist	= area / sharpness;
+	m_fCondition			= condition;
 
 	m_flags.set					(cfTracer, pSettings->r_bool(section, "tracer"));
 	param_s.buckShot			= pSettings->r_s32(  section, "buck_shot");
@@ -54,9 +56,6 @@ void CCartridge::Load(LPCSTR section, u8 LocalAmmoType)
 		if (pSettings->r_bool(section, "magnetic_beam_shot"))
 			m_flags.set(cfMagneticBeam, TRUE);
 	}
-
-	if (pSettings->line_exist(section, "4to1_tracer"))
-		m_4to1_tracer = !!pSettings->r_bool(section, "4to1_tracer");;
 	
 	if(pSettings->line_exist(section,"can_be_unlimited"))
 		m_flags.set(cfCanBeUnlimited, pSettings->r_bool(section, "can_be_unlimited"));
@@ -69,34 +68,14 @@ void CCartridge::Load(LPCSTR section, u8 LocalAmmoType)
 
 float CCartridge::Weight() const
 {
-	auto s = m_ammoSect.c_str();
-	float res = 0;
-	if ( s )
-	{		
-		float box = pSettings->r_float(s, "box_size");
-		if (box > 0)
-		{
-			float w = pSettings->r_float(s, "inv_weight");
-			res = w / box;
-		}			
-	}
-	return res;
+	auto sect		= m_ammoSect.c_str();
+	return			(sect) ? pSettings->r_float(sect, "inv_weight") : 0.f;
 }
 
 float CCartridge::Volume() const
 {
-	auto s = m_ammoSect.c_str();
-	float res = 0;
-	if (s)
-	{
-		float box = pSettings->r_float(s, "box_size");
-		if (box > 0)
-		{
-			float v = pSettings->r_float(s, "inv_volume");
-			res = v / box;
-		}
-	}
-	return res;
+	auto sect		= m_ammoSect.c_str();
+	return			(sect) ? pSettings->r_float(sect, "inv_volume") : 0.f;
 }
 
 CWeaponAmmo::CWeaponAmmo(void) 
@@ -116,14 +95,15 @@ void CWeaponAmmo::Load(LPCSTR section)
 	inherited::Load			(section);
 
 	cartridge_param.kDisp			= pSettings->r_float(section, "k_disp");
-	cartridge_param.fBulletMass		= pSettings->r_float(section, "bullet_mass");
-	cartridge_param.mHollowPoint	= !!pSettings->r_bool(section, "is_hollow_point");
+	cartridge_param.fBulletMass		= pSettings->r_float(section, "bullet_mass") * 0.001f;
+	cartridge_param.mHollowPoint	= !!pSettings->r_bool(section, "hollow_point");
+	cartridge_param.mArmorPiercing	= !!pSettings->r_bool(section, "armor_piercing");
 	cartridge_param.u8ColorID		= READ_IF_EXISTS(pSettings, r_u8, section, "tracer_color_ID", 0);
 
-	float caliber = pSettings->r_float(section, "caliber");
-	float area = PI * pow((caliber / 2), 2);
-	float k_ap = pSettings->r_float(section, "k_armor_piercing");
-	cartridge_param.fBulletResist	= (area > 0.f) ? (area / k_ap) : EPS;
+	float caliber					= pSettings->r_float(section, "caliber");
+	float area						= PI * pow((caliber / 2.f), 2);
+	float sharpness					= pSettings->r_float(section, "sharpness");
+	cartridge_param.fBulletResist	= area / sharpness;
 
 	m_tracer						= !!pSettings->r_bool(section, "tracer");
 
@@ -135,8 +115,11 @@ void CWeaponAmmo::Load(LPCSTR section)
 	cartridge_param.buckShot		= pSettings->r_s32(  section, "buck_shot");
 	cartridge_param.impair			= pSettings->r_float(section, "impair");
 
-	m_boxSize				= (u16)pSettings->r_s32(section, "box_size");
-	m_boxCurr				= m_boxSize;	
+	m_boxSize				= (u16)floor(1.f/m_volume);
+	m_boxCurr				= m_boxSize;
+
+	m_AmmoClass		= pSettings->r_string(section, "ammo_class");
+	m_bHeap			= pSettings->r_bool(m_section_id, "heap");
 }
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
@@ -180,7 +163,7 @@ bool CWeaponAmmo::Useful() const
 	return !!m_boxCurr;
 }
 
-bool CWeaponAmmo::Get(CCartridge &cartridge) 
+bool CWeaponAmmo::Get(CCartridge &cartridge, bool expend)
 {
 	if(!m_boxCurr) return false;
 	cartridge.m_ammoSect = cNameSect();
@@ -188,9 +171,10 @@ bool CWeaponAmmo::Get(CCartridge &cartridge)
 	cartridge.param_s = cartridge_param;
 
 	cartridge.m_flags.set(CCartridge::cfTracer ,m_tracer);
-	cartridge.m_4to1_tracer = m_4to1_tracer;
 	cartridge.bullet_material_idx = GMLib.GetMaterialIdx(WEAPON_MATERIAL_NAME);
-	--m_boxCurr;
+	cartridge.m_fCondition = GetCondition();
+	if (expend)
+		ChangeAmmoCount(-1);
 	if(m_pInventory)m_pInventory->InvalidateState();
 	return true;
 }
@@ -241,22 +225,47 @@ CInventoryItem *CWeaponAmmo::can_make_killing	(const CInventory *inventory) cons
 }
 
 float CWeaponAmmo::Weight() const
-{	
-	float res	= inherited::Weight();
-	res			*= (float)m_boxCurr;
-	return		res;
+{
+	return inherited::Weight() * (float)m_boxCurr;
 }
 
 float CWeaponAmmo::Volume() const
 {
-	float res	= inherited::Volume();
-	res			*= (float)m_boxCurr;
-	return		res;
+	return inherited::Volume() * (float)m_boxCurr;
 }
 
-float CWeaponAmmo::Cost() const
+u32 CWeaponAmmo::Cost() const
 {
-	float res	= inherited::Cost();
-	res			*= (float)m_boxCurr;
-	return		res;
+	return inherited::Cost() * m_boxCurr;
+}
+
+u16 CWeaponAmmo::GetAmmoCount() const
+{
+	return m_boxCurr;
+}
+
+void CWeaponAmmo::SetAmmoCount(u16 val)
+{
+	m_boxCurr = val;
+
+	if (!Useful() && CInventoryItem::object().Local() && OnServer())
+		CInventoryItem::object().DestroyObject();
+}
+
+void CWeaponAmmo::ChangeAmmoCount(int val)
+{
+	SetAmmoCount(u16((int)m_boxCurr + val));
+}
+
+Frect CWeaponAmmo::GetIconRect() const
+{
+	Frect res = inherited::GetIconRect();
+	if (m_bHeap)
+	{
+		if (m_boxCurr == 2)
+			res.right -= res.width() / 3.f;
+		else if (m_boxCurr == 1)
+			res.right -= res.width() * 2.f / 3.f;
+	}
+	return res;
 }

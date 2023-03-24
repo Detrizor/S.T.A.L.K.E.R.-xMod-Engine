@@ -39,7 +39,7 @@ bool CWeapon::process_if_exists_deg2rad(LPCSTR section, LPCSTR name, float& valu
 bool CWeapon::install_upgrade_impl( LPCSTR section, bool test )
 {
 	//inherited::install_upgrade( section );
-	bool result = CInventoryItemObjectOld::install_upgrade_impl(section, test);
+	bool result = inherited::install_upgrade_impl(section, test);
 	
 	result |= install_upgrade_ammo_class( section, test );
 	result |= install_upgrade_disp      ( section, test );
@@ -116,14 +116,9 @@ bool CWeapon::install_upgrade_disp( LPCSTR section, bool test )
 	VERIFY		(!fis_zero(zoom_cam_recoil.RelaxSpeed_AI));
 	VERIFY		(!fis_zero(zoom_cam_recoil.MaxAngleVert));
 	VERIFY		(!fis_zero(zoom_cam_recoil.MaxAngleHorz));
-	
-	result		|= process_if_exists		(section,	"crosshair_inertion",			m_crosshair_inertion,				test);
 
 	result		|= process_if_exists		(section,	"PDM_disp_base",				m_pdm.m_fPDM_disp_base,				test);
 	result		|= process_if_exists		(section,	"PDM_disp_vel_factor",			m_pdm.m_fPDM_disp_vel_factor,		test);
-	result		|= process_if_exists		(section,	"PDM_disp_accel_factor",		m_pdm.m_fPDM_disp_accel_factor,		test);
-	result		|= process_if_exists		(section,	"PDM_disp_crouch",				m_pdm.m_fPDM_disp_crouch,			test);
-	result		|= process_if_exists		(section,	"PDM_disp_crouch_no_acc",		m_pdm.m_fPDM_disp_crouch_no_acc,	test);
 
 	result		|= process_if_exists		(section,	"condition_shot_dec",			conditionDecreasePerShot,			test);
 	result		|= process_if_exists		(section,	"condition_queue_shot_dec",		conditionDecreasePerQueueShot,		test);
@@ -161,84 +156,6 @@ bool CWeapon::install_upgrade_hit( LPCSTR section, bool test )
 bool CWeapon::install_upgrade_addon( LPCSTR section, bool test )
 {
 	bool result									= false;
-	int temp_int								= (int)m_eScopeStatus;
-	bool result2								= process_if_exists(section, "scope_status", temp_int, test);
-	if (result2 && !test)
-	{
-		m_eScopeStatus							= (ALife::EWeaponAddonStatus)temp_int;
-		if (m_eScopeStatus == ALife::eAddonAttachable || m_eScopeStatus == ALife::eAddonPermanent)
-		{
-			result								|= process_if_exists(section, "holder_range_modifier", m_addon_holder_range_modifier, test);
-			result								|= process_if_exists(section, "holder_fov_modifier", m_addon_holder_fov_modifier, test);
-
-			shared_str							scope_sect;
-			if (m_eScopeStatus == ALife::eAddonPermanent)
-			{
-				LPCSTR scope					= pSettings->r_string(section, "scope");
-				scope_sect.printf				("%s_%s", section, scope);
-				m_scopes.push_back				(scope);
-				m_scopes_sect.push_back			(*scope_sect);
-				m_cur_scope						= 0;
-			}
-			else
-			{
-				LPCSTR scopes					= pSettings->r_string(section, "scopes");
-				for (int i = 0, count = _GetItemCount(scopes); i < count; ++i)
-				{
-					string128					scope;
-					_GetItem					(scopes, i, scope);
-					scope_sect.printf			("%s_%s", section, scope);
-					m_scopes.push_back			(scope);
-					m_scopes_sect.push_back		(*scope_sect);
-				}
-			}
-		}
-		InitAddons								();
-	}
-	result |= process_if_exists(section, "scope_zoom_factor", m_zoom_params.m_fScopeZoomFactor, test);
-	result |= process_if_exists(section, "scope_min_zoom_factor", m_zoom_params.m_fScopeMinZoomFactor, test);
-	result |= process_if_exists(section, "scope_nightvision", m_zoom_params.m_sUseZoomPostprocess, test);
-	result |= process_if_exists(section, "scope_alive_detector", m_zoom_params.m_sUseBinocularVision, test);
-
-	result |= result2;
-
-	temp_int						= (int)m_eSilencerStatus;
-	result2							= process_if_exists(section, "silencer_status", temp_int, test);
-	if (result2 && !test)
-	{
-		m_eSilencerStatus			= (ALife::EWeaponAddonStatus)temp_int;
-		if (m_eSilencerStatus != ALife::eAddonDisabled)
-		{
-			m_sSilencerName			= pSettings->r_string(section, "silencer_name");
-			if (m_eSilencerStatus == ALife::eAddonPermanent)
-				InitAddons			();
-			else
-			{
-				m_iSilencerX		= pSettings->r_s32(section, "silencer_x");
-				m_iSilencerY		= pSettings->r_s32(section, "silencer_y");
-			}
-		}
-	}
-	result							|= result2;
-
-	temp_int							= (int)m_eGrenadeLauncherStatus;
-	result2								= process_if_exists(section, "grenade_launcher_status", temp_int, test);
-	if (result2 && !test)
-	{
-		m_eGrenadeLauncherStatus		= (ALife::EWeaponAddonStatus)temp_int;
-		if (m_eGrenadeLauncherStatus != ALife::eAddonDisabled)
-		{
-			m_sGrenadeLauncherName		= pSettings->r_string(section, "grenade_launcher_name");
-			if (m_eGrenadeLauncherStatus == ALife::eAddonPermanent)
-				InitAddons();
-			else
-			{
-				m_iGrenadeLauncherX		= pSettings->r_s32(section, "grenade_launcher_x");
-				m_iGrenadeLauncherY		= pSettings->r_s32(section, "grenade_launcher_y");
-			}
-		}
-	}
-	result								|= result2;
-
+	//--xd на будущее, можно сделать апгрейд слотов аддонов
 	return result;
 }

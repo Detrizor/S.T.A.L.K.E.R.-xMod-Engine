@@ -79,7 +79,8 @@ protected:
 	//счетчик времени, затрачиваемого на выстрел
 	float					fShotTimeCounter;
 
-	struct SilencerKoeffs // value *= koef;
+public:
+	struct SilencerKoeffs
 	{
 		float	bullet_speed;
 		float	fire_dispersion;
@@ -89,16 +90,12 @@ protected:
 		SilencerKoeffs() { Reset(); }
 		IC void Reset()
 		{
-			bullet_speed    = 1.0f;
+			bullet_speed = 1.0f;
 			fire_dispersion = 1.0f;
-			cam_dispersion  = 1.0f;
-			cam_disper_inc  = 1.0f;
+			cam_dispersion = 1.0f;
+			cam_disper_inc = 1.0f;
 		}
-	};// SilencerKoeffs
-	SilencerKoeffs		m_silencer_koef;
-
-public:
-	SilencerKoeffs		cur_silencer_koef;
+	} m_silencer_koef;
 
 protected:
 	//для сталкеров, чтоб они знали эффективные границы использования 
@@ -126,7 +123,7 @@ protected:
 	void					Light_Start			();
 	void					Light_Render		(const Fvector& P);
 
-	virtual	void			LoadLights			(LPCSTR section, LPCSTR prefix);
+	virtual	void			LoadLights			(LPCSTR section);
 	virtual void			RenderLight			();
 	virtual void			UpdateLight			();
 	virtual void			StopLight			();
@@ -146,8 +143,8 @@ protected:
 			void			StopParticles		(CParticlesObject*& pParticles);
 			void			UpdateParticles		(CParticlesObject*& pParticles, const Fvector& pos, const  Fvector& vel = zero_vel);
 
-			void			LoadShellParticles	(LPCSTR section, LPCSTR prefix);
-			void			LoadFlameParticles	(LPCSTR section, LPCSTR prefix);
+			void			LoadShellParticles	(LPCSTR section);
+			void			LoadFlameParticles	(LPCSTR section);
 	
 	////////////////////////////////////////////////
 	//спецефические функции для партиклов
@@ -164,25 +161,22 @@ protected:
 
 	//партиклы гильз
 			void			OnShellDrop			(const Fvector& play_pos, const Fvector& parent_vel);
-protected:
-	//имя пратиклов для гильз
-	shared_str				m_sShellParticles;
 public:
 	Fvector					vLoadedShellPoint;
+
 protected:
-	//имя пратиклов для огня
-	shared_str				m_sFlameParticlesCurrent;
 	//для выстрела 1м и 2м видом стрельбы
 	shared_str				m_sFlameParticles;
+	//имя пратиклов для дыма
+	shared_str				m_sSmokeParticles;
+	//имя партиклов следа от пули
+	shared_str				m_sShotParticles;
+	//имя пратиклов для гильз
+	shared_str				m_sShellParticles;
+
 	//объект партиклов огня
 	CParticlesObject*		m_pFlameParticles;
 
-	//имя пратиклов для дыма
-	shared_str				m_sSmokeParticlesCurrent;
-	shared_str				m_sSmokeParticles;
-	
-	//имя партиклов следа от пули
-	shared_str				m_sShotParticles;
 public:
 	virtual void				DumpActiveParams		(shared_str const & section_name, CInifile & dst_ini) const;
 };

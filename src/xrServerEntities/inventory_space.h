@@ -3,6 +3,8 @@
 #define CMD_START	(1<<0)
 #define CMD_STOP	(1<<1)
 
+#define NO_ID u16(-1)
+
 enum
 {
 	NO_ACTIVE_SLOT	= 0,
@@ -16,7 +18,6 @@ enum
 	OUTFIT_SLOT,
 	HELMET_SLOT,
 	BACKPACK_SLOT,
-	PATCH_SLOT,
 	HEADLAMP_SLOT,
 	PDA_SLOT,
 	TORCH_SLOT,
@@ -35,7 +36,6 @@ class CInventory;
 
 typedef CInventoryItem*				PIItem;
 typedef xr_vector<PIItem>			TIItemContainer;
-
 
 enum eItemPlace
 {			

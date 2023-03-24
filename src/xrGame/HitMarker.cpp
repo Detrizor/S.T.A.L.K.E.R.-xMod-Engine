@@ -9,7 +9,7 @@
 
 #include "../Include/xrRender/UIRender.h"
 #include "../Include/xrRender/UIShader.h"
-
+#include "ui_base.h"
 
 //--------------------------------------------------------------------
 CHitMarker::CHitMarker()

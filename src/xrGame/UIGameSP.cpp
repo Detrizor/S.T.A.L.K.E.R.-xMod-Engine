@@ -150,62 +150,30 @@ void CUIGameSP::Render()
 }
 #endif
 
-
 void  CUIGameSP::StartTrade(CInventoryOwner* pActorInv, CInventoryOwner* pOtherOwner)
 {
-//.	if( MainInputReceiver() )	return;
-
-	ActorMenu->SetActor		(pActorInv);
-	ActorMenu->SetPartner		(pOtherOwner);
-
-	ActorMenu->SetMenuMode	(mmTrade);
-	ActorMenu->ShowDialog		(true);
+	ActorMenu->StartMenuMode	(mmTrade, pActorInv, (void*)pOtherOwner);
 }
 
 void  CUIGameSP::StartUpgrade(CInventoryOwner* pActorInv, CInventoryOwner* pMech)
 {
-//.	if( MainInputReceiver() )	return;
-
-	ActorMenu->SetActor		(pActorInv);
-	ActorMenu->SetPartner		(pMech);
-
-	ActorMenu->SetMenuMode	(mmUpgrade);
-	ActorMenu->ShowDialog		(true);
+	ActorMenu->StartMenuMode	(mmUpgrade, pActorInv, (void*)pMech);
 }
 
 void CUIGameSP::StartTalk(bool disable_break)
 {
-	RemoveCustomStatic		("main_task");
-	RemoveCustomStatic		("secondary_task");
+	RemoveCustomStatic			("main_task");
+	RemoveCustomStatic			("secondary_task");
 
 	TalkMenu->b_disable_break = disable_break;
 	TalkMenu->ShowDialog		(true);
 }
 
-
-void CUIGameSP::StartCarBody(CInventoryOwner* pActorInv, CInventoryOwner* pOtherOwner) //Deadbody search
+void CUIGameSP::StartCarBody(CInventoryOwner* pActorInv, EMenuMode mode, void* pCarBody)
 {
-	if( TopInputReceiver() )		return;
-
-	ActorMenu->SetActor		(pActorInv);
-	ActorMenu->SetPartner		(pOtherOwner);
-
-	ActorMenu->SetMenuMode	(mmDeadBodySearch);
-	ActorMenu->ShowDialog		(true);
+	if (TopInputReceiver())		return;
+	ActorMenu->StartMenuMode	(mode, pActorInv, pCarBody);
 }
-
-void CUIGameSP::StartCarBody(CInventoryOwner* pActorInv, CInventoryBox* pBox) //Deadbody search
-{
-	if( TopInputReceiver() )		return;
-	
-	ActorMenu->SetActor		(pActorInv);
-	ActorMenu->SetInvBox		(pBox);
-	VERIFY( pBox );
-
-	ActorMenu->SetMenuMode	(mmDeadBodySearch);
-	ActorMenu->ShowDialog		(true);
-}
-
 
 extern ENGINE_API BOOL bShowPauseString;
 void CUIGameSP::ChangeLevel(	GameGraph::_GRAPH_ID game_vert_id, 

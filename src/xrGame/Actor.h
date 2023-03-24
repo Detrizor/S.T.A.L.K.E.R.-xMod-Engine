@@ -59,6 +59,7 @@ class CActorMemory;
 class CActorStatisticMgr;
 
 class CLocationManager;
+class CContainerObject;
 
 class	CActor: 
     public CEntityAlive, 
@@ -198,8 +199,6 @@ public:
 
     //свойства артефактов
     virtual void		UpdateArtefactsAndOutfit	();
-            void		HitArtefacts				(SHit& HDS);
-            float		GetProtectionArtefacts		(ALife::EHitType hit_type);
 
 protected:
     //звук тяжелого дыхания
@@ -210,7 +209,6 @@ protected:
 protected:
     // Death
     float					m_hit_slowmo;
-    float					m_hit_probability;
     s8						m_block_sprint_counter;
 
     // media
@@ -351,6 +349,8 @@ public:
 
     CGameObject*			ObjectWeLookingAt			() {return m_pObjectWeLookingAt;}
     CInventoryOwner*		PersonWeLookingAt			() {return m_pPersonWeLookingAt;}
+    CInventoryBox*			InvBoxWeLookingAt			() const {return m_pInvBoxWeLookingAt;}
+	CContainerObject*		ContainerWeLookingAt		() const {return m_pContainerWeLookingAt;}
     LPCSTR					GetDefaultActionForObject	() {return *m_sDefaultObjAction;}
 protected:
     CUsableScriptObject*	m_pUsableObject;
@@ -358,7 +358,8 @@ protected:
     CInventoryOwner*		m_pPersonWeLookingAt;
     CHolderCustom*			m_pVehicleWeLookingAt;
     CGameObject*			m_pObjectWeLookingAt;
-    CInventoryBox*			m_pInvBoxWeLookingAt;
+	CInventoryBox*			m_pInvBoxWeLookingAt;
+	CContainerObject*		m_pContainerWeLookingAt;
 
     // Tip for action for object we're looking at
     shared_str				m_sDefaultObjAction;
@@ -369,6 +370,7 @@ protected:
     shared_str				m_sCarCharacterUseAction;
     shared_str				m_sInventoryItemUseAction;
     shared_str				m_sInventoryBoxUseAction;
+    shared_str				m_sContainerUseAction;
     
 //	shared_str				m_quick_use_slots[5];
     //режим подбирания предметов
@@ -390,8 +392,10 @@ protected:
     // Motions (передвижения актрера)
     //////////////////////////////////////////////////////////////////////////
 public:
-	//расстояние подсветки предметов
+    float					m_fPickupInfoRadius;		//расстояние подсветки предметов
 	float					m_fVicinityRadius;
+	float					m_fPickupRadius;
+	float					m_fUseRadius;
 
     void					g_cl_CheckControls		(u32 mstate_wf, Fvector &vControlAccel, float &Jump, float dt);
     void					g_cl_ValidateMState		(float dt, u32 mstate_wf);
@@ -463,32 +467,35 @@ public:
     virtual	float						GetWeaponAccuracy		() const;
             float						GetFireDispertion		() const {return m_fdisp_controller.GetCurrentDispertion();}
             bool						IsZoomAimingMode		() const {return m_bZoomAimingMode;}
+            bool						IsZoomADSMode			() const {return m_bZoomADSMode;}
 	virtual	float						InventoryCapacity		() const;
 
 protected:
     CFireDispertionController			m_fdisp_controller;
     //если актер целится в прицел
     void								SetZoomAimingMode	(bool val)	{m_bZoomAimingMode = val;}
-    bool								m_bZoomAimingMode;
+    void								SetZoomADSMode		(bool val)	{m_bZoomADSMode = val;}
+	bool								m_bZoomAimingMode;
+	bool								m_bZoomADSMode;
 
     //настройки аккуратности стрельбы
     //базовая дисперсия (когда игрок стоит на месте)
     float								m_fDispBase;
     float								m_fDispAim;
+	float								m_fDispADS;
     //коэффициенты на сколько процентов увеличится базовая дисперсия
     //учитывает скорость актера 
     float								m_fDispVelFactor;
-    //если актер бежит
-    float								m_fDispAccelFactor;
     //если актер сидит
     float								m_fDispCrouchFactor;
-    //crouch+no acceleration
-    float								m_fDispCrouchNoAccelFactor;
+
 	Fvector								m_vMissileOffset;
+
 public:
 	// Получение, и запись смещения для гранат
 	Fvector								GetMissileOffset	() const;
 	void								SetMissileOffset	(const Fvector &vNewOffset);
+
 protected:
     //косточки используемые при стрельбе
     int									m_r_hand;
@@ -504,8 +511,6 @@ protected:
     int									m_spine1;
     int									m_spine;
     int									m_neck;
-
-
 
     //////////////////////////////////////////////////////////////////////////
     // Network
@@ -605,7 +610,6 @@ public:
 //	virtual void			UpdatePosStack	( u32 Time0, u32 Time1 );
     virtual void			MoveActor		(Fvector NewPos, Fvector NewDir);
 
-    virtual void			SpawnAmmoForWeapon		(CInventoryItem *pIItem);
     virtual void			RemoveAmmoForWeapon		(CInventoryItem *pIItem);
     virtual	void			spawn_supplies			();
     virtual bool			human_being				() const
@@ -728,7 +732,6 @@ public:
 
     void						OnDifficultyChanged				();
 
-    IC float					HitProbability					() {return m_hit_probability;}
     virtual	CVisualMemoryManager*visual_memory					() const;
 
     virtual	void				On_B_NotCurrentEntity			();
@@ -791,6 +794,10 @@ private:
 			{
 				mstate_wishful = state;
 			}
+
+public:
+			float			fFPCamYawMagnitude; //--#SM+#--
+			float			fFPCamPitchMagnitude;
       
 DECLARE_SCRIPT_REGISTER_FUNCTION
 };

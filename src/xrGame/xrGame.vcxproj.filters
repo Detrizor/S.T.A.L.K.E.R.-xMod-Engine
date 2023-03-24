@@ -5760,12 +5760,6 @@
     <ClInclude Include="Missile.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
     </ClInclude>
-    <ClInclude Include="Scope.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Scope</Filter>
-    </ClInclude>
-    <ClInclude Include="Silencer.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Silencer</Filter>
-    </ClInclude>
     <ClInclude Include="GrenadeLauncher.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\GrenadeLauncher</Filter>
     </ClInclude>
@@ -7381,6 +7375,17 @@
     <ClInclude Include="ui\UIPdaSpot.h">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Magazine.h" />
+    <ClInclude Include="IItemContainer.h" />
+    <ClInclude Include="inventory_item_amountable.h" />
+    <ClInclude Include="xmod\addon.h" />
+    <ClInclude Include="xmod\addon_owner.h" />
+    <ClInclude Include="xmod\attachment.h" />
+    <ClInclude Include="xmod\scope.h" />
+    <ClInclude Include="xmod\silencer.h" />
+    <ClInclude Include="xmod\weapon_hud.h" />
+    <ClInclude Include="xmod\items_library.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -9303,12 +9308,6 @@
     <ClCompile Include="Missile.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
     </ClCompile>
-    <ClCompile Include="Scope.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Scope</Filter>
-    </ClCompile>
-    <ClCompile Include="Silencer.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Silencer</Filter>
-    </ClCompile>
     <ClCompile Include="GrenadeLauncher.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\GrenadeLauncher</Filter>
     </ClCompile>
@@ -11067,6 +11066,16 @@
     <ClCompile Include="ui\UIPdaSpot.cpp">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClCompile>
+    <ClCompile Include="Magazine.cpp" />
+    <ClCompile Include="IItemContainer.cpp" />
+    <ClCompile Include="inventory_item_amountable.cpp" />
+    <ClCompile Include="xmod\addon.cpp" />
+    <ClCompile Include="xmod\addon_owner.cpp" />
+    <ClCompile Include="xmod\attachment.cpp" />
+    <ClCompile Include="xmod\scope.cpp" />
+    <ClCompile Include="xmod\silencer.cpp" />
+    <ClCompile Include="xmod\weapon_hud.cpp" />
+    <ClCompile Include="xmod\items_library.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">
@@ -11092,5 +11101,8 @@
     <None Include="Players.cd">
       <Filter>Class Diagrams</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="xrGame.rc" />
   </ItemGroup>
 </Project>

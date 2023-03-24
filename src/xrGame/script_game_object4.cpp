@@ -34,8 +34,6 @@
 #include "ai\monsters\basemonster\base_monster.h"
 #include "medkit.h"
 #include "antirad.h"
-#include "scope.h"
-#include "silencer.h"
 #include "torch.h"
 #include "GrenadeLauncher.h"
 #include "searchlight.h"
@@ -43,7 +41,12 @@
 #include "grenade.h"
 #include "BottleItem.h"
 #include "WeaponMagazinedWGrenade.h"
-#include "ActorBackpack.h"
+#include "inventory_item_amountable.h"
+#include "IItemContainer.h"
+#include "Magazine.h"
+
+#include "xmod\scope.h"
+#include "xmod\silencer.h"
 
 class CWeapon;
 
@@ -260,7 +263,7 @@ bool CScriptGameObject::IsInvBoxEmpty()
     if (!ib)
         return			(false);
     else
-        return			ib->IsEmpty();
+        return			ib->Empty();
 }
 
 bool CScriptGameObject::inv_box_closed(bool status, LPCSTR reason)
@@ -402,72 +405,7 @@ void CScriptGameObject::SetHealthEx(float hp)
 }
 //-AVO
 
-float CScriptGameObject::Volume() const
-{
-	CInventoryItem		*inventory_item = smart_cast<CInventoryItem*>(&object());
-	if (!inventory_item)
-	{
-		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member Volume!");
-		return false;
-	}
-	return				(inventory_item->Volume());
-}
-
-void CScriptGameObject::SetVolume(float v)
-{
-	CInventoryItem		*inventory_item = smart_cast<CInventoryItem*>(&object());
-	if (!inventory_item)
-	{
-		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member SetVolume!");
-		return;
-	}
-	inventory_item->SetVolume(v);
-}
-
-LPCSTR CScriptGameObject::CustomData()
-{
-	PIItem iitem				= object().cast_inventory_item();
-	CEatableItem* eitem			= iitem->cast_eatable_item();
-	if (!eitem)
-		return					false;
-	return						*eitem->CustomData();
-}
-
-void CScriptGameObject::SetCustomData(LPCSTR data)
-{
-	PIItem iitem				= object().cast_inventory_item();
-	CEatableItem* eitem			= iitem->cast_eatable_item();
-	if (!eitem)
-		return;
-	eitem->CustomData()._set	(data);
-}
-
-void CScriptGameObject::AppendCustomData(u8 data)
-{
-	PIItem iitem				= object().cast_inventory_item();
-	CEatableItem* eitem			= iitem->cast_eatable_item();
-	if (!eitem)
-		return;
-	eitem->CustomData().printf	("%s%i", *eitem->CustomData(), data);
-}
-
-LPCSTR CScriptGameObject::GetMagazine()
-{
-	CWeaponMagazined* wpn		= smart_cast<CWeaponMagazined*>(&object());
-	if (!wpn)
-		return					false;
-	return						wpn->GetMagazine();
-}
-
-void CScriptGameObject::SetMagazine(LPCSTR data)
-{
-	CWeaponMagazined* wpn		= smart_cast<CWeaponMagazined*>(&object());
-	if (!wpn)
-		return;
-	wpn->SetMagazine			(data);
-}
-
-u8 CScriptGameObject::GetGrenade()
+u8 CScriptGameObject::GetGrenade() const
 {
 	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
 	if (!wpn)
@@ -483,40 +421,19 @@ void CScriptGameObject::SetGrenade(u8 cnt)
 	wpn->SetGrenade						(cnt);
 }
 
-u8 CScriptGameObject::MagazineIndex()
+void CScriptGameObject::LoadCartridge(CScriptGameObject* obj)
 {
-	CWeapon* weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon)
-		return false;
-	return weapon->MagazineIndex();
-}
-
-void CScriptGameObject::SetMagazineIndex(u8 index)
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon)
+	CWeaponAmmo* cartridge				= smart_cast<CWeaponAmmo*>(&obj->object());
+	if (!cartridge)
 		return;
-	return weapon->SetMagazineIndex(index);
-}
 
-bool CScriptGameObject::LoadMagazine(CScriptGameObject* obj)
-{
-	CWeaponMagazined* wpn	= smart_cast<CWeaponMagazined*>(&object());
-	CEatableItem* mag		= smart_cast<CEatableItem*>(&obj->object());
-	if (!wpn || !mag)
-		return				false;
+	CWeaponMagazined* wpn				= smart_cast<CWeaponMagazined*>(&object());
+	if (wpn)
+		wpn->LoadCartridge				(cartridge);
 
-	return					wpn->LoadMagazine(mag);
-}
-
-bool CScriptGameObject::LoadCartridge(CScriptGameObject* obj)
-{
-	CWeaponMagazined* wpn	= smart_cast<CWeaponMagazined*>(&object());
-	CWeaponAmmo* cartridge	= smart_cast<CWeaponAmmo*>(&obj->object());
-	if (!wpn || !cartridge)
-		return				false;
-
-	return					wpn->LoadCartridge(cartridge);
+	CMagazine* mag						= smart_cast<CMagazine*>(&object());
+	if (mag)
+		mag->LoadCartridge				(cartridge);
 }
 
 bool CScriptGameObject::LoadGrenade(CScriptGameObject* obj)
@@ -569,55 +486,16 @@ void CScriptGameObject::ActorSetAccelBlock(bool block)
 	actor->m_fAccelBlock = block;
 }
 
-LPCSTR CScriptGameObject::MainClass()
+bool CScriptGameObject::Category(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd) const
 {
-	PIItem item = smart_cast<PIItem>(&object());
-	return (item) ? item->m_main_class.c_str() : NULL;
-}
-
-LPCSTR CScriptGameObject::Subclass()
-{
-	PIItem item = smart_cast<PIItem>(&object());
-	return (item) ? item->m_subclass.c_str() : NULL;
-}
-
-LPCSTR CScriptGameObject::Division()
-{
-	PIItem item = smart_cast<PIItem>(&object());
-	return (item) ? item->m_division.c_str() : NULL;
-}
-
-LPCSTR CScriptGameObject::FullClass(bool with_division)
-{
-	PIItem item = smart_cast<PIItem>(&object());
-	return (item) ? *item->FullClass(with_division) : NULL;
+	PIItem item							= smart_cast<PIItem>(&object());
+	return								(item) ? item->Category(cmpc, cmps, cmpd) : false;
 }
 
 bool CScriptGameObject::InHands()
 {
-	PIItem item = smart_cast<PIItem>(&object());
-	return (item) ? item->InHands() : false;
-}
-
-float CScriptGameObject::GetCapacity()
-{
-	CBackpack* backpack		= smart_cast<CBackpack*>(&object());
-	if (backpack)
-		return				backpack->GetCapacity();
-	CInventoryBox* box		= smart_cast<CInventoryBox*>(&object());
-	if (box)
-		return				box->GetCapacity();
-	return					0.f;
-}
-
-void CScriptGameObject::SetCapacity(float v)
-{
-	CBackpack* backpack				= smart_cast<CBackpack*>(&object());
-	if (backpack)
-		backpack->SetCapacity		(v);
-	CInventoryBox* box				= smart_cast<CInventoryBox*>(&object());
-	if (box)
-		box->SetCapacity			(v);
+	PIItem item							= smart_cast<PIItem>(&object());
+	return								(item) ? item->InHands() : false;
 }
 
 float CScriptGameObject::GetProtection(u8 type)
@@ -681,77 +559,235 @@ float CScriptGameObject::GetPowerLoss()
 	return outfit->m_fPowerLoss;
 }
 
-float CScriptGameObject::GetScopeZoomFactor()
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return			0.f;
-
-	return (weapon) ? weapon->m_zoom_params.m_fScopeZoomFactor : scope->m_fScopeZoomFactor;
-}
-
-void CScriptGameObject::SetScopeZoomFactor(float f)
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return;
-
-	if (weapon)
-		weapon->SetZoomFactor			(f);
-	else
-		scope->m_fScopeZoomFactor		= f;
-}
-
-float CScriptGameObject::GetScopeMinZoomFactor()
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return			1.f;
-
-	return (weapon) ? weapon->m_zoom_params.m_fScopeMinZoomFactor : scope->m_fScopeMinZoomFactor;
-}
-
-void CScriptGameObject::SetScopeMinZoomFactor(float f)
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return;
-	
-	if (weapon)
-		weapon->SetMinZoomFactor			(f);
-	else
-		scope->m_fScopeMinZoomFactor		= f;
-}
-
-LPCSTR CScriptGameObject::GetScopeAliveDetector()
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return			"";
-
-	return (weapon) ? *weapon->m_zoom_params.m_sUseBinocularVision : *scope->m_bScopeAliveDetector;
-}
-
-void CScriptGameObject::SetScopeAliveDetector(LPCSTR p)
-{
-	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
-	CScope* scope		= smart_cast<CScope*>(&object());
-	if (!weapon && !scope)
-		return;
-	
-	shared_str& var		= (weapon) ? weapon->m_zoom_params.m_sUseBinocularVision : scope->m_bScopeAliveDetector;
-	var._set			(p);
-}
-
 float CScriptGameObject::GetInertion()
 {
 	PIItem item		= smart_cast<PIItem>(&object());
 	return			(item) ? item->GetControlInertionFactor() : 0.f;
+}
+
+float CScriptGameObject::GetTotalVolume() const
+{
+	CInventoryOwner* inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member GetTotalVolume!");
+		return			(false);
+	}
+	return				(inventory_owner->inventory().TotalVolume());
+}
+
+float CScriptGameObject::GetInventoryCapacity()
+{
+	CInventoryOwner* inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member GetInventoryCapacity!");
+		return			false;
+	}
+	return				inventory_owner->InventoryCapacity();
+}
+
+CSE_Abstract* CScriptGameObject::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
+{
+	CGameObject* go					= smart_cast<CGameObject*>(&object());
+	return							(go) ? go->GiveObjects(section, count, condition, dont_reg) : false;
+}
+
+CSE_Abstract* CScriptGameObject::GiveAmmo(LPCSTR section, u32 count, float condition, bool dont_reg)
+{
+	CGameObject* go					= smart_cast<CGameObject*>(&object());
+	return							(go) ? go->GiveAmmo(section, count, condition) : false;
+}
+
+float CScriptGameObject::Volume() const
+{
+	CInventoryItem* iitem			= smart_cast<CInventoryItem*>(&object());
+	return							iitem ? iitem->Volume() : false;
+}
+
+bool CScriptGameObject::IsActive() const
+{
+	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
+	return							(artefact) ? artefact->IsActive() : false;
+}
+
+void CScriptGameObject::Activate()
+{
+	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
+	if (artefact)
+		artefact->Activate			();
+}
+
+void CScriptGameObject::Deactivate()
+{
+	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
+	if (artefact)
+		artefact->Deactivate		();
+}
+
+float CScriptGameObject::Power() const
+{
+	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
+	return							(artefact) ? artefact->Power() : 0.f;
+}
+
+void CScriptGameObject::AmmoChangeCount(u16 val)
+{
+	CWeaponAmmo* ammo				= smart_cast<CWeaponAmmo*>(&object());
+	if (ammo)
+		ammo->ChangeAmmoCount		(val);
+}
+
+float CScriptGameObject::GetDepletionRate() const
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	return							(aiitem) ? aiitem->GetDepletionRate() : false;
+}
+
+float CScriptGameObject::GetDepletionSpeed() const
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	return							(aiitem) ? aiitem->GetDepletionSpeed() : false;
+}
+
+void CScriptGameObject::SetDepletionSpeed(float val)
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->SetDepletionSpeed	(val);
+}
+
+float CScriptGameObject::GetCapacity() const
+{
+	CInventoryContainer* cont			= smart_cast<CInventoryContainer*>(&object());
+	if (cont)
+		return							cont->GetCapacity();
+
+    CItemAmountable* aiitem				= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		return							aiitem->Capacity();
+
+	return								0.f;
+}
+
+float CScriptGameObject::GetAmount() const
+{
+	PIItem iitem					= smart_cast<PIItem>(&object());
+	return							(iitem) ? iitem->GetAmount() : false;
+}
+
+void CScriptGameObject::SetAmount(float val)
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->SetAmount			(val);
+}
+
+void CScriptGameObject::ChangeAmount(float val)
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->ChangeAmount		(val);
+}
+
+float CScriptGameObject::GetFill() const
+{
+	PIItem item						= smart_cast<PIItem>(&object());
+	return							(item) ? item->GetFill() : 0.f;
+}
+
+void CScriptGameObject::SetFill(float val)
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->SetFill				(val);
+}
+
+void CScriptGameObject::ChangeFill(float val)
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->ChangeFill			(val);
+}
+
+void CScriptGameObject::Deplete()
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	if (aiitem)
+		aiitem->Deplete				();
+}
+
+bool CScriptGameObject::Empty() const
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	return							(aiitem) ? aiitem->Empty() : false;
+}
+
+bool CScriptGameObject::Full() const
+{
+	CItemAmountable* aiitem			= smart_cast<CItemAmountable*>(&object());
+	return							(aiitem) ? aiitem->Full() : false;
+}
+
+u32 CScriptGameObject::Amount() const
+{
+	CMagazine* mag					= smart_cast<CMagazine*>(&object());
+	return							(mag) ? mag->Amount() : false;
+}
+
+u32 CScriptGameObject::Capacity() const
+{
+	CMagazine* mag					= smart_cast<CMagazine*>(&object());
+	return							(mag) ? mag->Capacity() : false;
+}
+
+bool CScriptGameObject::Discharge(CScriptGameObject* obj, bool full)
+{
+	CInventoryOwner* owner			= smart_cast<CInventoryOwner*>(&object());
+	PIItem item						= smart_cast<PIItem>(&obj->object());
+	return							(owner && item) ? owner->Discharge(item, full) : false;
+}
+
+bool CScriptGameObject::CanTake(CScriptGameObject* obj) const
+{
+	CMagazine* mag					= smart_cast<CMagazine*>(&object());
+	CWeaponAmmo* ammo				= smart_cast<CWeaponAmmo*>(&obj->object());
+	return							(mag && ammo) ? mag->CanTake(ammo) : false;
+}
+
+LPCSTR CScriptGameObject::Stock() const
+{
+	CContainerObject* ciitem		= smart_cast<CContainerObject*>(&object());
+	return							(ciitem) ? ciitem->Stock() : "";
+}
+
+u32 CScriptGameObject::StockCount() const
+{
+	CContainerObject* ciitem		= smart_cast<CContainerObject*>(&object());
+	return							(ciitem) ? ciitem->StockCount() : 0;
+}
+
+void CScriptGameObject::Transfer(u16 id) const
+{
+	PIItem item						= smart_cast<PIItem>(&object());
+	if (item)
+		item->Transfer				(id);
+}
+
+void CScriptGameObject::SetInvIcon(u8 idx)
+{
+	PIItem item						= smart_cast<PIItem>(&object());
+	if (item)
+		item->SetInvIconIndex		(idx);
+}
+
+u8 CScriptGameObject::GetInvIconIndex() const
+{
+	PIItem item						= smart_cast<PIItem>(&object());
+	if (item)
+		return						item->GetInvIconIndex();
+
+	return							0;
 }
 
 #define SPECIFIC_CAST(A,B)\

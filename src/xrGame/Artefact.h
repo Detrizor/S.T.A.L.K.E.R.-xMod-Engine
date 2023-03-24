@@ -5,17 +5,20 @@
 #include "../xrphysics/PHUpdateObject.h"
 #include "script_export_space.h"
 #include "patrol_path.h"
+#include "inventory_item_amountable.h"
 
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
 class CArtefact :	public CHudItemObject, 
-					public CPHUpdateObject 
+					public CPHUpdateObject,
+					public CItemAmountable
 {
 	typedef			CHudItemObject	inherited;
 public:
 									CArtefact						();
 	virtual							~CArtefact						();
+	virtual DLL_Pure*				_construct						();
 
 	virtual void					Load							(LPCSTR section);
 	virtual BOOL					net_Spawn						(CSE_Abstract* DC);
@@ -41,7 +44,7 @@ public:
 
 protected:
 	virtual void					UpdateCLChild					()		{};
-	virtual void					CreateArtefactActivation			();
+	virtual void					CreateArtefactActivation		();
 
 	SArtefactActivation*			m_activationObj;
 	SArtefactDetectorsSupport*		m_detectorObj;
@@ -55,6 +58,8 @@ protected:
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
 	float							m_fArmor;
+	float							m_fChargeThreshold;
+	bool							m_bActive;
 
 	virtual void					UpdateLights					();
 public:
@@ -64,8 +69,6 @@ public:
 	void							FollowByPath					(LPCSTR path_name, int start_idx, Fvector magic_force);
 	bool							CanBeInvisible					();
 	void							SwitchVisibility				(bool);
-	float							GetArmor						()				{ return m_fArmor; };
-	bool							IsActivated						();
 
 	void							SwitchAfParticles				(bool bOn);
 	virtual void					StartLights();
@@ -77,7 +80,8 @@ public:
 	bool							m_bCanSpawnZone;
 	float 							m_fRadiationRestoreSpeed;
 	float							m_fWeightDump;
-	CHitImmunity 					m_ArtefactHitImmunities;
+	float							m_HitAbsorbation[ALife::eHitTypeMax];
+
 public:
 	enum EAFHudStates {
 		eActivating = eLastBaseState+1,
@@ -112,7 +116,23 @@ public:
 		//processing_deactivate		();
 	}
 
+	virtual	u32				Cost					() const;
+	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
+	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
+	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+public:
+			float			GetArmor				()								const	{ return m_fArmor * Power(); }
+			bool			IsActive				()								const	{ return m_bActive; }
+			void			SetActive				(bool status)							{ m_bActive = status; }
+			float			HitAbsorbation			(ALife::EHitType hit_type)		const	{ return m_HitAbsorbation[hit_type] * Power(); }
+
+			float			Power					()								const;
+			float			HitProtection			(ALife::EHitType hit_type)		const;
+
+			void			ProcessHit				(float d_damage, ALife::EHitType hit_type);
 };
 
 struct SArtefactDetectorsSupport
@@ -137,4 +157,3 @@ struct SArtefactDetectorsSupport
 add_to_type_list(CArtefact)
 #undef script_type_list
 #define script_type_list save_type_list(CArtefact)
-

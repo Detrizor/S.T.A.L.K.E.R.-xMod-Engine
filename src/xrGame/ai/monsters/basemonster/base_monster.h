@@ -621,9 +621,9 @@ public:
 	virtual bool					run_home_point_when_enemy_inaccessible () const { return true; }
 	virtual bool					need_shotmark () const { return true; }
 
-	float							GetSkinArmor() { return m_fSkinArmor; }
+public:
+			float			GetSkinArmor			()								const	{ return m_fSkinArmor; }
 };
-
 
 //-------------------------------------------------------------------
 // CBaseMonster's  debug template functions

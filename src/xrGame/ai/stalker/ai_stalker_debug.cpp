@@ -107,7 +107,6 @@ void try_change_current_entity()
 		return;
 
 	Level().SetEntity		(nearest_agent);
-	actor->inventory().Items_SetCurrentEntityHud(false);
 	
 	Engine.Sheduler.Unregister	(actor);
 	Engine.Sheduler.Register	(actor);
@@ -128,8 +127,6 @@ void restore_actor()
 
 	Engine.Sheduler.Unregister	(g_debug_actor);
 	Engine.Sheduler.Register	(g_debug_actor, TRUE);
-
-	g_debug_actor->inventory().Items_SetCurrentEntityHud(true);
 
 	CHudItem* pHudItem = smart_cast<CHudItem*>(g_debug_actor->inventory().ActiveItem());
 	if (pHudItem) 

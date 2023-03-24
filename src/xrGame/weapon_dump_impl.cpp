@@ -7,9 +7,6 @@ void CWeapon::DumpActiveParams(shared_str const & section_name, CInifile & dst_i
 
 	dst_ini.w_float	(section_name.c_str(), "pdm_disp_base",			m_pdm.m_fPDM_disp_base);
 	dst_ini.w_float	(section_name.c_str(), "pdm_disp_vel_factor",	m_pdm.m_fPDM_disp_vel_factor);
-	dst_ini.w_float	(section_name.c_str(), "pdm_disp_accel_factor",	m_pdm.m_fPDM_disp_accel_factor);
-	dst_ini.w_float	(section_name.c_str(), "pdm_disp_crouch",		m_pdm.m_fPDM_disp_crouch);
-	dst_ini.w_float	(section_name.c_str(), "pdm_disp_crouch_no_acc",m_pdm.m_fPDM_disp_crouch_no_acc);
 
 	dst_ini.w_bool	(section_name.c_str(), "cam_return",				cam_recoil.ReturnMode);
 	dst_ini.w_bool	(section_name.c_str(), "cam_return_stop",			cam_recoil.StopReturn);

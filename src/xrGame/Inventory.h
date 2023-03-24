@@ -45,23 +45,20 @@ public:
 	float 					CalcTotalWeight		();
 	float 					CalcTotalVolume		();
 
-	void					Take				(CGameObject *pObj, bool bNotActivate, bool strict_placement);
+	void					Take				(CGameObject *pObj, bool strict_placement);
 	//if just_before_destroy is true, then activate will be forced (because deactivate message will not deliver)
 	bool					DropItem			(CGameObject *pObj, bool just_before_destroy, bool dont_create_shell);
 	void					Clear				();
-	void					SendItemToDrop		(PIItem item);
 
 	u16 					m_last_slot;
 	u8	 					m_pockets_count;
 	IC u16					FirstSlot			() const {return 1;}
 	IC u16					LastSlot			() const {return m_last_slot;} // not "end"
 	IC bool					SlotIsPersistent	(u16 slot_id) const {return m_slots[slot_id].m_bPersistent;}
-	bool					Slot				(u16 slot_id, PIItem pIItem, bool bNotActivate = false, bool strict_placement=false);	
-	bool					ToSlot				(u16 slot_id, PIItem pIItem);
-	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
+	bool					Slot				(u16 slot_id, PIItem pIItem);
 	bool					Pocket				(PIItem pIItem, u16 pocket_id, bool forced = false);
-	bool					ToRuck				(PIItem pIItem);
-	bool					ToPocket			(PIItem pIItem, u16 pocket_id);
+	bool					Bag					(PIItem item);
+	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
 
 	bool 					InSlot				(const CInventoryItem* pIItem) const;
 	bool 					InRuck				(const CInventoryItem* pIItem) const;
@@ -89,8 +86,8 @@ public:
 	void					InitPriorityGroupsForQSwitch();
 
 	PIItem					ActiveItem			() const;
-	PIItem					LeftItem			() const			{ return ItemFromSlot(LEFT_HAND_SLOT); }
-	bool					InHands				(PIItem item)		{ return item == ActiveItem() || item == LeftItem(); }
+	PIItem					LeftItem			(bool with_activation = false) const;
+	bool					InHands				(PIItem item) const		{ return item == ActiveItem() || item == LeftItem(); }
 	PIItem					ItemFromSlot		(u16 slot) const;
 
 	bool					Action				(u16 cmd, u32 flags);
@@ -100,7 +97,7 @@ public:
 	// »щет на по€се IItem дл€ указанного слота
 	PIItem					SameSlot			(const u16 slot, PIItem pIItem) const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (cName())
-	PIItem					Get					(LPCSTR name, int pocket_id = -1) const;
+	PIItem					Get					(LPCSTR name, int pocket_id = -1, bool full = false) const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (id)
 	PIItem					Get					(const u16  id) const;
 	// »щет на по€се или в рюкзаке IItem с указанным CLS_ID
@@ -145,6 +142,9 @@ public:
 	TISlotArr				m_slots;
 	TIICArr					m_pockets;
 
+	TIItemContainer			m_to_check;
+	xr_vector<CArtefact*>	m_artefacts;
+
 public:
 	//возвращает все кроме PDA в слоте и болта
 	void					AddAvailableItems		(TIItemContainer& items_container, bool for_trade, bool bOverride = false) const;
@@ -157,7 +157,6 @@ public:
 
 	u32					ModifyFrame					() const					{ return m_dwModifyFrame; }
 	void				InvalidateState				()							{ m_dwModifyFrame = Device.dwFrame; }
-	void				Items_SetCurrentEntityHud	(bool current_entity);
 	bool				isBeautifulForActiveSlot	(CInventoryItem *pIItem);
 
 	u16					m_iReturnPlace;
@@ -165,12 +164,8 @@ public:
 	u16					m_iNextActiveItemID;
 	u16					m_iNextLeftItemID;
 	
-	bool				m_bRuckAllowed;
 	u16					m_iToDropID;
-	int					m_iRuckVboxID;
-	TIItemContainer		m_ruck_vbox;
-	float				m_fRuckVboxCapacity;
-	PIItem				m_pContainer;
+	u16					m_iRuckBlockID;
 
 protected:
 	void				UpdateDropTasks				();
@@ -183,6 +178,7 @@ protected:
 	u16 				m_iPrevActiveSlot;
 
 	CInventoryOwner*	m_pOwner;
+	bool				m_bActors;
 
 	//флаг, допускающий использование слотов
 	bool				m_bSlotsUseful;
@@ -215,4 +211,9 @@ private:
 	bool				IsSlotBlocked(u16 slot_id) const;
 	void				TryActivatePrevSlot		();
 	void				TryDeactivateActiveSlot	();
+													
+			void			OnInventoryAction		(PIItem item, u16 actionType = GE_OWNERSHIP_TAKE, u8 zone = 1);
+
+private:
+			void			CheckArtefact			(PIItem item, bool add = false);
 };

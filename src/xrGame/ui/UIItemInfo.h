@@ -38,7 +38,6 @@ public:
 	void				InitItemInfo		(LPCSTR xml_name);
 	void				InitItem			(CUICellItem* pCellItem, u32 item_price = u32(-1), LPCSTR trade_tip = NULL);
 
-	void				TryAddConditionInfo	(CUICellItem* item);
 	void				TryAddWpnInfo		(CUICellItem* item);
 	void				TryAddArtefactInfo	(CUICellItem* item);
 	void				TryAddOutfitInfo	(CUICellItem* item);
@@ -54,13 +53,11 @@ public:
 	CUITextWnd*			UIWeight;
 	CUITextWnd*			UIVolume;
 	CUITextWnd*			UICondition;
+	CUITextWnd*			UIAmount;
 	CUITextWnd*			UICost;
 	CUITextWnd*			UITradeTip;
-//	CUIStatic*			UIDesc_line;
 	CUIScrollView*		UIDesc;
-	bool				m_complex_desc;
 
-//	CUIConditionParams*		UIConditionWnd;
 	CUIWpnParams*			UIWpnParams;
 	CUIArtefactParams*		UIArtefactParams;
 	UIInvUpgPropertiesWnd*	UIProperties;

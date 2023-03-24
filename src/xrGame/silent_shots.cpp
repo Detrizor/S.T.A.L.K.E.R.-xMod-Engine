@@ -37,13 +37,14 @@ void silent_shots::OnWeapon_Fire(u16 sender, u16 sender_weapon_id)
 	if (!shoot_weapon || (sender_weapon_id != shoot_weapon->ID()))
 		return;
 
-	if (shoot_weapon->IsSilencerAttached())
+	if (smart_cast<CWeaponKnife*>(shoot_weapon))
 	{
 		m_last_shoot_weapon = sender_weapon_id;
 		return;
 	}
 
-	if (smart_cast<CWeaponKnife*>(shoot_weapon))
+	CWeaponMagazined* wm = smart_cast<CWeaponMagazined*>(shoot_weapon);
+	if (wm && wm->SilencerAttached())
 	{
 		m_last_shoot_weapon = sender_weapon_id;
 		return;

@@ -28,6 +28,7 @@
 
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
+#include "IItemContainer.h"
 
 
 #ifdef DEBUG
@@ -35,6 +36,25 @@
 #endif
 
 #define ITEM_REMOVE_TIME		30000
+
+const float	CInventoryItem::m_fMaxRepairCondition = pSettings->r_float("miscellaneous", "max_repair_condition");
+
+bool ItemCategory(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "category"), cmp);
+}
+bool ItemSubcategory(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "subcategory"), cmp);
+}
+bool ItemDivision(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "division"), cmp);
+}
+void TransferItem(u16 what_id, u16 to_id)
+{
+	smart_cast<PIItem>(Level().Objects.net_Find(what_id))->Transfer(to_id);
+}
 
 net_updateInvData* CInventoryItem::NetSync()
 {
@@ -59,8 +79,6 @@ CInventoryItem::CInventoryItem()
 	m_flags.set(FShowFullCondition, FALSE);
 	m_fCondition = 1.0f;
 
-	m_name = m_nameShort = NULL;
-
 	m_ItemCurrPlace.value = 0;
 	m_ItemCurrPlace.type = eItemPlaceUndefined;
 	m_ItemCurrPlace.base_slot_id = NO_ACTIVE_SLOT;
@@ -69,13 +87,22 @@ CInventoryItem::CInventoryItem()
 
 	m_ItemCurrPlaceBackup.type = eItemPlaceUndefined;
 
-	m_Description = "";
 	m_section_id = 0;
-	m_main_class = 0;
-	m_subclass = 0;
-	m_division = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
+
+	m_name = m_nameShort = m_Description = "";
+	m_weight = m_volume = 0.f;
+	m_cost = 0;
+	m_upgrades_cost = 0;
+	
+	m_category			= "";
+	m_subcategory		= "";
+	m_division			= "";
+
+	m_inv_icon.set		(0,0,0,0);
+	m_inv_icon_type		= 0;
+	m_inv_icon_index	= 0;
 }
 
 CInventoryItem::~CInventoryItem()
@@ -109,16 +136,6 @@ void CInventoryItem::Load(LPCSTR section)
 	if (self)						self->spatial.type |= STYPE_VISIBLEFORAI;
 
 	m_section_id._set				(section);
-	m_main_class._set				(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"));
-	m_subclass._set					(READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil"));
-	m_division._set					(READ_IF_EXISTS(pSettings, r_string, section, "division", "nil"));
-	m_name							= CStringTable().translate(pSettings->r_string(section, "inv_name"));
-	m_nameShort._set				(pSettings->line_exist(section, "inv_name_short") ? CStringTable().translate(pSettings->r_string(section, "inv_name_short")) : m_name);
-	m_Description._set				(pSettings->line_exist(section, "description") ? CStringTable().translate(pSettings->r_string(section, "description")) : "");
-
-	m_weight						= pSettings->r_float(section, "inv_weight");
-	R_ASSERT						(m_weight >= 0.f);
-	m_volume						= READ_IF_EXISTS(pSettings, r_float, section, "inv_volume", 0.f);
 
 	LPCSTR sl						= pSettings->r_string(section, "slot");
 	m_ItemCurrPlace.base_slot_id	= pSettings->r_u16("slot_ids", sl);
@@ -133,7 +150,6 @@ void CInventoryItem::Load(LPCSTR section)
 	// Added by Axel, to enable optional condition use on any item
 	m_flags.set						(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
 	m_flags.set						(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
-	m_bPercentCondition				= !!READ_IF_EXISTS(pSettings, r_bool, section, "percent_condition", false);
 
 	m_highlight_equipped			= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
 	m_icon_name						= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
@@ -144,29 +160,27 @@ void CInventoryItem::Load(LPCSTR section)
 		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
 		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
 	}
+
+	m_category						= pSettings->r_string(section, "category");
+	m_subcategory					= pSettings->r_string(section, "subcategory");
+	m_division						= pSettings->r_string(section, "division");
 	
-	m_cost_factor					= READ_IF_EXISTS(pSettings, r_float, section, "cost_factor", 1.f);
-	if (pSettings->line_exist("costs", section))
-		m_cost						= pSettings->r_float("costs", section);
-	else if (pSettings->line_exist(section, "cost"))
-		m_cost						= pSettings->r_float(section, "cost");
-	else
-	{
-		if (FullClass() == "ammo.box")
-		{
-			LPCSTR ammo_section		= pSettings->r_string(section, "ammo_section");
-			float uses				= pSettings->r_float(section, "max_uses");
-			m_cost					= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost", 0.f) * uses;
-			m_cost_factor			= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost_factor", 1.f);
-		}
-		else
-			m_cost					= 0.f;
-	}
+	if (pSettings->line_exist(section, "inv_name"))
+		m_name						= CStringTable().translate(pSettings->r_string(section, "inv_name"));
+	m_nameShort						= (pSettings->line_exist(section, "inv_name_short")) ? CStringTable().translate(pSettings->r_string(section, "inv_name_short")) : m_name;
+	m_Description					= (pSettings->line_exist(section, "description")) ? CStringTable().translate(pSettings->r_string(section, "description")) : "";
+	m_weight						= pSettings->r_float(section, "inv_weight");
+	R_ASSERT						(m_weight >= 0.f);
+	m_volume						= pSettings->r_float(section, "inv_volume");
+	R_ASSERT						(m_volume >= 0.f);
+	m_cost							= ReadBaseCost(section);
+	
+	SetInvIcon						();
 }
 
-float  CInventoryItem::GetConditionToWork() const
+float CInventoryItem::GetConditionToWork() const
 {
-	float condition		= 0.2f + m_fCondition;
+	float condition		= m_fCondition / m_fMaxRepairCondition;
 	return				(condition < 1.f) ? condition : 1.f;
 }
 
@@ -279,22 +293,7 @@ void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
 {
 	switch (type)
 	{
-	case GE_ADDON_ATTACH:
-	{
-		u16 ItemID;
-		P.r_u16(ItemID);
-		CInventoryItem*	 ItemToAttach = smart_cast<CInventoryItem*>(Level().Objects.net_Find(ItemID));
-		if (!ItemToAttach) break;
-		Attach(ItemToAttach, true);
-	}break;
-	case GE_ADDON_DETACH:
-	{
-		string64			i_name;
-		P.r_stringZ(i_name);
-		Detach(i_name, true);
-	}break;
-	case GE_CHANGE_POS:
-	{
+	case GE_CHANGE_POS:{
 		Fvector p;
 		P.r_vec3(p);
 		CPHSynchronize* pSyncObj = NULL;
@@ -305,46 +304,8 @@ void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
 		state.position = p;
 		state.previous_position = p;
 		pSyncObj->set_State(state);
-
-	}break;
+		}break;
 	}
-}
-
-//процесс отсоединения вещи заключается в спауне новой вещи 
-//в инвентаре и установке соответствующих флагов в родительском
-//объекте, поэтому функция должна быть переопределена
-bool CInventoryItem::Detach(const char* item_section_name, bool b_spawn_item)
-{
-	if (OnClient()) return true;
-	if (b_spawn_item)
-	{
-		CSE_Abstract*		D = F_entity_Create(item_section_name);
-		R_ASSERT(D);
-		CSE_ALifeDynamicObject	*l_tpALifeDynamicObject =
-			smart_cast<CSE_ALifeDynamicObject*>(D);
-		R_ASSERT(l_tpALifeDynamicObject);
-
-		l_tpALifeDynamicObject->m_tNodeID = (g_dedicated_server) ? u32(-1) : object().ai_location().level_vertex_id();
-
-		// Fill
-		D->s_name = item_section_name;
-		D->set_name_replace("");
-		//.		D->s_gameid			=	u8(GameID());
-		D->s_RP = 0xff;
-		D->ID = 0xffff;
-		D->ID_Parent = u16(object().H_Parent()->ID());
-		D->ID_Phantom = 0xffff;
-		D->o_Position = object().Position();
-		D->s_flags.assign(M_SPAWN_OBJECT_LOCAL);
-		D->RespawnTime = 0;
-		// Send
-		NET_Packet			P;
-		D->Spawn_Write(P, TRUE);
-		Level().Send(P, net_flags(TRUE));
-		// Destroy
-		F_entity_Destroy(D);
-	}
-	return true;
 }
 
 /////////// network ///////////////////////////////
@@ -1080,8 +1041,6 @@ float CInventoryItem::interpolate_states(net_update_IItem const & first, net_upd
 void CInventoryItem::reload(LPCSTR section)
 {
 	inherited::reload(section);
-	m_holder_range_modifier = READ_IF_EXISTS(pSettings, r_float, section, "holder_range_modifier", 1.f);
-	m_holder_fov_modifier = READ_IF_EXISTS(pSettings, r_float, section, "holder_fov_modifier", 1.f);
 }
 
 void CInventoryItem::reinit()
@@ -1275,12 +1234,6 @@ DLL_Pure *CInventoryItem::_construct()
 	return		(inherited::_construct());
 }
 
-void CInventoryItem::modify_holder_params(float &range, float &fov) const
-{
-	range *= m_holder_range_modifier;
-	fov *= m_holder_fov_modifier;
-}
-
 bool CInventoryItem::NeedToDestroyObject()	const
 {
 	return false;
@@ -1296,7 +1249,7 @@ ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
 
 bool CInventoryItem::CanTrade() const
 {
-	bool res	= inventory_owner().AllowItemToTrade(m_section_id, m_ItemCurrPlace);
+	bool res	= (m_pInventory) ? inventory_owner().AllowItemToTrade(m_section_id, m_ItemCurrPlace) : true;
 	return		(res && m_flags.test(FCanTrade) && !IsQuestItem());
 }
 
@@ -1312,16 +1265,9 @@ Frect CInventoryItem::GetKillMsgRect() const
 	return Frect().set(x, y, w, h);
 }
 
-Irect CInventoryItem::GetInvGridRect() const
+Frect CInventoryItem::GetIconRect() const
 {
-	u32 x, y, w, h;
-
-	x = pSettings->r_u32(m_object->cNameSect(), "inv_grid_x");
-	y = pSettings->r_u32(m_object->cNameSect(), "inv_grid_y");
-	w = pSettings->r_u32(m_object->cNameSect(), "inv_grid_width");
-	h = pSettings->r_u32(m_object->cNameSect(), "inv_grid_height");
-
-	return Irect().set(x, y, w, h);
+	return m_inv_icon;
 }
 
 Irect CInventoryItem::GetUpgrIconRect() const
@@ -1371,26 +1317,6 @@ bool CInventoryItem::CanStack() const
 	return (m_flags.test(FCanStack) > 0);
 }
 
-shared_str CInventoryItem::FullClass(bool with_division)
-{
-	shared_str			result;
-	LPCSTR main_class	= m_main_class.c_str();
-	LPCSTR subclass		= m_subclass.c_str();
-	LPCSTR division		= m_division.c_str();
-	result.printf		((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
-	return				result;
-}
-
-shared_str FullClass(LPCSTR section, bool with_division)
-{
-	shared_str				result;
-	LPCSTR main_class		= READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil");
-	LPCSTR subclass			= READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
-	LPCSTR division			= READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
-	result.printf			((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
-	return					result;
-}
-
 bool CInventoryItem::InHands() const
 {
 	CObject* parent = object().H_Parent();
@@ -1400,7 +1326,83 @@ bool CInventoryItem::InHands() const
 	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
 }
 
-float CInventoryItem::Cost() const
+u32 CInventoryItem::Cost() const
 {
-	return m_cost * m_cost_factor;
+	return m_cost;
+}
+
+float CInventoryItem::Weight() const
+{
+	return m_weight;
+}
+
+float CInventoryItem::Volume() const
+{
+	return m_volume;
+}
+
+u32 CInventoryItem::Price() const
+{
+	return u32((float)Cost() * sqrt(GetCondition()) + (float)m_upgrades_cost * sqrt(GetConditionToWork()));
+}
+
+void CInventoryItem::Transfer(u16 id) const
+{
+	NET_Packet						P;
+	if (id == NO_ID)
+	{
+		CGameObject::u_EventGen		(P, GE_OWNERSHIP_REJECT, parent_id());
+		P.w_u16						(object_id());
+	}
+	else if (object().H_Parent())
+	{
+		CGameObject::u_EventGen		(P, GE_TRADE_SELL, parent_id());
+		P.w_u16						(object_id());
+		CGameObject::u_EventSend	(P);
+		CGameObject::u_EventGen		(P, GE_TRADE_BUY, id);
+		P.w_u16						(object_id());
+	}
+	else
+	{
+		CGameObject::u_EventGen		(P,GE_OWNERSHIP_TAKE, id);
+		P.w_u16						(object_id());
+	}
+	CGameObject::u_EventSend		(P);
+}
+
+u32 CInventoryItem::ReadBaseCost(LPCSTR section)
+{
+	float							cost;
+	if (pSettings->line_exist("costs", section))
+		cost						= pSettings->r_float("costs", section);
+	else
+		cost						= pSettings->r_float(section, "cost");
+	if (pSettings->line_exist(section, "cost_factor"))
+		cost						*= pSettings->r_float(section, "cost_factor");
+	return							(u32)round(cost);
+}
+
+void CInventoryItem::ReadIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
+{
+	Fvector4 icon					= pSettings->r_fvector4(section, "inv_icon");
+	float x							= icon.x + type * icon.z;
+	float y							= icon.y + idx * pSettings->r_u16(section, "icon_index_step");
+	destination.set					(x, y, x + icon.z, y + icon.w);
+}
+
+void CInventoryItem::SetInvIconType(u8 type)
+{
+	m_inv_icon_type					= type;
+	SetInvIcon						();
+}
+
+void CInventoryItem::SetInvIconIndex(u8 idx)
+{
+	m_inv_icon_index				= idx;
+	SetInvIcon						();
+}
+
+void CInventoryItem::SetInvIcon()
+{
+	ReadIcon						(m_inv_icon, *m_section_id, m_inv_icon_type, m_inv_icon_index);
 }

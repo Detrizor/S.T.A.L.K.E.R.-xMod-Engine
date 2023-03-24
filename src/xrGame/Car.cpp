@@ -1687,7 +1687,7 @@ void CCar::OnEvent(NET_Packet& P, u16 type)
 			if( GetInventory()->CanTakeItem(smart_cast<CInventoryItem*>(O)) ) 
 			{
 				O->H_SetParent(this);
-				GetInventory()->Take(smart_cast<CGameObject*>(O), false, false);
+				GetInventory()->Take(smart_cast<CGameObject*>(O), false);
 			}
 			else 
 			{

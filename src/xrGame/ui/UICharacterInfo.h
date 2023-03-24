@@ -60,8 +60,7 @@ public:
 						CUICharacterInfo();
 	virtual				~CUICharacterInfo();
 
-	void				InitCharacterInfo		(Fvector2 pos, Fvector2 size, CUIXml* xml_doc);
-	void				InitCharacterInfo		(Fvector2 pos, Fvector2 size, LPCSTR xml_name);
+	void				InitCharacterInfo		(CUIXml* xml_doc);
 	void				InitCharacterInfo		(CUIXml* xml_doc, LPCSTR node_str);
 	void				Init_StrInfoItem		(CUIXml& xml_doc, LPCSTR item_str, UIItemType type);
 	void				Init_IconInfoItem		(CUIXml& xml_doc, LPCSTR item_str, UIItemType type);

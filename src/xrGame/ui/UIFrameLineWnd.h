@@ -7,8 +7,8 @@ class CUIFrameLineWnd: public CUIWindow
 	typedef CUIWindow inherited;
 public:
 				 CUIFrameLineWnd	();
-			void InitFrameLineWnd	(LPCSTR base_name, Fvector2 pos, Fvector2 size, bool horizontal = true);
-			void InitFrameLineWnd	(Fvector2 pos, Fvector2 size, bool horizontal = true);
+			void InitFrameLineWnd	(LPCSTR base_name, bool horizontal = true);
+			void InitFrameLineWnd	(bool horizontal = true);
 			void InitTexture		(LPCSTR tex_name,LPCSTR sh_name="hud\\default");
 	virtual void Draw				();
 

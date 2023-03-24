@@ -1,13 +1,11 @@
 #pragma once
 
-#include "inventory_item_object.h"
+#include "IItemContainer.h"
 
-class CBackpack : public CInventoryItemObject
+class CBackpack : public CContainerObject
 {
 private:
-	typedef CInventoryItemObject inherited;
-
-	float		m_capacity;
+	typedef CContainerObject	inherited;
 
 public:
 							CBackpack();
@@ -24,9 +22,6 @@ public:
 	virtual BOOL			net_Spawn(CSE_Abstract* DC);
 	virtual void			net_Export(NET_Packet& P);
 	virtual void			net_Import(NET_Packet& P);
-
-			float			GetCapacity()					{ return m_capacity; }
-			void			SetCapacity(float v)			{ m_capacity = v; }
 
 protected:
 	virtual bool			install_upgrade_impl(LPCSTR section, bool test);

@@ -9,17 +9,14 @@ m_bTextureVisible(false)
 	m_texture_color				= color_argb(255,255,255,255);
 }
 
-void CUIFrameLineWnd::InitFrameLineWnd(LPCSTR base_name, Fvector2 pos, Fvector2 size, bool horizontal)
+void CUIFrameLineWnd::InitFrameLineWnd(LPCSTR base_name, bool horizontal)
 {
-	InitFrameLineWnd(pos,size,horizontal);
+	InitFrameLineWnd(horizontal);
 	InitTexture		(base_name,"hud\\default");
 }
 
-void CUIFrameLineWnd::InitFrameLineWnd(Fvector2 pos, Fvector2 size, bool horizontal)
+void CUIFrameLineWnd::InitFrameLineWnd(bool horizontal)
 {
-	inherited::SetWndPos		(pos);
-	inherited::SetWndSize		(size);
-	
 	bHorizontal					= horizontal;
 }
 

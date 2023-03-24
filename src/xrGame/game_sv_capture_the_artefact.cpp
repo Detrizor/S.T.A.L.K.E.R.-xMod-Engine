@@ -202,19 +202,6 @@ void game_sv_CaptureTheArtefact::SM_SwitchOnPlayer(CObject* pNewObject)
 
 	Level().SetEntity					(pNewObject);
 
-	if (pNewObject != m_pSM_CurViewEntity)
-	{
-		CActor* pActor					= smart_cast<CActor*>(m_pSM_CurViewEntity);
-		
-		if (pActor)
-			pActor->inventory().Items_SetCurrentEntityHud(false);
-	}
-
-	CActor* pActor = smart_cast<CActor*> (pNewObject);
-	if (pActor)
-	{
-		pActor->inventory().Items_SetCurrentEntityHud(true);
-	}
 	m_pSM_CurViewEntity				= pNewObject;
 	m_dwSM_CurViewEntity			= pNewObject->ID();
 	m_dwSM_LastSwitchTime			= Level().timeServer() + m_dwSM_SwitchDelta;

@@ -10,7 +10,8 @@
 #include "../string_table.h"
 #include "UICellItem.h"
 
-static const float BULLET_ARMOR_PIERCING_SCALE			= pSettings->r_float("bullet_manager", "armor_piercing_scale");
+static const float BULLET_AP_SCALE						= pSettings->r_float("bullet_manager", "ap_scale");
+static const float BULLET_ARMOR_PIERCING_AP_FACTOR		= pSettings->r_float("bullet_manager", "armor_piercing_ap_factor");
 static const float BULLET_HOLLOW_POING_AP_FACTOR		= pSettings->r_float("bullet_manager", "hollow_point_ap_factor");
 static LPCSTR ARMOR_LEVELS								= pSettings->r_string("damage_manager", "armor_levels");
 
@@ -170,14 +171,9 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		return;
 	const shared_str&	section = itm->m_section;
 	Fvector2			pos;
-	float				val, h;
-	if (xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "description", ""), ""))
-	{
-		AttachChild		(m_Prop_line);
-		h				= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
-	}
-	else
-		h				= 0.f;
+	float				val;
+	AttachChild			(m_Prop_line);
+	float h				= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
 
 	for (u32 i = 0; i < eBoostMaxCount; ++i)
 	{
@@ -274,11 +270,9 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		AttachChild							(m_booster_anabiotic);
 	}
 
-	LPCSTR main_class						= READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil");
-	LPCSTR subclass							= READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
-	if (!xr_strcmp(main_class, "ammo") && (!xr_strcmp(subclass, "box") || (!xr_strcmp(subclass, "cartridge"))))
+	if (ItemCategory(section, "ammo") && (ItemSubcategory(section, "box") || ItemSubcategory(section, "cartridge")))
 	{
-		LPCSTR sect							= (!xr_strcmp(subclass, "box")) ? pSettings->r_string(section, "ammo_section") : *section;
+		LPCSTR sect							= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "stock") : *section;
 		float bullet_speed					= pSettings->r_float(sect, "bullet_speed");
 		m_bullet_speed->SetValue			(bullet_speed);
 		pos.set								(m_bullet_speed->GetWndPos());
@@ -298,12 +292,14 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 
 		float bullet_energy					= bullet_mass * pow(bullet_speed, 2.f) / 2.f;
 		float caliber						= pSettings->r_float(sect, "caliber");
-		float area							= PI * pow((caliber / 2.f), 2.f);
-		float k_ap							= pSettings->r_float(sect, "k_armor_piercing");
-		float bullet_resist					= (area > 0.f) ? (area / k_ap) : EPS;
-		float ap							= BULLET_ARMOR_PIERCING_SCALE * (bullet_energy / bullet_resist);
-		if (READ_IF_EXISTS(pSettings, r_bool, sect, "is_hollow_point", false))
+		float area							= PI * pow((caliber / 2.f), 2);
+		float sharpness						= pSettings->r_float(sect, "sharpness");
+		float resist						= area / sharpness;
+		float ap							= BULLET_AP_SCALE * (bullet_energy / resist);
+		if (READ_IF_EXISTS(pSettings, r_bool, sect, "hollow_point", false))
 			ap								*= BULLET_HOLLOW_POING_AP_FACTOR;
+		if (READ_IF_EXISTS(pSettings, r_bool, sect, "armor_piercing", false))
+			ap								*= BULLET_ARMOR_PIERCING_AP_FACTOR;
 		string128							buffer;
 		int									level = 0, levels = _GetItemCount(ARMOR_LEVELS);
 		while (level < levels)
@@ -333,13 +329,13 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		AttachChild							(m_armor_piercing);
 	}
 
-	if (!xr_strcmp(main_class, "magazine"))
+	if (ItemCategory(section, "magazine"))
 	{
-		if (READ_IF_EXISTS(pSettings, r_bool, section, "can_be_emptyed", TRUE))
+		if (READ_IF_EXISTS(pSettings, r_bool, section, "can_be_discharged", TRUE))
 		{
-			LPCSTR ammo_types				= pSettings->r_string(section, "ammo_types");
+			LPCSTR ammo_class				= pSettings->r_string(section, "ammo_class");
 			string128						buffer;
-			LPCSTR ammo_type				= _GetItem(ammo_types, 0, buffer);
+			LPCSTR ammo_type				= _GetItem(ammo_class, 0, buffer);
 			LPCSTR ammo_type_name_s			= pSettings->r_string(ammo_type, "inv_name_short");
 			m_ammo_type->SetStrValue		(*CStringTable().translate(ammo_type_name_s));
 			pos.set							(m_ammo_type->GetWndPos());
@@ -351,7 +347,7 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		else
 			m_ammo_type->SetStrValue		("");
 
-		float capacity						= pSettings->r_float(section, "max_uses");
+		float capacity						= pSettings->r_float(section, "capacity");
 		m_capacity->SetValue				(capacity);
 		pos.set								(m_capacity->GetWndPos());
 		pos.y								= h;

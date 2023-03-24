@@ -54,9 +54,8 @@ float CWeapon::GetWeaponDeterioration	()
 
 void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 {
-	VERIFY		(m_magazine.size());
-
-	CCartridge &l_cartridge = m_magazine.back();
+	PrepareCartridgeToShoot		();
+	CCartridge& l_cartridge		= m_magazine.back();
 //	Msg("ammo - %s", l_cartridge.m_ammoSect.c_str());
 	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
 	//-------------------------------------------------------------	
@@ -98,13 +97,9 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 	
 	if(m_bLightShotEnabled) 
 		Light_Start			();
-
 	
 	// Ammo
-	m_magazine.pop_back	();
-	--iAmmoElapsed;
-
-	VERIFY((u32)iAmmoElapsed == m_magazine.size());
+	ConsumeShotCartridge	();
 }
 
 void CWeapon::StopShooting()

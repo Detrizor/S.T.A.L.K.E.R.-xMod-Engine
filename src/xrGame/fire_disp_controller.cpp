@@ -5,8 +5,6 @@
 #include "weapon.h"
 #include "level.h"
 
-float const CFireDispertionController::default_inertion = 5.91f;	//time to pass value of dispertion = 1
-
 CFireDispertionController::CFireDispertionController()
 {
 	start_disp		= 0.f;
@@ -33,15 +31,13 @@ float	CFireDispertionController::GetCurrentDispertion() const
 
 void	CFireDispertionController::Update()
 {
-	float tmp_inertion = default_inertion;
+	float tmp_inertion = crosshair_inertion;
 	CActor* tmp_actor = smart_cast<CActor*>(Level().CurrentEntity());
 	if (tmp_actor)
 	{
 		CWeapon* tmp_weapon = smart_cast<CWeapon*>(tmp_actor->inventory().ActiveItem());
 		if (tmp_weapon)
-		{
-			tmp_inertion = tmp_weapon->GetCrosshairInertion();
-		}
+			tmp_inertion *= tmp_weapon->GetControlInertionFactor();
 	}
 	float diff_time		= tmp_inertion * _abs(end_disp - start_disp);
 	float end_time		= start_time + diff_time;

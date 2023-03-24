@@ -9,7 +9,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-int		rsDVB_Size			= 512+1024+1024;
 int		rsDIB_Size			= 512;
 
 void _VertexStream::Create	()
@@ -17,7 +16,7 @@ void _VertexStream::Create	()
 	//dxRenderDeviceRender::Instance().Resources->Evict		();
 	DEV->Evict();
 
-	mSize					= rsDVB_Size*1024;
+	mSize					= 5*1024*1024;
 #if defined(USE_DX10) || defined(USE_DX11)
 	D3D_BUFFER_DESC bufferDesc;
 	bufferDesc.ByteWidth        = mSize;

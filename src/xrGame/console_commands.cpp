@@ -73,7 +73,6 @@ extern	u64		g_qwStartGameTime;
 extern	u64		g_qwEStartGameTime;
 
 ENGINE_API
-extern	float	psHUD_FOV;
 extern	float	psSqueezeVelocity;
 extern	int		psLUA_GCSTEP;
 
@@ -91,7 +90,6 @@ extern	ESingleGameDifficulty g_SingleGameDifficulty;
 extern	BOOL	g_show_wnd_rect2;
 //-----------------------------------------------------------
 extern	float	g_fTimeFactor;
-extern	BOOL	b_toggle_weapon_aim;
 //extern  BOOL	g_old_style_ui_hud;
 
 extern float	g_smart_cover_factor;
@@ -106,6 +104,10 @@ extern BOOL		g_ai_die_in_anomaly; //Alundaio
 extern BOOL		g_invert_zoom; //Alundaio
 
 ENGINE_API extern float	g_console_sensitive;
+
+float			psUI_SCALE = 1.f;
+
+BOOL			g_hud_adjusment_mode = FALSE;
 
 void register_mp_console_commands();
 //-----------------------------------------------------------
@@ -1923,13 +1925,10 @@ void CCC_RegisterCommands()
 
 	CMD3(CCC_Mask, "hud_crosshair", &psHUD_Flags, HUD_CROSSHAIR);
 	CMD3(CCC_Mask, "hud_crosshair_dist", &psHUD_Flags, HUD_CROSSHAIR_DIST);
-
-	//#ifdef DEBUG
-	CMD4(CCC_Float, "hud_fov", &psHUD_FOV, 0.1f, 1.0f);
+	
+	CMD4(CCC_Float, "ui_scale", &psUI_SCALE, 0.1f, 10.0f);
 	CMD4(CCC_Float, "fov", &g_fov, 5.0f, 180.0f);
-	CMD4(CCC_Float, "scope_fov", &g_scope_fov, 5.0f, 180.0f);
 	CMD4(CCC_Integer, "objects_per_client_update", &g_objects_per_client_update, 1, 65535)
-	//#endif // DEBUG
 
 	// Demo
 	//#ifndef MASTER_GOLD
@@ -2260,8 +2259,6 @@ void CCC_RegisterCommands()
 
 //#ifndef MASTER_GOLD
 	CMD4(CCC_Vector3, "psp_cam_offset", &CCameraLook2::m_cam_offset, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
-	CMD4(CCC_Vector3, "hud_offset_pos", &player_hud::m_hud_offset_pos, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
-	CMD4(CCC_Vector3, "hand_offset_pos", &player_hud::m_hand_offset_pos, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
 //#endif // MASTER_GOLD
 
 	CMD1(CCC_GSCheckForUpdates, "check_for_updates");
@@ -2289,7 +2286,6 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Integer, "dbg_bones_snd_player", &dbg_moving_bones_snd_player, FALSE, TRUE);
 #endif
 	CMD4(CCC_Float, "con_sensitive", &g_console_sensitive, 0.01f, 1.0f);
-	CMD4(CCC_Integer, "wpn_aim_toggle", &b_toggle_weapon_aim, 0, 1);
 	//	CMD4(CCC_Integer,	"hud_old_style",			&g_old_style_ui_hud, 0, 1);
 
 #ifdef DEBUG
@@ -2347,4 +2343,6 @@ void CCC_RegisterCommands()
 
 	CMD4(CCC_Integer, "keypress_on_start", &g_keypress_on_start, 0, 1);
 	register_mp_console_commands();
+
+	CMD4(CCC_Integer, "hud_mode", &g_hud_adjusment_mode, 0, 1);
 }

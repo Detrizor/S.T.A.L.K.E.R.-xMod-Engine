@@ -106,6 +106,7 @@
 #define CLSID_OBJECT_W_SCOPE		MK_CLSID('W','_','S','C','O','P','E',' ')
 #define CLSID_OBJECT_W_SILENCER		MK_CLSID('W','_','S','I','L','E','N','C')
 #define CLSID_OBJECT_W_GLAUNCHER	MK_CLSID('W','_','G','L','A','U','N','C')
+#define CLSID_OBJECT_W_MAGAZINE		MK_CLSID('W','_','M','A','G','A','Z','N')
 
 // Modifiers
 #define CLSID_OBJECT_M_QDAMAGE		MK_CLSID('O','_','Q','D','M','G',' ',' ')
@@ -179,6 +180,10 @@
 #define CLSID_IITEM_BOTTLE			MK_CLSID('I','I','_','B','O','T','T','L')
 #define CLSID_IITEM_ANTIRAD			MK_CLSID('I','I','_','A','N','T','I','R')
 #define CLSID_IITEM_EXPLOSIVE		MK_CLSID('I','I','_','E','X','P','L','O')
+
+#define CLSID_IITEM_BASIC			MK_CLSID('I','I','_','B','A','S','I','C')
+#define CLSID_IITEM_AMOUNTABLE		MK_CLSID('I','I','_','A','M','T','B','L')
+#define CLSID_IITEM_CONTAINER		MK_CLSID('I','I','_','C','N','T','N','R')
 
 // Info Document
 #define CLSID_IITEM_DOCUMENT		MK_CLSID('I','I','_','D','O','C',' ',' ')

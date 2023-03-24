@@ -22,6 +22,7 @@ DLL_Pure *CEatableItemObject::_construct	()
 	CEatableItem::_construct	();
 	CPhysicItem::_construct		();
 	CHudItem::_construct		();
+	CItemAmountable::_construct	();
 	return						(this);
 }
 
@@ -30,6 +31,7 @@ void CEatableItemObject::Load				(LPCSTR section)
 	CPhysicItem::Load			(section);
 	CEatableItem::Load			(section);
 	CHudItem::Load				(section);
+	CItemAmountable::Load		(section);
 }
 
 bool CEatableItemObject::Action(u16 cmd, u32 flags)
@@ -357,4 +359,19 @@ u32	 CEatableItemObject::ef_weapon_type		() const
 bool CEatableItemObject::Useful				() const
 {
 	return			(CEatableItem::Useful());
+}
+
+float CEatableItemObject::Weight() const
+{
+	return			CEatableItem::Weight() + NetWeight();
+}
+
+float CEatableItemObject::Volume() const
+{
+	return			CEatableItem::Volume() + NetVolume();
+}
+
+u32 CEatableItemObject::Cost() const
+{
+	return			CEatableItem::Cost() - NetCost();
 }

@@ -354,33 +354,6 @@ void CScriptGameObject::SetAmmoElapsed(int ammo_elapsed)
 }
 
 //Alundaio
-int CScriptGameObject::GetAmmoCount(u8 type)
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon) return 0;
-
-	if (type < weapon->m_ammoTypes.size())
-		return weapon->GetAmmoCount_forType(weapon->m_ammoTypes[type]);
-
-	return 0;
-}
-
-void CScriptGameObject::SetAmmoType(u8 type)
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon) return;
-
-	weapon->SetAmmoType(type);
-}
-
-u8 CScriptGameObject::GetAmmoType()
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon) return 255;
-
-	return weapon->GetAmmoType();
-}
-
 void CScriptGameObject::SetMainWeaponType(u32 type)
 {
 	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
@@ -413,14 +386,6 @@ u32 CScriptGameObject::GetWeaponType()
 	return weapon->ef_weapon_type();
 }
 
-bool CScriptGameObject::HasAmmoType(u8 type)
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon) return false;
-
-	return type < weapon->m_ammoTypes.size();
-}
-
 u8 CScriptGameObject::GetWeaponSubstate()
 {
 	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
@@ -429,14 +394,6 @@ u8 CScriptGameObject::GetWeaponSubstate()
 	return weapon->m_sub_state;
 }
 //-Alundaio
-
-u32 CScriptGameObject::GetSuitableAmmoTotal() const
-{
-    const CWeapon	*weapon = smart_cast<const CWeapon*>(&object());
-    if (!weapon)
-        return		(0);
-    return			(weapon->GetSuitableAmmoTotal(true));
-}
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -481,14 +438,13 @@ float CScriptGameObject::GetCondition() const
 
 void CScriptGameObject::SetCondition(float val)
 {
-    CInventoryItem		*inventory_item = smart_cast<CInventoryItem*>(&object());
+    CInventoryItem * inventory_item		= smart_cast<CInventoryItem*>(&object());
     if (!inventory_item)
     {
         ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member SetCondition!");
         return;
     }
-    val -= inventory_item->GetCondition();
-    inventory_item->ChangeCondition(val);
+    inventory_item->SetCondition		(val);
 }
 
 void CScriptGameObject::ChangeCondition(float val)
@@ -695,32 +651,27 @@ void CScriptGameObject::PhantomSetEnemy(CScriptGameObject* enemy)
 //Allows to force use an object if passed obj is the actor
 bool CScriptGameObject::Use(CScriptGameObject* obj)
 {
-	bool ret = object().use(&obj->object());
-
-	CActor* actor = smart_cast<CActor*>(&obj->object());
+	bool ret							= object().use(&obj->object());
+	CActor* actor						= smart_cast<CActor*>(&obj->object());
 	if (!actor)
 		return ret;
 
-	CInventoryOwner* pActorInv = smart_cast<CInventoryOwner*>(actor);
+	CInventoryOwner* pActorInv			= smart_cast<CInventoryOwner*>(actor);
 	if (!pActorInv)
-		return ret;
+		return							ret;
 
-	CUIActorMenu& ActorMenu = CurrentGameUI()->GetActorMenu();
-
-	CInventoryBox* pBox = smart_cast<CInventoryBox*>(&object());
+	CUIActorMenu& ActorMenu				= CurrentGameUI()->GetActorMenu();
+	CInventoryBox* pBox					= smart_cast<CInventoryBox*>(&object());
 	if (pBox)
 	{
-		ActorMenu.SetActor(pActorInv);
-		ActorMenu.SetInvBox(pBox);
-
-		ActorMenu.SetMenuMode(mmDeadBodySearch);
-		ActorMenu.ShowDialog(true);
-
-		return true;
-	} else {
-		CInventoryOwner* pOtherOwner = smart_cast<CInventoryOwner*>(&object());
+		ActorMenu.StartMenuMode			(mmInvBoxSearch, pActorInv, (void*)pBox);
+		return							true;
+	}
+	else
+	{
+		CInventoryOwner* pOtherOwner	= smart_cast<CInventoryOwner*>(&object());
 		if (!pOtherOwner)
-			return ret;
+			return						ret;
 
 		/*
 		CEntityAlive* e = smart_cast<CEntityAlive*>(pOtherOwner);
@@ -731,58 +682,43 @@ bool CScriptGameObject::Use(CScriptGameObject* obj)
 		}
 		*/
 
-		ActorMenu.SetActor(pActorInv);
-		ActorMenu.SetPartner(pOtherOwner);
-
-		ActorMenu.SetMenuMode(mmDeadBodySearch);
-		ActorMenu.ShowDialog(true);
-
-		return true;
+		ActorMenu.StartMenuMode			(mmDeadBodySearch, pActorInv, (void*)pOtherOwner);
+		return							true;
 	}
 }
 
 void CScriptGameObject::StartTrade(CScriptGameObject* obj)
 {
-	CActor* actor = smart_cast<CActor*>(&obj->object());
+	CActor* actor						= smart_cast<CActor*>(&obj->object());
 	if (!actor)
 		return;
 
-	CInventoryOwner* pActorInv = smart_cast<CInventoryOwner*>(actor);
+	CInventoryOwner* pActorInv			= smart_cast<CInventoryOwner*>(actor);
 	if (!pActorInv)
 		return;
 
-	CInventoryOwner* pOtherOwner = smart_cast<CInventoryOwner*>(&object());
+	CInventoryOwner* pOtherOwner		= smart_cast<CInventoryOwner*>(&object());
 	if (!pOtherOwner)
 		return;
 
-	CUIActorMenu& ActorMenu = CurrentGameUI()->GetActorMenu();
-
-	ActorMenu.SetActor(pActorInv);
-	ActorMenu.SetPartner(pOtherOwner);
-
-	ActorMenu.SetMenuMode(mmTrade);
-	ActorMenu.ShowDialog(true);
+	CUIActorMenu& ActorMenu				= CurrentGameUI()->GetActorMenu();
+	ActorMenu.StartMenuMode				(mmTrade, pActorInv, (void*)pOtherOwner);
 }
 
 void CScriptGameObject::StartUpgrade(CScriptGameObject* obj)
 {
-	CActor* actor = smart_cast<CActor*>(&obj->object());
+	CActor* actor						= smart_cast<CActor*>(&obj->object());
 	if (!actor)
 		return;
 
-	CInventoryOwner* pActorInv = smart_cast<CInventoryOwner*>(actor);
+	CInventoryOwner* pActorInv			= smart_cast<CInventoryOwner*>(actor);
 	if (!pActorInv)
 		return;
 
-	CInventoryOwner* pOtherOwner = smart_cast<CInventoryOwner*>(&object());
+	CInventoryOwner* pOtherOwner		= smart_cast<CInventoryOwner*>(&object());
 	if (!pOtherOwner)
 		return;
 
-	CUIActorMenu& ActorMenu = CurrentGameUI()->GetActorMenu();
-
-	ActorMenu.SetActor(pActorInv);
-	ActorMenu.SetPartner(pOtherOwner);
-
-	ActorMenu.SetMenuMode(mmUpgrade);
-	ActorMenu.ShowDialog(true);
+	CUIActorMenu& ActorMenu				= CurrentGameUI()->GetActorMenu();
+	ActorMenu.StartMenuMode				(mmUpgrade, pActorInv, (void*)pOtherOwner);
 }

@@ -129,7 +129,7 @@ protected:
 	bool			ReloadUI						();
 public:
 	u32				m_deactivated_frame;
-	bool			m_activatedScreenRatio;
+	float			m_ScreenRatio;
 	virtual void	DestroyInternal					(bool bForce);
 					CMainMenu						();
 	virtual			~CMainMenu						();

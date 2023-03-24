@@ -1171,7 +1171,7 @@ u16 CScriptGameObject::AmmoGetCount()
 	if (!ammo)
 		return 0;
 
-	return ammo->m_boxCurr;
+	return ammo->GetAmmoCount();
 }
 
 void CScriptGameObject::AmmoSetCount(u16 count)
@@ -1180,7 +1180,7 @@ void CScriptGameObject::AmmoSetCount(u16 count)
 	if (!ammo)
 		return;
 
-	ammo->m_boxCurr = count;
+	ammo->SetAmmoCount(count);
 }
 
 u16 CScriptGameObject::AmmoBoxSize()
@@ -1369,58 +1369,6 @@ void CScriptGameObject::ForceSetPosition(Fvector pos, bool bActivate)
 	}
 	else
 		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "force_set_position: object %s has no physics shell!", *object().cName());
-}
-
-u8 CScriptGameObject::GetMaxUses()
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return 0;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return 0;
-
-	return eItm->GetMaxUses();
-}
-
-u8 CScriptGameObject::GetRemainingUses()
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return 0;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return 0;
-
-	return eItm->GetRemainingUses();
-}
-
-void CScriptGameObject::SetRemainingUses(u8 value)
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return;
-
-	eItm->SetRemainingUses(value);
-}
-
-void CScriptGameObject::ChangeRemainingUses(int value)
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return;
-
-	eItm->ChangeRemainingUses(value);
 }
 
 void CScriptGameObject::IterateFeelTouch(const luabind::functor<bool> &functor)

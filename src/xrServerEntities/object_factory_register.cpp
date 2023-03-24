@@ -97,8 +97,6 @@
 #	include "weaponRG6.h"
 #	include "WeaponStatMgun.h"
 
-#	include "scope.h"
-#	include "silencer.h"
 #	include "grenadelauncher.h"
 
 #	include "bolt.h"
@@ -171,12 +169,18 @@
 #	include "space_restrictor.h"
 #	include "smart_zone.h"
 #	include "InventoryBox.h"
+#	include "IItemContainer.h"
+#	include "inventory_item_amountable.h"
 
 #	include "actor_mp_server.h"
 #	include "actor_mp_client.h"
 #	include "smart_cover_object.h"
 
 #include "..\xrGame\HolderEntityObject.h"
+
+#include "xmod\scope.h"
+#include "xmod\silencer.h"
+
 #endif // NO_XR_GAME
 
 #ifndef NO_XR_GAME
@@ -291,7 +295,7 @@ void CObjectFactory::register_classes	()
 	ADD(CGraviArtefact			,CSE_ALifeItemArtefact			,CLSID_AF_GRAVI					,"art_gravi");
 	ADD(CGraviArtefact			,CSE_ALifeItemArtefact			,CLSID_ARTEFACT					,"artefact");
 	ADD(CtaGameArtefact			,CSE_ALifeItemArtefact			,CLSID_AF_CTA					,"art_cta");
-
+	
 	//  [8/15/2006]
 	ADD(CWeaponMagazined		,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_MAGAZINED		,"wpn_wmagaz");
 	//  [8/15/2006]
@@ -325,9 +329,10 @@ void CObjectFactory::register_classes	()
 	//-----------------------------------------------------------------------------------------------------
 
 	//Weapons Add-on
-	ADD(CScope					,CSE_ALifeItem					,CLSID_OBJECT_W_SCOPE			,"wpn_scope");
-	ADD(CSilencer				,CSE_ALifeItem					,CLSID_OBJECT_W_SILENCER		,"wpn_silencer");
+	ADD(CScopeObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SCOPE			,"wpn_scope");
+	ADD(CSilencerObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SILENCER		,"wpn_silencer");
 	ADD(CGrenadeLauncher		,CSE_ALifeItem					,CLSID_OBJECT_W_GLAUNCHER		,"wpn_grenade_launcher");
+	ADD(CMagazineObject			,CSE_ALifeItem					,CLSID_OBJECT_W_MAGAZINE		,"wpn_magazine");
 
 	// Inventory
 #ifndef NO_SINGLE
@@ -339,6 +344,10 @@ void CObjectFactory::register_classes	()
 	ADD(CFoodItem				,CSE_ALifeItem					,CLSID_IITEM_FOOD				,"obj_food");
 	ADD(CBottleItem				,CSE_ALifeItem					,CLSID_IITEM_BOTTLE				,"obj_bottle");
 	ADD(CExplosiveItem			,CSE_ALifeItemExplosive			,CLSID_IITEM_EXPLOSIVE			,"obj_explosive");
+	
+	ADD(CInventoryItemObject	,CSE_ALifeItem					,CLSID_IITEM_BASIC				,"iitem_basic");
+	ADD(CIIOAmountable			,CSE_ALifeItem					,CLSID_IITEM_AMOUNTABLE			,"iitem_amountable");
+	ADD(CContainerObject		,CSE_ALifeItem					,CLSID_IITEM_CONTAINER			,"iitem_container");
 	
 	//Info Document
 	ADD(CInfoDocument			,CSE_ALifeItemDocument			,CLSID_IITEM_DOCUMENT			,"obj_document");
@@ -360,7 +369,7 @@ void CObjectFactory::register_classes	()
 	//-----------------------------------------------------------------------------------------------------------------
 	ADD(CMPPlayersBag			,CSE_ALifeItem					,CLSID_OBJECT_PLAYERS_BAG		,"mp_players_bag");
 	//-----------------------------------------------------------------------------------------------------------------
-
+	
 	// Zones
 	ADD(CCustomZone				,CSE_ALifeCustomZone			,CLSID_ZONE						,"zone");
 	ADD(CMosquitoBald			,CSE_ALifeAnomalousZone			,CLSID_Z_MBALD					,"zone_mosquito_bald");
@@ -387,7 +396,7 @@ void CObjectFactory::register_classes	()
 	ADD(CAdvancedDetector		,CSE_ALifeItemDetector			,CLSID_DETECTOR_ADVANCED		,"device_detector_advanced");
 	ADD(CEliteDetector			,CSE_ALifeItemDetector			,CLSID_DETECTOR_ELITE			,"device_detector_elite");
 	ADD(CScientificDetector		,CSE_ALifeItemDetector			,CLSID_DETECTOR_SCIENTIFIC		,"device_detector_scientific");
-
+	
 	// Devices
 	ADD(CTorch					,CSE_ALifeItemTorch				,CLSID_DEVICE_TORCH				,"device_torch");
 	ADD(CPda					,CSE_ALifeItemPDA				,CLSID_DEVICE_PDA				,"device_pda");
@@ -397,7 +406,7 @@ void CObjectFactory::register_classes	()
 	ADD(CProjector				,CSE_ALifeObjectProjector		,CLSID_OBJECT_PROJECTOR			,"projector");
 	ADD(CWeaponStatMgun			,CSE_ALifeStationaryMgun		,CLSID_OBJECT_W_STATMGUN		,"wpn_stat_mgun");
 //	ADD(CTrigger				,CSE_Trigger					,CLSID_OBJECT_TRIGGER			,"trigger");
-
+	
 	// entity
 	ADD(CHangingLamp			,CSE_ALifeObjectHangingLamp		,CLSID_OBJECT_HLAMP				,"hanging_lamp");
 	ADD(CPhysicObject			,CSE_ALifeObjectPhysic			,CLSID_OBJECT_PHYSIC			,"obj_physic");
@@ -408,7 +417,7 @@ void CObjectFactory::register_classes	()
 	ADD(CDestroyablePhysicsObject,CSE_ALifeObjectPhysic			,CLSID_PHYSICS_DESTROYABLE		,"obj_phys_destroyable");
 	ADD(CHolderEntityObject		,CSE_ALifeDynamicObjectVisual	,CLSID_OBJECT_HOLDER_ENT		,"obj_holder_ent");
 	
-	ADD(CInventoryBox			,CSE_ALifeInventoryBox			,CLSID_INVENTORY_BOX			,"inventory_box");
+	ADD(CInventoryBox, CSE_ALifeInventoryBox, CLSID_INVENTORY_BOX, "inventory_box");
 #ifndef NO_SINGLE
 	ADD(smart_cover::object		,CSE_SmartCover					,TEXT2CLSID("SMRTCOVR")			,"smart_cover");
 #endif // #ifndef NO_SINGLE

@@ -12,16 +12,17 @@
 #include "purchase_list.h"
 #include "UICellItem.h"
 
+#include "..\xmod\items_library.h"
+
 u32 const red_clr		= color_argb(255, 210, 50, 50);
 u32 const green_clr		= color_argb(255, 170, 170, 170);
 
-float m_max_immunities[]	= { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-float m_max_restores[]		= { 0.f, 0.f, 0.f, 0.f };
+float m_max_restores[]		= { -1.f, -1.f, -1.f, -1.f };
 
 CUIArtefactParams::CUIArtefactParams()
 {
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
-		m_immunity_item[i]		= NULL;
+	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
+		m_absorbation_item[i]	= NULL;
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 		m_restore_item[i]		= NULL;
 	m_drain_factor				= NULL;
@@ -31,7 +32,7 @@ CUIArtefactParams::CUIArtefactParams()
 
 CUIArtefactParams::~CUIArtefactParams()
 {
-	delete_data		(m_immunity_item);
+	delete_data		(m_absorbation_item);
 	delete_data		(m_restore_item);
 	xr_delete		(m_drain_factor);
 	xr_delete		(m_weight_dump);
@@ -39,26 +40,22 @@ CUIArtefactParams::~CUIArtefactParams()
 	xr_delete		(m_Prop_line);
 }
 
-LPCSTR af_immunity_section_names[] = // EImmunityTypes
+LPCSTR af_absorbation_names[] = // EImmunityTypes
 {
-	"burn_immunity",
-	"shock_immunity",
-	"chemical_burn_immunity",
-	"radiation_immunity",
-	"telepatic_immunity",
-	"strike_immunity",
-	"explosion_immunity"
+	"burn_absorbation",
+	"shock_absorbation",
+	"chemical_burn_absorbation",
+	"radiation_absorbation",
+	"telepatic_absorbation"
 };
 
-LPCSTR af_immunity_caption[] =  // EImmunityTypes
+LPCSTR af_absorbation_captions[] =  // EImmunityTypes
 {
 	"ui_inv_outfit_burn_protection",
 	"ui_inv_outfit_shock_protection",
 	"ui_inv_outfit_chemical_burn_protection",
 	"ui_inv_outfit_radiation_protection",
 	"ui_inv_outfit_telepatic_protection",
-	"ui_inv_outfit_strike_protection",
-	"ui_inv_outfit_explosion_protection"
 };
 
 LPCSTR af_restore_section_names[] = // EConditionRestoreTypes
@@ -92,13 +89,13 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 	m_Prop_line->SetAutoDelete		(false);
 	CUIXmlInit::InitStatic			(xml, "prop_line", 0, m_Prop_line);
 	
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
+	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		m_immunity_item[i]					= xr_new<UIArtefactParamItem>();
-		m_immunity_item[i]->Init			(xml, af_immunity_section_names[i]);
-		m_immunity_item[i]->SetAutoDelete	(false);
-		LPCSTR name							= *CStringTable().translate(af_immunity_caption[i]);
-		m_immunity_item[i]->SetCaption		(name);
+		m_absorbation_item[i]				= xr_new<UIArtefactParamItem>();
+		m_absorbation_item[i]->Init			(xml, af_absorbation_names[i]);
+		m_absorbation_item[i]->SetAutoDelete(false);
+		LPCSTR name							= *CStringTable().translate(af_absorbation_captions[i]);
+		m_absorbation_item[i]->SetCaption	(name);
 		xml.SetLocalRoot					(base_node);
 	}
 
@@ -134,37 +131,26 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 
 void InitMaxArtValues()
 {
-	extern CItems						ITEMS;
-	DIVISION division					= ITEMS.Get("artefact", "nil", "nil");
-	for (SECTION section = division->second.begin(), section_e = division->second.end(); section != section_e; ++section)
+	for (auto sec : g_items_library->Get("artefact", "active", "void"))
 	{
-		LPCSTR sect						= pSettings->r_string(*section, "hit_absorbation_sect");
-		for (u8 i = 0; i < eImmunityTypeMax; ++i)
-		{
-			float val					= pSettings->r_float(sect, af_immunity_section_names[i]);
-			if (val > m_max_immunities[i])
-				m_max_immunities[i]		= val;
-		}
-
 		for (u8 i = 0; i < eRestoreTypeMax; ++i)
 		{
-			float val					= pSettings->r_float(*section, af_restore_section_names[i]);
+			float val					= pSettings->r_float(sec, af_restore_section_names[i]);
 			if (val > m_max_restores[i])
 				m_max_restores[i]		= val;
 		}
 	}
 }
 
-void CUIArtefactParams::SetInfo(CUICellItem* itm)
+void CUIArtefactParams::SetInfo(LPCSTR section, float power)
 {
 	DetachAll					();
 	CActor* actor				= smart_cast<CActor*>(Level().CurrentViewEntity());
 	if (!actor)
 		return;
-	const shared_str& section	= itm->m_section;
 	Fvector2					pos;
 	float						val, h;
-	if (xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "description", ""), ""))
+	if (xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "description", ""), ""))
 	{
 		AttachChild				(m_Prop_line);
 		h						= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
@@ -172,29 +158,25 @@ void CUIArtefactParams::SetInfo(CUICellItem* itm)
 	else
 		h						= 0.f;
 
-	LPCSTR sect					= pSettings->r_string(section, "hit_absorbation_sect");
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
+	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		val								= pSettings->r_float(sect, af_immunity_section_names[i]);
+		val								= pSettings->r_float(section, af_absorbation_names[i]) * power;
 		if (fis_zero(val))
 			continue;
-		if (m_max_immunities[i] == 0.f)
-			InitMaxArtValues			();
-		val								/= m_max_immunities[i];
-		m_immunity_item[i]->SetValue	(val);
-		pos.set							(m_immunity_item[i]->GetWndPos());
+		m_absorbation_item[i]->SetValue	(val);
+		pos.set							(m_absorbation_item[i]->GetWndPos());
 		pos.y							= h;
-		m_immunity_item[i]->SetWndPos	(pos);
-		h								+= m_immunity_item[i]->GetWndSize().y;
-		AttachChild						(m_immunity_item[i]);
+		m_absorbation_item[i]->SetWndPos(pos);
+		h								+= m_absorbation_item[i]->GetWndSize().y;
+		AttachChild						(m_absorbation_item[i]);
 	}
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		val								= pSettings->r_float(section, af_restore_section_names[i]);
+		val								= pSettings->r_float(section, af_restore_section_names[i]) * power;
 		if (fis_zero(val))
 			continue;
-		if (m_max_restores[i] == 0.f)
+		if (m_max_restores[i] == -1.f)
 			InitMaxArtValues			();
 		if (i != eRadiationSpeed)
 			val							/= m_max_restores[i];
@@ -206,7 +188,7 @@ void CUIArtefactParams::SetInfo(CUICellItem* itm)
 		AttachChild						(m_restore_item[i]);
 	}
 
-	val									= pSettings->r_float(section, "drain_factor");
+	val									= pSettings->r_float(section, "drain_factor") * power;
 	if (!fis_zero(val))
 	{
 		m_drain_factor->SetValue		(val);
@@ -217,7 +199,7 @@ void CUIArtefactParams::SetInfo(CUICellItem* itm)
 		AttachChild						(m_drain_factor);
 	}
 
-	val									= pSettings->r_float(section, "weight_dump");
+	val									= pSettings->r_float(section, "weight_dump") * power;
 	if (!fis_zero(val))
 	{
 		m_weight_dump->SetValue			(val);
@@ -228,7 +210,7 @@ void CUIArtefactParams::SetInfo(CUICellItem* itm)
 		AttachChild						(m_weight_dump);
 	}
 
-	val						= pSettings->r_float(section, "armor");
+	val						= pSettings->r_float(section, "armor") * power;
 	if (!fis_zero(val))
 	{
 		m_armor->SetValue	(val);

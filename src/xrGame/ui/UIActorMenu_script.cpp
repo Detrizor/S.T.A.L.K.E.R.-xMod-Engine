@@ -100,18 +100,7 @@ void CUIActorMenu::TryRepairItem(CUIWindow* w, void* d)
 	PIItem item = get_upgrade_item();
 	if (!item)
 		return;
-	if (item->GetCondition() >= 0.8f)
-		return;
 	LPCSTR item_name = item->m_section_id.c_str();
-
-	CEatableItem* EItm = smart_cast<CEatableItem*>(item);
-	if (EItm)
-	{
-		bool allow_repair = !!READ_IF_EXISTS(pSettings, r_bool, item_name, "allow_repair", false);
-		if (!allow_repair)
-			return;
-	}
-
 
 	LPCSTR partner = m_pPartnerInvOwner->CharacterInfo().Profile().c_str();
 
@@ -149,9 +138,9 @@ void CUIActorMenu::RepairEffect_CurItem()
 
 	luabind::functor<void>	funct;
 	R_ASSERT( ai().script_engine().functor( "inventory_upgrades.effect_repair_item", funct ) );
-	funct( item_name, item->GetCondition() );
+	funct(item_name, item->GetCondition());
 
-	item->SetCondition(0.8f);
+	item->SetCondition(CInventoryItem::m_fMaxRepairCondition);
 	UpdateConditionProgressBars();
 	SeparateUpgradeItem();
 	CUICellItem* itm = CurrentItem();
@@ -164,9 +153,6 @@ bool CUIActorMenu::CanUpgradeItem( PIItem item )
 {
 	VERIFY( item && m_pPartnerInvOwner );
 
-	if (item->GetCondition() <= 0.2f)
-		return false;
-
 	LPCSTR item_name = item->m_section_id.c_str();
 	LPCSTR partner = m_pPartnerInvOwner->CharacterInfo().Profile().c_str();
 		
@@ -176,7 +162,7 @@ bool CUIActorMenu::CanUpgradeItem( PIItem item )
 		make_string( "Failed to get functor <inventory_upgrades.can_upgrade_item>, item = %s, mechanic = %s", item_name, partner )
 		);
 
-	return funct( item_name, partner );
+	return funct(item_name, partner, item->GetCondition());
 }
 
 void CUIActorMenu::CurModeToScript()
@@ -311,10 +297,10 @@ void CUIActorMenu::script_register(lua_State *L)
 				.def("highlight_section_in_slot", &CUIActorMenu::HighlightSectionInSlot)
 				.def("highlight_for_each_in_slot", &CUIActorMenu::HighlightForEachInSlot)
 				.def("refresh_current_cell_item", &CUIActorMenu::RefreshCurrentItemCell)
+				.def("format_money", &CUIActorMenu::FormatMoney)
 				.def("IsShown", &CUIActorMenu::IsShown)
 				.def("ShowDialog", &CUIActorMenu::ShowDialog)
 				.def("HideDialog", &CUIActorMenu::HideDialog)
-				.def("ToSlot", &CUIActorMenu::ToSlotScript)
 				.def("SetMenuMode", &CUIActorMenu::SetMenuMode)
 				.def("GetMenuMode", &CUIActorMenu::GetMenuMode)
 				.def("GetPartner", &ActorMenuGetPartner_script)

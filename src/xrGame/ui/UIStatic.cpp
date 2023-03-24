@@ -26,7 +26,7 @@ void lanim_cont_xf::set_defaults()
 	m_origSize.set			(0,0);
 }
 
-CUIStatic:: CUIStatic()
+CUIStatic::CUIStatic()
 :m_bTextureEnable(true),
 m_bStretchTexture(false),
 m_bHeading(false),
@@ -35,6 +35,7 @@ m_fHeading(0.0f),
 m_pTextControl(NULL)
 {
 	m_TextureOffset.set		(0.0f,0.0f);
+	m_TextureMargin.set		(0,0,0,0);
 	m_lanim_xform.set_defaults	();
 }
 
@@ -87,12 +88,6 @@ void CUIStatic::DrawText()
 {
 	if (m_pTextControl)
 	{
-		if( !fsimilar(m_pTextControl->m_wndSize.x, m_wndSize.x) || !fsimilar(m_pTextControl->m_wndSize.y, m_wndSize.y))
-		{
-			m_pTextControl->m_wndSize		= m_wndSize;
-			m_pTextControl->ParseText		(true);
-		}
-
 		Fvector2			p;
 		GetAbsolutePos		(p);
 		m_pTextControl->Draw(p.x, p.y);
@@ -105,50 +100,50 @@ void CUIStatic::DrawText()
 
 void CUIStatic::DrawTexture()
 {
-	if(m_bTextureEnable && GetShader() && GetShader()->inited())
+	if (m_bTextureEnable && GetShader() && GetShader()->inited())
 	{
 		Frect			rect;
 		GetAbsoluteRect	(rect);
-		m_UIStaticItem.SetPos	(rect.left + m_TextureOffset.x, rect.top + m_TextureOffset.y);
 
-		if(m_bStretchTexture)
+		rect.left		+= GetWidth() * (Heading() ? m_TextureMargin.bottom : m_TextureMargin.left);
+		rect.top		+= GetHeight() * (Heading() ? m_TextureMargin.left : m_TextureMargin.top);
+		rect.right		-= GetWidth() * (Heading() ? m_TextureMargin.top : m_TextureMargin.right);
+		rect.bottom		-= GetHeight() * (Heading() ? m_TextureMargin.right : m_TextureMargin.bottom);
+
+		if (!m_bStretchTexture)
 		{
-			if(Heading())
+			//rect.set(0.f, 0.f, m_UIStaticItem.GetTextureRect().width(), m_UIStaticItem.GetTextureRect().height());
+			float ratio = m_UIStaticItem.GetTextureRect().width() / m_UIStaticItem.GetTextureRect().height();
+			if (ratio < rect.width() / rect.height())
 			{
-				if( m_UIStaticItem.GetFixedLTWhileHeading() )
-				{
-					float t1,t2;
-					t1			= rect.width();
-					t2			= rect.height();
-					rect.y2		= rect.y1 + t1;
-					rect.x2		= rect.x1 + t2;
-				}
+				float d = (rect.width() - rect.height() * ratio) / 2.f;
+				rect.x1 += d;
+				rect.x2 -= d;
 			}
-			m_UIStaticItem.SetSize(Fvector2().set(rect.width(), rect.height()));
-		}else
-		{
-			Frect r={0.0f,0.0f,
-				m_UIStaticItem.GetTextureRect().width(),
-				m_UIStaticItem.GetTextureRect().height()};
-
-			{	
-				if(Heading())
-				{
-					float t1,t2;
-					t1			= rect.width();
-					t2			= rect.height();
-					rect.y2		= rect.y1 + t1;
-					rect.x2		= rect.x1 + t2;
-				}
-
-				m_UIStaticItem.SetSize(Fvector2().set(r.width(),r.height()));
+			else
+			{
+				float d = (rect.height() - rect.width() / ratio) / 2.f;
+				rect.y1 += d;
+				rect.y2 -= d;
 			}
 		}
 
-		if( Heading() )
+		m_UIStaticItem.SetPos(rect.left + m_TextureOffset.x, rect.top + m_TextureOffset.y);
+		
+		if (Heading() && m_UIStaticItem.GetFixedLTWhileHeading())
 		{
-			m_UIStaticItem.Render( GetHeading() );
-		}else
+			float		t1,t2;
+			t1			= rect.width();
+			t2			= rect.height();
+			rect.y2		= rect.y1 + t1;
+			rect.x2		= rect.x1 + t2;
+		}
+		
+		m_UIStaticItem.SetSize(Fvector2().set(rect.width(), rect.height()));
+
+		if (Heading())
+			m_UIStaticItem.Render(GetHeading());
+		else
 			m_UIStaticItem.Render();
 	}
 }
@@ -230,27 +225,21 @@ CUILines* CUIStatic::TextItemControl()
 	if (!m_pTextControl) 
 	{
 		m_pTextControl = xr_new<CUILines>(); 
-		m_pTextControl->SetTextAlignment(CGameFont::alLeft);
+		m_pTextControl->SetParentWnd(this);
 	}
 	return m_pTextControl;
 }
 
 void CUIStatic::AdjustHeightToText()
 {
-	if( !fsimilar(TextItemControl()->m_wndSize.x, GetWidth()) )
-	{
-		TextItemControl()->m_wndSize.x = GetWidth();
-		TextItemControl()->ParseText(true);
-	}
-	SetHeight				(TextItemControl()->GetVisibleHeight());
+	SetHeight(TextItemControl()->GetVisibleHeight());
 }
 
 void CUIStatic::AdjustWidthToText()
 {
-	if(!m_pTextControl)	return;
-	float _len		= m_pTextControl->GetFont()->SizeOf_(m_pTextControl->GetText());
-	UI().ClientToScreenScaledWidth(_len);
-	SetWidth		(_len);
+	if (!m_pTextControl)
+		return;
+	SetWidth(m_pTextControl->GetFont()->SizeOf_(m_pTextControl->GetText()) * UI().GetTextScaleFactor());
 }
 
 void CUIStatic::ColorAnimationSetTextureColor(u32 color, bool only_alpha)
@@ -263,7 +252,6 @@ void CUIStatic::ColorAnimationSetTextColor(u32 color, bool only_alpha)
 	TextItemControl()->SetTextColor( (only_alpha)?subst_alpha(TextItemControl()->GetTextColor(),color) : color);
 }
 
-
 void CUIStatic::OnFocusLost()
 {
 	inherited::OnFocusLost();
@@ -274,37 +262,30 @@ void CUIStatic::OnFocusLost()
 
 //-------------------------------------
 CUITextWnd::CUITextWnd()
-{}
+{
+	m_lines = NULL;
+}
+
+CUITextWnd::~CUITextWnd()
+{
+	xr_delete(m_lines);
+}
 
 void CUITextWnd::AdjustHeightToText()
 {
-	if( !fsimilar(TextItemControl().m_wndSize.x, GetWidth()) )
-	{
-		TextItemControl().m_wndSize.x	= GetWidth();
-		TextItemControl().ParseText		(true);
-	}
-	SetHeight				(TextItemControl().GetVisibleHeight());
+	SetHeight(TextItemControl().GetVisibleHeight());
 }
 
 void CUITextWnd::AdjustWidthToText()
 {
-	float _len		= TextItemControl().GetFont()->SizeOf_(TextItemControl().GetText());
-	UI().ClientToScreenScaledWidth(_len);
-	SetWidth		(_len);
+	SetWidth(TextItemControl().GetFont()->SizeOf_(TextItemControl().GetText()) * UI().GetTextScaleFactor());
 }
-
 
 void CUITextWnd::Draw()
 {
-	if( !fsimilar(TextItemControl().m_wndSize.x, m_wndSize.x) || !fsimilar(TextItemControl().m_wndSize.y, m_wndSize.y))
-	{
-		TextItemControl().m_wndSize		= m_wndSize;
-		TextItemControl().ParseText		(true);
-	}
-
-	Fvector2			p;
-	GetAbsolutePos		(p);
-	TextItemControl().Draw		(p.x, p.y);
+	Fvector2				p;
+	GetAbsolutePos			(p);
+	TextItemControl().Draw	(p.x, p.y);
 }
 
 void CUITextWnd::Update()
@@ -319,3 +300,12 @@ void CUITextWnd::ColorAnimationSetTextColor(u32 color, bool only_alpha)
 	SetTextColor( (only_alpha)?subst_alpha(GetTextColor(),color) : color);
 }
 
+CUILines& CUITextWnd::TextItemControl()
+{
+	if (!m_lines)
+	{
+		m_lines = xr_new<CUILines>();
+		m_lines->SetParentWnd(this);
+	}
+	return *m_lines;
+}

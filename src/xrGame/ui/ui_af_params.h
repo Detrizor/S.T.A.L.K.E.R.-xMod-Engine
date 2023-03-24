@@ -8,15 +8,14 @@ class CUITextWnd;
 class UIArtefactParamItem;
 class CUICellItem;
 
-enum EImmunityTypes {
-	eBurnImmunity = 0,
+enum EAbsorbationTypes
+{
+	eBurnImmunity,
 	eShockImmunity,
 	eChemBurnImmunity,
 	eRadiationImmunity,
 	eTelepaticImmunity,
-	eStrikeImmunity,
-	eExplosionImmunity,
-	eImmunityTypeMax
+	eAbsorbationTypeMax
 };
 
 enum EConditionRestoreTypes {
@@ -33,10 +32,10 @@ public:
 					CUIArtefactParams		();
 	virtual			~CUIArtefactParams		();
 			void	InitFromXml				(CUIXml& xml);
-			void	SetInfo					(CUICellItem* itm);
+			void	SetInfo					(LPCSTR section, float power);
 
 protected:
-	UIArtefactParamItem*	m_immunity_item[eImmunityTypeMax];
+	UIArtefactParamItem*	m_absorbation_item[eAbsorbationTypeMax];
 	UIArtefactParamItem*	m_restore_item[eRestoreTypeMax];
 	UIArtefactParamItem*	m_drain_factor;
 	UIArtefactParamItem*	m_weight_dump;

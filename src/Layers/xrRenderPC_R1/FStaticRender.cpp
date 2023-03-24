@@ -1003,3 +1003,11 @@ static inline bool match_shader_id	( LPCSTR const debug_shader_id, LPCSTR const 
 #endif // #ifdef DEBUG
 #endif// #if 1
 }
+
+void CRender::RenderToTarget()
+{
+	IDirect3DSurface9* pBackBuffer = nullptr;
+	HW.pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+	D3DXLoadSurfaceFromSurface(Target->rt_secondVP->pRT, 0, 0, pBackBuffer, 0, 0, D3DX_DEFAULT, 0);
+	pBackBuffer->Release();
+}

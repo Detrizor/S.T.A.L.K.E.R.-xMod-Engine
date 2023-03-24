@@ -3,7 +3,7 @@
 struct SHit
 {
 	SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
-		float impulseA, ALife::EHitType hit_typeA, float pierce_damageA = 0.f, float pierce_damage_armorA = 0.f, ALife::EHitType pierce_hit_typeA = ALife::eHitTypeMax);
+		float impulseA, ALife::EHitType hit_typeA, float pierce_damageA = 0.f, float armor_pierce_damageA = 0.f, ALife::EHitType pierce_hit_typeA = ALife::eHitTypeMax);
 
 	SHit										();	
 	bool				is_valide				()		const	;	
@@ -38,7 +38,7 @@ IC	ALife::EHitType		type					()		const	{VERIFY(is_valide());return hit_type;}
 	
 	ALife::EHitType		hit_type;
 	float				pierce_damage;
-	float				pierce_damage_armor;
+	float				armor_pierce_damage;
 	ALife::EHitType		pierce_hit_type;
 	//---------------------------------------------------
 	//GE_HIT_STATISTIC
@@ -47,4 +47,7 @@ IC	ALife::EHitType		type					()		const	{VERIFY(is_valide());return hit_type;}
 #ifdef DEBUG
 	void				_dump				();
 #endif
+	
+	static	int				DamageType				(ALife::EHitType hit_type);
+			int				DamageType				()								const;
 };

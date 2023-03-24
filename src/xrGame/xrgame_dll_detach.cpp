@@ -26,6 +26,8 @@
 #include "sound_collection_storage.h"
 #include "relation_registry.h"
 
+#include "ui\UIStatic.h"
+
 typedef xr_vector<std::pair<shared_str,int> >	STORY_PAIRS;
 extern STORY_PAIRS								story_ids;
 extern STORY_PAIRS								spawn_story_ids;
@@ -62,8 +64,9 @@ void init_game_globals()
 	MONSTER_COMMUNITY::InitInternal					();
 }
 
-extern CUIXml*	g_uiSpotXml;
-extern CUIXml*	pWpnScopeXml;
+extern CUIXml*		g_uiSpotXml;
+extern CUIStatic*	pUILenseCircle;
+extern CUIStatic*	pUILenseGlass;
 
 void clean_game_globals()
 {
@@ -128,6 +131,7 @@ void clean_game_globals()
 	xr_delete										(g_uiSpotXml);
 	dump_list_xmls									();
 	DestroyUIGeom									();
-	xr_delete										(pWpnScopeXml);
+	xr_delete										(pUILenseCircle);
+	xr_delete										(pUILenseGlass);
 	CUITextureMaster::FreeTexInfo					();
 }

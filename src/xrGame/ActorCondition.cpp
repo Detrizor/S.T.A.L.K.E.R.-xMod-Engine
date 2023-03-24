@@ -192,7 +192,7 @@ void CActorCondition::UpdateCondition()
 	if ((object().mstate_real&mcAnyMove))
 	{
 		ConditionWalk( cur_weight,
-			isActorAccelerated( object().mstate_real,object().IsZoomAimingMode() ),
+			isActorAccelerated(object().mstate_real, object().IsZoomADSMode()),
 			(object().mstate_real&mcSprint) != 0 );
 	}
 	else

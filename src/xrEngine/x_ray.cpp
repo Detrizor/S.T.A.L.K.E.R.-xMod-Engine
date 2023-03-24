@@ -965,40 +965,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     return (0);
 }
 
-LPCSTR _GetFontTexName(LPCSTR section)
-{
-    static char* tex_names[] = {"texture800", "texture", "texture1600"};
-    int def_idx = 1;//default 1024x768
-    int idx = def_idx;
-
-#if 0
-    u32 w = Device.dwWidth;
-
-    if (w <= 800) idx = 0;
-    else if (w <= 1280)idx = 1;
-    else idx = 2;
-#else
-    u32 h = Device.dwHeight;
-
-    if (h <= 600) idx = 0;
-    else if (h < 1024) idx = 1;
-    else idx = 2;
-#endif
-
-    while (idx >= 0)
-    {
-        if (pSettings->line_exist(section, tex_names[idx]))
-            return pSettings->r_string(section, tex_names[idx]);
-        --idx;
-    }
-    return pSettings->r_string(section, tex_names[def_idx]);
-}
-
 void _InitializeFont(CGameFont*& F, LPCSTR section, u32 flags)
 {
-    LPCSTR font_tex_name = _GetFontTexName(section);
-    R_ASSERT(font_tex_name);
-
+	LPCSTR font_tex_name = pSettings->r_string(section, "texture");
     LPCSTR sh_name = pSettings->r_string(section, "shader");
     if (!F)
     {

@@ -1618,6 +1618,7 @@
     <ClInclude Include="HUDTarget.h" />
     <ClInclude Include="hud_item_object.h" />
     <ClInclude Include="id_generator.h" />
+    <ClInclude Include="IItemContainer.h" />
     <ClInclude Include="IKFoot.h" />
     <ClInclude Include="IKFoot_inl.h" />
     <ClInclude Include="IKLimbsController.h" />
@@ -1651,6 +1652,7 @@
     <ClInclude Include="InventoryBox.h" />
     <ClInclude Include="InventoryOwner.h" />
     <ClInclude Include="inventory_item.h" />
+    <ClInclude Include="inventory_item_amountable.h" />
     <ClInclude Include="inventory_item_impl.h" />
     <ClInclude Include="inventory_item_inline.h" />
     <ClInclude Include="inventory_item_object.h" />
@@ -1669,6 +1671,7 @@
     <ClInclude Include="inventory_upgrade_root.h" />
     <ClInclude Include="inventory_upgrade_root_inline.h" />
     <ClInclude Include="invincible_fury.h" />
+    <ClInclude Include="xmod\items_library.h" />
     <ClInclude Include="item_manager.h" />
     <ClInclude Include="key_binding_registrator.h" />
     <ClInclude Include="killer_victim_velocity_angle.h" />
@@ -1693,6 +1696,7 @@
     <ClInclude Include="location_manager.h" />
     <ClInclude Include="location_manager_inline.h" />
     <ClInclude Include="login_manager.h" />
+    <ClInclude Include="Magazine.h" />
     <ClInclude Include="magic_box3.h" />
     <ClInclude Include="magic_box3_inline.h" />
     <ClInclude Include="magic_minimize_1d.h" />
@@ -1895,6 +1899,7 @@
     <ClInclude Include="relation_registry.h" />
     <ClInclude Include="relation_registry_defs.h" />
     <ClInclude Include="relation_registry_inline.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="restricted_object.h" />
     <ClInclude Include="restricted_object_inline.h" />
     <ClInclude Include="restricted_object_obstacle.h" />
@@ -1911,7 +1916,6 @@
     <ClInclude Include="safe_map_iterator_inline.h" />
     <ClInclude Include="saved_game_wrapper.h" />
     <ClInclude Include="saved_game_wrapper_inline.h" />
-    <ClInclude Include="Scope.h" />
     <ClInclude Include="screenshots_common.h" />
     <ClInclude Include="screenshots_writer.h" />
     <ClInclude Include="screenshot_manager.h" />
@@ -1997,7 +2001,6 @@
     <ClInclude Include="sight_manager.h" />
     <ClInclude Include="sight_manager_inline.h" />
     <ClInclude Include="sight_manager_space.h" />
-    <ClInclude Include="Silencer.h" />
     <ClInclude Include="silent_shots.h" />
     <ClInclude Include="SimpleDetector.h" />
     <ClInclude Include="smart_cover.h" />
@@ -2380,6 +2383,12 @@
     <ClInclude Include="Wound.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
+    <ClInclude Include="xmod\addon.h" />
+    <ClInclude Include="xmod\addon_owner.h" />
+    <ClInclude Include="xmod\attachment.h" />
+    <ClInclude Include="xmod\scope.h" />
+    <ClInclude Include="xmod\silencer.h" />
+    <ClInclude Include="xmod\weapon_hud.h" />
     <ClInclude Include="xrClientsPool.h" />
     <ClInclude Include="xrGameSpyServer.h" />
     <ClInclude Include="xrGameSpyServer_callbacks.h" />
@@ -3393,6 +3402,7 @@
     <ClCompile Include="HudSound.cpp" />
     <ClCompile Include="HUDTarget.cpp" />
     <ClCompile Include="hud_item_object.cpp" />
+    <ClCompile Include="IItemContainer.cpp" />
     <ClCompile Include="IKFoot.cpp" />
     <ClCompile Include="IKLimbsController.cpp" />
     <ClCompile Include="Ik\aint.cxx" />
@@ -3443,6 +3453,7 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="inventory_item_amountable.cpp" />
     <ClCompile Include="inventory_item_object.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3485,6 +3496,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="invincible_fury.cpp" />
+    <ClCompile Include="xmod\items_library.cpp" />
     <ClCompile Include="item_manager.cpp" />
     <ClCompile Include="key_binding_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -3541,6 +3553,7 @@
     <ClCompile Include="location_manager.cpp" />
     <ClCompile Include="login_manager.cpp" />
     <ClCompile Include="login_manager_script.cpp" />
+    <ClCompile Include="Magazine.cpp" />
     <ClCompile Include="magic_box3.cpp" />
     <ClCompile Include="magic_minimize_1d.cpp" />
     <ClCompile Include="MainMenu.cpp" />
@@ -3788,10 +3801,6 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="Scope.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
     <ClCompile Include="screenshots_common.cpp" />
     <ClCompile Include="screenshots_writer.cpp" />
     <ClCompile Include="screenshot_manager.cpp" />
@@ -4001,7 +4010,6 @@
     <ClCompile Include="sight_action.cpp" />
     <ClCompile Include="sight_manager.cpp" />
     <ClCompile Include="sight_manager_target.cpp" />
-    <ClCompile Include="Silencer.cpp" />
     <ClCompile Include="silent_shots.cpp" />
     <ClCompile Include="SimpleDetector.cpp" />
     <ClCompile Include="smart_cover.cpp">
@@ -4686,6 +4694,12 @@
     <ClCompile Include="weapon_ammo_dump_impl.cpp" />
     <ClCompile Include="weapon_dump_impl.cpp" />
     <ClCompile Include="Wound.cpp" />
+    <ClCompile Include="xmod\addon.cpp" />
+    <ClCompile Include="xmod\addon_owner.cpp" />
+    <ClCompile Include="xmod\attachment.cpp" />
+    <ClCompile Include="xmod\scope.cpp" />
+    <ClCompile Include="xmod\silencer.cpp" />
+    <ClCompile Include="xmod\weapon_hud.cpp" />
     <ClCompile Include="xrClientsPool.cpp" />
     <ClCompile Include="xrGame.cpp" />
     <ClCompile Include="xrGameSpyServer.cpp" />
@@ -4780,6 +4794,9 @@
   <ItemGroup>
     <None Include="Players.cd" />
     <None Include="Weapons.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="xrGame.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -36,40 +36,41 @@ void CUIFixedScrollBar::InitScrollBar(Fvector2 pos, bool horizontal, LPCSTR prof
 	{
 		inherited::SetWndSize(Fvector2().set(width, height));
 
-        strconcat(sizeof(_path),_path, profile, ":left_arrow");
-		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_DecButton);
+        strconcat						(sizeof(_path),_path, profile, ":left_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_DecButton);
 
-		strconcat(sizeof(_path),_path, profile, ":right_arrow");
-		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_IncButton);
+		strconcat						(sizeof(_path),_path, profile, ":right_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_IncButton);
 
-		strconcat(sizeof(_path),_path, profile, ":box");
-		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_ScrollBox);
+		strconcat						(sizeof(_path),_path, profile, ":box");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_ScrollBox);
 
-		strconcat(sizeof(_path),_path, profile, ":back");
-		CUIXmlInit::InitFrameLine(xml_doc, _path, 0, m_FrameBackground);
+		strconcat						(sizeof(_path),_path, profile, ":back");
+		CUIXmlInit::InitFrameLine		(xml_doc, _path, 0, m_FrameBackground);
 
-		m_ScrollWorkArea = _max(0,iFloor(GetWidth()-2*height));
+		m_ScrollWorkArea				= _max(0,iFloor(GetWidth()-2*height));
 	}
 	else
 	{
 		inherited::SetWndSize(Fvector2().set(width_v, height_v));
 
-		strconcat(sizeof(_path),_path, profile, ":up_arrow");
-		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_DecButton);
+		strconcat						(sizeof(_path),_path, profile, ":up_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_DecButton);
 
-		strconcat(sizeof(_path),_path, profile, ":down_arrow");
- 		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_IncButton);
+		strconcat						(sizeof(_path),_path, profile, ":down_arrow");
+ 		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_IncButton);
 
-		strconcat(sizeof(_path),_path, profile, ":box_v");
-		CUIXmlInit::Init3tButton(xml_doc, _path, 0, m_ScrollBox);
+		strconcat						(sizeof(_path),_path, profile, ":box_v");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_ScrollBox);
 
-		strconcat(sizeof(_path),_path, profile, ":back_v");
-		CUIXmlInit::InitFrameLine(xml_doc, _path, 0, m_FrameBackground);
+		strconcat						(sizeof(_path),_path, profile, ":back_v");
+		CUIXmlInit::InitFrameLine		(xml_doc, _path, 0, m_FrameBackground);
 
-		m_ScrollWorkArea = _max(0,iFloor(GetHeight()-2*width_v));
+		m_ScrollWorkArea				= _max(0,iFloor(GetHeight()-2*width_v));
 	}	
 	UpdateScrollBar();
 }
+
 void CUIFixedScrollBar::UpdateScrollBar()
 {
 	if(IsShown())

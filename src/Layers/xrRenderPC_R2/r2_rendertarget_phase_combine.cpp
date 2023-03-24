@@ -39,6 +39,17 @@ void	CRenderTarget::phase_combine	()
 
 	//*** exposure-pipeline
 	u32			gpu_id	= Device.dwFrame%HW.Caps.iGPUNum;
+	if (Device.m_SecondViewport.IsSVPActive())	//--#SM+#-- +SecondVP+ Fix for screen flickering
+	{
+		// clang-format off
+		gpu_id = (Device.dwFrame - 1) % HW.Caps.iGPUNum;	// Ôeen "ia?öaíey" tonemapping (HDR) iînëa âueë?÷aíey äâîéíîaî ?aíäa?a. 
+															// Iîáî÷íué ýôôaeo - i?e ?aáîoa äâîéíîaî ?aíäa?a neî?înoü eçiaíaíey tonemapping (HDR) iaäaao â äâa ?aça
+															// Ia?öaíea nâyçaíî n oai, ÷oî HDR äëy nâîaé ?aáîou o?aíeo óiaíüoaííea eîiee "i?îoëuo eaä?îâ"
+															// Ýoe eaä?u îoíîneoaëüíî iîoîae ä?óa ía ä?óaa, îäíaeî i?e âeë?÷aííîi äâîéíîi ?aíäa?a
+															// â iîëîâeía eaä?îâ îeaçuâaaony ea?oeíea eç âoî?îaî ?aíäa?a, e iîneîëüeó îía ÷anoî iîaao îoëe÷aony iî öâaoó\y?eînoe
+															// oî i?e iîiuoea nîçäaíey "iëaâíîaî" ia?aoîäa iaaäó íeie iîëó÷aaony ýôôaeo ia?öaíey
+
+	}
 	{
 		t_LUM_src->surface_set		(rt_LUM_pool[gpu_id*2+0]->pSurface);
 		t_LUM_dest->surface_set		(rt_LUM_pool[gpu_id*2+1]->pSurface);

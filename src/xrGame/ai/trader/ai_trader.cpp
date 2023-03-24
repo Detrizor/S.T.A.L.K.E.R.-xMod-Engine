@@ -171,7 +171,7 @@ void CAI_Trader::OnEvent		(NET_Packet& P, u16 type)
 			Obj = Level().Objects.net_Find	(id);
 			if(inventory().CanTakeItem(smart_cast<CInventoryItem*>(Obj))){
 				Obj->H_SetParent(this);
-				inventory().Take(smart_cast<CGameObject*>(Obj), false, false);
+				inventory().Take(smart_cast<CGameObject*>(Obj), false);
 			}else
 			{
 				NET_Packet				P;

@@ -96,8 +96,16 @@ dxRender_Visual*	CModelPool::Instance_Duplicate	(dxRender_Visual* V)
 	return N;
 }
 
-dxRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
+dxRender_Visual* CModelPool::Instance_Load(xr_string _N, BOOL allow_register)
 {
+	bool ignore_motions = false;
+	if (_N.substr(0, 3) == "_w_")
+	{
+		_N = _N.substr(3);
+		ignore_motions = true;
+	}
+	LPCSTR N = _N.c_str();
+
 	dxRender_Visual	*V;
 	string_path		fn;
 	string_path		name;
@@ -107,9 +115,11 @@ dxRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
 	else				xr_strcpy	(name,sizeof(name),N);
 
 	// Load data from MESHES or LEVEL
-	if (!FS.exist(N))	{
+	if (!FS.exist(N))
+	{
 		if (!FS.exist(fn, "$level$", name))
-			if (!FS.exist(fn, "$game_meshes$", name)){
+			if (!FS.exist(fn, "$game_meshes$", name))
+			{
 #ifdef _EDITOR
 				Msg("!Can't find model file '%s'.",name);
                 return 0;
@@ -117,25 +127,28 @@ dxRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
 				Debug.fatal(DEBUG_INFO,"Can't find model file '%s'.",name);
 #endif
 			}
-	} else {
-		xr_strcpy			(fn,N);
 	}
+	else
+		xr_strcpy(fn,N);
 	
 	// Actual loading
 #ifdef DEBUG
-	if (bLogging)		Msg		("- Uncached model loading: %s",fn);
+	if (bLogging)		Msg("- Uncached model loading: %s",fn);
 #endif // DEBUG
 
-	IReader*			data	= FS.r_open(fn);
+	IReader*			data = FS.r_open(fn);
 	ogf_header			H;
 	data->r_chunk_safe	(OGF_HEADER,&H,sizeof(H));
+	if (H.type == MT_SKELETON_ANIM && ignore_motions)
+		H.type = MT_SKELETON_RIGID;
 	V = Instance_Create (H.type);
 	V->Load				(N,data,0);
+	V->Type				= H.type;
 	FS.r_close			(data);
 	g_pGamePersistent->RegisterModel(V);
 
 	// Registration
-	if (allow_register) Instance_Register(N,V);
+	if (allow_register) Instance_Register(_N.c_str(), V);
 
 	return V;
 }
@@ -222,7 +235,7 @@ dxRender_Visual* CModelPool::Instance_Find(LPCSTR N)
 	return Model;
 }
 
-dxRender_Visual* CModelPool::Create(const char* name, IReader* data)
+dxRender_Visual* CModelPool::Create(LPCSTR name, IReader* data)
 {
 #ifdef _EDITOR
 	if (!name||!name[0])	return 0;

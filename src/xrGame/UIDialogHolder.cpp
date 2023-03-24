@@ -204,9 +204,7 @@ void CDialogHolder::SetMainInputReceiver	(CUIDialogWnd* ir, bool _find_remove)
 void CDialogHolder::StartDialog(CUIDialogWnd* pDialog, bool bDoHideIndicators)
 {
 	if (pDialog && pDialog->NeedCenterCursor())
-	{
-		GetUICursor().SetUICursorPosition	(Fvector2().set(512.0f,384.0f));
-	}
+		GetUICursor().SetUICursorPosition	(Fvector2().set(UI_BASE_WIDTH/2.f,UI_BASE_HEIGHT/2.f));
 	StartMenu(pDialog, bDoHideIndicators);
 }
 
@@ -268,7 +266,7 @@ bool CDialogHolder::IR_UIOnKeyboardPress(int dik)
 
 	if (TIR->OnKeyboardAction(dik,	WINDOW_KEY_PRESSED))
 		return true;
-
+	/*--xd
 	if( !TIR->StopAnyMove() && g_pGameLevel )
 	{
 		CObject* O = Level().CurrentEntity();
@@ -283,8 +281,8 @@ bool CDialogHolder::IR_UIOnKeyboardPress(int dik)
 			}
 			return			(false);
 		}
-	}
-	return true;
+	}*/
+	return false;// true;
 }
 
 bool CDialogHolder::IR_UIOnKeyboardRelease(int dik)

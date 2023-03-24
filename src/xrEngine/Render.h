@@ -298,6 +298,9 @@ public:
     virtual void rmNormal() = 0;
     virtual u32 memory_usage() = 0;
     virtual u32 active_phase() = 0; //Swartz: actor shadow
+
+	virtual void RenderToTarget() = 0;
+
     // Constructor/destructor
     virtual ~IRender_interface();
 protected:

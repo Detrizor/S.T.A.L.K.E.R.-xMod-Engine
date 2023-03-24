@@ -699,7 +699,12 @@ void CLevel::OnRender()
     //Device.Statistic->TEST1.Begin();
     BulletManager().Render();
     //Device.Statistic->TEST1.End();
-    HUD().RenderUI();
+
+	HUD().RenderUI();
+
+	if (Device.m_SecondViewport.IsSVPFrame())
+		Render->RenderToTarget();
+
 #ifdef DEBUG
     draw_wnds_rects();
     physics_world()->OnRender();
@@ -1041,6 +1046,13 @@ void CLevel::SetGameTimeFactor(const float fTimeFactor)
 void CLevel::SetGameTimeFactor(ALife::_TIME_ID GameTime, const float fTimeFactor)
 {
     game->SetGameTimeFactor(GameTime, fTimeFactor);
+}
+
+void CLevel::SetEnvironmentGameTimeFactor(float const& fTimeFactor)
+{
+    if (!game)
+        return;
+    game->SetEnvironmentGameTimeFactor(fTimeFactor);
 }
 
 void CLevel::SetEnvironmentGameTimeFactor(u64 const& GameTime, float const& fTimeFactor)

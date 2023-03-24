@@ -4,9 +4,18 @@
 
 #pragma once
 
-
 #include "weaponammo.h"
 #include "tracer.h"
+
+struct SPowerDependency
+{
+	Fvector3 p1;
+	float t;
+	Fvector3 p2;
+	SPowerDependency() :p1({ 0.f, 0.f, 0.f }), t(0.f), p2({ 0.f, 0.f, 0.f }) {}
+	void Load(LPCSTR sect, LPCSTR line) { LPCSTR C = pSettings->r_string(sect, line); int r = sscanf(C, "%f,%f,%f,%f,%f,%f,%f", &p1.x, &p1.y, &p1.z, &t, &p2.x, &p2.y, &p2.z); if (r < 7) p2 = p1; }
+	float Calc(float param) const { const Fvector3& p = (param < t) ? p1 : p2; return pow(p[0] + p[1] * param, p[2]); }
+};
 
 //коэфициенты и параметры патрона
 struct SBullet_Hit 
@@ -14,7 +23,7 @@ struct SBullet_Hit
 	float	impulse;
 	float	main_damage;
 	float	pierce_damage;
-	float	pierce_damage_armor;
+	float	armor_pierce_damage;
 };
 
 //структура, описывающая пулю и ее свойства в полете
@@ -29,6 +38,7 @@ struct SBullet
 			u16			allow_ricochet	: 1	;			//разрешить рикошет
 			u16			allow_sendhit	: 1	;			//statistics
 			u16			magnetic_beam	: 1 ;			//магнитный луч (нет отклонения после пробивания, не падает скорость после пробивания)
+			u16			piercing_was	: 1	;
 		};
 		u16				_storage			;
 	}				flags				;
@@ -61,6 +71,7 @@ struct SBullet
 	float			bullet_mass			;
 	float			bullet_resist		;
 	bool			hollow_point		;
+	bool			armor_piercing		;
 	//-------------------------------------------------------------------
 	u8				m_u8ColorID			;
 	
@@ -239,23 +250,26 @@ public:
 	float					m_fBulletWallMarkSizeScale;
 	float					m_fBulletFireDistanceScale;
 
-	float					m_fBulletArmorPiercingScale;
+	float					m_fBulletAPScale;
+	float					m_fBulletArmorPiercingAPFactor;
 	float					m_fBulletHollowPointAPFactor;
 	float					m_fBulletHollowPointResistFactor;
-	float					m_fBulletArmorPiercingLose;
+	float					m_fBulletAPLossOnPierce;
 
 	float					m_fBulletHitImpulseScale;
 	float					m_fBulletArmorDamageScale;
-
-	float					m_fBulletPierceDamageResistFactor;
-	float					m_fBulletPierceDamageResistPower;
-	float					m_fBulletPierceDamageSpeedFactor;
-	float					m_fBulletPierceDamageSpeedPower;
-	float					m_fBulletPierceDamageDensityFactor;
-	float					m_fBulletPierceDamageDensityPower;
-
 	float					m_fBulletPierceDamageScale;
-	float					m_fBulletPierceDamageArmorScale;
+	float					m_fBulletArmorPierceDamageScale;
+
+	SPowerDependency		m_fBulletPierceDamageFromResist;
+	SPowerDependency		m_fBulletPierceDamageFromKAP;
+	SPowerDependency		m_fBulletPierceDamageFromSpeed;
+
+	SPowerDependency		m_fBulletPierceDamageFromSpeedScale;
+	SPowerDependency		m_fBulletPierceDamageFromHydroshock;
+	SPowerDependency		m_fBulletPierceDamageFromStability;
+	SPowerDependency		m_fBulletPierceDamageFromDensity;
+	SPowerDependency		m_fBulletPierceDamageFromPierce;
 };
 
 struct bullet_test_callback_data

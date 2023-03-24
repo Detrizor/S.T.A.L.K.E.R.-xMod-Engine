@@ -337,23 +337,19 @@ void dxRenderDeviceRender::End()
     RCache.OnFrameEnd	();
     Memory.dbg_check		();
 
-    DoAsyncScreenshot();
+	DoAsyncScreenshot();
 
 #if defined(USE_DX10) || defined(USE_DX11)
-    //AVO: functional vsync by avbaula
-#ifdef VSYNC_FIX
-    HW.m_pSwapChain->Present( psDeviceFlags.test(rsVSync) ? 1 : 0, 0 );
-#else //!VSYNC_FIX
-    HW.m_pSwapChain->Present( 0, 0 );
-#endif //-VSYNC_FIX
-    //-AVO
+	if (!Device.m_SecondViewport.IsSVPFrame() && !Device.m_SecondViewport.isCamReady)
+		HW.m_pSwapChain->Present(!!psDeviceFlags.test(rsVSync), 0);
 #else //!USE_DX10 || USE_DX11
-    CHK_DX				(HW.pDevice->EndScene());
+	CHK_DX(HW.pDevice->EndScene());
 
-    HW.pDevice->Present( NULL, NULL, NULL, NULL );
+	if (!Device.m_SecondViewport.IsSVPFrame() && !Device.m_SecondViewport.isCamReady)
+		HW.pDevice->Present(NULL, NULL, NULL, NULL);
 #endif //-USE_DX10
-    //HRESULT _hr		= HW.pDevice->Present( NULL, NULL, NULL, NULL );
-    //if				(D3DERR_DEVICELOST==_hr)	return;			// we will handle this later
+	//HRESULT _hr		= HW.pDevice->Present( NULL, NULL, NULL, NULL );
+	//if				(D3DERR_DEVICELOST==_hr)	return;			// we will handle this later
 }
 
 void dxRenderDeviceRender::ResourcesDestroyNecessaryTextures()

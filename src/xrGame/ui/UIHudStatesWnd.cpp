@@ -131,7 +131,6 @@ void CUIHudStatesWnd::InitFromXml( CUIXml& xml, LPCSTR path )
 	m_ui_grenade				= UIHelper::CreateTextWnd( xml, "static_grenade", this );
 	
 	m_ui_weapon_icon			= UIHelper::CreateStatic( xml, "static_wpn_icon", this );
-	m_ui_weapon_icon->SetShader( InventoryUtilities::GetEquipmentIconsShader() );
 //	m_ui_weapon_icon->Enable	( false );
 	m_ui_weapon_icon_rect		= m_ui_weapon_icon->GetWndRect();
 
@@ -389,11 +388,8 @@ void CUIHudStatesWnd::SetAmmoIcon(const shared_str& sect_name)
 	m_ui_weapon_icon->Show(true);
 
 	Frect texture_rect;
-	texture_rect.x1					= pSettings->r_float(sect_name,  "inv_grid_x")		*INV_GRID_WIDTH;
-	texture_rect.y1					= pSettings->r_float(sect_name,  "inv_grid_y")		*INV_GRID_HEIGHT;
-	texture_rect.x2					= pSettings->r_float( sect_name, "inv_grid_width")	*INV_GRID_WIDTH;
-	texture_rect.y2					= pSettings->r_float( sect_name, "inv_grid_height")	*INV_GRID_HEIGHT;
-	texture_rect.rb.add				(texture_rect.lt);
+	CInventoryItem::ReadIcon(texture_rect, *sect_name);
+	m_ui_weapon_icon->SetShader(InventoryUtilities::GetEquipmentIconsShader(sect_name));
 	m_ui_weapon_icon->GetUIStaticItem().SetTextureRect(texture_rect);
 	m_ui_weapon_icon->SetStretchTexture(true);
 
@@ -401,11 +397,11 @@ void CUIHudStatesWnd::SetAmmoIcon(const shared_str& sect_name)
 	float w = texture_rect.width() * 0.8f;
 
 // now perform only width scale for ammo, which (W)size >2
-	if (texture_rect.width() > 2.01f*INV_GRID_WIDTH)
-		w = INV_GRID_WIDTH * 1.5f;
+	if (texture_rect.width() > 2.01f * InventoryUtilities::GetInvGridSize())
+		w = InventoryUtilities::GetInvGridSize() * 1.5f;
 
-	m_ui_weapon_icon->SetWidth( w*UI().get_current_kx() );
-	m_ui_weapon_icon->SetHeight( h );
+	m_ui_weapon_icon->SetWidth(w);
+	m_ui_weapon_icon->SetHeight(h);
 }
 // ------------------------------------------------------------------------------------------------
 void CUIHudStatesWnd::UpdateZones()

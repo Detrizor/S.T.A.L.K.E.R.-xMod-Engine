@@ -20,45 +20,32 @@
 static const float VEL_MAX		= 10.f;
 static const float VEL_A_MAX	= 10.f;
 
-#define GetWeaponParam(pWeapon, func_name, def_value)	((pWeapon) ? (pWeapon->func_name) : def_value)
-
 //возвращает текуший разброс стрельбы (в радианах)с учетом движения
 float CActor::GetWeaponAccuracy() const
 {
-	CWeapon* W	= smart_cast<CWeapon*>(inventory().ActiveItem());
-	
-	if ( IsZoomAimingMode() && W && !GetWeaponParam(W, IsRotatingToZoom(), false) )
+	float dispersion			= m_fDispBase;
+	CWeapon* W					= smart_cast<CWeapon*>(inventory().ActiveItem());
+	if (W)
 	{
-		return m_fDispAim;
-	}
-	float dispersion = m_fDispBase*GetWeaponParam(W, Get_PDM_Base(), 1.0f);
+		if (W->ADS() && !W->IsRotatingToZoom())
+			dispersion			= m_fDispADS;
+		else if (W->IsZoomed())
+			dispersion			= m_fDispAim;
+		else
+			dispersion			*= W->Get_PDM_Base();
 
-	CEntity::SEntityState state;
-	if ( g_State(state) )
-	{
-		//fAVelocity = angle velocity
-		dispersion *= ( 1.0f + (state.fAVelocity/VEL_A_MAX) * m_fDispVelFactor * GetWeaponParam(W, Get_PDM_Vel_F(), 1.0f) );
-		//fVelocity = linear velocity
-		dispersion *= ( 1.0f + (state.fVelocity/VEL_MAX) * m_fDispVelFactor * GetWeaponParam(W, Get_PDM_Vel_F(), 1.0f) );
-
-		bool bAccelerated = isActorAccelerated( mstate_real, IsZoomAimingMode() );
-		if ( bAccelerated || !state.bCrouch )
+		CEntity::SEntityState	state;
+		if (g_State(state))
 		{
-			dispersion *= ( 1.0f + m_fDispAccelFactor * GetWeaponParam(W, Get_PDM_Accel_F(), 1.0f) );
-		}
-
-		if ( state.bCrouch )
-		{	
-			dispersion *= ( 1.0f + m_fDispCrouchFactor * GetWeaponParam(W, Get_PDM_Crouch(), 1.0f) );
-			if ( !bAccelerated )
-			{
-				dispersion *= ( 1.0f + m_fDispCrouchNoAccelFactor * GetWeaponParam(W, Get_PDM_Crouch_NA(), 1.0f) );
-			}
+			dispersion			*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			dispersion			*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			if (state.bCrouch)
+				dispersion		*= m_fDispCrouchFactor;
 		}
 	}
-	return dispersion;
-}
 
+	return						dispersion;
+}
 
 void CActor::g_fireParams	(const CHudItem* pHudItem, Fvector &fire_pos, Fvector &fire_dir)
 {
@@ -137,15 +124,9 @@ void	CActor::HitSector(CObject* who, CObject* weapon)
 
 	if (weapon)
 	{
-		CWeapon* pWeapon = smart_cast<CWeapon*> (weapon);
-		if (pWeapon)
-		{
-			if (pWeapon->IsSilencerAttached())
-			{
-				bShowHitSector = false;
-
-			}
-		}
+		CWeaponMagazined* wm = smart_cast<CWeaponMagazined*> (weapon);
+		if (wm && wm->SilencerAttached())
+			bShowHitSector = false;
 	}
 
 	if (!bShowHitSector) return;	
@@ -230,19 +211,6 @@ Fvector CActor::weapon_recoil_last_delta()
 	return							(result);
 }
 //////////////////////////////////////////////////////////////////////////
-
-void	CActor::SpawnAmmoForWeapon	(CInventoryItem *pIItem)
-{
-	if (OnClient()) return;
-	if (!pIItem) return;
-
-	CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*> (pIItem);
-	if (!pWM || !pWM->AutoSpawnAmmo()) return;
-
-	///	CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*>(inventory().GetAny( (pWM->m_ammoTypes[0].c_str()) ));
-	//	if (!pAmmo) 
-	pWM->SpawnAmmo(0xffffffff, NULL, ID());
-};
 
 void	CActor::RemoveAmmoForWeapon	(CInventoryItem *pIItem)
 {

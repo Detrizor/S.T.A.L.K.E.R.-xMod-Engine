@@ -5,7 +5,7 @@ CUIDialogWnd:: CUIDialogWnd()
 {
 	m_pParentHolder		= NULL;
 	m_bWorkInPause		= false;
-	m_bShowMe			= false;
+	SetVisible			(false);
 }
 
 CUIDialogWnd::~CUIDialogWnd()

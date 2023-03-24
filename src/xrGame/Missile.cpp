@@ -665,6 +665,7 @@ void CMissile::activate_physic_shell()
 	kinematics->CalculateBones_Invalidate();
 	kinematics->CalculateBones			(TRUE);
 }
+
 void	CMissile::net_Relcase(CObject* O)
 {
 	inherited::net_Relcase(O);
@@ -678,10 +679,11 @@ void	CMissile::net_Relcase(CObject* O)
 	}
 
 }
+
 void CMissile::create_physic_shell	()
 {
 	//create_box2sphere_physic_shell();
-	CInventoryItemObjectOld::CreatePhysicsShell();
+	inherited::CreatePhysicsShell();
 }
 
 void CMissile::setup_physic_shell	()

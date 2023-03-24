@@ -19,6 +19,8 @@
 float psCamInert = 0.f;
 float psCamSlideInert = 0.25f;
 
+ENGINE_API float psAIM_FOV;
+
 SPPInfo pp_identity;
 SPPInfo pp_zero;
 
@@ -319,7 +321,7 @@ void CCameraManager::Update(const Fvector& P, const Fvector& D, const Fvector& N
     m_cam_info.n.crossproduct(m_cam_info.d, m_cam_info.r);
 
     float aspect = Device.fHeight_2 / Device.fWidth_2;
-    float src = 10 * Device.fTimeDelta;
+	float src = fLess(fFOV_Dest, psAIM_FOV) ? 1.f : 10.f * Device.fTimeDelta;
     clamp(src, 0.f, 1.f);
     float dst = 1 - src;
     m_cam_info.fFov = m_cam_info.fFov*dst + fFOV_Dest*src;
@@ -431,8 +433,6 @@ void CCameraManager::UpdatePPEffectors()
     pp_affected.validate("after applying pp");
 }
 
-
-
 void CCameraManager::ApplyDevice(float _viewport_near)
 {
     // Device params
@@ -445,10 +445,31 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 
     // projection
     Device.fFOV = m_cam_info.fFov;
-    Device.fASPECT = m_cam_info.fAspect;
-    Device.mProject.build_projection(deg2rad(m_cam_info.fFov), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
+	Device.fHUDFOV = fmaxf(m_cam_info.fFov, psAIM_FOV);
+	Device.fASPECT = m_cam_info.fAspect;
 
-    if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive())
+	//--#SM+# Begin-- +SecondVP+
+	// Ia?an÷eouâaai FOV äëy âoî?îaî âü?iî?oa [Recalculate scene FOV for SecondVP frame]
+	if (Device.m_SecondViewport.IsSVPFrame())
+	{
+		// Äëy âoî?îaî âü?iî?oa FOV âunoaâëyai çäanü
+		Device.fFOV = g_pGamePersistent->m_pGShaderConstants->hud_params.y;
+
+		// I?aäói?aaäaai ÷oî iu eçiaíeëe íano?îéee eaia?u
+		Device.m_SecondViewport.isCamReady = true;
+	}
+	else
+		Device.m_SecondViewport.isCamReady = false;
+
+	Device.mProject.build_projection(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
+	//--#SM+# End--
+
+	ApplyPP();
+}
+
+void CCameraManager::ApplyPP()
+{
+    if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.m_SecondViewport.IsSVPFrame())
         ResetPP();
     else
     {

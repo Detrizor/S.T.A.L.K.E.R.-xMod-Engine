@@ -46,7 +46,7 @@ public:
 	virtual				~CUIProgressBar				();
 
 
-			void		InitProgressBar				(Fvector2 pos, Fvector2 size, EOrientMode mode);
+			void		InitProgressBar				(EOrientMode mode);
 
 	void				SetRange					(float _Min, float _Max)	{ m_MinPos = _Min;  m_MaxPos = _Max; UpdateProgressBar();}
 	float				GetRange_min				() 							{ return  m_MinPos; }

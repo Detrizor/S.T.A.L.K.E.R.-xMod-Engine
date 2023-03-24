@@ -5,6 +5,9 @@
 
 class CRenderTarget		: public IRender_Target
 {
+public:
+	ref_rt rt_secondVP; //--#SM+#-- +SecondVP+
+
 private:
 	BOOL				bAvailable;
 	u32					rtWidth;

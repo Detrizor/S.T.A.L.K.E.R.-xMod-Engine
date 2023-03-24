@@ -5,8 +5,8 @@
 #include "../Include/xrRender/UIShader.h"
 typedef	FactoryPtr<IUIShader>	ui_shader;
 
-#define UI_BASE_WIDTH	1024.0f
-#define UI_BASE_HEIGHT	768.0f
+#define UI_BASE_HEIGHT	((float)Device.dwHeight / UI().GetScaleFactor())
+#define UI_BASE_WIDTH	((float)Device.dwWidth / UI().GetScaleFactor())
 
 enum EUIItemAlign{
 	alNone	= 0x0000,
@@ -41,4 +41,4 @@ public:
 	sPoly2D*	ClipPoly		(sPoly2D& S, sPoly2D& D) const;
 };
 
-extern ENGINE_API BOOL g_bRendering; 
+extern ENGINE_API BOOL g_bRendering;

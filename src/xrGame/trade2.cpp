@@ -17,8 +17,6 @@
 #include "ai_object_location.h"
 #include "ui\UICellItem.h"
 
-static const float CURRENCY_RATE = pSettings->r_float("trade", "currency_rate");
-
 bool CTrade::CanTrade()
 {
 	CEntity *pEntity;
@@ -96,28 +94,9 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 	}
 
 	if (pThis.type == TT_TRADER && !bBuying)
-	{
-		float cond									= 2.f * (float)!(!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"), "magazine") && READ_IF_EXISTS(pSettings, r_bool, section, "can_be_emptyed", TRUE));
-		pPartner.inv_owner->GiveObject				(*section, cond);
-	}
+		pPartner.inv_owner->GiveObject				(*section);
 	else
-	{
-		CGameObject* O1								= smart_cast<CGameObject*>(pPartner.inv_owner);
-		CGameObject* O2								= smart_cast<CGameObject*>(pThis.inv_owner);
-	
-		if (!bBuying)
-			swap									(O1, O2);
-
-		NET_Packet									P;
-		O1->u_EventGen								(P,GE_TRADE_SELL,O1->ID());
-		P.w_u16										(pItem->object().ID());
-		O1->u_EventSend								(P);
-
-		// взять у партнера
-		O2->u_EventGen								(P,GE_TRADE_BUY,O2->ID());
-		P.w_u16										(pItem->object().ID());
-		O2->u_EventSend								(P);
-	}
+		pItem->Transfer								((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
 
 	if (pItem && ((pPartner.type == TT_ACTOR) || (pThis.type == TT_ACTOR)))
 	{
@@ -155,13 +134,6 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	
 	PIItem pItem			= (PIItem)itm->m_pData;
 	shared_str& section		= itm->m_section;
-	
-	// computing condition factor
-	// for "dead" weapon we use 10% from base cost, for "good" weapon we use full base cost
-	float					condition_factor = ((pItem) ? pItem->GetCondition() : 1.f) * 0.9f + 0.1f;
-	if (!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"), "magazine") ||
-		(!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"), "artefact") && condition_factor < 1.f))
-		condition_factor	= 1.f;
 
 	// taking trade factors
 	bool					is_actor = (pThis.type == TT_ACTOR) || (pPartner.type == TT_ACTOR);
@@ -201,31 +173,17 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	clamp					(action_factor, _min(enemy_factor, friend_factor), _max(enemy_factor, friend_factor));
 
 	// total price calculation
-	float					cost;
+	float					price;
 	if (pItem)
-		cost				= pItem->Cost();
+		price				= (float)pItem->Price();
 	else
 	{
-		float cost_factor	= READ_IF_EXISTS(pSettings, r_float, section, "cost_factor", 1.f);
-		if (pSettings->line_exist("costs", *section))
-			cost			= pSettings->r_float("costs", *section);
-		else if (pSettings->line_exist(section, "cost"))
-			cost			= pSettings->r_float(section, "cost");
-		else
-		{
-			if (!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"), "ammo") && !xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil"), "box"))
-			{
-				LPCSTR ammo_section		= pSettings->r_string(section, "ammo_section");
-				float uses				= pSettings->r_float(section, "max_uses");
-				cost					= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost", 0.f) * uses;
-				cost_factor				= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost_factor", 1.f);
-			}
-			else
-				cost		= 0.f;
-		}
-		cost				*= cost_factor;
+		price				= (float)CInventoryItem::ReadBaseCost(*section);
+		float stock_count	= READ_IF_EXISTS(pSettings, r_float, section, "stock_count", 0);
+		if (0 < stock_count)
+			price			+= stock_count * (float)CInventoryItem::ReadBaseCost(pSettings->r_string(section, "stock"));
 	}
-	float					result = cost * condition_factor * action_factor * CURRENCY_RATE;
+	price					*= action_factor;
 
 	// use some script discounts
 	luabind::functor<float>	func;
@@ -233,15 +191,14 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 		R_ASSERT(ai().script_engine().functor("trade_manager.get_buy_discount", func));
 	else
 		R_ASSERT(ai().script_engine().functor("trade_manager.get_sell_discount", func));
-	result					*= func(smart_cast<const CGameObject*>(pThis.inv_owner)->ID());
+	price					*= func(smart_cast<const CGameObject*>(pThis.inv_owner)->ID());
 
 	// smart rounding
 	u32						rounder = 1;
-	float					divider = result * 0.05f;
+	float					divider = price * 0.05f;
 	for (u8 multiplier = 1; (float)rounder <= divider; rounder *= multiplier)
 		multiplier			= (multiplier == 5) ? 2 : 5;
 	rounder					/= multiplier;
-	u32						price = (u32)iCeil(result / (float)rounder) * rounder;
 
-	return					price;
+	return					(u32)iCeil(price / (float)rounder) * rounder;
 }

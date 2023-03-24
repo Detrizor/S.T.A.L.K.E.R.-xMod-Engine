@@ -71,26 +71,6 @@ void CEliteDetector::render_item_3d_ui()
 	UIRender->CacheSetCullMode	(IUIRender::cmCCW);
 }
 
-void fix_ws_wnd_size(CUIWindow* w, float kx)
-{
-	Fvector2 p		= w->GetWndSize();
-	p.x				/= kx;
-	w->SetWndSize	(p);
-
-	p				= w->GetWndPos();
-	p.x				/= kx;
-	w->SetWndPos	(p);
-
-	CUIWindow::WINDOW_LIST::iterator it = w->GetChildWndList().begin();
-	CUIWindow::WINDOW_LIST::iterator it_e = w->GetChildWndList().end();
-
-	for(;it!=it_e;++it)
-	{
-		CUIWindow* w2		= *it;
-		fix_ws_wnd_size		(w2, kx);
-	}
-}
-
 void CUIArtefactDetectorElite::construct(CEliteDetector* p)
 {
 	m_parent							= p;
@@ -156,7 +136,6 @@ void CUIArtefactDetectorElite::Draw()
 
 	CUIWindow::Draw				();
 
-//.	Frect r						= m_wrk_area->GetWndRect();
 	Fvector2 wrk_sz				= m_wrk_area->GetWndSize();
 	Fvector2					rp; 
 	m_wrk_area->GetAbsolutePos	(rp);
@@ -300,7 +279,6 @@ void CScientificDetector::OnH_B_Independent(bool just_before_destroy)
 	m_zones.clear			();
 }
 
-extern BOOL g_invert_zoom;
 bool CScientificDetector::Action(u16 cmd, u32 flags)
 {
 	if (inherited::Action(cmd, flags))
@@ -312,24 +290,14 @@ bool CScientificDetector::Action(u16 cmd, u32 flags)
 	case kWPN_ZOOM_DEC:
 		if (flags&CMD_START)
 		{
-			if (g_invert_zoom == 0)
-			{
-				if (cmd == kWPN_ZOOM_INC)
-					ChangeLevel		(true);
-				else
-					ChangeLevel		(false);
-			}
+			if (cmd == kWPN_ZOOM_INC)
+				ChangeLevel		(true);
 			else
-			{
-				if (cmd == kWPN_ZOOM_INC)
-					ChangeLevel		(false);
-				else
-					ChangeLevel		(true);
-			}
-			return					true;
+				ChangeLevel		(false);
+			return				true;
 		}
 		else
-			return					false;
+			return				false;
 	}
 
 	return false;

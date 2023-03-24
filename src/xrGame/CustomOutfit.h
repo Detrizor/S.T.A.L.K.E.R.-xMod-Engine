@@ -1,13 +1,15 @@
 #pragma once
 
-#include "inventory_item_object.h"
+#include "inventory_item_amountable.h"
 #include "script_export_space.h"
 
 struct SBoneProtections;
 
-class CCustomOutfit: public CInventoryItemObject {
+class CCustomOutfit : public CIIOAmountable
+{
 private:
-    typedef	CInventoryItemObject inherited;
+	typedef	CIIOAmountable		inherited;
+
 public:
 								CCustomOutfit			();
 	virtual						~CCustomOutfit			();
@@ -66,6 +68,13 @@ public:
 protected:
 	virtual bool				install_upgrade_impl	( LPCSTR section, bool test );
 
+private:
+			float			m_fHealth;
+
+public:
+	const	float&			Health					()								const	{ return m_fHealth; }
+
+	virtual float			GetBar 					()								const	{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 

@@ -62,7 +62,6 @@ void CUIScrollView::InitScrollView()
         m_pad						= xr_new<CUIWindow>(); m_pad->SetAutoDelete(true);
 		AttachChild					(m_pad);
 	}
-	m_pad->SetWndPos				(Fvector2().set(0,0));
 	if (!m_VScrollBar)
 	{
 		m_VScrollBar = xr_new<CUIScrollBar>();
@@ -72,7 +71,7 @@ void CUIScrollView::InitScrollView()
 		AddCallback					(m_VScrollBar,	SCROLLBAR_VSCROLL, CUIWndCallback::void_function (this, &CUIScrollView::OnScrollV) );
 	}
 	CUIFixedScrollBar* tmp_scroll = smart_cast<CUIFixedScrollBar* >(m_VScrollBar);
-	if(tmp_scroll)
+	if (tmp_scroll)
 		tmp_scroll->InitScrollBar(Fvector2().set(GetWndSize().x, 0.0f), false, *m_scrollbar_profile);
 	else
 	{
@@ -249,6 +248,16 @@ void CUIScrollView::Draw				()
 
 	if(NeedShowScrollBar())
 		m_VScrollBar->Draw				();
+
+	for (WINDOW_LIST_it it = m_ChildWndList.begin(), it_e = m_ChildWndList.end(); it != it_e; it++)
+	{
+		if (!(*it)->IsShown());
+		else if ((*it)->GetCustomDraw());
+		else if (*it == m_pad);
+		else if (*it == m_VScrollBar);
+		else
+			(*it)->Draw();
+	}
 }
 
 bool CUIScrollView::NeedShowScrollBar(){

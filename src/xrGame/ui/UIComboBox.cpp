@@ -5,8 +5,6 @@
 #include "uilistboxitem.h"
 #include "../string_table.h"
 
-#define CB_HEIGHT 20.0f
-
 CUIComboBox::CUIComboBox()
 {
 	AttachChild			(&m_frameLine);
@@ -30,7 +28,7 @@ void CUIComboBox::SetListLength(int length)
 	m_iListHeight = length;
 }
 
-void CUIComboBox::InitComboBox(Fvector2 pos, float width)
+void CUIComboBox::InitComboBox(Fvector2 pos, Fvector2 size)
 {
 	float lb_text_offset				= 5.0f;
 
@@ -39,16 +37,16 @@ void CUIComboBox::InitComboBox(Fvector2 pos, float width)
 		m_iListHeight = 4;
 
 	CUIWindow::SetWndPos				(pos);
-	CUIWindow::SetWndSize				(Fvector2().set(width, CB_HEIGHT));
+	CUIWindow::SetWndSize				(size);
 
-	m_frameLine.InitIB					(Fvector2().set(0,0), Fvector2().set(width, CB_HEIGHT));
+	m_frameLine.InitIB					(Fvector2().set(0,0), size);
 
 	m_frameLine.InitState				(S_Enabled, "ui_inGame2_combobox_linetext"); // horizontal by default
 	m_frameLine.InitState				(S_Highlighted, "ui_inGame2_combobox_linetext");
 
 	// Edit Box on left side of frame line
-	m_text.SetWndPos					(Fvector2().set(lb_text_offset,0.0f));
-	m_text.SetWndSize					(Fvector2().set(width-lb_text_offset, CB_HEIGHT)); 
+	m_text.SetWndPos					(Fvector2().set(lb_text_offset, 0.0f));
+	m_text.SetWndSize					(Fvector2().set(size.x-lb_text_offset, size.y)); 
 
 	m_text.SetVTextAlignment			(valCenter);
 	m_text.SetTextColor					(m_textColor[0]);
@@ -57,16 +55,16 @@ void CUIComboBox::InitComboBox(Fvector2 pos, float width)
 	// height of list equal to height of ONE element
 	float item_height					= CUITextureMaster::GetTextureHeight("ui_inGame2_combobox_line_b");
 
-	m_list_box.SetWndPos				(Fvector2().set(lb_text_offset,0.0f));
-	m_list_box.SetWndSize				(Fvector2().set(width-lb_text_offset, item_height*m_iListHeight));
+	m_list_box.SetWndPos				(Fvector2().set(lb_text_offset, 0.0f));
+	m_list_box.SetWndSize				(Fvector2().set(size.x-lb_text_offset, item_height*m_iListHeight));
 	m_list_box.InitScrollView			();
 	m_list_box.SetTextColor				(m_textColor[0]);
 	m_list_box.SetSelectionTexture		("ui_inGame2_combobox_line");
 	m_list_box.SetItemHeight			(CUITextureMaster::GetTextureHeight("ui_inGame2_combobox_line_b"));
 	// frame(texture) for list
 	m_list_frame.InitTexture			("ui_inGame2_combobox");
-	m_list_frame.SetWndSize				(Fvector2().set(width, m_list_box.GetItemHeight()*m_iListHeight) );
-	m_list_frame.SetWndPos				(Fvector2().set(0.0f, CB_HEIGHT));
+	m_list_frame.SetWndSize				(Fvector2().set(size.x, m_list_box.GetItemHeight()*m_iListHeight) );
+	m_list_frame.SetWndPos				(Fvector2().set(0.0f, size.y));
 
 	m_list_box.Show						(true);
 	m_list_frame.Show					(false);

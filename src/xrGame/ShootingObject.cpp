@@ -31,8 +31,9 @@ CShootingObject::CShootingObject(void)
 	m_iCurrentParentID				= 0xFFFF;
 
 	//particles
-	m_sFlameParticlesCurrent		= m_sFlameParticles = NULL;
-	m_sSmokeParticlesCurrent		= m_sSmokeParticles = NULL;
+	m_sFlameParticles				= NULL;
+	m_sSmokeParticles				= NULL;
+	m_sShotParticles				= NULL;
 	m_sShellParticles				= NULL;
 	
 	bWorking						= false;
@@ -41,8 +42,8 @@ CShootingObject::CShootingObject(void)
 	light_render					= 0;
 
 	reinit();
-
 }
+
 CShootingObject::~CShootingObject(void)
 {
 }
@@ -79,9 +80,9 @@ void CShootingObject::Load	(LPCSTR section)
 	//Alundaio: END
 
 	LoadFireParams		(section);
-	LoadLights			(section, "");
-	LoadShellParticles	(section, "");
-	LoadFlameParticles	(section, "");
+	LoadLights			(section);
+	LoadShellParticles	(section);
+	LoadFlameParticles	(section);
 }
 
 void CShootingObject::Light_Create		()
@@ -105,18 +106,18 @@ void CShootingObject::LoadFireParams( LPCSTR section )
 	m_fStartBulletSpeed = pSettings->r_float	(section, "bullet_speed" );
 }
 
-void CShootingObject::LoadLights		(LPCSTR section, LPCSTR prefix)
+void CShootingObject::LoadLights(LPCSTR section)
 {
 	string256				full_name;
 	// light
 	if(m_bLightShotEnabled) 
 	{
-		Fvector clr			= pSettings->r_fvector3		(section, strconcat(sizeof(full_name),full_name, prefix, "light_color"));
+		Fvector clr			= pSettings->r_fvector3		(section, "light_color");
 		light_base_color.set(clr.x,clr.y,clr.z,1);
-		light_base_range	= pSettings->r_float		(section, strconcat(sizeof(full_name),full_name, prefix, "light_range")		);
-		light_var_color		= pSettings->r_float		(section, strconcat(sizeof(full_name),full_name, prefix, "light_var_color")	);
-		light_var_range		= pSettings->r_float		(section, strconcat(sizeof(full_name),full_name, prefix, "light_var_range")	);
-		light_lifetime		= pSettings->r_float		(section, strconcat(sizeof(full_name),full_name, prefix, "light_time")		);
+		light_base_range	= pSettings->r_float		(section, "light_range");
+		light_var_color		= pSettings->r_float		(section, "light_var_color");
+		light_var_range		= pSettings->r_float		(section, "light_var_range");
+		light_lifetime		= pSettings->r_float		(section, "light_time");
 		light_time			= -1.f;
 	}
 }
@@ -206,41 +207,27 @@ void CShootingObject::UpdateParticles (CParticlesObject*& pParticles,
 }
 
 
-void CShootingObject::LoadShellParticles (LPCSTR section, LPCSTR prefix)
+void CShootingObject::LoadShellParticles(LPCSTR section)
 {
-	string256 full_name;
-	strconcat(sizeof(full_name),full_name, prefix, "shell_particles");
-
-	if(pSettings->line_exist(section,full_name)) 
+	if (pSettings->line_exist(section, "shell_particles"))
 	{
-		m_sShellParticles	= pSettings->r_string	(section,full_name);
-		vLoadedShellPoint	= pSettings->r_fvector3	(section,strconcat(sizeof(full_name),full_name, prefix, "shell_point"));
+		m_sShellParticles = pSettings->r_string(section, "shell_particles");
+		vLoadedShellPoint = pSettings->r_fvector3(section, "shell_point");
 	}
 }
 
-void CShootingObject::LoadFlameParticles (LPCSTR section, LPCSTR prefix)
+void CShootingObject::LoadFlameParticles(LPCSTR section)
 {
-	string256 full_name;
-
 	// flames
-	strconcat(sizeof(full_name),full_name, prefix, "flame_particles");
-	if(pSettings->line_exist(section, full_name))
-		m_sFlameParticles	= pSettings->r_string (section, full_name);
+	if (pSettings->line_exist(section, "flame_particles"))
+		m_sFlameParticles = pSettings->r_string(section, "flame_particles");
 
-	strconcat(sizeof(full_name),full_name, prefix, "smoke_particles");
-	if(pSettings->line_exist(section, full_name))
-		m_sSmokeParticles = pSettings->r_string (section, full_name);
+	if (pSettings->line_exist(section, "smoke_particles"))
+		m_sSmokeParticles = pSettings->r_string(section, "smoke_particles");
 
-	strconcat(sizeof(full_name),full_name, prefix, "shot_particles");
-	if(pSettings->line_exist(section, full_name))
-		m_sShotParticles = pSettings->r_string (section, full_name);
-
-
-	//текущие партиклы
-	m_sFlameParticlesCurrent = m_sFlameParticles;
-	m_sSmokeParticlesCurrent = m_sSmokeParticles;
+	if (pSettings->line_exist(section, "shot_particles"))
+		m_sShotParticles = pSettings->r_string(section, "shot_particles");
 }
-
 
 void CShootingObject::OnShellDrop	(const Fvector& play_pos,
 									 const Fvector& parent_vel)
@@ -271,13 +258,13 @@ void CShootingObject::StartSmokeParticles	(const Fvector& play_pos,
 											const Fvector& parent_vel)
 {
 	CParticlesObject* pSmokeParticles = NULL;
-	StartParticles(pSmokeParticles, *m_sSmokeParticlesCurrent, play_pos, parent_vel, true);
+	StartParticles(pSmokeParticles, *m_sSmokeParticles, play_pos, parent_vel, true);
 }
 
 
 void CShootingObject::StartFlameParticles	()
 {
-	if(0==m_sFlameParticlesCurrent.size()) return;
+	if (!m_sFlameParticles.size()) return;
 
 	//если партиклы циклические
 	if(m_pFlameParticles && m_pFlameParticles->IsLooped() && 
@@ -288,7 +275,7 @@ void CShootingObject::StartFlameParticles	()
 	}
 
 	StopFlameParticles();
-	m_pFlameParticles = CParticlesObject::Create(*m_sFlameParticlesCurrent,FALSE);
+	m_pFlameParticles = CParticlesObject::Create(*m_sFlameParticles, FALSE);
 	UpdateFlameParticles();
 	
 	
@@ -305,7 +292,7 @@ void CShootingObject::StartFlameParticles	()
 }
 void CShootingObject::StopFlameParticles	()
 {
-	if(0==m_sFlameParticlesCurrent.size()) return;
+	if (!m_sFlameParticles.size()) return;
 	if(m_pFlameParticles == NULL) return;
 
 	m_pFlameParticles->SetAutoRemove(true);
@@ -315,7 +302,7 @@ void CShootingObject::StopFlameParticles	()
 
 void CShootingObject::UpdateFlameParticles	()
 {
-	if(0==m_sFlameParticlesCurrent.size())		return;
+	if (!m_sFlameParticles.size())		return;
 	if(!m_pFlameParticles)				return;
 
 	Fmatrix		pos; 
@@ -409,7 +396,7 @@ void CShootingObject::FireBullet(const Fvector& pos,
 
 	Level().BulletManager().AddBullet( pos, 
 										dir,
-										m_fStartBulletSpeed * cur_silencer_koef.bullet_speed,
+										m_fStartBulletSpeed * m_silencer_koef.bullet_speed,
 										parent_id, 
 										weapon_id,
 										ALife::eHitTypeFireWound, 0.f,

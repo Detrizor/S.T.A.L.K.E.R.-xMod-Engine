@@ -13,42 +13,38 @@
 #include "effectorshot.h"
 #include "EffectorShotX.h"
 
-
 //возвращает 1, если оружие в отличном состоянии и >1 если повреждено
 float CWeapon::GetConditionDispersionFactor() const
 {
-	return (1.f + fireDispersionConditionFactor*(1.f - GetConditionToWork()));
+	return (1.f + fireDispersionConditionFactor * (1.f - GetConditionToWork()));
 }
 
-float CWeapon::GetFireDispersion	(bool with_cartridge, bool for_crosshair) 
+float CWeapon::GetFireDispersion(bool with_cartridge, bool for_crosshair) 
 {
-	if (!with_cartridge) return GetFireDispersion(1.0f, for_crosshair);
-	if (!m_magazine.empty()) m_fCurrentCartirdgeDisp = m_magazine.back().param_s.kDisp;
-	return GetFireDispersion	(m_fCurrentCartirdgeDisp, for_crosshair);
+	return GetFireDispersion((with_cartridge && !m_magazine.empty()) ? m_magazine.back().param_s.kDisp : 1.f, for_crosshair);
 }
 
 float CWeapon::GetBaseDispersion(float cartridge_k)
 {
-	return fireDispersionBase * cur_silencer_koef.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
+	return fireDispersionBase * m_silencer_koef.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
 }
 
 //текущая дисперсия (в радианах) оружия с учетом используемого патрона
 float CWeapon::GetFireDispersion	(float cartridge_k, bool for_crosshair) 
 {
 	//учет базовой дисперсии, состояние оружия и влияение патрона
-	float fire_disp = GetBaseDispersion(cartridge_k);
+	float fire_disp = (for_crosshair) ? 0.f : GetBaseDispersion(cartridge_k);
 	
 	//вычислить дисперсию, вносимую самим стрелком
-	if(H_Parent())
+	if (H_Parent())
 	{
-		const CInventoryOwner* pOwner	=	smart_cast<const CInventoryOwner*>(H_Parent());
+		const CInventoryOwner* pOwner	= smart_cast<const CInventoryOwner*>(H_Parent());
 		float parent_disp				= pOwner->GetWeaponAccuracy();
 		fire_disp						+= parent_disp;
 	}
 
 	return fire_disp;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // Для эффекта отдачи оружия

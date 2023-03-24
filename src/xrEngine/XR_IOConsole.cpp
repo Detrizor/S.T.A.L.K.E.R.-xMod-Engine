@@ -17,8 +17,6 @@
 
 //#include "securom_api.h"
 
-static float const UI_BASE_WIDTH = 1024.0f;
-static float const UI_BASE_HEIGHT = 768.0f;
 static float const LDIST = 0.05f;
 static u32 const cmd_history_max = 64;
 
@@ -455,8 +453,7 @@ void CConsole::DrawBackgrounds(bool bGame)
     pr.x1 = ioc_w + cur_cmd_w;
     pr.x2 = pr.x1 + list_w;
 
-    pr.y1 = UI_BASE_HEIGHT * 0.5f;
-    pr.y1 *= float(Device.dwHeight) / UI_BASE_HEIGHT;
+    pr.y1 = 0.5f * float(Device.dwHeight);
 
     pr.y2 = pr.y1 + tips_h;
 

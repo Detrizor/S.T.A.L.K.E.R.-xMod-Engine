@@ -17,18 +17,6 @@ private:
 
 protected:
 			CPhysicItem*	m_physic_item;
-	
-			u8				m_iMaxUses;
-			bool			m_bRemoveAfterUse;
-			float			m_fWeightFull;
-			float			m_fWeightEmpty;
-			float			m_fVolumeFull;
-			float			m_fVolumeEmpty;
-			bool			m_bConditionVolumeScale;
-			bool			m_bDiscreteCondition;
-			bool			m_bDrainOnUse;
-
-			shared_str		m_CustomData;
 
 public:
 							CEatableItem				();
@@ -39,7 +27,6 @@ public:
 	virtual void			Load						(LPCSTR section);
 	virtual void			load						(IReader &packet);
 	virtual void			save						(NET_Packet &packet);
-	virtual bool			Useful						() const;
 
 	virtual BOOL			net_Spawn					(CSE_Abstract* DC);
 	virtual void			net_Import					(NET_Packet& P);					// import from server
@@ -48,19 +35,6 @@ public:
 	virtual void			OnH_B_Independent			(bool just_before_destroy);
 	virtual void			OnH_A_Independent			();
 	virtual	bool			UseBy						(CEntityAlive* npc);
-
-			bool			Empty						() const		{ return (m_iMaxUses > 1) ? (GetRemainingUses() == 0) : (m_fCondition == 0.f); }
-			bool			CanDelete					() const		{ return m_bRemoveAfterUse; }
-			u8				GetMaxUses					()				{ return m_iMaxUses; }
-			u8				GetRemainingUses			() const		{ return (u8)roundf(float(m_iMaxUses) * m_fCondition); }
-			void			SetRemainingUses			(u8 value)		{ m_fCondition = ((float)value / (float)m_iMaxUses); clamp(m_fCondition, 0.f, 1.f); }
-			void			ChangeRemainingUses			(int value)		{ m_fCondition += ((float)value / (float)m_iMaxUses); clamp(m_fCondition, 0.f, 1.f); }
-	virtual	float			Weight						() const;
-	virtual	float			Volume						() const;
-			bool			DiscreteCondition			() const		{ return m_bDiscreteCondition; }
-			bool			DrainOnUse					() const		{ return m_bDrainOnUse; }
-
-			shared_str&		CustomData					()				{ return m_CustomData; }
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

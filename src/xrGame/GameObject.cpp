@@ -251,9 +251,40 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 	CSE_Abstract					*E = (CSE_Abstract*)DC;
 	VERIFY							(E);
 
-	const CSE_Visual				*visual	= smart_cast<const CSE_Visual*>(E);
-	if (visual) {
-		cNameVisual_set				(visual_name(E));
+	CSE_Visual* visual				= smart_cast<CSE_Visual*>(E);
+	if (visual)
+	{
+		shared_str vis_name			= visual_name(E);
+
+		if (*vis_name && vis_name[0])
+		{
+			string_path				fn;
+			string_path				name;
+			if (!strext(*vis_name))
+				strconcat			(sizeof(name), name, *vis_name, ".ogf");
+			else
+				xr_strcpy			(name, sizeof(name), *vis_name);
+			if (!FS.exist(fn, "$level$", name) && !FS.exist(fn, "$game_meshes$", name))
+			{
+				Msg("--xd vis_name [%s] name [%s]", *vis_name, name);
+				vis_name			= pSettings->r_string(E->s_name, "visual");
+				if (visual_name(E) != vis_name)
+					visual->set_visual(*vis_name);
+			}
+		}
+		
+		/*if (pSettings->line_exist(E->s_name, "visual"))
+		{
+			LPCSTR s_vis_name		= pSettings->r_string(E->s_name, "visual");
+			if (vis_name != s_vis_name)
+			{
+				Msg("--xd vis_name [%s] s_vis_name [%s] E->s_name [%s]", *vis_name, s_vis_name, *E->s_name);
+				vis_name			= s_vis_name;
+				visual->set_visual	(s_vis_name);
+			}
+		}*/
+
+		cNameVisual_set				(vis_name);
 		if (visual->flags.test(CSE_Visual::flObstacle)) {
 			ISpatial				*self = smart_cast<ISpatial*>(this);
 			self->spatial.type		|=	STYPE_OBSTACLE;
@@ -810,7 +841,6 @@ bool CGameObject::NeedToDestroyObject()	const
 
 void CGameObject::DestroyObject()			
 {
-	
 	if(m_bObjectRemoved)	return;
 	m_bObjectRemoved		= true;
 	if (getDestroy())		return;
@@ -1036,6 +1066,22 @@ void CGameObject::UpdateCL			()
 void CGameObject::on_matrix_change	(const Fmatrix &previous)
 {
 	obstacle().on_move				();
+}
+
+extern CSE_Abstract* CALifeSimulator__spawn_item(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, bool reg, float condition);
+CSE_Abstract* CGameObject::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
+{
+	CALifeSimulator* alife				= const_cast<CALifeSimulator*>(ai().get_alife());
+	CSE_Abstract* result				= NULL;
+	for (u16 i = 0; i < count; i++)
+		result							= CALifeSimulator__spawn_item(alife, section, Position(), ai_location().level_vertex_id(), ai_location().game_vertex_id(), ID(), !dont_reg, condition);
+	return								result;
+}
+
+extern CSE_Abstract* CALifeSimulator__spawn_ammo(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, u32 ammo_to_spawn, bool reg, float condition);
+CSE_Abstract* CGameObject::GiveAmmo(LPCSTR section, u32 count, float condition, bool dont_reg)
+{
+	return CALifeSimulator__spawn_ammo(const_cast<CALifeSimulator*>(ai().get_alife()), section, Position(), ai_location().level_vertex_id(), ai_location().game_vertex_id(), ID(), count, !dont_reg, condition);
 }
 
 #ifdef DEBUG

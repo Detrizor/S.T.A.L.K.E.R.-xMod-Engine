@@ -41,14 +41,6 @@ void CWeaponRevolver::PlayAnimShow	()
 		inherited::PlayAnimShow();
 }
 
-void CWeaponRevolver::PlayAnimBore()
-{
-	if(iAmmoElapsed==0)
-		PlayHUDMotion	("anm_bore_empty", TRUE, this, GetState());
-	else
-		inherited::PlayAnimBore();
-}
-
 void CWeaponRevolver::PlayAnimIdleSprint()
 {
 	if(iAmmoElapsed==0)

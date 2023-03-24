@@ -85,6 +85,7 @@ public:
 typedef _rect<float> Frect;
 typedef _rect<double> Drect;
 typedef _rect<int> Irect;
+typedef _rect<u8> Urect;
 
 template <class T>
 BOOL _valid(const _rect<T>& m)

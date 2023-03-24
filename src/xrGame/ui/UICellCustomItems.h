@@ -49,7 +49,7 @@ public:
 	virtual		CUIDragItem*	 CreateDragItem				();
 				CWeaponAmmo*	 object						() {return (CWeaponAmmo*)m_pData;}
 };
-
+/* --xd нормально сделаю
 class CUIWeaponCellItem :public CUIInventoryCellItem
 {
 	typedef  CUIInventoryCellItem	inherited;
@@ -62,7 +62,7 @@ protected:
 	void						DestroyIcon					(eAddonType);
 	void						RefreshOffset				();
 	CUIStatic*					GetIcon						(eAddonType);
-	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading);
+	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading, bool drag = false);
 	bool						is_scope					();
 	bool						is_silencer					();
 	bool						is_launcher					();
@@ -78,7 +78,7 @@ public:
 	virtual		CUIDragItem*	CreateDragItem				();
 	virtual		bool			EqualTo						(CUICellItem* itm);
 	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
-};
+};*/
 
 class CBuyItemCustomDrawCell :public ICustomDrawCellItem
 {

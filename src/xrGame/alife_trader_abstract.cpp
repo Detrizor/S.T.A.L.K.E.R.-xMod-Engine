@@ -203,6 +203,8 @@ void add_online_impl						(CSE_ALifeDynamicObject *object, const bool &update_re
 		object->alife().server().Process_spawn	(tNetPacket,clientID,FALSE,l_tpALifeInventoryItem->base());
 		l_tpALifeDynamicObject->s_flags.and		(u16(-1) ^ M_SPAWN_UPDATE);
 		l_tpALifeDynamicObject->m_bOnline		= true;
+
+		add_online_impl(l_tpALifeDynamicObject, update_registries);
 	}
 
 	if (!update_registries)
@@ -253,10 +255,14 @@ void add_offline_impl						(CSE_ALifeDynamicObject *object, const xr_vector<ALif
 			--n;
 			continue;
 		}
-
 		child->clear_client_data();
 		object->alife().graph().add		(child,child->m_tGraphID,false);
-		object->alife().graph().attach	(*object,inventory_item,child->m_tGraphID,true);
+//		object->alife().graph().attach	(*object,inventory_item,child->m_tGraphID,true);
+		object->alife().graph().remove	(child, child->m_tGraphID);
+		object->children.push_back		(child->ID);
+		child->ID_Parent				= object->ID;
+
+		add_offline_impl				(child, child->children, update_registries);
 	}
 
 	if (!update_registries)

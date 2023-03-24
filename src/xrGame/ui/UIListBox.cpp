@@ -53,8 +53,8 @@ CUIListBoxItem* CUIListBox::AddTextItem(LPCSTR text)
 
 CUIListBoxItem*  CUIListBox::AddItem()
 {
-	CUIListBoxItem* item		= xr_new<CUIListBoxItem>(m_def_item_height);
-	item->InitFrameLineWnd		(Fvector2().set(0,0), Fvector2().set(GetDesiredChildWidth()-5, m_def_item_height));
+	CUIListBoxItem* item			= xr_new<CUIListBoxItem>(m_def_item_height);
+	item->InitFrameLineWnd			();
 	item->GetTextItem()->SetWidth	(GetDesiredChildWidth());
 	item->SetWidth					(GetDesiredChildWidth());
 
@@ -72,7 +72,7 @@ CUIListBoxItem*  CUIListBox::AddItem()
 
 void CUIListBox::AddExistingItem(CUIListBoxItem* item)
 {
-	item->InitFrameLineWnd		(Fvector2().set(0,0), Fvector2().set(GetDesiredChildWidth()-5, m_def_item_height));
+	item->InitFrameLineWnd		();
 	item->SetWidth				(GetDesiredChildWidth());
 
 	if(m_selection_texture.size())
@@ -316,7 +316,6 @@ CGameFont* CUIListBox::GetFont()
 	return m_pFont;
 }
 
-
 float CUIListBox::GetLongestLength()
 {
 	float len = 0;
@@ -325,9 +324,7 @@ float CUIListBox::GetLongestLength()
 		CUIListBoxItem* item = smart_cast<CUIListBoxItem*>(*it);
 		if (item)
 		{
-			float tmp_len = item->GetFont()->SizeOf_(item->GetText()); //all ok
-			UI().ClientToScreenScaledWidth(tmp_len);
-
+			float tmp_len = item->GetFont()->SizeOf_(item->GetText()) * UI().GetTextScaleFactor();
 			if (tmp_len > len)
 				len = tmp_len;
 		}

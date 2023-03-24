@@ -93,8 +93,8 @@ const CUISubLine* CUISubLine::Cut2Pos(int i)
 	return m_pTempLine;
 }
 
-void CUISubLine::Draw(CGameFont* pFont, float x, float y) const
+void CUISubLine::Draw(CGameFont* pFont, float x, float y, const Fvector2& indent, const float& size_scale) const
 {
 	pFont->SetColor		(m_color);
-	pFont->Out			(UI().ClientToScreenScaledX(x), UI().ClientToScreenScaledY(y), "%s", m_text.c_str() );
+	pFont->OutS			(UI().ClientToScreenScaledX(x + indent.x), UI().ClientToScreenScaledY(y + indent.y), size_scale, "%s", m_text.c_str() );
 }

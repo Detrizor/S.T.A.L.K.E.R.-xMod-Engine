@@ -3,8 +3,6 @@
 #include "customdetector.h"
 #include "weapon.h"
 #include "artefact.h"
-#include "scope.h"
-#include "silencer.h"
 #include "grenadelauncher.h"
 #include "inventory.h"
 #include "level.h"
@@ -12,15 +10,16 @@
 #include "FoodItem.h"
 #include "ActorCondition.h"
 #include "Grenade.h"
-
 #include "CameraLook.h"
 #include "CameraFirstEye.h"
 #include "holder_custom.h"
-//.#include "ui/uiinventoryWnd.h"
 #include "game_base_space.h"
 #ifdef DEBUG
 #include "PHDebug.h"
 #endif
+
+#include "xmod\scope.h"
+#include "xmod\silencer.h"
 
 void CActor::OnEvent(NET_Packet& P, u16 type)
 {
@@ -48,7 +47,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			if (inventory().CanTakeItem(smart_cast<CInventoryItem*>(_GO)))
 			{
 				Obj->H_SetParent	(smart_cast<CObject*>(this));
-				inventory().Take	(_GO, false, true);
+				inventory().Take	(_GO, true);
 			}
 			else
 			{
@@ -108,7 +107,8 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			{
 				//O->H_SetParent(0,just_before_destroy);//moved to DropItem
 				//feel_touch_deny(O,2000);
-				Level().m_feel_deny.feel_touch_deny(Obj, 1000);
+				//Level().m_feel_deny.feel_touch_deny(Obj, 1000);
+				Level().m_feel_deny.feel_touch_deny(Obj, 10);
 
 				// [12.11.07] Alexander Maniluk: extended GE_OWNERSHIP_REJECT packet for drop item to selected position
 				Fvector dropPosition;

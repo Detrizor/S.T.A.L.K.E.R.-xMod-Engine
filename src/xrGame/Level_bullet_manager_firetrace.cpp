@@ -68,79 +68,61 @@ BOOL CBulletManager::test_callback(const collide::ray_defs& rd, CObject* object,
 					if (actor){
 						// попали в актера
 						float hpf				= 1.f;
-						float ahp				= actor->HitProbability();
-#if 1
-#	if 0
-						CObject					*weapon_object = Level().Objects.net_Find	(bullet->weapon_id);
-						if (weapon_object) {
-							CWeapon				*weapon = smart_cast<CWeapon*>(weapon_object);
-							if (weapon) {
-								float fly_dist		= bullet->fly_dist+dist;
-								float dist_factor	= _min(1.f,fly_dist/Level().BulletManager().m_fHPMaxDist);
-								ahp					= dist_factor*weapon->hit_probability() + (1.f-dist_factor)*1.f;
-							}
-						}
-#	else
-						float					game_difficulty_hit_probability = actor->HitProbability();
+						float hit_probability	= 1.f;
 						CAI_Stalker				*stalker = smart_cast<CAI_Stalker*>(initiator);
 						if (stalker)
 							hpf					= stalker->SpecificCharacter().hit_probability_factor();
 
 						float					dist_factor = 1.f;
 						CObject					*weapon_object = Level().Objects.net_Find	(bullet->weapon_id);
-						if (weapon_object) {
-							CWeapon				*weapon = smart_cast<CWeapon*>(weapon_object);
-							if (weapon) {
-								game_difficulty_hit_probability = weapon->hit_probability();
+						if (weapon_object)
+						{
+							CWeapon* weapon		= smart_cast<CWeapon*>(weapon_object);
+							if (weapon)
+							{
+								hit_probability	= weapon->hit_probability();
 								float fly_dist	= bullet->fly_dist+dist;
 								dist_factor		= _min(1.f,fly_dist/Level().BulletManager().m_fHPMaxDist);
 							}
 						}
 
-						ahp						= dist_factor*game_difficulty_hit_probability + (1.f-dist_factor)*1.f;
-#	endif
-#else
-						CAI_Stalker* i_stalker	= smart_cast<CAI_Stalker*>(initiator);
-						// если стрел€л сталкер, учитываем - hit_probability_factor сталкерa иначе - 1.0
-						if (i_stalker) {
-							hpf					= i_stalker->SpecificCharacter().hit_probability_factor();
-							float fly_dist		= bullet->fly_dist+dist;
-							float dist_factor	= _min(1.f,fly_dist/Level().BulletManager().m_fHPMaxDist);
-							ahp					= dist_factor*actor->HitProbability() + (1.f-dist_factor)*1.f;
-						}
-#endif
-						if (Random.randF(0.f,1.f)>(ahp*hpf)){ 
+						float ahp				= dist_factor * hit_probability + (1.f - dist_factor) * 1.f;
+						if (Random.randF(0.f, 1.f) > (ahp * hpf))
+						{ 
 							bRes				= FALSE;	// don't hit actor
 							play_whine			= true;		// play whine sound
-						}else{
+						}
+						else
+						{
 							// real test actor CFORM
 							Level().BulletManager().m_rq_results.r_clear();
 
-							if (cform->_RayQuery(rd,Level().BulletManager().m_rq_results)){
+							if (cform->_RayQuery(rd,Level().BulletManager().m_rq_results))
+							{
 								bRes			= TRUE;		// hit actor
 								play_whine		= false;	// don't play whine sound
-							}else{
+							}
+							else
+							{
 								bRes			= FALSE;	// don't hit actor
 								play_whine		= true;		// play whine sound
 							}
 						}
 					}
 					// play whine sound
-					if (play_whine){
+					if (play_whine)
+					{
 						Fvector					pt;
 						pt.mad					(bullet->bullet_pos, bullet->dir, dist);
-						Level().BulletManager().PlayWhineSound				(bullet,initiator,pt);
+						Level().BulletManager().PlayWhineSound(bullet,initiator,pt);
 					}
-				}else{
-					// don't test this object again (return FALSE)
-					bRes		= FALSE;
 				}
-
+				else
+					// don't test this object again (return FALSE)
+					bRes						= FALSE;
 			}
 		}
 	}
-
-	
 	return bRes;
 }
 
@@ -314,7 +296,7 @@ void CBulletManager::DynamicObjectHit	(CBulletManager::_event& E)
 							hit_param.impulse,
 							E.bullet.hit_type,
 							hit_param.pierce_damage,
-							hit_param.pierce_damage_armor);
+							hit_param.armor_pierce_damage);
 
 		Hit.GenHeader(u16(GE_HIT)&0xffff, E.R.O->ID());
 		Hit.whoID			= E.bullet.parent_id;
@@ -387,143 +369,160 @@ bool CBulletManager::ObjectHit( SBullet_Hit* hit_res, SBullet* bullet, const Fve
 	}		
 	//----------- normal - end
 
-	hit_res->impulse = 0.f;
-	hit_res->main_damage = 0.f;
-	hit_res->pierce_damage = 0.f;
-
-	//(≈сли = 0, то пул€ либо рикошетит(если контакт идЄт по касательной), либо застр€Єт в текущем 
-	//объекте, если больше 0, то пул€ прошивает объект)
-
-	float bullet_energy		= bullet->bullet_mass * pow(bullet->speed, 2) / 2;
-	float bullet_resist		= bullet->bullet_resist;
-	float ap				= m_fBulletArmorPiercingScale * (bullet_energy / bullet_resist);
-	if (bullet->hollow_point)
-		ap					*= m_fBulletHollowPointAPFactor;
-	float energy_lost		= bullet_energy;
-	float armor_factor		= 1.f, pierce_factor = 0.f, pierce = 0.f, max_density = 0.f;
+	hit_res->impulse				= 0.f;
+	hit_res->main_damage			= 0.f;
+	hit_res->pierce_damage			= 0.f;
+	hit_res->armor_pierce_damage	= 0.f;
+	SGameMtl* mtl					= GMLib.GetMaterialByIdx(target_material);
+	CEntityAlive* ea				= smart_cast<CEntityAlive*>(R.O);
 
 	if (bullet->hit_param.main_damage != -1.f)
 	{
-		bullet_energy		= 1.f;
-		ap					= bullet->hit_param.main_damage * 20.f;
-	}
-
-	CEntityAlive* EntityAlive = smart_cast<CEntityAlive*>(R.O);
-	SGameMtl* mtl = GMLib.GetMaterialByIdx(target_material);
-	if (EntityAlive)
-	{
-		IKinematics* V = smart_cast<IKinematics*>(EntityAlive->Visual());
-		u16 element = (u16)R.element;
-		CBoneInstance& bone = V->LL_GetBoneInstance(element);
-		if (bone.get_param(2) != 1.f)
-			bullet->targetID = R.O->ID();
-		float bone_armor = EntityAlive->conditions().GetBoneArmor(element);
-
-		if (ap >= bone_armor)
+		if (fMore(mtl->fShootFactor, 0.f) || ea)
 		{
-			armor_factor = m_fBulletArmorPiercingLose * (bone_armor / ap);
-			float armor_energy_lost = bullet_energy * armor_factor;
-			float pierce_energy_lost = bullet_energy * (1 - armor_factor);
-			float ap_pierce = ap * (1 - armor_factor);
-			if (bullet->hollow_point)
-			{
-				bullet_resist *= m_fBulletHollowPointResistFactor;
-				ap_pierce /= m_fBulletHollowPointResistFactor;
-			}
-			float bone_density = bone.get_param(0);
-			for (u16 i = 0, i_e = V->LL_BoneCount(); i < i_e; i++)
-			{
-				float density = V->LL_GetBoneInstance(i).get_param(0);
-				if (density > max_density)
-					max_density = density;
-			}
-			pierce = bone_density / max_density;
-			pierce_factor = 1.f - armor_factor;
-			if (ap_pierce < bone_density)
-				pierce *= ap_pierce / bone_density;
-			else
-			{
-				pierce_factor *= m_fBulletArmorPiercingLose * (bone_density / ap_pierce);
-				pierce_energy_lost = bullet_energy * pierce_factor;
-			}
-			float ap_armor2 = ap * (1 - armor_factor - pierce_factor);
-			if (ap_armor2 >= bone_armor)
-			{
-				float armor2_factor = m_fBulletArmorPiercingLose * (bone_armor / ap);
-				float armor2_energy_lost = bullet_energy * armor2_factor;
-				energy_lost = armor_energy_lost + pierce_energy_lost + armor2_energy_lost;
-			}
+			hit_res->impulse		= bullet->hit_param.impulse;
+			hit_res->main_damage	= bullet->hit_param.main_damage;
+			bullet->speed			= 0.f;
+			if (ea)
+				bullet->targetID	= R.O->ID();
 		}
-	}
-	else
-	{
-		float mtl_ap = mtl->fShootFactor;
-		if (fsimilar(mtl_ap, 0.0f))	//≈сли материал полностью простреливаемый (кусты)
-			return true;
-		mtl_ap = 50.f * pow(mtl_ap / 0.5f, 2);
-		if ((ap >= mtl_ap) && (!bullet->hollow_point))
-		{
-			armor_factor = m_fBulletArmorPiercingLose * mtl_ap / ap;
-			energy_lost *= armor_factor;
-		}
+		return						true;
 	}
 
-	float energy_factor = (bullet_energy - energy_lost) / bullet_energy;
-	float speed_scale = pow(energy_factor, 0.5f);
+	float k_speed_in		= 0.f;
+	float k_speed_bone		= 0.f;
+	float k_speed_out		= 0.f;
+	float k_density			= 1.f;
+	float pierce			= 0.f;
+	float bullet_kap		= 1.f;
+	bool ricoshet			= false;
 
-	if (!bullet->flags.magnetic_beam)
+	if (!bullet->flags.magnetic_beam && !mtl->Flags.test(SGameMtl::flNoRicoshet) && bullet->flags.allow_ricochet && !bullet->hollow_point)
 	{
 		//рикошет
-		Fvector			new_dir;
-		new_dir.reflect(bullet->dir, hit_normal);
-		Fvector			tgt_dir;
-		random_dir(tgt_dir, new_dir, deg2rad(10.0f));
-		float ricoshet_factor = bullet->dir.dotproduct(tgt_dir);
-
-		float f = Random.randF(0.5f, 0.8f); //(0.5f,1.f);
-		if ((f < ricoshet_factor) && !mtl->Flags.test(SGameMtl::flNoRicoshet) && bullet->flags.allow_ricochet)
+		Fvector					new_dir;
+		new_dir.reflect			(bullet->dir, hit_normal);
+		Fvector					tgt_dir;
+		random_dir				(tgt_dir, new_dir, deg2rad(10.0f));
+		float ricoshet_factor	= bullet->dir.dotproduct(tgt_dir);
+		float f					= Random.randF(.5f, .8f); //(0.5f,1.f);
+		if (f < ricoshet_factor)
 		{
 			// уменьшение скорости полета в зависимости от угла падени€ пули (чем пр€мее угол, тем больше потер€)
-			bullet->flags.allow_ricochet = 0;
-			float scale = 1.0f - _abs(bullet->dir.dotproduct(hit_normal)) * m_fCollisionEnergyMin;
-			clamp(scale, 0.0f, m_fCollisionEnergyMax);
-			speed_scale = scale;
+			float scale						= 1.f - _abs(bullet->dir.dotproduct(hit_normal)) * m_fCollisionEnergyMin;
+			clamp							(scale, 0.f, m_fCollisionEnergyMax);
+			k_speed_out = k_speed_in		= scale;
 
 			// вычисление рикошета, делаетс€ немного фейком, т.к. пул€ остаетс€ в точке столкновени€
 			// и сразу выходит из RayQuery()
-			bullet->dir.set(tgt_dir);
-			bullet->bullet_pos = end_point;
-			bullet->flags.ricochet_was = 1;
+			bullet->dir.set					(tgt_dir);
+			bullet->bullet_pos				= end_point;
+			bullet->flags.ricochet_was		= 1;
+			ricoshet						= true;
+			if (ea)
+				bullet->targetID			= R.O->ID();
 		}
-		else if (speed_scale < EPS)	//застр€вание пули в материале
-			speed_scale = 0.0f;
+	}
+	
+	if (!ricoshet)
+	{
+		if (bullet->hollow_point)
+			bullet_kap							*= m_fBulletHollowPointAPFactor;
+		if (bullet->armor_piercing)
+			bullet_kap							*= m_fBulletArmorPiercingAPFactor;
+		float bullet_ap							= m_fBulletAPScale * bullet_kap * bullet->bullet_mass * pow(bullet->speed, 2) / 2.f / bullet->bullet_resist;
+
+		if (ea)
+		{
+			IKinematics* V						= smart_cast<IKinematics*>(ea->Visual());
+			u16 element							= (u16)R.element;
+			CBoneInstance& bone					= V->LL_GetBoneInstance(element);
+			if (bone.get_param(2) != 1.f)
+				bullet->targetID				= R.O->ID();
+
+			float bone_armor					= ea->GetBoneArmor(element);
+			if (R.O && !R.O->ID() || (!bullet->parent_id && ea)) Msg("--xd CBulletManager::ObjectHit bullet_ap [%.5f] element [%d] bone_armor [%.5f]", bullet_ap, element, bone_armor);		//--xd отладка
+			if (fMoreOrEqual(bullet_ap, bone_armor))
+			{
+				k_speed_in						= sqrt(1.f - m_fBulletAPLossOnPierce * bone_armor / bullet_ap);
+				bullet_ap						-= m_fBulletAPLossOnPierce * bone_armor;
+				if (!bullet->flags.piercing_was)
+				{
+					if (bullet->hollow_point)
+					{
+						bullet->bullet_resist	*= m_fBulletHollowPointResistFactor;
+						bullet_ap				/= m_fBulletHollowPointResistFactor;
+					}
+					bullet->flags.piercing_was	= 1;
+				}
+
+				float max_density				= 0.f;
+				for (u16 i = 0, i_e = V->LL_BoneCount(); i < i_e; i++)
+				{
+					float density				= V->LL_GetBoneInstance(i).get_param(0);
+					if (density > max_density)
+						max_density				= density;
+				}
+				float bone_density				= bone.get_param(0);
+				k_density						= bone_density / max_density;
+
+				if (fMoreOrEqual(bullet_ap, bone_density))
+				{
+					k_speed_bone				= k_speed_in * sqrt(1.f - m_fBulletAPLossOnPierce * bone_density / bullet_ap);
+					bullet_ap					-= m_fBulletAPLossOnPierce * bone_density;
+					if (fMoreOrEqual(bullet_ap, bone_armor))
+						k_speed_out				= k_speed_bone * sqrt(1.f - m_fBulletAPLossOnPierce * bone_armor / bullet_ap);
+					pierce						= 1.f;
+				}
+				else
+					pierce						= bullet_ap / bone_density;
+			}
+		}
 		else
 		{
-			bullet->bullet_pos.mad(bullet->bullet_pos, bullet->dir, EPS);//fake
+			float mtl_ap				= mtl->fShootFactor;
+			if (fsimilar(mtl_ap, 0.f))	//≈сли материал полностью простреливаемый (кусты)
+				return					true;
+			mtl_ap						= 50.f * pow(mtl_ap / .5f, 2);
+			if (fMoreOrEqual(bullet_ap, mtl_ap))
+				k_speed_out				= sqrt(1.f - m_fBulletAPLossOnPierce * mtl_ap / bullet_ap);
+		}
+
+		if (k_speed_out < EPS)	//застр€вание пули в материале
+			k_speed_out					= 0.f;
+		else
+		{
+			bullet->bullet_pos.mad		(bullet->bullet_pos, bullet->dir, EPS);//fake
 			//ввести коэффициент случайности при простреливании
-			Fvector rand_normal;
-			rand_normal.random_dir(bullet->dir, deg2rad(2.0f), Random);
-			bullet->dir.set(rand_normal);
+			Fvector						rand_normal;
+			rand_normal.random_dir		(bullet->dir, deg2rad(2.f), Random);
+			bullet->dir.set				(rand_normal);
 		}
 	}
 
-	float given_pulse			= (1 - speed_scale) * bullet->speed * bullet->bullet_mass;
-	hit_res->impulse			= (bullet->hit_param.impulse == -1.f)		? m_fBulletHitImpulseScale * given_pulse							: bullet->hit_param.impulse * (1 - speed_scale);
-	hit_res->main_damage		= (bullet->hit_param.main_damage == -1.f)	? m_fBulletArmorDamageScale * (given_pulse * armor_factor)			: bullet->hit_param.main_damage * (1 - speed_scale) * armor_factor;
-	
-	if (pierce > 0.f)
+	if (fMore(pierce, 0.f))
 	{
-		float pierce_speed_1				= bullet->speed * pow(1 - armor_factor, 0.5f);
-		float pierce_speed_2				= bullet->speed * pow(1 - armor_factor - pierce_factor, 0.5f);
-		float pierce_speed					= (pierce_speed_1 + pierce_speed_2) / 2;
-		float pierce_resist_damage			= pow(1.f + bullet_resist * m_fBulletPierceDamageResistFactor, m_fBulletPierceDamageResistPower);
-		float pierce_speed_damage			= pow(1.f + pierce_speed * m_fBulletPierceDamageSpeedFactor, m_fBulletPierceDamageSpeedPower);
-		float pierce_density_factor			= pow(max_density * m_fBulletPierceDamageDensityFactor, m_fBulletPierceDamageDensityPower);
-		float pierce_damage					= pierce_resist_damage * pierce_speed_damage;
-		hit_res->pierce_damage				= m_fBulletPierceDamageScale * pierce_damage * sqrt(pierce) * pierce_density_factor;
-		hit_res->pierce_damage_armor		= m_fBulletPierceDamageArmorScale * pierce_damage;
+		float pierce_damage_resist_factor			= m_fBulletPierceDamageFromResist.Calc(bullet->bullet_resist);
+		float pierce_damage_kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet_kap);
+		float pierce_damage_speed_factor			= m_fBulletPierceDamageFromSpeed.Calc(bullet->speed);
+
+		float pierce_damage_speed_scale_factor		= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
+		float pierce_damage_hydroshock_factor		= m_fBulletPierceDamageFromHydroshock.Calc(bullet->speed);
+		float pierce_damage_stability_factor		= m_fBulletPierceDamageFromStability.Calc(bullet->bullet_mass);
+		float pierce_damage_density_factor			= m_fBulletPierceDamageFromDensity.Calc(k_density);
+		float pierce_damage_pierce_factor			= m_fBulletPierceDamageFromPierce.Calc(pierce);
+
+		float base_pierce_damage					= pierce_damage_resist_factor * pierce_damage_kap_factor * pierce_damage_speed_factor;
+
+		hit_res->pierce_damage						= m_fBulletPierceDamageScale * base_pierce_damage * pierce_damage_speed_scale_factor * pierce_damage_hydroshock_factor * pierce_damage_stability_factor * pierce_damage_density_factor * pierce_damage_pierce_factor;
+		hit_res->armor_pierce_damage				= m_fBulletArmorPierceDamageScale * base_pierce_damage;
 	}
-	bullet->speed							*= speed_scale;
+	
+	hit_res->impulse		= m_fBulletHitImpulseScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_out);
+	hit_res->main_damage	= m_fBulletArmorDamageScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_in);
+	if (R.O && !R.O->ID() || (!bullet->parent_id && ea)) Msg("--xd CBulletManager::ObjectHit main_damage [%.5f] bullet_mass [%.5f] speed [%.5f] k_speed_in [%.5f] k_speed_bone [%.5f] k_speed_out [%.5f] pierce [%.5f] ricoshet [%d]",
+		hit_res->main_damage, bullet->bullet_mass, bullet->speed, k_speed_in, k_speed_bone, k_speed_out, pierce, ricoshet);
+	bullet->speed			*= k_speed_out;
 
 	return true;
 }

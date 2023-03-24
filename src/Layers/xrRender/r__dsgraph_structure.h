@@ -42,6 +42,7 @@ public:
 	R_dsgraph::mapHUD_T											mapHUD;
 	R_dsgraph::mapLOD_T											mapLOD;
 	R_dsgraph::mapSorted_T										mapDistort;
+	R_dsgraph::mapHUD_T											mapHUDSorted;
 
 #if RENDER!=R_R1
 	R_dsgraph::mapSorted_T										mapWmark;			// sorted
@@ -145,6 +146,7 @@ public:
 		mapHUD.destroy			();
 		mapLOD.destroy			();
 		mapDistort.destroy		();
+		mapHUDSorted.destroy	();
 
 #if RENDER!=R_R1
 		mapWmark.destroy		();

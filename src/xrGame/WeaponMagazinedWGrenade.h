@@ -26,16 +26,7 @@ public:
 	virtual void	save				(NET_Packet &output_packet);
 	virtual void	load				(IReader &input_packet);
 
-
-	virtual bool	Attach					(PIItem pIItem, bool b_send_event);
-	virtual bool	Detach					(const char* item_section_name, bool b_spawn_item);
-	virtual bool	CanAttach				(PIItem pIItem);
-	virtual bool	CanDetach				(const char* item_section_name);
-	virtual void	InitAddons				();
-	virtual bool	UseScopeTexture			();
-	virtual	float	GetZoomFactor			();
-	virtual	float	GetMinZoomFactor		();
-	virtual	u8		GetCurrentHudOffsetIdx	();
+	virtual	u8		GetCurrentHudOffsetIdx	() const;
 	virtual void	FireEnd					();
 			void	LaunchGrenade			();
 	
@@ -47,7 +38,6 @@ public:
 	virtual void	OnEvent			(NET_Packet& P, u16 type);
 	virtual void	ReloadMagazine	();
 			bool	LoadGrenade		(CWeaponAmmo* grenade);
-	virtual bool	LoadMagazine	(CEatableItem* mag);
 	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
 
 	virtual bool	Action			(u16 cmd, u32 flags);
@@ -99,4 +89,12 @@ public:
 	virtual	xr_vector<CCartridge>&	Magazine();
 			u8						GetGrenade();
 			void					SetGrenade(u8 cnt);
+
+protected:
+			CGrenadeLauncher* m_pLauncher;
+
+	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	virtual void			SetADS					(int mode);
+	virtual void			OnMotionHalf			();
+	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot);
 };

@@ -12,6 +12,7 @@
 #include "inventory_space.h"
 #include "script_export_space.h"
 #include "Inventory.h"
+#include "GameObject.h"
 
 class CSE_Abstract;
 class CInventory;
@@ -154,9 +155,7 @@ public:
 	CCustomOutfit*	GetOutfit				() const;
 	CHelmet*		GetHelmet				() const;
 
-	CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count, float condition = 1.f, bool dont_reg = false);
-	CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
-	CSE_Abstract*	GiveAmmo				(LPCSTR section, u16 count = 1);
+	bool			Discharge				(PIItem item, bool full = false);
 
 	bool CanPlayShHdRldSounds				() const {return m_play_show_hide_reload_sounds;};
 	void SetPlayShHdRldSounds				(bool play) {m_play_show_hide_reload_sounds = play;};
@@ -245,7 +244,17 @@ public:
 			void				deadbody_closed			(bool status);
 	IC		bool				deadbody_closed_status	() const { return m_deadbody_closed; }
 
+public:
+			CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count = 1, float condition = 1.f, bool dont_reg = false)	{ return cast_game_object()->GiveObjects(section, count, condition, dont_reg); }
+			CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
+			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f)							{ return cast_game_object()->GiveAmmo(section, count, condition); }
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+public:
+			float			GetProtection			(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const;
+            float			GetProtectionArtefacts	(ALife::EHitType hit_type)		const;
+			void			HitArtefacts			(float d_damage, ALife::EHitType hit_type) const;
 };
 
 #include "inventory_owner_inline.h"

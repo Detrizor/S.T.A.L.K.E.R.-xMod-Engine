@@ -371,6 +371,22 @@ void CActor::cam_Update(float dt, float fFOV)
 	fCurAVelocity			= vPrevCamDir.sub(cameras[eacFirstEye]->vDirection).magnitude()/Device.fTimeDelta;
 	vPrevCamDir				= cameras[eacFirstEye]->vDirection;
 
+	// Высчитываем разницу между предыдущим и текущим Yaw \ Pitch от 1-го лица //--#SM+ Begin#--
+	float& cam_yaw_cur = cameras[eacFirstEye]->yaw;
+	float& cam_pitch_cur = cameras[eacFirstEye]->pitch;
+
+	static bool freelook_last_frame;
+	static float cam_yaw_prev = cam_yaw_cur;
+	static float cam_pitch_prev = cam_pitch_cur;
+
+	fFPCamYawMagnitude = freelook_last_frame ? 0.f : /*(1.f - freelook_cam_control) * */(angle_difference_signed(cam_yaw_prev, cam_yaw_cur) / Device.fTimeDelta); // L+ / R-
+	fFPCamPitchMagnitude = freelook_last_frame ? 0.f : /*(1.f - freelook_cam_control) * */(angle_difference_signed(cam_pitch_prev, cam_pitch_cur) / Device.fTimeDelta); //U+ / D-
+
+	freelook_last_frame = false;//--xd cam_freelook == eflDisabling;
+	cam_yaw_prev = cam_yaw_cur;
+	cam_pitch_prev = cam_pitch_cur;
+	//--#SM+ End#--
+
 #ifdef DEBUG
 	if( dbg_draw_camera_collision )
 	{
@@ -382,9 +398,8 @@ void CActor::cam_Update(float dt, float fFOV)
 	if (Level().CurrentEntity() == this)
 	{
 		Level().Cameras().UpdateFromCamera	(C);
-		if(eacFirstEye == cam_active && !Level().Cameras().GetCamEffector(cefDemo)){
-			Cameras().ApplyDevice	(_viewport_near);
-		}
+		if (eacFirstEye == cam_active && !Level().Cameras().GetCamEffector(cefDemo))
+			Cameras().ApplyDevice(_viewport_near);
 	}
 }
 

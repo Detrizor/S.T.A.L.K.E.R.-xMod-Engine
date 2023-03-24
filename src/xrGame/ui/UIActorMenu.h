@@ -28,6 +28,7 @@ class CUIMessageBoxEx;
 class CUIPropertiesBox;
 class CTrade;
 class CUIProgressBar;
+class CContainerObject;
 
 namespace inventory { namespace upgrade {
 	class Upgrade;
@@ -53,6 +54,8 @@ enum EMenuMode{
 		mmTrade,
 		mmUpgrade,
 		mmDeadBodySearch,
+		mmInvBoxSearch,
+		mmContainerSearch,
 };
 
 enum eActorMenuSndAction{
@@ -117,8 +120,11 @@ protected:
 	CUIMessageBoxEx*			m_message_box_ok;
 
 	CInventoryOwner*			m_pActorInvOwner;
+	CInventory*					m_pActorInv;
 	CInventoryOwner*			m_pPartnerInvOwner;
 	CInventoryBox*				m_pInvBox;
+	CContainerObject*			m_pBag;
+	CContainerObject*			m_pContainer;
 
 	CUITextWnd*					m_ActorMoney;
 	CUITextWnd*					m_PartnerMoney;
@@ -160,22 +166,30 @@ protected:
 	bool						m_item_info_view;
 	bool						m_highlight_clear;
 	u32							m_trade_partner_inventory_state;
+	LPCSTR						currency_str;
+	LPCSTR						money_delimiter;
+
 public:
 	CUIDragDropListEx*							m_pTrashList;
 
 public:
-	void						SetMenuMode					(EMenuMode mode);
+	void						StartMenuMode				(EMenuMode mode, CInventoryOwner* actor, void* partner = NULL);
+	void						SetMenuMode					(EMenuMode mode, void* partner = NULL, bool forced = false);
 	EMenuMode					GetMenuMode					() {return m_currMenuMode;};
+
 	void						SetActor					(CInventoryOwner* io);
 	void						SetPartner					(CInventoryOwner* io);
-	CInventoryOwner*			GetPartner					() {return m_pPartnerInvOwner;};
 	void						SetInvBox					(CInventoryBox* box);
+	void						SetContainer				(CContainerObject* ciitem);
+	void						SetBag						(CContainerObject* bag_cont);
+
+	CInventoryOwner*			GetPartner					() {return m_pPartnerInvOwner;};
 	CInventoryBox*				GetInvBox					() {return m_pInvBox;};
+	CContainerObject*			GetContainer				() {return m_pContainer;};
+	CContainerObject*			GetBag						() {return m_pBag;};
 	
-	bool						ToSlot						(u16 slot_id, PIItem item);
-	bool						ToBag						(PIItem item);
-	bool						ToPocket					(PIItem item, u16 pocket_id);
 	void						PlaySnd						(eActorMenuSndAction a);
+	LPCSTR						FormatMoney					(u32 money);
 
 private:
 	void						PropertiesBoxForSlots		(PIItem item, bool& b_show);
@@ -226,7 +240,7 @@ protected:
 	bool		xr_stdcall		OnItemFocusedUpdate			(CUICellItem* itm);
 	void		xr_stdcall		OnDragItemOnTrash			(CUIDragItem* item, bool b_receive);
 	void		xr_stdcall		OnDragItemOnPocket			(CUIDragItem* item, bool b_receive);
-	bool						OnItemDropped				(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner);
+	void						OnItemDropped				(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner);
 
 	void						ResetMode					();
 	void						InitInventoryMode			();
@@ -260,10 +274,10 @@ protected:
 	void						UpdateButtonsLayout			();
 
 	// inventory
-	bool						ToSlotScript				(CScriptGameObject* GO, bool force_place, u16 slot_id);
-	bool						ToSlot						(CUICellItem* itm, bool force_place, u16 slot_id);
-	bool						ToBag						(CUICellItem* itm, bool b_use_cursor_pos);
+	bool						ToSlot						(CUICellItem* itm, u16 slot_id, bool assume_alternative = false);
 	bool						ToPocket					(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_id);
+	bool						ToBag						(CUICellItem* itm, bool b_use_cursor_pos);
+	void						ToRuck						(PIItem item);
 	bool						TryUseItem					(CUICellItem* cell_itm);
 
 	void						UpdateOutfit				();
@@ -275,24 +289,22 @@ protected:
 	bool						ToPartnerTradeBag			(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
 
-	void						AttachAddon					(PIItem item_to_upgrade);
-	void						DetachAddon					(LPCSTR addon_name);
+	void						AttachAddon					(CAddonOwner* ao, CAddonObject* addon, u8 slot = u8(-1));
+	void						DetachAddon					(CAddonOwner* ao, CAddonObject* addon);
 	
 	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);
-	void						SendEvent_Item_Drop			(PIItem	pItem, u16 parent);
 	void						SendEvent_Item_Eat			(PIItem	pItem, u16 parent);
-	void						ActivateItem				(CUICellItem* pItem, u16 return_place = 0, u16 return_slot = 0);
 	void						DropAllCurrentItem			();
 	void						OnPressUserKey				();
 
 	// trade
 	void						InitPartnerInventoryContents();
-	void						ColorizeItem				(CUICellItem* itm, bool colorize);
+	void						ColorizeItem				(CUICellItem* itm);
 	float						CalcItemsWeight				(CUIDragDropListEx* pList);
 	float						CalcItemsVolume				(CUIDragDropListEx* pList);
 	u32							CalcItemsPrice				(CUIDragDropListEx* pList, CTrade* pTrade, bool bBuying);
 	void						UpdatePrices				();
-	bool						CanMoveToPartner			(PIItem pItem);
+	bool						CanMoveToPartner			(PIItem pItem, shared_str* reason = NULL);
 	void						TransferItems				(CUIDragDropListEx* pSellList, CUIDragDropListEx* pBuyList, CTrade* pTrade, bool bBuying);
 
 public:
@@ -313,7 +325,7 @@ public:
 	void		xr_stdcall		OnMesBoxYes					(CUIWindow*, void*);
 	void		xr_stdcall		OnMesBoxNo					(CUIWindow*, void*);
 
-	void						OnInventoryAction			(PIItem pItem, u16 action_type);
+	void						OnInventoryAction			(PIItem pItem, u16 action_type, u8 zone);
 	void						ShowRepairButton			(bool status);
 	bool						SetInfoCurUpgrade			(Upgrade_type* upgrade_type, CInventoryItem* inv_item );
 	void						SeparateUpgradeItem			();
@@ -333,9 +345,12 @@ public:
 	void						UpdateConditionProgressBars	();
 
 	void						UpdatePocketsPresence		();
-	void						ToggleRuckContainer			(PIItem container);
+	void						ToggleBag					(CContainerObject* bag);
 
 	IC	UIHint*					get_hint_wnd				() { return m_hint_wnd; }
+
+			float			CalcItemWeight			(LPCSTR section);
+			float			CalcItemVolume			(LPCSTR section);
 
 	//AxelDominator && Alundaio consumable use condition
 	void RefreshCurrentItemCell();
@@ -349,6 +364,9 @@ public:
 	//-AxelDominator && Alundaio consumable use condition
 	void DonateCurrentItem(CUICellItem* cell_item); //Alundaio: Donate item via context menu while in trade menu
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+			Ivector2		m_dLastResolution; //--xd tst
 }; // class CUIActorMenu
 add_to_type_list(CUIActorMenu)
 #undef script_type_list

@@ -112,7 +112,6 @@ void CWeaponKnife::OnStateSwitch	(u32 S, u32 oldState)
 	}
 }
 
-
 void CWeaponKnife::KnifeStrike(const Fvector& pos, const Fvector& dir)
 {
 	CObject* real_victim = TryPick(pos, dir, m_hit_dist);
@@ -267,14 +266,13 @@ void CWeaponKnife::switch2_Hidden()
 
 void CWeaponKnife::switch2_Showing	()
 {
-	VERIFY(GetState()==eShowing);
+	VERIFY(GetState() == eShowing);
+	if (ParentIsActor()) g_player_hud->attach_item(this);
 	PlayHUDMotion("anm_show", FALSE, this, GetState());
 }
 
-
 void CWeaponKnife::FireStart()
-{	
-	inherited::FireStart();
+{
 	SwitchState			(eFire);
 }
 
@@ -283,19 +281,24 @@ void CWeaponKnife::Fire2Start ()
 	SwitchState(eFire2);
 }
 
-
-bool CWeaponKnife::Action(u16 cmd, u32 flags) 
+bool CWeaponKnife::Action(u16 cmd, u32 flags)
 {
-	if(inherited::Action(cmd, flags)) return true;
-	switch(cmd) 
+	switch (cmd)
 	{
+	case kWPN_FIRE:
+		if (flags & CMD_START && !IsPending())
+			FireStart();
+		return true;
 
-		case kWPN_ZOOM : 
-			if(flags&CMD_START) 
-				Fire2Start			();
+	case kWPN_ZOOM:
+		if (flags & CMD_START && !IsPending())
+			Fire2Start();
 
-			return true;
+		return true;
 	}
+
+	if (inherited::Action(cmd, flags)) return true;
+
 	return false;
 }
 
@@ -864,4 +867,9 @@ void CWeaponKnife::best_victim_selector::operator()(
 		m_min_dist			=	tmp_dist;
 		return;
 	}
+}
+
+void CWeaponKnife::UpdateHudAdditional(Fmatrix& trans)
+{
+	CHudItem::UpdateHudAdditional(trans);
 }

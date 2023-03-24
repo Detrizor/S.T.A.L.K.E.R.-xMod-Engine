@@ -3,24 +3,32 @@
 #include "weapon.h"
 #include "hudsound.h"
 #include "ai_sounds.h"
+#include "Magazine.h"
+#include "GrenadeLauncher.h"
+#include "InventoryBox.h"
+
+#include "xmod\scope.h"
+#include "xmod\silencer.h"
+#include "xmod\addon_owner.h"
 
 class ENGINE_API CMotionDef;
+class CScope;
+class CSilencer;
+class CGrenadeLauncher;
 
 //размер очереди считается бесконечность
 //заканчиваем стрельбу, только, если кончились патроны
 #define WEAPON_ININITE_QUEUE -1
 
-class CWeaponMagazined : public CWeapon
+class CWeaponMagazined : public CWeapon,
+	public CAddonOwner
 {
 private:
     typedef CWeapon inherited;
-protected:
-    //звук текущего выстрела
-    shared_str		m_sSndShotCurrent;
 
-    //дополнительная информация о глушителе
-    LPCSTR			m_sSilencerFlameParticles;
-    LPCSTR			m_sSilencerSmokeParticles;
+protected:
+	//звук текущего выстрела
+	shared_str		m_sSndShotCurrent;
 
     ESoundTypes		m_eSoundShow;
     ESoundTypes		m_eSoundHide;
@@ -34,7 +42,8 @@ protected:
     bool			m_sounds_enabled;
     // General
     //кадр момента пересчета UpdateSounds
-    u32				dwUpdateSounds_Frame;
+	u32				dwUpdateSounds_Frame;
+
 protected:
     virtual void	OnMagazineEmpty();
 
@@ -54,12 +63,9 @@ protected:
     virtual void	OnStateSwitch(u32 S, u32 oldState);
 
     virtual void	UpdateSounds();
-
+	
 protected:
     virtual void	ReloadMagazine		();
-	u8				FindAmmoClass		(LPCSTR section, bool set = false);
-	u8				FindMagazineClass	(LPCSTR section, bool set = false);
-    void			ApplySilencerKoeffs	();
     void			ResetSilencerKoeffs	();
 
     virtual void	state_Fire(float dt);
@@ -69,9 +75,12 @@ protected:
 public:
     CWeaponMagazined(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN);
     virtual			~CWeaponMagazined();
+	virtual DLL_Pure*_construct();
 
     virtual void	Load(LPCSTR section);
-    void	LoadSilencerKoeffs();
+	virtual	void	OnEvent(NET_Packet& P, u16 type);
+
+    void	LoadSilencerKoeffs(LPCSTR sect);
     virtual CWeaponMagazined*cast_weapon_magazined()
     {
         return this;
@@ -81,7 +90,7 @@ public:
     virtual void	FireStart();
     virtual void	FireEnd();
     virtual void	Reload();
-	virtual void	StartReload();
+	virtual void	StartReload(CObject* to_reload = NULL);
 
     virtual	void	UpdateCL();
     virtual void	net_Destroy();
@@ -90,24 +99,8 @@ public:
 
     virtual void	OnH_A_Chield();
 
-    virtual bool	Attach(PIItem pIItem, bool b_send_event);
-    virtual bool	Detach(const char* item_section_name, bool b_spawn_item);
-    bool	DetachScope(const char* item_section_name, bool b_spawn_item);
-    virtual bool	CanAttach(PIItem pIItem);
-    virtual bool	CanDetach(const char* item_section_name);
-
-    virtual void	InitAddons();
-
     virtual bool	Action			(u16 cmd, u32 flags);
     bool			IsAmmoAvailable	();
-	virtual void	Discharge		(bool spawn_ammo = true);
-			void	UnloadMagazine	();
-	virtual bool	LoadMagazine	(CEatableItem* mag);
-	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
-
-			int		Chamber			()		{ return int(m_bHasChamber && (MagazineElapsed() > 0)); }
-			LPCSTR	GetMagazine		(bool with_chamber = true);
-			void	SetMagazine		(LPCSTR data, bool with_chamber = true);
 
     virtual bool	GetBriefInfo(II_BriefInfo& info);
 
@@ -164,10 +157,6 @@ protected:
 	bool			m_bLockType;
 	CWeaponAmmo*	m_pCurrentAmmo;
 
-	u16				m_toReloadID;
-	bool			m_bHasChamber;
-	PIItem			GetToReload()	{ return (m_toReloadID != u16(-1)) ? m_pInventory->get_object_by_id(m_toReloadID) : NULL; }
-
 public:
     virtual void	OnZoomIn();
     virtual void	OnZoomOut();
@@ -190,8 +179,9 @@ public:
     virtual void	save(NET_Packet &output_packet);
     virtual void	load(IReader &input_packet);
 
+
 protected:
-    virtual bool	install_upgrade_impl(LPCSTR section, bool test);
+    virtual bool	install_upgrade_impl	(LPCSTR section, bool test);
 
 protected:
     virtual bool	AllowFireWhileWorking()
@@ -206,7 +196,8 @@ protected:
     virtual void	PlayAnimIdle();
     virtual void	PlayAnimShoot();
     virtual void	PlayReloadSound();
-    virtual void	PlayAnimAim();
+	virtual void	PlayAnimAim();
+	virtual void	PlayAnimBore();
 
     virtual	int		ShotsFired()
     {
@@ -229,4 +220,69 @@ protected:
 	HUD_SOUND_COLLECTION_LAYERED m_layered_sounds;
 #endif
 	//-Alundaio
+
+//xMod ported
+public:
+	   void                                     UpdateSecondVP                           () const;
+
+//xMod altered
+public:
+	virtual bool                                need_renderable                          ();
+	virtual bool                                render_item_ui_query                     ();
+	virtual void                                render_item_ui                           ();
+	virtual void                                ZoomInc                                  ();
+	virtual void                                ZoomDec                                  ();
+	virtual void                                modify_holder_params                     (float &range, float &fov) const;
+	virtual void                                renderable_Render                        ();
+	virtual void                                render_hud_mode                          ();
+	virtual float                               Weight                                   () const;
+	virtual float                               Volume                                   () const;
+
+//xMod added
+private:
+	   u8                                       m_iChamber;
+	   bool                                     m_bIronSightsLowered;
+
+	   CScope*                                  m_pScope;
+	   CScope*                                  m_pAltScope;
+	   CSilencer*                               m_pSilencer;
+	   CMagazineObject*                         m_pMagazine;
+
+	   CMagazineObject*                         m_pMagazineToReload;
+	
+
+	   void                                     LoadCartridgeFromMagazine                (bool set_ammo_type_only = false);
+	   void                                     UpdateSndShot                            ();
+
+	   CScope*                                  GetActiveScope                           () const;
+
+	virtual float                               GetControlInertionFactorBase             () const;
+
+	virtual void                                PrepareCartridgeToShoot                  ();
+	virtual void                                ConsumeShotCartridge                     ();
+
+protected:
+	   CWeaponAmmo*                             m_pCartridgeToReload;
+
+	virtual void                                ProcessAddon                             (CAddon* const addon, BOOL attach, const SAddonSlot* const slot);
+
+public:
+	   bool                                     ScopeAttached                            () const { return m_pScope || m_pAltScope; }
+	   bool                                     SilencerAttached                         () const { return !!m_pSilencer; }
+
+	   bool                                     Discharge                                (CCartridge& destination);
+
+	   float                                    GetLensRotatingFactor                    () const;
+	   float                                    GetReticleScale                          () const;
+	   bool                                     CanTrade                                 () const;
+
+	virtual float                               CurrentZoomFactor                        () const;
+
+	virtual bool                                LoadCartridge                            (CWeaponAmmo* cartridges);
+	virtual	void                                UpdateBonesVisibility                    ();
+	virtual void                                UpdateHudBonesVisibility                 ();
+	virtual void                                OnMotionHalf                             ();
+	virtual void                                UpdateAddonsTransform                    ();
+	virtual	void                                TransferAnimation                        (CAddonObject* addon, bool attach);
+	virtual	void                                OnTaken                                  ();
 };

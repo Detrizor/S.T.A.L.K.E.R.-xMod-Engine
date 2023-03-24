@@ -261,7 +261,7 @@ bool CMainMenu::ReloadUI()
 	m_startDialog->m_bWorkInPause= true;
 	m_startDialog->ShowDialog	(true);
 
-	m_activatedScreenRatio		= (float)Device.dwWidth/(float)Device.dwHeight > (UI_BASE_WIDTH/UI_BASE_HEIGHT+0.01f);
+	m_ScreenRatio				= (float)Device.dwWidth/(float)Device.dwHeight;
 	return true;
 }
 
@@ -449,8 +449,7 @@ void CMainMenu::OnFrame()
 	if(IsActive())
 	{
 		CheckForErrorDlg();
-		bool b_is_16_9	= (float)Device.dwWidth/(float)Device.dwHeight > (UI_BASE_WIDTH/UI_BASE_HEIGHT+0.01f);
-		if(b_is_16_9 !=m_activatedScreenRatio)
+		if (!fEqual((float)Device.dwWidth / (float)Device.dwHeight, m_ScreenRatio))
 		{
 			ReloadUI();
 			m_startDialog->SendMessage(m_startDialog, MAIN_MENU_RELOADED, NULL);

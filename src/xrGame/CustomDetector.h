@@ -5,6 +5,7 @@
 #include "customzone.h"
 #include "artefact.h"
 #include "ai_sounds.h"
+#include "inventory_item_amountable.h"
 //#include "ui/ArtefactDetectorUI.h"
 
 class CCustomZone;
@@ -111,7 +112,8 @@ public:
 
 class CUIArtefactDetectorBase;
 
-class CCustomDetector :		public CHudItemObject
+class CCustomDetector :		public CHudItemObject,
+	public CItemAmountable
 {
 	typedef	CHudItemObject	inherited;
 protected:
@@ -122,6 +124,7 @@ protected:
 public:
 					CCustomDetector		();
 	virtual			~CCustomDetector	();
+	virtual DLL_Pure*_construct			();
 
 	virtual BOOL 	net_Spawn			(CSE_Abstract* DC);
 	virtual void 	Load				(LPCSTR section);
@@ -169,6 +172,12 @@ protected:
 	float			m_fDecayRate; //Alundaio
 
 	CAfList			m_artefacts;
+
+public:
+	virtual u32				Cost					() const;
+	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
+	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
+	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
 };
 
 class CZoneList : public CDetectList<CCustomZone>

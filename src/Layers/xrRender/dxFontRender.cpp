@@ -3,6 +3,8 @@
 
 #include "../../xrEngine/GameFont.h"
 
+extern ENGINE_API BOOL		g_bRendering;
+
 dxFontRender::dxFontRender()
 {
 
@@ -19,8 +21,7 @@ void dxFontRender::Initialize(LPCSTR cShader, LPCSTR cTexture)
 	pShader.create(cShader, cTexture);
 	pGeom.create(FVF::F_TL, RCache.Vertex.Buffer(), RCache.QuadIB);
 }
-extern ENGINE_API BOOL g_bRendering;
-extern ENGINE_API Fvector2		g_current_font_scale;
+
 void dxFontRender::OnRender(CGameFont &owner)
 {
 	VERIFY				(g_bRendering);
@@ -67,7 +68,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 			if (len) {
 				float	X	= float(iFloor(PS.x));
 				float	Y	= float(iFloor(PS.y));
-				float	S	= PS.height*g_current_font_scale.y;
+				float	S	= floor(PS.height * PS.scale);
 				float	Y2	= Y+S;
 				float fSize = 0;
 
@@ -77,10 +78,10 @@ void dxFontRender::OnRender(CGameFont &owner)
 				switch ( PS.align )
 				{
 				case CGameFont::alCenter:	
-					X	-= ( iFloor( fSize * 0.5f ) ) * g_current_font_scale.x;	
+					X	-= ( floor( fSize * 0.5f * PS.scale ) );	
 					break;
 				case CGameFont::alRight:	
-					X	-=	iFloor( fSize );
+					X	-=	floor( fSize * PS.scale );
 					break;
 				}
 
@@ -93,7 +94,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 					u32	_A	= color_get_A	(clr);
 					clr2	= color_rgba	(_R,_G,_B,_A);
 				}
-
+				
 #if defined(USE_DX10) || defined(USE_DX11)		//	Vertex shader will cancel a DX9 correction, so make fake offset
 				X			-= 0.5f;
 				Y			-= 0.5f;
@@ -107,7 +108,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 
 					l = owner.IsMultibyte() ? owner.GetCharTC( wsStr[ 1 + j ] ) : owner.GetCharTC( ( u16 ) ( u8 ) PS.string[j] );
 
-					float scw		= l.z * g_current_font_scale.x;
+					float scw		= floor(l.z * PS.scale);
 
 					float fTCWidth	= l.z/owner.vTS.x;
 

@@ -176,11 +176,10 @@ bool CInventoryItem::process_if_exists(LPCSTR section, LPCSTR name, float& value
 		float dvalue				= (len > 1) ? (float)atof(str.substr(1).c_str()) : 0.f;
 		LPCSTR process_type_l		= type_l.c_str();
 		LPCSTR process_type			= type.c_str();
-		float base_value			= READ_IF_EXISTS(pSettings, r_float, m_section_id, name, 0.f);
 		if (!xr_strcmp(process_type_l, "*+"))
-			value					+= base_value * dvalue_l;
+			value					+= value * dvalue_l;
 		else if (!xr_strcmp(process_type_l, "*-"))
-			value					-= base_value * dvalue_l;
+			value					-= value * dvalue_l;
 		else if (!xr_strcmp(process_type, "*"))
 			value					*= dvalue;
 		else if (!xr_strcmp(process_type, "+"))
@@ -262,10 +261,12 @@ bool CInventoryItem::process_if_exists(LPCSTR section, LPCSTR name, LPCSTR& valu
 
 bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 {
-	bool result		= process_if_exists(section,	"cost",				m_cost,			test);
-	result			|= process_if_exists(section,	"cost_factor",		m_cost_factor,	test);
-	result			|= process_if_exists(section,	"inv_weight",		m_weight,		test);
-	result			|= process_if_exists(section,	"inv_volume",		m_volume,		test);
+	u32 tmp_cost			= m_cost;
+	bool result				= process_if_exists(section,	"cost",				tmp_cost,			test);
+	if (result)
+		m_upgrades_cost		+= tmp_cost - m_cost;
+	result					|= process_if_exists(section,	"inv_weight",		m_weight,		test);
+	result					|= process_if_exists(section,	"inv_volume",		m_volume,		test);
 
 	bool result2			= false;
 	if ( BaseSlot() != NO_ACTIVE_SLOT )
@@ -301,20 +302,20 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 }
 
 void CInventoryItem::pre_install_upgrade()
-{
+{/*--xd
 	CWeaponMagazined* wm = smart_cast<CWeaponMagazined*>( this );
 	if (wm)
 	{
-		if (wm->MagazineIndex())
-			wm->UnloadMagazine();
-		wm->Discharge();
+		if (wm->HasMagazine())
+			wm->UnplugMagazine(true);
+		inventory_owner().Discharge(smart_cast<PIItem>(wm), true);
 		CWeaponMagazinedWGrenade* wg = smart_cast<CWeaponMagazinedWGrenade*>( this );
 		if (wg)
 		{
 			if (wg->IsGrenadeLauncherAttached())
 			{
 				wg->PerformSwitchGL();
-				wg->Discharge();
+				inventory_owner().Discharge(smart_cast<PIItem>(wg), true);
 				wg->PerformSwitchGL(); // restore state
 			}
 		}
@@ -329,7 +330,5 @@ void CInventoryItem::pre_install_upgrade()
 			weapon->Detach(weapon->GetSilencerName().c_str(), true);
 		if (weapon->GrenadeLauncherAttachable() && weapon->IsGrenadeLauncherAttached())
 			weapon->Detach(weapon->GetGrenadeLauncherName().c_str(), true);
-	}
-
-
+	}*/
 }

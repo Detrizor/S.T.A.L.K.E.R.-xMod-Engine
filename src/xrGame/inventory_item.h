@@ -18,6 +18,11 @@
 #include "xrserver_objects_alife_items.h"
 #include "script_export_space.h"
 
+bool	ItemCategory		(const shared_str& section, LPCSTR cmp);
+bool	ItemSubcategory		(const shared_str& section, LPCSTR cmp);
+bool	ItemDivision		(const shared_str& section, LPCSTR cmp);
+void	TransferItem		(u16 what_id, u16 to_id = NO_ID);
+
 enum EHandDependence{
 	hdNone	= 0,
 	hd1Hand	= 1,
@@ -56,7 +61,6 @@ struct net_updateInvData
 	u32				m_dwIStartTime;
 	u32				m_dwIEndTime;
 };
-
 
 class CInventoryItem : 
 	public CAttachableItem,
@@ -105,12 +109,6 @@ public:
 	virtual bool				IsUsingCondition	() const { return (m_flags.test(FUsingCondition) > 0); };
 	virtual bool				ShowFullCondition	() const { return (m_flags.test(FShowFullCondition) > 0); };
 	virtual bool				CanStack			() const;
-	virtual bool				Attach				(PIItem pIItem, bool b_send_event) {return false;}
-	virtual bool				Detach				(PIItem pIItem) {return false;}
-	//при детаче спаунится новая вещь при заданно названии секции
-	virtual bool				Detach				(const char* item_section_name, bool b_spawn_item);
-	virtual bool				CanAttach			(PIItem pIItem) {return false;}
-	virtual bool				CanDetach			(LPCSTR item_section_name) {return false;}
 
 	virtual EHandDependence		HandDependence		()	const	{return hd1Hand;};
 	virtual bool				IsSingleHanded		()	const	{return true;};	
@@ -141,20 +139,13 @@ public:
 			BOOL				IsInvalid			() const;
 
 			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}
-	virtual	float				Cost				()	const;
-	virtual float				Weight				() 	const	{ return m_weight;}
-			void				SetWeight			(float w)	{ m_weight = w; }
-	virtual float				Volume				() 	const	{ return m_volume;}
-			void				SetVolume			(float v)	{ m_volume = v; }
-			shared_str			FullClass			(bool with_division = false);
-			bool				PercentCondition	() const	{ return m_bPercentCondition; }
+	virtual	u32					Cost				()	const;
+	virtual float				Weight				() 	const;
+	virtual float				Volume				() 	const;
 
 public:
 	CInventory*					m_pInventory;
 	shared_str					m_section_id;
-	shared_str					m_main_class;
-	shared_str					m_subclass;
-	shared_str					m_division;
 	shared_str					m_name;
 	shared_str					m_nameShort;
 	shared_str					m_nameComplex;
@@ -168,7 +159,7 @@ public:
 	virtual void				OnMoveToBelt		(const SInvItemPlace& prev) {};
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev) {};
 					
-			Irect				GetInvGridRect		() const;
+	virtual	Frect				GetIconRect			() const;
 			Irect				GetUpgrIconRect		() const;
 			const shared_str&	GetIconName			() const		{return m_icon_name;};
 			Frect				GetKillMsgRect		() const;
@@ -199,16 +190,13 @@ public:
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
 
-	float						GetControlInertionFactor() { return m_fControlInertionFactor; }
-
-protected:	
-	float						m_cost;
-	float						m_cost_factor;
+protected:
+	u32							m_cost;
+	u32							m_upgrades_cost;
 	float						m_weight;
 	float						m_volume;
 	float						m_fCondition;
 	shared_str					m_Description;
-	bool						m_bPercentCondition;
 
 protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
@@ -237,7 +225,7 @@ public:
 
 	virtual	bool				IsSprintAllowed				() const		{return !!m_flags.test(FAllowSprint);} ;
 
-	virtual	float				GetControlInertionFactor(	) const			{return m_fControlInertionFactor;};
+	virtual	float				GetControlInertionFactor	() const		{return m_fControlInertionFactor;};
 
 
 	virtual void				UpdateXForm	();
@@ -268,12 +256,9 @@ public:
 	u16							object_id					() const;
 	u16							parent_id					() const;
 	virtual void				on_activate_physic_shell	() { R_ASSERT2(0, "failed call of virtual function!"); }
-	
-protected:
-	float						m_holder_range_modifier;
-	float						m_holder_fov_modifier;
+
 public:
-	virtual	void				modify_holder_params		(float &range, float &fov) const;
+	virtual	void				modify_holder_params		(float &range, float &fov) const {}
 
 protected:
 	IC	CInventoryOwner&		inventory_owner				() const;
@@ -327,15 +312,6 @@ public:
 protected:
 	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
 	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
-	
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, float& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, int& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, u32& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, u8& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, bool& value, bool test);
-
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, shared_str& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, LPCSTR& value, bool test);
 
 	void								net_Export_PH_Params			(NET_Packet& P, SPHNetState& State, mask_inv_num_items&	num_items);
 	void								net_Import_PH_Params			(NET_Packet& P, net_update_IItem& N, mask_inv_num_items& num_items);
@@ -347,6 +323,43 @@ public:
 	IC bool	is_helper_item				()				 { return !!m_flags.test(FIsHelperItem); }
 	IC void	set_is_helper				(bool is_helper) { m_flags.set(FIsHelperItem,is_helper); }
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+			shared_str		m_category;
+			shared_str		m_subcategory;
+			shared_str		m_division;
+			Frect			m_inv_icon;
+			u8				m_inv_icon_type;
+			u8				m_inv_icon_index;
+
+public:
+	static const float		m_fMaxRepairCondition;
+			u32				Price					()								const;
+			void			Transfer				(u16 id = NO_ID)				const;
+	static	u32				ReadBaseCost			(LPCSTR section);
+	static	void			ReadIcon				(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
+			void			SetInvIcon				();
+
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, float& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, int& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, u32& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, u8& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, bool& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, shared_str& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, LPCSTR& value, bool test);
+
+			void			SetInvIconType			(u8 type);
+			void			SetInvIconIndex			(u8 idx);
+			u8				GetInvIconIndex			()								const	{ return m_inv_icon_index; }
+
+	virtual	bool			Category				(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*") const { return (cmpc[0] == '*' || m_category == cmpc) && (cmps[0] == '*' || m_subcategory == cmps) && (cmpd[0] == '*' || m_division == cmpd); }
+
+	virtual float			GetAmount				()								const	{ return 1.f; }
+	virtual float			GetFill					()								const	{ return 1.f; }
+	virtual float			GetBar					()								const	{ return -1.f; }
+	virtual	void			OnTaken					()										{}
+
+	const	shared_str		Section					(bool full = false)				const	{ return full ? shared_str().printf("%s_%d", *m_section_id, m_inv_icon_index) : m_section_id; }
 }; // class CInventoryItem
 
 #include "inventory_item_inline.h"

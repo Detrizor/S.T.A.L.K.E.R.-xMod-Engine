@@ -204,11 +204,11 @@ bool CUIPropertiesBox::OnMouseAction(float x, float y, EUIMessages mouse_action)
 
 void CUIPropertiesBox::AutoUpdateSize()
 {
-	Fvector2 sz				= GetWndSize();
-	sz.y					= m_UIListWnd.GetItemHeight()*m_UIListWnd.GetSize()+ m_UIListWnd.GetVertIndent();
-	sz.x					= float(m_UIListWnd.GetLongestLength()+m_UIListWnd.GetHorizIndent()) + 2;
+	Fvector2				sz;
+	sz.y					= m_UIListWnd.GetItemHeight() * (float)m_UIListWnd.GetSize() + m_UIListWnd.GetVertIndent();
+	sz.x					= m_UIListWnd.GetLongestLength() + m_UIListWnd.GetHorizIndent();
 	SetWndSize				(sz);
-	m_UIListWnd.SetWndSize	(GetWndSize());
+	m_UIListWnd.SetWndSize	(sz);
 	m_UIListWnd.UpdateChildrenLenght();
 }
 

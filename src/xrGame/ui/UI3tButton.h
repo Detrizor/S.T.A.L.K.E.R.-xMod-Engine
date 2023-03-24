@@ -39,10 +39,12 @@ public:
 
 
 	bool					frame_mode;
+	bool					frameline_mode;
 	bool					frame_custom;
 	bool					frame_outer;
 
 	CUI_IB_Static*			m_background;
+	CUI_IB_FrameLineWnd*	m_back_frameline;
 	CUIFrameWindow*			m_frame;
 
 private:	

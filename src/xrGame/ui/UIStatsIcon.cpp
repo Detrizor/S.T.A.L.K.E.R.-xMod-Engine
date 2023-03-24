@@ -12,7 +12,8 @@ CUIStatsIcon::CUIStatsIcon(){
 	InitTexInfo();
 }
 
-void CUIStatsIcon::InitTexInfo(){
+void CUIStatsIcon::InitTexInfo()
+{
 	if (m_tex_info[RANK_0][0].sh->inited())
 		return;
 	// ranks
@@ -30,17 +31,9 @@ void CUIStatsIcon::InitTexInfo(){
 
 	// artefact
 	LPCSTR artefact_name = pSettings->r_string("artefacthunt_gamedata", "artefact");
-	float fGridWidth	= pSettings->r_float(artefact_name, "inv_grid_width");
-	float fGridHeight	= pSettings->r_float(artefact_name, "inv_grid_height");
-	float fXPos			= pSettings->r_float(artefact_name, "inv_grid_x");
-	float fYPos			= pSettings->r_float(artefact_name, "inv_grid_y");
 
-	m_tex_info[ARTEFACT][0].sh = InventoryUtilities::GetEquipmentIconsShader();
-	m_tex_info[ARTEFACT][0].rect.set(
-		fXPos * INV_GRID_WIDTH, 
-		fYPos * INV_GRID_HEIGHT, 
-		fXPos * INV_GRID_WIDTH + fGridWidth * INV_GRID_WIDTH, 
-		fYPos * INV_GRID_HEIGHT + fGridHeight * INV_GRID_HEIGHT);
+	m_tex_info[ARTEFACT][0].sh = InventoryUtilities::GetEquipmentIconsShader(artefact_name);
+	CInventoryItem::ReadIcon(m_tex_info[ARTEFACT][0].rect, artefact_name);
 	
 	m_tex_info[ARTEFACT][1] = m_tex_info[ARTEFACT][0];
 

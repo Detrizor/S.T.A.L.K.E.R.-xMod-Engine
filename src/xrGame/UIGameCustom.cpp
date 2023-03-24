@@ -144,12 +144,6 @@ void CUIGameCustom::RemoveCustomStatic(const char* id)
     }
 }
 
-void CUIGameCustom::OnInventoryAction(PIItem item, u16 actionType)
-{
-    if (ActorMenu->IsShown())
-        ActorMenu->OnInventoryAction(item, actionType);
-}
-
 #include "ui/UIGameTutorial.h"
 // XXX nitrocaster: move to appropriate header
 extern CUISequencer* g_tutorial;
@@ -157,19 +151,14 @@ extern CUISequencer* g_tutorial2;
 
 bool CUIGameCustom::ShowActorMenu()
 {
-    if (ActorMenu->IsShown())
-    {
-        ActorMenu->HideDialog();
-    }
+	if (ActorMenu->IsShown())
+		ActorMenu->HideDialog		();
 	else if (!PdaMenu->IsShown())
-    {
-        auto actor = smart_cast<CInventoryOwner*>(Level().CurrentViewEntity());
-        VERIFY(actor);
-        ActorMenu->SetActor(actor);
-        ActorMenu->SetMenuMode(mmInventory);
-        ActorMenu->ShowDialog(true);
-    }
-    return true;
+	{
+		CInventoryOwner* actor		= smart_cast<CInventoryOwner*>(Level().CurrentViewEntity());
+		ActorMenu->StartMenuMode	(mmInventory, actor);
+	}
+	return							true;
 }
 
 void CUIGameCustom::HideActorMenu()

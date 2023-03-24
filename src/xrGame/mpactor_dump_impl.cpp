@@ -18,10 +18,9 @@ void CActorMP::DumpActiveParams(shared_str const & section_name,
 
 
 	dst_ini.w_float	(section_name.c_str(), "m_fDispBase",		m_fDispBase);
-	dst_ini.w_float	(section_name.c_str(), "m_fDispAim",		m_fDispAim);					
+	dst_ini.w_float	(section_name.c_str(), "m_fDispAim",		m_fDispAim);
+	dst_ini.w_float	(section_name.c_str(), "m_fDispADS",		m_fDispADS);
 	
 	dst_ini.w_float	(section_name.c_str(), "m_fDispVelFactor",		m_fDispVelFactor);
-	dst_ini.w_float	(section_name.c_str(), "m_fDispAccelFactor",	m_fDispAccelFactor);
 	dst_ini.w_float	(section_name.c_str(), "m_fDispCrouchFactor",	m_fDispCrouchFactor);
-	dst_ini.w_float	(section_name.c_str(), "m_fDispCrouchNoAccelFactor",m_fDispCrouchNoAccelFactor);
 }
