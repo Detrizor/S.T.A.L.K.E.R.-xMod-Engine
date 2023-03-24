@@ -15,8 +15,11 @@ static void generate_orthonormal_basis(const Fvector& dir,Fmatrix &result)
 }
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::FindParticles(const shared_str& ps_name)
 {
-	for (ParticlesInfoListIt it=particles.begin(); it!=particles.end(); it++)
-		if (it->ps && it->ps->Name()==ps_name) return &(*it);
+	for (auto& I : particles)
+	{
+		if (I.active && I.ps->Name() == ps_name)
+			return &I;
+	}
 	return 0;
 }
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(CObject* object, const shared_str& ps_name)
@@ -26,6 +29,7 @@ CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(C
 	particles.push_back	(SParticlesInfo());
 	pi					= &particles.back();
 	pi->ps				= CParticlesObject::Create(*ps_name,FALSE);
+	pi->active			= true;
 	return pi;
 }
 void CParticlesPlayer::SBoneInfo::StopParticles(const shared_str& ps_name, bool bDestroy)
@@ -35,7 +39,10 @@ void CParticlesPlayer::SBoneInfo::StopParticles(const shared_str& ps_name, bool 
 		if(!bDestroy)
 			pi->ps->Stop();
 		else
+		{
 			CParticlesObject::Destroy(pi->ps);
+			pi->active = false;
+		}
 	}
 }
 
@@ -46,7 +53,10 @@ void CParticlesPlayer::SBoneInfo::StopParticles(u16 sender_id, bool bDestroy)
 			if(!bDestroy)
 				it->ps->Stop();
 			else
+			{
 				CParticlesObject::Destroy(it->ps);
+				it->active = false;
+			}
 		}
 }
 //-------------------------------------------------------------------------------------
@@ -106,10 +116,13 @@ void	CParticlesPlayer::net_DestroyParticles	()
 	{
 		SBoneInfo& b_info	= *b_it;
 
-		for (ParticlesInfoListIt p_it=b_info.particles.begin(); p_it!=b_info.particles.end(); p_it++)
+		for (auto& I : b_info.particles)
 		{
-			SParticlesInfo& p_info	= *p_it;
-			CParticlesObject::Destroy(p_info.ps);
+			if (I.active)
+			{
+				CParticlesObject::Destroy(I.ps);
+				I.active = false;
+			}
 		}
 		b_info.particles.clear();
 	}
@@ -251,7 +264,7 @@ void CParticlesPlayer::UpdateParticles()
 
 		for (ParticlesInfoListIt p_it=b_info.particles.begin(); p_it!=b_info.particles.end(); p_it++){
 			SParticlesInfo& p_info	= *p_it;
-			if(!p_info.ps) continue;
+			if(!p_info.active) continue;
 			//обновить позицию партиклов
 			Fmatrix xform;
 			xform.setHPB(p_info.angles.x,p_info.angles.y,p_info.angles.z);
@@ -268,8 +281,10 @@ void CParticlesPlayer::UpdateParticles()
 					p_info.life_time=u32(-1);
 				}
 			}
-			if(!p_info.ps->IsPlaying()){
+			if(!p_info.ps->IsPlaying())
+			{
 				CParticlesObject::Destroy(p_info.ps);
+				p_info.active = false;
 			}
 			else
 				m_bActiveBones  = true;
