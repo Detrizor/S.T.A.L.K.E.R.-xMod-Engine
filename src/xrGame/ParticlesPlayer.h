@@ -22,6 +22,7 @@ public:
 	struct SParticlesInfo
 	{
 		CParticlesObject*	ps;
+		bool				active;		//fix for some freaky bug when ps somehow gets non-null value after being set to null
 		Fvector				angles;
 		u16					sender_id;	//id - объекта, который запустил партиклы
 		u32					life_time;	//время жизни партикла (-1) - бесконечно
