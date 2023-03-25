@@ -7375,7 +7375,6 @@
     <ClInclude Include="ui\UIPdaSpot.h">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
     <ClInclude Include="Magazine.h" />
     <ClInclude Include="IItemContainer.h" />
     <ClInclude Include="inventory_item_amountable.h" />
@@ -11101,8 +11100,6 @@
     <None Include="Players.cd">
       <Filter>Class Diagrams</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="xrGame.rc" />
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

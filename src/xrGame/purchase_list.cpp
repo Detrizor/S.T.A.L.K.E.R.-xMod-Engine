@@ -17,7 +17,7 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 	owner.sell_useless_items		();
 	CAI_Trader& trader				= smart_cast<CAI_Trader&>(owner);
 	trader.supplies_list.clear_not_free();
-	for (auto item : ini_file.r_section(section).Data)
+	for (auto& item : ini_file.r_section(section).Data)
 	{
 		if (g_items_library->CheckSection(item.first))
 		{
@@ -31,15 +31,15 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 		shared_str subcategory		= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
 		shared_str division			= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
 
-		for (auto subcat : g_items_library->Get(category))
+		for (auto& subcat : g_items_library->Get(category))
 		{
 			if (subcategory != "any" && subcat.first != subcategory)
 				continue;
-			for (auto div : subcat.second)
+			for (auto& div : subcat.second)
 			{
 				if (division != "any" && div.first != division)
 					continue;
-				for (auto sec : div.second)
+				for (auto& sec : div.second)
 					GiveObject		(owner, sec);
 			}
 		}

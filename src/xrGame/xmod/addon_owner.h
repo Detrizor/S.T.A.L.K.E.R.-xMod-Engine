@@ -20,9 +20,11 @@ struct SAddonSlot
 
 							SAddonSlot				(LPCSTR _name, const xr_vector<SAddonSlot>& slots);
 			void			Load					(LPCSTR section, u16 _idx);
-			bool			CanTake					(const CAddonObject* const _addon);
-	const	Fvector*		GetModelOffset			();
+			bool			CanTake					(CAddonObject CPC _addon) const;
+			Fvector CP$		GetModelOffset			();
 };
+
+typedef xr_vector<SAddonSlot> VSlots;
 
 class CAddonOwner : public CInventoryStorage
 {
@@ -31,27 +33,26 @@ private:
 			CGameObject*	m_object;
 
 public:
-							CAddonOwner				();
-							~CAddonOwner			() {}
-	virtual DLL_Pure*		_construct				();
+												CAddonOwner								();
+	DLL_Pure*									_construct								();
 
 	virtual	void			Load					(LPCSTR section);
 
 private:
-	xr_vector<SAddonSlot>	m_Slots;
-			u16				m_iNextAddonSlot;
+	VSlots										m_Slots;
+	u16											m_NextAddonSlot;
 
-	IC		void			AddonAttach				(CAddon* const addon, SAddonSlot* slot = NULL) { ProcessAddon(addon, TRUE, slot); }
-	IC		void			AddonDetach				(CAddon* const addon, SAddonSlot* slot = NULL) { ProcessAddon(addon, FALSE, slot); }
+	void										AddonAttach								(CAddon* const addon, SAddonSlot* slot = NULL)	{ ProcessAddon(addon, TRUE, slot); }
+	void										AddonDetach								(CAddon* const addon, SAddonSlot* slot = NULL)	{ ProcessAddon(addon, FALSE, slot); }
 	
-			void			LoadAddonSlots			(LPCSTR section);
+	void										LoadAddonSlots							(LPCSTR section);
 
 protected:
 	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot) {};
 	
 public:
-	IC const xr_vector<SAddonSlot>& AddonSlots		()								const	{ return m_Slots; }
+	VSlots CR$									AddonSlots								()	C$	{ return m_Slots; }
 
 			void			AttachAddon				(CAddonObject* addon, u16 slot_idx = NO_ID);
 			void			DetachAddon				(CAddonObject* addon);
@@ -61,5 +62,5 @@ public:
     virtual void			renderable_Render		();
 	virtual void			UpdateAddonsTransform	();
     virtual void			render_hud_mode			();
-	virtual	float			GetControlInertionFactor()								const;
+	virtual	float			GetControlInertionFactor() C$;
 };

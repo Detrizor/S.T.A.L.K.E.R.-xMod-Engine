@@ -1737,7 +1737,7 @@ void CScriptGameObject::IterateInstalledUpgrades(const luabind::functor<bool> &f
 	if (!Item)
 		return;
 
-	for (auto I : Item->get_upgrades())
+	for (auto& I : Item->get_upgrades())
 	{
 		if (functor(I.c_str(), object().lua_game_object()) == true)
 			return;

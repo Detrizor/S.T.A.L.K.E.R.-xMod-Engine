@@ -331,7 +331,7 @@ void CObjectFactory::register_classes	()
 	//Weapons Add-on
 	ADD(CScopeObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SCOPE			,"wpn_scope");
 	ADD(CSilencerObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SILENCER		,"wpn_silencer");
-	ADD(CGrenadeLauncher		,CSE_ALifeItem					,CLSID_OBJECT_W_GLAUNCHER		,"wpn_grenade_launcher");
+	ADD(CGrenadeLauncherObject	,CSE_ALifeItem					,CLSID_OBJECT_W_GLAUNCHER		,"wpn_grenade_launcher");
 	ADD(CMagazineObject			,CSE_ALifeItem					,CLSID_OBJECT_W_MAGAZINE		,"wpn_magazine");
 
 	// Inventory

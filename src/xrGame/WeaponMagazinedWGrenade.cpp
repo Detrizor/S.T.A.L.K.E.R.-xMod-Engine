@@ -24,6 +24,8 @@ CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(ESoundTypes eSoundType) : CWe
     m_ammoType2 = 0;
     m_bGrenadeMode = false;
 	iMagazineSize2 = 0;
+	m_fLaunchSpeed = 0.f;
+	m_sFlameParticles2 = NULL;
 	m_pLauncher = NULL;
 }
 
@@ -39,8 +41,6 @@ void CWeaponMagazinedWGrenade::Load(LPCSTR section)
     m_sounds.LoadSound(section, "snd_shoot_grenade", "sndShotG", true, m_eSoundShot);
     m_sounds.LoadSound(section, "snd_reload_grenade", "sndReloadG", true, m_eSoundReload);
     m_sounds.LoadSound(section, "snd_switch", "sndSwitch", true, m_eSoundReload);
-
-    m_sFlameParticles2 = pSettings->r_string(section, "grenade_flame_particles");
 
     // load ammo classes SECOND (grenade_class)
     m_ammoTypes2.clear();
@@ -936,22 +936,24 @@ void CWeaponMagazinedWGrenade::OnMotionHalf()
 		inherited::OnMotionHalf();
 }
 
-void CWeaponMagazinedWGrenade::ProcessAddon(CAddon* const addon, BOOL attach, const SAddonSlot* const slot)
+void CWeaponMagazinedWGrenade::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CGrenadeLauncher* gl = smart_cast<CGrenadeLauncher*>(addon);
+	CGrenadeLauncher CPC gl = smart_cast<CGrenadeLauncher CP$>(addon);
 	if (gl)
 	{
-		CRocketLauncher::m_fLaunchSpeed = gl->GetGrenadeVel();
+		m_pLauncher = (attach) ? gl : NULL;
 
-		if (!attach)
+		m_sFlameParticles2 = (attach) ? pSettings->r_string(gl->Section(), "grenade_flame_particles") : NULL;
+
+		if (attach)
+			m_fLaunchSpeed = gl->GetGrenadeVel();
+		else
 		{
 			if (!m_bGrenadeMode)
 				PerformSwitchGL();
 			inventory_owner().Discharge(smart_cast<PIItem>(this), true);
 			PerformSwitchGL();
 		}
-
-		m_pLauncher = (attach) ? gl : NULL;
 	}
 
 	inherited::ProcessAddon(addon, attach, slot);

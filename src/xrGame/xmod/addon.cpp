@@ -5,17 +5,18 @@
 
 void CAddon::Load(LPCSTR section)
 {
-	m_section = section;
-	m_SlotType = pSettings->r_string(section, "slot_type");
+	m_section						= section;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CAddonObject::Load(LPCSTR section)
 {
-	inherited::Load(section);
-	CAddon::Load(section);
-	CAddonOwner::Load(section);
+	inherited::Load					(section);
+	CAddon::Load					(section);
+	CAddonOwner::Load				(section);
+
+	m_SlotType = pSettings->r_string(section, "slot_type");
 }
 
 DLL_Pure* CAddonObject::_construct()
@@ -27,14 +28,14 @@ DLL_Pure* CAddonObject::_construct()
 
 void CAddonObject::OnEvent(NET_Packet& P, u16 type)
 {
-	inherited::OnEvent(P, type);
-	CAddonOwner::OnEvent(P, type);
+	inherited::OnEvent				(P, type);
+	CAddonOwner::OnEvent			(P, type);
 }
 
 void CAddonObject::renderable_Render()
 {
-    inherited::renderable_Render();
-	CAddonOwner::renderable_Render();
+    inherited::renderable_Render	();
+	CAddonOwner::renderable_Render	();
 }
 
 void CAddonObject::UpdateAddonsTransform()
@@ -44,13 +45,13 @@ void CAddonObject::UpdateAddonsTransform()
 
 void CAddonObject::render_hud_mode()
 {
-	inherited::render_hud_mode();
-	CAddonOwner::render_hud_mode();
+	inherited::render_hud_mode		();
+	CAddonOwner::render_hud_mode	();
 }
 
-float CAddonObject::GetControlInertionFactor() const
+float CAddonObject::GetControlInertionFactor() C$
 {
-	float res = inherited::GetControlInertionFactor();
-	res *= CAddonOwner::GetControlInertionFactor();
-	return res;
+	float res						= inherited::GetControlInertionFactor();
+	res								*= CAddonOwner::GetControlInertionFactor();
+	return							res;
 }

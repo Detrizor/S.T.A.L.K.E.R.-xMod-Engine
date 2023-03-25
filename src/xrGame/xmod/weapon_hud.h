@@ -35,5 +35,5 @@ private:
 	
 	float							m_lense_offset;
 
-//	V_ type_name_very_long_____________________ method_name_also_very_long______________ (params_various_count____________________) C_ {}
+	//type_name_very_long___________________V$__method_name_also_very_long______________() C_ {}
 };

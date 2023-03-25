@@ -1,5 +1,3 @@
-#ifndef xrCoreH
-#define xrCoreH
 #pragma once
 
 #ifndef DEBUG
@@ -335,8 +333,15 @@ public:
 //Borland global function dll interface
 #define _BGCL __stdcall
 
-
 extern XRCORE_API xrCore Core;
 
-#endif
+#define V$ virtual
+#define S$ static
+#define C$ const
+#define O$ override
+#define CO$ const override
 
+#define CP$ const*
+#define PC$ *const
+#define CPC const*const
+#define CR$ const&

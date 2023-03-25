@@ -90,11 +90,13 @@ public:
 			u8						GetGrenade();
 			void					SetGrenade(u8 cnt);
 
+private:
+	CGrenadeLauncher CP$						m_pLauncher;
+
 protected:
-			CGrenadeLauncher* m_pLauncher;
+	void										ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot) O$;
 
 	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 	virtual void			SetADS					(int mode);
 	virtual void			OnMotionHalf			();
-	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot);
 };

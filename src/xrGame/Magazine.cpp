@@ -80,9 +80,11 @@ bool CMagazine::CanTake(CWeaponAmmo* ammo) const
 {
 	if (Amount() == Capacity())
 		return						false;
-	for (auto I : m_ammo_types)
+	for (auto& I : m_ammo_types)
+	{
 		if (I == ammo->m_section_id)
 			return					true;
+	}
 	return							false;
 }
 

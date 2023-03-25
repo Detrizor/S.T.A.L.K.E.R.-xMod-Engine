@@ -584,7 +584,7 @@ void CUIActorMenu::highlight_ammo_for_weapon(CUICellItem* cell_item, CUIDragDrop
 			continue;
 		}
 		shared_str ammo_name					= pSettings->line_exist(ci->m_section, "stock") ? pSettings->r_string(ci->m_section, "stock") : ci->m_section;
-		for (auto I : ammo_types)
+		for (auto& I : ammo_types)
 		{
 			if (ammo_name == I)
 			{

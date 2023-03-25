@@ -7,18 +7,13 @@ class CAddonOwner;
 class CAddon
 {
 public:
-							CAddon					()										{}
-							~CAddon					()										{}
-
-	virtual	void			Load					(LPCSTR section);
+	void									V$	Load									(LPCSTR section);
 
 private:
-			shared_str		m_section;
-			shared_str		m_SlotType;
+	shared_str									m_section;
 
 public:
-	const	shared_str&		Section					()								const	{ return m_section; }
-	const	shared_str&		SlotType				()								const	{ return m_SlotType; }
+	shared_str CR$								Section									()	C$	{ return m_section; }
 };
 
 class CAddonObject : public CAttachmentObject,
@@ -26,20 +21,22 @@ class CAddonObject : public CAttachmentObject,
 	public CAddonOwner
 {
 private:
-	typedef	CAttachmentObject	inherited;
+	typedef	CAttachmentObject inherited;
 
 public:
-							CAddonObject			()										{}
-	virtual					~CAddonObject			()										{}
-	virtual DLL_Pure*		_construct				();
+	DLL_Pure*									_construct								() O$;
+	void										Load									(LPCSTR section) O$;
+	void										OnEvent									(NET_Packet& P, u16 type) O$;
 
+private:
+	shared_str									m_SlotType;
 
-	virtual	void			Load					(LPCSTR section);
-	virtual	void			OnEvent					(NET_Packet& P, u16 type);
-			
 public:
-    virtual void			renderable_Render		();
-	virtual void			UpdateAddonsTransform	();
-    virtual void			render_hud_mode			();
-	virtual	float			GetControlInertionFactor()								const;
+	shared_str CR$								SlotType								()	C$	{ return m_SlotType; }
+
+	float										GetControlInertionFactor				() CO$;
+
+	void										renderable_Render						() O$;
+	void										UpdateAddonsTransform					() O$;
+    void										render_hud_mode							() O$;
 };

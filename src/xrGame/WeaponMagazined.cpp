@@ -150,7 +150,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_iChamber			= (u8)pSettings->r_bool(section, "has_chamber");
 
-	for (auto slot : AddonSlots())
+	for (auto& slot : AddonSlots())
 	{
 		// --xd for if (slot.)
 	}
@@ -1286,9 +1286,11 @@ bool CWeaponMagazined::CanTrade() const
 {
 	if (iAmmoElapsed)
 		return false;
-	for (auto slot : AddonSlots())
-	if (slot.addon)
-		return false;
+	for (auto& slot : AddonSlots())
+	{
+		if (slot.addon)
+			return false;
+	}
 	return true;
 }
 
@@ -1296,7 +1298,7 @@ float CWeaponMagazined::Weight() const
 {
 	float res		= inherited::Weight();
     res				+= GetMagazineWeight(m_magazine);
-	for (auto slot : AddonSlots())
+	for (auto& slot : AddonSlots())
 	if (slot.addon)
 		res			+= slot.addon->Weight();
     return			res;
@@ -1305,9 +1307,11 @@ float CWeaponMagazined::Weight() const
 float CWeaponMagazined::Volume() const
 {
 	float res		= inherited::Volume();
-	for (auto slot : AddonSlots())
-	if (slot.addon)
-		res			+= slot.addon->Volume();
+	for (auto& slot : AddonSlots())
+	{
+		if (slot.addon)
+			res		+= slot.addon->Volume();
+	}
     return			res;
 }
 
@@ -1500,12 +1504,12 @@ float CWeaponMagazined::CurrentZoomFactor() const
 		return inherited::CurrentZoomFactor();
 }
 
-void CWeaponMagazined::ProcessAddon(CAddon* const addon, BOOL attach, const SAddonSlot* const slot)
+void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CScope* scope = smart_cast<CScope*>(addon);
+	CScope CPC scope = smart_cast<CScope CP$>(addon);
 	if (scope)
 	{
-		((slot && slot->primary_scope || !slot) ? m_pScope : m_pAltScope) = (attach) ? scope : NULL;
+		((slot && slot->primary_scope || !slot) ? m_pScope : m_pAltScope) = (attach) ? const_cast<CScope*>(scope) : NULL;
 
 		if (slot && slot->lower_iron_sights)
 		{
@@ -1515,10 +1519,10 @@ void CWeaponMagazined::ProcessAddon(CAddon* const addon, BOOL attach, const SAdd
 		}
     }
 
-	CSilencer* silencer = smart_cast<CSilencer*>(addon);
+	CSilencer CPC silencer = smart_cast<CSilencer CP$>(addon);
 	if (silencer)
 	{
-		m_pSilencer = (attach) ? silencer : NULL;
+		m_pSilencer = (attach) ? const_cast<CSilencer*>(silencer) : NULL;
 
 		LPCSTR sect_to_load = (attach) ? *addon->Section() : *cNameSect();
 		LoadLights(sect_to_load);
@@ -1530,14 +1534,17 @@ void CWeaponMagazined::ProcessAddon(CAddon* const addon, BOOL attach, const SAdd
 		UpdateSndShot();
     }
 
-	CMagazineObject* mag = smart_cast<CMagazineObject*>(addon);
+	CMagazineObject CPC mag = smart_cast<CMagazineObject CP$>(addon);
 	if (mag)
 	{
 		if (attach)
 		{
+			m_pMagazine = const_cast<CMagazineObject*>(mag);
 			if (m_iChamber < m_magazine.size())
-			while (m_iChamber < m_magazine.size())
-				m_magazine.pop_back();
+			{ 
+				while (m_iChamber < m_magazine.size())
+					m_magazine.pop_back();
+			}
 			else
 				iAmmoElapsed += m_pMagazine->Amount();
 
@@ -1547,8 +1554,10 @@ void CWeaponMagazined::ProcessAddon(CAddon* const addon, BOOL attach, const SAdd
 				LoadCartridgeFromMagazine(!m_iChamber);
 		}
 		else
+		{ 
 			iAmmoElapsed -= m_pMagazine->Amount();
-		m_pMagazine = (attach) ? mag : NULL;
+			m_pMagazine = NULL;
+		}
 	}
 
 	InitRotateTime();

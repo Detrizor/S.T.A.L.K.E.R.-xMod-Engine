@@ -7,7 +7,7 @@
 CAddonOwner::CAddonOwner()
 {
 	m_Slots.clear							();
-	m_iNextAddonSlot						= NO_ID;
+	m_NextAddonSlot							= NO_ID;
 }
 
 DLL_Pure* CAddonOwner::_construct()
@@ -43,10 +43,10 @@ void CAddonOwner::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_s
 		return;
 
 	u16& idx									= addon->m_ItemCurrPlace.value;
-	if (m_iNextAddonSlot != NO_ID)
+	if (m_NextAddonSlot != NO_ID)
 	{
-		idx										= m_iNextAddonSlot;
-		m_iNextAddonSlot						= NO_ID;
+		idx										= m_NextAddonSlot;
+		m_NextAddonSlot							= NO_ID;
 	}
 	switch (type)
 	{
@@ -70,7 +70,7 @@ void CAddonOwner::AttachAddon(CAddonObject* addon, u16 slot_idx)
 
 	if (slot_idx == NO_ID)
 	{
-		for (auto slot : m_Slots)
+		for (auto& slot : m_Slots)
 		if (slot.CanTake(addon))
 		{
 			slot_idx							= slot.idx;
@@ -80,7 +80,7 @@ void CAddonOwner::AttachAddon(CAddonObject* addon, u16 slot_idx)
 
 	if (slot_idx != NO_ID)
 	{
-		m_iNextAddonSlot						= slot_idx;
+		m_NextAddonSlot							= slot_idx;
 		TransferAnimation						(addon, true);
 	}
 }
@@ -97,7 +97,7 @@ void CAddonOwner::TransferAnimation(CAddonObject* addon, bool attach)
 
 void CAddonOwner::renderable_Render()
 {
-	for (auto slot : m_Slots)
+	for (auto& slot : m_Slots)
 		if (slot.addon)
 			slot.addon->Update_And_Render_World	(m_object->Visual(), m_object->XFORM());
 }
@@ -108,14 +108,14 @@ void CAddonOwner::UpdateAddonsTransform()
 	if (!hi)
 		return;
 
-	for (auto slot : m_Slots)
+	for (auto& slot : m_Slots)
 		if (slot.addon)
 			slot.addon->UpdateRenderPos			(hi->m_model->dcast_RenderVisual(), hi->m_item_transform);
 }
 
 void CAddonOwner::render_hud_mode()
 {
-	for (auto slot : m_Slots)
+	for (auto& slot : m_Slots)
 		if (slot.addon)
 			slot.addon->Render					();
 }
@@ -123,7 +123,7 @@ void CAddonOwner::render_hud_mode()
 float CAddonOwner::GetControlInertionFactor() const
 {
 	float res									= 1.f;
-	for (auto slot : m_Slots)
+	for (auto& slot : m_Slots)
 		if (slot.addon)
 			res									*= slot.addon->GetControlInertionFactor();
 	return										res;
@@ -179,7 +179,7 @@ void SAddonSlot::Load(LPCSTR section, u16 _idx)
 		overlaping_slot			= pSettings->r_u16(section, *tmp);
 }
 
-bool SAddonSlot::CanTake(const CAddonObject* const _addon)
+bool SAddonSlot::CanTake(CAddonObject CPC _addon) const
 {
 	if (addon)
 		return false;

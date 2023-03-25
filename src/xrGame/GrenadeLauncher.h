@@ -1,31 +1,30 @@
-///////////////////////////////////////////////////////////////
-// GrenadeLauncher.h
-// GrenadeLauncher - апгрейд оружия поствольный гранатомет
-///////////////////////////////////////////////////////////////
-
 #pragma once
-#include "inventory_item_object.h"
+#include "xmod\addon.h"
+#include "xmod\attachment.h"
 
-class CGrenadeLauncher : public CInventoryItemObject {
+class CGrenadeLauncher : public CAddon
+{
 private:
-	typedef CInventoryItemObject inherited;
+	typedef CAddon inherited;
+
 public:
-	CGrenadeLauncher (void);
-	virtual ~CGrenadeLauncher(void);
+												CGrenadeLauncher						();
 
-	virtual BOOL net_Spawn			(CSE_Abstract* DC);
-	virtual void Load				(LPCSTR section);
-	virtual void net_Destroy		();
+		void									Load									(LPCSTR section) O$;
 
-	virtual void OnH_A_Chield		();
-	virtual void OnH_B_Independent	(bool just_before_destroy);
+private:
+		float m_fGrenadeVel;
 
-	virtual void UpdateCL			();
-	virtual void renderable_Render	();
+public:
+		float									GetGrenadeVel							() C$ { return m_fGrenadeVel; }
+};
 
-	float	GetGrenadeVel() {return m_fGrenadeVel;}
+class CGrenadeLauncherObject : public CAttachmentObject,
+	public CGrenadeLauncher
+{
+private:
+	typedef	CAttachmentObject inherited;
 
-protected:
-	//стартовая скорость вылета подствольной гранаты
-	float m_fGrenadeVel;
+public:
+	void										Load									(LPCSTR section) O$;
 };

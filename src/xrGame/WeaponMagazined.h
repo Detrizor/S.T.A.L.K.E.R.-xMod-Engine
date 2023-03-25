@@ -243,10 +243,10 @@ private:
 	   u8                                       m_iChamber;
 	   bool                                     m_bIronSightsLowered;
 
-	   CScope*                                  m_pScope;
-	   CScope*                                  m_pAltScope;
-	   CSilencer*                               m_pSilencer;
-	   CMagazineObject*                         m_pMagazine;
+	CScope*										m_pScope;
+	CScope*										m_pAltScope;
+	CSilencer*									m_pSilencer;
+	CMagazineObject*							m_pMagazine;
 
 	   CMagazineObject*                         m_pMagazineToReload;
 	
@@ -262,27 +262,28 @@ private:
 	virtual void                                ConsumeShotCartridge                     ();
 
 protected:
-	   CWeaponAmmo*                             m_pCartridgeToReload;
+	CWeaponAmmo*								m_pCartridgeToReload;
 
-	virtual void                                ProcessAddon                             (CAddon* const addon, BOOL attach, const SAddonSlot* const slot);
+	void									V$	ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
 
 public:
-	   bool                                     ScopeAttached                            () const { return m_pScope || m_pAltScope; }
-	   bool                                     SilencerAttached                         () const { return !!m_pSilencer; }
+	bool										Discharge								(CCartridge& destination);
 
-	   bool                                     Discharge                                (CCartridge& destination);
+	bool										ScopeAttached							()	C$	{ return m_pScope || m_pAltScope; }
+	bool										SilencerAttached						()	C$	{ return !!m_pSilencer; }
 
-	   float                                    GetLensRotatingFactor                    () const;
-	   float                                    GetReticleScale                          () const;
-	   bool                                     CanTrade                                 () const;
+	float										GetLensRotatingFactor					()	C$;
+	float										GetReticleScale							()	C$;
+	bool										CanTrade								()	C$;
 
-	virtual float                               CurrentZoomFactor                        () const;
+	float										CurrentZoomFactor						()	CO$;
 
-	virtual bool                                LoadCartridge                            (CWeaponAmmo* cartridges);
-	virtual	void                                UpdateBonesVisibility                    ();
-	virtual void                                UpdateHudBonesVisibility                 ();
-	virtual void                                OnMotionHalf                             ();
-	virtual void                                UpdateAddonsTransform                    ();
-	virtual	void                                TransferAnimation                        (CAddonObject* addon, bool attach);
-	virtual	void                                OnTaken                                  ();
+	void										UpdateBonesVisibility                    ()	O$;
+	void										UpdateHudBonesVisibility                 ()	O$;
+	void										UpdateAddonsTransform                    ()	O$;
+	void										TransferAnimation                        (CAddonObject* addon, bool attach) O$;
+	void										OnTaken                                  ()	O$;
+
+	bool									V$	LoadCartridge                            (CWeaponAmmo* cartridges);
+	void									V$	OnMotionHalf                             ();
 };

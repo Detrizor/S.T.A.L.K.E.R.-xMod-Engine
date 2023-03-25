@@ -688,7 +688,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 	if (!ao)
 		return;
 
-	for (auto slot : ao->AddonSlots())
+	for (auto& slot : ao->AddonSlots())
 	{
 		if (slot.addon)
 		{
@@ -708,7 +708,7 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 	if (!addon)
 		return;
 
-	for (auto slot : ao->AddonSlots())
+	for (auto& slot : ao->AddonSlots())
 	{
 		if (slot.CanTake(addon))
 		{

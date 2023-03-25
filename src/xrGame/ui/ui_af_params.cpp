@@ -131,7 +131,7 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 
 void InitMaxArtValues()
 {
-	for (auto sec : g_items_library->Get("artefact", "active", "void"))
+	for (auto& sec : g_items_library->Get("artefact", "active", "void"))
 	{
 		for (u8 i = 0; i < eRestoreTypeMax; ++i)
 		{
