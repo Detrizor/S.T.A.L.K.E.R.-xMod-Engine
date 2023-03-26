@@ -1,13 +1,16 @@
 // Hint files help the Visual Studio IDE interpret Visual C++ identifiers
 // such as names of functions and macros.
 // For more information see https://go.microsoft.com/fwlink/?linkid=865984
-#define C$
-// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
-// such as names of functions and macros.
-// For more information see https://go.microsoft.com/fwlink/?linkid=865984
-#define CO$
-#define O$
-// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
-// such as names of functions and macros.
-// For more information see https://go.microsoft.com/fwlink/?linkid=865984
-#define CPC
+#define IC
+#define NULL
+#define NULL ((void*)0)
+#define NULL ((void *)0)
+#define TRUE
+#define DECLARE_SCRIPT_REGISTER_FUNCTION public: static void script_register(lua_State *);
+#define WRAP_CONSTRUCT() DLL_Pure* _construct() override { wrap::_construct(); return core::_construct(); }
+#define WRAP_VIRTUAL_METHOD1(return_type, method_name, pre_core, pre_wrap, t1) return_type method_name(t1 a1) override { pre_core core::method_name(a1) pre_wrap wrap::method_name(a1); }
+#define WRAP_VIRTUAL_METHOD0(return_type, method_name, pre_core, pre_wrap) return_type method_name() override { pre_core core::method_name() pre_wrap wrap::method_name(); }
+#define WRAP_VIRTUAL_METHOD2(return_type, method_name, pre_core, pre_wrap, t1, t2) return_type method_name(t1 a1, t2 a2) override { pre_core core::method_name(a1, a2) pre_wrap wrap::method_name(a1, a2); }
+#define O$(__VA_ARGS__) (##__VA_ARGS__) override
+#define o$(__VA_ARGS__) (##__VA_ARGS__)
+#define CO$(__VA_ARGS__) (##__VA_ARGS__) const override

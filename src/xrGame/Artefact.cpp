@@ -306,16 +306,6 @@ bool CArtefact::CanTake() const
 	return true;
 }
 
-void CArtefact::Hide()
-{
-	SwitchState(eHiding);
-}
-
-void CArtefact::Show()
-{
-	SwitchState(eShowing);
-}
-
 void CArtefact::MoveTo(Fvector const &  position)
 {
 	if (!PPhysicsShell())
@@ -604,18 +594,6 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 		m_destPoint				= m_currPatrolVertex->data().position();
 		m_path_moving_force		= force;
 	}
-}
-
-void CArtefact::OnActiveItem ()
-{
-	SwitchState					(eShowing);
-	inherited::OnActiveItem		();
-}
-
-void CArtefact::OnHiddenItem ()
-{
-	SwitchState(eHiding);
-	inherited::OnHiddenItem		();
 }
 
 u32 CArtefact::Cost() const

@@ -49,7 +49,7 @@ void CAddonObject::render_hud_mode()
 	CAddonOwner::render_hud_mode	();
 }
 
-float CAddonObject::GetControlInertionFactor() C$
+float CAddonObject::GetControlInertionFactor C$()
 {
 	float res						= inherited::GetControlInertionFactor();
 	res								*= CAddonOwner::GetControlInertionFactor();

@@ -94,7 +94,7 @@ private:
 	CGrenadeLauncher CP$						m_pLauncher;
 
 protected:
-	void										ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot) O$;
+	void										ProcessAddon						O$	(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
 
 	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 	virtual void			SetADS					(int mode);

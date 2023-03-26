@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 #include "hit_immunity.h"
 #include "../xrphysics/PHUpdateObject.h"
 #include "script_export_space.h"
@@ -26,8 +26,6 @@ public:
 
 	virtual void					OnH_A_Chield					();
 	virtual void					OnH_B_Independent				(bool just_before_destroy);
-	virtual void					OnActiveItem					();
-	virtual void					OnHiddenItem					();
 	
 	virtual void					UpdateCL						();
 	virtual void					shedule_Update					(u32 dt);	
@@ -94,8 +92,6 @@ public:
 
 	virtual void					ForceTransform		(const Fmatrix& m);
 
-	virtual void					Hide				();
-	virtual void					Show				();
 	virtual	void					UpdateXForm			();
 	virtual bool					Action				(u16 cmd, u32 flags);
 	virtual void					OnStateSwitch		(u32 S, u32 oldState);

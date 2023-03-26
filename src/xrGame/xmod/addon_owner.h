@@ -52,15 +52,15 @@ protected:
 	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot) {};
 	
 public:
-	VSlots CR$									AddonSlots								()	C$	{ return m_Slots; }
+	VSlots CR$									AddonSlots							C$	()		{ return m_Slots; }
 
 			void			AttachAddon				(CAddonObject* addon, u16 slot_idx = NO_ID);
 			void			DetachAddon				(CAddonObject* addon);
 
 	virtual	void			TransferAnimation		(CAddonObject* addon, bool attach);
 			
-    virtual void			renderable_Render		();
-	virtual void			UpdateAddonsTransform	();
-    virtual void			render_hud_mode			();
-	virtual	float			GetControlInertionFactor() C$;
+    virtual void			renderable_Render			();
+	virtual void			UpdateAddonsTransform		();
+    virtual void			render_hud_mode				();
+	virtual	float			GetControlInertionFactor	C$	();
 };

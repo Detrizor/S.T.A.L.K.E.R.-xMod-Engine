@@ -10,13 +10,13 @@ private:
 public:
 												CGrenadeLauncher						();
 
-		void									Load									(LPCSTR section) O$;
+		void									Load								O$	(LPCSTR section);
 
 private:
 		float m_fGrenadeVel;
 
 public:
-		float									GetGrenadeVel							() C$ { return m_fGrenadeVel; }
+		float									GetGrenadeVel						C$	()		{ return m_fGrenadeVel; }
 };
 
 class CGrenadeLauncherObject : public CAttachmentObject,
@@ -26,5 +26,5 @@ private:
 	typedef	CAttachmentObject inherited;
 
 public:
-	void										Load									(LPCSTR section) O$;
+	void										Load								O$	(LPCSTR section);
 };

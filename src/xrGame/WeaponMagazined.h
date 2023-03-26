@@ -269,21 +269,21 @@ protected:
 public:
 	bool										Discharge								(CCartridge& destination);
 
-	bool										ScopeAttached							()	C$	{ return m_pScope || m_pAltScope; }
-	bool										SilencerAttached						()	C$	{ return !!m_pSilencer; }
+	bool										ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
+	bool										SilencerAttached					C$	()		{ return !!m_pSilencer; }
 
-	float										GetLensRotatingFactor					()	C$;
-	float										GetReticleScale							()	C$;
-	bool										CanTrade								()	C$;
+	float										GetLensRotatingFactor				C$	();
+	float										GetReticleScale						C$	();
+	bool										CanTrade							C$	();
 
-	float										CurrentZoomFactor						()	CO$;
+	float										CurrentZoomFactor					CO$	();
 
-	void										UpdateBonesVisibility                    ()	O$;
-	void										UpdateHudBonesVisibility                 ()	O$;
-	void										UpdateAddonsTransform                    ()	O$;
-	void										TransferAnimation                        (CAddonObject* addon, bool attach) O$;
-	void										OnTaken                                  ()	O$;
+	void										UpdateBonesVisibility				O$	();
+	void										UpdateHudBonesVisibility			O$	();
+	void										UpdateAddonsTransform				O$	();
+	void										TransferAnimation					O$	(CAddonObject* addon, bool attach);
+	void										OnTaken								O$	();
 
-	bool									V$	LoadCartridge                            (CWeaponAmmo* cartridges);
-	void									V$	OnMotionHalf                             ();
+	bool									V$	LoadCartridge							(CWeaponAmmo* cartridges);
+	void									V$	OnMotionHalf							();
 };

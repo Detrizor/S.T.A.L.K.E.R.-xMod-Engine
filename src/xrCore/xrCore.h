@@ -337,11 +337,24 @@ extern XRCORE_API xrCore Core;
 
 #define V$ virtual
 #define S$ static
-#define C$ const
-#define O$ override
-#define CO$ const override
+#define C$(...) (##__VA_ARGS__) const
+#define O$(...) (##__VA_ARGS__) override
+#define o$(...) (##__VA_ARGS__)
+#define CO$(...) (##__VA_ARGS__) const override
 
 #define CP$ const*
 #define PC$ *const
 #define CPC const*const
 #define CR$ const&
+
+#define WRAP_CONSTRUCT()\
+DLL_Pure* _construct() override { wrap::_construct(); return core::_construct(); }
+
+#define WRAP_VIRTUAL_METHOD0(return_type, method_name, pre_core, pre_wrap)\
+return_type method_name() override { pre_core core::method_name() pre_wrap wrap::method_name(); }
+
+#define WRAP_VIRTUAL_METHOD1(return_type, method_name, pre_core, pre_wrap, t1)\
+return_type method_name(t1 a1) override { pre_core core::method_name(a1) pre_wrap wrap::method_name(a1); }
+
+#define WRAP_VIRTUAL_METHOD2(return_type, method_name, pre_core, pre_wrap, t1, t2)\
+return_type method_name(t1 a1, t2 a2) override { pre_core core::method_name(a1, a2) pre_wrap wrap::method_name(a1, a2); }
