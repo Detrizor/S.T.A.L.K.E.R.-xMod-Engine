@@ -141,8 +141,8 @@ public:
 	virtual void 	OnMoveToSlot		(const SInvItemPlace& prev);
 	virtual void 	OnMoveToRuck		(const SInvItemPlace& prev);
 
-	virtual void	OnActiveItem		();
-	virtual void	OnHiddenItem		();
+	virtual void	OnActiveItem		() {}
+	virtual void	OnHiddenItem		() {}
 	virtual void	OnStateSwitch		(u32 S, u32 oldState);
 	virtual void	OnAnimationEnd		(u32 state);
 	virtual	void	UpdateXForm			();

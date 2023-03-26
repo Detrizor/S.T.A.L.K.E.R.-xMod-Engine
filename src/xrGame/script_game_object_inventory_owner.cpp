@@ -1080,11 +1080,8 @@ void  CScriptGameObject::RestoreWeapon()
 
     PIItem active_item					= inventory_owner->inventory().ActiveItem();
 	if (active_item)
-	{
-		CHudItem* hi					= active_item->cast_hud_item();
-		if (hi)
-			hi->ActivateItem			();
-	}
+		active_item->ActivateItem		();
+
 	PIItem left_item					= inventory_owner->inventory().LeftItem();
 	if (left_item)
 	{

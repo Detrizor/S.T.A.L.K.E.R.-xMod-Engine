@@ -696,30 +696,17 @@ void CWeapon::OnH_A_Chield()
 
 void CWeapon::OnActiveItem()
 {
-    //. from Activate
 	UpdateBonesVisibility();
-    m_BriefInfo_CalcFrame = 0;
-
-    //. Show
-    SwitchState(eShowing);
-    //-
-
-    inherited::OnActiveItem();
-    //если мы занружаемся и оружие было в руках
-    //.	SetState					(eIdle);
-    //.	SetNextState				(eIdle);
+	m_BriefInfo_CalcFrame = 0;
+	inherited::OnActiveItem();
 }
 
 void CWeapon::OnHiddenItem()
 {
-    m_BriefInfo_CalcFrame = 0;
-
-    SwitchState(eHiding);
-
-    OnZoomOut();
-    inherited::OnHiddenItem();
-
-    m_set_next_ammoType_on_reload = undefined_ammo_type;
+	m_BriefInfo_CalcFrame = 0;
+	OnZoomOut();
+	inherited::OnHiddenItem();
+	m_set_next_ammoType_on_reload = undefined_ammo_type;
 }
 
 void CWeapon::SendHiddenItem()

@@ -5646,9 +5646,6 @@
     <ClInclude Include="inventory_item_object.h">
       <Filter>Core\Client\Objects\inventory\InventoryItemObject</Filter>
     </ClInclude>
-    <ClInclude Include="inventory_item_object_inline.h">
-      <Filter>Core\Client\Objects\inventory\InventoryItemObject</Filter>
-    </ClInclude>
     <ClInclude Include="inventory_owner_inline.h">
       <Filter>Core\Client\Objects\inventory\InventoryOwner</Filter>
     </ClInclude>

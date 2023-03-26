@@ -5,7 +5,7 @@
 #include "PHShellCreator.h"
 
 #include "ShootingObject.h"
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 #include "Actor_Flags.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "firedeps.h"
@@ -14,7 +14,6 @@
 
 #include "CameraRecoil.h"
 #include "actor.h"
-#include "hud_item_object.h"
 
 class CEntity;
 class ENGINE_API CMotionDef;

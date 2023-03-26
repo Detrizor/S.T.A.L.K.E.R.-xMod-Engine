@@ -357,9 +357,9 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem)
 	if (m_bActors)
 	{
 		if (slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
-			pIItem->cast_hud_item()->ActivateItem();
+			pIItem->ActivateItem();
 		else if (slot_id == LEFT_HAND_SLOT)
-			smart_cast<CCustomDetector*>(pIItem)->ToggleDetector(g_player_hud->attached_item(0) != NULL);
+			smart_cast<CCustomDetector*>(pIItem)->ToggleDetector(!!g_player_hud->attached_item(0));
 		else
 			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
 	}

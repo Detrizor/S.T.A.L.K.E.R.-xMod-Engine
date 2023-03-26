@@ -174,15 +174,6 @@ void CCustomDetector::UpdateXForm()
 	CInventoryItem::UpdateXForm();
 }
 
-void CCustomDetector::OnActiveItem()
-{
-	return;
-}
-
-void CCustomDetector::OnHiddenItem()
-{
-}
-
 CCustomDetector::CCustomDetector() 
 {
 	m_ui				= NULL;

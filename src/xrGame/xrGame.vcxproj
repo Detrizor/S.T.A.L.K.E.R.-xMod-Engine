@@ -1657,7 +1657,6 @@
     <ClInclude Include="inventory_item_impl.h" />
     <ClInclude Include="inventory_item_inline.h" />
     <ClInclude Include="inventory_item_object.h" />
-    <ClInclude Include="inventory_item_object_inline.h" />
     <ClInclude Include="inventory_owner_inline.h" />
     <ClInclude Include="inventory_upgrade.h" />
     <ClInclude Include="inventory_upgrade_base.h" />

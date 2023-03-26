@@ -3,7 +3,7 @@
 class CLAItem;
 class CParticlesObject;
 
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 
 class CFlare :public CHudItemObject
 {

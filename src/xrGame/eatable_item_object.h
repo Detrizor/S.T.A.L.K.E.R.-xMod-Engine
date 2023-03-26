@@ -43,10 +43,6 @@ public:
 
 	virtual void	OnStateSwitch			(u32 S, u32 oldState);
 	virtual void	OnAnimationEnd			(u32 state);
-	virtual void	Show					();
-	virtual void	Hide					();
-	virtual void	OnActiveItem			();
-	virtual void	OnHiddenItem			();
 	virtual	void	UpdateXForm				();
 
 	virtual void	Load					(LPCSTR section);

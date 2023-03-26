@@ -125,7 +125,6 @@ void CMissile::PH_A_CrPr		()
 
 void CMissile::OnActiveItem		()
 {
-	SwitchState				(eShowing);
 	inherited::OnActiveItem	();
 	SetState				(eIdle);
 	SetNextState			(eIdle);	
@@ -133,12 +132,6 @@ void CMissile::OnActiveItem		()
 
 void CMissile::OnHiddenItem()
 {
-
-//. -Hide
-	SwitchState			(eHiding);
-
-//-
-
 	inherited::OnHiddenItem	();
 	SetState				(eHidden);
 	SetNextState			(eHidden);

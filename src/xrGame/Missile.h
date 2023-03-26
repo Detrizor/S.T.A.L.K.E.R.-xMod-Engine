@@ -1,5 +1,5 @@
 #pragma once
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 #include "HudSound.h"
 
 struct dContact;

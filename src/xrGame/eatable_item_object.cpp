@@ -92,28 +92,6 @@ void CEatableItemObject::OnAnimationEnd(u32 state)
 	}
 }
 
-void CEatableItemObject::Show()
-{
-	SwitchState(eShowing);
-}
-
-void CEatableItemObject::Hide()
-{
-	SwitchState(eHiding);
-}
-
-void CEatableItemObject::OnActiveItem()
-{
-	SwitchState					(eShowing);
-	CHudItem::OnActiveItem		();
-}
-
-void CEatableItemObject::OnHiddenItem()
-{
-	SwitchState					(eHiding);
-	CHudItem::OnHiddenItem		();
-}
-
 #include "inventoryOwner.h"
 #include "Entity_alive.h"
 #include "../Include/xrRender/Kinematics.h"
