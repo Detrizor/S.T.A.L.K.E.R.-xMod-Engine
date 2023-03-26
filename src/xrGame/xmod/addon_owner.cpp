@@ -63,36 +63,40 @@ void CAddonOwner::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_s
 	}
 }
 
-void CAddonOwner::AttachAddon(CAddonObject* addon, u16 slot_idx)
+bool CAddonOwner::AttachAddon(CAddonObject CPC addon, u16 slot_idx)
 {
 	if (!addon)
-		return;
+		return							false;
 
 	if (slot_idx == NO_ID)
 	{
 		for (auto& slot : m_Slots)
-		if (slot.CanTake(addon))
 		{
-			slot_idx							= slot.idx;
-			break;
+			if (slot.CanTake(addon))
+			{
+				slot_idx				= slot.idx;
+				break;
+			}
 		}
 	}
 
 	if (slot_idx != NO_ID)
 	{
-		m_NextAddonSlot							= slot_idx;
-		TransferAnimation						(addon, true);
+		m_NextAddonSlot					= slot_idx;
+		TransferAnimation				(addon, true);
+		return							true;
 	}
+	return								false;
 }
 
-void CAddonOwner::DetachAddon(CAddonObject* addon)
+void CAddonOwner::DetachAddon(CAddonObject CPC addon)
 {
-	TransferAnimation							(addon, false);
+	TransferAnimation					(addon, false);
 }
 
-void CAddonOwner::TransferAnimation(CAddonObject* addon, bool attach)
+void CAddonOwner::TransferAnimation(CAddonObject CPC addon, bool attach)
 {
-	addon->Transfer								((attach) ? m_object->ID() : m_object->H_Parent()->ID());
+	addon->Transfer						((attach) ? m_object->ID() : m_object->H_Parent()->ID());
 }
 
 void CAddonOwner::renderable_Render()

@@ -312,16 +312,18 @@ void CUIActorMenu::OnInventoryAction(PIItem pItem, u16 action_type, u8 zone)
 
 void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddonObject* addon, u8 slot)
 {
-	PlaySnd										(eAttachAddon);
-	ao->AttachAddon								(addon, slot);
-	HideDialog									();
+	if (ao->AttachAddon(addon, slot))
+	{
+		PlaySnd							(eAttachAddon);
+		HideDialog						();
+	}
 }
 
 void CUIActorMenu::DetachAddon(CAddonOwner* ao, CAddonObject* addon)
 {
-	PlaySnd										(eDetachAddon);
-	ao->DetachAddon								(addon);
-	HideDialog									();
+	PlaySnd								(eDetachAddon);
+	ao->DetachAddon						(addon);
+	HideDialog							();
 }
 
 void CUIActorMenu::InitCellForSlot( u16 slot_idx )
@@ -559,11 +561,11 @@ void CUIActorMenu::OnItemDropped(PIItem itm, CUIDragDropListEx* new_owner, CUIDr
 	CUICellItem* _citem		= (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
 	if (_citem)
 	{
-		CAddonOwner* ao = (CAddonOwner*)_citem->m_pData;
-		if (ao)
+		PIItem item = (PIItem)_citem->m_pData;
+		if (item && item->InHands())
 		{
-			PIItem item = (PIItem)_citem->m_pData;
-			if (item->InHands())
+			CAddonOwner* ao = smart_cast<CAddonOwner*>(item);
+			if (ao)
 				AttachAddon(ao, smart_cast<CAddonObject*>(itm));
 		}
 	}

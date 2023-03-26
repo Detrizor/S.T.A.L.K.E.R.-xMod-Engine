@@ -281,7 +281,7 @@ public:
 	void										UpdateBonesVisibility				O$	();
 	void										UpdateHudBonesVisibility			O$	();
 	void										UpdateAddonsTransform				O$	();
-	void										TransferAnimation					O$	(CAddonObject* addon, bool attach);
+	void										TransferAnimation					O$	(CAddonObject CPC addon, bool attach);
 	void										OnTaken								O$	();
 
 	bool									V$	LoadCartridge							(CWeaponAmmo* cartridges);

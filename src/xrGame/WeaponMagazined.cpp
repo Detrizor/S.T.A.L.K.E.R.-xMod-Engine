@@ -1576,14 +1576,14 @@ void CWeaponMagazined::OnTaken()
 	UpdateSndShot();
 }
 
-void CWeaponMagazined::TransferAnimation(CAddonObject* addon, bool attach)
+void CWeaponMagazined::TransferAnimation o$(CAddonObject CPC addon, bool attach)
 {
-	CMagazineObject* mag = smart_cast<CMagazineObject*>(addon);
+	CMagazineObject CPC mag = smart_cast<CMagazineObject CP$>(addon);
 	if (!mag)
 	{
 		CAddonOwner::TransferAnimation(addon, attach);
 		return;
 	}
 
-	StartReload((attach) ? mag->dcast_CObject() : NULL);
+	StartReload((attach) ? const_cast<CMagazineObject*>(mag)->dcast_CObject() : NULL);
 }

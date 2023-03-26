@@ -96,8 +96,8 @@ public:
 	virtual bool				ActivateItem		();
 	virtual void				DeactivateItem		();
 	virtual void				SendDeactivateItem	();
-	virtual void				OnActiveItem		()				{ SwitchState(eShowing); };
-	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); };
+	virtual void				OnActiveItem		()				{ SwitchState(eShowing); }
+	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); }
 	virtual void				SendHiddenItem		();			//same as OnHiddenItem but for client... (sends message to a server)...
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev);
 

@@ -339,18 +339,11 @@ CUIDragItem* CUIAmmoCellItem::CreateDragItem()
 
 u32 CUIAmmoCellItem::CalculateAmmoCount()
 {
-	xr_vector<CUICellItem*>::iterator it   = m_childs.begin();
-	xr_vector<CUICellItem*>::iterator it_e = m_childs.end();
-
-	u32 total	= IsHelper() ? 0 : object()->GetAmmoCount();
-	for ( ; it != it_e; ++it )
+	u32 total = IsHelper() ? 0 : object()->GetAmmoCount();
+	for (const auto child : m_childs)
 	{
-		CUICellItem* child = *it;
-
-		if ( !child->IsHelper() )
-		{
-			total += ((CUIAmmoCellItem*)(*it))->object()->GetAmmoCount();
-		}
+		if (!child->IsHelper())
+			total += ((CUIAmmoCellItem*)child)->object()->GetAmmoCount();
 	}
 
 	return total;
