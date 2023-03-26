@@ -1234,11 +1234,6 @@ DLL_Pure *CInventoryItem::_construct()
 	return		(inherited::_construct());
 }
 
-bool CInventoryItem::NeedToDestroyObject()	const
-{
-	return false;
-}
-
 ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
 {
 	if (!object().H_Parent() && m_dwItemIndependencyTime != 0)

@@ -277,11 +277,6 @@ void CGrenade::UpdateCL()
 	CExplosive::UpdateCL		();
 }
 
-bool CGrenade::NeedToDestroyObject()	const
-{
-	return false;
-}
-
 ALife::_TIME_ID	 CGrenade::TimePassedAfterIndependant()	const
 {
 	if(!H_Parent() && m_dwGrenadeIndependencyTime != 0)

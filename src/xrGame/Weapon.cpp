@@ -1122,11 +1122,6 @@ void CWeapon::setup_physic_shell()
 
 int		g_iWeaponRemove = 1;
 
-bool CWeapon::NeedToDestroyObject()	const
-{
-    return false;
-}
-
 ALife::_TIME_ID	 CWeapon::TimePassedAfterIndependant()	const
 {
     if (!H_Parent() && m_dwWeaponIndependencyTime != 0)

@@ -1674,11 +1674,6 @@ bool CActor::use_bolts() const
 
 int		g_iCorpseRemove = 1;
 
-bool  CActor::NeedToDestroyObject() const
-{
-    return false;
-}
-
 ALife::_TIME_ID	 CActor::TimePassedAfterDeath()	const
 {
     if (!g_Alive())
