@@ -41,8 +41,8 @@
 #include "danger_object.h"
 #include "danger_manager.h"
 
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
+#include "scope.h"
+#include "silencer.h"
 
 enum EPdaMsg;
 enum ESoundTypes;

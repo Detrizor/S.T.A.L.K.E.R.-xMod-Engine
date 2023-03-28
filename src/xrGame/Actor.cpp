@@ -84,7 +84,7 @@ using namespace luabind;
 //-Alundaio
 
 #include "weapon_hud.h"
-#include "xmod\items_library.h"
+#include "items_library.h"
 
 const u32		patch_frames = 50;
 const float		respawn_delay = 1.f;

@@ -178,8 +178,8 @@
 
 #include "..\xrGame\HolderEntityObject.h"
 
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
+#include "scope.h"
+#include "silencer.h"
 
 #endif // NO_XR_GAME
 

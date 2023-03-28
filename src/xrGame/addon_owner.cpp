@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../player_hud.h"
+#include "player_hud.h"
 
 #include "addon_owner.h"
 #include "addon.h"

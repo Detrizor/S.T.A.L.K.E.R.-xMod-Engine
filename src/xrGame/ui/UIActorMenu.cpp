@@ -42,8 +42,8 @@
 #include "UICellItemFactory.h"
 #include "UIInvUpgradeInfo.h"
 
-#include "..\xmod\scope.h"
-#include "..\xmod\silencer.h"
+#include "..\scope.h"
+#include "..\silencer.h"
 
 void CUIActorMenu::SetActor(CInventoryOwner* io)
 {

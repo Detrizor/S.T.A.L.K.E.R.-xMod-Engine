@@ -1,5 +1,5 @@
 #pragma once
-#include "../inventory_item_object.h"
+#include "inventory_item_object.h"
 
 class CAttachment
 {

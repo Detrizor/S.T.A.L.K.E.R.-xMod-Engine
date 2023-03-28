@@ -1,5 +1,5 @@
 #pragma once
-#include "../InventoryBox.h"
+#include "InventoryBox.h"
 
 class CAddonObject;
 class CAddon;

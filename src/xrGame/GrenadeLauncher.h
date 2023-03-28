@@ -1,6 +1,6 @@
 #pragma once
-#include "xmod\addon.h"
-#include "xmod\attachment.h"
+#include "addon.h"
+#include "attachment.h"
 
 class CGrenadeLauncher : public CAddon
 {

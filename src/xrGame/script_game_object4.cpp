@@ -45,8 +45,8 @@
 #include "IItemContainer.h"
 #include "Magazine.h"
 
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
+#include "scope.h"
+#include "silencer.h"
 
 class CWeapon;
 

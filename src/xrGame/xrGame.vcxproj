@@ -1670,7 +1670,7 @@
     <ClInclude Include="inventory_upgrade_root.h" />
     <ClInclude Include="inventory_upgrade_root_inline.h" />
     <ClInclude Include="invincible_fury.h" />
-    <ClInclude Include="xmod\items_library.h" />
+    <ClInclude Include="items_library.h" />
     <ClInclude Include="item_manager.h" />
     <ClInclude Include="key_binding_registrator.h" />
     <ClInclude Include="killer_victim_velocity_angle.h" />
@@ -2381,11 +2381,11 @@
     <ClInclude Include="Wound.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
-    <ClInclude Include="xmod\addon.h" />
-    <ClInclude Include="xmod\addon_owner.h" />
-    <ClInclude Include="xmod\attachment.h" />
-    <ClInclude Include="xmod\scope.h" />
-    <ClInclude Include="xmod\silencer.h" />
+    <ClInclude Include="addon.h" />
+    <ClInclude Include="addon_owner.h" />
+    <ClInclude Include="attachment.h" />
+    <ClInclude Include="scope.h" />
+    <ClInclude Include="silencer.h" />
     <ClInclude Include="weapon_hud.h" />
     <ClInclude Include="xrClientsPool.h" />
     <ClInclude Include="xrGameSpyServer.h" />
@@ -3493,7 +3493,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="invincible_fury.cpp" />
-    <ClCompile Include="xmod\items_library.cpp" />
+    <ClCompile Include="items_library.cpp" />
     <ClCompile Include="item_manager.cpp" />
     <ClCompile Include="key_binding_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -4691,11 +4691,11 @@
     <ClCompile Include="weapon_ammo_dump_impl.cpp" />
     <ClCompile Include="weapon_dump_impl.cpp" />
     <ClCompile Include="Wound.cpp" />
-    <ClCompile Include="xmod\addon.cpp" />
-    <ClCompile Include="xmod\addon_owner.cpp" />
-    <ClCompile Include="xmod\attachment.cpp" />
-    <ClCompile Include="xmod\scope.cpp" />
-    <ClCompile Include="xmod\silencer.cpp" />
+    <ClCompile Include="addon.cpp" />
+    <ClCompile Include="addon_owner.cpp" />
+    <ClCompile Include="attachment.cpp" />
+    <ClCompile Include="scope.cpp" />
+    <ClCompile Include="silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="xrClientsPool.cpp" />
     <ClCompile Include="xrGame.cpp" />

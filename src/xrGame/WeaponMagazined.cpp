@@ -24,9 +24,9 @@
 #include "../build_config_defines.h"
 
 #include "weapon_hud.h"
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
-#include "xmod\attachment.h"
+#include "scope.h"
+#include "silencer.h"
+#include "attachment.h"
 
 ENGINE_API	bool	g_dedicated_server;
 

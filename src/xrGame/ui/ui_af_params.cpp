@@ -12,7 +12,7 @@
 #include "purchase_list.h"
 #include "UICellItem.h"
 
-#include "..\xmod\items_library.h"
+#include "..\items_library.h"
 
 u32 const red_clr		= color_argb(255, 210, 50, 50);
 u32 const green_clr		= color_argb(255, 170, 170, 170);

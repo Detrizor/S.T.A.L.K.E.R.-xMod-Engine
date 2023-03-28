@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "../player_hud.h"
-#include "../ui/UIXmlInit.h"
-#include "../ui/UIStatic.h"
-#include "../weaponBinocularsVision.h"
-#include "../Torch.h"
-#include "../Actor.h"
+#include "player_hud.h"
+#include "ui/UIXmlInit.h"
+#include "ui/UIStatic.h"
+#include "weaponBinocularsVision.h"
+#include "Torch.h"
+#include "Actor.h"
 
 #include "scope.h"
 

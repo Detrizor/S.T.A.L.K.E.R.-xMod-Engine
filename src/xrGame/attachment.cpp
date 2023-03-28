@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../player_hud.h"
+#include "player_hud.h"
 
 #include "attachment.h"
 

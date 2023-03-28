@@ -18,8 +18,8 @@
 #include "PHDebug.h"
 #endif
 
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
+#include "scope.h"
+#include "silencer.h"
 
 void CActor::OnEvent(NET_Packet& P, u16 type)
 {

@@ -10,7 +10,7 @@
 #include "purchase_list.h"
 #include "ai\trader\ai_trader.h"
 
-#include "xmod\items_library.h"
+#include "items_library.h"
 
 void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner& owner)
 {

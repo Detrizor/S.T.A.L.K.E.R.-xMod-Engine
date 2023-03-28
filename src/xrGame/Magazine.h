@@ -2,7 +2,7 @@
 #include "weaponammo.h"
 #include "inventory_item_object.h"
 
-#include "xmod\addon.h"
+#include "addon.h"
 
 class CInventoryStorage;
 class CWeaponAmmo;

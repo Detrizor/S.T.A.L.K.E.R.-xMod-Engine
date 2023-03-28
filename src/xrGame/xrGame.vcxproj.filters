@@ -7371,13 +7371,13 @@
     <ClInclude Include="Magazine.h" />
     <ClInclude Include="IItemContainer.h" />
     <ClInclude Include="inventory_item_amountable.h" />
-    <ClInclude Include="xmod\addon.h" />
-    <ClInclude Include="xmod\addon_owner.h" />
-    <ClInclude Include="xmod\attachment.h" />
-    <ClInclude Include="xmod\scope.h" />
-    <ClInclude Include="xmod\silencer.h" />
+    <ClInclude Include="addon.h" />
+    <ClInclude Include="addon_owner.h" />
+    <ClInclude Include="attachment.h" />
+    <ClInclude Include="scope.h" />
+    <ClInclude Include="silencer.h" />
     <ClInclude Include="weapon_hud.h" />
-    <ClInclude Include="xmod\items_library.h" />
+    <ClInclude Include="items_library.h" />
     <ClInclude Include="HolderEntityObject.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -11058,13 +11058,13 @@
     <ClCompile Include="Magazine.cpp" />
     <ClCompile Include="IItemContainer.cpp" />
     <ClCompile Include="inventory_item_amountable.cpp" />
-    <ClCompile Include="xmod\addon.cpp" />
-    <ClCompile Include="xmod\addon_owner.cpp" />
-    <ClCompile Include="xmod\attachment.cpp" />
-    <ClCompile Include="xmod\scope.cpp" />
-    <ClCompile Include="xmod\silencer.cpp" />
+    <ClCompile Include="addon.cpp" />
+    <ClCompile Include="addon_owner.cpp" />
+    <ClCompile Include="attachment.cpp" />
+    <ClCompile Include="scope.cpp" />
+    <ClCompile Include="silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />
-    <ClCompile Include="xmod\items_library.cpp" />
+    <ClCompile Include="items_library.cpp" />
     <ClCompile Include="medkit_script.cpp">
       <Filter>Core</Filter>
     </ClCompile>

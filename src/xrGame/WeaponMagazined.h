@@ -7,7 +7,7 @@
 #include "GrenadeLauncher.h"
 #include "InventoryBox.h"
 
-#include "xmod\addon_owner.h"
+#include "addon_owner.h"
 
 class ENGINE_API CMotionDef;
 
