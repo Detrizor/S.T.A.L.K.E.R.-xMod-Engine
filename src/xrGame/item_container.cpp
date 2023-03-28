@@ -51,6 +51,6 @@ u32 CContainerObject::Cost() const
 	u32 res								= inherited::Cost();
 	if (!Empty())
 		for (TIItemContainer::const_iterator I = Items().begin(), E = Items().end(); I != E; I++)
-				res						+= (*I)->Cost();
+			res						+= (*I)->Cost();
 	return								res;
 }

@@ -7368,8 +7368,7 @@
     <ClInclude Include="ui\UIPdaSpot.h">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClInclude>
-    <ClInclude Include="Magazine.h" />
-    <ClInclude Include="IItemContainer.h" />
+    <ClInclude Include="magazine.h" />
     <ClInclude Include="inventory_item_amountable.h" />
     <ClInclude Include="addon.h" />
     <ClInclude Include="addon_owner.h" />
@@ -7381,6 +7380,8 @@
     <ClInclude Include="HolderEntityObject.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="item_storage.h" />
+    <ClInclude Include="item_container.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11055,8 +11056,7 @@
     <ClCompile Include="ui\UIPdaSpot.cpp">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClCompile>
-    <ClCompile Include="Magazine.cpp" />
-    <ClCompile Include="IItemContainer.cpp" />
+    <ClCompile Include="magazine.cpp" />
     <ClCompile Include="inventory_item_amountable.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />
@@ -11074,6 +11074,8 @@
     <ClCompile Include="antirad_script.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="item_storage.cpp" />
+    <ClCompile Include="item_container.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

@@ -1618,7 +1618,6 @@
     <ClInclude Include="HudSound.h" />
     <ClInclude Include="HUDTarget.h" />
     <ClInclude Include="id_generator.h" />
-    <ClInclude Include="IItemContainer.h" />
     <ClInclude Include="IKFoot.h" />
     <ClInclude Include="IKFoot_inl.h" />
     <ClInclude Include="IKLimbsController.h" />
@@ -1671,7 +1670,9 @@
     <ClInclude Include="inventory_upgrade_root_inline.h" />
     <ClInclude Include="invincible_fury.h" />
     <ClInclude Include="items_library.h" />
+    <ClInclude Include="item_container.h" />
     <ClInclude Include="item_manager.h" />
+    <ClInclude Include="item_storage.h" />
     <ClInclude Include="key_binding_registrator.h" />
     <ClInclude Include="killer_victim_velocity_angle.h" />
     <ClInclude Include="kills_store.h" />
@@ -1695,7 +1696,7 @@
     <ClInclude Include="location_manager.h" />
     <ClInclude Include="location_manager_inline.h" />
     <ClInclude Include="login_manager.h" />
-    <ClInclude Include="Magazine.h" />
+    <ClInclude Include="magazine.h" />
     <ClInclude Include="magic_box3.h" />
     <ClInclude Include="magic_box3_inline.h" />
     <ClInclude Include="magic_minimize_1d.h" />
@@ -3399,7 +3400,6 @@
     <ClCompile Include="HUDManager.cpp" />
     <ClCompile Include="HudSound.cpp" />
     <ClCompile Include="HUDTarget.cpp" />
-    <ClCompile Include="IItemContainer.cpp" />
     <ClCompile Include="IKFoot.cpp" />
     <ClCompile Include="IKLimbsController.cpp" />
     <ClCompile Include="Ik\aint.cxx" />
@@ -3494,7 +3494,9 @@
     </ClCompile>
     <ClCompile Include="invincible_fury.cpp" />
     <ClCompile Include="items_library.cpp" />
+    <ClCompile Include="item_container.cpp" />
     <ClCompile Include="item_manager.cpp" />
+    <ClCompile Include="item_storage.cpp" />
     <ClCompile Include="key_binding_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3550,7 +3552,7 @@
     <ClCompile Include="location_manager.cpp" />
     <ClCompile Include="login_manager.cpp" />
     <ClCompile Include="login_manager_script.cpp" />
-    <ClCompile Include="Magazine.cpp" />
+    <ClCompile Include="magazine.cpp" />
     <ClCompile Include="magic_box3.cpp" />
     <ClCompile Include="magic_minimize_1d.cpp" />
     <ClCompile Include="MainMenu.cpp" />
