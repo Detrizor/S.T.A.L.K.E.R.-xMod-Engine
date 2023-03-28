@@ -7362,7 +7362,6 @@
     <ClInclude Include="AmebaZone.h">
       <Filter>Core\Client\Objects\zones\Ameba</Filter>
     </ClInclude>
-    <ClInclude Include="HolderEntityObject.h" />
     <ClInclude Include="ActorBackpack.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Outfit</Filter>
     </ClInclude>
@@ -7379,6 +7378,9 @@
     <ClInclude Include="xmod\silencer.h" />
     <ClInclude Include="weapon_hud.h" />
     <ClInclude Include="xmod\items_library.h" />
+    <ClInclude Include="HolderEntityObject.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11011,18 +11013,15 @@
     <ClCompile Include="AmebaZone.cpp">
       <Filter>Core\Client\Objects\zones\Ameba</Filter>
     </ClCompile>
-    <ClCompile Include="HolderEntityObject.cpp" />
     <ClCompile Include="CustomOutfit_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Outfit</Filter>
     </ClCompile>
-    <ClCompile Include="medkit_script.cpp" />
     <ClCompile Include="WeaponAmmo_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Ammo</Filter>
     </ClCompile>
     <ClCompile Include="eatable_item_script.cpp">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClCompile>
-    <ClCompile Include="antirad_script.cpp" />
     <ClCompile Include="InventoryBox_script.cpp">
       <Filter>Core\Client\Objects\inventory_box</Filter>
     </ClCompile>
@@ -11066,6 +11065,15 @@
     <ClCompile Include="xmod\silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="xmod\items_library.cpp" />
+    <ClCompile Include="medkit_script.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="HolderEntityObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="antirad_script.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">
