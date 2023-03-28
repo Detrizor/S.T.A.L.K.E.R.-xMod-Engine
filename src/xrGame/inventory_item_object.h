@@ -1,13 +1,4 @@
-////////////////////////////////////////////////////////////////////////////
-//	Module 		: inventory_item_object.h
-//	Created 	: 24.03.2003
-//  Modified 	: 27.12.2004
-//	Author		: Victor Reutsky, Yuri Dobronravin
-//	Description : Inventory item object implementation
-////////////////////////////////////////////////////////////////////////////
-
 #pragma once
-
 #include "physic_item.h"
 #include "inventory_item.h"
 #include "huditem.h"
@@ -39,7 +30,7 @@ public:
 	WRAP_VIRTUAL_METHOD0					(void, UpdateCL, , ;)
 };
 
-class CInventoryItemObjectOld: public CHudItemObject,
+class CInventoryItemObject: public CHudItemObject,
 	public CInventoryItem
 {
 private:
@@ -76,6 +67,11 @@ public:
 	{
 		return (wrap::Action(cmd, flags)) ? true : core::Action(cmd, flags);
 	}
+
+public:
+	void									OnStateSwitch						O$	(u32 S, u32 oldState);
+	void									OnAnimationEnd						O$	(u32 state);
+	void									UpdateXForm							O$	();
 	
 #ifdef DEBUG
 	void									PH_Ch_CrPr							O$	()		{ wrap::PH_Ch_CrPr(); }
@@ -106,15 +102,4 @@ public:
 	WRAP_VIRTUAL_METHOD0					(void, PH_I_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD0					(void, PH_A_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD1					(void, OnMoveToRuck, , ;, SInvItemPlace CR$)
-};
-
-class CInventoryItemObject : public CInventoryItemObjectOld
-{
-private:
-	typedef CInventoryItemObjectOld inherited;
-
-public:
-	void									OnStateSwitch						O$	(u32 S, u32 oldState);
-	void									OnAnimationEnd						O$	(u32 state);
-	void									UpdateXForm							O$	();
 };

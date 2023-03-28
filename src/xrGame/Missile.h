@@ -4,9 +4,9 @@
 
 struct dContact;
 struct SGameMtl;
-class CMissile : public CInventoryItemObjectOld
+class CMissile : public CInventoryItemObject
 {
-	typedef CInventoryItemObjectOld inherited;
+	typedef CInventoryItemObject inherited;
 
 public:
 	enum EMissileStates{

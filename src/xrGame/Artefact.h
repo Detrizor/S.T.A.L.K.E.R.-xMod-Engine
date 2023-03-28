@@ -10,11 +10,11 @@
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
-class CArtefact :	public CInventoryItemObjectOld,
+class CArtefact :	public CInventoryItemObject,
 	public CPHUpdateObject,
 	public CItemAmountable
 {
-	typedef CInventoryItemObjectOld inherited;
+	typedef CInventoryItemObject inherited;
 
 public:
 									CArtefact						();
@@ -93,7 +93,6 @@ public:
 
 	virtual void					ForceTransform		(const Fmatrix& m);
 
-	virtual	void					UpdateXForm			();
 	virtual bool					Action				(u16 cmd, u32 flags);
 	virtual void					OnStateSwitch		(u32 S, u32 oldState);
 	virtual void					OnAnimationEnd		(u32 state);

@@ -1,12 +1,3 @@
-////////////////////////////////////////////////////////////////////////////
-//	Module 		: inventory_item_object.cpp
-//	Created 	: 24.03.2003
-//  Modified 	: 27.12.2004
-//	Author		: Victor Reutsky, Yuri Dobronravin
-//	Description : Inventory item object implementation
-////////////////////////////////////////////////////////////////////////////
-
-//#include "stdafx.h"
 #include "pch_script.h"
 #include "inventory_item_object.h"
 

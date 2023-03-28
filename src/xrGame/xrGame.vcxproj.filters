@@ -5955,9 +5955,6 @@
     <ClInclude Include="InfoDocument.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Documents</Filter>
     </ClInclude>
-    <ClInclude Include="hud_item_object.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
-    </ClInclude>
     <ClInclude Include="HudItem.h">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
     </ClInclude>
@@ -9528,9 +9525,6 @@
     </ClCompile>
     <ClCompile Include="InfoDocument.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Documents</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_item_object.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
     </ClCompile>
     <ClCompile Include="HudItem.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>

@@ -317,55 +317,6 @@ void CArtefact::MoveTo(Fvector const &  position)
 	//m_bInInterpolation = false;	
 }
 
-
-#include "inventoryOwner.h"
-#include "Entity_alive.h"
-void CArtefact::UpdateXForm()
-{
-	if (Device.dwFrame!=dwXF_Frame)
-	{
-		dwXF_Frame			= Device.dwFrame;
-
-		if (0==H_Parent())	return;
-
-		// Get access to entity and its visual
-		CEntityAlive*		E		= smart_cast<CEntityAlive*>(H_Parent());
-        
-		if(!E)				return	;
-
-		const CInventoryOwner	*parent = smart_cast<const CInventoryOwner*>(E);
-		if (parent && parent->use_simplified_visual())
-			return;
-
-		VERIFY				(E);
-		IKinematics*		V		= smart_cast<IKinematics*>	(E->Visual());
-		VERIFY				(V);
-		if(CAttachableItem::enabled())
-			return;
-
-		// Get matrices
-		int					boneL = -1, boneR = -1, boneR2 = -1;
-		E->g_WeaponBones	(boneL,boneR,boneR2);
-		if (boneR == -1)	return;
-
-		boneL = boneR2;
-
-		V->CalculateBones	();
-		Fmatrix& mL			= V->LL_GetTransform(u16(boneL));
-		Fmatrix& mR			= V->LL_GetTransform(u16(boneR));
-
-		// Calculate
-		Fmatrix				mRes;
-		Fvector				R,D,N;
-		D.sub				(mL.c,mR.c);	D.normalize_safe();
-		R.crossproduct		(mR.j,D);		R.normalize_safe();
-		N.crossproduct		(D,R);			N.normalize_safe();
-		mRes.set			(R,N,D,mR.c);
-		mRes.mulA_43		(E->XFORM());
-//		UpdatePosition		(mRes);
-		XFORM().mul			(mRes,offset());
-	}
-}
 #include "xr_level_controller.h"
 bool CArtefact::Action(u16 cmd, u32 flags) 
 {
@@ -391,29 +342,23 @@ bool CArtefact::Action(u16 cmd, u32 flags)
 
 void CArtefact::OnStateSwitch(u32 S, u32 oldState)
 {	
-	inherited::OnStateSwitch	(S, oldState);
+	CHudItem::OnStateSwitch	(S, oldState);
 	
 	switch(S){
 	case eShowing:
-		{
-			PlayHUDMotion("anm_show", FALSE, this, S);
-		}break;
+		PlayHUDMotion("anm_show", FALSE, this, S);
+		break;
 	case eHiding:
-		{
-			if (oldState != eHiding)
-			{
-				PlayHUDMotion("anm_hide", FALSE, this, S);
-			}
-		}break;
+		if (oldState != eHiding)
+			PlayHUDMotion("anm_hide", FALSE, this, S);
+		break;
 	case eActivating:
-		{
-			PlayHUDMotion("anm_activate", FALSE, this, S);
-		}break;
+		PlayHUDMotion("anm_activate", FALSE, this, S);
+		break;
 	case eIdle:
-		{
-			PlayAnimIdle();
-		}break;
-	};
+		PlayAnimIdle();
+		break;
+	}
 }
 
 void CArtefact::PlayAnimIdle()
@@ -426,25 +371,22 @@ void CArtefact::OnAnimationEnd(u32 state)
 	switch (state)
 	{
 	case eHiding:
-		{
-			SwitchState(eHidden);
-		}break;
+		SwitchState(eHidden);
+		break;
 	case eShowing:
-		{
-			SwitchState(eIdle);
-		}break;
+		SwitchState(eIdle);
+		break;
 	case eActivating:
+		if(Local())
 		{
-			if(Local())
-			{
-				SwitchState		(eHiding);
-				NET_Packet		P;
-				u_EventGen		(P, GEG_PLAYER_ACTIVATEARTEFACT, H_Parent()->ID());
-				P.w_u16			(ID());
-				u_EventSend		(P);	
-			}
-		}break;
-	};
+			SwitchState		(eHiding);
+			NET_Packet		P;
+			u_EventGen		(P, GEG_PLAYER_ACTIVATEARTEFACT, H_Parent()->ID());
+			P.w_u16			(ID());
+			u_EventSend		(P);	
+		}
+		break;
+	}
 }
 
 void CArtefact::FollowByPath(LPCSTR path_name, int start_idx, Fvector magic_force)

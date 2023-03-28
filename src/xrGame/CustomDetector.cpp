@@ -119,53 +119,46 @@ void CCustomDetector::ToggleDetector(bool bFastMode)
 
 void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
 {
-	inherited::OnStateSwitch(S, oldState);
+	CHudItem::OnStateSwitch				(S, oldState);
 
 	switch(S)
 	{
 	case eShowing:
-		{
-			g_player_hud->attach_item	(this);
-			m_sounds.PlaySound			("sndShow", Fvector().set(0,0,0), this, true, false);
-			PlayHUDMotion				(m_bFastAnimMode?"anm_show_fast":"anm_show", FALSE/*TRUE*/, this, GetState());
-			SetPending					(TRUE);
-		}break;
+		g_player_hud->attach_item		(this);
+		m_sounds.PlaySound				("sndShow", Fvector().set(0,0,0), this, true, false);
+		PlayHUDMotion					(m_bFastAnimMode?"anm_show_fast":"anm_show", FALSE/*TRUE*/, this, GetState());
+		SetPending						(TRUE);
+		break;
 	case eHiding:
+		if (oldState != eHiding)
 		{
-			if (oldState != eHiding)
-			{
-				m_sounds.PlaySound("sndHide", Fvector().set(0, 0, 0), this, true, false);
-				PlayHUDMotion(m_bFastAnimMode ? "anm_hide_fast" : "anm_hide", FALSE/*TRUE*/, this, GetState());
-				SetPending(TRUE);
-			}
-		}break;
+			m_sounds.PlaySound			("sndHide", Fvector().set(0, 0, 0), this, true, false);
+			PlayHUDMotion				(m_bFastAnimMode ? "anm_hide_fast" : "anm_hide", FALSE/*TRUE*/, this, GetState());
+			SetPending					(TRUE);
+		}
+		break;
 	case eIdle:
-		{
-			PlayAnimIdle				();
-			SetPending					(FALSE);
-		}break;
-}
+		PlayAnimIdle					();
+		SetPending						(FALSE);
+		break;
+	}
 }
 
 void CCustomDetector::OnAnimationEnd(u32 state)
 {
-	inherited::OnAnimationEnd	(state);
+	CHudItem::OnAnimationEnd			(state);
 	switch(state)
 	{
 	case eShowing:
-		{
-			SwitchState					(eIdle);
-			if (IsUsingCondition() && m_fDecayRate > 0.f)
-			{
-				this->SetCondition(-m_fDecayRate);
-			}
-		} break;
+		SwitchState						(eIdle);
+		if (IsUsingCondition() && m_fDecayRate > 0.f)
+			this->SetCondition			(-m_fDecayRate);
+		break;
 	case eHiding:
-		{
-			SwitchState					(eHidden);
-			TurnDetectorInternal		(false);
-			g_player_hud->detach_item	(this);
-		} break;
+		SwitchState						(eHidden);
+		TurnDetectorInternal			(false);
+		g_player_hud->detach_item		(this);
+		break;
 	}
 }
 

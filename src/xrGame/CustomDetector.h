@@ -112,10 +112,10 @@ public:
 
 class CUIArtefactDetectorBase;
 
-class CCustomDetector : public CInventoryItemObjectOld,
+class CCustomDetector : public CInventoryItemObject,
 	public CItemAmountable
 {
-	typedef	CInventoryItemObjectOld inherited;
+	typedef	CInventoryItemObject inherited;
 
 protected:
 	CUIArtefactDetectorBase*			m_ui;
@@ -167,7 +167,7 @@ protected:
 	virtual void 	UpdateAf					()				{};
 	virtual void 	CreateUI					()				{};
 	
-    virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
+	virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
 
 	bool			m_bWorking;
 	float			m_fDecayRate; //Alundaio

@@ -252,7 +252,7 @@ void CMissile::State(u32 state, u32 old_state)
 	switch(state) 
 	{
 	case eShowing:
-        {
+		{
 			SetPending			(TRUE);
 			PlayHUDMotion("anm_show", FALSE, this, GetState());
 		} break;
@@ -316,51 +316,40 @@ void CMissile::State(u32 state, u32 old_state)
 	}
 }
 
-void CMissile::OnStateSwitch	(u32 S, u32 oldState)
+void CMissile::OnStateSwitch(u32 S, u32 oldState)
 {
-	m_dwStateTime				= 0;
-	inherited::OnStateSwitch	(S, oldState);
-	State                       (S, oldState);
+	m_dwStateTime						= 0;
+	CHudItem::OnStateSwitch				(S, oldState);
+	State								(S, oldState);
 }
-
 
 void CMissile::OnAnimationEnd(u32 state) 
 {
 	switch(state) 
 	{
 	case eHiding:
-		{
-			setVisible(FALSE);
-			SwitchState(eHidden);
-		} break;
+		setVisible						(FALSE);
+		SwitchState						(eHidden);
+		break;
 	case eShowing:
-		{
-			setVisible(TRUE);
-			SwitchState(eIdle);
-		} break;
+		setVisible						(TRUE);
+		SwitchState						(eIdle);
+		break;
 	case eThrowStart:
-		{
-			if(!m_fake_missile && !smart_cast<CMissile*>(H_Parent())) 
-				spawn_fake_missile	();
-
-			if(m_throw) 
-				SwitchState(eThrow); 
-			else 
-				SwitchState(eReady);
-		} break;
+		if (!m_fake_missile && !smart_cast<CMissile*>(H_Parent())) 
+			spawn_fake_missile			();
+		SwitchState						((m_throw) ? eThrow : eReady); 
+		break;
 	case eThrow:
-		{
-			SwitchState	(eThrowEnd);
-		} break;
+		SwitchState						(eThrowEnd);
+		break;
 	case eThrowEnd:
-		{
-			SwitchState	(eShowing);
-		} break;
+		SwitchState						(eShowing);
+		break;
 	default:
-		inherited::OnAnimationEnd(state);
+		CHudItem::OnAnimationEnd		(state);
 	}
 }
-
 
 void CMissile::UpdatePosition(const Fmatrix& trans)
 {
@@ -377,7 +366,7 @@ void CMissile::UpdateXForm	()
 
 		// Get access to entity and its visual
 		CEntityAlive*		E		= smart_cast<CEntityAlive*>(H_Parent());
-        
+		
 		if(!E)				return	;
 
 		const CInventoryOwner	*parent = smart_cast<const CInventoryOwner*>(E);
@@ -552,7 +541,7 @@ bool CMissile::Action(u16 cmd, u32 flags)
 	case kWPN_ZOOM:
 		{
 			m_constpower = false;
-        	if(flags&CMD_START) 
+			if(flags&CMD_START) 
 			{
 				m_throw = false;
 				if(GetState()==eIdle) 
@@ -581,7 +570,7 @@ void  CMissile::UpdateFireDependencies_internal	()
 {
 	if (0==H_Parent())		return;
 
-    if (Device.dwFrame!=dwFP_Frame){
+	if (Device.dwFrame!=dwFP_Frame){
 		dwFP_Frame = Device.dwFrame;
 
 		UpdateXForm			();

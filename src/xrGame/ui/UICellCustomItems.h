@@ -47,7 +47,7 @@ public:
 				u32				 CalculateAmmoCount			();
 	virtual		bool			 EqualTo						(CUICellItem* itm);
 	virtual		CUIDragItem*	 CreateDragItem				();
-				CWeaponAmmo*	 object						() {return (CWeaponAmmo*)m_pData;}
+				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
 /* --xd нормально сделаю
 class CUIWeaponCellItem :public CUIInventoryCellItem

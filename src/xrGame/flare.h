@@ -5,10 +5,10 @@ class CParticlesObject;
 
 #include "inventory_item_object.h"
 
-class CFlare :public CInventoryItemObjectOld
+class CFlare :public CInventoryItemObject
 {
 private:
-	typedef CInventoryItemObjectOld	inherited;
+	typedef CInventoryItemObject inherited;
 
 private:
 	enum FlareStates
