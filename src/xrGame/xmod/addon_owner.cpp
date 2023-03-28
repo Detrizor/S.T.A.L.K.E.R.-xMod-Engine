@@ -124,13 +124,13 @@ void CAddonOwner::render_hud_mode()
 			slot.addon->Render					();
 }
 
-float CAddonOwner::GetControlInertionFactor() const
+void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
 {
-	float res									= 1.f;
 	for (auto& slot : m_Slots)
+	{
 		if (slot.addon)
-			res									*= slot.addon->GetControlInertionFactor();
-	return										res;
+			cif									*= slot.addon->GetControlInertionFactor();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

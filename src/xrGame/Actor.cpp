@@ -83,6 +83,7 @@
 using namespace luabind;
 //-Alundaio
 
+#include "weapon_hud.h"
 #include "xmod\items_library.h"
 
 const u32		patch_frames = 50;
@@ -126,7 +127,8 @@ SPowerDependency CEntityCondition::AnomalyDamageThreshold;
 SPowerDependency CEntityCondition::AnomalyDamageResistance;
 SPowerDependency CEntityCondition::ProtectionDamageResistance;
 
-SPowerDependency CWeapon::HandlingToRotationTimeFactor;
+SPowerDependency CWeaponHud::HandlingToRotationTime;
+SPowerDependency CWeaponHud::HandlingToRelaxTime;
 
 Fvector CScope::lense_circle_scale;
 Fvector4 CScope::lense_circle_offset[2];
@@ -545,8 +547,9 @@ void CActor::Load(LPCSTR section)
 	CEntityCondition::AnomalyDamageResistance.Load		("damage_manager", "anomaly_damage_resistance");
 	CEntityCondition::ProtectionDamageResistance.Load	("damage_manager", "protection_damage_resistance");
 
-	CFireDispertionController::crosshair_inertion	= pSettings->r_float("weapon_manager", "crosshair_inertion");
-	CWeapon::HandlingToRotationTimeFactor.Load		("weapon_manager", "handling_to_rotation_time_factor");
+	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
+	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
+	CWeaponHud::HandlingToRelaxTime.Load				("weapon_manager", "handling_to_relax_time");
 
 	CScope::lense_circle_scale			= pSettings->r_fvector3("weapon_manager", "lense_circle_scale");
 	CScope::lense_circle_offset[0]		= pSettings->r_fvector4("weapon_manager", "lense_circle_offset_x");
@@ -1098,11 +1101,8 @@ void CActor::UpdateCL()
 				pWM->UpdateSecondVP();
 
 				// Apply Weapon Data in Shaders
-				g_pGamePersistent->m_pGShaderConstants->hud_params.x = pWM->GetLensRotatingFactor();
 				g_pGamePersistent->m_pGShaderConstants->hud_params.z = pWM->GetReticleScale();
-				g_pGamePersistent->m_pGShaderConstants->hud_params.w = Device.m_SecondViewport.IsSVPFrame();
-
-				if (g_pGamePersistent->m_pGShaderConstants->hud_params.w)
+				if (Device.m_SecondViewport.IsSVPFrame())
 					g_pGamePersistent->m_pGShaderConstants->hud_params.y = currentFOV();		//--xd протестировать и добить тему
 			}
         }

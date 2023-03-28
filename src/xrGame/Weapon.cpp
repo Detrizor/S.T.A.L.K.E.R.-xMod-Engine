@@ -28,7 +28,6 @@
 #include "weaponBinocularsVision.h"
 #include "ui/UIWindow.h"
 #include "ui/UIXmlInit.h"
-#include "Level_Bullet_Manager.h"
 #include "cameralook.h"
 
 #define WEAPON_REMOVE_TIME		60000
@@ -54,8 +53,6 @@ CWeapon::CWeapon()
 
 	eHandDependence = hdNone;
 
-	m_zoom_params.m_fZoomRotationFactor = 0.f;
-
 	m_pFlameParticles2 = NULL;
 	m_sFlameParticles2 = NULL;
 
@@ -70,14 +67,6 @@ CWeapon::CWeapon()
 	m_ef_weapon_type = u32(-1);
 	m_set_next_ammoType_on_reload = undefined_ammo_type;
 	m_activation_speed_is_overriden = false;
-
-	m_fLR_ShootingFactor = 0.f;
-	m_fUD_ShootingFactor = 0.f;
-	m_fBACKW_ShootingFactor = 0.f;
-	m_fSafeModeRotateTime = 0.f;
-
-	for (int i = 0; i < 2; i++)
-		m_hud_offset[i].set(0.f, 0.f, 0.f);
 
 	m_iADS = 0;
 	m_bArmedMode = false;
@@ -375,8 +364,6 @@ void CWeapon::Load(LPCSTR section)
 	//
 
 	m_zoom_params.m_bZoomEnabled = !!pSettings->r_bool(section, "zoom_enabled");
-	if (IsZoomEnabled())
-		InitRotateTime ();
 
 	if (pSettings->line_exist(section, "weapon_remove_time"))
 		m_dwWeaponRemoveTime = pSettings->r_u32(section, "weapon_remove_time");
@@ -414,8 +401,6 @@ void CWeapon::Load(LPCSTR section)
 	// Added by Axel, to enable optional condition use on any item
 	m_flags.set( FUsingCondition, READ_IF_EXISTS( pSettings, r_bool, section, "use_condition", TRUE ));
 
-	m_fSafeModeRotateTime = READ_IF_EXISTS(pSettings, r_float, section, "weapon_relax_speed", 1.f);
-
 	// Rezy safemode blend anms
 	m_safemode_anm[0].name = READ_IF_EXISTS(pSettings, r_string, *hud_sect, "safemode_anm", nullptr);
 	m_safemode_anm[1].name = READ_IF_EXISTS(pSettings, r_string, *hud_sect, "safemode_anm2", nullptr);
@@ -423,8 +408,6 @@ void CWeapon::Load(LPCSTR section)
 	m_safemode_anm[1].speed = READ_IF_EXISTS(pSettings, r_float, *hud_sect, "safemode_anm_speed2", 1.f);
 	m_safemode_anm[0].power = READ_IF_EXISTS(pSettings, r_float, *hud_sect, "safemode_anm_power", 1.f);
 	m_safemode_anm[1].power = READ_IF_EXISTS(pSettings, r_float, *hud_sect, "safemode_anm_power2", 1.f);
-
-	m_shoot_shake_mat.identity();
 
 	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_bool, section, "has_alt_aim", TRUE);
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
@@ -498,10 +481,6 @@ u8 CWeapon::FindAmmoClass(LPCSTR section, bool set)
 	return 0;
 }
 
-void CWeapon::PrepareCartridgeToShoot()
-{
-}
-
 void CWeapon::ConsumeShotCartridge()
 {
 	CActor* pActor = smart_cast<CActor*>(H_Parent());
@@ -510,7 +489,7 @@ void CWeapon::ConsumeShotCartridge()
 
 	m_magazine.pop_back();
 	--iAmmoElapsed;
-	if (!m_magazine.empty())
+	if (m_magazine.size())
 		FindAmmoClass(*m_magazine.back().m_ammoSect, true);
 }
 
@@ -679,9 +658,6 @@ void CWeapon::OnH_B_Independent(bool just_before_destroy)
 
 void CWeapon::OnH_A_Independent()
 {
-	m_fLR_ShootingFactor = 0.f;
-	m_fUD_ShootingFactor = 0.f;
-	m_fBACKW_ShootingFactor = 0.f;
 	m_dwWeaponIndependencyTime = Level().timeServer();
 	inherited::OnH_A_Independent();
 	Light_Destroy();
@@ -787,9 +763,6 @@ void CWeapon::renderable_Render()
 
 void CWeapon::signal_HideComplete()
 {
-	m_fLR_ShootingFactor = 0.f;
-	m_fUD_ShootingFactor = 0.f;
-	m_fBACKW_ShootingFactor = 0.f;
 	if (H_Parent())
 		setVisible(FALSE);
 	SetPending(FALSE);
@@ -811,10 +784,7 @@ void CWeapon::UpdatePosition(const Fmatrix& trans)
 	VERIFY(!fis_zero(DET(renderable.xform)));
 }
 
-#include "../../xrEngine/xr_input.h"
-#include <fstream>
 extern BOOL g_hud_adjusment_mode;
-int hands_mode = 0;
 bool CWeapon::Action(u16 cmd, u32 flags)
 {
 	if (inherited::Action(cmd, flags)) return true;
@@ -826,22 +796,20 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		//если оружие чем-то занято, то ничего не делать
 		{
 			if (IsPending())
-				return				false;
+				return false;
+
+			if (ParentIsActor() && !ReadyToFire())
+			{
+				if (!ArmedMode() && !IsZoomed())
+					SwitchArmedMode();
+				return false;
+			}
 
 			if (flags&CMD_START)
-			{
-				if (ParentIsActor() && !ArmedMode())//--xd to fix GetCurrentHudOffsetIdx() == eRelaxed)
-				{
-					if (!IsZoomed() && !ArmedMode())
-						SwitchArmedMode();
-					return true;
-				}
-
 				FireStart();
-			}
 			else
 				FireEnd();
-		};
+		}
 	}
 	return true;
 
@@ -1395,11 +1363,6 @@ void CWeapon::ZoomDec()
 		SwitchArmedMode					();
 }
 
-bool CWeapon::IsRotatingToZoom() const
-{
-	return !fEqual(m_zoom_params.m_fZoomRotationFactor, 1.f, EPS_S);
-}
-
 void CWeapon::SetADS(int mode)
 {
 	if (mode == -1 && !m_bHasAltAim)
@@ -1455,12 +1418,12 @@ bool CWeapon::NeedBlendAnm()
 	return inherited::NeedBlendAnm();
 }
 
-float CWeapon::GetControlInertionFactorBase() const
+float CWeapon::GetControlInertionFactorBase C$()
 {
 	return inherited::GetControlInertionFactor();
 }
 
-float CWeapon::GetControlInertionFactor() const
+float CWeapon::GetControlInertionFactor C$()
 {
 	float inertion = GetControlInertionFactorBase() - 1.f;
 	if (IsZoomed());
@@ -1471,14 +1434,7 @@ float CWeapon::GetControlInertionFactor() const
 	return 1.f + inertion;
 }
 
-float CWeapon::CurrentZoomFactor() const
+float CWeapon::CurrentZoomFactor C$()
 {
 	return (float)abs(ADS());
-}
-
-void CWeapon::InitRotateTime()
-{
-	float base_zoom_rotate_time = pSettings->r_float("weapon_manager", "base_zoom_rotate_time");
-	float handlilng_factor = HandlingToRotationTimeFactor.Calc(GetControlInertionFactor());
-	m_zoom_params.m_fZoomRotateTime = base_zoom_rotate_time * handlilng_factor;
 }

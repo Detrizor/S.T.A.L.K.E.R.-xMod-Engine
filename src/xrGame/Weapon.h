@@ -176,8 +176,6 @@ protected:
 		bool			m_bHideCrosshairInZoom;
 		bool			m_bZoomDofEnabled;
 		bool			m_bIsZoomModeNow;		//когда режим приближения включен
-		float			m_fZoomRotateTime;
-		float			m_fZoomRotationFactor;
 
 		Fvector			m_ZoomDof;
 		Fvector4		m_ReloadDof;
@@ -201,11 +199,6 @@ public:
 	}
 
 	virtual float			CurrentZoomFactor	() const;
-
-	//показывает, что оружие находится в соостоянии поворота для приближенного прицеливания
-	bool IsRotatingToZoom() const;
-
-	virtual	u8				GetCurrentHudOffsetIdx() const { return 0; }//--xd
 
 	virtual EHandDependence		HandDependence()	const
 	{
@@ -258,7 +251,6 @@ protected:
 	virtual void			UpdateFireDependencies_internal();
 	virtual void			UpdatePosition(const Fmatrix& transform);	//.
 	virtual void			UpdateXForm();
-	virtual void			UpdateHudAdditional(Fmatrix&) {}//--xd temp
 	IC		void			UpdateFireDependencies()
 	{
 		if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal();
@@ -518,48 +510,39 @@ public:
 		return cNameSect();
 	};
 
-protected:
-			float			m_fSafeModeRotateTime;
-			SafemodeAnm		m_safemode_anm[2];
-			Fvector			m_hud_offset[2];
-			u8				last_idx;
+//xMod ported
+private:
+	SafemodeAnm							m_safemode_anm[2];
 
 public:
-			float			m_fLR_ShootingFactor; // Фактор горизонтального сдвига худа при стрельбе [-1; +1]
-			float			m_fUD_ShootingFactor; // Фактор вертикального сдвига худа при стрельбе [-1; +1]
-			float			m_fBACKW_ShootingFactor; // Фактор сдвига худа в сторону лица при стрельбе [0; +1]
-			Fmatrix			m_shoot_shake_mat;
+	bool								NeedBlendAnm						O$	();
 
-	virtual	bool			NeedBlendAnm			();
+//xMod altered
+public:
+	bool							V$	IsRotatingToZoom					C$	()		{ return false; }
+	float								GetControlInertionFactor			CO$	();
 
 //xMod added
 private:
-	virtual void			PrepareCartridgeToShoot	();
-	virtual void			ConsumeShotCartridge	();
+	int									m_iADS;
 
-private:
-			int				m_iADS;
+	void								SwitchArmedMode							();
 
-			void			SwitchArmedMode();
+	bool							V$	ReadyToFire							C$	()		{ return true; }
+	void							V$	PrepareCartridgeToShoot					()		{}
 
 protected:
-			bool			m_bArmedMode;
-			bool			m_bHasAltAim;
-			bool			m_bArmedRelaxedSwitch;
+	bool								m_bArmedMode;
+	bool								m_bHasAltAim;
+	bool								m_bArmedRelaxedSwitch;
 
-			void			InitRotateTime			();
-	
-	virtual float			GetControlInertionFactorBase() const;
-
-	virtual void			SetADS					(int mode);
+	void							V$	InitRotateTime							()		{}
+	void							V$	SetADS									(int mode);
+	void							V$	ConsumeShotCartridge					();
+	float							V$	GetControlInertionFactorBase		C$	();
 
 public:
-	static SPowerDependency	HandlingToRotationTimeFactor;
-
-	IC		int				ADS						()								const	{ return m_iADS; }
-	IC		bool			ArmedMode				()								const	{ return m_bArmedMode; }
-	
-	virtual	float			GetBar 					()								const	{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
-
-	virtual	float			GetControlInertionFactor()								const;
+	int									ADS									C$	()		{ return m_iADS; }
+	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
+	float								GetBar 								CO$	()		{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
 };

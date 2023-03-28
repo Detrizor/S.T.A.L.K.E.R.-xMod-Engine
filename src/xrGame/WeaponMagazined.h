@@ -7,11 +7,11 @@
 #include "GrenadeLauncher.h"
 #include "InventoryBox.h"
 
-#include "xmod\scope.h"
-#include "xmod\silencer.h"
 #include "xmod\addon_owner.h"
 
 class ENGINE_API CMotionDef;
+
+class CWeaponHud;
 class CScope;
 class CSilencer;
 class CGrenadeLauncher;
@@ -223,67 +223,71 @@ protected:
 
 //xMod ported
 public:
-	   void                                     UpdateSecondVP                           () const;
+	void								UpdateSecondVP						C$	();
 
 //xMod altered
 public:
-	virtual bool                                need_renderable                          ();
-	virtual bool                                render_item_ui_query                     ();
-	virtual void                                render_item_ui                           ();
-	virtual void                                ZoomInc                                  ();
-	virtual void                                ZoomDec                                  ();
-	virtual void                                modify_holder_params                     (float &range, float &fov) const;
-	virtual void                                renderable_Render                        ();
-	virtual void                                render_hud_mode                          ();
-	virtual float                               Weight                                   () const;
-	virtual float                               Volume                                   () const;
+	void								UpdateHudAdditional					O$	(Fmatrix& trans);
+	bool								need_renderable						O$	();
+	bool								render_item_ui_query				O$	();
+	void								render_item_ui						O$	();
+	void								ZoomInc								O$	();
+	void								ZoomDec								O$	();
+	void								renderable_Render					O$	();
+	void								render_hud_mode						O$	();
+	void								modify_holder_params				CO$	(float& range, float& fov);
+	float								Weight								CO$	();
+	float								Volume								CO$	();
+	bool								IsRotatingToZoom					CO$	();
 
 //xMod added
 private:
-	   u8                                       m_iChamber;
-	   bool                                     m_bIronSightsLowered;
+	u8									m_iChamber;
+	bool								m_bIronSightsLowered;
+	CScope*								m_pScope;
+	CScope*								m_pAltScope;
+	CSilencer*							m_pSilencer;
+	CMagazineObject*					m_pMagazine;
+	CMagazineObject*					m_pMagazineToReload;
+	CWeaponHud*							m_hud;
 
-	CScope*										m_pScope;
-	CScope*										m_pAltScope;
-	CSilencer*									m_pSilencer;
-	CMagazineObject*							m_pMagazine;
+	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
+	void								UpdateSndShot							();
 
-	   CMagazineObject*                         m_pMagazineToReload;
-	
+	CScope*								GetActiveScope						C$	();
 
-	   void                                     LoadCartridgeFromMagazine                (bool set_ammo_type_only = false);
-	   void                                     UpdateSndShot                            ();
+	float								GetControlInertionFactorBase		CO$	();
 
-	   CScope*                                  GetActiveScope                           () const;
-
-	virtual float                               GetControlInertionFactorBase             () const;
-
-	virtual void                                PrepareCartridgeToShoot                  ();
-	virtual void                                ConsumeShotCartridge                     ();
+	bool								ReadyToFire							CO$	();
+	void								PrepareCartridgeToShoot				O$	();
 
 protected:
-	CWeaponAmmo*								m_pCartridgeToReload;
+	CWeaponAmmo*						m_pCartridgeToReload;
 
-	void									V$	ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
+	void								InitRotateTime						O$	();
+
+	void								ConsumeShotCartridge				O$	();
+
+	void							V$	ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
 
 public:
-	bool										Discharge								(CCartridge& destination);
+	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }
 
-	bool										ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
-	bool										SilencerAttached					C$	()		{ return !!m_pSilencer; }
+	bool								Discharge								(CCartridge& destination);
 
-	float										GetLensRotatingFactor				C$	();
-	float										GetReticleScale						C$	();
-	bool										CanTrade							C$	();
+	bool								ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
+	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
+	float								GetReticleScale						C$	();
+	bool								CanTrade							C$	();
 
-	float										CurrentZoomFactor					CO$	();
+	float								CurrentZoomFactor					CO$	();
 
-	void										UpdateBonesVisibility				O$	();
-	void										UpdateHudBonesVisibility			O$	();
-	void										UpdateAddonsTransform				O$	();
-	void										TransferAnimation					O$	(CAddonObject CPC addon, bool attach);
-	void										OnTaken								O$	();
+	void								UpdateBonesVisibility				O$	();
+	void								UpdateHudBonesVisibility			O$	();
+	void								UpdateAddonsTransform				O$	();
+	void								TransferAnimation					O$	(CAddonObject CPC addon, bool attach);
+	void								OnTaken								O$	();
 
-	bool									V$	LoadCartridge							(CWeaponAmmo* cartridges);
-	void									V$	OnMotionHalf							();
+	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
+	void							V$	OnMotionHalf							();
 };

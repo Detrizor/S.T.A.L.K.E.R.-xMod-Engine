@@ -7,7 +7,8 @@
 #include "static_cast_checked.hpp"
 #include "actoreffector.h"
 #include "../xrEngine/IGame_Persistent.h"
-#include "weapon.h"
+#include "WeaponMagazined.h"
+#include "weapon_hud.h"
 
 #define TENDTO_SPEED         1.0f     // Модификатор силы инерции (больше - чувствительней)
 #define TENDTO_SPEED_AIM     1.0f     // (Для прицеливания)
@@ -21,8 +22,6 @@
 #define ORIGIN_OFFSET_AIM    0.015f, 0.015f, 0.01f, 0.005f
 
 player_hud* g_player_hud = NULL;
-Fvector _ancor_pos;
-Fvector _wpn_root_pos;
 
 float CalcMotionSpeed(const shared_str& anim_name)
 {
@@ -595,7 +594,6 @@ void player_hud::update(const Fmatrix& cam_trans)
 {
 	Fmatrix trans = cam_trans;
 	Fmatrix trans_b = cam_trans;
-	CWeapon* wep = smart_cast<CWeapon*>(Actor()->inventory().ActiveItem());
 
 	Fvector m1pos = attach_pos();
 	Fvector m1rot = attach_rot();
@@ -608,8 +606,10 @@ void player_hud::update(const Fmatrix& cam_trans)
 	if (m_attached_items[1])
 	{
 		m_attached_items[1]->m_parent_hud_item->UpdateHudAdditional(trans_2);
+
+		CWeaponMagazined CPC wep = smart_cast<CWeaponMagazined CP$>(Actor()->inventory().ActiveItem());
 		if (wep && wep->IsZoomed())
-			trans_2.mulB_43(wep->m_shoot_shake_mat);
+			trans_2.mulB_43(wep->Hud().shoot_shake_mat());
 	}
 	else
 		trans_2 = trans;

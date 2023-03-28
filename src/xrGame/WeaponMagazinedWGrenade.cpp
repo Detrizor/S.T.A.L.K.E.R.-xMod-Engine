@@ -722,11 +722,6 @@ bool CWeaponMagazinedWGrenade::IsNecessaryItem(const shared_str& item_sect)
         );
 }
 
-u8 CWeaponMagazinedWGrenade::GetCurrentHudOffsetIdx() const
-{
-	return 0;//--xd(ADS() == 2) ? eGL : inherited::GetCurrentHudOffsetIdx();
-}
-
 bool CWeaponMagazinedWGrenade::install_upgrade_ammo_class(LPCSTR section, bool test)
 {
     LPCSTR str;

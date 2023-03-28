@@ -23,6 +23,7 @@
 #include "../../xrEngine/xr_input.h"
 #include "../build_config_defines.h"
 
+#include "weapon_hud.h"
 #include "xmod\scope.h"
 #include "xmod\silencer.h"
 #include "xmod\attachment.h"
@@ -67,6 +68,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 
 CWeaponMagazined::~CWeaponMagazined()
 {
+	xr_delete(m_hud);
 }
 
 DLL_Pure* CWeaponMagazined::_construct()
@@ -150,10 +152,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_iChamber			= (u8)pSettings->r_bool(section, "has_chamber");
 
-	for (auto& slot : AddonSlots())
-	{
-		// --xd for if (slot.)
-	}
+	m_hud = xr_new<CWeaponHud>(this);
+	if (IsZoomEnabled())
+		InitRotateTime();
 }
 
 void CWeaponMagazined::OnEvent(NET_Packet& P, u16 type)
@@ -333,6 +334,11 @@ void CWeaponMagazined::OnMagazineEmpty()
     inherited::OnMagazineEmpty();
 }
 
+bool CWeaponMagazined::ReadyToFire C$()
+{
+	return m_hud->ReadyToFire();
+}
+
 void CWeaponMagazined::PrepareCartridgeToShoot()
 {
 	if (m_magazine.empty())
@@ -356,16 +362,9 @@ void CWeaponMagazined::LoadCartridgeFromMagazine(bool set_ammo_type_only)
 
 void CWeaponMagazined::ConsumeShotCartridge()
 {
-	CActor* pActor = smart_cast<CActor*>(H_Parent());
-	if (pActor && pActor->unlimited_ammo())
-		return;
-
-	m_magazine.pop_back				();
-	if (m_magazine.size())
-		FindAmmoClass				(*m_magazine.back().m_ammoSect, true);
-	else
+	inherited::ConsumeShotCartridge();
+	if (m_magazine.empty())
 		LoadCartridgeFromMagazine	(!m_iChamber);
-	--iAmmoElapsed;
 }
 
 bool CWeaponMagazined::LoadCartridge(CWeaponAmmo* cartridges)
@@ -886,7 +885,11 @@ void CWeaponMagazined::switch2_Showing()
 
 bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 {
-    if (inherited::Action(cmd, flags)) return true;
+    if (inherited::Action(cmd, flags))
+		return true;
+
+	if (m_hud->Action(cmd, flags))
+		return true;
 
     //если оружие чем-то занято, то ничего не делать
     if (IsPending()) return false;
@@ -1391,19 +1394,19 @@ void CWeaponMagazined::render_hud_mode()
 		//m_pMagazineToReload->Render();
 }
 
-float CWeaponMagazined::GetControlInertionFactorBase() const
+float CWeaponMagazined::GetControlInertionFactorBase C$()
 {
 	float res = inherited::GetControlInertionFactorBase();
-	res *= CAddonOwner::GetControlInertionFactor();
+	CAddonOwner::ModifyControlInertionFactor(res);
 	return res;
 }
 
-void CWeaponMagazined::modify_holder_params(float &range, float &fov) const
+void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 {
 	if (m_pScope && m_pScope->Type() == eOptics)
 		m_pScope->modify_holder_params(range, fov);
 	else
-        inherited::modify_holder_params(range, fov);
+		inherited::modify_holder_params(range, fov);
 }
 
 CScope* CWeaponMagazined::GetActiveScope() const
@@ -1452,7 +1455,7 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI(HudItemData()->m_measures, m_hud_offset);
+	//--xd tmp GetActiveScope()->RenderUI(HudItemData()->m_measures, m_hud_offset);
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
@@ -1463,11 +1466,6 @@ void CWeaponMagazined::UpdateSecondVP() const
 	else if (!scope->HasLense());
 	else res = true;
 	Device.m_SecondViewport.SetSVPActive(res);
-}
-
-float CWeaponMagazined::GetLensRotatingFactor() const
-{
-	return 1.f - m_zoom_params.m_fZoomRotationFactor;
 }
 
 extern float aim_fov_tan;
@@ -1586,4 +1584,19 @@ void CWeaponMagazined::TransferAnimation o$(CAddonObject CPC addon, bool attach)
 	}
 
 	StartReload((attach) ? const_cast<CMagazineObject*>(mag)->dcast_CObject() : NULL);
+}
+
+void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)
+{
+	m_hud->UpdateHudAdditional(trans);
+}
+
+bool CWeaponMagazined::IsRotatingToZoom C$()
+{
+	return m_hud->IsRotatingToZoom();
+}
+
+void CWeaponMagazined::InitRotateTime()
+{
+	m_hud->InitRotateTime(GetControlInertionFactor());
 }

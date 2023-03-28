@@ -7377,7 +7377,7 @@
     <ClInclude Include="xmod\attachment.h" />
     <ClInclude Include="xmod\scope.h" />
     <ClInclude Include="xmod\silencer.h" />
-    <ClInclude Include="xmod\weapon_hud.h" />
+    <ClInclude Include="weapon_hud.h" />
     <ClInclude Include="xmod\items_library.h" />
   </ItemGroup>
   <ItemGroup>
@@ -11064,7 +11064,7 @@
     <ClCompile Include="xmod\attachment.cpp" />
     <ClCompile Include="xmod\scope.cpp" />
     <ClCompile Include="xmod\silencer.cpp" />
-    <ClCompile Include="xmod\weapon_hud.cpp" />
+    <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="xmod\items_library.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -48,6 +48,8 @@ private:
 	void										LoadAddonSlots							(LPCSTR section);
 
 protected:
+	void									ModifyControlInertionFactor				C$	(float& cif);
+
 	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot) {};
 	
@@ -62,5 +64,4 @@ public:
     virtual void			renderable_Render			();
 	virtual void			UpdateAddonsTransform		();
     virtual void			render_hud_mode				();
-	virtual	float			GetControlInertionFactor	C$	();
 };

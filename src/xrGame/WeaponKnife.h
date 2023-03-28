@@ -184,8 +184,6 @@ private:
 	void		fill_shots_list			(victims_shapes_list_t & victims_shapres,
 										 Fsphere const & query,
 										 shot_targets_t & dest_shots);
-	
-	virtual void			UpdateHudAdditional(Fmatrix&);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

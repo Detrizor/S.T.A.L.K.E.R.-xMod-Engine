@@ -87,8 +87,6 @@ public:
 
 	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}
 			void				OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
-	
-	virtual	u8					GetCurrentHudOffsetIdx () const						{return 0;}
 
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
@@ -176,6 +174,8 @@ public:
     void PlayAnimCrouchIdleMoving(); //AVO: new crouch idle animation
     bool HudAnimationExist(LPCSTR anim_name);
 
+	DECLARE_SCRIPT_REGISTER_FUNCTION
+
 protected:
 			float			m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
 			float			m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
@@ -191,7 +191,7 @@ public:
 
 	virtual void				UpdateAddonsTransform() {}; // Обновление положения аддонов на худе каждый кадр
 
-	DECLARE_SCRIPT_REGISTER_FUNCTION
+	friend class CWeaponHud;
 };
 
 add_to_type_list(CHudItem)

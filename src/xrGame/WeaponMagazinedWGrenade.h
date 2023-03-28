@@ -26,7 +26,6 @@ public:
 	virtual void	save				(NET_Packet &output_packet);
 	virtual void	load				(IReader &input_packet);
 
-	virtual	u8		GetCurrentHudOffsetIdx	() const;
 	virtual void	FireEnd					();
 			void	LaunchGrenade			();
 	

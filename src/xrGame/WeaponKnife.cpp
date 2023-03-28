@@ -868,8 +868,3 @@ void CWeaponKnife::best_victim_selector::operator()(
 		return;
 	}
 }
-
-void CWeaponKnife::UpdateHudAdditional(Fmatrix& trans)
-{
-	CHudItem::UpdateHudAdditional(trans);
-}

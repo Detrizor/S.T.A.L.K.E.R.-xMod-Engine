@@ -2386,7 +2386,7 @@
     <ClInclude Include="xmod\attachment.h" />
     <ClInclude Include="xmod\scope.h" />
     <ClInclude Include="xmod\silencer.h" />
-    <ClInclude Include="xmod\weapon_hud.h" />
+    <ClInclude Include="weapon_hud.h" />
     <ClInclude Include="xrClientsPool.h" />
     <ClInclude Include="xrGameSpyServer.h" />
     <ClInclude Include="xrGameSpyServer_callbacks.h" />
@@ -4696,7 +4696,7 @@
     <ClCompile Include="xmod\attachment.cpp" />
     <ClCompile Include="xmod\scope.cpp" />
     <ClCompile Include="xmod\silencer.cpp" />
-    <ClCompile Include="xmod\weapon_hud.cpp" />
+    <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="xrClientsPool.cpp" />
     <ClCompile Include="xrGame.cpp" />
     <ClCompile Include="xrGameSpyServer.cpp" />
