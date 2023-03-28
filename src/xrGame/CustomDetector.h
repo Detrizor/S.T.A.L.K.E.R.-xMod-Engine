@@ -112,10 +112,11 @@ public:
 
 class CUIArtefactDetectorBase;
 
-class CCustomDetector :		public CHudItemObject,
+class CCustomDetector : public CInventoryItemObjectOld,
 	public CItemAmountable
 {
-	typedef	CHudItemObject	inherited;
+	typedef	CInventoryItemObjectOld inherited;
+
 protected:
 	CUIArtefactDetectorBase*			m_ui;
 	bool			m_bFastAnimMode;

@@ -28,11 +28,11 @@ struct SafemodeAnm
 	float power, speed;
 };
 
-class CWeapon : public CHudItemObject,
-    public CShootingObject
+class CWeapon : public CInventoryItemObjectOld,
+	public CShootingObject
 {
 private:
-    typedef CHudItemObject inherited;
+	typedef CInventoryItemObjectOld inherited;
 
 public:
     CWeapon();

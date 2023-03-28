@@ -4,9 +4,10 @@
 
 struct dContact;
 struct SGameMtl;
-class CMissile : public CHudItemObject
+class CMissile : public CInventoryItemObjectOld
 {
-	typedef CHudItemObject inherited;
+	typedef CInventoryItemObjectOld inherited;
+
 public:
 	enum EMissileStates{
 		eThrowStart = eLastBaseState+1,

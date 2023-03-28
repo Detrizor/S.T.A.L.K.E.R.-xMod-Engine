@@ -10,11 +10,12 @@
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
-class CArtefact :	public CHudItemObject, 
-					public CPHUpdateObject,
-					public CItemAmountable
+class CArtefact :	public CInventoryItemObjectOld,
+	public CPHUpdateObject,
+	public CItemAmountable
 {
-	typedef			CHudItemObject	inherited;
+	typedef CInventoryItemObjectOld inherited;
+
 public:
 									CArtefact						();
 	virtual							~CArtefact						();
