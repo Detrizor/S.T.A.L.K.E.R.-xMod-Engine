@@ -1,5 +1,6 @@
 #pragma once
 #include "item_storage.h"
+#include "inventory_space.h"
 
 class CAddonObject;
 class CAddon;
@@ -21,16 +22,14 @@ struct SAddonSlot
 							SAddonSlot				(LPCSTR _name, const xr_vector<SAddonSlot>& slots);
 			void			Load					(LPCSTR section, u16 _idx);
 			bool			CanTake					(CAddonObject CPC _addon) const;
-			Fvector CP$		GetModelOffset			();
 };
 
 typedef xr_vector<SAddonSlot> VSlots;
 
-class CAddonOwner : public CInventoryStorage
+class CAddonOwner
 {
 private:
-	typedef	CInventoryStorage inherited;
-			CGameObject*	m_object;
+	CGameObject* m_object;
 
 public:
 												CAddonOwner								();

@@ -78,7 +78,6 @@ public:
 	virtual DLL_Pure*_construct();
 
     virtual void	Load(LPCSTR section);
-	virtual	void	OnEvent(NET_Packet& P, u16 type);
 
     void	LoadSilencerKoeffs(LPCSTR sect);
     virtual CWeaponMagazined*cast_weapon_magazined()
@@ -290,4 +289,6 @@ public:
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	OnMotionHalf							();
+
+	void							V$	OnEventImpl								(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 };

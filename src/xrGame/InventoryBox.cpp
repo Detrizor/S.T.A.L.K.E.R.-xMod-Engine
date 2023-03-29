@@ -7,6 +7,7 @@ CInventoryBox::CInventoryBox()
 	m_in_use							= false;
 	m_can_take							= true;
 	m_closed							= false;
+	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 DLL_Pure* CInventoryBox::_construct()
@@ -20,12 +21,6 @@ void CInventoryBox::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 	CInventoryContainer::Load			(section);
-}
-
-void CInventoryBox::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent					(P, type);
-	CInventoryContainer::OnEvent		(P, type);
 }
 
 #include "../xrServerEntities/xrServer_Objects_Alife.h"

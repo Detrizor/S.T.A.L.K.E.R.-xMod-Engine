@@ -1,23 +1,11 @@
 #pragma once
-#include "inventory_space.h"
+#include "module.h"
 
-class CInventoryStorage
+class CItemStorage : public CModule
 {
-private:
-	CGameObject*	m_object;
+public:
+										CItemStorage							(CGameObject* obj) : CModule(obj) {}
 
 public:
-	CInventoryStorage		();
-	virtual					~CInventoryStorage		()										{};
-	virtual DLL_Pure*		_construct				();
-
-	virtual	void			OnEvent					(NET_Packet& P, u16 type);
-
-private:
-	TIItemContainer	m_items;
-
-protected:
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
-
-	friend	class			CInventoryContainer;
+	void								OnEvent								O$	(NET_Packet& P, u16 type);
 };

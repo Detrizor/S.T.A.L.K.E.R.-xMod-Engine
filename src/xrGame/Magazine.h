@@ -11,7 +11,6 @@ class CMagazine
 {
 private:
 	CGameObject*			m_object;
-	CInventoryStorage*		m_storage;
 
 public:
 							CMagazine				();
@@ -43,11 +42,11 @@ public:
 	virtual	u32				Cost					()								const;
 };
 
-class CMagazineObject : public CAddonObject,
+class CMagazineObject : public CInventoryItemObject,
 	public CMagazine
 {
 private:
-	typedef	CAddonObject	inherited;
+	typedef	CInventoryItemObject	inherited;
 
 public:
 							CMagazineObject			()										{}

@@ -60,6 +60,8 @@ CGameObject::CGameObject		()
 
 	m_callbacks					= xr_new<CALLBACK_MAP>();
 	m_anim_mov_ctrl				= 0;
+
+	m_modules.clear();
 }
 
 CGameObject::~CGameObject		()
@@ -71,6 +73,8 @@ CGameObject::~CGameObject		()
 	xr_delete					(m_ai_location);
 	xr_delete					(m_callbacks);
 	xr_delete					(m_ai_obstacle);
+
+	m_modules.clear();
 }
 
 void CGameObject::init			()
@@ -156,6 +160,9 @@ void CGameObject::net_Destroy	()
 
 void CGameObject::OnEvent		(NET_Packet& P, u16 type)
 {
+	for (auto module : m_modules)
+		module->OnEvent(P, type);
+
 	switch (type)
 	{
 	case GE_HIT:
@@ -1194,3 +1201,9 @@ void CGameObject::OnRender			()
 	}
 }
 #endif // DEBUG
+
+void CGameObject::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+{
+	for (auto module : m_modules)
+		module->OnEventImpl(type, id, itm, dont_create_shell);
+}

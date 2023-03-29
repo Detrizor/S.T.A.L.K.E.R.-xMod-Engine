@@ -26,7 +26,6 @@ private:
 public:
 	DLL_Pure*									_construct							O$	() ;
 	void										Load								O$	(LPCSTR section) ;
-	void										OnEvent								O$	(NET_Packet& P, u16 type);
 
 private:
 	shared_str									m_SlotType;

@@ -1,18 +1,20 @@
 #pragma once
-#include "item_storage.h"
 
-class CInventoryContainer : public CInventoryStorage
+#include "inventory_item_object.h"
+
+class CInventoryContainer
 {
 private:
-	typedef	CInventoryStorage inherited;
+	CGameObject*			m_object;
 
 public:
 							CInventoryContainer		();
-	virtual					~CInventoryContainer	()										{}
+	DLL_Pure*				_construct				();
 
 	virtual	void			Load					(LPCSTR section);
 
 private:
+	TIItemContainer			m_items;
 			float			m_capacity;
 			
 			void			OnInventoryAction		(PIItem item, u16 actionType)	const;
@@ -20,7 +22,7 @@ private:
 protected:
 	IC		void			SetCapacity				(float val)								{ m_capacity = val; }
 
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void					OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 
 public:
 	IC const TIItemContainer&Items					()								const	{ return m_items; }
@@ -32,8 +34,6 @@ public:
 			float			ItemsWeight				()								const;
 			float			ItemsVolume				()								const;
 };
-
-#include "inventory_item_object.h"
 
 class CContainerObject : public CInventoryItemObject,
 	public CInventoryContainer
@@ -47,7 +47,6 @@ public:
 	virtual DLL_Pure*		_construct				();
 
 	virtual void			Load					(LPCSTR section);
-	virtual	void			OnEvent					(NET_Packet& P, u16 type);
 
 private:
 	bool			m_content_volume_scale;
@@ -57,6 +56,8 @@ private:
 public:
 	LPCSTR			Stock					()								const	{ return m_stock; }
 	u32				StockCount				()								const	{ return m_stock_count; }
+
+	void					OnEventImpl			O$	(u16 type, u16 id, CObject* itm, bool dont_create_shell) { CInventoryContainer::OnEventImpl(type, id, itm, dont_create_shell); }
 
 	virtual	float			GetAmount				()								const	{ return ItemsVolume(); }
 	virtual	float			GetFill					()								const	{ return ItemsVolume() / GetCapacity(); }

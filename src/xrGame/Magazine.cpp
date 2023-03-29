@@ -16,7 +16,6 @@ CMagazine::CMagazine()
 DLL_Pure* CMagazine::_construct()
 {
 	m_object						= smart_cast<CGameObject*>(this);
-	m_storage						= smart_cast<CInventoryStorage*>(this);
 	return							m_object;
 }
 
@@ -138,6 +137,7 @@ void CMagazineObject::Load(LPCSTR section)
 {
 	inherited::Load					(section);
 	CMagazine::Load					(section);
+	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 void CMagazineObject::OnEvent(NET_Packet& P, u16 type)
@@ -170,7 +170,7 @@ void CMagazineObject::UpdateBulletsVisibility()
 
 void CMagazineObject::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
 {
-	inherited::OnEventImpl			(type, id, itm, dont_create_shell);
+	//inherited::OnEventImpl			(type, id, itm, dont_create_shell);
 	CMagazine::OnEventImpl			(type, id, itm, dont_create_shell);
 }
 

@@ -8,6 +8,12 @@ CInventoryContainer::CInventoryContainer()
 	m_capacity							= 0.f;
 }
 
+DLL_Pure* CInventoryContainer::_construct()
+{
+	m_object							= smart_cast<CGameObject*>(this);
+	return								m_object;
+}
+
 void CInventoryContainer::Load(LPCSTR section)
 {
 	m_capacity							= pSettings->r_float(section, "capacity");
@@ -31,8 +37,18 @@ void CInventoryContainer::OnInventoryAction(PIItem item, u16 actionType) const
 
 void CInventoryContainer::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
 {
-	inherited::OnEventImpl				(type, id, itm, dont_create_shell);
 	PIItem item							= smart_cast<PIItem>(itm);
+	switch (type)
+	{
+	case GE_TRADE_BUY:
+	case GE_OWNERSHIP_TAKE:
+		m_items.push_back				(item);
+		break;
+	case GE_TRADE_SELL:
+	case GE_OWNERSHIP_REJECT:
+		m_items.erase					(std::find(m_items.begin(), m_items.end(), item));
+		break;
+	}
 	OnInventoryAction					(item, type);
 }
 
@@ -75,6 +91,7 @@ CContainerObject::CContainerObject()
 	m_content_volume_scale				= true;
 	m_stock								= "";
 	m_stock_count						= 0;
+	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 DLL_Pure* CContainerObject::_construct()
@@ -91,12 +108,6 @@ void CContainerObject::Load(LPCSTR section)
 	m_content_volume_scale				= !!pSettings->r_bool(section, "content_volume_scale");
 	m_stock								= pSettings->r_string(section, "stock");
 	m_stock_count						= pSettings->r_u32(section, "stock_count");
-}
-
-void CContainerObject::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent					(P, type);
-	CInventoryContainer::OnEvent		(P, type);
 }
 
 float CContainerObject::Weight() const

@@ -157,12 +157,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 		InitRotateTime();
 }
 
-void CWeaponMagazined::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent						(P, type);
-	CAddonOwner::OnEvent					(P, type);
-}
-
 void CWeaponMagazined::FireStart()
 {
     if (!IsMisfire())
@@ -1599,4 +1593,10 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 void CWeaponMagazined::InitRotateTime()
 {
 	m_hud->InitRotateTime(GetControlInertionFactor());
+}
+
+void CWeaponMagazined::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+{
+	CAddonOwner::OnEventImpl(type, id, itm, dont_create_shell);
+	inherited::OnEventImpl(type, id, itm, dont_create_shell);
 }

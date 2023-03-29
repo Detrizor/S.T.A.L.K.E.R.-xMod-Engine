@@ -7382,6 +7382,7 @@
     </ClInclude>
     <ClInclude Include="item_storage.h" />
     <ClInclude Include="item_container.h" />
+    <ClInclude Include="module.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11076,6 +11077,7 @@
     </ClCompile>
     <ClCompile Include="item_storage.cpp" />
     <ClCompile Include="item_container.cpp" />
+    <ClCompile Include="module.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

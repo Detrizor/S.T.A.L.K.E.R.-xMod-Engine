@@ -16,7 +16,6 @@ public:
 
 	virtual	void			Load					(LPCSTR section);
 	
-	virtual	void			OnEvent					(NET_Packet& P, u16 type);
 	virtual	BOOL			net_Spawn				(CSE_Abstract* DC);
 	
 private:
@@ -27,7 +26,7 @@ private:
 			void			SE_update_status		();
 			
 protected:
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void					OnEventImpl			O$	(u16 type, u16 id, CObject* itm, bool dont_create_shell);
 
 public:
 	IC		void			set_in_use				(bool status)							{ m_in_use = status; }

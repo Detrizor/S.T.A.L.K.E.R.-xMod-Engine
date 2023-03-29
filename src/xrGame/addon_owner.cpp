@@ -12,7 +12,6 @@ CAddonOwner::CAddonOwner()
 
 DLL_Pure* CAddonOwner::_construct()
 {
-	inherited::_construct					();
 	m_object								= smart_cast<CGameObject*>(this);
 	return									m_object;
 }
@@ -37,7 +36,6 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 
 void CAddonOwner::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
 {
-	inherited::OnEventImpl						(type, id, itm, dont_create_shell);
 	CAddonObject* addon							= smart_cast<CAddonObject*>(itm);
 	if (!addon)
 		return;

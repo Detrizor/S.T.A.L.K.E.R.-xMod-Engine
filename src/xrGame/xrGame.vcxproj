@@ -1729,6 +1729,7 @@
     <ClInclude Include="Missile.h" />
     <ClInclude Include="mixed_delegate.h" />
     <ClInclude Include="mixed_delegate_unique_tags.h" />
+    <ClInclude Include="module.h" />
     <ClInclude Include="monster_community.h" />
     <ClInclude Include="MosquitoBald.h" />
     <ClInclude Include="movement_manager.h" />
@@ -3589,6 +3590,7 @@
     </ClCompile>
     <ClCompile Include="min_obb.cpp" />
     <ClCompile Include="Missile.cpp" />
+    <ClCompile Include="module.cpp" />
     <ClCompile Include="monster_community.cpp" />
     <ClCompile Include="MosquitoBald.cpp" />
     <ClCompile Include="MosquitoBald_script.cpp">

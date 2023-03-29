@@ -26,12 +26,6 @@ DLL_Pure* CAddonObject::_construct()
 	return							this;
 }
 
-void CAddonObject::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent				(P, type);
-	CAddonOwner::OnEvent			(P, type);
-}
-
 void CAddonObject::renderable_Render()
 {
     inherited::renderable_Render	();
