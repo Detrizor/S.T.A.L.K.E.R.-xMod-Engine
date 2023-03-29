@@ -21,7 +21,7 @@
 #include "CustomOutfit.h"
 #include "ActorHelmet.h"
 #include "Magazine.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 
 CUICellItem* CUICellItem::m_mouse_selected_item = NULL;
 

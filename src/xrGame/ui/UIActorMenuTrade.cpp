@@ -25,7 +25,7 @@
 #include "../../xrServerEntities/script_engine.h"
 #include "../UIGameSP.h"
 #include "UITalkWnd.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 
 // -------------------------------------------------
 

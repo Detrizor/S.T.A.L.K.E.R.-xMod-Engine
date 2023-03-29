@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IItemContainer.h"
+#include "item_container.h"
 
 class CBackpack : public CContainerObject
 {

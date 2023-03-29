@@ -28,7 +28,7 @@
 
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
-#include "IItemContainer.h"
+#include "item_container.h"
 
 
 #ifdef DEBUG

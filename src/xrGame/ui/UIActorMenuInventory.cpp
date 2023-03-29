@@ -33,7 +33,7 @@
 #include "../PDA.h"
 #include "../ActorBackpack.h"
 #include "../actor_defs.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 
 using namespace luabind; //Alundaio
 

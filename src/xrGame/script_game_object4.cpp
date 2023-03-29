@@ -42,7 +42,7 @@
 #include "BottleItem.h"
 #include "WeaponMagazinedWGrenade.h"
 #include "inventory_item_amountable.h"
-#include "IItemContainer.h"
+#include "item_container.h"
 #include "Magazine.h"
 
 #include "scope.h"

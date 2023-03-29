@@ -38,7 +38,7 @@
 #include "UIPropertiesBox.h"
 #include "UIMainIngameWnd.h"
 #include "../Trade.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 #include "UICellItemFactory.h"
 #include "UIInvUpgradeInfo.h"
 

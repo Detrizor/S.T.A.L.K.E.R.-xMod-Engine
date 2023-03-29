@@ -27,7 +27,7 @@
 #include "static_cast_checked.hpp"
 #include "player_hud.h"
 #include "CustomDetector.h"
-#include "IItemContainer.h"
+#include "item_container.h"
 
 using namespace InventoryUtilities;
 //Alundaio

@@ -11,7 +11,7 @@
 #include "../Inventory.h"
 #include "../InventoryOwner.h"
 #include "../InventoryBox.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 
 #include "../InfoPortion.h"
 #include "game_base_space.h"

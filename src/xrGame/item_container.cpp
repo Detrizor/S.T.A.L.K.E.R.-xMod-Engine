@@ -1,6 +1,74 @@
 #include "stdafx.h"
-#include "IItemContainer.h"
-#include "Level.h"
+#include "item_container.h"
+#include "ui/UIActorMenu.h"
+#include "uigamecustom.h"
+
+CInventoryContainer::CInventoryContainer()
+{
+	m_capacity							= 0.f;
+}
+
+void CInventoryContainer::Load(LPCSTR section)
+{
+	m_capacity							= pSettings->r_float(section, "capacity");
+}
+
+void CInventoryContainer::OnInventoryAction(PIItem item, u16 actionType) const
+{
+	CUIActorMenu* actor_menu				= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
+	if (actor_menu && actor_menu->IsShown())
+	{
+		u8 res_zone							= 0;
+		if (smart_cast<CInventoryContainer*>(actor_menu->GetBag()) == this)
+			res_zone						= 3;
+		else if (!m_object->H_Parent())
+			res_zone						= 2;
+
+		if (res_zone > 0)
+			actor_menu->OnInventoryAction	(item, actionType, res_zone);
+	}
+}
+
+void CInventoryContainer::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+{
+	inherited::OnEventImpl				(type, id, itm, dont_create_shell);
+	PIItem item							= smart_cast<PIItem>(itm);
+	OnInventoryAction					(item, type);
+}
+
+bool CInventoryContainer::CanTakeItem(PIItem item) const
+{
+	if (smart_cast<CInventoryContainer*>(item) == this)
+		return							false;
+	if (fEqual(m_capacity, 0.f))
+		return							true;
+	float vol							= ItemsVolume();
+	return								(fLessOrEqual(vol, m_capacity) && fLessOrEqual(vol + item->Volume(), m_capacity + 0.1f));
+}
+
+void CInventoryContainer::AddAvailableItems(TIItemContainer& items_container) const
+{
+	for (auto I : m_items)
+		items_container.push_back		(I);
+}
+
+float CInventoryContainer::ItemsWeight() const
+{
+	float res							= 0.f;
+	for (auto I : m_items)
+		res								+= I->Weight();
+	return								res;
+}
+
+float CInventoryContainer::ItemsVolume() const
+{
+	float res							= 0.f;
+	for (auto I : m_items)
+		res								+= I->Volume();
+	return								res;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CContainerObject::CContainerObject()
 {

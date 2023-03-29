@@ -22,7 +22,7 @@
 #include "ui/UICellItemFactory.h"
 #include "ui/UICellItem.h"
 #include "ui/UICellCustomItems.h"
-#include "IItemContainer.h"
+#include "item_container.h"
 
 #define PICKUP_INFO_COLOR 0xFFDDDDDD
 

@@ -17,7 +17,7 @@
 #include "../InventoryBox.h"
 #include "../string_table.h"
 #include "../ai/monsters/BaseMonster/base_monster.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 
 // -------------------------------------------------------------------------------------------------
 

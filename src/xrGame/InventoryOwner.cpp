@@ -28,7 +28,7 @@
 #include "ActorHelmet.h"
 #include "Bolt.h"
 #include "Magazine.h"
-#include "IItemContainer.h"
+#include "item_container.h"
 
 CInventoryOwner::CInventoryOwner()
 {

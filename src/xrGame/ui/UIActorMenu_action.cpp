@@ -28,7 +28,7 @@
 #include "UIMessageBoxEx.h"
 #include "UIPropertiesBox.h"
 #include "UIMainIngameWnd.h"
-#include "../IItemContainer.h"
+#include "../item_container.h"
 #include "ActorBackpack.h"
 
 using namespace luabind; //Alundaio

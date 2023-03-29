@@ -169,7 +169,7 @@
 #	include "space_restrictor.h"
 #	include "smart_zone.h"
 #	include "InventoryBox.h"
-#	include "IItemContainer.h"
+#	include "item_container.h"
 #	include "inventory_item_amountable.h"
 
 #	include "actor_mp_server.h"
