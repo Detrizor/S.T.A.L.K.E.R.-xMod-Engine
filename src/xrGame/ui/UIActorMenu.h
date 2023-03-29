@@ -325,7 +325,7 @@ public:
 	void		xr_stdcall		OnMesBoxYes					(CUIWindow*, void*);
 	void		xr_stdcall		OnMesBoxNo					(CUIWindow*, void*);
 
-	void						OnInventoryAction			(PIItem pItem, u16 action_type, u8 zone);
+	void						OnInventoryAction			(PIItem pItem, bool take, u8 zone);
 	void						ShowRepairButton			(bool status);
 	bool						SetInfoCurUpgrade			(Upgrade_type* upgrade_type, CInventoryItem* inv_item );
 	void						SeparateUpgradeItem			();

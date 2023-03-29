@@ -95,7 +95,7 @@ private:
 protected:
 	void										ProcessAddon						O$	(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
 
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void					OnChild				O$ (CObject* obj, bool take);
 	virtual void			SetADS					(int mode);
 	virtual void			OnMotionHalf			();
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+class CInventoryItem;
 
 class CModule
 {
@@ -12,5 +13,5 @@ public:
 
 public:
 	void							V$	OnEvent									(NET_Packet& P, u16 type) {}
-	void							V$	OnEventImpl								(u16 type, u16 id, CObject* itm, bool dont_create_shell) {}
+	void							V$	OnChild									(CObject* obj, bool take) {}
 };

@@ -19,37 +19,33 @@ void CInventoryContainer::Load(LPCSTR section)
 	m_capacity							= pSettings->r_float(section, "capacity");
 }
 
-void CInventoryContainer::OnInventoryAction(PIItem item, u16 actionType) const
+void CInventoryContainer::OnInventoryAction(PIItem item, bool take) const
 {
-	CUIActorMenu* actor_menu				= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
+	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
 	if (actor_menu && actor_menu->IsShown())
 	{
-		u8 res_zone							= 0;
+		u8 res_zone						= 0;
 		if (smart_cast<CInventoryContainer*>(actor_menu->GetBag()) == this)
-			res_zone						= 3;
+			res_zone					= 3;
 		else if (!m_object->H_Parent())
-			res_zone						= 2;
+			res_zone					= 2;
 
 		if (res_zone > 0)
-			actor_menu->OnInventoryAction	(item, actionType, res_zone);
+			actor_menu->OnInventoryAction(item, take, res_zone);
 	}
 }
 
-void CInventoryContainer::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CInventoryContainer::OnChild(CObject* obj, bool take)
 {
-	PIItem item							= smart_cast<PIItem>(itm);
-	switch (type)
+	PIItem item							= smart_cast<PIItem>(obj);
+	if (item)
 	{
-	case GE_TRADE_BUY:
-	case GE_OWNERSHIP_TAKE:
-		m_items.push_back				(item);
-		break;
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
-		m_items.erase					(std::find(m_items.begin(), m_items.end(), item));
-		break;
+		if (take)
+			m_items.push_back			(item);
+		else
+			m_items.erase				(std::find(m_items.begin(), m_items.end(), item));
+		OnInventoryAction				(item, take);
 	}
-	OnInventoryAction					(item, type);
 }
 
 bool CInventoryContainer::CanTakeItem(PIItem item) const
@@ -91,7 +87,6 @@ CContainerObject::CContainerObject()
 	m_content_volume_scale				= true;
 	m_stock								= "";
 	m_stock_count						= 0;
-	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 DLL_Pure* CContainerObject::_construct()
@@ -132,4 +127,9 @@ u32 CContainerObject::Cost() const
 		for (TIItemContainer::const_iterator I = Items().begin(), E = Items().end(); I != E; I++)
 			res						+= (*I)->Cost();
 	return								res;
+}
+
+void CContainerObject::OnChild(CObject* obj, bool take)
+{
+	CInventoryContainer::OnChild(obj, take);
 }

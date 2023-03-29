@@ -32,9 +32,9 @@ void CMagazine::Load(LPCSTR section)
     }
 }
 
-void CMagazine::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CMagazine::OnChild(CObject* obj, bool take)
 {
-	CWeaponAmmo* heap				= smart_cast<CWeaponAmmo*>(itm);
+	CWeaponAmmo* heap				= smart_cast<CWeaponAmmo*>(obj);
 	if (!heap)
 		return;
 	
@@ -44,20 +44,18 @@ void CMagazine::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_she
 		idx							= m_iNextHeapIdx;
 		m_iNextHeapIdx				= NO_ID;
 	}
-	switch (type)
+	
+	if (take)
 	{
-	case GE_TRADE_BUY:
-	case GE_OWNERSHIP_TAKE:
 		if (m_Heaps.size() <= idx)
 			m_Heaps.resize			(idx+1);
 		m_Heaps[idx]				= heap;
 		m_iHeapsCount++;
-		break;
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
+	}
+	else
+	{
 		m_Heaps[idx]				= NULL;
 		m_iHeapsCount--;
-		break;
 	}
 }
 
@@ -137,7 +135,6 @@ void CMagazineObject::Load(LPCSTR section)
 {
 	inherited::Load					(section);
 	CMagazine::Load					(section);
-	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 void CMagazineObject::OnEvent(NET_Packet& P, u16 type)
@@ -168,10 +165,10 @@ void CMagazineObject::UpdateBulletsVisibility()
 	pVisual->CalculateBones			(TRUE);
 }
 
-void CMagazineObject::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CMagazineObject::OnChild(CObject* obj, bool take)
 {
 	//inherited::OnEventImpl			(type, id, itm, dont_create_shell);
-	CMagazine::OnEventImpl			(type, id, itm, dont_create_shell);
+	CMagazine::OnChild			(obj, take);
 }
 
 void CMagazineObject::UpdateHudBonesVisibility()

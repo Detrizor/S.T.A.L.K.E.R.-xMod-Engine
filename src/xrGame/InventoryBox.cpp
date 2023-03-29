@@ -7,7 +7,6 @@ CInventoryBox::CInventoryBox()
 	m_in_use							= false;
 	m_can_take							= true;
 	m_closed							= false;
-	m_modules.push_back					(xr_new<CItemStorage>(this));
 }
 
 DLL_Pure* CInventoryBox::_construct()
@@ -50,20 +49,14 @@ void CInventoryBox::SE_update_status()
 	CGameObject::u_EventSend			( P );
 }
 
-void CInventoryBox::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CInventoryBox::OnChild(CObject* obj, bool take)
 {
-	CInventoryContainer::OnEventImpl	(type, id, itm, dont_create_shell);
+	CInventoryContainer::OnChild(obj, take);
 	
-	switch (type)
+	if (!take && m_in_use)
 	{
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
-		if (m_in_use)
-		{
-			CGameObject* GO				= smart_cast<CGameObject*>(itm);
-			Actor()->callback			(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
-		}
-		break;
+		CGameObject* GO					= smart_cast<CGameObject*>(obj);
+		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
 	}
 }
 

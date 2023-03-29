@@ -49,7 +49,7 @@ private:
 protected:
 	void									ModifyControlInertionFactor				C$	(float& cif);
 
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	virtual	void			OnChild					(CObject* obj, bool take);
 	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot) {};
 	
 public:

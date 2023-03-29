@@ -34,9 +34,9 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 	}
 }
 
-void CAddonOwner::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CAddonOwner::OnChild(CObject* obj, bool take)
 {
-	CAddonObject* addon							= smart_cast<CAddonObject*>(itm);
+	CAddonObject* addon							= smart_cast<CAddonObject*>(obj);
 	if (!addon)
 		return;
 
@@ -46,18 +46,16 @@ void CAddonOwner::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_s
 		idx										= m_NextAddonSlot;
 		m_NextAddonSlot							= NO_ID;
 	}
-	switch (type)
+	
+	if (take)
 	{
-	case GE_TRADE_BUY:
-	case GE_OWNERSHIP_TAKE:
 		m_Slots[idx].addon						= addon;
 		AddonAttach								(addon);
-		break;
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
+	}
+	else
+	{
 		m_Slots[idx].addon						= NULL;
 		AddonDetach								(addon);
-		break;
 	}
 }
 

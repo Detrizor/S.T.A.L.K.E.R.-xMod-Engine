@@ -262,41 +262,30 @@ void CWeaponMagazinedWGrenade::state_Fire(float dt)
 
 void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
 {
-	inherited::OnEvent		(P, type);
+	inherited::OnEvent					(P, type);
 	if (type == GE_LAUNCH_ROCKET)
 	{
-		u16					id;
-        P.r_u16				(id);
-		CObject* itm		= Level().Objects.net_Find(id);
-		OnEventImpl			(type, id, itm, false);
+		u16								id;
+		P.r_u16							(id);
+		CRocketLauncher::DetachRocket	(id, true);
+		PlayAnimShoot					();
+		PlaySound						("sndShotG", get_LastFP2());
+		AddShotEffector					();
+		StartFlameParticles2			();
 	}
 }
 
-void CWeaponMagazinedWGrenade::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CWeaponMagazinedWGrenade::OnChild(CObject* obj, bool take)
 {
-	if (!smart_cast<CCustomRocket*>(itm))
-		inherited::OnEventImpl				(type, id, itm, dont_create_shell);
-	
-    switch (type)
-    {
-	case GE_TRADE_BUY:
-	case GE_OWNERSHIP_TAKE:
-		CRocketLauncher::AttachRocket		(id, this);
-		break;
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
-	case GE_LAUNCH_ROCKET:{
-        bool bLaunch						= (type == GE_LAUNCH_ROCKET);
-        CRocketLauncher::DetachRocket		(id, bLaunch);
-        if (bLaunch)
-        {
-            PlayAnimShoot					();
-            PlaySound						("sndShotG", get_LastFP2());
-            AddShotEffector					();
-            StartFlameParticles2			();
-        }
-		}break;
-    }
+	inherited::OnChild					(obj, take);
+
+	if (smart_cast<CCustomRocket*>(obj))
+	{
+		if (take)
+			CRocketLauncher::AttachRocket(obj->ID(), this);
+		else
+			CRocketLauncher::DetachRocket(obj->ID(), false);
+	}
 }
 
 void  CWeaponMagazinedWGrenade::LaunchGrenade()

@@ -26,7 +26,7 @@ private:
 			void			SE_update_status		();
 			
 protected:
-	void					OnEventImpl			O$	(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void OnChild O$	(CObject* obj, bool take);
 
 public:
 	IC		void			set_in_use				(bool status)							{ m_in_use = status; }

@@ -17,12 +17,12 @@ private:
 	TIItemContainer			m_items;
 			float			m_capacity;
 			
-			void			OnInventoryAction		(PIItem item, u16 actionType)	const;
+	void								OnInventoryAction					C$	(PIItem item, bool take);
 			
 protected:
 	IC		void			SetCapacity				(float val)								{ m_capacity = val; }
 
-	void					OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void					OnChild			(CObject* obj, bool take);
 
 public:
 	IC const TIItemContainer&Items					()								const	{ return m_items; }
@@ -57,7 +57,7 @@ public:
 	LPCSTR			Stock					()								const	{ return m_stock; }
 	u32				StockCount				()								const	{ return m_stock_count; }
 
-	void					OnEventImpl			O$	(u16 type, u16 id, CObject* itm, bool dont_create_shell) { CInventoryContainer::OnEventImpl(type, id, itm, dont_create_shell); }
+	void								OnChild						O$	(CObject* obj, bool take);
 
 	virtual	float			GetAmount				()								const	{ return ItemsVolume(); }
 	virtual	float			GetFill					()								const	{ return ItemsVolume() / GetCapacity(); }

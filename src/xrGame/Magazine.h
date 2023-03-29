@@ -25,9 +25,9 @@ private:
 			u16				m_iHeapsCount;
 	xr_vector<shared_str>	m_ammo_types;
 			u16				m_capacity;
-			
+
 protected:
-			void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void								OnChild							(CObject* obj, bool take);
 
 public:
 			u16				Capacity				()								const	{ return m_capacity; };
@@ -60,7 +60,7 @@ private:
 			void			UpdateBulletsVisibility	();
 
 protected:
-	virtual	void			OnEventImpl				(u16 type, u16 id, CObject* itm, bool dont_create_shell);
+	void								OnChild						O$	(CObject* obj, bool take);
 
 public:
 	

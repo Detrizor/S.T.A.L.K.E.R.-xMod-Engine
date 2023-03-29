@@ -158,91 +158,75 @@ void CGameObject::net_Destroy	()
 	m_spawned								= false;
 }
 
-void CGameObject::OnEvent		(NET_Packet& P, u16 type)
+void CGameObject::OnEvent(NET_Packet& P, u16 type)
 {
 	for (auto module : m_modules)
-		module->OnEvent(P, type);
+		module->OnEvent					(P, type);
+
+	u16 id								= NO_ID;
+	CObject* obj						= NULL;
+	bool dont_create_shell				= false;
+	bool take							= false;
 
 	switch (type)
 	{
 	case GE_HIT:
 	case GE_HIT_STATISTIC:
-		{
-/*
-			u16				id,weapon_id;
-			Fvector			dir;
-			float			power, impulse;
-			s16				element;
-			Fvector			position_in_bone_space;
-			u16				hit_type;
-			float			ap = 0.0f;
-
-			P.r_u16			(id);
-			P.r_u16			(weapon_id);
-			P.r_dir			(dir);
-			P.r_float		(power);
-			P.r_s16			(element);
-			P.r_vec3		(position_in_bone_space);
-			P.r_float		(impulse);
-			P.r_u16			(hit_type);	//hit type
-			if ((ALife::EHitType)hit_type == ALife::eHitTypeFireWound)
-			{
-				P.r_float	(ap);
-			}
-
-			CObject*	Hitter = Level().Objects.net_Find(id);
-			CObject*	Weapon = Level().Objects.net_Find(weapon_id);
-
-			SHit	HDS = SHit(power, dir, Hitter, element, position_in_bone_space, impulse, (ALife::EHitType)hit_type, ap);
-*/
-			SHit	HDS;
-			HDS.PACKET_TYPE = type;
-			HDS.Read_Packet_Cont(P);
-//			Msg("Hit received: %d[%d,%d]", HDS.whoID, HDS.weaponID, HDS.BulletID);
-			CObject*	Hitter = Level().Objects.net_Find(HDS.whoID);
-			CObject*	Weapon = Level().Objects.net_Find(HDS.weaponID);
-			HDS.who		= Hitter;
-			if (!HDS.who)
-			{
-				Msg("! ERROR: hitter object [%d] is NULL on client.", HDS.whoID);
-			}
-			//-------------------------------------------------------
-			switch (HDS.PACKET_TYPE)
-			{
-			case GE_HIT_STATISTIC:
-				{
-				}break;
-			default:
-				{
-				}break;
-			}
-			SetHitInfo(Hitter, Weapon, HDS.bone(), HDS.p_in_bone_space, HDS.dir);
-			Hit				(&HDS);
-			//---------------------------------------------------------------------------
-			//---------------------------------------------------------------------------
-		}
+	{
+		SHit							HDS;
+		HDS.PACKET_TYPE					= type;
+		HDS.Read_Packet_Cont			(P);
+		CObject* Hitter					= Level().Objects.net_Find(HDS.whoID);
+		CObject* Weapon					= Level().Objects.net_Find(HDS.weaponID);
+		HDS.who							= Hitter;
+		if (!HDS.who)
+			Msg							("! ERROR: hitter object [%d] is NULL on client.", HDS.whoID);
+		SetHitInfo						(Hitter, Weapon, HDS.bone(), HDS.p_in_bone_space, HDS.dir);
+		Hit								(&HDS);
 		break;
+	}
 	case GE_DESTROY:
+		if (H_Parent())
 		{
-			if ( H_Parent() )
-			{
-				Msg( "! ERROR (GameObject): GE_DESTROY arrived to object[%d][%s], that has parent[%d][%s], frame[%d]",
-					ID(), cNameSect().c_str(),
-					H_Parent()->ID(), H_Parent()->cName().c_str(), Device.dwFrame );
-				
-				// This object will be destroy on call function <H_Parent::Destroy>
-				// or it will be call <H_Parent::Reject>  ==>  H_Parent = NULL
-				// !!! ___ it is necessary to be check!
-				break;
-			}
-#ifdef MP_LOGGING
-			Msg("--- Object: GE_DESTROY of [%d][%s]", ID(), cNameSect().c_str());
-#endif // MP_LOGGING
+			Msg							("! ERROR (GameObject): GE_DESTROY arrived to object[%d][%s], that has parent[%d][%s], frame[%d]",
+				ID(), cNameSect().c_str(), H_Parent()->ID(), H_Parent()->cName().c_str(), Device.dwFrame);
 
-			setDestroy		(TRUE);
-//			MakeMeCrow		();
+			// This object will be destroy on call function <H_Parent::Destroy>
+			// or it will be call <H_Parent::Reject>  ==>  H_Parent = NULL
+			// !!! ___ it is necessary to be check!
+			break;
 		}
+		setDestroy						(TRUE);
 		break;
+	}
+
+	if (smart_cast<CInventoryOwner*>(this))
+		return;
+
+	switch(type)
+	{
+	case GE_TRADE_BUY:
+	case GE_OWNERSHIP_TAKE:
+		take							= true;
+	case GE_TRADE_SELL:
+	case GE_OWNERSHIP_REJECT:
+		P.r_u16							(id);
+		obj								= Level().Objects.net_Find(id);
+		dont_create_shell				= (type == GE_TRADE_SELL) || (!P.r_eof() && P.r_u8());
+	}
+
+	if (obj)
+	{
+		if (take)
+		{
+			obj->H_SetParent			(this);
+			obj->setVisible				(FALSE);
+			obj->setEnabled				(FALSE);
+		}
+		else
+			obj->H_SetParent			(NULL, dont_create_shell);
+
+		OnChild							(obj, take);
 	}
 }
 
@@ -1202,8 +1186,8 @@ void CGameObject::OnRender			()
 }
 #endif // DEBUG
 
-void CGameObject::OnEventImpl(u16 type, u16 id, CObject* itm, bool dont_create_shell)
+void CGameObject::OnChild(CObject* obj, bool take)
 {
 	for (auto module : m_modules)
-		module->OnEventImpl(type, id, itm, dont_create_shell);
+		module->OnChild(obj, take);
 }
