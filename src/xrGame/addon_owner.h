@@ -1,66 +1,63 @@
 #pragma once
-#include "item_storage.h"
+#include "module.h"
 #include "inventory_space.h"
 
-class CAddonObject;
 class CAddon;
+struct SAddonSlot;
+
+typedef xr_vector<SAddonSlot*> VSlots;
 
 struct SAddonSlot
 {
-			u16				idx;
-			shared_str		name;
-			shared_str		type;
-			Fvector			model_offset[2];
-			Fvector2		icon_offset;
-			bool			icon_on_background;
-			bool			lower_iron_sights;
-			bool			primary_scope;
-			u16				overlaping_slot;
-			CAddonObject*	addon;
-			const xr_vector<SAddonSlot>& parent_slots;
+	VSlots CR$							parent_slots;
 
-							SAddonSlot				(LPCSTR _name, const xr_vector<SAddonSlot>& slots);
-			void			Load					(LPCSTR section, u16 _idx);
-			bool			CanTake					(CAddonObject CPC _addon) const;
+	u16									idx;
+	shared_str							name;
+	shared_str							type;
+	shared_str							bone_name;
+	Fvector								model_offset[2];
+	Fvector2							icon_offset;
+	BOOL								icon_on_background;
+	BOOL								lower_iron_sights;
+	BOOL								primary_scope;
+	u16									overlaping_slot;
+
+	CAddon*								addon;
+	Fmatrix								render_pos;		//Текущая позиция для рендеринга
+
+										SAddonSlot								(LPCSTR section, u16 _idx, VSlots CR$ slots);
+
+	void								UpdateRenderPos							(IRenderVisual* model, Fmatrix parent);
+	void								RenderHud								();
+	void								RenderWorld								(IRenderVisual* model, Fmatrix parent);
+
+	bool								CanTake								C$	(CAddon CPC _addon);
 };
 
-typedef xr_vector<SAddonSlot> VSlots;
-
-class CAddonOwner
+class CAddonOwner : public CModule
 {
-private:
-	CGameObject* m_object;
-
 public:
-												CAddonOwner								();
-	DLL_Pure*									_construct								();
-
-	virtual	void			Load					(LPCSTR section);
+										CAddonOwner								(CGameObject* obj);
+										~CAddonOwner							();
 
 private:
-	VSlots										m_Slots;
-	u16											m_NextAddonSlot;
-
-	void										AddonAttach								(CAddon* const addon, SAddonSlot* slot = NULL)	{ ProcessAddon(addon, TRUE, slot); }
-	void										AddonDetach								(CAddon* const addon, SAddonSlot* slot = NULL)	{ ProcessAddon(addon, FALSE, slot); }
+	VSlots								m_Slots;
+	u16									m_NextAddonSlot;
 	
-	void										LoadAddonSlots							(LPCSTR section);
+	void								LoadAddonSlots							(LPCSTR section);
 
 protected:
-	void									ModifyControlInertionFactor				C$	(float& cif);
-
-	virtual	void			OnChild					(CObject* obj, bool take);
-	virtual	void			ProcessAddon			(CAddon* const addon, BOOL attach, const SAddonSlot* const slot) {};
+	void								OnChild								O$	(CObject* obj, bool take);
 	
 public:
-	VSlots CR$								AddonSlots							C$	()		{ return m_Slots; }
+	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
 
-	bool									AttachAddon								(CAddonObject CPC addon, u16 slot_idx = NO_ID);
-	void									DetachAddon								(CAddonObject CPC addon);
+	void								ModifyControlInertionFactor			C$	(float& cif);
 
-	void								V$	TransferAnimation						(CAddonObject CPC addon, bool attach);
+	bool								AttachAddon								(CAddon CPC addon, u16 slot_idx = NO_ID);
+	void								DetachAddon								(CAddon CPC addon);
+	void								UpdateSlotsTransform					();
 			
-    virtual void			renderable_Render			();
-	virtual void			UpdateAddonsTransform		();
-    virtual void			render_hud_mode				();
+	void								renderable_Render						();
+	void								render_hud_mode							();
 };

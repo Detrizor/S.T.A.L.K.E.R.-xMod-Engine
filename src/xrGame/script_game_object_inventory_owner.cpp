@@ -63,6 +63,9 @@
 #include "ActorBackpack.h"
 #include "player_hud.h"
 
+#include "addon.h"
+#include "addon_owner.h"
+
 using namespace luabind;
 //-Alundaio
 
@@ -1691,11 +1694,13 @@ bool CScriptGameObject::is_door_blocked_by_npc() const
 #ifdef GAME_OBJECT_EXTENDED_EXPORTS
 void CScriptGameObject::Weapon_AddonAttach(CScriptGameObject* item)
 {
-	CWeaponMagazined* weapon = smart_cast<CWeaponMagazined*>(&object());
-	if (!weapon)
+	CAddonOwner* ao = object().mcast<CAddonOwner*>();
+	if (!ao)
 		return;
 
-	weapon->AttachAddon(smart_cast<CAddonObject*>(&item->object()));
+	CAddon* addon = item->object().mcast<CAddon*>();
+	if (addon)
+		ao->AttachAddon(addon);
 }
 
 bool CScriptGameObject::InstallUpgrade(LPCSTR upgrade)

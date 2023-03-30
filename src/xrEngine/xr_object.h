@@ -1,5 +1,4 @@
-#ifndef __XR_OBJECT_H__
-#define __XR_OBJECT_H__
+#pragma once
 
 #include "../xrcdb/ispatial.h"
 #include "isheduled.h"
@@ -15,6 +14,8 @@ class ENGINE_API IRender_ObjectSpecific;
 class ENGINE_API CCustomHUD;
 class NET_Packet;
 class CSE_Abstract;
+
+class CModule;
 
 //-----------------------------------------------------------------------------------------------------------
 #define CROW_RADIUS (30.f)
@@ -209,8 +210,25 @@ public:
 public:
     virtual Fvector get_new_local_point_on_mesh(u16& bone_id) const;
     virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
+
+//xMod added
+protected:
+	xr_vector<CModule*>					m_modules;
+
+public:
+	template <typename T>
+	// module-cast: looking in object's modules for the one of specified class
+	T								IC	mcast								C$	()
+	{
+		for (auto m : m_modules)
+		{
+			T t							= smart_cast<T>(m);
+			if (t)
+				return					t;
+		}
+
+		return							NULL;
+	}
 };
 
 #pragma pack(pop)
-
-#endif //__XR_OBJECT_H__

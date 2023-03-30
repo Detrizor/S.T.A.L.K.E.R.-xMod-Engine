@@ -9,7 +9,6 @@
 #include "Level_Bullet_Manager.h"
 
 const float aim_factor = pSettings->r_float("weapon_manager", "aim_factor");
-const Fvector vZero = { 0.f, 0.f, 0.f };
 
 Fvector2 rotate_vector2(const float& x, const float& y, const float& angle)
 {

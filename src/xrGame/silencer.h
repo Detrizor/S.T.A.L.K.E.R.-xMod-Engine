@@ -1,22 +1,12 @@
 #pragma once
-#include "addon.h"
 
-class CSilencer
+#include "module.h"
+
+class CGameObject;
+
+class CSilencer : public CModule
 {
 public:
-							CSilencer				()										{}
-							~CSilencer				()										{}
-	virtual	void			Load					(LPCSTR section);
-};
-
-class CSilencerObject : public CAddonObject,
-	public CSilencer
-{
-private:
-	typedef	CAddonObject	inherited;
-
-public:
-							CSilencerObject			()										{}
-	virtual					~CSilencerObject		()										{}
-	virtual	void			Load					(LPCSTR section);
+										CSilencer								(CGameObject* obj) : CModule(obj) {}
+	void								Load									(LPCSTR section);
 };

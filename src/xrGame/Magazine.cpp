@@ -3,20 +3,17 @@
 #include "Level.h"
 #include "player_hud.h"
 #include "../Include/xrRender/Kinematics.h"
+#include "WeaponAmmo.h"
+#include "inventory_space.h"
+#include "Weapon.h"
 
-CMagazine::CMagazine()
+CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 {
 	m_Heaps.clear					();
 	m_iNextHeapIdx					= NO_ID;
 	m_iHeapsCount					= 0;
     m_ammo_types.clear				();
 	m_capacity						= 0;
-}
-
-DLL_Pure* CMagazine::_construct()
-{
-	m_object						= smart_cast<CGameObject*>(this);
-	return							m_object;
 }
 
 void CMagazine::Load(LPCSTR section)
@@ -57,6 +54,23 @@ void CMagazine::OnChild(CObject* obj, bool take)
 		m_Heaps[idx]				= NULL;
 		m_iHeapsCount--;
 	}
+
+	if (!smart_cast<CWeapon*>(pO))
+		UpdateBulletsVisibility		();
+}
+
+shared_str bullets					= "bullets";
+extern void UpdateBoneVisibility	(IKinematics* pVisual, const shared_str& bone_name, bool status);
+void CMagazine::UpdateBulletsVisibility()
+{
+	bool vis						= !Empty();
+	smart_cast<CInventoryItem*>(pO)->SetInvIconType((u8)vis);
+
+	IKinematics* pVisual			= smart_cast<IKinematics*>(O.Visual());
+	pVisual->CalculateBones_Invalidate();
+	UpdateBoneVisibility			(pVisual, bullets, vis);
+	pVisual->CalculateBones_Invalidate();
+	pVisual->CalculateBones			(TRUE);
 }
 
 u16 CMagazine::Amount() const
@@ -92,7 +106,7 @@ void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
 		back_heap->ChangeAmmoCount	(1);
 	else
 	{
-		m_object->GiveAmmo			(*ammo->cNameSect(), 1, ammo->GetCondition());
+		O.GiveAmmo					(*ammo->cNameSect(), 1, ammo->GetCondition());
 		m_iNextHeapIdx				= m_iHeapsCount;
 	}
 	ammo->ChangeAmmoCount			(-1);
@@ -123,54 +137,7 @@ u32 CMagazine::Cost() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-DLL_Pure* CMagazineObject::_construct()
-{
-	inherited::_construct			();
-	CMagazine::_construct			();
-	return							this;
-}
-
-void CMagazineObject::Load(LPCSTR section)
-{
-	inherited::Load					(section);
-	CMagazine::Load					(section);
-}
-
-void CMagazineObject::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent				(P, type);
-	
-	switch (type)
-	{
-	case GE_TRADE_BUY:
-	case GE_OWNERSHIP_TAKE:
-	case GE_TRADE_SELL:
-	case GE_OWNERSHIP_REJECT:
-		UpdateBulletsVisibility		();
-	}
-}
-
-shared_str bullets					= "bullets";
-extern void UpdateBoneVisibility	(IKinematics* pVisual, const shared_str& bone_name, bool status);
-void CMagazineObject::UpdateBulletsVisibility()
-{
-	bool vis						= !Empty();
-	SetInvIconType					((u8)vis);
-
-	IKinematics* pVisual			= smart_cast<IKinematics*>(Visual());
-	pVisual->CalculateBones_Invalidate();
-	UpdateBoneVisibility			(pVisual, bullets, vis);
-	pVisual->CalculateBones_Invalidate();
-	pVisual->CalculateBones			(TRUE);
-}
-
-void CMagazineObject::OnChild(CObject* obj, bool take)
-{
-	//inherited::OnEventImpl			(type, id, itm, dont_create_shell);
-	CMagazine::OnChild			(obj, take);
-}
-
+/*
 void CMagazineObject::UpdateHudBonesVisibility()
 {
 	HudItemData()->set_bone_visible(bullets, (BOOL)!Empty(), TRUE);
@@ -189,3 +156,4 @@ u32 CMagazineObject::Cost() const
 	res								+= CMagazine::Cost();
 	return							res;
 }
+*/

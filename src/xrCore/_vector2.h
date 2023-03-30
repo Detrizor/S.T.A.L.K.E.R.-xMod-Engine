@@ -1,5 +1,4 @@
-#ifndef __V2D__
-#define __V2D__
+#pragma once
 
 template <class T>
 struct _vector2
@@ -117,4 +116,4 @@ typedef _vector2<u8> Uvector2;
 template <class T>
 BOOL _valid(const _vector2<T>& v) { return _valid((T)v.x) && _valid((T)v.y); }
 
-#endif
+constexpr Fvector2 vZero2 = { 0.f, 0.f };

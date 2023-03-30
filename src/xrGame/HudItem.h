@@ -189,7 +189,7 @@ public:
 	virtual void			UpdateHudBonesVisibility()										{}
 	virtual void			OnMotionHalf			()										{}
 
-	virtual void				UpdateAddonsTransform() {}; // Обновление положения аддонов на худе каждый кадр
+	void UpdateSlotsTransform(); // Обновление положения аддонов на худе каждый кадр
 
 	friend class CWeaponHud;
 };

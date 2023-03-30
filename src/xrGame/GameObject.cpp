@@ -94,6 +94,8 @@ void CGameObject::Load(LPCSTR section)
 		// self->spatial.type	|=	STYPE_VISIBLEFORAI;	
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
+
+	LoadModules(section);
 }
 
 void CGameObject::reinit	()
@@ -1186,8 +1188,50 @@ void CGameObject::OnRender			()
 }
 #endif // DEBUG
 
+void CGameObject::Transfer(u16 id) const
+{
+	NET_Packet							P;
+	if (id == NO_ID)
+	{
+		u_EventGen						(P, GE_OWNERSHIP_REJECT, Parent->ID());
+		P.w_u16							(ID());
+	}
+	else if (Parent)
+	{
+		u_EventGen						(P, GE_TRADE_SELL, Parent->ID());
+		P.w_u16							(ID());
+		u_EventSend						(P);
+		u_EventGen						(P, GE_TRADE_BUY, id);
+		P.w_u16							(ID());
+	}
+	else
+	{
+		u_EventGen						(P,GE_OWNERSHIP_TAKE, id);
+		P.w_u16							(ID());
+	}
+	u_EventSend							(P);
+}
+
 void CGameObject::OnChild(CObject* obj, bool take)
 {
 	for (auto module : m_modules)
-		module->OnChild(obj, take);
+		module->OnChild					(obj, take);
+}
+
+#include "addon.h"
+
+void CGameObject::TransferAddon(CAddon CPC addon, bool attach)
+{
+	addon->Object().Transfer			((attach) ? ID() : H_Parent()->ID());
+}
+
+#include "addon_owner.h"
+
+void CGameObject::LoadModules(LPCSTR section)
+{
+	if (pSettings->line_exist			(section, "slot_type"))
+		m_modules.push_back				(xr_new<CAddon>(this));
+
+	if (pSettings->line_exist			(section, "slots"))
+		m_modules.push_back				(xr_new<CAddonOwner>(this));
 }

@@ -1,51 +1,14 @@
 #include "stdafx.h"
-
 #include "addon.h"
-#include "addon_owner.h"
+#include "GameObject.h"
 
-void CAddon::Load(LPCSTR section)
+CAddon::CAddon(CGameObject* obj) : CModule(obj)
 {
-	m_section						= section;
+	m_SlotType							= pSettings->r_string(O.cNameSect(), "slot_type");
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CAddonObject::Load(LPCSTR section)
+void CAddon::Render(Fmatrix* pos)
 {
-	inherited::Load					(section);
-	CAddon::Load					(section);
-	CAddonOwner::Load				(section);
-
-	m_SlotType = pSettings->r_string(section, "slot_type");
-}
-
-DLL_Pure* CAddonObject::_construct()
-{
-	inherited::_construct			();
-	CAddonOwner::_construct			();
-	return							this;
-}
-
-void CAddonObject::renderable_Render()
-{
-    inherited::renderable_Render	();
-	CAddonOwner::renderable_Render	();
-}
-
-void CAddonObject::UpdateAddonsTransform()
-{
-	CAddonOwner::UpdateAddonsTransform();
-}
-
-void CAddonObject::render_hud_mode()
-{
-	inherited::render_hud_mode		();
-	CAddonOwner::render_hud_mode	();
-}
-
-float CAddonObject::GetControlInertionFactor C$()
-{
-	float res						= inherited::GetControlInertionFactor();
-	CAddonOwner::ModifyControlInertionFactor(res);
-	return							res;
+	::Render->set_Transform				(pos);
+	::Render->add_Visual				(O.Visual());
 }

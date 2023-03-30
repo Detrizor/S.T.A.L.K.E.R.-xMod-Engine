@@ -7,7 +7,7 @@
 #include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
-#include "module.h"
+#include "inventory_space.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
@@ -37,11 +37,13 @@ class CAttachableItem;
 class animation_movement_controller;
 class CBlend;
 class ai_obstacle;
-
 class IKinematics;
 
 template <typename _return_type>
 class CScriptCallbackEx;
+
+class CAddon;
+class SAddonSlot;
 
 class CGameObject : 
 	public CObject, 
@@ -309,9 +311,14 @@ public:
 			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 
 //xMod added
-protected:
-	xr_vector<CModule*>					m_modules;
+private:
+	void								LoadModules								(LPCSTR section);
 
 public:
+	void								Transfer							C$	(u16 id = NO_ID);
+
 	void							V$	OnChild									(CObject* obj, bool take);
+
+	void							V$	ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {};
+	void							V$	TransferAddon							(CAddon CPC addon, bool attach);
 };

@@ -149,6 +149,6 @@ void CUIActorMenu::TakeAllFromPartner(CUIWindow* w, void* d)
 void CUIActorMenu::TakeAllFromInventoryBox()
 {
 	if (m_pContainer)
-		m_pContainer->Transfer		(m_pActorInvOwner->object_id());
+		m_pContainer->CGameObject::Transfer(m_pActorInvOwner->object_id());
 	HideDialog						();
 }

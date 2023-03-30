@@ -132,7 +132,7 @@ void attachable_hud_item::update(bool bForce)
 
 	m_parent->calc_transform		(m_attach_place_idx, m_attach_offset, m_item_transform);
 
-	m_parent_hud_item->UpdateAddonsTransform(); //
+	m_parent_hud_item->UpdateSlotsTransform();
 
 	m_upd_firedeps_frame			= Device.dwFrame;
 
@@ -262,8 +262,6 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 
 	// Настройки стрейфа (боковая ходьба)
 	Fvector vDefStrafeValue;
-	static const Fvector vZero = { 0.f, 0.f, 0.f };
-	vDefStrafeValue.set(vZero);
 
 	//--> Смещение в стрейфе
 	m_strafe_offset[0][0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "strafe_hud_offset_pos", vDefStrafeValue);

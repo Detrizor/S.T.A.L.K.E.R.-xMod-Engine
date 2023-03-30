@@ -20,8 +20,7 @@ class CGrenadeLauncher;
 //заканчиваем стрельбу, только, если кончились патроны
 #define WEAPON_ININITE_QUEUE -1
 
-class CWeaponMagazined : public CWeapon,
-	public CAddonOwner
+class CWeaponMagazined : public CWeapon
 {
 private:
     typedef CWeapon inherited;
@@ -75,7 +74,6 @@ protected:
 public:
     CWeaponMagazined(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN);
     virtual			~CWeaponMagazined();
-	virtual DLL_Pure*_construct();
 
     virtual void	Load(LPCSTR section);
 
@@ -246,7 +244,7 @@ private:
 	CScope*								m_pScope;
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
-	CMagazineObject*					m_pMagazine;
+	CMagazine*							m_pMagazine;
 	CMagazineObject*					m_pMagazineToReload;
 	CWeaponHud*							m_hud;
 
@@ -283,12 +281,9 @@ public:
 
 	void								UpdateBonesVisibility				O$	();
 	void								UpdateHudBonesVisibility			O$	();
-	void								UpdateAddonsTransform				O$	();
-	void								TransferAnimation					O$	(CAddonObject CPC addon, bool attach);
+	void								TransferAddon						O$	(CAddon CPC addon, bool attach);
 	void								OnTaken								O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	OnMotionHalf							();
-
-	void							V$	OnChild									(CObject* obj, bool take);
 };

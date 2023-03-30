@@ -725,3 +725,10 @@ bool CHudItem::NeedBlendAnm()
 	u32 state = GetState();
 	return (state != eIdle && state != eHidden);
 }
+
+void CHudItem::UpdateSlotsTransform()
+{
+	CAddonOwner* ao = m_object->mcast<CAddonOwner*>();
+	if (ao)
+		ao->UpdateSlotsTransform();
+}

@@ -1,41 +1,16 @@
 #pragma once
-#include "attachment.h"
-#include "addon_owner.h"
+#include "module.h"
 
-class CAddonOwner;
-
-class CAddon
+class CAddon : public CModule
 {
 public:
-	void									V$	Load									(LPCSTR section);
+										CAddon									(CGameObject* obj);
 
 private:
-	shared_str									m_section;
+	shared_str							m_SlotType;
 
 public:
-	shared_str CR$								Section								C$	()		{ return m_section; }
-};
+	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 
-class CAddonObject : public CAttachmentObject,
-	public CAddon,
-	public CAddonOwner
-{
-private:
-	typedef	CAttachmentObject inherited;
-
-public:
-	DLL_Pure*									_construct							O$	() ;
-	void										Load								O$	(LPCSTR section) ;
-
-private:
-	shared_str									m_SlotType;
-
-public:
-	shared_str CR$								SlotType							C$	()		{ return m_SlotType; }
-
-	float										GetControlInertionFactor			CO$	();
-
-	void										renderable_Render					O$	();
-	void										UpdateAddonsTransform				O$	();
-    void										render_hud_mode						O$	();
+	void								Render									(Fmatrix* pos);
 };

@@ -27,6 +27,7 @@
 #include "scope.h"
 #include "silencer.h"
 #include "attachment.h"
+#include "addon.h"
 
 ENGINE_API	bool	g_dedicated_server;
 
@@ -71,13 +72,6 @@ CWeaponMagazined::~CWeaponMagazined()
 	xr_delete(m_hud);
 }
 
-DLL_Pure* CWeaponMagazined::_construct()
-{
-	inherited::_construct			();
-	CAddonOwner::_construct			();
-	return							this;
-}
-
 void CWeaponMagazined::net_Destroy()
 {
     inherited::net_Destroy();
@@ -103,7 +97,6 @@ bool CWeaponMagazined::WeaponSoundExist(LPCSTR section, LPCSTR sound_name)
 void CWeaponMagazined::Load(LPCSTR section)
 {
 	inherited::Load(section);
-	CAddonOwner::Load(section);
 
     // Sounds
     m_sounds.LoadSound(section, "snd_draw", "sndShow", true, m_eSoundShow);
@@ -392,7 +385,7 @@ void CWeaponMagazined::ReloadMagazine()
 	if (ParentIsActor())
 	{
 		if (m_pMagazineToReload)
-			m_pMagazineToReload->Transfer			(ID());
+			m_pMagazineToReload->CGameObject::Transfer			(ID());
 		else if (m_pCartridgeToReload)
 		{
 			FindAmmoClass							(*m_pCartridgeToReload->m_section_id, true);
@@ -1283,11 +1276,17 @@ bool CWeaponMagazined::CanTrade() const
 {
 	if (iAmmoElapsed)
 		return false;
-	for (auto& slot : AddonSlots())
+
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
 	{
-		if (slot.addon)
-			return false;
+		for (auto slot : ao->AddonSlots())
+		{
+			if (slot->addon)
+				return false;
+		}
 	}
+
 	return true;
 }
 
@@ -1295,21 +1294,35 @@ float CWeaponMagazined::Weight() const
 {
 	float res		= inherited::Weight();
     res				+= GetMagazineWeight(m_magazine);
-	for (auto& slot : AddonSlots())
-	if (slot.addon)
-		res			+= slot.addon->Weight();
+
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
+	{
+		for (auto slot : ao->AddonSlots())
+		{
+			if (slot->addon)
+				res			+= slot->addon->Item().Weight();
+		}
+	}
+
     return			res;
 }
 
 float CWeaponMagazined::Volume() const
 {
-	float res		= inherited::Volume();
-	for (auto& slot : AddonSlots())
+	float res = inherited::Volume();
+
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
 	{
-		if (slot.addon)
-			res		+= slot.addon->Volume();
+		for (auto slot : ao->AddonSlots())
+		{
+			if (slot->addon)
+				res += slot->addon->Item().Volume();
+		}
 	}
-    return			res;
+
+	return res;
 }
 
 void UpdateBoneVisibility(IKinematics* pVisual, const shared_str& bone_name, bool status)
@@ -1358,7 +1371,7 @@ void CWeaponMagazined::OnMotionHalf()
 	if (ParentIsActor() && GetState() == eReload)
 	{
 		if (m_pMagazine)
-			m_pMagazine->Transfer(parent_id());
+			m_pMagazine->Object().Transfer(parent_id());
 
 		//if (m_pMagazineToReload)
 			//m_pMagazineToReload->Offset() = m_MagazineSlot->model_offset;
@@ -1368,21 +1381,17 @@ void CWeaponMagazined::OnMotionHalf()
 void CWeaponMagazined::renderable_Render()
 {
     inherited::renderable_Render();
-	CAddonOwner::renderable_Render();
-}
-
-void CWeaponMagazined::UpdateAddonsTransform()
-{
-	CAddonOwner::UpdateAddonsTransform();
-
-	//if (m_pMagazineToReload && m_pMagazineToReload->Offset())
-		//m_pMagazineToReload->UpdateRenderPos(HudItemData()->m_model->dcast_RenderVisual(), HudItemData()->m_item_transform);
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
+		ao->renderable_Render();
 }
 
 void CWeaponMagazined::render_hud_mode()
 {
 	inherited::render_hud_mode();
-	CAddonOwner::render_hud_mode();
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
+		ao->render_hud_mode();
 
 	//--xd нормальную систему разработать if (m_pMagazineToReload && m_pMagazineToReload->Offset())
 		//m_pMagazineToReload->Render();
@@ -1391,7 +1400,9 @@ void CWeaponMagazined::render_hud_mode()
 float CWeaponMagazined::GetControlInertionFactorBase C$()
 {
 	float res = inherited::GetControlInertionFactorBase();
-	CAddonOwner::ModifyControlInertionFactor(res);
+	CAddonOwner* ao = mcast<CAddonOwner*>();
+	if (ao)
+		ao->ModifyControlInertionFactor(res);
 	return res;
 }
 
@@ -1498,7 +1509,7 @@ float CWeaponMagazined::CurrentZoomFactor() const
 
 void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CScope CPC scope = smart_cast<CScope CP$>(addon);
+	CScope CPC scope = addon->Object().mcast<CScope CP$>();
 	if (scope)
 	{
 		((slot && slot->primary_scope || !slot) ? m_pScope : m_pAltScope) = (attach) ? const_cast<CScope*>(scope) : NULL;
@@ -1509,29 +1520,29 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 			UpdateBonesVisibility();
 			SetInvIconType(attach);
 		}
-    }
+	}
 
-	CSilencer CPC silencer = smart_cast<CSilencer CP$>(addon);
+	CSilencer CPC silencer = addon->Object().mcast<CSilencer CP$>();
 	if (silencer)
 	{
 		m_pSilencer = (attach) ? const_cast<CSilencer*>(silencer) : NULL;
 
-		LPCSTR sect_to_load = (attach) ? *addon->Section() : *cNameSect();
+		/*LPCSTR sect_to_load = (attach) ? *addon->Section() : *cNameSect();
 		LoadLights(sect_to_load);
 		LoadFlameParticles(sect_to_load);
 		if (attach)
 			LoadSilencerKoeffs(sect_to_load);
 		else
-			ResetSilencerKoeffs();
+			ResetSilencerKoeffs();		--xd исправить кринж		*/
 		UpdateSndShot();
-    }
+	}
 
-	CMagazineObject CPC mag = smart_cast<CMagazineObject CP$>(addon);
+	CMagazine CPC mag = addon->Object().mcast<CMagazine CP$>();
 	if (mag)
 	{
 		if (attach)
 		{
-			m_pMagazine = const_cast<CMagazineObject*>(mag);
+			m_pMagazine = const_cast<CMagazine*>(mag);
 			if (m_iChamber < m_magazine.size())
 			{ 
 				while (m_iChamber < m_magazine.size())
@@ -1568,16 +1579,13 @@ void CWeaponMagazined::OnTaken()
 	UpdateSndShot();
 }
 
-void CWeaponMagazined::TransferAnimation o$(CAddonObject CPC addon, bool attach)
+void CWeaponMagazined::TransferAddon(CAddon CPC addon, bool attach)
 {
 	CMagazineObject CPC mag = smart_cast<CMagazineObject CP$>(addon);
-	if (!mag)
-	{
-		CAddonOwner::TransferAnimation(addon, attach);
-		return;
-	}
-
-	StartReload((attach) ? const_cast<CMagazineObject*>(mag)->dcast_CObject() : NULL);
+	if (mag)
+		StartReload((attach) ? const_cast<CMagazineObject*>(mag)->dcast_CObject() : NULL);
+	else
+		inherited::TransferAddon(addon, attach);
 }
 
 void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)
@@ -1593,10 +1601,4 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 void CWeaponMagazined::InitRotateTime()
 {
 	m_hud->InitRotateTime(GetControlInertionFactor());
-}
-
-void CWeaponMagazined::OnChild(CObject* obj, bool take)
-{
-	CAddonOwner::OnChild(obj, take);
-	inherited::OnChild(obj, take);
 }

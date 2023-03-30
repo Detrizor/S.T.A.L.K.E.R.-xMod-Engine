@@ -25,7 +25,7 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 	dest->SetStretchTexture		(true);
 }
 
-CScope::CScope()
+CScope::CScope(CGameObject* obj) : CModule(obj)
 {
 	m_pUIReticle				= NULL;
 	m_pVision					= NULL;
@@ -174,19 +174,4 @@ void CScope::RenderUI(const hud_item_measures& m, Fvector* const hud_offset)
 		pUILenseCircle->SetWndPos	(Fvector2().set(0.f, 0.f));
 		pUILenseCircle->Draw		();
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CScopeObject::Load(LPCSTR section)
-{
-	inherited::Load				(section);
-	CScope::Load				(section);
-}
-
-bool CScopeObject::install_upgrade_impl(LPCSTR section, bool test)
-{
-	bool result					= inherited::install_upgrade_impl(section, test);
-	result						|= CScope::install_upgrade_impl(section, test);
-	return						result;
 }

@@ -1,15 +1,6 @@
 #include "stdafx.h"
-
 #include "silencer.h"
 
 void CSilencer::Load(LPCSTR section) 
 {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CSilencerObject::Load(LPCSTR section)
-{
-	inherited::Load(section);
-	CSilencer::Load(section);
 }

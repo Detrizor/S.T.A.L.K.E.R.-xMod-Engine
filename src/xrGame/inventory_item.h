@@ -99,7 +99,7 @@ public:
 	virtual void				Load				(LPCSTR section);
 
 			LPCSTR				NameItem			();// remove <virtual> by sea
-			LPCSTR				NameShort			();
+			LPCSTR				NameShort			() const;
 	shared_str					ItemDescription		() { return m_Description; }
 	virtual bool				GetBriefInfo		(II_BriefInfo& info) { info.clear(); return false; }
 	

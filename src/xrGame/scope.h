@@ -1,7 +1,12 @@
 #pragma once
-#include "addon.h"
 
-enum eScopeType { eOptics, eCollimator };
+#include "module.h"
+
+enum eScopeType
+{
+	eOptics,
+	eCollimator
+};
 
 class CUIStatic;
 class CBinocularsVision;
@@ -30,12 +35,12 @@ struct SRangeFloat
 	}
 };
 
-class CScope
+class CScope : public CModule
 {
 public:
-							CScope					();
+										CScope								(CGameObject* obj);
 							~CScope					();
-	virtual	void			Load					(LPCSTR section);
+	void					Load					(LPCSTR section);
 	
 protected:
 			eScopeType		m_Type;
@@ -64,19 +69,4 @@ public:
 			float			GetReticleScale			()								const	{ return m_Magnificaion.current; }
 			float			GetCurrentMagnification	()								const	{ return m_Magnificaion.current; }
 			void			RenderUI				(const hud_item_measures& m, Fvector* const hud_offset);
-};
-
-class CScopeObject : public CAddonObject,
-	public CScope
-{
-private:
-	typedef	CAddonObject	inherited;
-
-public:
-							CScopeObject			()										{}
-	virtual					~CScopeObject			()										{}
-	virtual	void			Load					(LPCSTR section);
-
-protected:
-	virtual	bool			install_upgrade_impl	(LPCSTR section, bool test);
 };

@@ -1,21 +1,16 @@
 #pragma once
-#include "weaponammo.h"
-#include "inventory_item_object.h"
 
-#include "addon.h"
+#include "module.h"
 
 class CInventoryStorage;
 class CWeaponAmmo;
+class CCartridge;
+class CGameObject;
 
-class CMagazine
+class CMagazine : public CModule
 {
-private:
-	CGameObject*			m_object;
-
 public:
-							CMagazine				();
-	virtual					~CMagazine				()										{}
-	virtual DLL_Pure*		_construct				();
+							CMagazine				(CGameObject* obj);
 
 	virtual void			Load					(LPCSTR section);
 
@@ -25,6 +20,8 @@ private:
 			u16				m_iHeapsCount;
 	xr_vector<shared_str>	m_ammo_types;
 			u16				m_capacity;
+			
+			void			UpdateBulletsVisibility	();
 
 protected:
 	void								OnChild							(CObject* obj, bool take);
@@ -42,28 +39,15 @@ public:
 	virtual	u32				Cost					()								const;
 };
 
-class CMagazineObject : public CInventoryItemObject,
-	public CMagazine
+#include "inventory_item_object.h"
+
+class CMagazineObject : public CInventoryItemObject
 {
 private:
 	typedef	CInventoryItemObject	inherited;
 
 public:
-							CMagazineObject			()										{}
-	virtual					~CMagazineObject		()										{}
-	virtual DLL_Pure*		_construct				();
-
-	virtual	void			Load					(LPCSTR section);
-	virtual	void			OnEvent					(NET_Packet& P, u16 type);
-
-private:
-			void			UpdateBulletsVisibility	();
-
-protected:
-	void								OnChild						O$	(CObject* obj, bool take);
-
-public:
-	
+	/*
 	virtual	float			GetAmount				()								const	{ return (float)Amount(); }
 	virtual float			GetFill					()								const	{ return (float)Amount() / (float)Capacity(); }
 	virtual	float			GetBar					()								const	{ return (Amount() < Capacity()) ? GetFill() : -1.f; }
@@ -71,4 +55,5 @@ public:
 	virtual void			UpdateHudBonesVisibility();
 	virtual	float			Weight					()								const;
 	virtual	u32				Cost					()								const;
+	*/
 };

@@ -19,6 +19,8 @@
 #	include "phdebug.h"
 #endif
 
+#include "addon.h"
+
 CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(ESoundTypes eSoundType) : CWeaponMagazined(eSoundType)
 {
     m_ammoType2 = 0;
@@ -922,12 +924,12 @@ void CWeaponMagazinedWGrenade::OnMotionHalf()
 
 void CWeaponMagazinedWGrenade::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CGrenadeLauncher CPC gl = smart_cast<CGrenadeLauncher CP$>(addon);
+	CGrenadeLauncher CPC gl = addon->Object().mcast<CGrenadeLauncher CP$>();
 	if (gl)
 	{
 		m_pLauncher = (attach) ? gl : NULL;
 
-		m_sFlameParticles2 = (attach) ? pSettings->r_string(gl->Section(), "grenade_flame_particles") : NULL;
+		//	--xd исправить	m_sFlameParticles2 = (attach) ? pSettings->r_string(gl->Section(), "grenade_flame_particles") : NULL;
 
 		if (attach)
 			m_fLaunchSpeed = gl->GetGrenadeVel();

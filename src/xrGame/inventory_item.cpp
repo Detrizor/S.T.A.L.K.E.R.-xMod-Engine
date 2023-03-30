@@ -205,7 +205,7 @@ LPCSTR CInventoryItem::NameItem()
 	return m_name.c_str();
 }
 
-LPCSTR CInventoryItem::NameShort()
+LPCSTR CInventoryItem::NameShort() const
 {
 	return m_nameShort.c_str();
 }

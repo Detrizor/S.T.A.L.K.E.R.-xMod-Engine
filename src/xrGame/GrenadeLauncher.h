@@ -1,30 +1,17 @@
 #pragma once
-#include "addon.h"
-#include "attachment.h"
 
-class CGrenadeLauncher : public CAddon
+#include "module.h"
+
+class CGrenadeLauncher : public CModule
 {
-private:
-	typedef CAddon inherited;
-
 public:
-												CGrenadeLauncher						();
+										CGrenadeLauncher						(CGameObject* obj);
 
-		void									Load								O$	(LPCSTR section);
+	void								Load									(LPCSTR section);
 
 private:
-		float m_fGrenadeVel;
+	float								m_fGrenadeVel;
 
 public:
-		float									GetGrenadeVel						C$	()		{ return m_fGrenadeVel; }
-};
-
-class CGrenadeLauncherObject : public CAttachmentObject,
-	public CGrenadeLauncher
-{
-private:
-	typedef	CAttachmentObject inherited;
-
-public:
-	void										Load								O$	(LPCSTR section);
+	float								GetGrenadeVel						C$	()		{ return m_fGrenadeVel; }
 };

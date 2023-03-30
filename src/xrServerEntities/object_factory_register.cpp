@@ -328,12 +328,6 @@ void CObjectFactory::register_classes	()
 	ADD(CWeaponAmmo				,CSE_ALifeItemAmmo				,CLSID_OBJECT_A_M209			,"wpn_ammo_m209");
 	//-----------------------------------------------------------------------------------------------------
 
-	//Weapons Add-on
-	ADD(CScopeObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SCOPE			,"wpn_scope");
-	ADD(CSilencerObject			,CSE_ALifeItem					,CLSID_OBJECT_W_SILENCER		,"wpn_silencer");
-	ADD(CGrenadeLauncherObject	,CSE_ALifeItem					,CLSID_OBJECT_W_GLAUNCHER		,"wpn_grenade_launcher");
-	ADD(CMagazineObject			,CSE_ALifeItem					,CLSID_OBJECT_W_MAGAZINE		,"wpn_magazine");
-
 	// Inventory
 #ifndef NO_SINGLE
 	ADD(CBolt					,CSE_ALifeItemBolt				,CLSID_IITEM_BOLT				,"obj_bolt");
