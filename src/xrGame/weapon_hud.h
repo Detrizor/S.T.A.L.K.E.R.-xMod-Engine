@@ -26,7 +26,8 @@ struct SShootingParams
 class CWeaponHud
 {
 private:
-	CWeaponMagazined*					m_object;
+	CWeaponMagazined PC$				pO;
+	CWeaponMagazined&					O;
 
 public:
 										CWeaponHud								(CWeaponMagazined* obj);
@@ -45,8 +46,6 @@ private:
 	SShootingParams						m_shooting_params;
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
-
-	CWeaponMagazined&					o									C$	()		{ return *m_object; }
 
 public:
 	SPowerDependency				S$	HandlingToRotationTime;

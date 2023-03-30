@@ -1277,7 +1277,7 @@ bool CWeaponMagazined::CanTrade() const
 	if (iAmmoElapsed)
 		return false;
 
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
 	if (ao)
 	{
 		for (auto slot : ao->AddonSlots())
@@ -1295,7 +1295,7 @@ float CWeaponMagazined::Weight() const
 	float res		= inherited::Weight();
     res				+= GetMagazineWeight(m_magazine);
 
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
 	if (ao)
 	{
 		for (auto slot : ao->AddonSlots())
@@ -1312,7 +1312,7 @@ float CWeaponMagazined::Volume() const
 {
 	float res = inherited::Volume();
 
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
 	if (ao)
 	{
 		for (auto slot : ao->AddonSlots())
@@ -1381,7 +1381,7 @@ void CWeaponMagazined::OnMotionHalf()
 void CWeaponMagazined::renderable_Render()
 {
     inherited::renderable_Render();
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner* ao = cast<CAddonOwner*>();
 	if (ao)
 		ao->renderable_Render();
 }
@@ -1389,7 +1389,7 @@ void CWeaponMagazined::renderable_Render()
 void CWeaponMagazined::render_hud_mode()
 {
 	inherited::render_hud_mode();
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner* ao = cast<CAddonOwner*>();
 	if (ao)
 		ao->render_hud_mode();
 
@@ -1397,10 +1397,10 @@ void CWeaponMagazined::render_hud_mode()
 		//m_pMagazineToReload->Render();
 }
 
-float CWeaponMagazined::GetControlInertionFactorBase C$()
+float CWeaponMagazined::GetControlInertionFactorBase() const
 {
 	float res = inherited::GetControlInertionFactorBase();
-	CAddonOwner* ao = mcast<CAddonOwner*>();
+	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
 	if (ao)
 		ao->ModifyControlInertionFactor(res);
 	return res;
@@ -1509,7 +1509,7 @@ float CWeaponMagazined::CurrentZoomFactor() const
 
 void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CScope CPC scope = addon->Object().mcast<CScope CP$>();
+	CScope CPC scope = addon->cast<CScope CP$>();
 	if (scope)
 	{
 		((slot && slot->primary_scope || !slot) ? m_pScope : m_pAltScope) = (attach) ? const_cast<CScope*>(scope) : NULL;
@@ -1522,7 +1522,7 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 		}
 	}
 
-	CSilencer CPC silencer = addon->Object().mcast<CSilencer CP$>();
+	CSilencer CPC silencer = addon->cast<CSilencer CP$>();
 	if (silencer)
 	{
 		m_pSilencer = (attach) ? const_cast<CSilencer*>(silencer) : NULL;
@@ -1537,7 +1537,7 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 		UpdateSndShot();
 	}
 
-	CMagazine CPC mag = addon->Object().mcast<CMagazine CP$>();
+	CMagazine CPC mag = addon->cast<CMagazine CP$>();
 	if (mag)
 	{
 		if (attach)
@@ -1581,9 +1581,9 @@ void CWeaponMagazined::OnTaken()
 
 void CWeaponMagazined::TransferAddon(CAddon CPC addon, bool attach)
 {
-	CMagazineObject CPC mag = smart_cast<CMagazineObject CP$>(addon);
+	CMagazine CPC mag = addon->cast<CMagazine CP$>();
 	if (mag)
-		StartReload((attach) ? const_cast<CMagazineObject*>(mag)->dcast_CObject() : NULL);
+		StartReload((attach) ? const_cast<CObject*>(mag->cast<CObject CP$>()) : NULL);
 	else
 		inherited::TransferAddon(addon, attach);
 }

@@ -23,27 +23,45 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 {
 	shared_str							tmp;
 	u16 i								= 0;
-	while (pSettings->line_exist(section, tmp.printf("name_%d", i++)))
-		m_Slots.push_back				(xr_new<SAddonSlot>(section, i, m_Slots));
+	while (pSettings->line_exist(section, tmp.printf("name_%d", i)))
+		m_Slots.push_back				(xr_new<SAddonSlot>(section, i++, m_Slots));
 }
 
 void CAddonOwner::OnChild(CObject* obj, bool take)
 {
-	CAddon* addon						= obj->mcast<CAddon*>();
+	CAddon* addon						= obj->cast<CAddon*>();
 	if (!addon)
 		return;
 
-	PIItem item							= smart_cast<PIItem>(obj);
-	R_ASSERT							(item);
-	u16& idx							= item->m_ItemCurrPlace.value;
-	if (m_NextAddonSlot != NO_ID)
+	u16* idx							= NULL;
+	if (take)
 	{
-		idx								= m_NextAddonSlot;
-		m_NextAddonSlot					= NO_ID;
+		PIItem item						= smart_cast<PIItem>(obj);
+		R_ASSERT						(item);
+		idx								= &item->m_ItemCurrPlace.value;
+		if (m_NextAddonSlot != NO_ID)
+		{
+			*idx						= m_NextAddonSlot;
+			m_NextAddonSlot				= NO_ID;
+		}
 	}
-	
-	m_Slots[idx]->addon					= (take) ? addon : NULL;
-	O.ProcessAddon						(addon, take, m_Slots[idx]);
+	else
+	{
+		for (const auto s : m_Slots)
+		{
+			if (s->addon == addon)
+			{
+				idx						= &s->idx;
+				break;
+			}
+		}
+	}
+
+	if (idx)
+	{
+		m_Slots[*idx]->addon			= (take) ? addon : NULL;
+		O.ProcessAddon					(addon, take, m_Slots[*idx]);
+	}
 }
 
 bool CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
@@ -131,6 +149,10 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slot
 
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
+
+	tmp.printf							("bone_offset_%d", idx);
+	if (pSettings->line_exist(section, *tmp))
+		model_offset[0].sub				(pSettings->r_fvector3(section, *tmp));
 
 	tmp.printf							("model_offset_rot_%d", idx);
 	model_offset[1]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);

@@ -1694,11 +1694,11 @@ bool CScriptGameObject::is_door_blocked_by_npc() const
 #ifdef GAME_OBJECT_EXTENDED_EXPORTS
 void CScriptGameObject::Weapon_AddonAttach(CScriptGameObject* item)
 {
-	CAddonOwner* ao = object().mcast<CAddonOwner*>();
+	CAddonOwner* ao = object().cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
-	CAddon* addon = item->object().mcast<CAddon*>();
+	CAddon* addon = item->object().cast<CAddon*>();
 	if (addon)
 		ao->AttachAddon(addon);
 }

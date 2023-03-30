@@ -792,26 +792,21 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 	switch (cmd)
 	{
 	case kWPN_FIRE:
-	{
-		//если оружие чем-то занято, то ничего не делать
+		if (IsPending())
+			return false;
+
+		if (flags&CMD_START && ParentIsActor() && !ReadyToFire())
 		{
-			if (IsPending())
-				return false;
-
-			if (ParentIsActor() && !ReadyToFire())
-			{
-				if (!ArmedMode() && !IsZoomed())
-					SwitchArmedMode();
-				return false;
-			}
-
-			if (flags&CMD_START)
-				FireStart();
-			else
-				FireEnd();
+			if (!ArmedMode() && !IsZoomed())
+				SwitchArmedMode();
+			return false;
 		}
-	}
-	return true;
+
+		if (flags&CMD_START)
+			FireStart();
+		else
+			FireEnd();
+		return true;
 
 	case kWPN_ZOOM:
 		if (IsZoomEnabled())

@@ -289,7 +289,7 @@ protected:
 	bool						ToPartnerTradeBag			(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
 
-	void						AttachAddon					(CAddonOwner* ao, CAddon* addon, u8 slot = u8(-1));
+	void						AttachAddon					(CAddonOwner* ao, CAddon* addon, u16 slot = NO_ID);
 	void						DetachAddon					(CAddonOwner* ao, CAddon* addon);
 	
 	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);

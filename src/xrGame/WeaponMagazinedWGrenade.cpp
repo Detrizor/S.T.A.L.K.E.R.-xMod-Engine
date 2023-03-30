@@ -924,7 +924,7 @@ void CWeaponMagazinedWGrenade::OnMotionHalf()
 
 void CWeaponMagazinedWGrenade::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
 {
-	CGrenadeLauncher CPC gl = addon->Object().mcast<CGrenadeLauncher CP$>();
+	CGrenadeLauncher CPC gl = addon->cast<CGrenadeLauncher CP$>();
 	if (gl)
 	{
 		m_pLauncher = (attach) ? gl : NULL;

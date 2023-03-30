@@ -38,12 +38,12 @@ Fvector rotate_vector3(const Fvector& source, const Fvector& angle)
 	return			res;
 }
 
-CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : m_object(obj)
+CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : pO(obj), O(*obj)
 {
 	LPCSTR scope = 0;   //--xd temp
 	//--xd may have to use eventually m_hands_offset[0][eAlt].add		(rotate_vector3(m_hands_attach[0], m_hands_offset[1][eAlt]));
 
-	shared_str CR$ section = o().HudSection();
+	shared_str CR$ section = O.HudSection();
 
 	m_hands_offset[0][eArmed]			= pSettings->r_fvector3(section, "armed_pos");
 	m_hands_offset[1][eArmed]			= pSettings->r_fvector3(section, "armed_rot");
@@ -143,14 +143,14 @@ void CWeaponHud::InitRotateTime(float cif)
 	m_fRelaxTime = HandlingToRelaxTime.Calc(inertion);
 }
 
-EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx C$()
+EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 {
 	if (HUD().GetCurrentRayQuery().range < 1.f && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
 		return eRelaxed;
 
-	if (o().IsZoomed())
+	if (O.IsZoomed())
 	{
-		switch (o().ADS())
+		switch (O.ADS())
 		{
 		case 0:
 			return eAim;
@@ -163,13 +163,13 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx C$()
 		}
 	}
 
-	if (!o().ArmedMode())
+	if (!O.ArmedMode())
 	{
-		if (o().HandSlot() == BOTH_HANDS_SLOT)
+		if (O.HandSlot() == BOTH_HANDS_SLOT)
 			return eRelaxed;
 
 		CEntity::SEntityState st;
-		smart_cast<CActor*>(o().H_Parent())->g_State(st);
+		O.H_Parent()->cast<CActor*>()->g_State(st);
 		if (!st.bSprint)
 			return eRelaxed;
 	}
@@ -180,7 +180,7 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx C$()
 Fvector cur_offs = Fvector().set(0.f, 0.f, 0.f);
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
-	attachable_hud_item* hi = o().HudItemData();
+	attachable_hud_item* hi = O.HudItemData();
 	R_ASSERT(hi);
 
 	EHandsOffset idx = GetCurrentHudOffsetIdx();
@@ -219,8 +219,8 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
 		if (curr_offs.similar(m_hud_offset[0], .02f) && curr_rot.similar(m_hud_offset[1], .02f))
 		{
-			if ((idx == eRelaxed || last_idx == eRelaxed) && o().IsPending())
-				o().SetPending(FALSE);
+			if ((idx == eRelaxed || last_idx == eRelaxed) && O.IsPending())
+				O.SetPending(FALSE);
 			last_idx = idx;
 		}
 
@@ -240,7 +240,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		hud_rotation.translate_over(m_hud_offset[0]);
 		trans.mulB_43(hud_rotation);
 
-		if (o().IsZoomed())
+		if (O.IsZoomed())
 			m_fRotationFactor += factor;
 		else
 			m_fRotationFactor -= factor;
@@ -353,7 +353,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 
 	//============= Боковой стрейф с оружием =============//
 	// Рассчитываем фактор боковой ходьбы
-	hud_item_measures CR$ m = o().HudItemData()->m_measures;
+	hud_item_measures CR$ m = O.HudItemData()->m_measures;
 	float fStrafeMaxTime = m.m_strafe_offset[2][idx].y;
 	// Макс. время в секундах, за которое мы наклонимся из центрального положения
 	if (fStrafeMaxTime <= EPS)
@@ -378,24 +378,24 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		m_fRotationFactor);
 
 	// Считаем стрейф от поворота камеры
-	if (abs(fYMag) > (o().m_fLR_CameraFactor == 0.0f ? fStrafeMinAngle : 0.0f))
+	if (abs(fYMag) > (O.m_fLR_CameraFactor == 0.0f ? fStrafeMinAngle : 0.0f))
 	{
 		//--> Камера крутится по оси Y
-		o().m_fLR_CameraFactor -= (fYMag * fAvgTimeDelta * 0.75f);
-		clamp(o().m_fLR_CameraFactor, -fCamLimitBlend, fCamLimitBlend);
+		O.m_fLR_CameraFactor -= (fYMag * fAvgTimeDelta * 0.75f);
+		clamp(O.m_fLR_CameraFactor, -fCamLimitBlend, fCamLimitBlend);
 	}
 	else
 	{
 		//--> Камера не поворачивается - убираем наклон
-		if (o().m_fLR_CameraFactor < 0.0f)
+		if (O.m_fLR_CameraFactor < 0.0f)
 		{
-			o().m_fLR_CameraFactor += fStepPerUpd * (bForAim ? 1.0f : fCamReturnSpeedMod);
-			clamp(o().m_fLR_CameraFactor, -fCamLimitBlend, 0.0f);
+			O.m_fLR_CameraFactor += fStepPerUpd * (bForAim ? 1.0f : fCamReturnSpeedMod);
+			clamp(O.m_fLR_CameraFactor, -fCamLimitBlend, 0.0f);
 		}
 		else
 		{
-			o().m_fLR_CameraFactor -= fStepPerUpd * (bForAim ? 1.0f : fCamReturnSpeedMod);
-			clamp(o().m_fLR_CameraFactor, 0.0f, fCamLimitBlend);
+			O.m_fLR_CameraFactor -= fStepPerUpd * (bForAim ? 1.0f : fCamReturnSpeedMod);
+			clamp(O.m_fLR_CameraFactor, 0.0f, fCamLimitBlend);
 		}
 	}
 
@@ -406,34 +406,34 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	if ((iMovingState & mcLStrafe) != 0)
 	{
 		// Движемся влево
-		float fVal = (o().m_fLR_MovingFactor > 0.f ? fStepPerUpd * fChangeDirSpeedMod : fStepPerUpd);
-		o().m_fLR_MovingFactor -= fVal;
+		float fVal = (O.m_fLR_MovingFactor > 0.f ? fStepPerUpd * fChangeDirSpeedMod : fStepPerUpd);
+		O.m_fLR_MovingFactor -= fVal;
 	}
 	else if ((iMovingState & mcRStrafe) != 0)
 	{
 		// Движемся вправо
-		float fVal = (o().m_fLR_MovingFactor < 0.f ? fStepPerUpd * fChangeDirSpeedMod : fStepPerUpd);
-		o().m_fLR_MovingFactor += fVal;
+		float fVal = (O.m_fLR_MovingFactor < 0.f ? fStepPerUpd * fChangeDirSpeedMod : fStepPerUpd);
+		O.m_fLR_MovingFactor += fVal;
 	}
 	else
 	{
 		// Двигаемся в любом другом направлении - плавно убираем наклон
-		if (o().m_fLR_MovingFactor < 0.0f)
+		if (O.m_fLR_MovingFactor < 0.0f)
 		{
-			o().m_fLR_MovingFactor += fStepPerUpd;
-			clamp(o().m_fLR_MovingFactor, -1.0f, 0.0f);
+			O.m_fLR_MovingFactor += fStepPerUpd;
+			clamp(O.m_fLR_MovingFactor, -1.0f, 0.0f);
 		}
 		else
 		{
-			o().m_fLR_MovingFactor -= fStepPerUpd;
-			clamp(o().m_fLR_MovingFactor, 0.0f, 1.0f);
+			O.m_fLR_MovingFactor -= fStepPerUpd;
+			clamp(O.m_fLR_MovingFactor, 0.0f, 1.0f);
 		}
 	}
-	clamp(o().m_fLR_MovingFactor, -1.0f, 1.0f); // Фактор боковой ходьбы не должен превышать эти лимиты
+	clamp(O.m_fLR_MovingFactor, -1.0f, 1.0f); // Фактор боковой ходьбы не должен превышать эти лимиты
 
 	// Вычисляем и нормализируем итоговый фактор наклона
-	float fLR_Factor = o().m_fLR_MovingFactor; 
-	fLR_Factor += o().m_fLR_CameraFactor;
+	float fLR_Factor = O.m_fLR_MovingFactor; 
+	fLR_Factor += O.m_fLR_CameraFactor;
 
 	clamp(fLR_Factor, -1.0f, 1.0f); // Фактор боковой ходьбы не должен превышать эти лимиты
 
@@ -523,51 +523,51 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		m_fRotationFactor);
 
 	// Высчитываем инерцию из поворотов камеры
-	bool bIsInertionPresent = !fIsZero(o().m_fLR_InertiaFactor) || !fIsZero(o().m_fUD_InertiaFactor);
+	bool bIsInertionPresent = !fIsZero(O.m_fLR_InertiaFactor) || !fIsZero(O.m_fUD_InertiaFactor);
 	if (abs(fYMag) > fInertiaMinAngle || bIsInertionPresent)
 	{
 		float fSpeed = fInertiaSpeedMod;
-		if (fYMag > 0.0f && o().m_fLR_InertiaFactor > 0.0f ||
-			fYMag < 0.0f && o().m_fLR_InertiaFactor < 0.0f)
+		if (fYMag > 0.0f && O.m_fLR_InertiaFactor > 0.0f ||
+			fYMag < 0.0f && O.m_fLR_InertiaFactor < 0.0f)
 		{
 			fSpeed *= 2.f; //--> Ускоряем инерцию при движении в противоположную сторону
 		}
 
-		o().m_fLR_InertiaFactor -= (fYMag * fAvgTimeDelta * fSpeed); // Горизонталь (м.б. > |1.0|)
+		O.m_fLR_InertiaFactor -= (fYMag * fAvgTimeDelta * fSpeed); // Горизонталь (м.б. > |1.0|)
 	}
 
 	if (abs(fPMag) > fInertiaMinAngle || bIsInertionPresent)
 	{
 		float fSpeed = fInertiaSpeedMod;
-		if (fPMag > 0.0f && o().m_fUD_InertiaFactor > 0.0f ||
-			fPMag < 0.0f && o().m_fUD_InertiaFactor < 0.0f)
+		if (fPMag > 0.0f && O.m_fUD_InertiaFactor > 0.0f ||
+			fPMag < 0.0f && O.m_fUD_InertiaFactor < 0.0f)
 		{
 			fSpeed *= 2.f; //--> Ускоряем инерцию при движении в противоположную сторону
 		}
 
-		o().m_fUD_InertiaFactor -= (fPMag * fAvgTimeDelta * fSpeed); // Вертикаль (м.б. > |1.0|)
+		O.m_fUD_InertiaFactor -= (fPMag * fAvgTimeDelta * fSpeed); // Вертикаль (м.б. > |1.0|)
 	}
 
-	clamp(o().m_fLR_InertiaFactor, -1.0f, 1.0f);
-	clamp(o().m_fUD_InertiaFactor, -1.0f, 1.0f);
+	clamp(O.m_fLR_InertiaFactor, -1.0f, 1.0f);
+	clamp(O.m_fUD_InertiaFactor, -1.0f, 1.0f);
 
 	// Плавное затухание инерции (основное, но без линейной никогда не опустит инерцию до полного 0.0f)
-	o().m_fLR_InertiaFactor *= clampr(1.f - fAvgTimeDelta * fInertiaReturnSpeedMod, 0.0f, 1.0f);
-	o().m_fUD_InertiaFactor *= clampr(1.f - fAvgTimeDelta * fInertiaReturnSpeedMod, 0.0f, 1.0f);
+	O.m_fLR_InertiaFactor *= clampr(1.f - fAvgTimeDelta * fInertiaReturnSpeedMod, 0.0f, 1.0f);
+	O.m_fUD_InertiaFactor *= clampr(1.f - fAvgTimeDelta * fInertiaReturnSpeedMod, 0.0f, 1.0f);
 
 	// Минимальное линейное затухание инерции при покое (горизонталь)
 	if (fYMag == 0.0f)
 	{
 		float fRetSpeedMod = (fYMag == 0.0f ? 1.0f : 0.75f) * (fInertiaReturnSpeedMod * 0.075f);
-		if (o().m_fLR_InertiaFactor < 0.0f)
+		if (O.m_fLR_InertiaFactor < 0.0f)
 		{
-			o().m_fLR_InertiaFactor += fAvgTimeDelta * fRetSpeedMod;
-			clamp(o().m_fLR_InertiaFactor, -1.0f, 0.0f);
+			O.m_fLR_InertiaFactor += fAvgTimeDelta * fRetSpeedMod;
+			clamp(O.m_fLR_InertiaFactor, -1.0f, 0.0f);
 		}
 		else
 		{
-			o().m_fLR_InertiaFactor -= fAvgTimeDelta * fRetSpeedMod;
-			clamp(o().m_fLR_InertiaFactor, 0.0f, 1.0f);
+			O.m_fLR_InertiaFactor -= fAvgTimeDelta * fRetSpeedMod;
+			clamp(O.m_fLR_InertiaFactor, 0.0f, 1.0f);
 		}
 	}
 
@@ -575,23 +575,23 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	if (fPMag == 0.0f)
 	{
 		float fRetSpeedMod = (fPMag == 0.0f ? 1.0f : 0.75f) * (fInertiaReturnSpeedMod * 0.075f);
-		if (o().m_fUD_InertiaFactor < 0.0f)
+		if (O.m_fUD_InertiaFactor < 0.0f)
 		{
-			o().m_fUD_InertiaFactor += fAvgTimeDelta * fRetSpeedMod;
-			clamp(o().m_fUD_InertiaFactor, -1.0f, 0.0f);
+			O.m_fUD_InertiaFactor += fAvgTimeDelta * fRetSpeedMod;
+			clamp(O.m_fUD_InertiaFactor, -1.0f, 0.0f);
 		}
 		else
 		{
-			o().m_fUD_InertiaFactor -= fAvgTimeDelta * fRetSpeedMod;
-			clamp(o().m_fUD_InertiaFactor, 0.0f, 1.0f);
+			O.m_fUD_InertiaFactor -= fAvgTimeDelta * fRetSpeedMod;
+			clamp(O.m_fUD_InertiaFactor, 0.0f, 1.0f);
 		}
 	}
 
 	// Применяем инерцию к худу
-	float fLR_lim = (o().m_fLR_InertiaFactor < 0.0f ? vIOffsets.x : vIOffsets.y);
-	float fUD_lim = (o().m_fUD_InertiaFactor < 0.0f ? vIOffsets.z : vIOffsets.w);
+	float fLR_lim = (O.m_fLR_InertiaFactor < 0.0f ? vIOffsets.x : vIOffsets.y);
+	float fUD_lim = (O.m_fUD_InertiaFactor < 0.0f ? vIOffsets.z : vIOffsets.w);
 
-	cur_offs = { fLR_lim * -1.f * o().m_fLR_InertiaFactor, fUD_lim * o().m_fUD_InertiaFactor, 0.0f };
+	cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
 
 	Fmatrix hud_rotation;
 	hud_rotation.identity();
@@ -633,8 +633,8 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 			{
 				std::ofstream			out;
 				out.open				("C:\\tmp.txt");
-				Fvector CP$ vp			= &o().HudItemData()->m_measures.m_hands_attach[0];
-				Fvector CP$ vr			= &o().HudItemData()->m_measures.m_hands_attach[1];
+				Fvector CP$ vp			= &O.HudItemData()->m_measures.m_hands_attach[0];
+				Fvector CP$ vr			= &O.HudItemData()->m_measures.m_hands_attach[1];
 				out						<< shared_str().printf("m_hands_attach pos [%.6f,%.6f,%.6f] m_hands_attach rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
 				vp						= &m_hands_offset[0][GetCurrentHudOffsetIdx()];
 				vr						= &m_hands_offset[1][GetCurrentHudOffsetIdx()];
@@ -664,7 +664,7 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 					axis				= !axis;
 					val					*= -1.f;
 				}
-				o().HudItemData()->m_measures.m_hands_attach[rot][axis] += val;
+				O.HudItemData()->m_measures.m_hands_attach[rot][axis] += val;
 			}
 			else
 				m_hands_offset[rot][GetCurrentHudOffsetIdx()][axis] += val;

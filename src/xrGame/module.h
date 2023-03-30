@@ -18,4 +18,9 @@ public:
 
 	void							V$	OnEvent									(NET_Packet& P, u16 type) {}
 	void							V$	OnChild									(CObject* obj, bool take) {}
+	
+	template <typename T>
+	T								IC	cast								C$	() { return O.cast<T>(); }
+	template <typename T>
+	T								IC	cast									() { return O.cast<T>(); }
 };

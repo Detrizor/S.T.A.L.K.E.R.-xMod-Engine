@@ -300,7 +300,7 @@ _finish:
 	UpdateConditionProgressBars();
 }
 
-void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u8 slot)
+void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
 {
 	if (ao->AttachAddon(addon, slot))
 	{
@@ -548,15 +548,15 @@ bool CUIActorMenu::TryUseItem(CUICellItem* cell_itm)
 
 void CUIActorMenu::OnItemDropped(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner)
 {
-	CUICellItem* _citem		= (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
+	CUICellItem* _citem					= (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
 	if (_citem)
 	{
-		PIItem item = (PIItem)_citem->m_pData;
+		PIItem item						= (PIItem)_citem->m_pData;
 		if (item && item->InHands())
 		{
-			CAddonOwner* ao = item->object().mcast<CAddonOwner*>();
+			CAddonOwner* ao				= item->object().cast<CAddonOwner*>();
 			if (ao)
-				AttachAddon(ao, itm->object().mcast<CAddon*>());
+				AttachAddon				(ao, itm->object().cast<CAddon*>());
 		}
 	}
 }
@@ -676,15 +676,16 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 		return;
 
 	//отсоединение аддонов от вещи
-	CAddonOwner* ao = item->object().mcast<CAddonOwner*>();
+	CAddonOwner* ao = item->object().cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
-	for (auto slot : ao->AddonSlots())
+	for (const auto slot : ao->AddonSlots())
 	{
 		if (slot->addon)
 		{
-			m_UIPropertiesBox->AddItem(*shared_str().printf("st_detach %s", slot->addon->Item().NameShort()), (void*)slot->addon, INVENTORY_DETACH_ADDON);
+			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->Item().NameShort());
+			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
 			b_show = true;
 		}
 	}
@@ -692,24 +693,24 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 
 void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 {
-	PIItem active_item = m_pActorInv->ActiveItem();
-	CAddonOwner* ao = active_item->object().mcast<CAddonOwner*>();
+	PIItem active_item					= m_pActorInv->ActiveItem();
+	CAddonOwner* ao						= active_item->object().cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
-	CAddon* addon = item->object().mcast<CAddon*>();
+	CAddon* addon						= item->object().cast<CAddon*>();
 	if (!addon)
 		return;
 
-	for (auto slot : ao->AddonSlots())
+	for (const auto slot : ao->AddonSlots())
 	{
 		if (slot->CanTake(addon))
 		{
-			m_UIPropertiesBox->AddItem(*shared_str().printf("st_attach_to %s (%s)", active_item->NameShort(), *slot->name), (void*)slot, INVENTORY_ATTACH_ADDON);   //--xd until addonownerobject implementation
-			b_show = true;
+			LPCSTR title				= *shared_str().printf("st_attach_to %s (%s)", active_item->NameShort(), *slot->name);
+			m_UIPropertiesBox->AddItem	(title, (void*)slot, INVENTORY_ATTACH_ADDON);
+			b_show						= true;
 		}
 	}
-	return;
 }
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
@@ -848,15 +849,17 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ATTACH_ADDON:
 	{
-		CAddonOwner* ao					= m_pActorInv->ActiveItem()->object().mcast<CAddonOwner*>();
+		CAddonOwner* ao					= m_pActorInv->ActiveItem()->object().cast<CAddonOwner*>();
 		SAddonSlot* slot				= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		AttachAddon						(ao, item->object().mcast<CAddon*>(), slot->idx);
+		AttachAddon						(ao, item->object().cast<CAddon*>(), slot->idx);
 		break;
 	}
-	case INVENTORY_DETACH_ADDON:{
-		CAddonOwner* ao					= smart_cast<CAddonOwner*>(item);
+	case INVENTORY_DETACH_ADDON:
+	{
+		CAddonOwner* ao					= item->object().cast<CAddonOwner*>();
 		DetachAddon						(ao, (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
-		}break;
+		break;
+	}
 	case INVENTORY_REPAIR:
 		TryRepairItem					(this, 0);
 		break;
