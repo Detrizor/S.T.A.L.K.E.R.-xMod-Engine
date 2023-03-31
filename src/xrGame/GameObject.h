@@ -7,7 +7,7 @@
 #include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
-#include "inventory_space.h"
+#include "module.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
@@ -42,13 +42,10 @@ class IKinematics;
 template <typename _return_type>
 class CScriptCallbackEx;
 
-class CAddon;
-class SAddonSlot;
-
-class CGameObject : 
-	public CObject, 
+class CGameObject : public CObject, 
 	public CUsableScriptObject,
-	public CScriptBinder
+	public CScriptBinder,
+	public CInterface
 {
 	typedef CObject inherited;
 	bool							m_spawned;
@@ -311,14 +308,11 @@ public:
 			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 
 //xMod added
-private:
-	void								LoadModules								(LPCSTR section);
-
 public:
+	template <typename T>
+	T*									AddModule								() { T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
+
 	void								Transfer							C$	(u16 id = NO_ID);
 
-	void							V$	OnChild									(CObject* obj, bool take);
-
-	void							V$	ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {};
-	void							V$	TransferAddon							(CAddon CPC addon, bool attach);
+	void								OnChild								O$	(CObject* obj, bool take);
 };

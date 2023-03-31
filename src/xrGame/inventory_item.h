@@ -17,11 +17,11 @@
 #include "xrserver_objects_alife.h"
 #include "xrserver_objects_alife_items.h"
 #include "script_export_space.h"
+#include "module.h"
 
 bool	ItemCategory		(const shared_str& section, LPCSTR cmp);
 bool	ItemSubcategory		(const shared_str& section, LPCSTR cmp);
 bool	ItemDivision		(const shared_str& section, LPCSTR cmp);
-void	TransferItem		(u16 what_id, u16 to_id = NO_ID);
 
 enum EHandDependence{
 	hdNone	= 0,
@@ -139,9 +139,6 @@ public:
 			BOOL				IsInvalid			() const;
 
 			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}
-	virtual	u32					Cost				()	const;
-	virtual float				Weight				() 	const;
-	virtual float				Volume				() 	const;
 
 public:
 	CInventory*					m_pInventory;
@@ -191,10 +188,10 @@ public:
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
 
 protected:
-	u32							m_cost;
-	u32							m_upgrades_cost;
 	float						m_weight;
 	float						m_volume;
+	float						m_cost;
+	float						m_upgrades_cost;
 	float						m_fCondition;
 	shared_str					m_Description;
 
@@ -333,8 +330,6 @@ private:
 
 public:
 	static const float		m_fMaxRepairCondition;
-			u32				Price					()								const;
-			void			Transfer				(u16 id = NO_ID)				const;
 	static	u32				ReadBaseCost			(LPCSTR section);
 	static	void			ReadIcon				(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
 			void			SetInvIcon				();
@@ -351,15 +346,31 @@ public:
 			void			SetInvIconIndex			(u8 idx);
 			u8				GetInvIconIndex			()								const	{ return m_inv_icon_index; }
 
-	virtual	bool			Category				(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*") const { return (cmpc[0] == '*' || m_category == cmpc) && (cmps[0] == '*' || m_subcategory == cmps) && (cmpd[0] == '*' || m_division == cmpd); }
 
-	virtual float			GetAmount				()								const	{ return 1.f; }
-	virtual float			GetFill					()								const	{ return 1.f; }
-	virtual float			GetBar					()								const	{ return -1.f; }
 	virtual	void			OnTaken					()										{}
 
-	const	shared_str		Section					(bool full = false)				const	{ return full ? shared_str().printf("%s_%d", *m_section_id, m_inv_icon_index) : m_section_id; }
-}; // class CInventoryItem
+public:
+	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
+	shared_str							Section								C$	(bool full = false);
+	float								Price								C$	();
+
+	float								GetAmount							C$	();
+	float								GetFill								C$	();
+	float								GetBar								C$	();
+
+	float								Weight								C$	();
+	float								Volume								C$	();
+	float								Cost								C$	();
+
+public:
+	void								Transfer							C$	(u16 id = NO_ID);
+	template <typename T>
+	T									icast								C$	() { return m_object->cast<T>(); }
+	template <typename T>
+	T									icast									() { return m_object->cast<T>(); }
+
+	friend class CWeaponAmmo;
+};
 
 #include "inventory_item_inline.h"
 

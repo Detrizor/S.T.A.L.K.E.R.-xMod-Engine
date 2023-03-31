@@ -1,6 +1,5 @@
 #pragma once
 #include "module.h"
-#include "inventory_space.h"
 
 class CAddon;
 struct SAddonSlot;
@@ -60,4 +59,11 @@ public:
 			
 	void								renderable_Render						();
 	void								render_hud_mode							();
+
+	void								ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
+	bool								TransferAddon						O$	(CAddon CPC addon, bool attach);
+
+	float								Weight								CO$	();
+	float								Volume								CO$	();
+	float								Cost								CO$	();
 };

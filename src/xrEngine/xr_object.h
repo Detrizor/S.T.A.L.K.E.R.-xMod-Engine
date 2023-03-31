@@ -230,14 +230,13 @@ private:
 		return							NULL;
 	}
 
-protected:
+public:
 	xr_vector<CModule*>					m_modules;
 
-public:
 	template <typename T>
-	T								IC	cast								C$	() { return cast<T>(this); }
+	T									cast								C$	() { return cast<T>(this); }
 	template <typename T>
-	T								IC	cast									() { return cast<T>(this); }
+	T									cast									() { return cast<T>(this); }
 };
 
 #pragma pack(pop)

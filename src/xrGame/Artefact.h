@@ -112,11 +112,6 @@ public:
 		//processing_deactivate		();
 	}
 
-	virtual	u32				Cost					() const;
-	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
-	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
-	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
-
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 public:

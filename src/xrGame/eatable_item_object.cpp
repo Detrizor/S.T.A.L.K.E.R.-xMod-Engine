@@ -333,18 +333,3 @@ bool CEatableItemObject::Useful				() const
 {
 	return			(CEatableItem::Useful());
 }
-
-float CEatableItemObject::Weight() const
-{
-	return			CEatableItem::Weight() + NetWeight();
-}
-
-float CEatableItemObject::Volume() const
-{
-	return			CEatableItem::Volume() + NetVolume();
-}
-
-u32 CEatableItemObject::Cost() const
-{
-	return			CEatableItem::Cost() - NetCost();
-}

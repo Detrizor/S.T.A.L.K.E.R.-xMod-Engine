@@ -538,17 +538,12 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 	}
 }
 
-u32 CArtefact::Cost() const
-{
-	return inherited::Cost() - NetCost();
-}
-
 float CArtefact::Power() const
 {
 	if (!IsActive())
 		return		0.f;
 
-	float dfill		= GetFill() / m_fChargeThreshold;
+	float dfill		= cast<CItemAmountable CP$>()->GetFill() / m_fChargeThreshold;		//--xd until missed modulisation
 	if (dfill > 1.f)
 		dfill		= 1.f;
 	return			sqrt(dfill);

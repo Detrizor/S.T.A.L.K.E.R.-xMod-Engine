@@ -31,8 +31,10 @@ public:
 
 			bool			CanTakeItem				(PIItem iitem)					const;
 			void			AddAvailableItems		(TIItemContainer& items_container) const;
-			float			ItemsWeight				()								const;
-			float			ItemsVolume				()								const;
+
+	float								Weight								C$	();
+	float								Volume								C$	();
+	float								Cost								C$	();
 };
 
 class CContainerObject : public CInventoryItemObject,
@@ -57,13 +59,13 @@ public:
 	LPCSTR			Stock					()								const	{ return m_stock; }
 	u32				StockCount				()								const	{ return m_stock_count; }
 
-	void								OnChild						O$	(CObject* obj, bool take);
+	void								OnChild						O$			(CObject* obj, bool take)		{ return CInventoryContainer::OnChild(obj, take); }
 
-	virtual	float			GetAmount				()								const	{ return ItemsVolume(); }
-	virtual	float			GetFill					()								const	{ return ItemsVolume() / GetCapacity(); }
-	virtual	float			GetBar					()								const	{ return fLess(ItemsVolume(), GetCapacity()) ? GetFill() : -1.f; }
+	float								GetAmount							CO$	()		{ return Volume(); }
+	float								GetFill								CO$	()		{ return Volume() / GetCapacity(); }
+	float								GetBar								CO$	()		{ return fLess(Volume(), GetCapacity()) ? GetFill() : -1.f; }
 
-	virtual	float			Weight					()								const;
-	virtual	float			Volume					()								const;
-	virtual	u32				Cost					()								const;
+	float								Weight								CO$	()		{ return CInventoryContainer::Weight(); }
+	float								Volume								CO$	()		{ return CInventoryContainer::Volume(); }
+	float								Cost								CO$	()		{ return CInventoryContainer::Cost(); }
 };

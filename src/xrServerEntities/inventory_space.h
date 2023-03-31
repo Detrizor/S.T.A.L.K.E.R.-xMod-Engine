@@ -3,8 +3,6 @@
 #define CMD_START	(1<<0)
 #define CMD_STOP	(1<<1)
 
-#define NO_ID u16(-1)
-
 enum
 {
 	NO_ACTIVE_SLOT	= 0,

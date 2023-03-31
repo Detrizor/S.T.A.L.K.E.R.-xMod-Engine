@@ -1672,7 +1672,6 @@
     <ClInclude Include="items_library.h" />
     <ClInclude Include="item_container.h" />
     <ClInclude Include="item_manager.h" />
-    <ClInclude Include="item_storage.h" />
     <ClInclude Include="key_binding_registrator.h" />
     <ClInclude Include="killer_victim_velocity_angle.h" />
     <ClInclude Include="kills_store.h" />
@@ -2385,7 +2384,6 @@
     <ClInclude Include="wrapper_abstract_inline.h" />
     <ClInclude Include="addon.h" />
     <ClInclude Include="addon_owner.h" />
-    <ClInclude Include="attachment.h" />
     <ClInclude Include="scope.h" />
     <ClInclude Include="silencer.h" />
     <ClInclude Include="weapon_hud.h" />
@@ -3497,7 +3495,6 @@
     <ClCompile Include="items_library.cpp" />
     <ClCompile Include="item_container.cpp" />
     <ClCompile Include="item_manager.cpp" />
-    <ClCompile Include="item_storage.cpp" />
     <ClCompile Include="key_binding_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -4697,7 +4694,6 @@
     <ClCompile Include="Wound.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />
-    <ClCompile Include="attachment.cpp" />
     <ClCompile Include="scope.cpp" />
     <ClCompile Include="silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />

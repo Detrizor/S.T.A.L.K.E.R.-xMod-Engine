@@ -29,7 +29,8 @@
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
 #include "item_container.h"
-
+#include "addon.h"
+#include "addon_owner.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -50,10 +51,6 @@ bool ItemSubcategory(const shared_str& section, LPCSTR cmp)
 bool ItemDivision(const shared_str& section, LPCSTR cmp)
 {
 	return !xr_strcmp(pSettings->r_string(section, "division"), cmp);
-}
-void TransferItem(u16 what_id, u16 to_id)
-{
-	smart_cast<PIItem>(Level().Objects.net_Find(what_id))->Transfer(to_id);
 }
 
 net_updateInvData* CInventoryItem::NetSync()
@@ -92,9 +89,7 @@ CInventoryItem::CInventoryItem()
 	m_flags.set(FCanStack, TRUE);
 
 	m_name = m_nameShort = m_Description = "";
-	m_weight = m_volume = 0.f;
-	m_cost = 0;
-	m_upgrades_cost = 0;
+	m_weight = m_volume = m_cost = m_upgrades_cost = 0.f;
 	
 	m_category			= "";
 	m_subcategory		= "";
@@ -176,6 +171,12 @@ void CInventoryItem::Load(LPCSTR section)
 	m_cost							= ReadBaseCost(section);
 	
 	SetInvIcon						();
+
+	if (pSettings->line_exist			(section, "slot_type"))
+		m_object->AddModule<CAddon>		();
+
+	if (pSettings->line_exist			(section, "slots"))
+		m_object->AddModule<CAddonOwner>();
 }
 
 float CInventoryItem::GetConditionToWork() const
@@ -1321,50 +1322,6 @@ bool CInventoryItem::InHands() const
 	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
 }
 
-u32 CInventoryItem::Cost() const
-{
-	return m_cost;
-}
-
-float CInventoryItem::Weight() const
-{
-	return m_weight;
-}
-
-float CInventoryItem::Volume() const
-{
-	return m_volume;
-}
-
-u32 CInventoryItem::Price() const
-{
-	return u32((float)Cost() * sqrt(GetCondition()) + (float)m_upgrades_cost * sqrt(GetConditionToWork()));
-}
-
-void CInventoryItem::Transfer(u16 id) const
-{
-	NET_Packet						P;
-	if (id == NO_ID)
-	{
-		CGameObject::u_EventGen		(P, GE_OWNERSHIP_REJECT, parent_id());
-		P.w_u16						(object_id());
-	}
-	else if (object().H_Parent())
-	{
-		CGameObject::u_EventGen		(P, GE_TRADE_SELL, parent_id());
-		P.w_u16						(object_id());
-		CGameObject::u_EventSend	(P);
-		CGameObject::u_EventGen		(P, GE_TRADE_BUY, id);
-		P.w_u16						(object_id());
-	}
-	else
-	{
-		CGameObject::u_EventGen		(P,GE_OWNERSHIP_TAKE, id);
-		P.w_u16						(object_id());
-	}
-	CGameObject::u_EventSend		(P);
-}
-
 u32 CInventoryItem::ReadBaseCost(LPCSTR section)
 {
 	float							cost;
@@ -1400,4 +1357,104 @@ void CInventoryItem::SetInvIconIndex(u8 idx)
 void CInventoryItem::SetInvIcon()
 {
 	ReadIcon						(m_inv_icon, *m_section_id, m_inv_icon_type, m_inv_icon_index);
+}
+
+bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)
+{
+	return (cmpc[0] == '*' || m_category == cmpc)
+		&& (cmps[0] == '*' || m_subcategory == cmps)
+		&& (cmpd[0] == '*' || m_division == cmpd);
+}
+
+shared_str CInventoryItem::Section(bool full) const
+{
+	return (full) ? shared_str().printf("%s_%d", *m_section_id, m_inv_icon_index) : m_section_id;
+}
+
+float CInventoryItem::Price() const
+{
+	return								Cost() * sqrt(GetCondition()) + m_upgrades_cost;
+}
+
+float CInventoryItem::GetAmount() const
+{
+	float res							= m_object->GetAmount();
+	if (res != no_float)
+		return							res;
+
+	for (auto module : m_object->m_modules)
+	{
+		res								= module->GetAmount();
+		if (res != no_float)
+			return						res;
+	}
+
+	return								1.f;
+}
+
+float CInventoryItem::GetFill() const
+{
+	float res							= m_object->GetFill();
+	if (res != no_float)
+		return							res;
+
+	for (auto module : m_object->m_modules)
+	{
+		res								= module->GetFill();
+		if (res != no_float)
+			return						res;
+	}
+
+	return								1.f;
+}
+
+float CInventoryItem::GetBar() const
+{
+	float res							= m_object->GetBar();
+	if (res != no_float)
+		return							res;
+
+	for (auto module : m_object->m_modules)
+	{
+		res								= module->GetBar();
+		if (res != no_float)
+			return						res;
+	}
+
+	return								-1.f;
+}
+
+float CInventoryItem::Weight() const
+{
+	float res							= m_weight;
+	res									+= m_object->Weight();
+	for (auto module : m_object->m_modules)
+		res								+= module->Weight();
+
+	return								res;
+}
+
+float CInventoryItem::Volume() const
+{
+	float res							= m_volume;
+	res									+= m_object->Volume();
+	for (auto module : m_object->m_modules)
+		res								+= module->Volume();
+
+	return								res;
+}
+
+float CInventoryItem::Cost() const
+{
+	float res							= m_cost;
+	res									+= m_object->Cost();
+	for (auto module : m_object->m_modules)
+		res								+= module->Cost();
+
+	return								res;
+}
+
+void CInventoryItem::Transfer(u16 id) const
+{
+	m_object->Transfer(id);
 }

@@ -15,18 +15,17 @@ private:
 			CPhysicItem*	m_object;
 			float			m_net_weight;
 			float			m_net_volume;
-			u32				m_net_cost;
+			float			m_net_cost;
 			float			m_capacity;
 			bool			m_unlimited;
 			float			m_depletion_speed;
-
-			float			m_fAmount;
+			
+	float								m_fAmount;
 
 			void			OnAmountChange			();
 			bool			Useful					() const;
 
 public:
-
 			float			Capacity				() const						{ return m_capacity; }
 			float			GetDepletionSpeed		() const						{ return m_depletion_speed; }
 			float			GetDepletionRate		() const						{ return GetDepletionSpeed() / Capacity(); }
@@ -39,13 +38,14 @@ public:
 			void			ChangeAmount			(float delta);
 			void			SetFill					(float val);
 			void			ChangeFill				(float delta);
-			float			NetWeight				() const;
-			float			NetVolume				() const;
-			u32				NetCost					() const;
-	
-	virtual	float			GetAmount				() const						{ return m_fAmount; }
-	virtual	float			GetFill					() const						{ return GetAmount() / Capacity(); }
-	virtual float			GetBar					() const						{ return Full() ? -1.f : GetFill(); }
+
+	float								GetAmount							C$	()		{ return m_fAmount; }
+	float								GetFill								C$	()		{ return GetAmount() / Capacity(); }
+	float								GetBar								C$	()		{ return Full() ? -1.f : GetFill(); }
+
+	float								Weight								C$	()		{ return m_net_weight * GetFill(); }
+	float								Volume								C$	()		{ return m_net_volume * GetFill(); }
+	float								Cost								C$	()		{ return round(m_net_cost * (GetFill() - 1.f)); }
 };
 
 class CIIOAmountable : public CInventoryItemObject,
@@ -62,10 +62,11 @@ public:
 	virtual	void			Load					(LPCSTR section);
 
 public:
-	virtual float			Weight					() const;
-	virtual float			Volume					() const;
-	virtual u32				Cost					() const;
-	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
-	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
-	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
+	float								Weight								CO$	()		{ return CItemAmountable::Weight(); }
+	float								Volume								CO$	()		{ return CItemAmountable::Volume(); }
+	float								Cost								CO$	()		{ return CItemAmountable::Cost(); }
+
+	float								GetAmount							CO$	()		{ return CItemAmountable::GetAmount(); }
+	float								GetFill								CO$	()		{ return CItemAmountable::GetFill(); }
+	float								GetBar								CO$	()		{ return CItemAmountable::GetBar(); }
 };

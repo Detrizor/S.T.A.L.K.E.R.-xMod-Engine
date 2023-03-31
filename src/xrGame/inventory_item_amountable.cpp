@@ -7,7 +7,7 @@ CItemAmountable::CItemAmountable()
 	m_item							= NULL;
 	m_net_weight					= 0.f;
 	m_net_volume					= 0.f;
-	m_net_cost						= 0;
+	m_net_cost						= 0.f;
 	m_capacity						= 1.f;
 	m_unlimited						= false;
 	m_depletion_speed				= 1.f;
@@ -30,8 +30,8 @@ void CItemAmountable::Load(LPCSTR section)
 	m_capacity						= pSettings->r_float(section, "capacity");
 	m_fAmount						= m_capacity;
 	m_unlimited						= !!pSettings->r_bool(section, "unlimited");
-	u32 net_cost					= pSettings->r_u32(section, "net_cost");
-	m_net_cost						= (net_cost == (u32)-1) ? m_item->Cost() : net_cost;
+	float net_cost					= pSettings->r_float(section, "net_cost");
+	m_net_cost						= (net_cost == -1.f) ? CInventoryItem::ReadBaseCost(section): net_cost;
 }
 
 bool CItemAmountable::Useful() const
@@ -76,21 +76,6 @@ void CItemAmountable::ChangeFill(float delta)
 	OnAmountChange					();
 }
 
-float CItemAmountable::NetWeight() const
-{
-	return							m_net_weight * GetFill();
-}
-
-float CItemAmountable::NetVolume() const
-{
-	return							m_net_volume * GetFill();
-}
-
-u32 CItemAmountable::NetCost() const
-{
-	return							(u32)round((float)m_net_cost * (1.f - GetFill()));
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DLL_Pure* CIIOAmountable::_construct()
@@ -104,19 +89,4 @@ void CIIOAmountable::Load(LPCSTR section)
 {
 	inherited::Load					(section);
 	CItemAmountable::Load			(section);
-}
-
-float CIIOAmountable::Weight() const
-{
-	return							inherited::Weight() + NetWeight();
-}
-
-float CIIOAmountable::Volume() const
-{
-	return							inherited::Volume() + NetVolume();
-}
-
-u32 CIIOAmountable::Cost() const
-{
-	return							inherited::Cost() - NetCost();
 }

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "addon_owner.h"
-#include "inventory_space.h"
 #include "GameObject.h"
 #include "addon.h"
 #include "inventory_item.h"
@@ -27,7 +26,7 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 		m_Slots.push_back				(xr_new<SAddonSlot>(section, i++, m_Slots));
 }
 
-void CAddonOwner::OnChild(CObject* obj, bool take)
+void CAddonOwner::OnChild o$(CObject* obj, bool take)
 {
 	CAddon* addon						= obj->cast<CAddon*>();
 	if (!addon)
@@ -60,7 +59,7 @@ void CAddonOwner::OnChild(CObject* obj, bool take)
 	if (idx)
 	{
 		m_Slots[*idx]->addon			= (take) ? addon : NULL;
-		O.ProcessAddon					(addon, take, m_Slots[*idx]);
+		ProcessAddon					(addon, take, m_Slots[*idx]);
 	}
 }
 
@@ -84,7 +83,7 @@ bool CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 	if (slot_idx != NO_ID)
 	{
 		m_NextAddonSlot					= slot_idx;
-		O.TransferAddon					(addon, true);
+		TransferAddon					(addon, true);
 		return							true;
 	}
 
@@ -93,7 +92,7 @@ bool CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 
 void CAddonOwner::DetachAddon(CAddon CPC addon)
 {
-	O.TransferAddon						(addon, false);
+	TransferAddon						(addon, false);
 }
 
 void CAddonOwner::UpdateSlotsTransform()
@@ -122,13 +121,70 @@ void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
 {
 	for (auto& slot : m_Slots)
 	{
-		if (slot->addon)
-		{
-			CInventoryItem CPC item		= smart_cast<CInventoryItem CP$>(&slot->addon->Object());
-			if (item)
-				cif						*= item->GetControlInertionFactor();
-		}
+		if (slot->addon && slot->addon->pI)
+			cif							*= slot->addon->pI->GetControlInertionFactor();
 	}
+}
+
+void CAddonOwner::ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
+{
+	O.ProcessAddon						(addon, attach, slot);
+	for (auto module : O.m_modules)
+	{
+		if (module != (CModule*)this)
+			module->ProcessAddon		(addon, attach, slot);
+	}
+}
+
+bool CAddonOwner::TransferAddon o$(CAddon CPC addon, bool attach)
+{
+	if (O.TransferAddon(addon, attach))
+		return							true;
+
+	for (auto module : O.m_modules)
+	{
+		if (module != (CModule*)this && module->TransferAddon(addon, attach))
+			return						true;
+	}
+
+	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : NO_ID));
+	return								true;
+}
+
+float CAddonOwner::Weight() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Weight();
+	}
+
+	return								res;
+}
+
+float CAddonOwner::Volume() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Volume();
+	}
+
+	return								res;
+}
+
+float CAddonOwner::Cost() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Cost();
+	}
+
+	return								res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

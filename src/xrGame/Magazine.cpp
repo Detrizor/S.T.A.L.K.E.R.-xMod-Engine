@@ -4,7 +4,6 @@
 #include "player_hud.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "WeaponAmmo.h"
-#include "inventory_space.h"
 #include "Weapon.h"
 
 CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
@@ -122,38 +121,21 @@ bool CMagazine::GetCartridge(CCartridge& destination, bool expend)
 
 float CMagazine::Weight() const
 {
-	float res						= 0.f;
+	float res							= 0.f;
 	for (auto heap : m_Heaps)
-		res							+= heap->Weight();
-	return							res;
+		res								+= heap->Weight();
+	return								res;
 }
 
-u32 CMagazine::Cost() const
+float CMagazine::Cost() const
 {
-	u32 res							= 0.f;
+	float res							= 0.f;
 	for (auto heap : m_Heaps)
-		res							+= heap->Cost();
-	return							res;
+		res								+= heap->Cost();
+	return								res;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-void CMagazineObject::UpdateHudBonesVisibility()
+void CMagazine::UpdateHudBonesVisibility()
 {
-	HudItemData()->set_bone_visible(bullets, (BOOL)!Empty(), TRUE);
+	//HudItemData()->set_bone_visible(bullets, (BOOL)!Empty(), TRUE);
 }
-
-float CMagazineObject::Weight() const
-{
-	float res						= inherited::Weight();
-	res								+= CMagazine::Weight();
-	return							res;
-}
-
-u32 CMagazineObject::Cost() const
-{
-	u32 res							= inherited::Cost();
-	res								+= CMagazine::Cost();
-	return							res;
-}
-*/

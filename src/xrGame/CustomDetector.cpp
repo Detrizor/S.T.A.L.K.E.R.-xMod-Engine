@@ -339,13 +339,6 @@ void CCustomDetector::TurnDetectorInternal(bool b)
 	UpdateNightVisionMode	(b);
 }
 
-u32 CCustomDetector::Cost() const
-{
-	return					inherited::Cost() - NetCost();
-}
-
-
-
 #include "game_base_space.h"
 void CCustomDetector::UpdateNightVisionMode(bool b_on)
 {

@@ -7372,7 +7372,6 @@
     <ClInclude Include="inventory_item_amountable.h" />
     <ClInclude Include="addon.h" />
     <ClInclude Include="addon_owner.h" />
-    <ClInclude Include="attachment.h" />
     <ClInclude Include="scope.h" />
     <ClInclude Include="silencer.h" />
     <ClInclude Include="weapon_hud.h" />
@@ -7380,7 +7379,6 @@
     <ClInclude Include="HolderEntityObject.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="item_storage.h" />
     <ClInclude Include="item_container.h" />
     <ClInclude Include="module.h" />
   </ItemGroup>
@@ -11061,7 +11059,6 @@
     <ClCompile Include="inventory_item_amountable.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />
-    <ClCompile Include="attachment.cpp" />
     <ClCompile Include="scope.cpp" />
     <ClCompile Include="silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />
@@ -11075,7 +11072,6 @@
     <ClCompile Include="antirad_script.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="item_storage.cpp" />
     <ClCompile Include="item_container.cpp" />
     <ClCompile Include="module.cpp" />
   </ItemGroup>

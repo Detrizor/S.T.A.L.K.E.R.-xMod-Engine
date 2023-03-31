@@ -173,12 +173,6 @@ protected:
 	float			m_fDecayRate; //Alundaio
 
 	CAfList			m_artefacts;
-
-public:
-	virtual u32				Cost					() const;
-	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
-	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
-	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
 };
 
 class CZoneList : public CDetectList<CCustomZone>

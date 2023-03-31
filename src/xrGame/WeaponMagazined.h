@@ -234,7 +234,6 @@ public:
 	void								render_hud_mode						O$	();
 	void								modify_holder_params				CO$	(float& range, float& fov);
 	float								Weight								CO$	();
-	float								Volume								CO$	();
 	bool								IsRotatingToZoom					CO$	();
 
 //xMod added
@@ -245,7 +244,7 @@ private:
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
 	CMagazine*							m_pMagazine;
-	CMagazineObject*					m_pMagazineToReload;
+	CMagazine*							m_pNextMagazine;
 	CWeaponHud*							m_hud;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
@@ -281,7 +280,7 @@ public:
 
 	void								UpdateBonesVisibility				O$	();
 	void								UpdateHudBonesVisibility			O$	();
-	void								TransferAddon						O$	(CAddon CPC addon, bool attach);
+	bool								TransferAddon						O$	(CAddon CPC addon, bool attach);
 	void								OnTaken								O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);

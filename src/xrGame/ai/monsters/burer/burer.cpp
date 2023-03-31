@@ -240,7 +240,7 @@ void xr_stdcall CBurer::StaminaHit ()
 		return;
 	}
 
-	float const weight				=	active_weapon->Weight();
+	float const weight				=	active_weapon->CInventoryItem::Weight();
 	float const stamina_hit			=	weight * m_weight_to_stamina_hit;
 
 	bool const do_weapon_drop		=	Actor()->conditions().GetPower() < stamina_hit*m_weapon_drop_stamina_k;

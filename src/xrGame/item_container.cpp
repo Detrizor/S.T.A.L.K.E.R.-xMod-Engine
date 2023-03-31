@@ -54,7 +54,7 @@ bool CInventoryContainer::CanTakeItem(PIItem item) const
 		return							false;
 	if (fEqual(m_capacity, 0.f))
 		return							true;
-	float vol							= ItemsVolume();
+	float vol							= Volume();
 	return								(fLessOrEqual(vol, m_capacity) && fLessOrEqual(vol + item->Volume(), m_capacity + 0.1f));
 }
 
@@ -64,7 +64,7 @@ void CInventoryContainer::AddAvailableItems(TIItemContainer& items_container) co
 		items_container.push_back		(I);
 }
 
-float CInventoryContainer::ItemsWeight() const
+float CInventoryContainer::Weight() const
 {
 	float res							= 0.f;
 	for (auto I : m_items)
@@ -72,11 +72,19 @@ float CInventoryContainer::ItemsWeight() const
 	return								res;
 }
 
-float CInventoryContainer::ItemsVolume() const
+float CInventoryContainer::Volume() const
 {
 	float res							= 0.f;
 	for (auto I : m_items)
 		res								+= I->Volume();
+	return								res;
+}
+
+float CInventoryContainer::Cost() const
+{
+	float res							= 0.f;
+	for (auto I : m_items)
+		res								+= I->Cost();
 	return								res;
 }
 
@@ -103,33 +111,4 @@ void CContainerObject::Load(LPCSTR section)
 	m_content_volume_scale				= !!pSettings->r_bool(section, "content_volume_scale");
 	m_stock								= pSettings->r_string(section, "stock");
 	m_stock_count						= pSettings->r_u32(section, "stock_count");
-}
-
-float CContainerObject::Weight() const
-{
-	float res							= inherited::Weight();
-	res									+= ItemsWeight();
-	return								res;
-}
-
-float CContainerObject::Volume() const
-{
-	float res							= inherited::Volume();
-	if (m_content_volume_scale)
-		res								+= ItemsVolume();
-	return								res;
-}
-
-u32 CContainerObject::Cost() const
-{
-	u32 res								= inherited::Cost();
-	if (!Empty())
-		for (TIItemContainer::const_iterator I = Items().begin(), E = Items().end(); I != E; I++)
-			res						+= (*I)->Cost();
-	return								res;
-}
-
-void CContainerObject::OnChild(CObject* obj, bool take)
-{
-	CInventoryContainer::OnChild(obj, take);
 }

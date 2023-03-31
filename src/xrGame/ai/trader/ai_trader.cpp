@@ -332,7 +332,7 @@ void CAI_Trader::load (IReader &input_packet)
 //проверяет список артефактов в заказах
 u32 CAI_Trader::ArtefactPrice (CArtefact* pArtefact)
 {
-	return pArtefact->Cost();
+	return pArtefact->CInventoryItem::Cost();
 }
 
 //продажа артефакта, с последуещим изменением списка заказов (true - если артефакт был в списке)

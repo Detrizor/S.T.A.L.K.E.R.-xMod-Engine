@@ -91,12 +91,4 @@ protected:
 	{
 		return CAttachableItem::use_parent_ai_locations();
 	}
-
-public:
-	virtual float			Weight					() const;
-	virtual float			Volume					() const;
-	virtual u32				Cost					() const;
-	virtual	float			GetAmount				() const						{ return CItemAmountable::GetAmount(); }
-	virtual	float			GetFill					() const						{ return CItemAmountable::GetFill(); }
-	virtual float			GetBar					() const						{ return CItemAmountable::GetBar(); }
 };

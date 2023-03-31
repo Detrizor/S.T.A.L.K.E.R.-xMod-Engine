@@ -34,26 +34,13 @@ public:
 			bool			CanTake					(CWeaponAmmo* ammo)				const;
 			void			LoadCartridge			(CWeaponAmmo* ammo);
 			bool			GetCartridge			(CCartridge& destination, bool expend = true);
-	
-	virtual	float			Weight					()								const;
-	virtual	u32				Cost					()								const;
-};
 
-#include "inventory_item_object.h"
+	float								GetAmount							CO$	()		{ return (float)Amount(); }
+	float								GetFill								CO$	()		{ return (float)Amount() / (float)Capacity(); }
+	float								GetBar								CO$	()		{ return (Amount() < Capacity()) ? GetFill() : -1.f; }
 
-class CMagazineObject : public CInventoryItemObject
-{
-private:
-	typedef	CInventoryItemObject	inherited;
+	float								Weight								CO$	();
+	float								Cost								CO$	();
 
-public:
-	/*
-	virtual	float			GetAmount				()								const	{ return (float)Amount(); }
-	virtual float			GetFill					()								const	{ return (float)Amount() / (float)Capacity(); }
-	virtual	float			GetBar					()								const	{ return (Amount() < Capacity()) ? GetFill() : -1.f; }
-	
 	virtual void			UpdateHudBonesVisibility();
-	virtual	float			Weight					()								const;
-	virtual	u32				Cost					()								const;
-	*/
 };

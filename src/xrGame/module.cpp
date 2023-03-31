@@ -1,8 +1,14 @@
 #include "stdafx.h"
 #include "module.h"
-#include "inventory_item_object.h"
+#include "inventory_item.h"
+#include "GameObject.h"
+#include "addon.h"
 
-CInventoryItemObject CR$ CModule::Item() const
+CModule::CModule(CGameObject* obj) : pO(obj), O(*obj), pI(smart_cast<CInventoryItem*>(obj))
 {
-	return *smart_cast<CInventoryItemObject*>(pO);
+}
+
+void CModule::Transfer(u16 id) const
+{
+	O.Transfer(id);
 }

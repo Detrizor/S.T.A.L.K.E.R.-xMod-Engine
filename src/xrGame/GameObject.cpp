@@ -94,8 +94,6 @@ void CGameObject::Load(LPCSTR section)
 		// self->spatial.type	|=	STYPE_VISIBLEFORAI;	
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
-
-	LoadModules(section);
 }
 
 void CGameObject::reinit	()
@@ -162,9 +160,6 @@ void CGameObject::net_Destroy	()
 
 void CGameObject::OnEvent(NET_Packet& P, u16 type)
 {
-	for (auto module : m_modules)
-		module->OnEvent					(P, type);
-
 	u16 id								= NO_ID;
 	CObject* obj						= NULL;
 	bool dont_create_shell				= false;
@@ -1212,26 +1207,8 @@ void CGameObject::Transfer(u16 id) const
 	u_EventSend							(P);
 }
 
-void CGameObject::OnChild(CObject* obj, bool take)
+void CGameObject::OnChild o$(CObject* obj, bool take)
 {
 	for (auto module : m_modules)
-		module->OnChild					(obj, take);
-}
-
-#include "addon.h"
-
-void CGameObject::TransferAddon(CAddon CPC addon, bool attach)
-{
-	addon->Object().Transfer			((attach) ? ID() : H_Parent()->ID());
-}
-
-#include "addon_owner.h"
-
-void CGameObject::LoadModules(LPCSTR section)
-{
-	if (pSettings->line_exist			(section, "slot_type"))
-		m_modules.push_back				(xr_new<CAddon>(this));
-
-	if (pSettings->line_exist			(section, "slots"))
-		m_modules.push_back				(xr_new<CAddonOwner>(this));
+		module->OnChild(obj, take);
 }

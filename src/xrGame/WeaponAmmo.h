@@ -73,11 +73,7 @@ public:
 	virtual void			OnH_B_Independent		(bool just_before_destroy);
 	virtual void			UpdateCL				();
 	virtual void			renderable_Render		();
-
 	virtual bool			Useful					() const;
-	virtual float			Weight					() const;
-	virtual float			Volume					() const;
-	virtual	u32				Cost					() const;
 
 			u16				GetAmmoCount			() const;
 			void			SetAmmoCount			(u16 val);
@@ -101,6 +97,11 @@ private:
 
 public:
 	virtual	Frect			GetIconRect				()								const;
+
+public:
+	float								Weight								CO$	();
+	float								Volume								CO$	();
+	float								Cost								CO$	();
 };
 
 add_to_type_list(CWeaponAmmo)

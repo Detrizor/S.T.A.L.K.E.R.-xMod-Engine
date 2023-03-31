@@ -684,7 +684,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 	{
 		if (slot->addon)
 		{
-			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->Item().NameShort());
+			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->pI->NameShort());
 			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
 			b_show = true;
 		}

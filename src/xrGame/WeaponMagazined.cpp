@@ -26,7 +26,6 @@
 #include "weapon_hud.h"
 #include "scope.h"
 #include "silencer.h"
-#include "attachment.h"
 #include "addon.h"
 
 ENGINE_API	bool	g_dedicated_server;
@@ -57,7 +56,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_iPrefferedFireMode = -1;
 
 	m_iChamber					= 1;
-	m_pMagazineToReload			= NULL;
+	m_pNextMagazine				= NULL;
 	m_pCartridgeToReload		= NULL;
 	m_bIronSightsLowered		= false;
 
@@ -261,11 +260,11 @@ void CWeaponMagazined::Reload()
 
 void CWeaponMagazined::StartReload(CObject* to_reload)
 {
-	CWeapon::Reload();
-	SetPending(TRUE);
-	SwitchState(eReload);
-	m_pMagazineToReload = smart_cast<CMagazineObject*>(to_reload);
-	m_pCartridgeToReload = smart_cast<CWeaponAmmo*>(to_reload);
+	CWeapon::Reload						();
+	SetPending							(TRUE);
+	SwitchState							(eReload);
+	m_pNextMagazine						= to_reload->cast<CMagazine*>();
+	m_pCartridgeToReload				= to_reload->cast<CWeaponAmmo*>();
 }
 
 bool CWeaponMagazined::IsAmmoAvailable()
@@ -384,18 +383,18 @@ void CWeaponMagazined::ReloadMagazine()
 {
 	if (ParentIsActor())
 	{
-		if (m_pMagazineToReload)
-			m_pMagazineToReload->CGameObject::Transfer			(ID());
+		if (m_pNextMagazine)
+			m_pNextMagazine->Transfer(ID());
 		else if (m_pCartridgeToReload)
 		{
-			FindAmmoClass							(*m_pCartridgeToReload->m_section_id, true);
-			CCartridge								l_cartridge;
+			FindAmmoClass				(*m_pCartridgeToReload->m_section_id, true);
+			CCartridge					l_cartridge;
 			while (iAmmoElapsed < iMagazineSize)
 			{
 				if (!m_pCartridgeToReload->Get(l_cartridge))
 					break;
-				l_cartridge.m_LocalAmmoType			= m_ammoType;
-				m_magazine.push_back				(l_cartridge);
+				l_cartridge.m_LocalAmmoType	= m_ammoType;
+				m_magazine.push_back	(l_cartridge);
 				++iAmmoElapsed;
 			}
 		}
@@ -966,7 +965,7 @@ void CWeaponMagazined::PlayAnimReload()
     }
     else
     {
-		bool half = m_pMagazine && !m_pMagazineToReload;
+		bool half = m_pMagazine && !m_pNextMagazine;
 
         if (iAmmoElapsed == 0)
         {
@@ -1292,37 +1291,7 @@ bool CWeaponMagazined::CanTrade() const
 
 float CWeaponMagazined::Weight() const
 {
-	float res		= inherited::Weight();
-    res				+= GetMagazineWeight(m_magazine);
-
-	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
-	if (ao)
-	{
-		for (auto slot : ao->AddonSlots())
-		{
-			if (slot->addon)
-				res			+= slot->addon->Item().Weight();
-		}
-	}
-
-    return			res;
-}
-
-float CWeaponMagazined::Volume() const
-{
-	float res = inherited::Volume();
-
-	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
-	if (ao)
-	{
-		for (auto slot : ao->AddonSlots())
-		{
-			if (slot->addon)
-				res += slot->addon->Item().Volume();
-		}
-	}
-
-	return res;
+	return GetMagazineWeight(m_magazine);
 }
 
 void UpdateBoneVisibility(IKinematics* pVisual, const shared_str& bone_name, bool status)
@@ -1371,7 +1340,7 @@ void CWeaponMagazined::OnMotionHalf()
 	if (ParentIsActor() && GetState() == eReload)
 	{
 		if (m_pMagazine)
-			m_pMagazine->Object().Transfer(parent_id());
+			m_pMagazine->Transfer(parent_id());
 
 		//if (m_pMagazineToReload)
 			//m_pMagazineToReload->Offset() = m_MagazineSlot->model_offset;
@@ -1579,13 +1548,16 @@ void CWeaponMagazined::OnTaken()
 	UpdateSndShot();
 }
 
-void CWeaponMagazined::TransferAddon(CAddon CPC addon, bool attach)
+bool CWeaponMagazined::TransferAddon o$(CAddon CPC addon, bool attach)
 {
 	CMagazine CPC mag = addon->cast<CMagazine CP$>();
 	if (mag)
+	{
 		StartReload((attach) ? const_cast<CObject*>(mag->cast<CObject CP$>()) : NULL);
+		return true;
+	}
 	else
-		inherited::TransferAddon(addon, attach);
+		return inherited::TransferAddon(addon, attach);
 }
 
 void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)

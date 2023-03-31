@@ -223,21 +223,6 @@ CInventoryItem *CWeaponAmmo::can_make_killing	(const CInventory *inventory) cons
 	return					(0);
 }
 
-float CWeaponAmmo::Weight() const
-{
-	return inherited::Weight() * (float)m_boxCurr;
-}
-
-float CWeaponAmmo::Volume() const
-{
-	return inherited::Volume() * (float)m_boxCurr;
-}
-
-u32 CWeaponAmmo::Cost() const
-{
-	return inherited::Cost() * m_boxCurr;
-}
-
 u16 CWeaponAmmo::GetAmmoCount() const
 {
 	return m_boxCurr;
@@ -267,4 +252,19 @@ Frect CWeaponAmmo::GetIconRect() const
 			res.right -= res.width() * 2.f / 3.f;
 	}
 	return res;
+}
+
+float CWeaponAmmo::Weight() const
+{
+	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
+}
+
+float CWeaponAmmo::Volume() const
+{
+	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
+}
+
+float CWeaponAmmo::Cost() const
+{
+	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
 }

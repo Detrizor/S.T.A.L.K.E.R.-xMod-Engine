@@ -54,7 +54,7 @@ public:
 			return;
 
 		u32 tmp_ammo_count	= tmp_weapon->GetAmmoElapsed();
-		u32 tmp_cost		= tmp_weapon->Cost();
+		u32 tmp_cost		= tmp_weapon->CInventoryItem::Cost();
 
 		if (!tmp_ammo_count && !m_ignore_ammo)
 			return;
@@ -62,7 +62,7 @@ public:
 		if (!m_best_fit)
 		{
 			m_best_fit				= item;
-			m_best_fit_cost			= tmp_weapon->Cost();
+			m_best_fit_cost			= tmp_weapon->CInventoryItem::Cost();
 			m_best_fit_ammo_elapsed	= tmp_weapon->GetAmmoElapsed();
 			return;
 		}
@@ -71,7 +71,7 @@ public:
 			(m_best_fit_cost + (m_best_fit_ammo_elapsed*ammo_to_cost_map_koef)))
 		{
 			m_best_fit				= item;
-			m_best_fit_cost			= tmp_weapon->Cost();
+			m_best_fit_cost			= tmp_weapon->CInventoryItem::Cost();
 			m_best_fit_ammo_elapsed	= tmp_weapon->GetAmmoElapsed();
 			return;
 		}
