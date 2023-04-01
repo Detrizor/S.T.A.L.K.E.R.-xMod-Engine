@@ -1,7 +1,6 @@
-#ifndef _STL_EXT_internal
-#define _STL_EXT_internal
+#pragma once
 
-using std::swap;
+using ::std::swap;
 
 #include "_type_traits.h"
 
@@ -113,14 +112,14 @@ template<class _Tp1, class _Tp2> inline xalloc<_Tp2> __stl_alloc_create(xalloc<_
 };
 
 // string(char)
-typedef std::basic_string<char, std::char_traits<char>, xalloc<char> > xr_string;
+typedef ::std::basic_string<char, ::std::char_traits<char>, xalloc<char> > xr_string;
 
 // vector
 template <typename T, typename allocator = xalloc<T> >
-class xr_vector : public std::vector < T, allocator >
+class xr_vector : public ::std::vector < T, allocator >
 {
 private:
-    typedef std::vector<T, allocator> inherited;
+    typedef ::std::vector<T, allocator> inherited;
 
 public:
     typedef allocator allocator_type;
@@ -147,10 +146,10 @@ public:
 
 // vector<bool>
 template <>
-class xr_vector<bool, xalloc<bool> > : public std::vector < bool, xalloc<bool> >
+class xr_vector<bool, xalloc<bool> > : public ::std::vector < bool, xalloc<bool> >
 {
 private:
-    typedef std::vector<bool, xalloc<bool> > inherited;
+    typedef ::std::vector<bool, xalloc<bool> > inherited;
 
 public:
     u32 size() const { return (u32)inherited::size(); }
@@ -158,10 +157,10 @@ public:
 };
 
 template <typename allocator>
-class xr_vector<bool, allocator> : public std::vector < bool, allocator >
+class xr_vector<bool, allocator> : public ::std::vector < bool, allocator >
 {
 private:
-    typedef std::vector<bool, allocator> inherited;
+    typedef ::std::vector<bool, allocator> inherited;
 
 public:
     u32 size() const { return (u32)inherited::size(); }
@@ -170,7 +169,7 @@ public:
 
 // deque
 template <typename T, typename allocator = xalloc<T> >
-class xr_deque : public std::deque < T, allocator >
+class xr_deque : public ::std::deque < T, allocator >
 {
 public:
     typedef typename allocator allocator_type;
@@ -208,10 +207,10 @@ protected:
 };
 
 template <typename T, typename allocator = xalloc<T> > class xr_list : public std::list < T, allocator > { public: u32 size() const { return (u32)__super::size(); } };
-template <typename K, class P = std::less<K>, typename allocator = xalloc<K> > class xr_set : public std::set < K, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
-template <typename K, class P = std::less<K>, typename allocator = xalloc<K> > class xr_multiset : public std::multiset < K, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
-template <typename K, class V, class P = std::less<K>, typename allocator = xalloc<std::pair<K, V> > > class xr_map : public std::map < K, V, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
-template <typename K, class V, class P = std::less<K>, typename allocator = xalloc<std::pair<K, V> > > class xr_multimap : public std::multimap < K, V, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
+template <typename K, class P = ::std::less<K>, typename allocator = xalloc<K> > class xr_set : public std::set < K, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
+template <typename K, class P = ::std::less<K>, typename allocator = xalloc<K> > class xr_multiset : public std::multiset < K, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
+template <typename K, class V, class P = ::std::less<K>, typename allocator = xalloc<::std::pair<K, V> > > class xr_map : public std::map < K, V, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
+template <typename K, class V, class P = ::std::less<K>, typename allocator = xalloc<::std::pair<K, V> > > class xr_multimap : public std::multimap < K, V, P, allocator > { public: u32 size() const { return (u32)__super::size(); } };
 
 #ifdef STLPORT
 template <typename V, class _HashFcn = std::hash<V>, class _EqualKey = std::equal_to<V>, typename allocator = xalloc<V> > class xr_hash_set : public std::hash_set < V, _HashFcn, _EqualKey, allocator > { public: u32 size() const { return (u32)__super::size(); } };
@@ -220,18 +219,18 @@ template <typename V, class _HashFcn = std::hash<V>, class _EqualKey = std::equa
 template <typename K, class V, class _HashFcn = std::hash<K>, class _EqualKey = std::equal_to<K>, typename allocator = xalloc<std::pair<K, V> > > class xr_hash_map : public std::hash_map < K, V, _HashFcn, _EqualKey, allocator > { public: u32 size() const { return (u32)__super::size(); } };
 template <typename K, class V, class _HashFcn = std::hash<K>, class _EqualKey = std::equal_to<K>, typename allocator = xalloc<std::pair<K, V> > > class xr_hash_multimap : public std::hash_multimap < K, V, _HashFcn, _EqualKey, allocator > { public: u32 size() const { return (u32)__super::size(); } };
 #else
-template <typename K, class V, class _Traits = stdext::hash_compare<K, std::less<K> >, typename allocator = xalloc<std::pair<K, V> > > class xr_hash_map : public stdext::hash_map < K, V, _Traits, allocator > { public: u32 size() const { return (u32)__super::size(); } };
+template <typename K, class V, class _Traits = ::stdext::hash_compare<K, ::std::less<K> >, typename allocator = xalloc<::std::pair<K, V> > > class xr_hash_map : public stdext::hash_map < K, V, _Traits, allocator > { public: u32 size() const { return (u32)__super::size(); } };
 #endif // #ifdef STLPORT
 
 #endif
 
-template <class _Ty1, class _Ty2> inline std::pair<_Ty1, _Ty2> mk_pair(_Ty1 _Val1, _Ty2 _Val2) { return (std::pair<_Ty1, _Ty2>(_Val1, _Val2)); }
+template <class _Ty1, class _Ty2> inline ::std::pair<_Ty1, _Ty2> mk_pair(_Ty1 _Val1, _Ty2 _Val2) { return (std::pair<_Ty1, _Ty2>(_Val1, _Val2)); }
 
-struct pred_str : public std::binary_function < char*, char*, bool >
+struct pred_str : public ::std::binary_function < char*, char*, bool >
 {
     IC bool operator()(const char* x, const char* y) const { return xr_strcmp(x, y) < 0; }
 };
-struct pred_stri : public std::binary_function < char*, char*, bool >
+struct pred_stri : public ::std::binary_function < char*, char*, bool >
 {
     IC bool operator()(const char* x, const char* y) const { return stricmp(x, y) < 0; }
 };
@@ -293,6 +292,4 @@ DEFINE_VECTOR(int*, LPIntVec, LPIntIt);
 #ifdef __BORLANDC__
 DEFINE_VECTOR(AnsiString, AStringVec, AStringIt);
 DEFINE_VECTOR(AnsiString*, LPAStringVec, LPAStringIt);
-#endif
-
 #endif

@@ -736,6 +736,6 @@ void CHudItem::UpdateSlotsTransform()
 void CHudItem::UpdateHudBonesVisibility()
 {
 	_UpdateHudBonesVisibility			();
-	for (auto m : m_object->m_modules)
+	for (auto m : m_object->Modules())
 		m->_UpdateHudBonesVisibility	();
 }

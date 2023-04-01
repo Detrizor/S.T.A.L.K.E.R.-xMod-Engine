@@ -37,7 +37,7 @@
 
 #include "addon.h"
 
-using namespace luabind; //Alundaio
+using namespace ::luabind; //Alundaio
 
 void CUIActorMenu::InitInventoryMode()
 {
@@ -338,7 +338,7 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 {
 	TIItemContainer		pocket_list;
 	pocket_list			= m_pActorInv->m_pockets[pocket_idx];
-	std::sort(pocket_list.begin(), pocket_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	::std::sort(pocket_list.begin(), pocket_list.end(), InventoryUtilities::GreaterRoomInRuck);
 
 	LPCSTR sect										= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
 	for (TIItemContainer::iterator itb = pocket_list.begin(), ite = pocket_list.end(); itb != ite; ++itb)
@@ -472,7 +472,7 @@ bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 bool CUIActorMenu::ToPocket(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_id)
 {
 	PIItem item							= (PIItem)itm->m_pData;
-	bool own							= std::find(m_pActorInv->m_pockets[pocket_id].begin(), m_pActorInv->m_pockets[pocket_id].end(), item) != m_pActorInv->m_pockets[pocket_id].end();
+	bool own							= ::std::find(m_pActorInv->m_pockets[pocket_id].begin(), m_pActorInv->m_pockets[pocket_id].end(), item) != m_pActorInv->m_pockets[pocket_id].end();
 	if (!m_pActorInv->CanPutInPocket(item, pocket_id) && !own)
 		return							false;
 
@@ -686,7 +686,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 	{
 		if (slot->addon)
 		{
-			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->pI->NameShort());
+			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->NameShort());
 			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
 			b_show = true;
 		}
@@ -730,7 +730,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
 		functor_name						= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), 0);
 		if (functor_name)
 		{
-			luabind::functor<bool>			funct;
+			::luabind::functor<bool>		funct;
 			if (ai().script_engine().functor(functor_name, funct) && funct(GO->lua_game_object(), i))
 			{
 				functor_field.printf		("use%d_title", i);
@@ -832,16 +832,18 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_EAT2_ACTION:
 	case INVENTORY_EAT3_ACTION:
 	case INVENTORY_EAT4_ACTION:
-	case INVENTORY_EAT5_ACTION:{
+	case INVENTORY_EAT5_ACTION:
+	{
 		CGameObject* GO					= smart_cast<CGameObject*>(item);
 		shared_str						functor_str;
 		u32 num							= m_UIPropertiesBox->GetClickedItem()->GetTAG() - INVENTORY_EAT2_ACTION + 1;
 		functor_str.printf				("use%d_action_functor", num);
 		functor_str						= pSettings->r_string(GO->cNameSect(), *functor_str);
-		luabind::functor<bool>			funct;
+		::luabind::functor<bool>		funct;
 		ai().script_engine().functor	(*functor_str, funct);
 		funct							(GO->lua_game_object(), num);
-		}break;
+		break;
+	}
 	case INVENTORY_DROP_ACTION:{
 		void* d							= m_UIPropertiesBox->GetClickedItem()->GetData();
 		if (d == (void*)33)

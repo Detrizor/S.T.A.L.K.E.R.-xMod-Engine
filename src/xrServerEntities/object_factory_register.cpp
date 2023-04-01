@@ -178,8 +178,7 @@
 
 #include "..\xrGame\HolderEntityObject.h"
 
-#include "scope.h"
-#include "silencer.h"
+#include "addon.h"
 
 #endif // NO_XR_GAME
 
@@ -342,6 +341,7 @@ void CObjectFactory::register_classes	()
 	ADD(CInventoryItemObject	,CSE_ALifeItem					,CLSID_IITEM_BASIC				,"iitem_basic");
 	ADD(CIIOAmountable			,CSE_ALifeItem					,CLSID_IITEM_AMOUNTABLE			,"iitem_amountable");
 	ADD(CContainerObject		,CSE_ALifeItem					,CLSID_IITEM_CONTAINER			,"iitem_container");
+	ADD(CAddon					,CSE_ALifeItem					,CLSID_IITEM_ADDON				,"addon");
 	
 	//Info Document
 	ADD(CInfoDocument			,CSE_ALifeItemDocument			,CLSID_IITEM_DOCUMENT			,"obj_document");

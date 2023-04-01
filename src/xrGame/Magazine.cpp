@@ -29,7 +29,7 @@ extern void UpdateBoneVisibility		(IKinematics* pVisual, const shared_str& bone_
 void CMagazine::UpdateBulletsVisibility()
 {
 	bool vis							= !Empty();
-	pI->SetInvIconType					((u8)vis);
+	cast<PIItem>()->SetInvIconType		((u8)vis);
 
 	IKinematics* pVisual				= smart_cast<IKinematics*>(O.Visual());
 	pVisual->CalculateBones_Invalidate	();
@@ -80,7 +80,7 @@ void CMagazine::_OnChild o$(CObject* obj, bool take)
 		m_iHeapsCount--;
 	}
 
-	if (!smart_cast<CWeapon*>(pO))
+	if (!smart_cast<CWeapon*>(&O))
 		UpdateBulletsVisibility			();
 }
 

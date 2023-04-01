@@ -15,3 +15,5 @@
 #define O$(__VA_ARGS__) (##__VA_ARGS__) override
 #define C$(__VA_ARGS__) (##__VA_ARGS__) const
 #define CO$(__VA_ARGS__) (##__VA_ARGS__) const override
+#define V$
+#define CPC

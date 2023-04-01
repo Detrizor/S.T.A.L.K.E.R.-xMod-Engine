@@ -212,8 +212,11 @@ public:
     virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 //xMod added
-public:
+protected:
 	xr_vector<CModule*>					m_modules;
+
+public:
+	xr_vector<CModule*> CR$				Modules									()		{ return m_modules; }
 
 	template <typename T, typename C>
 	T							S$	IC	cast									(C c)

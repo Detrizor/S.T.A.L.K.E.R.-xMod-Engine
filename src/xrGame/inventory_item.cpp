@@ -173,9 +173,6 @@ void CInventoryItem::Load(LPCSTR section)
 	
 	SetInvIcon						();
 
-	if (pSettings->line_exist			(section, "slot_type"))
-		m_object->AddModule<CAddon>		();
-
 	if (pSettings->line_exist			(section, "slots"))
 		m_object->AddModule<CAddonOwner>();
 
@@ -1386,7 +1383,7 @@ float CInventoryItem::GetAmount() const
 	if (res != no_float)
 		return							res;
 
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetAmount();
 		if (res != no_float)
@@ -1402,7 +1399,7 @@ float CInventoryItem::GetFill() const
 	if (res != no_float)
 		return							res;
 
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetFill();
 		if (res != no_float)
@@ -1418,7 +1415,7 @@ float CInventoryItem::GetBar() const
 	if (res != no_float)
 		return							res;
 
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetBar();
 		if (res != no_float)
@@ -1431,7 +1428,7 @@ float CInventoryItem::GetBar() const
 float CInventoryItem::Weight() const
 {
 	float res							= _Weight();
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 		res								+= module->_Weight();
 	return								res;
 }
@@ -1439,7 +1436,7 @@ float CInventoryItem::Weight() const
 float CInventoryItem::Volume() const
 {
 	float res							= _Volume();
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 		res								+= module->_Volume();
 	return								res;
 }
@@ -1447,12 +1444,12 @@ float CInventoryItem::Volume() const
 float CInventoryItem::Cost() const
 {
 	float res							= _Cost();
-	for (auto module : m_object->m_modules)
+	for (auto module : m_object->Modules())
 		res								+= module->_Cost();
 	return								res;
 }
 
 void CInventoryItem::Transfer(u16 id) const
 {
-	m_object->Transfer(id);
+	m_object->_Transfer(id);
 }

@@ -55,10 +55,10 @@ namespace luabind
 			template<class Ret, class Tuple>
 			class proxy_functor_caller
 			{
-//			template<class T> friend class luabind::functor;
+//			template<class T> friend class ::luabind::functor;
 			public:
 
-				proxy_functor_caller(luabind::functor<Ret>* o, const Tuple args)
+				proxy_functor_caller(::luabind::functor<Ret>* o, const Tuple args)
 					: m_func(o)
 					, m_args(args)
 					, m_called(false)
@@ -87,13 +87,13 @@ namespace luabind
 					if (pcall(L, boost::tuples::length<Tuple>::value, 0))
 					{ 
 #ifndef LUABIND_NO_EXCEPTIONS
-						throw luabind::error(L);
+						throw ::luabind::error(L);
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -115,7 +115,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "tried to call uninitialized functor object."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 	#endif
 					}
@@ -131,13 +131,13 @@ namespace luabind
 					if (pcall(L, boost::tuples::length<Tuple>::value, 1))
 					{ 
 #ifndef LUABIND_NO_EXCEPTIONS
-						throw luabind::error(L);
+						throw ::luabind::error(L);
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -153,7 +153,7 @@ namespace luabind
 						if (e) e(L, LUABIND_TYPEID(Ret));
 
 						assert(0 && "the lua function's return value could not be converted."
-								"if you want to handle this error use luabind::set_error_callback()");
+								"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -179,7 +179,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "tried to call uninitialized functor object."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 	#endif
 					}
@@ -200,7 +200,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -216,7 +216,7 @@ namespace luabind
 						if (e) e(L, LUABIND_TYPEID(Ret));
 
 						assert(0 && "the lua function's return value could not be converted."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -226,7 +226,7 @@ namespace luabind
 
 			private:
 
-				luabind::functor<Ret>* m_func;
+				::luabind::functor<Ret>* m_func;
 				Tuple m_args;
 				mutable bool m_called;
 
@@ -236,10 +236,10 @@ namespace luabind
 			template<class Tuple>
 			class proxy_functor_void_caller
 			{
-//			template<class T> friend class luabind::functor;
+//			template<class T> friend class ::luabind::functor;
 			public:
 
-				proxy_functor_void_caller(luabind::functor<void>* o, const Tuple args)
+				proxy_functor_void_caller(::luabind::functor<void>* o, const Tuple args)
 					: m_func(o)
 					, m_args(args)
 					, m_called(false)
@@ -270,7 +270,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "tried to call uninitialized functor object."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 	#endif
 					}
@@ -284,13 +284,13 @@ namespace luabind
 					if (pcall(L, boost::tuples::length<Tuple>::value, 0))
 					{ 
 #ifndef LUABIND_NO_EXCEPTIONS
-						throw luabind::error(L);
+						throw ::luabind::error(L);
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -311,7 +311,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "tried to call uninitialized functor object."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 	#endif
 					}
@@ -331,7 +331,7 @@ namespace luabind
 						if (e) e(L);
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
-							"if you want to handle this error use luabind::set_error_callback()");
+							"if you want to handle this error use ::luabind::set_error_callback()");
 						std::terminate();
 #endif
 					}
@@ -339,7 +339,7 @@ namespace luabind
 
 			private:
 
-				luabind::functor<void>* m_func;
+				::luabind::functor<void>* m_func;
 				Tuple m_args;
 				mutable bool m_called;
 
@@ -448,8 +448,8 @@ namespace luabind
 	template<BOOST_PP_ENUM_PARAMS(BOOST_PP_ITERATION(), class A)>
 #endif
 	typename boost::mpl::if_<boost::is_void<Ret>
-		, luabind::detail::proxy_functor_void_caller<boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> >
-		, luabind::detail::proxy_functor_caller<Ret, boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> > >::type
+		, ::luabind::detail::proxy_functor_void_caller<boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> >
+		, ::luabind::detail::proxy_functor_caller<Ret, boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> > >::type
 	operator()(BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_OPERATOR_PARAMS, _)) const
 	{
 		typedef boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> tuple_t;
@@ -460,10 +460,10 @@ namespace luabind
 #endif
 
 		typedef typename boost::mpl::if_<boost::is_void<Ret>
-			, luabind::detail::proxy_functor_void_caller<boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> >
-			, luabind::detail::proxy_functor_caller<Ret, boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> > >::type proxy_type;
+			, ::luabind::detail::proxy_functor_void_caller<boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> >
+			, ::luabind::detail::proxy_functor_caller<Ret, boost::tuples::tuple<BOOST_PP_ENUM(BOOST_PP_ITERATION(), LUABIND_TUPLE_PARAMS, _)> > >::type proxy_type;
 		
-		return proxy_type(const_cast<luabind::functor<Ret>*>(this), args);
+		return proxy_type(const_cast<::luabind::functor<Ret>*>(this), args);
 	}
 
 	#define LUABIND_TUPLE_PARAMS(z, n, data) const A##n *

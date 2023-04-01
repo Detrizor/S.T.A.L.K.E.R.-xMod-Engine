@@ -60,8 +60,6 @@ CGameObject::CGameObject		()
 
 	m_callbacks					= xr_new<CALLBACK_MAP>();
 	m_anim_mov_ctrl				= 0;
-
-	m_modules.clear();
 }
 
 CGameObject::~CGameObject		()
@@ -73,8 +71,6 @@ CGameObject::~CGameObject		()
 	xr_delete					(m_ai_location);
 	xr_delete					(m_callbacks);
 	xr_delete					(m_ai_obstacle);
-
-	m_modules.clear();
 }
 
 void CGameObject::init			()
@@ -1183,7 +1179,7 @@ void CGameObject::OnRender			()
 }
 #endif // DEBUG
 
-void CGameObject::Transfer(u16 id) const
+void CGameObject::_Transfer(u16 id) const
 {
 	NET_Packet							P;
 	if (id == NO_ID)
@@ -1210,6 +1206,6 @@ void CGameObject::Transfer(u16 id) const
 void CGameObject::OnChild(CObject* obj, bool take)
 {
 	_OnChild(obj, take);
-	for (auto module : m_modules)
+	for (auto module : Modules())
 		module->_OnChild(obj, take);
 }

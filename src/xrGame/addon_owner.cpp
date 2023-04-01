@@ -29,7 +29,7 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 void CAddonOwner::ProcessAddon(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
 {
 	O._ProcessAddon						(addon, attach, slot);
-	for (auto module : O.m_modules)
+	for (auto module : O.Modules())
 		module->_ProcessAddon			(addon, attach, slot);
 }
 
@@ -39,7 +39,7 @@ int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
 	if (res)
 		return							res;
 
-	for (auto module : O.m_modules)
+	for (auto module : O.Modules())
 	{
 		if (module != (CModule*)this)
 		{
@@ -101,7 +101,7 @@ float CAddonOwner::_Weight() const
 	for (auto slot : AddonSlots())
 	{
 		if (slot->addon)
-			res							+= slot->addon->pI->Weight();
+			res							+= slot->addon->Weight();
 	}
 	return								res;
 }
@@ -112,7 +112,7 @@ float CAddonOwner::_Volume() const
 	for (auto slot : AddonSlots())
 	{
 		if (slot->addon)
-			res							+= slot->addon->pI->Volume();
+			res							+= slot->addon->Volume();
 	}
 	return								res;
 }
@@ -123,7 +123,7 @@ float CAddonOwner::_Cost() const
 	for (auto slot : AddonSlots())
 	{
 		if (slot->addon)
-			res							+= slot->addon->pI->Cost();
+			res							+= slot->addon->Cost();
 	}
 	return								res;
 }
@@ -161,7 +161,7 @@ int CAddonOwner::DetachAddon(CAddon CPC addon)
 
 void CAddonOwner::UpdateSlotsTransform()
 {
-	attachable_hud_item* hi				= smart_cast<CHudItem*>(pO)->HudItemData();
+	attachable_hud_item* hi				= smart_cast<CHudItem*>(&O)->HudItemData();
 	for (auto slot : m_Slots)
 		slot->UpdateRenderPos			(hi->m_model->dcast_RenderVisual(), hi->m_item_transform);
 }
@@ -182,8 +182,8 @@ void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
 {
 	for (auto& slot : m_Slots)
 	{
-		if (slot->addon && slot->addon->pI)
-			cif							*= slot->addon->pI->GetControlInertionFactor();
+		if (slot->addon)
+			cif							*= slot->addon->GetControlInertionFactor();
 	}
 }
 

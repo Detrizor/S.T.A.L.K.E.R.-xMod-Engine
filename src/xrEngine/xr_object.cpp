@@ -174,6 +174,8 @@ CObject::CObject() :
     dbg_update_shedule = u32(-1) / 2;
     dbg_update_cl = u32(-1) / 2;
 #endif
+
+	m_modules.clear();
 }
 
 CObject::~CObject()
@@ -181,6 +183,7 @@ CObject::~CObject()
     cNameVisual_set(0);
     cName_set(0);
     cNameSect_set(0);
+	m_modules.clear();
 }
 
 void CObject::Load(LPCSTR section)

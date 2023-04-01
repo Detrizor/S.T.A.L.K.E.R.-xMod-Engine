@@ -1,16 +1,21 @@
 #pragma once
-#include "module.h"
+#include "inventory_item_object.h"
 
-class CAddon : public CModule
+class CAddon : public CInventoryItemObject
 {
+private:
+	typedef CInventoryItemObject		inherited;
+
 public:
-										CAddon									(CGameObject* obj);
+										CAddon									();
 
 private:
 	shared_str							m_SlotType;
 
-public:
-	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
+	void								Load								O$	(LPCSTR section);
 
+public:
 	void								Render									(Fmatrix* pos);
+
+	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 };
