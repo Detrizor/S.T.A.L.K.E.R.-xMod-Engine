@@ -31,6 +31,7 @@
 #include "item_container.h"
 #include "addon.h"
 #include "addon_owner.h"
+#include "magazine.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -177,6 +178,9 @@ void CInventoryItem::Load(LPCSTR section)
 
 	if (pSettings->line_exist			(section, "slots"))
 		m_object->AddModule<CAddonOwner>();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "magazine", FALSE))
+		m_object->AddModule<CMagazine>();
 }
 
 float CInventoryItem::GetConditionToWork() const
@@ -1378,13 +1382,13 @@ float CInventoryItem::Price() const
 
 float CInventoryItem::GetAmount() const
 {
-	float res							= m_object->GetAmount();
+	float res							= _GetAmount();
 	if (res != no_float)
 		return							res;
 
 	for (auto module : m_object->m_modules)
 	{
-		res								= module->GetAmount();
+		res								= module->_GetAmount();
 		if (res != no_float)
 			return						res;
 	}
@@ -1394,13 +1398,13 @@ float CInventoryItem::GetAmount() const
 
 float CInventoryItem::GetFill() const
 {
-	float res							= m_object->GetFill();
+	float res							= _GetFill();
 	if (res != no_float)
 		return							res;
 
 	for (auto module : m_object->m_modules)
 	{
-		res								= module->GetFill();
+		res								= module->_GetFill();
 		if (res != no_float)
 			return						res;
 	}
@@ -1410,13 +1414,13 @@ float CInventoryItem::GetFill() const
 
 float CInventoryItem::GetBar() const
 {
-	float res							= m_object->GetBar();
+	float res							= _GetBar();
 	if (res != no_float)
 		return							res;
 
 	for (auto module : m_object->m_modules)
 	{
-		res								= module->GetBar();
+		res								= module->_GetBar();
 		if (res != no_float)
 			return						res;
 	}
@@ -1426,31 +1430,25 @@ float CInventoryItem::GetBar() const
 
 float CInventoryItem::Weight() const
 {
-	float res							= m_weight;
-	res									+= m_object->Weight();
+	float res							= _Weight();
 	for (auto module : m_object->m_modules)
-		res								+= module->Weight();
-
+		res								+= module->_Weight();
 	return								res;
 }
 
 float CInventoryItem::Volume() const
 {
-	float res							= m_volume;
-	res									+= m_object->Volume();
+	float res							= _Volume();
 	for (auto module : m_object->m_modules)
-		res								+= module->Volume();
-
+		res								+= module->_Volume();
 	return								res;
 }
 
 float CInventoryItem::Cost() const
 {
-	float res							= m_cost;
-	res									+= m_object->Cost();
+	float res							= _Cost();
 	for (auto module : m_object->m_modules)
-		res								+= module->Cost();
-
+		res								+= module->_Cost();
 	return								res;
 }
 

@@ -33,33 +33,34 @@
 #include "clsid_game.h"
 #include "hudmanager.h"
 #include "Weapon.h"
+#include "addon.h"
+#include "addon_owner.h"
 
 extern u32 hud_adj_mode;
 
 bool TryCustomUse(PIItem item)
 {
-	shared_str					functor_field;
-	LPCSTR functor_name			= NULL;
-	CGameObject* GO				= item->cast_game_object();
-	LPCSTR section_name			= *GO->cNameSect();
+	shared_str							functor_field;
+	LPCSTR functor_name					= NULL;
+	CGameObject* GO						= item->cast_game_object();
 
 	for (u8 i = 1; i <= 4; ++i)
 	{
-		functor_field.printf	("use%d_query_functor", i);
-		functor_name			= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+		functor_field.printf			("use%d_query_functor", i);
+		functor_name					= READ_IF_EXISTS(pSettings, r_string, item->Section(), functor_field.c_str(), false);
 		if (functor_name)
 		{
-			luabind::functor<bool>			funct;
-			ai().script_engine().functor	(functor_name, funct);
+			luabind::functor<bool>		funct;
+			ai().script_engine().functor(functor_name, funct);
 			if (funct(GO->lua_game_object(), i))
 			{
-				functor_field.printf		("use%d_action_functor", i);
-				functor_name				= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+				functor_field.printf	("use%d_action_functor", i);
+				functor_name			= READ_IF_EXISTS(pSettings, r_string, item->Section(), functor_field.c_str(), false);
 				if (functor_name)
 				{
-					ai().script_engine().functor	(functor_name, funct);
-					funct							(GO->lua_game_object(), i);
-					return							true;
+					ai().script_engine().functor(functor_name, funct);
+					funct				(GO->lua_game_object(), i);
+					return				true;
 				}
 			}
 		}
@@ -201,31 +202,42 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	case kQUICK_USE_8:
 	case kQUICK_USE_9:
 	case kQUICK_USE_10:
+	{
+		u8 idx									= u8(cmd - kQUICK_USE_1);
+		const shared_str& item_name				= g_quick_use_slots[idx];
+		if (item_name.size())
 		{
-			u8 idx									= u8(cmd - kQUICK_USE_1);
-			const shared_str& item_name				= g_quick_use_slots[idx];
-			if (item_name.size())
+			PIItem tmp							= NULL;
+
+			PIItem active_item					= inventory().ActiveItem();
+			PIItem left_item					= inventory().LeftItem();
+			if (active_item && active_item->Section(true) == item_name)
+				tmp								= active_item;
+			else if (left_item && left_item->Section(true) == item_name)
+				tmp								= left_item;
+			else
+				tmp								= inventory().Get(*item_name, idx, true);
+
+			if (tmp)
 			{
-				PIItem tmp							= NULL;
-
-				PIItem active_item					= inventory().ActiveItem();
-				PIItem left_item					= inventory().LeftItem();
-				if (active_item && active_item->Section(true) == item_name)
-					tmp								= active_item;
-				else if (left_item && left_item->Section(true) == item_name)
-					tmp								= left_item;
-				else
-					tmp								= inventory().Get(*item_name, idx, true);
-
-				if (tmp)
-					if (tmp->InHands() || active_item && tmp->BaseSlot() == active_item->BaseSlot() || left_item && tmp->HandSlot() == LEFT_HAND_SLOT)
-						inventory().ActivateItem	(tmp, eItemPlacePocket, idx);
-					else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
-						inventory().ActivateItem	(tmp);
-					else 
-						TryCustomUse				(tmp);
+				if (tmp->InHands() || active_item && tmp->BaseSlot() == active_item->BaseSlot() || left_item && tmp->HandSlot() == LEFT_HAND_SLOT)
+					inventory().ActivateItem	(tmp, eItemPlacePocket, idx);
+				else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
+					inventory().ActivateItem	(tmp);
+				else if (!TryCustomUse(tmp))
+				{
+					CMagazine* mag				= tmp->object().cast<CMagazine*>();
+					if (mag)
+					{
+						CWeaponMagazined* wm	= active_item->object().cast<CWeaponMagazined*>();
+						if (wm && wm->MagazineSlot() && wm->MagazineSlot()->Compatible(mag->cast<CAddon*>()))
+							wm->cast<CAddonOwner*>()->AttachAddon(mag->cast<CAddon*>(), wm->MagazineSlot()->idx);
+					}
+				}
 			}
-		}break;
+		}
+		break;
+	}
 	case kKICK:
 		actor_kick();
 		break;

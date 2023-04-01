@@ -543,7 +543,7 @@ float CArtefact::Power() const
 	if (!IsActive())
 		return		0.f;
 
-	float dfill		= cast<CItemAmountable CP$>()->GetFill() / m_fChargeThreshold;		//--xd until missed modulisation
+	float dfill		= GetFill() / m_fChargeThreshold;
 	if (dfill > 1.f)
 		dfill		= 1.f;
 	return			sqrt(dfill);

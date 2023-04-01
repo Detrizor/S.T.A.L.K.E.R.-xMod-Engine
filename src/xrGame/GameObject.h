@@ -308,11 +308,11 @@ public:
 			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 
 //xMod added
+private:
+	void								OnChild									(CObject* obj, bool take);
+
 public:
 	template <typename T>
 	T*									AddModule								() { T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
-
 	void								Transfer							C$	(u16 id = NO_ID);
-
-	void								OnChild								O$	(CObject* obj, bool take);
 };

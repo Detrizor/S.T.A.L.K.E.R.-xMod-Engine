@@ -70,7 +70,6 @@ public:
 	virtual void			render_hud_mode();
 
 	virtual void			OnH_B_Chield();
-	virtual void			OnH_A_Chield();
 	virtual void			OnH_B_Independent(bool just_before_destroy);
 	virtual void			OnH_A_Independent();
 	virtual void			OnEvent(NET_Packet& P, u16 type);// {inherited::OnEvent(P,type);}
@@ -157,9 +156,6 @@ protected:
 	virtual bool			AllowBore();
 public:
 	u8						m_sub_state;
-
-	//обновление видимости для косточек аддонов
-	virtual void UpdateBonesVisibility() {}
 
 	IC void	ForceUpdateAmmo()
 	{
@@ -541,8 +537,9 @@ protected:
 	void							V$	ConsumeShotCartridge					();
 	float							V$	GetControlInertionFactorBase		C$	();
 
+	float								_GetBar 							CO$	()		{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
+
 public:
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
-	float								GetBar 								CO$	()		{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
 };

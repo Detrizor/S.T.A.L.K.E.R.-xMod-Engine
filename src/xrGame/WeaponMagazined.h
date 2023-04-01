@@ -233,7 +233,6 @@ public:
 	void								renderable_Render					O$	();
 	void								render_hud_mode						O$	();
 	void								modify_holder_params				CO$	(float& range, float& fov);
-	float								Weight								CO$	();
 	bool								IsRotatingToZoom					CO$	();
 
 //xMod added
@@ -246,9 +245,11 @@ private:
 	CMagazine*							m_pMagazine;
 	CMagazine*							m_pNextMagazine;
 	CWeaponHud*							m_hud;
+	SAddonSlot*							m_pMagazineSlot;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
+	void								UpdateBonesVisibility					();
 
 	CScope*								GetActiveScope						C$	();
 
@@ -256,6 +257,7 @@ private:
 
 	bool								ReadyToFire							CO$	();
 	void								PrepareCartridgeToShoot				O$	();
+	void								OnHiddenItem						O$	();
 
 protected:
 	CWeaponAmmo*						m_pCartridgeToReload;
@@ -264,7 +266,9 @@ protected:
 
 	void								ConsumeShotCartridge				O$	();
 
-	void							V$	ProcessAddon							(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
+	void								_ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
+	int									_TransferAddon						O$	(CAddon CPC addon, bool attach);
+	float								_Weight								CO$	();
 
 public:
 	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }
@@ -273,15 +277,15 @@ public:
 
 	bool								ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
+	SAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
 	float								GetReticleScale						C$	();
 	bool								CanTrade							C$	();
 
 	float								CurrentZoomFactor					CO$	();
 
-	void								UpdateBonesVisibility				O$	();
-	void								UpdateHudBonesVisibility			O$	();
-	bool								TransferAddon						O$	(CAddon CPC addon, bool attach);
 	void								OnTaken								O$	();
+
+	void								_UpdateHudBonesVisibility			O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	OnMotionHalf							();

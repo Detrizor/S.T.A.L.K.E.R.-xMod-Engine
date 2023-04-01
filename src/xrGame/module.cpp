@@ -2,7 +2,6 @@
 #include "module.h"
 #include "inventory_item.h"
 #include "GameObject.h"
-#include "addon.h"
 
 CModule::CModule(CGameObject* obj) : pO(obj), O(*obj), pI(smart_cast<CInventoryItem*>(obj))
 {

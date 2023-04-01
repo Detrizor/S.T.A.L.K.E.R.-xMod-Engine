@@ -93,15 +93,15 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-			bool			m_bHeap;
+	bool								m_bHeap;
 
 public:
 	virtual	Frect			GetIconRect				()								const;
 
-public:
-	float								Weight								CO$	();
-	float								Volume								CO$	();
-	float								Cost								CO$	();
+protected:
+	float								_Weight								CO$	();
+	float								_Volume								CO$	();
+	float								_Cost								CO$	();
 };
 
 add_to_type_list(CWeaponAmmo)

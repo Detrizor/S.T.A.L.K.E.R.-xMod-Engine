@@ -277,9 +277,9 @@ void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
 	}
 }
 
-void CWeaponMagazinedWGrenade::OnChild(CObject* obj, bool take)
+void CWeaponMagazinedWGrenade::_OnChild o$(CObject* obj, bool take)
 {
-	inherited::OnChild					(obj, take);
+	inherited::_OnChild					(obj, take);
 
 	if (smart_cast<CCustomRocket*>(obj))
 	{
@@ -698,14 +698,6 @@ void CWeaponMagazinedWGrenade::net_Import(NET_Packet& P)
     inherited::net_Import(P);
 }
 
-float CWeaponMagazinedWGrenade::Weight() const
-{
-    float res = inherited::Weight();
-    res += GetMagazineWeight(m_magazine2);
-
-    return res;
-}
-
 bool CWeaponMagazinedWGrenade::IsNecessaryItem(const shared_str& item_sect)
 {
     return (std::find(m_ammoTypes.begin(), m_ammoTypes.end(), item_sect) != m_ammoTypes.end() ||
@@ -922,7 +914,7 @@ void CWeaponMagazinedWGrenade::OnMotionHalf()
 		inherited::OnMotionHalf();
 }
 
-void CWeaponMagazinedWGrenade::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
+void CWeaponMagazinedWGrenade::_ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
 {
 	CGrenadeLauncher CPC gl = addon->cast<CGrenadeLauncher CP$>();
 	if (gl)
@@ -942,5 +934,10 @@ void CWeaponMagazinedWGrenade::ProcessAddon(CAddon CPC addon, BOOL attach, SAddo
 		}
 	}
 
-	inherited::ProcessAddon(addon, attach, slot);
+	inherited::_ProcessAddon(addon, attach, slot);
+}
+
+float CWeaponMagazinedWGrenade::_Weight() const
+{
+	return inherited::_Weight() + GetMagazineWeight(m_magazine2);
 }

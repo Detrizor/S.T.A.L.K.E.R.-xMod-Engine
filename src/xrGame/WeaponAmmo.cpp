@@ -254,17 +254,17 @@ Frect CWeaponAmmo::GetIconRect() const
 	return res;
 }
 
-float CWeaponAmmo::Weight() const
+float CWeaponAmmo::_Weight() const
 {
-	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
+	return inherited::_Weight() * (float)m_boxCurr;
 }
 
-float CWeaponAmmo::Volume() const
+float CWeaponAmmo::_Volume() const
 {
-	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
+	return inherited::_Volume() * (float)m_boxCurr;
 }
 
-float CWeaponAmmo::Cost() const
+float CWeaponAmmo::_Cost() const
 {
-	return cast<CInventoryItem CP$>()->m_weight * (float)m_boxCurr;
+	return inherited::_Cost() * (float)m_boxCurr;
 }

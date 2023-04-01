@@ -64,6 +64,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_pAltScope					= NULL;
 	m_pSilencer					= NULL;
 	m_pMagazine					= NULL;
+	m_pMagazineSlot				= NULL;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -147,6 +148,19 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_hud = xr_new<CWeaponHud>(this);
 	if (IsZoomEnabled())
 		InitRotateTime();
+
+	CAddonOwner* ao						= cast<CAddonOwner*>();
+	if (ao)
+	{
+		for (auto s : ao->AddonSlots())
+		{
+			if (s->magazine)
+			{
+				m_pMagazineSlot			= s;
+				break;
+			}
+		}
+	}
 }
 
 void CWeaponMagazined::FireStart()
@@ -263,8 +277,8 @@ void CWeaponMagazined::StartReload(CObject* to_reload)
 	CWeapon::Reload						();
 	SetPending							(TRUE);
 	SwitchState							(eReload);
-	m_pNextMagazine						= to_reload->cast<CMagazine*>();
-	m_pCartridgeToReload				= to_reload->cast<CWeaponAmmo*>();
+	m_pNextMagazine						= cast<CMagazine*>(to_reload);
+	m_pCartridgeToReload				= cast<CWeaponAmmo*>(to_reload);
 }
 
 bool CWeaponMagazined::IsAmmoAvailable()
@@ -1289,11 +1303,6 @@ bool CWeaponMagazined::CanTrade() const
 	return true;
 }
 
-float CWeaponMagazined::Weight() const
-{
-	return GetMagazineWeight(m_magazine);
-}
-
 void UpdateBoneVisibility(IKinematics* pVisual, const shared_str& bone_name, bool status)
 {
 	u16 bone_id = pVisual->LL_BoneID(bone_name);
@@ -1314,25 +1323,16 @@ shared_str wpn_iron_sights_lowered = "wpn_iron_sights_lowered";
 
 void CWeaponMagazined::UpdateBonesVisibility()
 {
-    IKinematics* pWeaponVisual = smart_cast<IKinematics*>(Visual()); R_ASSERT(pWeaponVisual);
-    pWeaponVisual->CalculateBones_Invalidate();
+	IKinematics* pWeaponVisual			= smart_cast<IKinematics*>(Visual());
+	R_ASSERT							(pWeaponVisual);
 
-	UpdateBoneVisibility(pWeaponVisual, wpn_iron_sights, !m_bIronSightsLowered);
-	UpdateBoneVisibility(pWeaponVisual, wpn_iron_sights_lowered, m_bIronSightsLowered);
+	pWeaponVisual->CalculateBones_Invalidate();
+	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights, !m_bIronSightsLowered);
+	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights_lowered, m_bIronSightsLowered);
+	pWeaponVisual->CalculateBones_Invalidate();
+	pWeaponVisual->CalculateBones		(TRUE);
 
-    pWeaponVisual->CalculateBones_Invalidate();
-    pWeaponVisual->CalculateBones(TRUE);
-	UpdateHudBonesVisibility();
-}
-
-void CWeaponMagazined::UpdateHudBonesVisibility()
-{
-	attachable_hud_item* hi = HudItemData();
-	if (!hi)
-		return;
-
-	hi->set_bone_visible(wpn_iron_sights, !m_bIronSightsLowered, TRUE);
-	hi->set_bone_visible(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
+	_UpdateHudBonesVisibility			();
 }
 
 void CWeaponMagazined::OnMotionHalf()
@@ -1340,16 +1340,26 @@ void CWeaponMagazined::OnMotionHalf()
 	if (ParentIsActor() && GetState() == eReload)
 	{
 		if (m_pMagazine)
-			m_pMagazine->Transfer(parent_id());
+			m_pMagazine->Transfer		(parent_id());
 
-		//if (m_pMagazineToReload)
-			//m_pMagazineToReload->Offset() = m_MagazineSlot->model_offset;
+		if (m_pNextMagazine)
+		{
+			R_ASSERT2(m_pMagazineSlot, "magazine slot isn't marked as one");
+			m_pMagazineSlot->loading_addon = m_pNextMagazine->cast<CAddon*>();
+		}
 	}
+}
+
+void CWeaponMagazined::OnHiddenItem()
+{
+	if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
+		m_pMagazineSlot->loading_addon	= NULL;
+	inherited::OnHiddenItem				();
 }
 
 void CWeaponMagazined::renderable_Render()
 {
-    inherited::renderable_Render();
+	inherited::renderable_Render();
 	CAddonOwner* ao = cast<CAddonOwner*>();
 	if (ao)
 		ao->renderable_Render();
@@ -1361,9 +1371,6 @@ void CWeaponMagazined::render_hud_mode()
 	CAddonOwner* ao = cast<CAddonOwner*>();
 	if (ao)
 		ao->render_hud_mode();
-
-	//--xd нормальную систему разработать if (m_pMagazineToReload && m_pMagazineToReload->Offset())
-		//m_pMagazineToReload->Render();
 }
 
 float CWeaponMagazined::GetControlInertionFactorBase() const
@@ -1476,7 +1483,7 @@ float CWeaponMagazined::CurrentZoomFactor() const
 		return inherited::CurrentZoomFactor();
 }
 
-void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot)
+void CWeaponMagazined::_ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
 {
 	CScope CPC scope = addon->cast<CScope CP$>();
 	if (scope)
@@ -1485,9 +1492,9 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 
 		if (slot && slot->lower_iron_sights)
 		{
-			m_bIronSightsLowered = !!attach;
+			m_bIronSightsLowered = attach;
 			UpdateBonesVisibility();
-			SetInvIconType(attach);
+			SetInvIconType((u8)attach);
 		}
 	}
 
@@ -1524,6 +1531,8 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 				FindAmmoClass(*m_magazine.back().m_ammoSect, true);
 			else if (m_pMagazine)
 				LoadCartridgeFromMagazine(!m_iChamber);
+
+			m_pMagazineSlot->loading_addon = NULL;
 		}
 		else
 		{ 
@@ -1533,6 +1542,24 @@ void CWeaponMagazined::ProcessAddon(CAddon CPC addon, BOOL attach, SAddonSlot CP
 	}
 
 	InitRotateTime();
+	inherited::_ProcessAddon(addon, attach, slot);
+}
+
+int CWeaponMagazined::_TransferAddon o$(CAddon CPC addon, bool attach)
+{
+	CMagazine CPC mag					= addon->cast<CMagazine CP$>();
+	if (mag)
+	{
+		StartReload						((attach) ? const_cast<CObject*>(mag->cast<CObject CP$>()) : NULL);
+		return							1;
+	}
+	else
+		return							inherited::_TransferAddon(addon, attach);
+}
+
+float CWeaponMagazined::_Weight() const
+{
+	return inherited::_Weight() + GetMagazineWeight(m_magazine);
 }
 
 void CWeaponMagazined::UpdateSndShot()
@@ -1548,18 +1575,6 @@ void CWeaponMagazined::OnTaken()
 	UpdateSndShot();
 }
 
-bool CWeaponMagazined::TransferAddon o$(CAddon CPC addon, bool attach)
-{
-	CMagazine CPC mag = addon->cast<CMagazine CP$>();
-	if (mag)
-	{
-		StartReload((attach) ? const_cast<CObject*>(mag->cast<CObject CP$>()) : NULL);
-		return true;
-	}
-	else
-		return inherited::TransferAddon(addon, attach);
-}
-
 void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)
 {
 	m_hud->UpdateHudAdditional(trans);
@@ -1573,4 +1588,14 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 void CWeaponMagazined::InitRotateTime()
 {
 	m_hud->InitRotateTime(GetControlInertionFactor());
+}
+
+void CWeaponMagazined::_UpdateHudBonesVisibility()
+{
+	attachable_hud_item* hi				= HudItemData();
+	if (!hi)
+		return;
+
+	hi->set_bone_visible				(wpn_iron_sights, !m_bIronSightsLowered, TRUE);
+	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
 }

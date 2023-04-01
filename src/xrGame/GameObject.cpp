@@ -1207,8 +1207,9 @@ void CGameObject::Transfer(u16 id) const
 	u_EventSend							(P);
 }
 
-void CGameObject::OnChild o$(CObject* obj, bool take)
+void CGameObject::OnChild(CObject* obj, bool take)
 {
+	_OnChild(obj, take);
 	for (auto module : m_modules)
-		module->OnChild(obj, take);
+		module->_OnChild(obj, take);
 }

@@ -16,12 +16,13 @@ struct SAddonSlot
 	shared_str							bone_name;
 	Fvector								model_offset[2];
 	Fvector2							icon_offset;
-	BOOL								icon_on_background;
 	BOOL								lower_iron_sights;
 	BOOL								primary_scope;
+	BOOL								magazine;
 	u16									overlaping_slot;
 
 	CAddon*								addon;
+	CAddon*								loading_addon;
 	Fmatrix								render_pos;		//Текущая позиция для рендеринга
 
 										SAddonSlot								(LPCSTR section, u16 _idx, VSlots CR$ slots);
@@ -30,6 +31,7 @@ struct SAddonSlot
 	void								RenderHud								();
 	void								RenderWorld								(IRenderVisual* model, Fmatrix parent);
 
+	bool								Compatible							C$	(CAddon CPC _addon);
 	bool								CanTake								C$	(CAddon CPC _addon);
 };
 
@@ -45,25 +47,24 @@ private:
 	
 	void								LoadAddonSlots							(LPCSTR section);
 
-protected:
-	void								OnChild								O$	(CObject* obj, bool take);
+	void								ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
+	int									TransferAddon							(CAddon CPC addon, bool attach);
+
+	void								_OnChild							O$	(CObject* obj, bool take);
+	int									_TransferAddon						O$	(CAddon CPC addon, bool attach);
+	float								_Weight								CO$	();
+	float								_Volume								CO$	();
+	float								_Cost								CO$	();
 	
 public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
 
 	void								ModifyControlInertionFactor			C$	(float& cif);
 
-	bool								AttachAddon								(CAddon CPC addon, u16 slot_idx = NO_ID);
-	void								DetachAddon								(CAddon CPC addon);
+	int									AttachAddon								(CAddon CPC addon, u16 slot_idx = NO_ID);
+	int									DetachAddon								(CAddon CPC addon);
 	void								UpdateSlotsTransform					();
 			
 	void								renderable_Render						();
 	void								render_hud_mode							();
-
-	void								ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
-	bool								TransferAddon						O$	(CAddon CPC addon, bool attach);
-
-	float								Weight								CO$	();
-	float								Volume								CO$	();
-	float								Cost								CO$	();
 };

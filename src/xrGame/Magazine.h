@@ -10,37 +10,35 @@ class CGameObject;
 class CMagazine : public CModule
 {
 public:
-							CMagazine				(CGameObject* obj);
-
-	virtual void			Load					(LPCSTR section);
+										CMagazine								(CGameObject* obj);
 
 private:
-	xr_vector<CWeaponAmmo*>	m_Heaps;
-			u16				m_iNextHeapIdx;
-			u16				m_iHeapsCount;
-	xr_vector<shared_str>	m_ammo_types;
-			u16				m_capacity;
-			
-			void			UpdateBulletsVisibility	();
+	xr_vector<CWeaponAmmo*>				m_Heaps;
+	u16									m_iNextHeapIdx;
+	u16									m_iHeapsCount;
+	xr_vector<shared_str>				m_ammo_types;
+	u16									m_capacity;
 
-protected:
-	void								OnChild							(CObject* obj, bool take);
+	void								UpdateBulletsVisibility					();
+
+	float								_GetAmount							CO$	()		{ return (float)Amount(); }
+	float								_GetFill							CO$	()		{ return (float)Amount() / (float)Capacity(); }
+	float								_GetBar								CO$	()		{ return (Amount() < Capacity()) ? _GetFill() : -1.f; }
+
+	float								_Weight								CO$	();
+	float								_Cost								CO$	();
+
+	void								_OnChild							O$	(CObject* obj, bool take);
+	void								_UpdateHudBonesVisibility			O$	();
 
 public:
-			u16				Capacity				()								const	{ return m_capacity; };
-			
-			u16				Amount					()								const;
-			bool			Empty					()								const;
-			bool			CanTake					(CWeaponAmmo* ammo)				const;
-			void			LoadCartridge			(CWeaponAmmo* ammo);
-			bool			GetCartridge			(CCartridge& destination, bool expend = true);
+	u16									Capacity							C$	()		{ return m_capacity; };	
+	bool								Full								C$	()		{ return (Amount() == Capacity()); }
+	bool								Empty								C$	()		{ return m_Heaps.empty(); }
 
-	float								GetAmount							CO$	()		{ return (float)Amount(); }
-	float								GetFill								CO$	()		{ return (float)Amount() / (float)Capacity(); }
-	float								GetBar								CO$	()		{ return (Amount() < Capacity()) ? GetFill() : -1.f; }
+	void								LoadCartridge							(CWeaponAmmo* ammo);
+	bool								GetCartridge							(CCartridge& destination, bool expend = true);
 
-	float								Weight								CO$	();
-	float								Cost								CO$	();
-
-	virtual void			UpdateHudBonesVisibility();
+	u16									Amount								C$	();
+	bool								CanTake								C$	(CWeaponAmmo CPC ammo);
 };

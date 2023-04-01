@@ -22,8 +22,6 @@ private:
 protected:
 	IC		void			SetCapacity				(float val)								{ m_capacity = val; }
 
-	void					OnChild			(CObject* obj, bool take);
-
 public:
 	IC const TIItemContainer&Items					()								const	{ return m_items; }
 	IC		float			GetCapacity				()								const	{ return m_capacity; }
@@ -32,9 +30,11 @@ public:
 			bool			CanTakeItem				(PIItem iitem)					const;
 			void			AddAvailableItems		(TIItemContainer& items_container) const;
 
-	float								Weight								C$	();
-	float								Volume								C$	();
-	float								Cost								C$	();
+public:
+	void								_OnChild								(CObject* obj, bool take);
+	float								_Weight								C$	();
+	float								_Volume								C$	();
+	float								_Cost								C$	();
 };
 
 class CContainerObject : public CInventoryItemObject,
@@ -59,13 +59,13 @@ public:
 	LPCSTR			Stock					()								const	{ return m_stock; }
 	u32				StockCount				()								const	{ return m_stock_count; }
 
-	void								OnChild						O$			(CObject* obj, bool take)		{ return CInventoryContainer::OnChild(obj, take); }
+	void								_OnChild							O$	(CObject* obj, bool take)		{ return CInventoryContainer::_OnChild(obj, take); }
 
-	float								GetAmount							CO$	()		{ return Volume(); }
-	float								GetFill								CO$	()		{ return Volume() / GetCapacity(); }
-	float								GetBar								CO$	()		{ return fLess(Volume(), GetCapacity()) ? GetFill() : -1.f; }
+	float								_GetAmount							CO$	()		{ return _Volume(); }
+	float								_GetFill							CO$	()		{ return _Volume() / GetCapacity(); }
+	float								_GetBar								CO$	()		{ return fLess(_Volume(), GetCapacity()) ? _GetFill() : -1.f; }
 
-	float								Weight								CO$	()		{ return CInventoryContainer::Weight(); }
-	float								Volume								CO$	()		{ return CInventoryContainer::Volume(); }
-	float								Cost								CO$	()		{ return CInventoryContainer::Cost(); }
+	float								_Weight								CO$	()		{ return CInventoryContainer::_Weight(); }
+	float								_Volume								CO$	()		{ return CInventoryContainer::_Volume(); }
+	float								_Cost								CO$	()		{ return CInventoryContainer::_Cost(); }
 };

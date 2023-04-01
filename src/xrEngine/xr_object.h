@@ -212,10 +212,15 @@ public:
     virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 //xMod added
-private:
+public:
+	xr_vector<CModule*>					m_modules;
+
 	template <typename T, typename C>
 	T							S$	IC	cast									(C c)
 	{
+		if (!c)
+			return						NULL;
+
 		T t								= smart_cast<T>(c);
 		if (t)
 			return						t;
@@ -229,10 +234,6 @@ private:
 
 		return							NULL;
 	}
-
-public:
-	xr_vector<CModule*>					m_modules;
-
 	template <typename T>
 	T									cast								C$	() { return cast<T>(this); }
 	template <typename T>

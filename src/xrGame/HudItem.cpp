@@ -728,7 +728,14 @@ bool CHudItem::NeedBlendAnm()
 
 void CHudItem::UpdateSlotsTransform()
 {
-	CAddonOwner* ao = m_object->cast<CAddonOwner*>();
+	CAddonOwner* ao						= m_object->cast<CAddonOwner*>();
 	if (ao)
-		ao->UpdateSlotsTransform();
+		ao->UpdateSlotsTransform		();
+}
+
+void CHudItem::UpdateHudBonesVisibility()
+{
+	_UpdateHudBonesVisibility			();
+	for (auto m : m_object->m_modules)
+		m->_UpdateHudBonesVisibility	();
 }

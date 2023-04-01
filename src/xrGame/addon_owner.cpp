@@ -26,7 +26,33 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 		m_Slots.push_back				(xr_new<SAddonSlot>(section, i++, m_Slots));
 }
 
-void CAddonOwner::OnChild o$(CObject* obj, bool take)
+void CAddonOwner::ProcessAddon(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
+{
+	O._ProcessAddon						(addon, attach, slot);
+	for (auto module : O.m_modules)
+		module->_ProcessAddon			(addon, attach, slot);
+}
+
+int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
+{
+	int res								= O._TransferAddon(addon, attach);
+	if (res)
+		return							res;
+
+	for (auto module : O.m_modules)
+	{
+		if (module != (CModule*)this)
+		{
+			res							= module->_TransferAddon(addon, attach);
+			if (res)
+				return					res;
+		}
+	}
+
+	return								_TransferAddon(addon, attach);
+}
+
+void CAddonOwner::_OnChild o$(CObject* obj, bool take)
 {
 	CAddon* addon						= obj->cast<CAddon*>();
 	if (!addon)
@@ -63,14 +89,53 @@ void CAddonOwner::OnChild o$(CObject* obj, bool take)
 	}
 }
 
-bool CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
+int CAddonOwner::_TransferAddon o$(CAddon CPC addon, bool attach)
+{
+	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : NO_ID));
+	return								2;
+}
+
+float CAddonOwner::_Weight() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Weight();
+	}
+	return								res;
+}
+
+float CAddonOwner::_Volume() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Volume();
+	}
+	return								res;
+}
+
+float CAddonOwner::_Cost() const
+{
+	float res							= 0.f;
+	for (auto slot : AddonSlots())
+	{
+		if (slot->addon)
+			res							+= slot->addon->pI->Cost();
+	}
+	return								res;
+}
+
+int CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 {
 	if (!addon)
-		return							false;
+		return							0;
 
 	if (slot_idx == NO_ID)
 	{
-		for (const auto slot : m_Slots)
+		for (auto slot : m_Slots)
 		{
 			if (slot->CanTake(addon))
 			{
@@ -83,24 +148,20 @@ bool CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 	if (slot_idx != NO_ID)
 	{
 		m_NextAddonSlot					= slot_idx;
-		TransferAddon					(addon, true);
-		return							true;
+		return							TransferAddon(addon, true);
 	}
 
-	return								false;
+	return								0;
 }
 
-void CAddonOwner::DetachAddon(CAddon CPC addon)
+int CAddonOwner::DetachAddon(CAddon CPC addon)
 {
-	TransferAddon						(addon, false);
+	return TransferAddon				(addon, false);
 }
 
 void CAddonOwner::UpdateSlotsTransform()
 {
 	attachable_hud_item* hi				= smart_cast<CHudItem*>(pO)->HudItemData();
-	if (!hi)
-		return;
-
 	for (auto slot : m_Slots)
 		slot->UpdateRenderPos			(hi->m_model->dcast_RenderVisual(), hi->m_item_transform);
 }
@@ -124,67 +185,6 @@ void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
 		if (slot->addon && slot->addon->pI)
 			cif							*= slot->addon->pI->GetControlInertionFactor();
 	}
-}
-
-void CAddonOwner::ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
-{
-	O.ProcessAddon						(addon, attach, slot);
-	for (auto module : O.m_modules)
-	{
-		if (module != (CModule*)this)
-			module->ProcessAddon		(addon, attach, slot);
-	}
-}
-
-bool CAddonOwner::TransferAddon o$(CAddon CPC addon, bool attach)
-{
-	if (O.TransferAddon(addon, attach))
-		return							true;
-
-	for (auto module : O.m_modules)
-	{
-		if (module != (CModule*)this && module->TransferAddon(addon, attach))
-			return						true;
-	}
-
-	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : NO_ID));
-	return								true;
-}
-
-float CAddonOwner::Weight() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
-	{
-		if (slot->addon)
-			res							+= slot->addon->pI->Weight();
-	}
-
-	return								res;
-}
-
-float CAddonOwner::Volume() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
-	{
-		if (slot->addon)
-			res							+= slot->addon->pI->Volume();
-	}
-
-	return								res;
-}
-
-float CAddonOwner::Cost() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
-	{
-		if (slot->addon)
-			res							+= slot->addon->pI->Cost();
-	}
-
-	return								res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,8 +216,8 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slot
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
 
-	tmp.printf							("icon_on_background_%d", idx);
-	icon_on_background					= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
+	tmp.printf							("magazine_%d", idx);
+	magazine							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("lower_ironsights_%d", idx);
 	lower_iron_sights					= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
@@ -228,22 +228,8 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slot
 	tmp.printf							("overlaping_slot_%d", idx);
 	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, NO_ID);
 
-	addon								= NULL;
+	addon = loading_addon				= NULL;
 	render_pos.identity					();
-}
-
-bool SAddonSlot::CanTake(CAddon CPC _addon) const
-{
-	if (addon)
-		return							false;
-
-	if (_addon->SlotType() != type)
-		return							false;
-
-	if (overlaping_slot != NO_ID && parent_slots[overlaping_slot]->addon)
-		return							false;
-
-	return								true;
 }
 
 void SAddonSlot::UpdateRenderPos(IRenderVisual* model, Fmatrix parent)
@@ -275,6 +261,9 @@ void SAddonSlot::RenderHud()
 {
 	if (addon)
 		addon->Render					(&render_pos);
+
+	if (loading_addon)
+		loading_addon->Render			(&render_pos);
 }
 
 void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix parent)
@@ -286,4 +275,20 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix parent)
 		addon->Render					(&render_pos);
 		render_pos						= backup;
 	}
+}
+
+bool SAddonSlot::Compatible(CAddon CPC _addon) const
+{
+	if (_addon->SlotType() != type)
+		return							false;
+
+	if (overlaping_slot != NO_ID && parent_slots[overlaping_slot]->addon)
+		return							false;
+
+	return								true;
+}
+
+bool SAddonSlot::CanTake(CAddon CPC _addon) const
+{
+	return								Compatible(_addon) && !addon;
 }

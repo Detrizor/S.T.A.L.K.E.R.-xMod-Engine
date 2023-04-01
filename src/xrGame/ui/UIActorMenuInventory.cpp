@@ -302,7 +302,7 @@ _finish:
 
 void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
 {
-	if (ao->AttachAddon(addon, slot))
+	if (ao->AttachAddon(addon, slot) == 2)
 	{
 		PlaySnd							(eAttachAddon);
 		HideDialog						();
@@ -311,9 +311,11 @@ void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
 
 void CUIActorMenu::DetachAddon(CAddonOwner* ao, CAddon* addon)
 {
-	PlaySnd								(eDetachAddon);
-	ao->DetachAddon						(addon);
-	HideDialog							();
+	if (ao->DetachAddon(addon) == 2)
+	{
+		PlaySnd							(eDetachAddon);
+		HideDialog						();
+	}
 }
 
 void CUIActorMenu::InitCellForSlot( u16 slot_idx )

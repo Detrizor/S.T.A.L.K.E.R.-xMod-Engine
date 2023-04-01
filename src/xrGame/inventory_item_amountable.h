@@ -39,13 +39,14 @@ public:
 			void			SetFill					(float val);
 			void			ChangeFill				(float delta);
 
-	float								GetAmount							C$	()		{ return m_fAmount; }
-	float								GetFill								C$	()		{ return GetAmount() / Capacity(); }
-	float								GetBar								C$	()		{ return Full() ? -1.f : GetFill(); }
+protected:
+	float								_GetAmount							C$	()		{ return m_fAmount; }
+	float								_GetFill							C$	()		{ return _GetAmount() / Capacity(); }
+	float								_GetBar								C$	()		{ return Full() ? -1.f : _GetFill(); }
 
-	float								Weight								C$	()		{ return m_net_weight * GetFill(); }
-	float								Volume								C$	()		{ return m_net_volume * GetFill(); }
-	float								Cost								C$	()		{ return round(m_net_cost * (GetFill() - 1.f)); }
+	float								_Weight								C$	()		{ return m_net_weight * _GetFill(); }
+	float								_Volume								C$	()		{ return m_net_volume * _GetFill(); }
+	float								_Cost								C$	()		{ return round(m_net_cost * (_GetFill() - 1.f)); }
 };
 
 class CIIOAmountable : public CInventoryItemObject,
@@ -55,18 +56,16 @@ private:
 	typedef	CInventoryItemObject					inherited;
 
 public:
-							CIIOAmountable			()								{};
-	virtual					~CIIOAmountable			()								{};
 	virtual DLL_Pure*		_construct				();
 
 	virtual	void			Load					(LPCSTR section);
 
 public:
-	float								Weight								CO$	()		{ return CItemAmountable::Weight(); }
-	float								Volume								CO$	()		{ return CItemAmountable::Volume(); }
-	float								Cost								CO$	()		{ return CItemAmountable::Cost(); }
+	float								_Weight								CO$	()		{ return CItemAmountable::_Weight(); }
+	float								_Volume								CO$	()		{ return CItemAmountable::_Volume(); }
+	float								_Cost								CO$	()		{ return CItemAmountable::_Cost(); }
 
-	float								GetAmount							CO$	()		{ return CItemAmountable::GetAmount(); }
-	float								GetFill								CO$	()		{ return CItemAmountable::GetFill(); }
-	float								GetBar								CO$	()		{ return CItemAmountable::GetBar(); }
+	float								_GetAmount							CO$	()		{ return CItemAmountable::_GetAmount(); }
+	float								_GetFill							CO$	()		{ return CItemAmountable::_GetFill(); }
+	float								_GetBar								CO$	()		{ return CItemAmountable::_GetBar(); }
 };

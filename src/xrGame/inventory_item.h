@@ -354,6 +354,17 @@ public:
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
 
+private:
+	float							V$	_GetAmount							C$	()		{ return no_float; }
+	float							V$	_GetFill							C$	()		{ return no_float; }
+	float							V$	_GetBar								C$	()		{ return no_float; }
+
+protected:
+	float							V$	_Weight								C$	()		{ return m_weight; }
+	float							V$	_Volume								C$	()		{ return m_volume; }
+	float							V$	_Cost								C$	()		{ return m_cost; }
+
+public:
 	float								GetAmount							C$	();
 	float								GetFill								C$	();
 	float								GetBar								C$	();
@@ -364,12 +375,6 @@ public:
 
 public:
 	void								Transfer							C$	(u16 id = NO_ID);
-	template <typename T>
-	T									icast								C$	() { return m_object->cast<T>(); }
-	template <typename T>
-	T									icast									() { return m_object->cast<T>(); }
-
-	friend class CWeaponAmmo;
 };
 
 #include "inventory_item_inline.h"

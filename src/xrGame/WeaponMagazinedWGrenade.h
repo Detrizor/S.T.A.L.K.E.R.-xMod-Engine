@@ -51,7 +51,6 @@ public:
 	virtual bool	GetBriefInfo			(II_BriefInfo& info);
 
 	virtual bool	IsNecessaryItem	    (const shared_str& item_sect);
-	virtual float	Weight() const;
 
 	//виртуальные функции для проигрывания анимации HUD
 	virtual void	PlayAnimShow		();
@@ -93,9 +92,10 @@ private:
 	CGrenadeLauncher CP$						m_pLauncher;
 
 protected:
-	void										ProcessAddon						O$	(CAddon CPC addon, BOOL attach, SAddonSlot CPC slot);
+	void								_OnChild							O$	(CObject* obj, bool take);
+	void								_ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
+	float								_Weight								CO$	();
 
-	void					OnChild				O$ (CObject* obj, bool take);
 	virtual void			SetADS					(int mode);
 	virtual void			OnMotionHalf			();
 };

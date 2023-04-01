@@ -24,9 +24,6 @@ private:
 			bool			m_closed;
 			
 			void			SE_update_status		();
-			
-protected:
-	void OnChild O$	(CObject* obj, bool take);
 
 public:
 	IC		void			set_in_use				(bool status)							{ m_in_use = status; }
@@ -38,6 +35,9 @@ public:
 			void			set_can_take			(bool status);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+protected:
+	void								_OnChild							O$	(CObject* obj, bool take);
 };
 
 add_to_type_list(CInventoryBox)

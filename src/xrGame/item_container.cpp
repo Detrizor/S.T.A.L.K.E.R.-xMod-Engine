@@ -19,7 +19,7 @@ void CInventoryContainer::Load(LPCSTR section)
 	m_capacity							= pSettings->r_float(section, "capacity");
 }
 
-void CInventoryContainer::OnInventoryAction(PIItem item, bool take) const
+void CInventoryContainer::OnInventoryAction C$(PIItem item, bool take)
 {
 	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
 	if (actor_menu && actor_menu->IsShown())
@@ -35,7 +35,23 @@ void CInventoryContainer::OnInventoryAction(PIItem item, bool take) const
 	}
 }
 
-void CInventoryContainer::OnChild(CObject* obj, bool take)
+bool CInventoryContainer::CanTakeItem(PIItem item) const
+{
+	if (smart_cast<CInventoryContainer*>(item) == this)
+		return							false;
+	if (fEqual(m_capacity, 0.f))
+		return							true;
+	float vol							= _Volume();
+	return								(fLessOrEqual(vol, m_capacity) && fLessOrEqual(vol + item->Volume(), m_capacity + 0.1f));
+}
+
+void CInventoryContainer::AddAvailableItems(TIItemContainer& items_container) const
+{
+	for (auto I : m_items)
+		items_container.push_back		(I);
+}
+
+void CInventoryContainer::_OnChild(CObject* obj, bool take)
 {
 	PIItem item							= smart_cast<PIItem>(obj);
 	if (item)
@@ -48,23 +64,7 @@ void CInventoryContainer::OnChild(CObject* obj, bool take)
 	}
 }
 
-bool CInventoryContainer::CanTakeItem(PIItem item) const
-{
-	if (smart_cast<CInventoryContainer*>(item) == this)
-		return							false;
-	if (fEqual(m_capacity, 0.f))
-		return							true;
-	float vol							= Volume();
-	return								(fLessOrEqual(vol, m_capacity) && fLessOrEqual(vol + item->Volume(), m_capacity + 0.1f));
-}
-
-void CInventoryContainer::AddAvailableItems(TIItemContainer& items_container) const
-{
-	for (auto I : m_items)
-		items_container.push_back		(I);
-}
-
-float CInventoryContainer::Weight() const
+float CInventoryContainer::_Weight() const
 {
 	float res							= 0.f;
 	for (auto I : m_items)
@@ -72,7 +72,7 @@ float CInventoryContainer::Weight() const
 	return								res;
 }
 
-float CInventoryContainer::Volume() const
+float CInventoryContainer::_Volume() const
 {
 	float res							= 0.f;
 	for (auto I : m_items)
@@ -80,7 +80,7 @@ float CInventoryContainer::Volume() const
 	return								res;
 }
 
-float CInventoryContainer::Cost() const
+float CInventoryContainer::_Cost() const
 {
 	float res							= 0.f;
 	for (auto I : m_items)

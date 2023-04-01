@@ -661,18 +661,10 @@ void CWeapon::OnH_A_Independent()
 	m_dwWeaponIndependencyTime = Level().timeServer();
 	inherited::OnH_A_Independent();
 	Light_Destroy();
-	UpdateBonesVisibility();
-};
-
-void CWeapon::OnH_A_Chield()
-{
-	inherited::OnH_A_Chield();
-	UpdateBonesVisibility();
 };
 
 void CWeapon::OnActiveItem()
 {
-	UpdateBonesVisibility();
 	m_BriefInfo_CalcFrame = 0;
 	inherited::OnActiveItem();
 }

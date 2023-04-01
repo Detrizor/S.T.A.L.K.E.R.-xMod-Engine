@@ -206,30 +206,36 @@ void CUICellItem::SetOwnerList(CUIDragDropListEx* p)
 
 void CUICellItem::UpdateConditionProgressBar()
 {
-	PIItem item											= (PIItem)m_pData;
-	if (item && m_pParentList && m_pParentList->GetConditionProgBarVisibility() && fMoreOrEqual(item->GetBar(), 0.f))
-	{
-		m_pConditionState->ShowBackground				(true);
-		m_pConditionState->m_bUseGradient				= true;
+	m_pConditionState->Show				(false);
+	if (!m_pParentList || !m_pParentList->GetConditionProgBarVisibility())
+		return;
 
-		Ivector2 itm_grid_size							= GetGridSize();
-		if (m_pParentList->GetVerticalPlacement())
-			std::swap									(itm_grid_size.x, itm_grid_size.y);
-		Ivector2 cell_size								= m_pParentList->CellSize();
-		Ivector2 cell_space								= m_pParentList->CellsSpacing();
-		float x											= 1.f;
-		float y											= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
+	PIItem item							= (PIItem)m_pData;
+	if (!item)
+		return;
 
-		m_pConditionState->SetWndPos					(Fvector2().set(x, y));
-		float width										= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
-		m_pConditionState->SetWidth						(width);
-		m_pConditionState->m_UIProgressItem.SetWidth	(width);
-		m_pConditionState->m_UIBackgroundItem.SetWidth	(width);
-		m_pConditionState->SetProgressPos				(item->GetBar());
-		m_pConditionState->Show							(true);
-	}
-	else
-		m_pConditionState->Show							(false);
+	float bar							= item->GetBar();
+	if (bar == -1.f)
+		return;
+
+	m_pConditionState->ShowBackground	(true);
+	m_pConditionState->m_bUseGradient	= true;
+
+	Ivector2 itm_grid_size				= GetGridSize();
+	if (m_pParentList->GetVerticalPlacement())
+		std::swap						(itm_grid_size.x, itm_grid_size.y);
+	Ivector2 cell_size					= m_pParentList->CellSize();
+	Ivector2 cell_space					= m_pParentList->CellsSpacing();
+	float x								= 1.f;
+	float y								= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
+
+	m_pConditionState->SetWndPos		(Fvector2().set(x, y));
+	float width							= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
+	m_pConditionState->SetWidth			(width);
+	m_pConditionState->m_UIProgressItem.SetWidth(width);
+	m_pConditionState->m_UIBackgroundItem.SetWidth(width);
+	m_pConditionState->SetProgressPos	(bar);
+	m_pConditionState->Show				(true);
 }
 
 bool CUICellItem::EqualTo(CUICellItem* itm)

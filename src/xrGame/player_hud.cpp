@@ -793,7 +793,7 @@ void player_hud::attach_item(CHudItem* item)
 		item->on_a_hud_attach();
 
 		updateMovementLayerState();
-		item->UpdateHudBonesVisibility();		//--xd непорядок
+		item->UpdateHudBonesVisibility();
 	}
 	pi->m_parent_hud_item							= item;
 }

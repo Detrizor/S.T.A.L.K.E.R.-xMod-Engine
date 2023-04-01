@@ -49,17 +49,6 @@ void CInventoryBox::SE_update_status()
 	CGameObject::u_EventSend			( P );
 }
 
-void CInventoryBox::OnChild(CObject* obj, bool take)
-{
-	CInventoryContainer::OnChild(obj, take);
-	
-	if (!take && m_in_use)
-	{
-		CGameObject* GO					= smart_cast<CGameObject*>(obj);
-		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
-	}
-}
-
 void CInventoryBox::set_can_take(bool status)
 {
 	m_can_take							= status;
@@ -74,4 +63,15 @@ void CInventoryBox::set_closed(bool status, LPCSTR reason)
 	else
 		set_tip_text					("inventory_box_use");
 	SE_update_status					();
+}
+
+void CInventoryBox::_OnChild o$(CObject* obj, bool take)
+{
+	CInventoryContainer::_OnChild(obj, take);
+
+	if (!take && m_in_use)
+	{
+		CGameObject* GO					= smart_cast<CGameObject*>(obj);
+		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
+	}
 }

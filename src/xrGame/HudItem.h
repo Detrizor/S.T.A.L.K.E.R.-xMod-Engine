@@ -186,10 +186,12 @@ protected:
 
 public:
 	virtual	bool			NeedBlendAnm			();
-	virtual void			UpdateHudBonesVisibility()										{}
 	virtual void			OnMotionHalf			()										{}
 
-	void UpdateSlotsTransform(); // Обновление положения аддонов на худе каждый кадр
+	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
+
+	void								UpdateHudBonesVisibility				();
+	void							V$	_UpdateHudBonesVisibility				()		{}
 
 	friend class CWeaponHud;
 };

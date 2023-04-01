@@ -13,17 +13,9 @@ struct SAddonSlot;
 class CInterface
 {
 public:
-	void							V$	OnChild									(CObject* obj, bool take) {}
-	void							V$	ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {}
-	bool							V$	TransferAddon							(CAddon CPC addon, bool attach) { return false; }
-
-	float							V$	GetAmount							C$	()		{ return no_float; }
-	float							V$	GetFill								C$	()		{ return no_float; }
-	float							V$	GetBar								C$	()		{ return no_float; }
-
-	float							V$	Weight								C$	()		{ return 0.f; }
-	float							V$	Volume								C$	()		{ return 0.f; }
-	float							V$	Cost								C$	()		{ return 0.f; }
+	void							V$	_OnChild								(CObject* obj, bool take) {}
+	void							V$	_ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {}
+	int								V$	_TransferAddon							(CAddon CPC addon, bool attach) { return 0; }
 };
 
 class CModule : public CInterface
@@ -37,8 +29,18 @@ public:
 										CModule									(CGameObject* obj);
 
 public:
+	float							V$	_GetAmount							C$	()		{ return no_float; }
+	float							V$	_GetFill							C$	()		{ return no_float; }
+	float							V$	_GetBar								C$	()		{ return no_float; }
+
+	float							V$	_Weight								C$	()		{ return 0.f; }
+	float							V$	_Volume								C$	()		{ return 0.f; }
+	float							V$	_Cost								C$	()		{ return 0.f; }
+
+	void							V$	_UpdateHudBonesVisibility				()		{};
+
+public:
 	void								Transfer							C$	(u16 id = NO_ID);
-	
 	template <typename T>
 	T									cast								C$	() { return O.cast<T>(); }
 	template <typename T>
