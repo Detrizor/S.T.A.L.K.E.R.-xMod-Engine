@@ -1380,13 +1380,13 @@ float CInventoryItem::Price() const
 float CInventoryItem::GetAmount() const
 {
 	float res							= _GetAmount();
-	if (res != no_float)
+	if (res != flt_max)
 		return							res;
 
 	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetAmount();
-		if (res != no_float)
+		if (res != flt_max)
 			return						res;
 	}
 
@@ -1396,13 +1396,13 @@ float CInventoryItem::GetAmount() const
 float CInventoryItem::GetFill() const
 {
 	float res							= _GetFill();
-	if (res != no_float)
+	if (res != flt_max)
 		return							res;
 
 	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetFill();
-		if (res != no_float)
+		if (res != flt_max)
 			return						res;
 	}
 
@@ -1412,13 +1412,13 @@ float CInventoryItem::GetFill() const
 float CInventoryItem::GetBar() const
 {
 	float res							= _GetBar();
-	if (res != no_float)
+	if (res != flt_max)
 		return							res;
 
 	for (auto module : m_object->Modules())
 	{
 		res								= module->_GetBar();
-		if (res != no_float)
+		if (res != flt_max)
 			return						res;
 	}
 

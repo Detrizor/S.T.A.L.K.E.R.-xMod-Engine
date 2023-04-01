@@ -9,7 +9,7 @@
 CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 {
 	m_Heaps.clear						();
-	m_iNextHeapIdx						= NO_ID;
+	m_iNextHeapIdx						= u16_max;
 	m_iHeapsCount						= 0;
 
 	m_capacity							= pSettings->r_u32(O.cNameSect(), "capacity");
@@ -61,10 +61,10 @@ void CMagazine::_OnChild o$(CObject* obj, bool take)
 		return;
 	
 	u16& idx							= heap->m_ItemCurrPlace.value;
-	if (m_iNextHeapIdx != NO_ID)
+	if (m_iNextHeapIdx != u16_max)
 	{
 		idx								= m_iNextHeapIdx;
-		m_iNextHeapIdx					= NO_ID;
+		m_iNextHeapIdx					= u16_max;
 	}
 	
 	if (take)

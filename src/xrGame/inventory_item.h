@@ -355,9 +355,9 @@ public:
 	float								Price								C$	();
 
 private:
-	float							V$	_GetAmount							C$	()		{ return no_float; }
-	float							V$	_GetFill							C$	()		{ return no_float; }
-	float							V$	_GetBar								C$	()		{ return no_float; }
+	float							V$	_GetAmount							C$	()		{ return flt_max; }
+	float							V$	_GetFill							C$	()		{ return flt_max; }
+	float							V$	_GetBar								C$	()		{ return flt_max; }
 
 protected:
 	float							V$	_Weight								C$	()		{ return m_weight; }
@@ -374,7 +374,7 @@ public:
 	float								Cost								C$	();
 
 public:
-	void								Transfer							C$	(u16 id = NO_ID);
+	void								Transfer							C$	(u16 id = u16_max);
 };
 
 #include "inventory_item_inline.h"

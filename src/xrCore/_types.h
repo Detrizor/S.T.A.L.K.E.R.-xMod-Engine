@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 // Type defs
 typedef signed char s8;
@@ -30,29 +29,29 @@ typedef pcstr LPCSTR;
 #endif
 
 // Type limits
-#define type_max(T) (std::numeric_limits<T>::max())
-#define type_min(T) (-std::numeric_limits<T>::max())
-#define type_zero(T) (std::numeric_limits<T>::min())
-#define type_epsilon(T) (std::numeric_limits<T>::epsilon())
+#define type_max(T) (::std::numeric_limits<T>::max)()
+#define type_min(T) -(::std::numeric_limits<T>::max)()
+#define type_zero(T) (::std::numeric_limits<T>::min)()
+#define type_epsilon(T) (::std::numeric_limits<T>::epsilon)()
 
-#define int_max type_max(int)
-#define int_min type_min(int)
-#define int_zero type_zero(int)
+constexpr int int_max		= type_max(int);
+constexpr int int_min		= type_min(int);
+constexpr int int_zero		= type_zero(int);
 
-#define flt_max type_max(float)
-#define flt_min type_min(float)
-//#define FLT_MAX 3.402823466e+38F /* max value */
-//#define FLT_MIN 1.175494351e-38F /* min positive value */
-#define FLT_MAX flt_max
-#define FLT_MIN flt_min
+constexpr u16 u16_max		= type_max(u16);
 
-#define flt_zero type_zero(float)
-#define flt_eps type_epsilon(float)
+constexpr float flt_max		= type_max(float);
+constexpr float flt_min		= type_min(float);
+constexpr float FLT_MAX		= flt_max;
+constexpr float FLT_MIN		= flt_min;
 
-#define dbl_max type_max(double)
-#define dbl_min type_min(double)
-#define dbl_zero type_zero(double)
-#define dbl_eps type_epsilon(double)
+constexpr float flt_zero	= type_zero(float);
+constexpr float flt_eps		= type_epsilon(float);
+
+constexpr double dbl_max		= type_max(double);
+constexpr double dbl_min		= type_min(double);
+constexpr double dbl_zero		= type_zero(double);
+constexpr double dbl_eps		= type_epsilon(double);
 
 typedef char string16[16];
 typedef char string32[32];
@@ -65,5 +64,3 @@ typedef char string2048[2048];
 typedef char string4096[4096];
 
 typedef char string_path[2 * _MAX_PATH];
-
-#endif

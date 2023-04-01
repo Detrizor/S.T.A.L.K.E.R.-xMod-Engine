@@ -1,10 +1,6 @@
 #pragma once
 
-constexpr unsigned short NO_ID = std::numeric_limits<unsigned short>::max();
-constexpr float no_float = std::numeric_limits<float>::max();
-
 class CGameObject;
-class CInventoryItem;
 class CObject;
 class CAddon;
 
@@ -35,8 +31,8 @@ public:
 	void							V$	_ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {}
 	int								V$	_TransferAddon							(CAddon CPC addon, bool attach) { return 0; }
 
-	float							V$	Event									(EEventTypes type, void* data, u32 additional_data = 0) { return no_float; }
-	float							V$	EventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return no_float; }
+	float							V$	Event									(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
+	float							V$	EventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
 };
 
 class CModule : public CInterface
@@ -48,9 +44,9 @@ public:
 										CModule									(CGameObject* obj) : O(*obj) {}
 
 public:
-	float							V$	_GetAmount							C$	()		{ return no_float; }
-	float							V$	_GetFill							C$	()		{ return no_float; }
-	float							V$	_GetBar								C$	()		{ return no_float; }
+	float							V$	_GetAmount							C$	()		{ return flt_max; }
+	float							V$	_GetFill							C$	()		{ return flt_max; }
+	float							V$	_GetBar								C$	()		{ return flt_max; }
 
 	float							V$	_Weight								C$	()		{ return 0.f; }
 	float							V$	_Volume								C$	()		{ return 0.f; }
@@ -58,11 +54,11 @@ public:
 
 	void							V$	_UpdateHudBonesVisibility				()		{};
 
-	float							V$	MEvent									(EEventTypes type, void* data, u32 additional_data = 0) { return no_float; }
-	float							V$	MEventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return no_float; }
+	float							V$	MEvent									(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
+	float							V$	MEventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
 
 public:
-	void								Transfer							C$	(u16 id = NO_ID);
+	void								Transfer							C$	(u16 id = u16_max);
 	template <typename T>
 	T									cast								C$	() { return O.cast<T>(); }
 	template <typename T>

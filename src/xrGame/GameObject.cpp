@@ -156,7 +156,7 @@ void CGameObject::net_Destroy	()
 
 void CGameObject::OnEvent(NET_Packet& P, u16 type)
 {
-	u16 id								= NO_ID;
+	u16 id								= u16_max;
 	CObject* obj						= NULL;
 	bool dont_create_shell				= false;
 	bool take							= false;
@@ -1182,7 +1182,7 @@ void CGameObject::OnRender			()
 void CGameObject::_Transfer(u16 id) const
 {
 	NET_Packet							P;
-	if (id == NO_ID)
+	if (id == u16_max)
 	{
 		u_EventGen						(P, GE_OWNERSHIP_REJECT, Parent->ID());
 		P.w_u16							(ID());

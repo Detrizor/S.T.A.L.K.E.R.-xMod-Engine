@@ -8,7 +8,7 @@
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
-	m_NextAddonSlot						= NO_ID;
+	m_NextAddonSlot						= u16_max;
 	m_Slots.clear						();
 	LoadAddonSlots						(pSettings->r_string(O.cNameSect(), "slots"));
 }
@@ -64,10 +64,10 @@ void CAddonOwner::_OnChild o$(CObject* obj, bool take)
 		PIItem item						= smart_cast<PIItem>(obj);
 		R_ASSERT						(item);
 		idx								= &item->m_ItemCurrPlace.value;
-		if (m_NextAddonSlot != NO_ID)
+		if (m_NextAddonSlot != u16_max)
 		{
 			*idx						= m_NextAddonSlot;
-			m_NextAddonSlot				= NO_ID;
+			m_NextAddonSlot				= u16_max;
 		}
 	}
 	else
@@ -91,7 +91,7 @@ void CAddonOwner::_OnChild o$(CObject* obj, bool take)
 
 int CAddonOwner::_TransferAddon o$(CAddon CPC addon, bool attach)
 {
-	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : NO_ID));
+	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : u16_max));
 	return								2;
 }
 
@@ -133,7 +133,7 @@ int CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 	if (!addon)
 		return							0;
 
-	if (slot_idx == NO_ID)
+	if (slot_idx == u16_max)
 	{
 		for (auto slot : m_Slots)
 		{
@@ -145,7 +145,7 @@ int CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
 		}
 	}
 
-	if (slot_idx != NO_ID)
+	if (slot_idx != u16_max)
 	{
 		m_NextAddonSlot					= slot_idx;
 		return							TransferAddon(addon, true);
@@ -226,7 +226,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slot
 	primary_scope						= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("overlaping_slot_%d", idx);
-	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, NO_ID);
+	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
 
 	addon = loading_addon				= NULL;
 	render_pos.identity					();
@@ -282,7 +282,7 @@ bool SAddonSlot::Compatible(CAddon CPC _addon) const
 	if (_addon->SlotType() != type)
 		return							false;
 
-	if (overlaping_slot != NO_ID && parent_slots[overlaping_slot]->addon)
+	if (overlaping_slot != u16_max && parent_slots[overlaping_slot]->addon)
 		return							false;
 
 	return								true;

@@ -61,7 +61,7 @@ public:
 
 	void								ModifyControlInertionFactor			C$	(float& cif);
 
-	int									AttachAddon								(CAddon CPC addon, u16 slot_idx = NO_ID);
+	int									AttachAddon								(CAddon CPC addon, u16 slot_idx = u16_max);
 	int									DetachAddon								(CAddon CPC addon);
 	void								UpdateSlotsTransform					();
 			

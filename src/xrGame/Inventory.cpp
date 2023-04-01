@@ -66,8 +66,8 @@ CInventory::CInventory()
 	
 	m_iReturnPlace								= 0;
 	m_iReturnSlot								= 0;
-	m_iNextActiveItemID							= NO_ID;
-	m_iNextLeftItemID							= NO_ID;
+	m_iNextActiveItemID							= u16_max;
+	m_iNextLeftItemID							= u16_max;
 
 	//Alundaio: Dynamically create as many slots as we may define in system.ltx
 	string256	slot_persistent;
@@ -112,8 +112,8 @@ CInventory::CInventory()
 
 	m_change_after_deactivate	= false;
 	m_bBoltPickUp				= false;
-	m_iToDropID					= NO_ID;
-	m_iRuckBlockID				= NO_ID;
+	m_iToDropID					= u16_max;
+	m_iRuckBlockID				= u16_max;
 }
 
 CInventory::~CInventory() 
@@ -641,7 +641,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 		else if (hand != LEFT_HAND_SLOT || active_item->HandSlot() == BOTH_HANDS_SLOT)
 		{
 			hi->DeactivateItem			();
-			m_iNextActiveItemID			= NO_ID;
+			m_iNextActiveItemID			= u16_max;
 			can_set						= false;
 		}
 	}
@@ -661,7 +661,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 		else if (hand != RIGHT_HAND_SLOT)
 		{
 			det->HideDetector			(g_player_hud->attached_item(0) != NULL);
-			m_iNextLeftItemID			= NO_ID;
+			m_iNextLeftItemID			= u16_max;
 			can_set						= false;
 		}
 	}
@@ -673,7 +673,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 	}
 
 	u16& tmp							= (hand == LEFT_HAND_SLOT) ? m_iNextLeftItemID : m_iNextActiveItemID;
-	tmp									= (tmp == item->object_id()) ? NO_ID : item->object_id();
+	tmp									= (tmp == item->object_id()) ? u16_max : item->object_id();
 
 	if (can_set)
 		Slot							(hand, item);
@@ -686,10 +686,10 @@ void CInventory::Update()
 		if (m_bActors)
 		{
 			PIItem active_item						= ActiveItem();
-			u16 active_item_id						= (active_item) ? active_item->object_id() : NO_ID;
+			u16 active_item_id						= (active_item) ? active_item->object_id() : u16_max;
 			bool active_swap						= (active_item_id != m_iNextActiveItemID);
 			PIItem left_item						= LeftItem();
-			u16 left_item_id						= (left_item) ? left_item->object_id() : NO_ID;
+			u16 left_item_id						= (left_item) ? left_item->object_id() : u16_max;
 			bool left_swap							= (left_item_id != m_iNextLeftItemID);
 
 			if (active_swap || left_swap)
@@ -803,7 +803,7 @@ bool CInventory::Bag(PIItem item)
 {
 	if (item->object_id() == m_iRuckBlockID)
 	{
-		m_iRuckBlockID				= NO_ID;
+		m_iRuckBlockID				= u16_max;
 		return						false;
 	}
 	CContainerObject* container		= smart_cast<CContainerObject*>(ActiveItem());

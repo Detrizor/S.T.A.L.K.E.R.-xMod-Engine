@@ -312,7 +312,7 @@ private:
 	void								OnChild									(CObject* obj, bool take);
 
 public:
-	void								_Transfer							C$	(u16 id = NO_ID);
+	void								_Transfer							C$	(u16 id = u16_max);
 
 	template <typename T>
 	T*									AddModule								()		{ T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
