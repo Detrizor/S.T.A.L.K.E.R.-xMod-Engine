@@ -2,91 +2,83 @@
 #include "inventory_item_amountable.h"
 #include "Level.h"
 
-CItemAmountable::CItemAmountable()
+CAmountable::CAmountable(CGameObject* obj) : CModule(obj)
 {
-	m_item							= NULL;
-	m_net_weight					= 0.f;
-	m_net_volume					= 0.f;
-	m_net_cost						= 0.f;
-	m_capacity						= 1.f;
-	m_unlimited						= false;
-	m_depletion_speed				= 1.f;
+	m_net_weight						= pSettings->r_float(O.cNameSect(), "net_weight");
+	m_net_volume						= pSettings->r_float(O.cNameSect(), "net_volume");
+	m_unlimited							= !!pSettings->r_bool(O.cNameSect(), "unlimited");
+	m_depletion_speed					= pSettings->r_float(O.cNameSect(), "depletion_speed");
+	m_capacity							= pSettings->r_float(O.cNameSect(), "capacity");
+	m_fAmount							= m_capacity;
 
-	m_fAmount						= 1.f;
+	float net_cost						= pSettings->r_float(O.cNameSect(), "net_cost");
+	m_net_cost							= (net_cost == -1.f) ? CInventoryItem::ReadBaseCost(*O.cNameSect()): net_cost;
+
+	m_item								= cast<PIItem>();
 }
 
-DLL_Pure* CItemAmountable::_construct()
-{
-	m_object						= smart_cast<CPhysicItem*>(this);
-	m_item							= smart_cast<PIItem>(this);
-	return							m_object;
-}
-
-void CItemAmountable::Load(LPCSTR section)
-{
-	m_net_weight					= pSettings->r_float(section, "net_weight");
-	m_net_volume					= pSettings->r_float(section, "net_volume");
-	m_depletion_speed				= pSettings->r_float(section, "depletion_speed");
-	m_capacity						= pSettings->r_float(section, "capacity");
-	m_fAmount						= m_capacity;
-	m_unlimited						= !!pSettings->r_bool(section, "unlimited");
-	float net_cost					= pSettings->r_float(section, "net_cost");
-	m_net_cost						= (net_cost == -1.f) ? CInventoryItem::ReadBaseCost(section): net_cost;
-}
-
-bool CItemAmountable::Useful() const
-{
-	bool res						= m_item->Useful();
-	res								&= !Empty() || fMore(m_item->Weight(), 0.f) || fMore(m_item->Volume(), 0.f);
-	return							res;
-}
-
-void CItemAmountable::OnAmountChange()
+void CAmountable::OnAmountChange()
 {
 	if (fLess(m_fAmount, 0.f))
-		m_fAmount					= 0.f;
+		m_fAmount						= 0.f;
 	else if (!m_unlimited && fMore(m_fAmount, Capacity()))
-		m_fAmount					= m_capacity;
+		m_fAmount						= m_capacity;
 
-	if (!Useful() && m_object->Local() && OnServer())
-		m_object->DestroyObject		();
+	if (!Useful() && O.Local() && OnServer())
+	{
+		m_item->SetDropManual			(TRUE);
+		O.DestroyObject					();
+	}
 }
 
-void CItemAmountable::SetAmount(float val)
+bool CAmountable::Useful() const
 {
-	m_fAmount						= val;
-	OnAmountChange					();
+	bool res							= m_item->Useful();
+	res									&= !Empty() || fMore(m_item->Weight(), 0.f) || fMore(m_item->Volume(), 0.f);
+	return								res;
 }
 
-void CItemAmountable::ChangeAmount(float delta)
+float CAmountable::aboba o$(EEventTypes type, void* data, int param)
 {
-	m_fAmount						+= delta;
-	OnAmountChange					();
+	switch (type)
+	{
+		case eGetAmount:
+			return						m_fAmount;
+		case eGetFill:
+			return						Fill();
+		case eGetBar:
+			return						Full() ? -1.f : Fill();
+		case eWeight:
+			return						m_net_weight * Fill();
+		case eVolume:
+			return						m_net_volume * Fill();
+		case eCost:
+			return						m_net_cost * (Fill() - 1.f);
+	}
+
+	return								CModule::aboba(type, data, param);
 }
 
-void CItemAmountable::SetFill(float val)
+void CAmountable::SetAmount(float val)
 {
-	m_fAmount						= val * Capacity();
-	OnAmountChange					();
+	m_fAmount							= val;
+	OnAmountChange						();
 }
 
-void CItemAmountable::ChangeFill(float delta)
+void CAmountable::ChangeAmount(float delta)
 {
-	m_fAmount						+= delta * Capacity();
-	OnAmountChange					();
+	m_fAmount							+= delta;
+	OnAmountChange						();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-DLL_Pure* CIIOAmountable::_construct()
+void CAmountable::SetFill(float val)
 {
-	CItemAmountable::_construct		();
-	inherited::_construct			();
-	return							this;
+	m_fAmount							= val * Capacity();
+	OnAmountChange						();
 }
 
-void CIIOAmountable::Load(LPCSTR section)
+void CAmountable::ChangeFill(float delta)
 {
-	inherited::Load					(section);
-	CItemAmountable::Load			(section);
+	m_fAmount							+= delta * Capacity();
+	OnAmountChange						();
 }

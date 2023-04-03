@@ -24,7 +24,7 @@ class rat_state_manager;
 namespace steering_behaviour {
 	class manager;
 } // namespace steering_behaviour
-class CAI_Rat : public CCustomMonster, public CEatableItem
+class CAI_Rat : public CCustomMonster
 {
 private:
 	typedef	CCustomMonster	inherited;
@@ -343,13 +343,9 @@ public:
 public:
 								CAI_Rat					();
 	virtual						~CAI_Rat				();
-	virtual DLL_Pure			*_construct				();
 
 public:
 	virtual CGameObject*		cast_game_object			()  {return this;};
-	virtual CInventoryItem*		cast_inventory_item			()	{return this;}
-	virtual CAttachableItem*	cast_attachable_item		()	{return this;}
-	virtual CEatableItem*		cast_eatable_item			()	{return this;}
 	virtual CEntityAlive*		cast_entity_alive			()	{return this;}
 	virtual CEntity*			cast_entity					()	{return this;}
 	virtual CPhysicsShellHolder*cast_physics_shell_holder	()	{return this;}
@@ -388,10 +384,7 @@ public:
 	//rat as eatable item
 	virtual void				OnHUDDraw				(CCustomHUD* hud) {inherited::OnHUDDraw(hud);}
 	virtual void				OnH_B_Chield			();
-	virtual void				OnH_B_Independent		();
-	virtual void				OnH_A_Independent		();
 	virtual void				OnEvent					(NET_Packet& P, u16 type) {inherited::OnEvent(P,type);}
-	virtual bool				Useful					() const;
 	virtual BOOL				UsedAI_Locations		();
 	///////////////////////////////////////////////////////////////////////
 	virtual u16					PHGetSyncItemsNumber	()			{return inherited ::PHGetSyncItemsNumber();}
@@ -410,18 +403,13 @@ public:
 	{
 		return					(inherited::Orientation());
 	};
+
 public:
-	virtual void				make_Interpolation		();
-	virtual void				PH_B_CrPr				(); // actions & operations before physic correction-prediction steps
-	virtual void				PH_I_CrPr				(); // actions & operations after correction before prediction steps
 #ifdef DEBUG
 	virtual void				PH_Ch_CrPr				(); // 
 #endif
-	virtual void				PH_A_CrPr				(); // actions & operations after phisic correction-prediction steps
-	virtual void				OnH_A_Chield			();
 	virtual void				create_physic_shell		();
 	virtual void				setup_physic_shell		();
-	virtual void				activate_physic_shell	();
 	virtual void				on_activate_physic_shell();
 	virtual	Feel::Sound*		dcast_FeelSound			()			{ return this;	}
 	virtual bool				use_model_pitch			() const;
@@ -439,11 +427,6 @@ public:
 #endif
 private:
 	steering_behaviour::manager	*m_behaviour_manager;
-protected:
-	virtual bool	use_parent_ai_locations	() const
-	{
-		return CAttachableItem::use_parent_ai_locations();
-	}
 };
 
 #include "ai_rat_inline.h"

@@ -32,7 +32,7 @@
 using namespace InventoryUtilities;
 //Alundaio
 #include "../../xrServerEntities/script_engine.h" 
-using namespace luabind; 
+using namespace ::luabind; 
 //-Alundaio
 
 // what to block
@@ -141,7 +141,7 @@ void CInventory::Clear()
 	InvalidateState						();
 }
 
-void CInventory::OnInventoryAction(PIItem item, u16 actionType, u8 zone)
+void CInventory::OnInventoryAction(PIItem item, bool take, u8 zone)
 {
 	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
 	if (!actor_menu || !actor_menu->IsShown())
@@ -153,7 +153,7 @@ void CInventory::OnInventoryAction(PIItem item, u16 actionType, u8 zone)
 	if (zone != 1 && actor_menu->GetMenuMode() == mmDeadBodySearch && m_pOwner == actor_menu->GetPartner())
 		res_zone						+= 2;
 	if (0 < res_zone)
-		actor_menu->OnInventoryAction	(item, actionType, res_zone);
+		actor_menu->OnInventoryAction	(item, take, res_zone);
 }
 
 void CInventory::Take(CGameObject *pObj, bool strict_placement)
@@ -216,7 +216,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	pIItem->object().processing_deactivate();
 	VERIFY								(pIItem->CurrPlace() != eItemPlaceUndefined);
 	
-	OnInventoryAction					(pIItem, GE_OWNERSHIP_TAKE, 2);
+	OnInventoryAction					(pIItem, true, 2);
 
 	if (pIItem->BaseSlot() == BOLT_SLOT)
 	{
@@ -302,7 +302,7 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	InvalidateState								();
 	m_drop_last_frame							= true;
 
-	OnInventoryAction							(pIItem, GE_OWNERSHIP_REJECT, 0);
+	OnInventoryAction							(pIItem, false, 0);
 
 	if (smart_cast<CWeapon*>(pObj))
 	{
@@ -806,10 +806,13 @@ bool CInventory::Bag(PIItem item)
 		m_iRuckBlockID				= u16_max;
 		return						false;
 	}
-	CContainerObject* container		= smart_cast<CContainerObject*>(ActiveItem());
+	PIItem ai						= ActiveItem();
+	if (!ai)
+		return						false;
+	CInventoryContainer* container	= ai->cast<CInventoryContainer*>();
 	if (!container || !container->CanTakeItem(item))
 		return						false;
-	item->Transfer					(container->ID());
+	item->Transfer					(container->O.ID());
 	return							true;
 }
 
@@ -1174,11 +1177,12 @@ CInventoryItem *CInventory::get_object_by_id(ALife::_OBJECT_ID tObjectID)
 bool CInventory::Eat(PIItem pIItem)
 {
 	//устанаовить съедобна ли вещь
-	CEatableItemObject* pItemToEat = smart_cast<CEatableItemObject*>(pIItem);
+	CEatableItem* pItemToEat	= smart_cast<CEatableItem*>(pIItem);
 	if (!pItemToEat)
 		return					false;
 
-	if (pItemToEat->Empty())
+	CAmountable* amt			= pIItem->cast<CAmountable*>();
+	if (amt && amt->Empty())
 		return					false;
 
 	CEntityAlive *entity_alive = smart_cast<CEntityAlive*>(m_pOwner);
@@ -1200,7 +1204,7 @@ bool CInventory::Eat(PIItem pIItem)
 	if (!pItemToEat->UseBy(entity_alive))
 		return					false;
 
-	luabind::functor<bool>	funct;
+	::luabind::functor<bool>	funct;
 	if (ai().script_engine().functor("_G.CInventory__eat", funct))
 	{
 		if (!funct(smart_cast<CGameObject*>(pItemToEat->H_Parent())->lua_game_object(), (smart_cast<CGameObject*>(pIItem))->lua_game_object()))
@@ -1213,10 +1217,10 @@ bool CInventory::Eat(PIItem pIItem)
 		CurrentGameUI()->GetActorMenu().SetCurrentItem(NULL);
 	}
 
-	pItemToEat->Deplete();
-
-	if (!pItemToEat->Useful())
-		pIItem->SetDropManual(TRUE);
+	if (amt)
+		amt->Deplete();
+	else
+		pIItem->O.DestroyObject();
 
 	return true;
 }
@@ -1235,7 +1239,8 @@ bool CInventory::ClientEat(PIItem pIItem)
 	CInventory* pInventory = pItemToEat->m_pInventory;
 	if ( !pInventory || pInventory != this )	return false;
 	if ( pInventory != IO->m_inventory )		return false;
-	if ( pItemToEat->object().H_Parent()->ID() != entity_alive->ID() )		return false;
+	if ( pItemToEat->H_Parent()->ID() != entity_alive->ID() )
+		return false;
 	
 	NET_Packet						P;
 	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM_EAT, pIItem->parent_id());
@@ -1548,7 +1553,7 @@ void CInventory::CheckArtefact(PIItem item, bool add)
 	CArtefact* artefact				= smart_cast<CArtefact*>(item);
 	if (artefact)
 	{
-		xr_vector<CArtefact*>::iterator it = std::find(m_artefacts.begin(), m_artefacts.end(), artefact);
+		xr_vector<CArtefact*>::iterator it = ::std::find(m_artefacts.begin(), m_artefacts.end(), artefact);
 		if (it != m_artefacts.end())
 		{
 			if (!add)
@@ -1559,8 +1564,8 @@ void CInventory::CheckArtefact(PIItem item, bool add)
 	}
 	else if (READ_IF_EXISTS(pSettings, r_bool, item->m_section_id, "artefact_container", FALSE))
 	{
-		CContainerObject* con		= smart_cast<CContainerObject*>(item);
-		for (TIItemContainer::const_iterator I = con->Items().begin(), E = con->Items().end(); I != E; I++)
-			CheckArtefact			(*I, add);
+		CInventoryContainer* con	= item->cast<CInventoryContainer*>();
+		for (auto I : con->Items())
+			CheckArtefact			(I, add);
 	}
 }

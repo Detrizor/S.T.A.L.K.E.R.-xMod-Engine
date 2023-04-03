@@ -12,7 +12,6 @@
 
 class CAI_Stalker;
 class CInventoryItem;
-class CFoodItem;
 class CWeaponMagazined;
 class CWeapon;
 //////////////////////////////////////////////////////////////////////////

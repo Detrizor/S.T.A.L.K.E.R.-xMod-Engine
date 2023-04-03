@@ -53,7 +53,7 @@ void CUIActorMenu::InitDeadBodySearchMode()
 		UpdatePartnerBag				();
 	}
 	else if (m_pInvBox)
-		m_pInvBox->AddAvailableItems	(items_list);
+		m_pInvBox->m_pContainer->AddAvailableItems(items_list);
 	else
 		m_pContainer->AddAvailableItems	(items_list);
 
@@ -112,7 +112,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 	}
 	else if (m_pInvBox)
 	{
-		if (!m_pInvBox->can_take() || !m_pInvBox->CanTakeItem(item))
+		if (!m_pInvBox->can_take() || !m_pInvBox->m_pContainer->CanTakeItem(item))
 			return					false;
 
 		luabind::functor<bool>		funct;
@@ -128,7 +128,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 	CUICellItem* i					= old_owner->RemoveItem(itm, old_owner == new_owner);
 	(b_use_cursor_pos)				? new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
 
-	item->Transfer					((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->ID()));
+	item->Transfer					((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->O.ID()));
 	
 	UpdateDeadBodyBag				();
 	return							true;
@@ -136,7 +136,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 void CUIActorMenu::UpdateDeadBodyBag()
 {
-	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? smart_cast<CInventoryContainer*>(m_pInvBox) : smart_cast<CInventoryContainer*>(m_pContainer));
+	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->Cast<CInventoryContainer*>() : m_pContainer->cast<CInventoryContainer*>());
 	//InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 }
 

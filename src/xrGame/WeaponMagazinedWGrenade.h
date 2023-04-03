@@ -36,8 +36,6 @@ public:
 	virtual void	OnShot			();
 	virtual void	OnEvent			(NET_Packet& P, u16 type);
 	virtual void	ReloadMagazine	();
-			bool	LoadGrenade		(CWeaponAmmo* grenade);
-	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
 
 	virtual bool	Action			(u16 cmd, u32 flags);
 
@@ -91,11 +89,12 @@ public:
 private:
 	CGrenadeLauncher CP$						m_pLauncher;
 
-protected:
-	void								_OnChild							O$	(CObject* obj, bool take);
-	void								_ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
-	float								_Weight								CO$	();
+	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
-	virtual void			SetADS					(int mode);
-	virtual void			OnMotionHalf			();
+protected:
+	BOOL								Chamber								CO$	();
+
+	void								SetADS								O$	(int mode);
+	void								OnMotionHalf						O$	();
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
 };

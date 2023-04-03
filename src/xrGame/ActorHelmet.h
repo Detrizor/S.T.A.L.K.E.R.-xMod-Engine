@@ -1,13 +1,13 @@
 #pragma once
 
-#include "inventory_item_amountable.h"
+#include "inventory_item_object.h"
 
 struct SBoneProtections;
 
-class CHelmet : public CIIOAmountable
+class CHelmet : public CInventoryItemObject
 {
 private:
-	typedef	CIIOAmountable	inherited;
+	typedef	CInventoryItemObject inherited;
 
 public:
 							CHelmet					();
@@ -50,6 +50,4 @@ private:
 
 public:
 	const	float&			Health					()								const	{ return m_fHealth; }
-
-	virtual float			GetBar 					()								const	{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
 };

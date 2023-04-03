@@ -11,15 +11,12 @@ class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
 class CArtefact :	public CInventoryItemObject,
-	public CPHUpdateObject,
-	public CItemAmountable
+	public CPHUpdateObject
 {
 	typedef CInventoryItemObject inherited;
 
 public:
 									CArtefact						();
-	virtual							~CArtefact						();
-	virtual DLL_Pure*				_construct						();
 
 	virtual void					Load							(LPCSTR section);
 	virtual BOOL					net_Spawn						(CSE_Abstract* DC);

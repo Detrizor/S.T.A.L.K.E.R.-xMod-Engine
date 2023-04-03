@@ -112,8 +112,7 @@ public:
 
 class CUIArtefactDetectorBase;
 
-class CCustomDetector : public CInventoryItemObject,
-	public CItemAmountable
+class CCustomDetector : public CInventoryItemObject
 {
 	typedef	CInventoryItemObject inherited;
 
@@ -125,7 +124,6 @@ protected:
 public:
 					CCustomDetector		();
 	virtual			~CCustomDetector	();
-	virtual DLL_Pure*_construct			();
 
 	virtual BOOL 	net_Spawn			(CSE_Abstract* DC);
 	virtual void 	Load				(LPCSTR section);

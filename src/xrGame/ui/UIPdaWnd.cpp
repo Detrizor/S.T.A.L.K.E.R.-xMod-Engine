@@ -169,8 +169,12 @@ void CUIPdaWnd::Update()
 	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(pUILogsWnd,&CUILogsWnd::PerformWork));
 
 	CActor* actor						= smart_cast<CActor*>(Level().CurrentEntity());
-	PIItem active_item					= (actor) ? actor->inventory().ActiveItem() : NULL;
-	CIIOAmountable* aiitem				= smart_cast<CIIOAmountable*>(active_item);
+	if (!actor)
+		HideDialog();
+	PIItem active_item					= actor->inventory().ActiveItem();
+	if (!active_item)
+		HideDialog();
+	CAmountable* aiitem					= active_item->cast<CAmountable*>();
 	if (!aiitem || aiitem->Empty())
 		HideDialog();
 }

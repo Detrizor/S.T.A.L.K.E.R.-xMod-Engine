@@ -1,41 +1,26 @@
 #pragma once
 
 class CGameObject;
-class CObject;
-class CAddon;
-
-struct SAddonSlot;
 
 enum EEventTypes
 {
 	//CGameObject
-	OnChild,
+	eOnChild,
 	//CAddonOwner
-	ProcessAddon,
-	TransferAddon,
+	eOnAddon,
+	eTransferAddon,
 	//CInventoryItem
-	GetAmount,
-	GetFill,
-	GetBar,
-	Weight,
-	Volume,
-	Cost,
+	eGetAmount,
+	eGetFill,
+	eGetBar,
+	eWeight,
+	eVolume,
+	eCost,
 	//CHudItem
-	UpdateHudBonesVisibility
+	eUpdateHudBonesVisibility
 };
 
-class CInterface
-{
-public:
-	void							V$	_OnChild								(CObject* obj, bool take) {}
-	void							V$	_ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot) {}
-	int								V$	_TransferAddon							(CAddon CPC addon, bool attach) { return 0; }
-
-	float							V$	Event									(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
-	float							V$	EventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
-};
-
-class CModule : public CInterface
+class CModule
 {
 public:
 	CGameObject&						O;
@@ -44,23 +29,14 @@ public:
 										CModule									(CGameObject* obj) : O(*obj) {}
 
 public:
-	float							V$	_GetAmount							C$	()		{ return flt_max; }
-	float							V$	_GetFill							C$	()		{ return flt_max; }
-	float							V$	_GetBar								C$	()		{ return flt_max; }
-
-	float							V$	_Weight								C$	()		{ return 0.f; }
-	float							V$	_Volume								C$	()		{ return 0.f; }
-	float							V$	_Cost								C$	()		{ return 0.f; }
-
-	void							V$	_UpdateHudBonesVisibility				()		{};
-
-	float							V$	MEvent									(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
-	float							V$	MEventC								C$	(EEventTypes type, void* data, u32 additional_data = 0) { return flt_max; }
+	float							V$	aboba									(EEventTypes type, void* data = NULL, int additional_data = 0) { return flt_max; }
 
 public:
 	void								Transfer							C$	(u16 id = u16_max);
+	template <typename T, typename C>
+	T								S$	cast									(C c)					{ return CObject::Cast<T>(c); }
 	template <typename T>
-	T									cast								C$	() { return O.cast<T>(); }
+	T									cast								C$	()						{ return O.Cast<T>(); }
 	template <typename T>
-	T									cast									() { return O.cast<T>(); }
+	T									cast									()						{ return O.Cast<T>(); }
 };

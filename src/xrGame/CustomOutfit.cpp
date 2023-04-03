@@ -16,6 +16,7 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "player_hud.h"
 #include "ui/UIOutfitInfo.h"
+#include "inventory_item_amountable.h"
 
 #define MAIN_BONE 11
 const float BASIC_HEALTH = pSettings->r_float("damage_manager", "armor_basic_health");
@@ -58,11 +59,6 @@ void CCustomOutfit::net_Import(NET_Packet& P)
 	SetCondition			(_cond);
 }
 
-void CCustomOutfit::OnH_A_Chield()
-{
-	inherited::OnH_A_Chield();
-}
-
 void CCustomOutfit::Load(LPCSTR section) 
 {
 	inherited::Load				(section);
@@ -74,7 +70,10 @@ void CCustomOutfit::Load(LPCSTR section)
 
 	m_NightVisionSect			= READ_IF_EXISTS(pSettings, r_string, section, "nightvision_sect", "");
 	if (m_NightVisionSect != "")
-		SetDepletionSpeed		(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+	{
+		CAmountable* a			= AddModule<CAmountable>();
+		a->SetDepletionSpeed	(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+	}
 
 	m_ActorVisual				= READ_IF_EXISTS(pSettings, r_string, section, "actor_visual", NULL);
 	m_ef_equipment_type			= pSettings->r_u32(section,"ef_equipment_type");
@@ -256,7 +255,10 @@ bool CCustomOutfit::install_upgrade_impl( LPCSTR section, bool test )
 	if (result2 && !test)
 	{
 		m_NightVisionSect._set		(str);
-		SetDepletionSpeed			(pSettings->r_float("nightvision_depletes", str));
+		CAmountable* a				= Cast<CAmountable*>();
+		if (!a)
+			a						= AddModule<CAmountable>();
+		a->SetDepletionSpeed		(pSettings->r_float("nightvision_depletes", str));
 	}
 	result |= result2;
 

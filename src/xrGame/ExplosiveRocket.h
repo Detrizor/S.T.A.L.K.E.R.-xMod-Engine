@@ -17,10 +17,11 @@ class CExplosiveRocket :
 private:
 	typedef CCustomRocket inherited;
 	friend CRocketLauncher;
+
 public:
-	CExplosiveRocket(void);
-	virtual ~CExplosiveRocket(void);
+	CExplosiveRocket() : CInventoryItem(this) {}
 	virtual DLL_Pure	*_construct	();
+
 public:
 	virtual CExplosive					*cast_explosive			()						{return this;}
 	virtual CInventoryItem				*cast_inventory_item	()						{return this;}

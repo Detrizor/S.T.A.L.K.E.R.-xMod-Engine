@@ -15,15 +15,12 @@
 #include "UIListBoxItem.h"
 #include "UIMainIngameWnd.h"
 #include "UIGameCustom.h"
-#include "eatable_item_object.h"
 
 #include "../grenadelauncher.h"
 #include "../Artefact.h"
 #include "../eatable_item.h"
 #include "../BottleItem.h"
 #include "../WeaponMagazined.h"
-#include "../Medkit.h"
-#include "../Antirad.h"
 #include "../CustomOutfit.h"
 #include "../ActorHelmet.h"
 #include "../UICursor.h"
@@ -451,7 +448,7 @@ bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative
 bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
 	PIItem item							= (PIItem)itm->m_pData;
-	bool own							= item->parent_id() == GetBag()->ID();
+	bool own							= item->parent_id() == GetBag()->O.ID();
 	if (!GetBag()->CanTakeItem(item) && !own)
 		return							false;
 
@@ -461,7 +458,7 @@ bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 	(b_use_cursor_pos) ?				new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
 
 	if (!own)
-		item->Transfer					(GetBag()->ID());
+		item->Transfer					(GetBag()->O.ID());
 
 	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
 		ColorizeItem					(itm);
@@ -528,12 +525,9 @@ bool CUIActorMenu::TryUseItem(CUICellItem* cell_itm)
 		return false;
 	PIItem item	= (PIItem)cell_itm->m_pData;
 	
-	CBottleItem*	pBottleItem		= smart_cast<CBottleItem*>	(item);
-	CMedkit*		pMedkit			= smart_cast<CMedkit*>		(item);
-	CAntirad*		pAntirad		= smart_cast<CAntirad*>		(item);
-	CEatableItem*	pEatableItem	= smart_cast<CEatableItem*>	(item);
+	CEatableItem*	pEatableItem	= item->cast<CEatableItem*>();
 
-	if (!(pMedkit || pAntirad || pEatableItem || pBottleItem))
+	if (!pEatableItem)
 		return false;
 	if (!item->Useful())
 		return false;
@@ -556,9 +550,9 @@ void CUIActorMenu::OnItemDropped(PIItem itm, CUIDragDropListEx* new_owner, CUIDr
 		PIItem item						= (PIItem)_citem->m_pData;
 		if (item && item->InHands())
 		{
-			CAddonOwner* ao				= item->object().cast<CAddonOwner*>();
+			CAddonOwner* ao				= item->cast<CAddonOwner*>();
 			if (ao)
-				AttachAddon				(ao, itm->object().cast<CAddon*>());
+				AttachAddon				(ao, itm->cast<CAddon*>());
 		}
 	}
 }
@@ -678,7 +672,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 		return;
 
 	//отсоединение аддонов от вещи
-	CAddonOwner* ao = item->object().cast<CAddonOwner*>();
+	CAddonOwner* ao = item->cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
@@ -696,11 +690,11 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 {
 	PIItem active_item					= m_pActorInv->ActiveItem();
-	CAddonOwner* ao						= active_item->object().cast<CAddonOwner*>();
+	CAddonOwner* ao						= active_item->cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
-	CAddon* addon						= item->object().cast<CAddon*>();
+	CAddon* addon						= item->cast<CAddon*>();
 	if (!addon)
 		return;
 
@@ -853,14 +847,14 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ATTACH_ADDON:
 	{
-		CAddonOwner* ao					= m_pActorInv->ActiveItem()->object().cast<CAddonOwner*>();
+		CAddonOwner* ao					= m_pActorInv->ActiveItem()->cast<CAddonOwner*>();
 		SAddonSlot* slot				= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		AttachAddon						(ao, item->object().cast<CAddon*>(), slot->idx);
+		AttachAddon						(ao, item->cast<CAddon*>(), slot->idx);
 		break;
 	}
 	case INVENTORY_DETACH_ADDON:
 	{
-		CAddonOwner* ao					= item->object().cast<CAddonOwner*>();
+		CAddonOwner* ao					= item->cast<CAddonOwner*>();
 		DetachAddon						(ao, (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
 		break;
 	}

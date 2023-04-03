@@ -277,19 +277,6 @@ void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
 	}
 }
 
-void CWeaponMagazinedWGrenade::_OnChild o$(CObject* obj, bool take)
-{
-	inherited::_OnChild					(obj, take);
-
-	if (smart_cast<CCustomRocket*>(obj))
-	{
-		if (take)
-			CRocketLauncher::AttachRocket(obj->ID(), this);
-		else
-			CRocketLauncher::DetachRocket(obj->ID(), false);
-	}
-}
-
 void  CWeaponMagazinedWGrenade::LaunchGrenade()
 {
     if (!getRocketCount())	return;
@@ -400,22 +387,6 @@ void CWeaponMagazinedWGrenade::OnMagazineEmpty()
     {
         OnEmptyClick();
     }
-}
-
-bool CWeaponMagazinedWGrenade::LoadCartridge(CWeaponAmmo* cartridge)
-{
-	return (m_bGrenadeMode) ? false : inherited::LoadCartridge(cartridge);
-}
-
-bool CWeaponMagazinedWGrenade::LoadGrenade(CWeaponAmmo* grenade)
-{
-	if (FindAmmoClass(*grenade->m_section_id) && !iAmmoElapsed)
-	{
-		m_pCartridgeToReload = grenade;
-		StartReload			();
-		return				true;
-	}
-	return					false;
 }
 
 void CWeaponMagazinedWGrenade::ReloadMagazine()
@@ -914,30 +885,58 @@ void CWeaponMagazinedWGrenade::OnMotionHalf()
 		inherited::OnMotionHalf();
 }
 
-void CWeaponMagazinedWGrenade::_ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
+void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 {
-	CGrenadeLauncher CPC gl = addon->cast<CGrenadeLauncher CP$>();
-	if (gl)
+	m_pLauncher							= (attach) ? gl : NULL;
+
+	if (attach)
 	{
-		m_pLauncher = (attach) ? gl : NULL;
-
-		//	--xd исправить	m_sFlameParticles2 = (attach) ? pSettings->r_string(gl->Section(), "grenade_flame_particles") : NULL;
-
-		if (attach)
-			m_fLaunchSpeed = gl->GetGrenadeVel();
-		else
-		{
-			if (!m_bGrenadeMode)
-				PerformSwitchGL();
-			inventory_owner().Discharge(smart_cast<PIItem>(this), true);
-			PerformSwitchGL();
-		}
+		m_fLaunchSpeed					= gl->GetGrenadeVel();
+		m_sFlameParticles2				= gl->FlameParticles();
 	}
-
-	inherited::_ProcessAddon(addon, attach, slot);
+	else
+	{
+		if (!m_bGrenadeMode)
+			PerformSwitchGL				();
+		if (m_pInventory)
+			inventory_owner().Discharge	(this, true);
+		PerformSwitchGL					();
+	}
 }
 
-float CWeaponMagazinedWGrenade::_Weight() const
+float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param)
 {
-	return inherited::_Weight() + GetMagazineWeight(m_magazine2);
+	switch (type)
+	{
+		case eOnChild:
+		{
+			CObject* obj				= (CObject*)data;
+			if (cast<CCustomRocket*>(obj))
+			{
+				if (param)
+					AttachRocket		(obj->ID(), this);
+				else
+					DetachRocket		(obj->ID(), false);
+			}
+			break;
+		}
+		case eOnAddon:
+		{
+			SAddonSlot* slot			= (SAddonSlot*)data;
+			CGrenadeLauncher* gl		= slot->addon->cast<CGrenadeLauncher*>();
+			if (gl)
+				ProcessGL				(gl, !!param);
+			break;
+		}
+
+		case eWeight:
+			return						inherited::Aboba(type, data, param) + GetMagazineWeight(m_magazine2);
+	}
+
+	return								inherited::Aboba(type, data, param);
+}
+
+BOOL CWeaponMagazinedWGrenade::Chamber C$()
+{
+	return (m_bGrenadeMode) ? FALSE : inherited::Chamber();
 }

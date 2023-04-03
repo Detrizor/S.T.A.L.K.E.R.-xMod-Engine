@@ -216,10 +216,8 @@ protected:
 	xr_vector<CModule*>					m_modules;
 
 public:
-	xr_vector<CModule*> CR$				Modules									()		{ return m_modules; }
-
 	template <typename T, typename C>
-	T							S$	IC	cast									(C c)
+	T								S$	Cast									(C c)
 	{
 		if (!c)
 			return						NULL;
@@ -238,9 +236,9 @@ public:
 		return							NULL;
 	}
 	template <typename T>
-	T									cast								C$	() { return cast<T>(this); }
+	T									Cast								C$	() { return Cast<T>(this); }
 	template <typename T>
-	T									cast									() { return cast<T>(this); }
+	T									Cast									() { return Cast<T>(this); }
 };
 
 #pragma pack(pop)

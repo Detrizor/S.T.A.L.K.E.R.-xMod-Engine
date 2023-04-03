@@ -237,7 +237,7 @@ public:
 
 //xMod added
 private:
-	u8									m_iChamber;
+	BOOL								m_Chamber;
 	bool								m_bIronSightsLowered;
 	CScope*								m_pScope;
 	CScope*								m_pAltScope;
@@ -250,12 +250,14 @@ private:
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
+	void								ProcessMagazine							(CMagazine* mag, bool attach);
+	void								ProcessSilencer							(CSilencer* sil, bool attach);
 
 	CScope*								GetActiveScope						C$	();
 
 	float								GetControlInertionFactorBase		CO$	();
-
 	bool								ReadyToFire							CO$	();
+
 	void								PrepareCartridgeToShoot				O$	();
 	void								OnHiddenItem						O$	();
 
@@ -263,12 +265,11 @@ protected:
 	CWeaponAmmo*						m_pCartridgeToReload;
 
 	void								InitRotateTime						O$	();
-
 	void								ConsumeShotCartridge				O$	();
 
-	void								_ProcessAddon						O$	(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
-	int									_TransferAddon						O$	(CAddon CPC addon, bool attach);
-	float								_Weight								CO$	();
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
+
+	BOOL							V$	Chamber								C$	()		{ return m_Chamber; }
 
 public:
 	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }

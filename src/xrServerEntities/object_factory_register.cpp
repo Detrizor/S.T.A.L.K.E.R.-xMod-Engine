@@ -100,9 +100,6 @@
 #	include "grenadelauncher.h"
 
 #	include "bolt.h"
-#	include "medkit.h"
-#	include "antirad.h"
-#	include "fooditem.h"
 #	include "bottleitem.h"
 #	include "explosiveitem.h"
 
@@ -331,16 +328,11 @@ void CObjectFactory::register_classes	()
 #ifndef NO_SINGLE
 	ADD(CBolt					,CSE_ALifeItemBolt				,CLSID_IITEM_BOLT				,"obj_bolt");
 #endif // #ifndef NO_SINGLE
-	ADD(CMedkit					,CSE_ALifeItem					,CLSID_IITEM_MEDKIT				,"obj_medkit");
-	ADD(CMedkit					,CSE_ALifeItem					,CLSID_IITEM_BANDAGE			,"obj_bandage");
-	ADD(CAntirad				,CSE_ALifeItem					,CLSID_IITEM_ANTIRAD			,"obj_antirad");
-	ADD(CFoodItem				,CSE_ALifeItem					,CLSID_IITEM_FOOD				,"obj_food");
+	ADD(CEatableItem			,CSE_ALifeItem					,CLSID_IITEM_EATABLE			,"obj_eatable");
 	ADD(CBottleItem				,CSE_ALifeItem					,CLSID_IITEM_BOTTLE				,"obj_bottle");
 	ADD(CExplosiveItem			,CSE_ALifeItemExplosive			,CLSID_IITEM_EXPLOSIVE			,"obj_explosive");
 	
 	ADD(CInventoryItemObject	,CSE_ALifeItem					,CLSID_IITEM_BASIC				,"iitem_basic");
-	ADD(CIIOAmountable			,CSE_ALifeItem					,CLSID_IITEM_AMOUNTABLE			,"iitem_amountable");
-	ADD(CContainerObject		,CSE_ALifeItem					,CLSID_IITEM_CONTAINER			,"iitem_container");
 	ADD(CAddon					,CSE_ALifeItem					,CLSID_IITEM_ADDON				,"addon");
 	
 	//Info Document

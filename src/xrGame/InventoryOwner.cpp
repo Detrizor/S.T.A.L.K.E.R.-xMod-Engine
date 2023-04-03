@@ -661,8 +661,8 @@ void CInventoryOwner::deadbody_closed(bool status)
 
 bool CInventoryOwner::Discharge(PIItem item, bool full)
 {
-	CMagazine* mag							= smart_cast<CMagazine*>(item);
-	CWeaponMagazined* wpn					= smart_cast<CWeaponMagazined*>(item);
+	CMagazine* mag							= item->cast<CMagazine*>();
+	CWeaponMagazined* wpn					= item->cast<CWeaponMagazined*>();
 	CCartridge								cartridge;
 	bool flag								= false;
 	while ((mag) ? mag->GetCartridge(cartridge) : wpn->Discharge(cartridge))
@@ -670,9 +670,9 @@ bool CInventoryOwner::Discharge(PIItem item, bool full)
 		bool given							= false;
 		if (pSettings->r_bool(cartridge.m_ammoSect, "heap"))
 		{
-			for (TIItemContainer::iterator I = inventory().m_all.begin(), E = inventory().m_all.end(); I != E; ++I)
+			for (auto I : inventory().m_all)
 			{
-				CWeaponAmmo* heap			= smart_cast<CWeaponAmmo*>(*I);
+				CWeaponAmmo* heap			= smart_cast<CWeaponAmmo*>(I);
 				if (heap && heap->m_section_id == cartridge.m_ammoSect && fEqual(heap->GetCondition(), cartridge.m_fCondition))
 				{
 					heap->ChangeAmmoCount	(1);

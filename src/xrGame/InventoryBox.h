@@ -3,18 +3,13 @@
 #include "item_container.h"
 #include "script_export_space.h"
 
-class CInventoryBox : public CGameObject,
-	public CInventoryContainer
+class CInventoryBox : public CGameObject
 {
 private:
 	typedef CGameObject	inherited;
 	
 public:
 							CInventoryBox			();
-	virtual					~CInventoryBox			()										{}
-	virtual DLL_Pure*		_construct				();
-
-	virtual	void			Load					(LPCSTR section);
 	
 	virtual	BOOL			net_Spawn				(CSE_Abstract* DC);
 	
@@ -36,8 +31,11 @@ public:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
-protected:
-	void								_OnChild							O$	(CObject* obj, bool take);
+private:
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
+
+public:
+	CInventoryContainer*				m_pContainer;
 };
 
 add_to_type_list(CInventoryBox)

@@ -49,21 +49,9 @@ CArtefact::CArtefact()
 		m_HitAbsorbation[i]		= 0.f;
 }
 
-CArtefact::~CArtefact() 
-{
-}
-
-DLL_Pure* CArtefact::_construct()
-{
-	CItemAmountable::_construct();
-	inherited::_construct();
-	return							this;
-}
-
 void CArtefact::Load(LPCSTR section) 
 {
 	inherited::Load									(section);
-	CItemAmountable::Load							(section);
 
 	if (pSettings->line_exist(section, "particles"))
 		m_sParticlesName							= pSettings->r_string(section, "particles");

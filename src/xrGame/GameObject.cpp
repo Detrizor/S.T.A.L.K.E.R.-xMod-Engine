@@ -32,6 +32,7 @@
 #include "magic_box3.h"
 #include "animation_movement_controller.h"
 #include "../xrengine/xr_collide_form.h"
+#include "module.h"
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 #pragma warning(push)
@@ -90,6 +91,9 @@ void CGameObject::Load(LPCSTR section)
 		// self->spatial.type	|=	STYPE_VISIBLEFORAI;	
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
+
+	if (READ_IF_EXISTS(pSettings, r_string, section, "container", FALSE))
+		AddModule<CInventoryContainer>();
 }
 
 void CGameObject::reinit	()
@@ -219,7 +223,7 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 		else
 			obj->H_SetParent			(NULL, dont_create_shell);
 
-		OnChild							(obj, take);
+		Aboba							(eOnChild, (void*)obj, (int)take);
 	}
 }
 
@@ -1179,7 +1183,7 @@ void CGameObject::OnRender			()
 }
 #endif // DEBUG
 
-void CGameObject::_Transfer(u16 id) const
+void CGameObject::transfer(u16 id) const
 {
 	NET_Packet							P;
 	if (id == u16_max)
@@ -1203,9 +1207,18 @@ void CGameObject::_Transfer(u16 id) const
 	u_EventSend							(P);
 }
 
-void CGameObject::OnChild(CObject* obj, bool take)
+float CGameObject::Aboba(EEventTypes type, void* data, int param)
 {
-	_OnChild(obj, take);
-	for (auto module : Modules())
-		module->_OnChild(obj, take);
+	float res							= flt_max;
+	for (auto module : m_modules)
+	{
+		float mres						= module->aboba(type, data, param);
+		if (mres != flt_max)
+		{
+			if (res == flt_max)
+				res						= 0.f;
+			res							+= mres;
+		}
+	}
+	return								res;
 }

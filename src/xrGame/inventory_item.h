@@ -31,7 +31,6 @@ enum EHandDependence{
 
 class CSE_Abstract;
 class CGameObject;
-class CFoodItem;
 class CMissile;
 class CHudItem;
 class CWeaponAmmo;
@@ -62,15 +61,16 @@ struct net_updateInvData
 	u32				m_dwIEndTime;
 };
 
-class CInventoryItem : 
-	public CAttachableItem,
-	public CHitImmunity
+class CInventoryItem : public CAttachableItem,
+	public CHitImmunity,
+	public CModule
 #ifdef DEBUG
 	, public pureRender
 #endif
 {
 private:
 	typedef CAttachableItem inherited;
+
 protected:
 	enum EIIFlags{				FdropManual			=(1<<0),
 								FCanTake			=(1<<1),
@@ -91,8 +91,9 @@ protected:
 
 	Flags16						m_flags;
 	BOOL						m_can_trade;
+
 public:
-								CInventoryItem		();
+								CInventoryItem		(CGameObject* obj);
 	virtual						~CInventoryItem		();
 
 public:
@@ -268,7 +269,6 @@ public:
 	virtual CPhysicsShellHolder	*cast_physics_shell_holder	()	{return 0;}
 	virtual CEatableItem		*cast_eatable_item			()	{return 0;}
 	virtual CWeapon				*cast_weapon				()	{return 0;}
-	virtual CFoodItem			*cast_food_item				()	{return 0;}
 	virtual CMissile			*cast_missile				()	{return 0;}
 	virtual CHudItem			*cast_hud_item				()	{return 0;}
 	virtual CWeaponAmmo			*cast_weapon_ammo			()	{return 0;}
@@ -354,17 +354,6 @@ public:
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
 
-private:
-	float							V$	_GetAmount							C$	()		{ return flt_max; }
-	float							V$	_GetFill							C$	()		{ return flt_max; }
-	float							V$	_GetBar								C$	()		{ return flt_max; }
-
-protected:
-	float							V$	_Weight								C$	()		{ return m_weight; }
-	float							V$	_Volume								C$	()		{ return m_volume; }
-	float							V$	_Cost								C$	()		{ return m_cost; }
-
-public:
 	float								GetAmount							C$	();
 	float								GetFill								C$	();
 	float								GetBar								C$	();
@@ -373,8 +362,9 @@ public:
 	float								Volume								C$	();
 	float								Cost								C$	();
 
-public:
 	void								Transfer							C$	(u16 id = u16_max);
+	
+	float								aboba							O$	(EEventTypes type, void* data, int param);
 };
 
 #include "inventory_item_inline.h"

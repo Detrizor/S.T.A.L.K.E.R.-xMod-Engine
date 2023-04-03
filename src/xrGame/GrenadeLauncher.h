@@ -5,13 +5,13 @@
 class CGrenadeLauncher : public CModule
 {
 public:
-										CGrenadeLauncher						(CGameObject* obj);
-
-	void								Load									(LPCSTR section);
+										CGrenadeLauncher						(CGameObject* obj, shared_str CR$ section);
 
 private:
 	float								m_fGrenadeVel;
+	shared_str							m_sFlameParticles;
 
 public:
 	float								GetGrenadeVel						C$	()		{ return m_fGrenadeVel; }
+	shared_str CR$						FlameParticles						C$	()		{ return m_sFlameParticles; }
 };

@@ -10,7 +10,6 @@ CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 {
 	m_Heaps.clear						();
 	m_iNextHeapIdx						= u16_max;
-	m_iHeapsCount						= 0;
 
 	m_capacity							= pSettings->r_u32(O.cNameSect(), "capacity");
 	LPCSTR S							= pSettings->r_string(O.cNameSect(), "ammo_class");
@@ -22,6 +21,14 @@ CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 		_GetItem						(S, it, _ammoItem);
 		m_ammo_types.push_back			(_ammoItem);
 	}
+	
+	InvalidateState						();
+}
+
+void CMagazine::InvalidateState()
+{
+	m_SumAmount							= u16_max;
+	m_SumWeight							= flt_max;
 }
 
 shared_str bullets						= "bullets";
@@ -36,89 +43,92 @@ void CMagazine::UpdateBulletsVisibility()
 	UpdateBoneVisibility				(pVisual, bullets, vis);
 	pVisual->CalculateBones_Invalidate	();
 	pVisual->CalculateBones				(TRUE);
+	UpdateHudBulletsVisibility			();
 }
 
-float CMagazine::_Weight() const
+void CMagazine::UpdateHudBulletsVisibility()
 {
-	float res							= 0.f;
-	for (auto heap : m_Heaps)
-		res								+= heap->Weight();
-	return								res;
+	auto hi								= cast<CHudItem*>()->HudItemData();
+	if (hi)
+		hi->set_bone_visible			(bullets, (BOOL)!Empty(), TRUE);
 }
 
-float CMagazine::_Cost() const
+float CMagazine::aboba o$(EEventTypes type, void* data, int param)
 {
-	float res							= 0.f;
-	for (auto heap : m_Heaps)
-		res								+= heap->Cost();
-	return								res;
-}
-
-void CMagazine::_OnChild o$(CObject* obj, bool take)
-{
-	CWeaponAmmo* heap					= smart_cast<CWeaponAmmo*>(obj);
-	if (!heap)
-		return;
-	
-	u16& idx							= heap->m_ItemCurrPlace.value;
-	if (m_iNextHeapIdx != u16_max)
+	switch (type)
 	{
-		idx								= m_iNextHeapIdx;
-		m_iNextHeapIdx					= u16_max;
-	}
-	
-	if (take)
-	{
-		if (m_Heaps.size() <= idx)
-			m_Heaps.resize				(idx+1);
-		m_Heaps[idx]					= heap;
-		m_iHeapsCount++;
-	}
-	else
-	{
-		m_Heaps[idx]					= NULL;
-		m_iHeapsCount--;
+		case eUpdateHudBonesVisibility:
+			UpdateHudBulletsVisibility	();
+			break;
+		case eOnChild:
+		{
+			CWeaponAmmo* heap			= cast<CWeaponAmmo*>((CObject*)data);
+			if (!heap)
+				break;
+
+			if (param)
+			{
+				u16& idx				= heap->m_ItemCurrPlace.value;
+				if (m_iNextHeapIdx != u16_max)
+				{
+					idx					= m_iNextHeapIdx;
+					m_iNextHeapIdx		= u16_max;
+				}
+
+				if (m_Heaps.size() <= idx)
+					m_Heaps.resize		(idx+1);
+				m_Heaps[idx]			= heap;
+			}
+			else
+				m_Heaps.erase			(::std::find(m_Heaps.begin(), m_Heaps.end(), heap));
+
+			if (!smart_cast<CWeapon*>(&O))
+				UpdateBulletsVisibility	();
+
+			InvalidateState				();
+			break;
+		}
+
+		case eWeight:
+		{
+			if (m_SumWeight == flt_max)
+			{
+				m_SumWeight				= 0.f;
+				for (auto heap : m_Heaps)
+					m_SumWeight			+= heap->Weight();
+			}
+			return						m_SumWeight;
+		}
+		case eGetAmount:
+			return						(float)Amount();
+		case eGetBar:
+		case eGetFill:
+		{
+			float fill					= (float)Amount() / (float)Capacity();
+			if (type == eGetBar)
+				return					(fLess(fill, 1.f)) ? fill : -1.f;
+			return						fill;
+		}
 	}
 
-	if (!smart_cast<CWeapon*>(&O))
-		UpdateBulletsVisibility			();
+	return								CModule::aboba(type, data, param);
 }
 
-void CMagazine::_UpdateHudBonesVisibility()
+u16 CMagazine::Amount()
 {
-	cast<CHudItem*>()->HudItemData()->set_bone_visible(bullets, (BOOL)!Empty(), TRUE);
-}
-
-void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
-{
-	CWeaponAmmo* back_heap				= (Empty()) ? NULL : m_Heaps.back();
-	if (back_heap && back_heap->cNameSect() == ammo->cNameSect() && fEqual(back_heap->GetCondition(), ammo->GetCondition()))
-		back_heap->ChangeAmmoCount		(1);
-	else
+	if (m_SumAmount == u16_max)
 	{
-		O.GiveAmmo						(*ammo->cNameSect(), 1, ammo->GetCondition());
-		m_iNextHeapIdx					= m_iHeapsCount;
+		m_SumAmount						= 0;
+		if (m_Heaps.size())
+		{
+			for (auto I : m_Heaps)
+				m_SumAmount				+= I->GetAmmoCount();
+		}
 	}
-	ammo->ChangeAmmoCount				(-1);
+	return								m_SumAmount;
 }
 
-bool CMagazine::GetCartridge(CCartridge& destination, bool expend)
-{
-	return								(Empty()) ? false : m_Heaps.back()->Get(destination, expend);
-}
-
-u16 CMagazine::Amount() const
-{
-	u16 res								= 0;
-	if (m_Heaps.size())
-	{
-		for (auto I : m_Heaps)
-			res							+= I->GetAmmoCount();
-	}
-	return								res;
-}
-
-bool CMagazine::CanTake(CWeaponAmmo CPC ammo) const
+bool CMagazine::CanTake(CWeaponAmmo CPC ammo)
 {
 	if (Full())
 		return							false;
@@ -130,4 +140,27 @@ bool CMagazine::CanTake(CWeaponAmmo CPC ammo) const
 	}
 
 	return								false;
+}
+
+void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
+{
+	CWeaponAmmo* back_heap				= (Empty()) ? NULL : m_Heaps.back();
+	if (back_heap && back_heap->cNameSect() == ammo->cNameSect() && fEqual(back_heap->GetCondition(), ammo->GetCondition()))
+		back_heap->ChangeAmmoCount		(1);
+	else
+	{
+		O.GiveAmmo						(*ammo->cNameSect(), 1, ammo->GetCondition());
+		m_iNextHeapIdx					= m_Heaps.size();
+	}
+	ammo->ChangeAmmoCount				(-1);
+	InvalidateState						();
+}
+
+bool CMagazine::GetCartridge(CCartridge& destination, bool expend)
+{
+	if (Empty())
+		return							false;
+
+	InvalidateState						();
+	return								m_Heaps.back()->Get(destination, expend);
 }

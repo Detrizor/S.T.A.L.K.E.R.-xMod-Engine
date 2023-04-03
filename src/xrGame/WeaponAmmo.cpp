@@ -241,6 +241,19 @@ void CWeaponAmmo::ChangeAmmoCount(int val)
 	SetAmmoCount(u16((int)m_boxCurr + val));
 }
 
+float CWeaponAmmo::Aboba o$(EEventTypes type, void* data, int param)
+{
+	switch (type)
+	{
+		case eWeight:
+		case eVolume:
+		case eCost:
+			return						inherited::Aboba(type, data, param) * (float)m_boxCurr;
+	}
+
+	return								inherited::Aboba(type, data, param);
+}
+
 Frect CWeaponAmmo::GetIconRect() const
 {
 	Frect res = inherited::GetIconRect();
@@ -252,19 +265,4 @@ Frect CWeaponAmmo::GetIconRect() const
 			res.right -= res.width() * 2.f / 3.f;
 	}
 	return res;
-}
-
-float CWeaponAmmo::_Weight() const
-{
-	return inherited::_Weight() * (float)m_boxCurr;
-}
-
-float CWeaponAmmo::_Volume() const
-{
-	return inherited::_Volume() * (float)m_boxCurr;
-}
-
-float CWeaponAmmo::_Cost() const
-{
-	return inherited::_Cost() * (float)m_boxCurr;
 }

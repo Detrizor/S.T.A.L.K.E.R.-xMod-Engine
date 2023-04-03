@@ -119,7 +119,6 @@ void CAI_Rat::init_state_manager		()
 void CAI_Rat::reinit					()
 {
 	inherited::reinit		();
-	CEatableItem::reinit	();
 	init					();
 	init_state_manager		();
 }
@@ -127,7 +126,6 @@ void CAI_Rat::reinit					()
 void CAI_Rat::reload					(LPCSTR	section)
 {
 	inherited::reload		(section);
-	CEatableItem::reload	(section);
 	LPCSTR					head_bone_name = pSettings->r_string(section,"bone_head");
 	sound().add		(pSettings->r_string(section,"sound_death"),	100, SOUND_TYPE_MONSTER_DYING,		0, u32(eRatSoundMaskDie),		eRatSoundDie,		head_bone_name);
 	sound().add		(pSettings->r_string(section,"sound_hit"),		100, SOUND_TYPE_MONSTER_INJURING,	1, u32(eRatSoundMaskInjuring),	eRatSoundInjuring,	head_bone_name);
@@ -141,8 +139,6 @@ void CAI_Rat::Die(CObject* who)
 	inherited::Die(who);
 
 	m_eCurrentState = aiRatDeath;
-
-	m_flags.set		(FCanTake, TRUE);
 
 	SelectAnimation(XFORM().k,movement().detail().direction(),movement().speed());
 
@@ -162,7 +158,6 @@ void CAI_Rat::Load(LPCSTR section)
 	init();
 
 	inherited::Load(section);
-	CEatableItem::Load(section);
 
 	// initialize start position
 	Fvector	P						= Position();
@@ -222,9 +217,6 @@ BOOL CAI_Rat::net_Spawn	(CSE_Abstract* DC)
 
 	// model
 	if (!inherited::net_Spawn(DC))
-		return(FALSE);
-	// model
-	if (!CEatableItem::net_Spawn(DC))
 		return(FALSE);
 
 	monster_squad().register_member			((u8)g_Team(),(u8)g_Squad(),(u8)g_Group(), this);
@@ -297,8 +289,6 @@ BOOL CAI_Rat::net_Spawn	(CSE_Abstract* DC)
 	if (g_Alive())
 		Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).m_dwLastActionTime = 0;
 
-	m_flags.set						(FCanTake, FALSE);
-
 	CInifile *m_spawn_ini = spawn_ini();
 
 	if (!m_spawn_ini || !m_spawn_ini->section_exist("patrol") || !m_spawn_ini->line_exist("patrol","way"))
@@ -320,7 +310,6 @@ BOOL CAI_Rat::net_Spawn	(CSE_Abstract* DC)
 void CAI_Rat::net_Destroy()
 {
 	inherited::net_Destroy();
-	CEatableItem::net_Destroy();
 	monster_squad().remove_member		((u8)g_Team(),(u8)g_Squad(),(u8)g_Group(),this);
 }
 
@@ -360,7 +349,7 @@ void CAI_Rat::net_Export(NET_Packet& P)
 		P.w					(&f1,						sizeof(f1));
 	}
 
-	CEatableItem::net_Export(P);
+	P.w_u8(0);
 }
 
 void CAI_Rat::net_Import(NET_Packet& P)
@@ -397,8 +386,6 @@ void CAI_Rat::net_Import(NET_Packet& P)
 
 	setVisible				(TRUE);
 	setEnabled				(TRUE);
-
-	CEatableItem::net_Import(P);
 }
 
 void CAI_Rat::CreateSkeleton(){
@@ -479,33 +466,24 @@ void CAI_Rat::UpdateCL			()
 	if (!m_pPhysicsShell && !g_Alive())
 		CreateSkeleton			();
 
-	if (!Useful()) {
-		inherited::UpdateCL		();
-		Exec_Look				(Device.fTimeDelta);
+	inherited::UpdateCL		();
+	Exec_Look				(Device.fTimeDelta);
 
-		CMonsterSquad *squad	= monster_squad().get_squad(this);
+	CMonsterSquad *squad	= monster_squad().get_squad(this);
 
-		if (squad && 
-			((squad->GetLeader() != this && !squad->GetLeader()->g_Alive()) ||
-			squad->get_index(this) == u8(-1))
-			) squad->SetLeader(this);
+	if (squad && 
+		((squad->GetLeader() != this && !squad->GetLeader()->g_Alive()) ||
+		squad->get_index(this) == u8(-1))
+		) squad->SetLeader(this);
 
-		if (squad &&
-			squad->SquadActive() &&
-			squad->GetLeader() == this &&
-			m_squad_count != squad->squad_alife_count()
-			) 
-		{
-			squad->set_rat_squad_index(squad->GetLeader());
-			m_squad_count = squad->squad_alife_count();
-		}
-	}
-	else {
-		if (!H_Parent() && m_pPhysicsShell && m_pPhysicsShell->isActive())
-			m_pPhysicsShell->InterpolateGlobalTransform(&XFORM());
-
-		CPhysicsShellHolder::UpdateCL	();
-		CEatableItem::UpdateCL			();
+	if (squad &&
+		squad->SquadActive() &&
+		squad->GetLeader() == this &&
+		m_squad_count != squad->squad_alife_count()
+		) 
+	{
+		squad->set_rat_squad_index(squad->GetLeader());
+		m_squad_count = squad->squad_alife_count();
 	}
 }
 
@@ -527,20 +505,14 @@ void CAI_Rat::UpdatePositionAnimation()
 		SelectAnimation		(XFORM().k,Fvector().set(1,0,0),m_fSpeed);
 }
 
-//void CAI_Rat::Hit(float P,Fvector &dir,CObject*who,s16 element,Fvector p_in_object_space,float impulse, ALife::EHitType hit_type /*= ALife::eHitTypeWound*/)
 void		CAI_Rat::Hit									(SHit* pHDS)
 {
-//	inherited::Hit				(P,dir,who,element,p_in_object_space,impulse, hit_type);
 	inherited::Hit				(pHDS);
 	if (!m_pPhysicsShell) {
 		m_saved_impulse			= pHDS->impulse;
 		m_saved_hit_dir.set		(pHDS->dir);
 		m_saved_hit_type		= pHDS->hit_type;
 		m_saved_hit_position.set(pHDS->p_in_bone_space);
-	}
-	else {
-//		CEatableItem::Hit		(P,dir,who,element,p_in_object_space,impulse, hit_type);
-		CEatableItem::Hit		(pHDS);
 	}
 }
 
@@ -551,11 +523,6 @@ void CAI_Rat::feel_touch_new(CObject* O)
 /////////////////////////////////////
 // Rat as eatable item
 /////////////////////////////////////
-void CAI_Rat::OnH_A_Chield		()
-{
-	inherited::OnH_A_Chield		();
-	CEatableItem::OnH_A_Chield	();
-}
 
 void CAI_Rat::OnH_B_Chield		()
 {
@@ -564,39 +531,6 @@ void CAI_Rat::OnH_B_Chield		()
 
 	if (m_pPhysicsShell)
 		m_pPhysicsShell->Deactivate	();
-
-	CEatableItem::OnH_B_Chield	();
-}
-
-void CAI_Rat::OnH_B_Independent	()
-{
-	CEatableItem::OnH_B_Independent	(TRUE);
-	inherited::OnH_B_Independent	(TRUE);
-	
-	if (!Useful())
-		return;
-
-	setVisible					(TRUE);
-	setEnabled					(TRUE);
-
-	if (m_pPhysicsShell)
-		activate_physic_shell	();
-}
-
-void CAI_Rat::OnH_A_Independent	()
-{
-	CEatableItem::OnH_A_Independent	();
-	inherited::OnH_A_Independent	();
-}
-
-bool CAI_Rat::Useful() const
-{
-	if (!g_Alive())
-	{
-		return CEatableItem::Useful();
-	}
-
-	return false;
 }
 
 #ifdef DEBUG
@@ -612,24 +546,6 @@ BOOL CAI_Rat::UsedAI_Locations()
 	return					(TRUE);
 }
 
-void CAI_Rat::make_Interpolation ()
-{
-	inherited::make_Interpolation();
-	CEatableItem::make_Interpolation();
-}
-
-void CAI_Rat::PH_B_CrPr			()
-{
-	inherited::PH_B_CrPr		();
-	CEatableItem::PH_B_CrPr		();
-}
-
-void CAI_Rat::PH_I_CrPr			()
-{
-	inherited::PH_I_CrPr		();
-	CEatableItem::PH_I_CrPr		();
-}
-
 #ifdef DEBUG
 void CAI_Rat::PH_Ch_CrPr		()
 {
@@ -637,13 +553,6 @@ void CAI_Rat::PH_Ch_CrPr		()
 	CEatableItem::PH_Ch_CrPr	();
 }
 #endif
-
-
-void CAI_Rat::PH_A_CrPr			()
-{
-	inherited::PH_A_CrPr		();
-	CEatableItem::PH_A_CrPr		();
-}
 
 void CAI_Rat::create_physic_shell()
 {
@@ -653,11 +562,6 @@ void CAI_Rat::create_physic_shell()
 void CAI_Rat::setup_physic_shell()
 {
 	// do not delete!!!
-}
-
-void CAI_Rat::activate_physic_shell	()
-{
-	CEatableItem::activate_physic_shell();
 }
 
 void CAI_Rat::on_activate_physic_shell	()
@@ -694,11 +598,4 @@ BOOL CAI_Rat::renderable_ShadowReceive	()
 BOOL CAI_Rat::renderable_ShadowGenerate	()
 {
 	return FALSE;
-}
-
-DLL_Pure *CAI_Rat::_construct			()
-{
-	CCustomMonster::_construct	();
-	CEatableItem::_construct	();
-	return						(this);
 }

@@ -17,3 +17,4 @@
 #define CO$(__VA_ARGS__) (##__VA_ARGS__) const override
 #define V$
 #define CPC
+#define CR$

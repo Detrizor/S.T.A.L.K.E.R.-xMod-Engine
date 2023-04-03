@@ -11,10 +11,6 @@
 
 #define BREAK_POWER 5.f
 
-CBottleItem::CBottleItem(void) 
-{
-}
-
 CBottleItem::~CBottleItem(void) 
 {
 	sndBreaking.destroy();

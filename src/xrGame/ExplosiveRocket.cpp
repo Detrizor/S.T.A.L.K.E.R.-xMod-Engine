@@ -9,15 +9,6 @@
 #include "physicsshellholder.h"
 #include "../xrphysics/physicsshell.h"
 
-
-CExplosiveRocket::CExplosiveRocket() 
-{
-}
-
-CExplosiveRocket::~CExplosiveRocket() 
-{
-}
-
 DLL_Pure *CExplosiveRocket::_construct	()
 {
 	CCustomRocket::_construct	();

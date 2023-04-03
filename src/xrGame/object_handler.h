@@ -18,7 +18,6 @@ namespace MonsterSpace {
 class CAI_Stalker;
 class CWeapon;
 class CMissile;
-class CFoodItem;
 class CObjectHandlerPlanner;
 
 class CObjectHandler : public CInventoryOwner {

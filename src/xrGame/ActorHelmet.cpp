@@ -11,6 +11,7 @@
 #include "BoneProtections.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "ui/UIOutfitInfo.h"
+#include "inventory_item_amountable.h"
 
 #define MAIN_BONE 15
 const float BASIC_HEALTH = pSettings->r_float("damage_manager", "helmet_basic_health");
@@ -42,7 +43,10 @@ void CHelmet::Load(LPCSTR section)
 
 	m_NightVisionSect				= READ_IF_EXISTS(pSettings, r_string, section, "nightvision_sect", "");
 	if (m_NightVisionSect != "")
-		SetDepletionSpeed			(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+	{
+		CAmountable* a				= AddModule<CAmountable>();
+		a->SetDepletionSpeed		(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+	}
 
 	m_fRecuperationFactor			= READ_IF_EXISTS(pSettings, r_float, section, "recuperation_factor", 0.f);
 
@@ -161,8 +165,11 @@ bool CHelmet::install_upgrade_impl( LPCSTR section, bool test )
 	bool result2 = process_if_exists(section, "nightvision_sect", str, test);
 	if (result2 && !test)
 	{
-		m_NightVisionSect._set(str);
-		SetDepletionSpeed(pSettings->r_float("nightvision_depletes", str));
+		m_NightVisionSect._set			(str);
+		CAmountable* a					= cast<CAmountable*>();
+		if (!a)
+			a							= AddModule<CAmountable>();
+		a->SetDepletionSpeed			(pSettings->r_float("nightvision_depletes", str));
 	}
 	result |= result2;
 

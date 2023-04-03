@@ -537,8 +537,6 @@ protected:
 	void							V$	ConsumeShotCartridge					();
 	float							V$	GetControlInertionFactorBase		C$	();
 
-	float								_GetBar 							CO$	()		{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
-
 public:
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }

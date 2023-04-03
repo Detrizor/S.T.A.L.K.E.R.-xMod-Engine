@@ -410,8 +410,8 @@ void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVo
 	}
 	else
 	{
-		total_weight					= cont->_Weight();
-		total_volume					= cont->_Volume();
+		total_weight					= cont->GetWeight();
+		total_volume					= cont->GetVolume();
 		max_volume						= cont->GetCapacity();
 	}
 	

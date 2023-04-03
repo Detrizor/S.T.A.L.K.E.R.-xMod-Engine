@@ -59,7 +59,7 @@ class CActorMemory;
 class CActorStatisticMgr;
 
 class CLocationManager;
-class CContainerObject;
+class CInventoryContainer;
 
 class	CActor: 
     public CEntityAlive, 
@@ -340,6 +340,7 @@ protected:
     //менеджер эффекторов, есть у каждого актрера
     CActorCameraManager*	m_pActorEffector;
     static float			f_Ladder_cam_limit;
+
 public:
     virtual void			feel_touch_new				(CObject* O);
     virtual void			feel_touch_delete			(CObject* O);
@@ -349,8 +350,9 @@ public:
     CGameObject*			ObjectWeLookingAt			() {return m_pObjectWeLookingAt;}
     CInventoryOwner*		PersonWeLookingAt			() {return m_pPersonWeLookingAt;}
     CInventoryBox*			InvBoxWeLookingAt			() const {return m_pInvBoxWeLookingAt;}
-	CContainerObject*		ContainerWeLookingAt		() const {return m_pContainerWeLookingAt;}
+	CInventoryContainer*	ContainerWeLookingAt		() const {return m_pContainerWeLookingAt;}
     LPCSTR					GetDefaultActionForObject	() {return *m_sDefaultObjAction;}
+
 protected:
     CUsableScriptObject*	m_pUsableObject;
     // Person we're looking at
@@ -358,7 +360,7 @@ protected:
     CHolderCustom*			m_pVehicleWeLookingAt;
     CGameObject*			m_pObjectWeLookingAt;
 	CInventoryBox*			m_pInvBoxWeLookingAt;
-	CContainerObject*		m_pContainerWeLookingAt;
+	CInventoryContainer*	m_pContainerWeLookingAt;
 
     // Tip for action for object we're looking at
     shared_str				m_sDefaultObjAction;

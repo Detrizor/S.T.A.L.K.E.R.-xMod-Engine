@@ -1582,9 +1582,6 @@
     <Filter Include="Core\Client\Objects\inventory\EatableItem">
       <UniqueIdentifier>{2f2b6dff-3e8e-4897-9661-57c22b46abe5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\inventory\EatableItemObject">
-      <UniqueIdentifier>{a5bcec34-a466-4966-98cb-fdd42cfc160e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\inventory\InventoryItem">
       <UniqueIdentifier>{40d9024e-549a-4c4e-b72c-a3bf46abd4e9}</UniqueIdentifier>
     </Filter>
@@ -5631,9 +5628,6 @@
     <ClInclude Include="eatable_item.h">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClInclude>
-    <ClInclude Include="eatable_item_object.h">
-      <Filter>Core\Client\Objects\inventory\EatableItemObject</Filter>
-    </ClInclude>
     <ClInclude Include="inventory_item.h">
       <Filter>Core\Client\Objects\inventory\InventoryItem</Filter>
     </ClInclude>
@@ -5931,16 +5925,7 @@
     <ClInclude Include="PdaMsg.h">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClInclude>
-    <ClInclude Include="antirad.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
     <ClInclude Include="BottleItem.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
-    <ClInclude Include="FoodItem.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
-    <ClInclude Include="medkit.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
     </ClInclude>
     <ClInclude Include="ActorHelmet.h">
@@ -9216,9 +9201,6 @@
     <ClCompile Include="eatable_item.cpp">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClCompile>
-    <ClCompile Include="eatable_item_object.cpp">
-      <Filter>Core\Client\Objects\inventory\EatableItemObject</Filter>
-    </ClCompile>
     <ClCompile Include="inventory_item.cpp">
       <Filter>Core\Client\Objects\inventory\InventoryItem</Filter>
     </ClCompile>
@@ -9504,16 +9486,7 @@
     <ClCompile Include="PDA.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClCompile>
-    <ClCompile Include="antirad.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
     <ClCompile Include="BottleItem.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
-    <ClCompile Include="FoodItem.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
-    <ClCompile Include="medkit.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
     </ClCompile>
     <ClCompile Include="ActorHelmet.cpp">
@@ -11037,9 +11010,6 @@
     <ClCompile Include="HudItem_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
     </ClCompile>
-    <ClCompile Include="FoodItem_script.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
     <ClCompile Include="PhysicsShellHolder_script.cpp">
       <Filter>Core\Client\Objects\physics\PhysicsShellHolder</Filter>
     </ClCompile>
@@ -11063,13 +11033,7 @@
     <ClCompile Include="silencer.cpp" />
     <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="items_library.cpp" />
-    <ClCompile Include="medkit_script.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="HolderEntityObject.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="antirad_script.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="item_container.cpp" />

@@ -7,7 +7,6 @@
 #include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
-#include "module.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
@@ -42,10 +41,12 @@ class IKinematics;
 template <typename _return_type>
 class CScriptCallbackEx;
 
-class CGameObject : public CObject, 
+enum EEventTypes;
+
+class CGameObject :
+	public CObject, 
 	public CUsableScriptObject,
-	public CScriptBinder,
-	public CInterface
+	public CScriptBinder
 {
 	typedef CObject inherited;
 	bool							m_spawned;
@@ -308,12 +309,14 @@ public:
 			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 
 //xMod added
-private:
-	void								OnChild									(CObject* obj, bool take);
-
 public:
-	void								_Transfer							C$	(u16 id = u16_max);
+	void								transfer							C$	(u16 id = u16_max);
 
 	template <typename T>
-	T*									AddModule								()		{ T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
+	T*									AddModule								()					{ T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
+	template <typename T>
+	T*									AddModule								(shared_str CR$ S)	{ T* res = xr_new<T>(this, S); m_modules.push_back(res); return res; }
+	void								RegisterModule							(CModule* m)		{ m_modules.push_back(m); }
+
+	float							V$	Aboba									(EEventTypes type, void* data = NULL, int param = 0);
 };

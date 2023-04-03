@@ -289,9 +289,9 @@ void CScriptGameObject::IterateInventory(luabind::functor<bool> functor, luabind
 	}
 }
 
-void CScriptGameObject::IterateInventoryBox(luabind::functor<bool> functor, luabind::object object) const
+void CScriptGameObject::IterateInventoryBox(::luabind::functor<bool> functor, ::luabind::object object) const
 {
-	CInventoryContainer* cont = smart_cast<CInventoryContainer*>(&this->object());
+	CInventoryContainer* cont = this->object().Cast<CInventoryContainer*>();
 	if (!cont)
         return;
 
@@ -1694,11 +1694,11 @@ bool CScriptGameObject::is_door_blocked_by_npc() const
 #ifdef GAME_OBJECT_EXTENDED_EXPORTS
 void CScriptGameObject::Weapon_AddonAttach(CScriptGameObject* item)
 {
-	CAddonOwner* ao = object().cast<CAddonOwner*>();
+	CAddonOwner* ao = object().Cast<CAddonOwner*>();
 	if (!ao)
 		return;
 
-	CAddon* addon = item->object().cast<CAddon*>();
+	CAddon* addon = item->object().Cast<CAddon*>();
 	if (addon)
 		ao->AttachAddon(addon);
 }
@@ -1733,7 +1733,7 @@ bool CScriptGameObject::HasUpgrade(LPCSTR upgrade)
 	return item->has_upgrade(upgrade);
 }
 
-void CScriptGameObject::IterateInstalledUpgrades(const luabind::functor<bool> &functor)
+void CScriptGameObject::IterateInstalledUpgrades(const ::luabind::functor<bool> &functor)
 {
 	CInventoryItem* Item = smart_cast<CInventoryItem*>(&object());
 	if (!Item)

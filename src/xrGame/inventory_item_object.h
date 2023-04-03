@@ -42,11 +42,13 @@ public:
 	CInventoryItem*						cast_inventory_item					O$	()		{ return this; }
 	CAttachableItem*					cast_attachable_item				O$	()		{ return this; }
 	CWeapon*							cast_weapon							O$	()		{ return NULL; }
-	CFoodItem*							cast_food_item						O$	()		{ return NULL; }
 	CMissile*							cast_missile						O$	()		{ return NULL; }
 	CHudItem*							cast_hud_item						O$	()		{ return this; }
 	CWeaponAmmo*						cast_weapon_ammo					O$	()		{ return NULL; }
 	CGameObject*						cast_game_object					O$	()		{ return this; }
+
+public:
+										CInventoryItemObject					() : CInventoryItem(this) {}
 
 protected:
 	bool								use_parent_ai_locations				CO$	()

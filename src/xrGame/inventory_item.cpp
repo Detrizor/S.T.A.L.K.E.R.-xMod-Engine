@@ -31,7 +31,7 @@
 #include "item_container.h"
 #include "addon.h"
 #include "addon_owner.h"
-#include "magazine.h"
+#include "inventory_item_amountable.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -61,7 +61,7 @@ net_updateInvData* CInventoryItem::NetSync()
 	return m_net_updateData;
 }
 
-CInventoryItem::CInventoryItem()
+CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 {
 	m_net_updateData = NULL;
 	m_flags.set(Fruck, TRUE);
@@ -99,6 +99,8 @@ CInventoryItem::CInventoryItem()
 	m_inv_icon.set		(0,0,0,0);
 	m_inv_icon_type		= 0;
 	m_inv_icon_index	= 0;
+
+	O.RegisterModule(this);
 }
 
 CInventoryItem::~CInventoryItem()
@@ -176,8 +178,8 @@ void CInventoryItem::Load(LPCSTR section)
 	if (pSettings->line_exist			(section, "slots"))
 		m_object->AddModule<CAddonOwner>();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "magazine", FALSE))
-		m_object->AddModule<CMagazine>();
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
+		m_object->AddModule<CAmountable>();
 }
 
 float CInventoryItem::GetConditionToWork() const
@@ -1379,77 +1381,53 @@ float CInventoryItem::Price() const
 
 float CInventoryItem::GetAmount() const
 {
-	float res							= _GetAmount();
-	if (res != flt_max)
-		return							res;
-
-	for (auto module : m_object->Modules())
-	{
-		res								= module->_GetAmount();
-		if (res != flt_max)
-			return						res;
-	}
-
-	return								1.f;
+	float res							= O.Aboba(eGetAmount);
+	return								(res != flt_max) ? res : 1.f;
 }
 
 float CInventoryItem::GetFill() const
 {
-	float res							= _GetFill();
-	if (res != flt_max)
-		return							res;
-
-	for (auto module : m_object->Modules())
-	{
-		res								= module->_GetFill();
-		if (res != flt_max)
-			return						res;
-	}
-
-	return								1.f;
+	float res							= O.Aboba(eGetFill);
+	return								(res != flt_max) ? res : 1.f;
 }
 
 float CInventoryItem::GetBar() const
 {
-	float res							= _GetBar();
-	if (res != flt_max)
-		return							res;
-
-	for (auto module : m_object->Modules())
-	{
-		res								= module->_GetBar();
-		if (res != flt_max)
-			return						res;
-	}
-
-	return								-1.f;
+	float res							= O.Aboba(eGetBar);
+	return								(res != flt_max) ? res : (fLess(GetCondition(), 1.f) ? GetCondition() : -1.f);
 }
 
 float CInventoryItem::Weight() const
 {
-	float res							= _Weight();
-	for (auto module : m_object->Modules())
-		res								+= module->_Weight();
-	return								res;
+	return								O.Aboba(eWeight);
 }
 
 float CInventoryItem::Volume() const
 {
-	float res							= _Volume();
-	for (auto module : m_object->Modules())
-		res								+= module->_Volume();
-	return								res;
+	return								O.Aboba(eVolume);
 }
 
 float CInventoryItem::Cost() const
 {
-	float res							= _Cost();
-	for (auto module : m_object->Modules())
-		res								+= module->_Cost();
-	return								res;
+	return								O.Aboba(eCost);
 }
 
 void CInventoryItem::Transfer(u16 id) const
 {
-	m_object->_Transfer(id);
+	O.transfer							(id);
+}
+
+float CInventoryItem::aboba o$(EEventTypes type, void* data, int param)
+{
+	switch (type)
+	{
+		case eWeight:
+			return						m_weight;
+		case eVolume:
+			return						m_volume;
+		case eCost:
+			return						m_cost;
+	}
+
+	return								CModule::aboba(type, data, param);
 }

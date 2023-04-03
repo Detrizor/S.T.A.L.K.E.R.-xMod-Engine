@@ -88,7 +88,7 @@ void CUIActorMenu::SetInvBox(CInventoryBox* box)
 	m_pInvBox							= box;
 }
 
-void CUIActorMenu::SetContainer(CContainerObject* ciitem)
+void CUIActorMenu::SetContainer(CInventoryContainer* ciitem)
 {
 	if (ciitem)
 	{
@@ -99,7 +99,7 @@ void CUIActorMenu::SetContainer(CContainerObject* ciitem)
 	m_pContainer						= ciitem;
 }
 
-void CUIActorMenu::SetBag(CContainerObject* bag)
+void CUIActorMenu::SetBag(CInventoryContainer* bag)
 {
 	CUIDragDropListEx* pBagList			= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
 	if (!bag)
@@ -159,7 +159,7 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 			mode						= mmDeadBodySearch;
 			break;
 		case mmContainerSearch:
-			SetContainer				((CContainerObject*)partner);
+			SetContainer				((CInventoryContainer*)partner);
 			mode						= mmDeadBodySearch;
 			break;
 		default:
@@ -267,7 +267,7 @@ void CUIActorMenu::Update()
 	PIItem active_item					= m_pActorInv->ActiveItem();
 	if (active_item)
 	{
-		CContainerObject* ciitem		= smart_cast<CContainerObject*>(active_item);
+		CInventoryContainer* ciitem		= active_item->cast<CInventoryContainer*>();
 		if (ciitem)
 		{
 			CHudItem* hi				= smart_cast<CHudItem*>(active_item);
@@ -281,7 +281,7 @@ void CUIActorMenu::Update()
 	ToggleBag							(NULL);
 }
 
-void CUIActorMenu::ToggleBag(CContainerObject* bag)
+void CUIActorMenu::ToggleBag(CInventoryContainer* bag)
 {
 	if (m_pBag == bag)
 		return;

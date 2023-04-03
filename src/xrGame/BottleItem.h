@@ -1,20 +1,14 @@
-///////////////////////////////////////////////////////////////
-// BottleItem.h
-// BottleItem - бутылка с напитком, которую можно разбить
-///////////////////////////////////////////////////////////////
-
-
 #pragma once
 
-#include "fooditem.h"
+#include "eatable_item.h"
 #include "script_export_space.h"
 
-class CBottleItem: public CFoodItem
+class CBottleItem: public CEatableItem
 {
 private:
-    typedef	CFoodItem inherited;
+	typedef	CEatableItem inherited;
+
 public:
-				CBottleItem			();
 	virtual		~CBottleItem		();
 
 

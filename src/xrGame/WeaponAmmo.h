@@ -95,13 +95,11 @@ public:
 private:
 	bool								m_bHeap;
 
-public:
-	virtual	Frect			GetIconRect				()								const;
-
 protected:
-	float								_Weight								CO$	();
-	float								_Volume								CO$	();
-	float								_Cost								CO$	();
+	float								Aboba								O$	(EEventTypes type, void* data = NULL, int param = 0);
+
+public:
+	Frect								GetIconRect							CO$	();
 };
 
 add_to_type_list(CWeaponAmmo)

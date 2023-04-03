@@ -169,7 +169,7 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 			return eRelaxed;
 
 		CEntity::SEntityState st;
-		O.H_Parent()->cast<CActor*>()->g_State(st);
+		Actor()->g_State(st);
 		if (!st.bSprint)
 			return eRelaxed;
 	}

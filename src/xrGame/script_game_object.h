@@ -16,8 +16,6 @@
 #include "game_graph_space.h"
 #include "game_location_selector.h"
 #include "Artefact.h"
-#include "medkit.h"
-#include "antirad.h"
 #include "CustomOutfit.h"
 #include "GrenadeLauncher.h"
 #include "Weapon.h"
@@ -35,7 +33,6 @@
 #include "space_restrictor.h"
 #include "CustomZone.h"
 #include "HudItem.h"
-#include "FoodItem.h"
 #include "PhysicsShellHolder.h"
 #include "BottleItem.h"
 #include "danger_object.h"
@@ -348,7 +345,6 @@ public:
             bool				IsActiveTask		(CGameTask* t);
             CGameTask*			GetTask				(LPCSTR id, bool only_inprocess);
 
-            
             bool				IsTalking			();
             void				StopTalk			();
             void				EnableTalk			();	
@@ -801,9 +797,7 @@ public:
 			_DECLARE_FUNCTION14(cast_InventoryOwner, CInventoryOwner);
 			_DECLARE_FUNCTION14(cast_Actor, CActor);
 			_DECLARE_FUNCTION14(cast_Weapon, CWeapon);
-			_DECLARE_FUNCTION14(cast_Medkit, CMedkit);
 			_DECLARE_FUNCTION14(cast_EatableItem, CEatableItem);
-			_DECLARE_FUNCTION14(cast_Antirad, CAntirad);
 			_DECLARE_FUNCTION14(cast_CustomOutfit, CCustomOutfit);
 			_DECLARE_FUNCTION14(cast_Scope, CScope);
 			_DECLARE_FUNCTION14(cast_Silencer, CSilencer);
@@ -818,7 +812,6 @@ public:
 			//_DECLARE_FUNCTION14(cast_Projector, CProjector);
 			_DECLARE_FUNCTION14(cast_Trader, CAI_Trader);
 			_DECLARE_FUNCTION14(cast_HudItem, CHudItem);
-			_DECLARE_FUNCTION14(cast_FoodItem, CFoodItem);
 			_DECLARE_FUNCTION14(cast_Artefact, CArtefact);
 			_DECLARE_FUNCTION14(cast_Ammo, CWeaponAmmo);
 			//_DECLARE_FUNCTION14(cast_Missile, CMissile);
@@ -913,7 +906,6 @@ public:
 			u8					GetGrenade				() const;
 			void				SetGrenade				(u8 cnt);
 			void				LoadCartridge			(CScriptGameObject* obj);
-			bool				LoadGrenade				(CScriptGameObject* obj);
 			void				ActorSetHealth			(float h);
 			void				ActorSetPower			(float p);
 			void				ActorSetSpeedScale		(float p);

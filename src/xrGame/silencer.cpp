@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "silencer.h"
 
-void CSilencer::Load(LPCSTR section) 
+CSilencer::CSilencer(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 {
+	m_section							= section;
 }

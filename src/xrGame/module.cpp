@@ -4,5 +4,5 @@
 
 void CModule::Transfer(u16 id) const
 {
-	O._Transfer(id);
+	O.transfer(id);
 }

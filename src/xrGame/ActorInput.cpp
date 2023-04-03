@@ -226,10 +226,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
 					inventory().ActivateItem	(tmp);
 				else if (!TryCustomUse(tmp))
 				{
-					CMagazine* mag				= tmp->object().cast<CMagazine*>();
+					CMagazine* mag				= tmp->cast<CMagazine*>();
 					if (mag)
 					{
-						CWeaponMagazined* wm	= active_item->object().cast<CWeaponMagazined*>();
+						CWeaponMagazined* wm	= active_item->cast<CWeaponMagazined*>();
 						if (wm && wm->MagazineSlot() && wm->MagazineSlot()->Compatible(mag->cast<CAddon*>()))
 							wm->cast<CAddonOwner*>()->AttachAddon(mag->cast<CAddon*>(), wm->MagazineSlot()->idx);
 					}

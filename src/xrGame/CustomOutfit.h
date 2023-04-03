@@ -1,14 +1,14 @@
 #pragma once
 
-#include "inventory_item_amountable.h"
+#include "inventory_item_object.h"
 #include "script_export_space.h"
 
 struct SBoneProtections;
 
-class CCustomOutfit : public CIIOAmountable
+class CCustomOutfit : public CInventoryItemObject
 {
 private:
-	typedef	CIIOAmountable		inherited;
+	typedef	CInventoryItemObject inherited;
 
 public:
 								CCustomOutfit			();
@@ -28,7 +28,6 @@ public:
 
 	virtual void				OnMoveToSlot			(const SInvItemPlace& prev);
 	virtual void				OnMoveToRuck			(const SInvItemPlace& previous_place);
-	virtual void				OnH_A_Chield			();
 
 	void						GetPockets				(LPCSTR pockets);
 

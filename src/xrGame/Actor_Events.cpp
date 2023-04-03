@@ -7,7 +7,6 @@
 #include "inventory.h"
 #include "level.h"
 #include "xr_level_controller.h"
-#include "FoodItem.h"
 #include "ActorCondition.h"
 #include "Grenade.h"
 #include "CameraLook.h"

@@ -26,106 +26,83 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section)
 		m_Slots.push_back				(xr_new<SAddonSlot>(section, i++, m_Slots));
 }
 
-void CAddonOwner::ProcessAddon(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
-{
-	O._ProcessAddon						(addon, attach, slot);
-	for (auto module : O.Modules())
-		module->_ProcessAddon			(addon, attach, slot);
-}
-
 int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
 {
-	int res								= O._TransferAddon(addon, attach);
-	if (res)
-		return							res;
-
-	for (auto module : O.Modules())
+	float res							= O.Aboba(eTransferAddon, (void*)addon, (int)attach);
+	if (res == flt_max)
 	{
-		if (module != (CModule*)this)
-		{
-			res							= module->_TransferAddon(addon, attach);
-			if (res)
-				return					res;
-		}
+		addon->Transfer					((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : u16_max));
+		return							2;
 	}
-
-	return								_TransferAddon(addon, attach);
+	return								(int)res;
 }
 
-void CAddonOwner::_OnChild o$(CObject* obj, bool take)
+float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 {
-	CAddon* addon						= obj->cast<CAddon*>();
-	if (!addon)
-		return;
-
-	u16* idx							= NULL;
-	if (take)
+	switch (type)
 	{
-		PIItem item						= smart_cast<PIItem>(obj);
-		R_ASSERT						(item);
-		idx								= &item->m_ItemCurrPlace.value;
-		if (m_NextAddonSlot != u16_max)
+		case eOnChild:
 		{
-			*idx						= m_NextAddonSlot;
-			m_NextAddonSlot				= u16_max;
-		}
-	}
-	else
-	{
-		for (const auto s : m_Slots)
-		{
-			if (s->addon == addon)
-			{
-				idx						= &s->idx;
+			CAddon* addon				= cast<CAddon*>((CObject*)data);
+			if (!addon)
 				break;
+
+			u16* idx					= NULL;
+			if (param)
+			{
+				idx						= &addon->m_ItemCurrPlace.value;
+				if (m_NextAddonSlot != u16_max)
+				{
+					*idx				= m_NextAddonSlot;
+					m_NextAddonSlot		= u16_max;
+				}
 			}
+			else
+			{
+				for (auto s : m_Slots)
+				{
+					if (s->addon == addon)
+					{
+						idx				= &s->idx;
+						break;
+					}
+				}
+			}
+
+			if (idx)
+			{
+				if (param)
+					m_Slots[*idx]->addon = addon;
+				O.Aboba					(eOnAddon, (void*)m_Slots[*idx], param);
+				if (!param)
+					m_Slots[*idx]->addon = NULL;
+			}
+			break;
+		}
+		case eWeight:
+		case eVolume:
+		case eCost:
+		{
+			float res					= 0.f;
+			for (auto slot : m_Slots)
+			{
+				if (slot->addon)
+					res					+= slot->addon->Aboba(type);
+			}
+			return						res;
 		}
 	}
 
-	if (idx)
-	{
-		m_Slots[*idx]->addon			= (take) ? addon : NULL;
-		ProcessAddon					(addon, take, m_Slots[*idx]);
-	}
+	return								CModule::aboba(type, data, param);
 }
 
-int CAddonOwner::_TransferAddon o$(CAddon CPC addon, bool attach)
+void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
 {
-	addon->Transfer						((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : u16_max));
-	return								2;
-}
-
-float CAddonOwner::_Weight() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
+	for (auto& slot : m_Slots)
 	{
 		if (slot->addon)
-			res							+= slot->addon->Weight();
+			cif							*= slot->addon->GetControlInertionFactor();
 	}
-	return								res;
-}
-
-float CAddonOwner::_Volume() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
-	{
-		if (slot->addon)
-			res							+= slot->addon->Volume();
-	}
-	return								res;
-}
-
-float CAddonOwner::_Cost() const
-{
-	float res							= 0.f;
-	for (auto slot : AddonSlots())
-	{
-		if (slot->addon)
-			res							+= slot->addon->Cost();
-	}
-	return								res;
 }
 
 int CAddonOwner::AttachAddon(CAddon CPC addon, u16 slot_idx)
@@ -176,15 +153,6 @@ void CAddonOwner::renderable_Render()
 {
 	for (auto slot : m_Slots)
 		slot->RenderWorld				(O.Visual(), O.XFORM());
-}
-
-void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
-{
-	for (auto& slot : m_Slots)
-	{
-		if (slot->addon)
-			cif							*= slot->addon->GetControlInertionFactor();
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

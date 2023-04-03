@@ -46,15 +46,9 @@ private:
 	u16									m_NextAddonSlot;
 	
 	void								LoadAddonSlots							(LPCSTR section);
-
-	void								ProcessAddon							(CAddon CPC addon, bool attach, SAddonSlot CPC slot);
 	int									TransferAddon							(CAddon CPC addon, bool attach);
 
-	void								_OnChild							O$	(CObject* obj, bool take);
-	int									_TransferAddon						O$	(CAddon CPC addon, bool attach);
-	float								_Weight								CO$	();
-	float								_Volume								CO$	();
-	float								_Cost								CO$	();
+	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }

@@ -9,19 +9,6 @@ CInventoryBox::CInventoryBox()
 	m_closed							= false;
 }
 
-DLL_Pure* CInventoryBox::_construct()
-{
-	inherited::_construct				();
-	CInventoryContainer::_construct		();
-	return								this;
-}
-
-void CInventoryBox::Load(LPCSTR section)
-{
-	inherited::Load						(section);
-	CInventoryContainer::Load			(section);
-}
-
 #include "../xrServerEntities/xrServer_Objects_Alife.h"
 BOOL CInventoryBox::net_Spawn(CSE_Abstract* DC)
 {
@@ -36,17 +23,19 @@ BOOL CInventoryBox::net_Spawn(CSE_Abstract* DC)
 		m_closed						= pSE_box->m_closed;
 		set_tip_text					(pSE_box->m_tip_text.c_str());
 	}
+	m_pContainer						= AddModule<CInventoryContainer>();
 	return								res;
 }
 
 void CInventoryBox::SE_update_status()
 {
-	NET_Packet							P;
-	CGameObject::u_EventGen				( P, GE_INV_BOX_STATUS, ID() );
-	P.w_u8								( (m_can_take)? 1 : 0 );
-	P.w_u8								( (m_closed)? 1 : 0 );
-	P.w_stringZ							( tip_text() );
-	CGameObject::u_EventSend			( P );
+	NET_Packet* P						= xr_new<NET_Packet>();
+	CGameObject::u_EventGen				( *P, GE_INV_BOX_STATUS, ID() );
+	P->w_u8								( (m_can_take)? 1 : 0 );
+	P->w_u8								( (m_closed)? 1 : 0 );
+	P->w_stringZ							( tip_text() );
+	CGameObject::u_EventSend			( *P );
+	xr_delete							(P);
 }
 
 void CInventoryBox::set_can_take(bool status)
@@ -65,13 +54,13 @@ void CInventoryBox::set_closed(bool status, LPCSTR reason)
 	SE_update_status					();
 }
 
-void CInventoryBox::_OnChild o$(CObject* obj, bool take)
+float CInventoryBox::Aboba o$(EEventTypes type, void* data, int param)
 {
-	CInventoryContainer::_OnChild(obj, take);
-
-	if (!take && m_in_use)
+	if (type == eOnChild && !param && m_in_use)
 	{
-		CGameObject* GO					= smart_cast<CGameObject*>(obj);
+		CGameObject* GO					= Cast<CGameObject*>((CObject*)data);
 		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
 	}
+
+	return								inherited::Aboba(type, data, param);
 }

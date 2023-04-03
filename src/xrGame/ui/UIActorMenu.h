@@ -28,7 +28,7 @@ class CUIMessageBoxEx;
 class CUIPropertiesBox;
 class CTrade;
 class CUIProgressBar;
-class CContainerObject;
+class CInventoryContainer;
 
 namespace inventory { namespace upgrade {
 	class Upgrade;
@@ -123,8 +123,8 @@ protected:
 	CInventory*					m_pActorInv;
 	CInventoryOwner*			m_pPartnerInvOwner;
 	CInventoryBox*				m_pInvBox;
-	CContainerObject*			m_pBag;
-	CContainerObject*			m_pContainer;
+	CInventoryContainer*		m_pBag;
+	CInventoryContainer*		m_pContainer;
 
 	CUITextWnd*					m_ActorMoney;
 	CUITextWnd*					m_PartnerMoney;
@@ -180,13 +180,13 @@ public:
 	void						SetActor					(CInventoryOwner* io);
 	void						SetPartner					(CInventoryOwner* io);
 	void						SetInvBox					(CInventoryBox* box);
-	void						SetContainer				(CContainerObject* ciitem);
-	void						SetBag						(CContainerObject* bag_cont);
+	void						SetContainer				(CInventoryContainer* ciitem);
+	void						SetBag						(CInventoryContainer* bag_cont);
 
 	CInventoryOwner*			GetPartner					() {return m_pPartnerInvOwner;};
 	CInventoryBox*				GetInvBox					() {return m_pInvBox;};
-	CContainerObject*			GetContainer				() {return m_pContainer;};
-	CContainerObject*			GetBag						() {return m_pBag;};
+	CInventoryContainer*		GetContainer				() {return m_pContainer;};
+	CInventoryContainer*		GetBag						() {return m_pBag;};
 	
 	void						PlaySnd						(eActorMenuSndAction a);
 	LPCSTR						FormatMoney					(u32 money);
@@ -345,7 +345,7 @@ public:
 	void						UpdateConditionProgressBars	();
 
 	void						UpdatePocketsPresence		();
-	void						ToggleBag					(CContainerObject* bag);
+	void						ToggleBag					(CInventoryContainer* bag);
 
 	IC	UIHint*					get_hint_wnd				() { return m_hint_wnd; }
 

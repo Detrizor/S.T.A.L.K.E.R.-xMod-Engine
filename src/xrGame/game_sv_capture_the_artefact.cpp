@@ -13,7 +13,6 @@
 #include "xr_level_controller.h"
 #include "hudItem.h"
 #include "weapon.h"
-#include "eatable_item_object.h" 
 #include "Missile.h"
 #include "game_cl_base_weapon_usage_statistic.h"
 #include "LevelGameDef.h"

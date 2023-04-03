@@ -7,7 +7,6 @@
 #include "xrServer_Objects_ALife_Items.h"
 #include "weapon.h"
 #include "xr_level_controller.h"
-#include "eatable_item_object.h"
 #include "Missile.h"
 
 

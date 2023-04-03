@@ -181,13 +181,6 @@ CCustomDetector::~CCustomDetector()
 	xr_delete				(m_ui);
 }
 
-DLL_Pure* CCustomDetector::_construct()
-{
-	CItemAmountable::_construct	();
-	inherited::_construct		();
-	return						this;
-}
-
 BOOL CCustomDetector::net_Spawn(CSE_Abstract* DC) 
 {
 	TurnDetectorInternal(false);
@@ -197,7 +190,6 @@ BOOL CCustomDetector::net_Spawn(CSE_Abstract* DC)
 void CCustomDetector::Load(LPCSTR section) 
 {
 	inherited::Load			(section);
-	CItemAmountable::Load	(section);
 
 	m_fAfDetectRadius		= pSettings->r_float(section,"af_radius");
 	m_fAfVisRadius			= pSettings->r_float(section,"af_vis_radius");

@@ -55,7 +55,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_iCurFireMode = -1;
 	m_iPrefferedFireMode = -1;
 
-	m_iChamber					= 1;
+	m_Chamber					= FALSE;
 	m_pNextMagazine				= NULL;
 	m_pCartridgeToReload		= NULL;
 	m_bIronSightsLowered		= false;
@@ -143,7 +143,7 @@ void CWeaponMagazined::Load(LPCSTR section)
     else
         m_bHasDifferentFireModes = false;
 
-	m_iChamber			= (u8)pSettings->r_bool(section, "has_chamber");
+	m_Chamber = pSettings->r_bool(section, "has_chamber");
 
 	m_hud = xr_new<CWeaponHud>(this);
 	if (IsZoomEnabled())
@@ -364,33 +364,32 @@ void CWeaponMagazined::ConsumeShotCartridge()
 {
 	inherited::ConsumeShotCartridge();
 	if (m_magazine.empty())
-		LoadCartridgeFromMagazine	(!m_iChamber);
+		LoadCartridgeFromMagazine(!Chamber());
 }
 
 bool CWeaponMagazined::LoadCartridge(CWeaponAmmo* cartridges)
 {
-	u8 ammo_class								= FindAmmoClass(*cartridges->m_section_id);
-	if (ammo_class)
+	if (FindAmmoClass(*cartridges->m_section_id))
 	{
-		if (IsTriStateReload())
+		if (Chamber())
 		{
-			if (iAmmoElapsed < iMagazineSize)
+			if (!iAmmoElapsed)
 			{
-				StartReload						(cartridges->dcast_CObject());
-				return							true;
+				CCartridge				l_cartridge;
+				cartridges->Get			(l_cartridge);
+				l_cartridge.m_LocalAmmoType = m_ammoType;
+				m_magazine.push_back	(l_cartridge);
+				++iAmmoElapsed;
+				return					true;
 			}
 		}
-		else if (!iAmmoElapsed)
+		else if (iAmmoElapsed < iMagazineSize)
 		{
-			CCartridge							l_cartridge;
-			cartridges->Get						(l_cartridge);
-			l_cartridge.m_LocalAmmoType			= m_ammoType;
-			m_magazine.push_back				(l_cartridge);
-			++iAmmoElapsed;
-			return								true;
+			StartReload					(cartridges);
+			return						true;
 		}
 	}
-	return										false;
+	return								false;
 }
 
 void CWeaponMagazined::ReloadMagazine()
@@ -462,13 +461,8 @@ void CWeaponMagazined::ReloadMagazine()
 		}
 
 		//нет патронов для перезарядки
-		if (!m_pCurrentAmmo && !unlimited_ammo()) return;
-
-		//разрядить магазин, если загружаем патронами другого типа
-		if (!m_bLockType && !m_magazine.empty() &&
-			(!m_pCurrentAmmo || xr_strcmp(m_pCurrentAmmo->cNameSect(),
-			*m_magazine.back().m_ammoSect)))
-			inventory_owner().Discharge(smart_cast<PIItem>(this));
+		if (!m_pCurrentAmmo && !unlimited_ammo())
+			return;
 
 		VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
@@ -1337,16 +1331,13 @@ void CWeaponMagazined::UpdateBonesVisibility()
 
 void CWeaponMagazined::OnMotionHalf()
 {
-	if (ParentIsActor() && GetState() == eReload)
+	if (ParentIsActor() && GetState() == eReload && m_pMagazineSlot)
 	{
 		if (m_pMagazine)
 			m_pMagazine->Transfer		(parent_id());
 
 		if (m_pNextMagazine)
-		{
-			R_ASSERT2(m_pMagazineSlot, "magazine slot isn't marked as one");
 			m_pMagazineSlot->loading_addon = m_pNextMagazine->cast<CAddon*>();
-		}
 	}
 }
 
@@ -1483,83 +1474,97 @@ float CWeaponMagazined::CurrentZoomFactor() const
 		return inherited::CurrentZoomFactor();
 }
 
-void CWeaponMagazined::_ProcessAddon o$(CAddon CPC addon, bool attach, SAddonSlot CPC slot)
+void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 {
-	CScope CPC scope = addon->cast<CScope CP$>();
-	if (scope)
+	if (attach)
 	{
-		((slot && slot->primary_scope || !slot) ? m_pScope : m_pAltScope) = (attach) ? const_cast<CScope*>(scope) : NULL;
-
-		if (slot && slot->lower_iron_sights)
-		{
-			m_bIronSightsLowered = attach;
-			UpdateBonesVisibility();
-			SetInvIconType((u8)attach);
-		}
-	}
-
-	CSilencer CPC silencer = addon->cast<CSilencer CP$>();
-	if (silencer)
-	{
-		m_pSilencer = (attach) ? const_cast<CSilencer*>(silencer) : NULL;
-
-		/*LPCSTR sect_to_load = (attach) ? *addon->Section() : *cNameSect();
-		LoadLights(sect_to_load);
-		LoadFlameParticles(sect_to_load);
-		if (attach)
-			LoadSilencerKoeffs(sect_to_load);
-		else
-			ResetSilencerKoeffs();		--xd исправить кринж		*/
-		UpdateSndShot();
-	}
-
-	CMagazine CPC mag = addon->cast<CMagazine CP$>();
-	if (mag)
-	{
-		if (attach)
-		{
-			m_pMagazine = const_cast<CMagazine*>(mag);
-			if (m_iChamber < m_magazine.size())
-			{ 
-				while (m_iChamber < m_magazine.size())
-					m_magazine.pop_back();
-			}
-			else
-				iAmmoElapsed += m_pMagazine->Amount();
-
-			if (m_magazine.size())
-				FindAmmoClass(*m_magazine.back().m_ammoSect, true);
-			else if (m_pMagazine)
-				LoadCartridgeFromMagazine(!m_iChamber);
-
-			m_pMagazineSlot->loading_addon = NULL;
-		}
-		else
+		m_pMagazine						= mag;
+		if (Chamber() < m_magazine.size())
 		{ 
-			iAmmoElapsed -= m_pMagazine->Amount();
-			m_pMagazine = NULL;
+			while (Chamber() < m_magazine.size())
+				m_magazine.pop_back		();
 		}
-	}
+		else
+			iAmmoElapsed				+= m_pMagazine->Amount();
 
-	InitRotateTime();
-	inherited::_ProcessAddon(addon, attach, slot);
-}
+		if (m_magazine.size())
+			FindAmmoClass				(*m_magazine.back().m_ammoSect, true);
+		else if (m_pMagazine)
+			LoadCartridgeFromMagazine	(!Chamber());
 
-int CWeaponMagazined::_TransferAddon o$(CAddon CPC addon, bool attach)
-{
-	CMagazine CPC mag					= addon->cast<CMagazine CP$>();
-	if (mag)
-	{
-		StartReload						((attach) ? const_cast<CObject*>(mag->cast<CObject CP$>()) : NULL);
-		return							1;
+		if (m_pMagazineSlot)
+			m_pMagazineSlot->loading_addon = NULL;
 	}
 	else
-		return							inherited::_TransferAddon(addon, attach);
+	{ 
+		iAmmoElapsed					-= m_pMagazine->Amount();
+		m_pMagazine						= NULL;
+	}
 }
 
-float CWeaponMagazined::_Weight() const
+void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 {
-	return inherited::_Weight() + GetMagazineWeight(m_magazine);
+	m_pSilencer							= (attach) ? sil : NULL;
+
+	LPCSTR sect_to_load					= *((attach) ? sil->Section() : cNameSect());
+	LoadLights							(sect_to_load);
+	LoadFlameParticles					(sect_to_load);
+	if (attach)
+		LoadSilencerKoeffs				(sect_to_load);
+	else
+		ResetSilencerKoeffs				();
+	UpdateSndShot						();
+}
+
+float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
+{
+	switch (type)
+	{
+		case eOnAddon:
+		{
+			SAddonSlot* slot			= (SAddonSlot*)data;
+
+			CMagazine* mag				= slot->addon->cast<CMagazine*>();
+			if (mag)
+				ProcessMagazine			(mag, !!param);
+
+			CScope* scope				= slot->addon->cast<CScope*>();
+			if (scope)
+			{
+				((slot->primary_scope) ? m_pScope : m_pAltScope) = (param) ? scope : NULL;
+
+				if (slot->lower_iron_sights)
+				{
+					m_bIronSightsLowered = !!param;
+					UpdateBonesVisibility();
+					SetInvIconType		((u8)param);
+				}
+			}
+
+			CSilencer* sil				= slot->addon->cast<CSilencer*>();
+			if (sil)
+				ProcessSilencer			(sil, !!param);
+
+			InitRotateTime				();
+			break;
+		}
+
+		case eWeight:
+			return						inherited::Aboba(type, data, param) + GetMagazineWeight(m_magazine);
+
+		case eTransferAddon:
+		{
+			CMagazine* mag				= Cast<CMagazine*>((CAddon*)data);
+			if (mag)
+			{
+				StartReload				((param) ? mag->cast<CObject*>() : NULL);
+				return					1.f;
+			}
+			break;
+		}
+	}
+
+	return								inherited::Aboba(type, data, param);
 }
 
 void CWeaponMagazined::UpdateSndShot()
