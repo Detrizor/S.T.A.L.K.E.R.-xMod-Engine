@@ -206,10 +206,6 @@ private:
 	void						set_highlight_item			(CUICellItem* cell_item);
 	void						highlight_item_slot			(CUICellItem* cell_item);
 	void						highlight_armament			(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
-	void						highlight_ammo_for_weapon	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
-	void						highlight_weapons_for_ammo	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
-	void						highlight_addons_for_weapon	(CUICellItem* cell_item, CUICellItem* ci);
-	void						highlight_weapons_for_addon	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
 
 protected:			
 	void						Construct					();

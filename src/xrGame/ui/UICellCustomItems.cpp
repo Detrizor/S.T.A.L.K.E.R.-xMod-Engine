@@ -5,6 +5,9 @@
 #include "UIDragDropListEx.h"
 #include "UIProgressBar.h"
 
+#include "addon_owner.h"
+#include "addon.h"
+
 namespace detail 
 {
 
@@ -367,313 +370,187 @@ void CUIAmmoCellItem::UpdateItemText()
 	}
 }
 
-void process_addon_shift(Frect& res_rect, const Frect& tex_rect, LPCSTR addon_section, const Fvector2& addon_offset)
+CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 {
-	res_rect.left				= min(res_rect.left, tex_rect.left + addon_offset.x);
-	res_rect.top				= min(res_rect.top, tex_rect.top + addon_offset.y);
-	
-	Frect						addon_rect;
-	CInventoryItem::ReadIcon	(addon_rect, addon_section);
-	float icon_scale			= pSettings->r_float(addon_section, "icon_scale");
-	res_rect.right				= max(res_rect.right, tex_rect.left + addon_offset.x + icon_scale * addon_rect.width());
-	res_rect.bottom				= max(res_rect.bottom, tex_rect.top + addon_offset.y + icon_scale * addon_rect.height());
-}
-/*--xd временно
-CUIWeaponCellItem::CUIWeaponCellItem(CWeapon* itm)
-:inherited(itm)
-{
-	m_addons[eSilencer]		= NULL;
-	m_addons[eScope]		= NULL;
-	m_addons[eLauncher]		= NULL;
-
-	if (itm->SilencerAttachable())
-		m_addon_offset[eSilencer].set(object()->GetSilencerX(), object()->GetSilencerY());
-	if (itm->ScopeAttachable())
-		m_addon_offset[eScope].set(object()->GetScopeX(), object()->GetScopeY());
-	if (itm->GrenadeLauncherAttachable())
-		m_addon_offset[eLauncher].set(object()->GetGrenadeLauncherX(), object()->GetGrenadeLauncherY());
-
-	float icon_scale = pSettings->r_float(itm->m_section_id, "icon_scale");
-	Frect res_rect = GetTextureRect();
-	res_rect.mul(icon_scale, icon_scale);
-	Frect tex_rect = GetTextureRect();
-	tex_rect.mul(icon_scale, icon_scale);
-	if (object()->SilencerAttachable() && object()->IsSilencerAttached())
-		process_addon_shift(res_rect, tex_rect, *object()->GetSilencerName(), m_addon_offset[eSilencer]);
-	if (object()->ScopeAttachable() && object()->IsScopeAttached())
-		process_addon_shift(res_rect, tex_rect, *object()->GetScopeName(), m_addon_offset[eScope]);
-	if (object()->GrenadeLauncherAttachable() && object()->IsGrenadeLauncherAttached())
-		process_addon_shift(res_rect, tex_rect, *object()->GetGrenadeLauncherName(), m_addon_offset[eLauncher]);
-
-	m_grid_size = InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
+	name								= slot.name;
+	type								= slot.type;
+	addon_name							= 0;
+	addon_icon							= NULL;
+	icon_offset							= { 0.f, 0.f };
 }
 
-#include "../xrServerEntities/object_broker.h"
-CUIWeaponCellItem::~CUIWeaponCellItem()
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
 {
+	m_slots.clear						();
+	for (auto S : itm->AddonSlots())
+	{
+		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*S);
+		m_slots.push_back				(s);
+
+		if (S->addon)
+		{
+			s->addon_name				= S->addon->Section();
+			s->icon_offset				= S->icon_offset;
+			s->icon_offset.sub			(S->addon->IconOffset());
+			s->addon_icon				= xr_new<CUIStatic>();
+			s->addon_icon->SetAutoDelete(true);
+			AttachChild					(s->addon_icon);
+			s->addon_icon->SetTextureColor(GetTextureColor());
+			if (S->magazine)
+				s->addon_icon->SetBackgroundDraw(true);
+		}
+	}
+
+	float icon_scale					= pSettings->r_float(itm->O.cNameSect(), "icon_scale");
+	Frect res_rect						= GetTextureRect();
+	res_rect.mul						(icon_scale, icon_scale);
+	Frect tex_rect						= GetTextureRect();
+	tex_rect.mul						(icon_scale, icon_scale);
+
+	for (auto s : m_slots)
+	{
+		if (s->addon_icon)
+		{
+			res_rect.left				= min(res_rect.left, tex_rect.left + s->icon_offset.x);
+			res_rect.top				= min(res_rect.top, tex_rect.top + s->icon_offset.y);
+
+			Frect						addon_rect;
+			CInventoryItem::ReadIcon	(addon_rect, *s->addon_name);
+			float icon_scale			= pSettings->r_float(s->addon_name, "icon_scale");
+			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + icon_scale * addon_rect.width());
+			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + icon_scale * addon_rect.height());
+		}
+	}
+
+	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
 }
 
-bool CUIWeaponCellItem::is_scope()
+CUIAddonOwnerCellItem::~CUIAddonOwnerCellItem()
 {
-	return object()->ScopeAttachable()&&object()->IsScopeAttached();
+	m_slots.clear						();
 }
 
-bool CUIWeaponCellItem::is_silencer()
-{
-	return object()->SilencerAttachable()&&object()->IsSilencerAttached();
-}
-
-bool CUIWeaponCellItem::is_launcher()
-{
-	return object()->GrenadeLauncherAttachable()&&object()->IsGrenadeLauncherAttached();
-}
-
-void CUIWeaponCellItem::CreateIcon(eAddonType t)
-{
-	if(m_addons[t])				return;
-	m_addons[t]					= xr_new<CUIStatic>();	
-	m_addons[t]->SetAutoDelete	(true);
-	AttachChild					(m_addons[t]);
-
-	u32 color = GetTextureColor	();
-	m_addons[t]->SetTextureColor(color);
-}
-
-void CUIWeaponCellItem::DestroyIcon(eAddonType t)
-{
-	DetachChild		(m_addons[t]);
-	m_addons[t]		= NULL;
-}
-
-CUIStatic* CUIWeaponCellItem::GetIcon(eAddonType t)
-{
-	return m_addons[t];
-}
-void CUIWeaponCellItem::RefreshOffset()
-{
-	if(object()->SilencerAttachable())
-		m_addon_offset[eSilencer].set(object()->GetSilencerX(), object()->GetSilencerY());
-
-	if(object()->ScopeAttachable())
-		m_addon_offset[eScope].set(object()->GetScopeX(), object()->GetScopeY());
-
-	if(object()->GrenadeLauncherAttachable())
-		m_addon_offset[eLauncher].set(object()->GetGrenadeLauncherX(), object()->GetGrenadeLauncherY());
-}
-
-void CUIWeaponCellItem::Draw()
+void CUIAddonOwnerCellItem::Draw()
 {	
-	inherited::Draw();
-
-	if(m_upgrade && m_upgrade->IsShown())
-		m_upgrade->Draw();
+	inherited::Draw						();
+	if (m_upgrade && m_upgrade->IsShown())
+		m_upgrade->Draw					();
 };
 
-void CUIWeaponCellItem::Update()
+void CUIAddonOwnerCellItem::Update()
 {
-	bool b						= Heading();
-	inherited::Update			();
-	
-	bool bForceReInitAddons		= (b!=Heading());
-
-	if (object()->SilencerAttachable())
+	bool b								= Heading();
+	inherited::Update					();
+	if (b != Heading())
 	{
-		if (object()->IsSilencerAttached())
+		for (auto s : m_slots)
 		{
-			if (!GetIcon(eSilencer) || bForceReInitAddons)
-			{
-				CreateIcon	(eSilencer);
-				RefreshOffset();
-				InitAddon	(GetIcon(eSilencer), *object()->GetSilencerName(), m_addon_offset[eSilencer], Heading());
-			}
-		}
-		else
-		{
-			if (m_addons[eSilencer])
-				DestroyIcon(eSilencer);
-		}
-	}
-
-	if (object()->ScopeAttachable()){
-		if (object()->IsScopeAttached())
-		{
-			if (!GetIcon(eScope) || bForceReInitAddons)
-			{
-				CreateIcon	(eScope);
-				RefreshOffset();
-				InitAddon	(GetIcon(eScope), *object()->GetScopeName(), m_addon_offset[eScope], Heading());
-			}
-		}
-		else
-		{
-			if (m_addons[eScope])
-				DestroyIcon(eScope);
-		}
-	}
-
-	if (object()->GrenadeLauncherAttachable()){
-		if (object()->IsGrenadeLauncherAttached())
-		{
-			if (!GetIcon(eLauncher) || bForceReInitAddons)
-			{
-				CreateIcon	(eLauncher);
-				RefreshOffset();
-				InitAddon	(GetIcon(eLauncher), *object()->GetGrenadeLauncherName(), m_addon_offset[eLauncher], Heading());
-			}
-		}
-		else
-		{
-			if (m_addons[eLauncher])
-				DestroyIcon(eLauncher);
+			if (s->addon_icon)
+				InitAddon				(s->addon_icon, *s->addon_name, s->icon_offset, Heading());
 		}
 	}
 }
 
-void CUIWeaponCellItem::SetTextureColor( u32 color )
+void CUIAddonOwnerCellItem::SetTextureColor(u32 color)
 {
-	inherited::SetTextureColor( color );
-	if ( m_addons[eSilencer] )
+	inherited::SetTextureColor			(color);
+	for (auto s : m_slots)
 	{
-		m_addons[eSilencer]->SetTextureColor( color );
-	}
-	if ( m_addons[eScope] )
-	{
-		m_addons[eScope]->SetTextureColor( color );
-	}
-	if ( m_addons[eLauncher] )
-	{
-		m_addons[eLauncher]->SetTextureColor( color );
+		if (s->addon_icon)
+			s->addon_icon->SetTextureColor(color);
 	}
 }
 
-void CUIWeaponCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
+void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
-	if(is_silencer() && GetIcon(eSilencer))
-		InitAddon	(GetIcon(eSilencer), *object()->GetSilencerName(),	m_addon_offset[eSilencer], parent_list->GetVerticalPlacement());
-
-	if(is_scope() && GetIcon(eScope))
-		InitAddon	(GetIcon(eScope),	*object()->GetScopeName(),		m_addon_offset[eScope], parent_list->GetVerticalPlacement());
-
-	if(is_launcher() && GetIcon(eLauncher))
-		InitAddon	(GetIcon(eLauncher), *object()->GetGrenadeLauncherName(),m_addon_offset[eLauncher], parent_list->GetVerticalPlacement());
+	for (auto s : m_slots)
+	{
+		if (s->addon_icon)
+			InitAddon					(s->addon_icon, *s->addon_name,	s->icon_offset, parent_list->GetVerticalPlacement());
+	}
 }
 
-void CUIWeaponCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_offset, bool b_rotate, bool drag)
+void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_offset, bool b_rotate, bool drag)
 {
-	s->SetShader(InventoryUtilities::GetEquipmentIconsShader(section));
+	s->SetShader						(InventoryUtilities::GetEquipmentIconsShader(section));
 
-	Frect					tex_rect;
-	Fvector2				base_scale;
+	Frect								tex_rect;
+	Fvector2							base_scale;
 
 	if (Heading())
 	{
-		base_scale.x		= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetHeight() / GetTextureRect().width();
-		base_scale.y		= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetWidth() / GetTextureRect().height();
+		base_scale.x					= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetHeight() / GetTextureRect().width();
+		base_scale.y					= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetWidth() / GetTextureRect().height();
 	}
 	else
 	{
-		base_scale.x		= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetWidth() / GetTextureRect().width();
-		base_scale.y		= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetHeight() / GetTextureRect().height();
+		base_scale.x					= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetWidth() / GetTextureRect().width();
+		base_scale.y					= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetHeight() / GetTextureRect().height();
 	}
-	base_scale.div			(pSettings->r_float(m_section, "icon_scale"));
+	base_scale.div						(pSettings->r_float(m_section, "icon_scale"));
 
-	CInventoryItem::ReadIcon(tex_rect, section);
-	Fvector2				cell_size;
-	tex_rect.getsize		(cell_size);
-	cell_size.mul			(base_scale);
-	cell_size.mul			(pSettings->r_float(section, "icon_scale"));
+	CInventoryItem::ReadIcon			(tex_rect, section);
+	Fvector2							cell_size;
+	tex_rect.getsize					(cell_size);
+	cell_size.mul						(base_scale);
+	cell_size.mul						(pSettings->r_float(section, "icon_scale"));
 
 	if (b_rotate)
 	{
-		s->SetWndSize		(Fvector2().set(cell_size.y, cell_size.x) );
-		Fvector2 new_offset;
-		new_offset.x		= GetWidth() - addon_offset.y * base_scale.y - cell_size.y;
-		new_offset.y		= addon_offset.x * base_scale.x;
-		addon_offset		= new_offset;
+		s->SetWndSize					(Fvector2().set(cell_size.y, cell_size.x) );
+		Fvector2						new_offset;
+		new_offset.x					= GetWidth() - addon_offset.y * base_scale.y - cell_size.y;
+		new_offset.y					= addon_offset.x * base_scale.x;
+		addon_offset					= new_offset;
 		
 		if (!drag)
 		{
-			addon_offset.x	-= GetWidth() * m_TextureMargin.top;
-			addon_offset.y	+= GetHeight() * m_TextureMargin.left;
+			addon_offset.x				-= GetWidth() * m_TextureMargin.top;
+			addon_offset.y				+= GetHeight() * m_TextureMargin.left;
 		}
 	}
 	else
 	{
-		s->SetWndSize		(cell_size);
-		addon_offset.mul	(base_scale);
+		s->SetWndSize					(cell_size);
+		addon_offset.mul				(base_scale);
 
 		if (!drag)
-			addon_offset.add(GetWndSize().mul(m_TextureMargin.lt));
+			addon_offset.add			(GetWndSize().mul(m_TextureMargin.lt));
 	}
 
-	s->SetWndPos			(addon_offset);
-	s->SetTextureRect		(tex_rect);
-	s->SetStretchTexture	(true);
+	s->SetWndPos						(addon_offset);
+	s->SetTextureRect					(tex_rect);
+	s->SetStretchTexture				(true);
 
-	s->EnableHeading		(b_rotate);
+	s->EnableHeading					(b_rotate);
 		
 	if (b_rotate)
 	{
-		s->SetHeading		(GetHeading());
-		s->SetHeadingPivot	(Fvector2().set(0.0f,0.0f), Fvector2().set(s->GetWndSize().x, 0.f), true);
+		s->SetHeading					(GetHeading());
+		s->SetHeadingPivot				(Fvector2().set(0.0f,0.0f), Fvector2().set(s->GetWndSize().x, 0.f), true);
 	}
 }
 
-CUIDragItem* CUIWeaponCellItem::CreateDragItem()
+CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 {
-	CUIDragItem* i		= inherited::CreateDragItem();
-	CUIStatic* s		= NULL;
+	CUIDragItem* i						= inherited::CreateDragItem();
+	CUIStatic* st						= NULL;
 
-	if(GetIcon(eSilencer))
+	for (auto s : m_slots)
 	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		InitAddon		(s, *object()->GetSilencerName(), m_addon_offset[eSilencer], false, true);
-		s->SetTextureColor(i->wnd()->GetTextureColor());
-		i->wnd			()->AttachChild	(s);
-	}
-	
-	if(GetIcon(eScope))
-	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		InitAddon		(s,	*object()->GetScopeName(),		m_addon_offset[eScope], false, true);
-		s->SetTextureColor(i->wnd()->GetTextureColor());
-		i->wnd			()->AttachChild	(s);
-	}
-
-	if(GetIcon(eLauncher))
-	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		InitAddon		(s, *object()->GetGrenadeLauncherName(),m_addon_offset[eLauncher], false, true);
-		s->SetTextureColor(i->wnd()->GetTextureColor());
-		i->wnd			()->AttachChild	(s);
-	}
-	return				i;
-}
-
-bool CUIWeaponCellItem::EqualTo(CUICellItem* itm)
-{
-	if(!inherited::EqualTo(itm))	return false;
-
-	CUIWeaponCellItem* ci			= smart_cast<CUIWeaponCellItem*>(itm);
-	if(!ci)							return false;
-
-//	bool b_addons					= ( (object()->GetAddonsState() == ci->object()->GetAddonsState()) );
-	if ( object()->GetAddonsState() != ci->object()->GetAddonsState() )
-	{
-		return false;
-	}
-	if(this->is_scope() && ci->is_scope())
-	{
-		if ( object()->GetScopeName() != ci->object()->GetScopeName() )
+		if (s->addon_icon)
 		{
-			return false;
+			st							= xr_new<CUIStatic>();
+			st->SetAutoDelete			(true);
+			InitAddon					(st, *s->addon_name, s->icon_offset, false, true);
+			st->SetTextureColor			(i->wnd()->GetTextureColor());
+			i->wnd()->AttachChild		(st);
 		}
 	}
-//	bool b_place					= ( (object()->m_eItemCurrPlace == ci->object()->m_eItemCurrPlace) );
 
-	return true;
+	return								i;
 }
-*/
+
 CBuyItemCustomDrawCell::CBuyItemCustomDrawCell	(LPCSTR str, CGameFont* pFont)
 {
 	m_pFont		= pFont;

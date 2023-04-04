@@ -8,12 +8,14 @@
 CAddon::CAddon()
 {
 	m_SlotType							= 0;
+	m_IconOffset						= { 0.f, 0.f };
 }
 
 void CAddon::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 	m_SlotType							= pSettings->r_string(section, "slot_type");
+	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
 	if (pSettings->line_exist(section, "addon_type"))
 	{
 		shared_str addon_type			= pSettings->r_string(section, "addon_type");

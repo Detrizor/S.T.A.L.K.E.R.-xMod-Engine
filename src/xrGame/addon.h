@@ -11,6 +11,7 @@ public:
 
 private:
 	shared_str							m_SlotType;
+	Fvector2							m_IconOffset;
 
 	void								Load								O$	(LPCSTR section);
 
@@ -18,4 +19,5 @@ public:
 	void								Render									(Fmatrix* pos);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
+	Fvector2 CR$						IconOffset							C$	()		{ return m_IconOffset; }
 };

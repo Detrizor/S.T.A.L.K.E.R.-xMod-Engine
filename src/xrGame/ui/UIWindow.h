@@ -176,6 +176,7 @@ public:
 
 	//прорисовка окна
 	virtual void			Draw				();
+	void					DrawBackground		();
 	virtual void			Draw				(float x, float y);
 	//обновление окна передпрорисовкой
 	virtual void			Update				();
@@ -253,12 +254,16 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-			u8				m_anchor;
-			u8				m_alignment;
-			shared_str		m_offsetTag;
-			shared_str		m_offset;
+	u8									m_anchor;
+	u8									m_alignment;
+	shared_str							m_offsetTag;
+	shared_str							m_offset;
+	bool								m_background_draw;
 
 public:
+	bool								BackgroundDraw						C$	()			{ return m_background_draw; }
+	void								SetBackgroundDraw						(bool v)	{ m_background_draw = v; }
+
 			void			SetAnchor				(u8 val)								{ m_anchor = val; }
 			void			SetAlignment			(u8 val)								{ m_alignment = val; }
 			void			CopyAlignment			(const CUIWindow& from)					{ m_alignment = from.m_alignment; m_anchor = from.m_anchor; }

@@ -115,7 +115,8 @@ m_bCustomDraw(false),
 m_alignment(aLeftTop),
 m_anchor(aLeftTop),
 m_offsetTag(""),
-m_offset("")
+m_offset(""),
+m_background_draw(false)
 {
 	Show					(true);
 	Enable					(true);
@@ -165,15 +166,14 @@ CUIWindow::~CUIWindow()
 #endif
 }
 
-
-
 void CUIWindow::Draw()
 {
-	for(WINDOW_LIST_it it = m_ChildWndList.begin(); m_ChildWndList.end() != it; ++it){
-		if(!(*it)->IsShown())		continue;
-		if((*it)->GetCustomDraw())	continue;
-		(*it)->Draw					();
+	for (auto I : m_ChildWndList)
+	{
+		if (I->IsShown() && !I->GetCustomDraw() && !I->BackgroundDraw())
+			I->Draw();
 	}
+
 #ifdef DEBUG
 	if(g_show_wnd_rect2){
 		Frect r;
@@ -181,6 +181,15 @@ void CUIWindow::Draw()
 		add_rect_to_draw(r);
 	}
 #endif
+}
+
+void CUIWindow::DrawBackground()
+{
+	for (auto I : m_ChildWndList)
+	{
+		if (I->BackgroundDraw())
+			I->Draw();
+	}
 }
 
 void CUIWindow::Draw(float x, float y)

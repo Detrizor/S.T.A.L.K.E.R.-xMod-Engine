@@ -76,13 +76,13 @@ void CUIStatic::InitTextureEx(LPCSTR tex_name, LPCSTR sh_name)
 	m_UIStaticItem.SetPos			(p.x, p.y);
 }
 
-void  CUIStatic::Draw()
+void CUIStatic::Draw()
 {
+	DrawBackground			();
 	DrawTexture				();	
 	inherited::Draw			();
 	DrawText				();
 }
-
 
 void CUIStatic::DrawText()
 {

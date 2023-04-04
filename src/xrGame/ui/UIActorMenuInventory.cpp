@@ -33,6 +33,7 @@
 #include "../item_container.h"
 
 #include "addon.h"
+#include "string_table.h"
 
 using namespace ::luabind; //Alundaio
 
@@ -666,6 +667,9 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 	}
 }
 
+shared_str attach_to	= "st_attach_to";
+shared_str dettach		= "st_detach";
+
 void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, bool& b_show)
 {
 	if (!item->InHands())
@@ -680,7 +684,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 	{
 		if (slot->addon)
 		{
-			LPCSTR title				= *shared_str().printf("st_detach %s", slot->addon->NameShort());
+			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(dettach), slot->addon->NameShort(), *CStringTable().translate(slot->name));
 			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
 			b_show = true;
 		}
@@ -702,7 +706,7 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 	{
 		if (slot->CanTake(addon))
 		{
-			LPCSTR title				= *shared_str().printf("st_attach_to %s (%s)", active_item->NameShort(), *slot->name);
+			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(attach_to), active_item->NameShort(), *CStringTable().translate(slot->name));
 			m_UIPropertiesBox->AddItem	(title, (void*)slot, INVENTORY_ATTACH_ADDON);
 			b_show						= true;
 		}

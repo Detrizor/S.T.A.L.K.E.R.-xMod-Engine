@@ -2,6 +2,8 @@
 #include "UICellItem.h"
 #include "../Weapon.h"
 
+class CAddonOwner;
+struct SAddonSlot;
 
 struct SIconLayer
 {
@@ -49,36 +51,45 @@ public:
 	virtual		CUIDragItem*	 CreateDragItem				();
 				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
-/* --xd нормально сделаю
-class CUIWeaponCellItem :public CUIInventoryCellItem
-{
-	typedef  CUIInventoryCellItem	inherited;
-public:
-	enum eAddonType{	eSilencer=0, eScope, eLauncher, eMaxAddon};
-protected:
-	CUIStatic*					m_addons					[eMaxAddon];
-	Fvector2					m_addon_offset				[eMaxAddon];
-	void						CreateIcon					(eAddonType);
-	void						DestroyIcon					(eAddonType);
-	void						RefreshOffset				();
-	CUIStatic*					GetIcon						(eAddonType);
-	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading, bool drag = false);
-	bool						is_scope					();
-	bool						is_silencer					();
-	bool						is_launcher					();
-public:
-								CUIWeaponCellItem			(CWeapon* itm);
-				virtual			~CUIWeaponCellItem			();
-	virtual		void			Update						();
-	virtual		void			Draw						();
-	virtual		void			SetTextureColor				(u32 color);
 
-				CWeapon*		object						() {return (CWeapon*)m_pData;}
-	virtual		void			OnAfterChild				(CUIDragDropListEx* parent_list);
-	virtual		CUIDragItem*	CreateDragItem				();
-	virtual		bool			EqualTo						(CUICellItem* itm);
-	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
-};*/
+class CUIAddonOwnerCellItem :public CUIInventoryCellItem
+{
+private:
+	typedef CUIInventoryCellItem		inherited;
+
+	struct SUIAddonSlot
+	{
+		shared_str						name;
+		shared_str						type;
+		shared_str						addon_name;
+		CUIStatic*						addon_icon;
+		Fvector2						icon_offset;
+
+		SUIAddonSlot					(SAddonSlot CR$ slot);
+	};
+
+	typedef xr_vector<SUIAddonSlot*>	VUISlots;
+
+public:
+										CUIAddonOwnerCellItem					(CAddonOwner* item);
+										~CUIAddonOwnerCellItem					();
+
+private:
+	VUISlots							m_slots;
+
+	void								InitAddon								(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading, bool drag = false);
+
+public:
+	VUISlots CR$						Slots								C$	()		{ return m_slots; }
+
+	bool								EqualTo								O$	(CUICellItem* itm) { return false; }
+
+	void								Update								O$	();
+	void								Draw								O$	();
+	CUIDragItem*						CreateDragItem						O$	();
+	void								SetTextureColor						O$	(u32 color);
+	void								OnAfterChild						O$	(CUIDragDropListEx* parent_list);
+};
 
 class CBuyItemCustomDrawCell :public ICustomDrawCellItem
 {

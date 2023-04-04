@@ -42,8 +42,9 @@
 #include "UICellItemFactory.h"
 #include "UIInvUpgradeInfo.h"
 
-#include "..\scope.h"
-#include "..\silencer.h"
+#include "scope.h"
+#include "silencer.h"
+#include "UICellCustomItems.h"
 
 void CUIActorMenu::SetActor(CInventoryOwner* io)
 {
@@ -550,122 +551,102 @@ void CUIActorMenu::set_highlight_item(CUICellItem* cell_item)
 	m_highlight_clear = false;
 }
 
+extern void FillVector(xr_vector<shared_str>&, LPCSTR, LPCSTR);
 void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx* ddlist)
 {
 	ddlist->clear_select_armament();
-	highlight_ammo_for_weapon(cell_item, ddlist);
-	highlight_weapons_for_ammo(cell_item, ddlist);
-	highlight_weapons_for_addon(cell_item, ddlist);
-}
 
-extern void FillVector(xr_vector<shared_str>&, LPCSTR, LPCSTR);
-void CUIActorMenu::highlight_ammo_for_weapon(CUICellItem* cell_item, CUIDragDropListEx* ddlist)
-{
-	VERIFY					(cell_item);
-	VERIFY					(ddlist);
-	if (!ItemCategory(cell_item->m_section, "weapon") || ItemSubcategory(cell_item->m_section, "melee") || ItemSubcategory(cell_item->m_section, "grenade"))
+	CUIAddonOwnerCellItem* ao			= smart_cast<CUIAddonOwnerCellItem*>(cell_item);
+	bool wpn_with_ammo					= ItemCategory(cell_item->m_section, "weapon") && !ItemSubcategory(cell_item->m_section, "melee") && !ItemSubcategory(cell_item->m_section, "grenade");
+	bool ammo							= ItemCategory(cell_item->m_section, "ammo");
+	bool addon							= ItemCategory(cell_item->m_section, "addon");
+	if (!ao && !wpn_with_ammo && !ammo && !addon)
 		return;
 
-	PIItem itm						= (PIItem)cell_item->m_pData;
-	CWeapon* wpn					= smart_cast<CWeapon*>(itm);
-	xr_vector<shared_str>			ammo_types;
-	if (wpn)
-		ammo_types					= wpn->m_ammoTypes;
-	else
-		FillVector					(ammo_types, *cell_item->m_section, "ammo_class");
-
-	for (u32 i = 0, cnt = ddlist->ItemsCount(); i < cnt; ++i)
+	xr_vector<shared_str>				ammo_types;
+	if (wpn_with_ammo)
 	{
-		CUICellItem* ci							= ddlist->GetItemIdx(i);
-		if (!ItemCategory(ci->m_section, "ammo"))
-		{
-			if (ItemCategory(ci->m_section, "addon") || ItemCategory(ci->m_section, "magazine"))
-				highlight_addons_for_weapon		(cell_item, ci);
-			continue;
-		}
-		shared_str ammo_name					= pSettings->line_exist(ci->m_section, "stock") ? pSettings->r_string(ci->m_section, "stock") : ci->m_section;
-		for (auto& I : ammo_types)
-		{
-			if (ammo_name == I)
-			{
-				ci->m_select_armament			= true;
-				break;
-			}
-		}
-	}
-}
-
-void CUIActorMenu::highlight_addons_for_weapon(CUICellItem* weapon_cell_item, CUICellItem* ci)
-{
-	PIItem weapon_item					= (PIItem)weapon_cell_item->m_pData;
-	CWeapon* weapon						= smart_cast<CWeapon*>(weapon_item);
-	const shared_str& weapon_section	= weapon_cell_item->m_section;
-	const shared_str& addon_section		= ci->m_section;
-
-	/*if (silencer_status == 2 && ItemSubcategory(addon_section, "silencer"))
-	{
-		LPCSTR silencer							= (weapon) ? *weapon->GetSilencerName() : READ_IF_EXISTS(pSettings, r_string, weapon_section, "silencer_name", 0);
-		if (silencer && addon_section == silencer)
-			ci->m_select_armament				= true;
-	}*/
-}
-
-void CUIActorMenu::highlight_weapons_for_ammo(CUICellItem* ammo_cell_item, CUIDragDropListEx* ddlist)
-{
-	VERIFY		(ammo_cell_item);
-	VERIFY		(ddlist);
-	if (!ItemCategory(ammo_cell_item->m_section, "ammo"))
-		return;
-	
-	shared_str ammo_name					= pSettings->line_exist(ammo_cell_item->m_section, "stock") ? pSettings->r_string(ammo_cell_item->m_section, "stock") : ammo_cell_item->m_section;
-	for (u32 i = 0, cnt = ddlist->ItemsCount(); i < cnt; ++i)
-	{
-		CUICellItem* ci						= ddlist->GetItemIdx(i);
-		if (!pSettings->line_exist(ci->m_section, "ammo_class"))
-			continue;
-		PIItem item							= (PIItem)ci->m_pData;
-		CWeapon* wpn						= smart_cast<CWeapon*>(item);
-		xr_vector<shared_str>				ammo_types;
+		PIItem itm						= (PIItem)cell_item->m_pData;
+		CWeapon* wpn					= smart_cast<CWeapon*>(itm);
 		if (wpn)
-			ammo_types						= wpn->m_ammoTypes;
+			ammo_types					= wpn->m_ammoTypes;
 		else
-			FillVector						(ammo_types, *ci->m_section, "ammo_class");
-
-		for (xr_vector<shared_str>::iterator itb = ammo_types.begin(), ite = ammo_types.end(); itb != ite; ++itb)
-		{
-			if (ammo_name == *itb)
-			{
-				ci->m_select_armament		= true;
-				break;
-			}
-		}
+			FillVector					(ammo_types, *cell_item->m_section, "ammo_class");
 	}
-}
 
-void CUIActorMenu::highlight_weapons_for_addon(CUICellItem* addon_cell_item, CUIDragDropListEx* ddlist)
-{
-	VERIFY							(addon_cell_item);
-	VERIFY							(ddlist);
-	shared_str& addon_section		= addon_cell_item->m_section;
-	if (!ItemCategory(addon_section, "addon") && !ItemCategory(addon_section, "magazine"))
-		return;
+	shared_str							ammo_section;
+	if (ammo)
+		ammo_section					= pSettings->line_exist(cell_item->m_section, "stock") ? pSettings->r_string(cell_item->m_section, "stock") : cell_item->m_section;
 
-	/* --xd for (u32 i = 0, cnt = ddlist->ItemsCount(); i < cnt; ++i)
+	shared_str							slot_type;
+	if (addon)
+		slot_type						= pSettings->r_string(cell_item->m_section, "slot_type");
+
+	for (u32 i = 0, cnt = ddlist->ItemsCount(); i < cnt; ++i)
 	{
 		CUICellItem* ci					= ddlist->GetItemIdx(i);
-		if (!pSettings->line_exist(ci->m_section, "scope_status"))
-			continue;
-		PIItem item						= (PIItem)ci->m_pData;
-		CWeapon* weapon					= smart_cast<CWeapon*>(item);
-		shared_str& weapon_section		= ci->m_section;
-		
-		else if (silencer_status == 2 && ItemSubcategory(addon_section, "silencer"))
+
+		if (ao && ItemCategory(ci->m_section, "addon"))
 		{
-			LPCSTR silencer							= (weapon) ? *weapon->GetSilencerName() : READ_IF_EXISTS(pSettings, r_string, weapon_section, "silencer_name", 0);
-			if (silencer && addon_section == silencer)
-				ci->m_select_armament				= true;
+			LPCSTR tmp					= pSettings->r_string(ci->m_section, "slot_type");
+			for (auto s : ao->Slots())
+			{
+				if (s->type == tmp)
+				{
+					ci->m_select_armament = true;
+					break;
+				}
+			}
 		}
-	}*/
+
+		if (wpn_with_ammo && ItemCategory(ci->m_section, "ammo"))
+		{
+			LPCSTR tmp					= pSettings->line_exist(ci->m_section, "stock") ? pSettings->r_string(ci->m_section, "stock") : *ci->m_section;
+			for (auto& I : ammo_types)
+			{
+				if (I == tmp)
+				{
+					ci->m_select_armament = true;
+					break;
+				}
+			}
+		}
+
+		if (ammo && ItemCategory(ci->m_section, "weapon"))
+		{
+			xr_vector<shared_str>		tmp;
+			PIItem itm					= (PIItem)ci->m_pData;
+			CWeapon* wpn				= smart_cast<CWeapon*>(itm);
+			if (wpn)
+				tmp						= wpn->m_ammoTypes;
+			else
+				FillVector				(tmp, *ci->m_section, "ammo_class");
+			for (auto& I : tmp)
+			{
+				if (I == ammo_section)
+				{
+					ci->m_select_armament = true;
+					break;
+				}
+			}
+		}
+
+		if (addon)
+		{
+			CUIAddonOwnerCellItem* tmp	= smart_cast<CUIAddonOwnerCellItem*>(ci);
+			if (tmp)
+			{
+				for (auto s : tmp->Slots())
+				{
+					if (s->type == slot_type)
+					{
+						ci->m_select_armament = true;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 // -------------------------------------------------------------------
