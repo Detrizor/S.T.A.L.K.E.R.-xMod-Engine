@@ -344,6 +344,7 @@ public:
 
 			void			SetInvIconType			(u8 type);
 			void			SetInvIconIndex			(u8 idx);
+			u8				GetInvIconType			()								const	{ return m_inv_icon_type; }
 			u8				GetInvIconIndex			()								const	{ return m_inv_icon_index; }
 
 

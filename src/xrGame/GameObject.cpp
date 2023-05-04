@@ -92,7 +92,7 @@ void CGameObject::Load(LPCSTR section)
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
 
-	if (READ_IF_EXISTS(pSettings, r_string, section, "container", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
 		AddModule<CInventoryContainer>();
 }
 
@@ -244,7 +244,7 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 	{
 		shared_str vis_name			= visual_name(E);
 
-		if (*vis_name && vis_name[0])
+		/*--xd if (*vis_name && vis_name[0])
 		{
 			string_path				fn;
 			string_path				name;
@@ -252,25 +252,32 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 				strconcat			(sizeof(name), name, *vis_name, ".ogf");
 			else
 				xr_strcpy			(name, sizeof(name), *vis_name);
+
 			if (!FS.exist(fn, "$level$", name) && !FS.exist(fn, "$game_meshes$", name))
 			{
-				Msg("--xd vis_name [%s] name [%s]", *vis_name, name);
 				vis_name			= pSettings->r_string(E->s_name, "visual");
 				if (visual_name(E) != vis_name)
 					visual->set_visual(*vis_name);
 			}
 		}
-		
-		/*if (pSettings->line_exist(E->s_name, "visual"))
+
+		LPCSTR A = strstr(*vis_name, "actor\\");
+		if (A)
+		{
+			xr_string str = *vis_name;
+			str.replace(0, 6, "act\\");
+			vis_name = str.c_str();
+		}*/
+
+		if (smart_cast<CSE_ALifeInventoryItem*>(E))
 		{
 			LPCSTR s_vis_name		= pSettings->r_string(E->s_name, "visual");
 			if (vis_name != s_vis_name)
 			{
-				Msg("--xd vis_name [%s] s_vis_name [%s] E->s_name [%s]", *vis_name, s_vis_name, *E->s_name);
 				vis_name			= s_vis_name;
 				visual->set_visual	(s_vis_name);
 			}
-		}*/
+		}
 
 		cNameVisual_set				(vis_name);
 		if (visual->flags.test(CSE_Visual::flObstacle)) {
@@ -559,16 +566,6 @@ void CGameObject::spawn_supplies()
 					CSE_ALifeInventoryItem*	pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(A);
 					if (pSE_InventoryItem)
 						pSE_InventoryItem->m_fCondition = f_cond;
-
-					CSE_ALifeItemWeapon* W = smart_cast<CSE_ALifeItemWeapon*>(A);
-					if (W) {
-						if (W->m_scope_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonScope, bScope);
-						if (W->m_silencer_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonSilencer, bSilencer);
-						if (W->m_grenade_launcher_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, bLauncher);
-					}
 
 					NET_Packet					P;
 					A->Spawn_Write(P, TRUE);

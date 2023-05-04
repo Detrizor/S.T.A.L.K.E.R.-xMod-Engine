@@ -15,6 +15,7 @@ struct SAddonSlot
 	shared_str							type;
 	shared_str							bone_name;
 	Fvector								model_offset[2];
+	Fvector								bone_offset[2];
 	Fvector2							icon_offset;
 	BOOL								lower_iron_sights;
 	BOOL								primary_scope;

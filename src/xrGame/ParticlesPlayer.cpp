@@ -15,11 +15,8 @@ static void generate_orthonormal_basis(const Fvector& dir,Fmatrix &result)
 }
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::FindParticles(const shared_str& ps_name)
 {
-	for (auto& I : particles)
-	{
-		if (I.active && I.ps->Name() == ps_name)
-			return &I;
-	}
+	for (ParticlesInfoListIt it=particles.begin(); it!=particles.end(); it++)
+		if (it->ps() && it->ps()->Name() == ps_name) return &(*it);
 	return 0;
 }
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(CObject* object, const shared_str& ps_name)
@@ -28,8 +25,7 @@ CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(C
 	if (pi)				return pi;
 	particles.push_back	(SParticlesInfo());
 	pi					= &particles.back();
-	pi->ps				= CParticlesObject::Create(*ps_name,FALSE);
-	pi->active			= true;
+	pi->macabre = pi->macabre_backup = CParticlesObject::Create(*ps_name,FALSE);
 	return pi;
 }
 void CParticlesPlayer::SBoneInfo::StopParticles(const shared_str& ps_name, bool bDestroy)
@@ -37,12 +33,9 @@ void CParticlesPlayer::SBoneInfo::StopParticles(const shared_str& ps_name, bool 
 	SParticlesInfo* pi	= FindParticles(ps_name);
 	if (pi){
 		if(!bDestroy)
-			pi->ps->Stop();
+			pi->ps()->Stop();
 		else
-		{
-			CParticlesObject::Destroy(pi->ps);
-			pi->active = false;
-		}
+			pi->Deactivate();
 	}
 }
 
@@ -51,12 +44,9 @@ void CParticlesPlayer::SBoneInfo::StopParticles(u16 sender_id, bool bDestroy)
 	for (ParticlesInfoListIt it=particles.begin(); it!=particles.end(); it++)
 		if (it->sender_id==sender_id){
 			if(!bDestroy)
-				it->ps->Stop();
+				it->ps()->Stop();
 			else
-			{
-				CParticlesObject::Destroy(it->ps);
-				it->active = false;
-			}
+				it->Deactivate();
 		}
 }
 //-------------------------------------------------------------------------------------
@@ -64,7 +54,7 @@ void CParticlesPlayer::SBoneInfo::StopParticles(u16 sender_id, bool bDestroy)
 CParticlesPlayer::CParticlesPlayer ()
 {
 	bone_mask			= u64(1)<<u64(0);
-	
+
 	m_bActiveBones		= false;
 
 	m_Bones.push_back	(SBoneInfo(0,Fvector().set(0,0,0)));
@@ -83,7 +73,7 @@ void CParticlesPlayer::LoadParticles(IKinematics* K)
 	VERIFY				(K);
 
 	m_Bones.clear();
-	
+
 
 	//считать список косточек и соответствующих
 	//офсетов  куда можно вешать партиклы
@@ -116,13 +106,10 @@ void	CParticlesPlayer::net_DestroyParticles	()
 	{
 		SBoneInfo& b_info	= *b_it;
 
-		for (auto& I : b_info.particles)
+		for (ParticlesInfoListIt p_it=b_info.particles.begin(); p_it!=b_info.particles.end(); p_it++)
 		{
-			if (I.active)
-			{
-				CParticlesObject::Destroy(I.ps);
-				I.active = false;
-			}
+			SParticlesInfo& p_info	= *p_it;
+			p_info.Deactivate();
 		}
 		b_info.particles.clear();
 	}
@@ -151,7 +138,7 @@ void CParticlesPlayer::StartParticles(const shared_str& particles_name, u16 bone
 {
 	VERIFY(fis_zero(xform.c.magnitude()));
 	R_ASSERT(*particles_name);
-	
+
 	CObject* object					= m_self_object;
 	VERIFY(object);
 
@@ -159,7 +146,7 @@ void CParticlesPlayer::StartParticles(const shared_str& particles_name, u16 bone
 	if(!pBoneInfo) return;
 
 	SParticlesInfo &particles_info	=*pBoneInfo->AppendParticles(object,particles_name);
-	
+
 	particles_info.sender_id		= sender_id;
 
 	particles_info.life_time=auto_stop ? life_time : u32(-1);
@@ -167,9 +154,9 @@ void CParticlesPlayer::StartParticles(const shared_str& particles_name, u16 bone
 
 	Fmatrix m;m.setHPB(particles_info.angles.x,particles_info.angles.y,particles_info.angles.z);
 	GetBonePos(object,pBoneInfo->index,pBoneInfo->offset,m.c);
-	particles_info.ps->UpdateParent(m,zero_vel);
-	if(!particles_info.ps->IsPlaying())
-		particles_info.ps->Play		(false);
+	particles_info.ps()->UpdateParent(m, zero_vel);
+	if(!particles_info.ps()->IsPlaying())
+		particles_info.ps()->Play(false);
 
 	m_bActiveBones = true;
 }
@@ -179,7 +166,7 @@ void CParticlesPlayer::StartParticles(const shared_str& ps_name, const Fmatrix& 
 	CObject* object					= m_self_object;
 	VERIFY(object);
 	for(BoneInfoVecIt it = m_Bones.begin(); it!=m_Bones.end(); it++){
-		
+
 		SParticlesInfo &particles_info	=*it->AppendParticles(object,ps_name);
 		particles_info.sender_id	= sender_id;
 
@@ -189,9 +176,9 @@ void CParticlesPlayer::StartParticles(const shared_str& ps_name, const Fmatrix& 
 
 		Fmatrix m;m.set(xform);
 		GetBonePos(object,it->index,it->offset,m.c);
-		particles_info.ps->UpdateParent(m,zero_vel);
-		if(!particles_info.ps->IsPlaying())
-			particles_info.ps->Play	(false);
+		particles_info.ps()->UpdateParent(m, zero_vel);
+		if(!particles_info.ps()->IsPlaying())
+			particles_info.ps()->Play(false);
 	}
 
 	m_bActiveBones = true;
@@ -248,7 +235,7 @@ struct SRP
 {
 	bool operator	() (CParticlesPlayer::SParticlesInfo& pi)
 	{
-		return ! pi.ps;
+		return ! pi.ps();
 	}
 };
 void CParticlesPlayer::UpdateParticles()
@@ -256,7 +243,7 @@ void CParticlesPlayer::UpdateParticles()
 	if	(!m_bActiveBones)	return;
 	m_bActiveBones			= false;
 
-    CObject* object			= m_self_object;
+	CObject* object			= m_self_object;
 	VERIFY	(object);
 
 	for(BoneInfoVecIt b_it=m_Bones.begin(); b_it!=m_Bones.end(); b_it++){
@@ -264,12 +251,12 @@ void CParticlesPlayer::UpdateParticles()
 
 		for (ParticlesInfoListIt p_it=b_info.particles.begin(); p_it!=b_info.particles.end(); p_it++){
 			SParticlesInfo& p_info	= *p_it;
-			if(!p_info.active) continue;
+			if(!p_info.ps()) continue;
 			//обновить позицию партиклов
 			Fmatrix xform;
 			xform.setHPB(p_info.angles.x,p_info.angles.y,p_info.angles.z);
 			GetBonePos(object,b_info.index,b_info.offset,xform.c);
-			p_info.ps->UpdateParent(xform, parent_vel);
+			p_info.ps()->UpdateParent(xform, parent_vel);
 
 			//обновить время существования
 			if(p_info.life_time!=u32(-1))
@@ -277,14 +264,12 @@ void CParticlesPlayer::UpdateParticles()
 				if(p_info.life_time>Device.dwTimeDelta)	p_info.life_time-=Device.dwTimeDelta;
 				else 
 				{
-					p_info.ps->Stop();
+					p_info.ps()->Stop();
 					p_info.life_time=u32(-1);
 				}
 			}
-			if(!p_info.ps->IsPlaying())
-			{
-				CParticlesObject::Destroy(p_info.ps);
-				p_info.active = false;
+			if(!p_info.ps()->IsPlaying()) {
+				p_info.Deactivate();
 			}
 			else
 				m_bActiveBones  = true;

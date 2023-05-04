@@ -52,7 +52,7 @@ void CUIActorMenu::InitTradeMode()
 	VERIFY							( m_pPartnerInvOwner );
 	m_pPartnerInvOwner->StartTrading();
 
-	InitInventoryContents			( m_pTradeActorBagList );
+	InitInventoryContents			();
 
 	UpdatePocketsPresence();
 	

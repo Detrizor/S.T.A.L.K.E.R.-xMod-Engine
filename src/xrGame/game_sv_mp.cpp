@@ -835,8 +835,7 @@ void	game_sv_mp::SetAmmoForWeapon(CSE_ALifeItemWeapon* weapon,
 		ChargeAmmo(weapon, ammo_classes.c_str(), playerItems, ammo_diff);
 	}
 	
-	if ((Addons & CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher) || 
-		(weapon->m_grenade_launcher_status == ALife::eAddonPermanent))
+	if (Addons & CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher)
 	{
 		shared_str grenade_classes = pSettings->r_string(weapon->s_name, "grenade_class");
 		R_ASSERT2(grenade_classes.size() < 512, make_string(

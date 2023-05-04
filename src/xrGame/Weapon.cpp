@@ -1421,7 +1421,7 @@ float CWeapon::GetControlInertionFactor C$()
 	return 1.f + inertion;
 }
 
-float CWeapon::CurrentZoomFactor C$()
+float CWeapon::CurrentZoomFactor C$(bool for_svp)
 {
-	return (float)abs(ADS());
+	return (float)(!!ADS());
 }

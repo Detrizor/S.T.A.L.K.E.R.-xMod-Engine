@@ -375,6 +375,8 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 	name								= slot.name;
 	type								= slot.type;
 	addon_name							= 0;
+	addon_type							= 0;
+	addon_index							= 0;
 	addon_icon							= NULL;
 	icon_offset							= { 0.f, 0.f };
 }
@@ -390,6 +392,8 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 		if (S->addon)
 		{
 			s->addon_name				= S->addon->Section();
+			s->addon_type				= S->addon->GetInvIconType();
+			s->addon_index				= S->addon->GetInvIconIndex();
 			s->icon_offset				= S->icon_offset;
 			s->icon_offset.sub			(S->addon->IconOffset());
 			s->addon_icon				= xr_new<CUIStatic>();
@@ -446,7 +450,7 @@ void CUIAddonOwnerCellItem::Update()
 		for (auto s : m_slots)
 		{
 			if (s->addon_icon)
-				InitAddon				(s->addon_icon, *s->addon_name, s->icon_offset, Heading());
+				InitAddon				(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, Heading());
 		}
 	}
 }
@@ -466,11 +470,11 @@ void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 	for (auto s : m_slots)
 	{
 		if (s->addon_icon)
-			InitAddon					(s->addon_icon, *s->addon_name,	s->icon_offset, parent_list->GetVerticalPlacement());
+			InitAddon					(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
 	}
 }
 
-void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_offset, bool b_rotate, bool drag)
+void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 addon_offset, bool b_rotate, bool drag)
 {
 	s->SetShader						(InventoryUtilities::GetEquipmentIconsShader(section));
 
@@ -489,7 +493,7 @@ void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 add
 	}
 	base_scale.div						(pSettings->r_float(m_section, "icon_scale"));
 
-	CInventoryItem::ReadIcon			(tex_rect, section);
+	CInventoryItem::ReadIcon			(tex_rect, section, type, index);
 	Fvector2							cell_size;
 	tex_rect.getsize					(cell_size);
 	cell_size.mul						(base_scale);
@@ -542,7 +546,7 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 		{
 			st							= xr_new<CUIStatic>();
 			st->SetAutoDelete			(true);
-			InitAddon					(st, *s->addon_name, s->icon_offset, false, true);
+			InitAddon					(st, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, false, true);
 			st->SetTextureColor			(i->wnd()->GetTextureColor());
 			i->wnd()->AttachChild		(st);
 		}

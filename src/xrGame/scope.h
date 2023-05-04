@@ -11,6 +11,7 @@ enum eScopeType
 class CUIStatic;
 class CBinocularsVision;
 class CNightVisionEffector;
+class CWeaponHud;
 
 struct hud_item_measures;
 
@@ -38,35 +39,36 @@ struct SRangeFloat
 class CScope : public CModule
 {
 public:
-										CScope								(CGameObject* obj);
-							~CScope					();
-	void					Load					(LPCSTR section);
+										CScope									(CGameObject* obj, shared_str CR$ section);
+										~CScope									();
 	
 protected:
-			eScopeType		m_Type;
-			SRangeFloat		m_Magnificaion;
-			shared_str		m_Reticle;
-			shared_str		m_AliveDetector;
-			shared_str		m_Nighvision;
-			float			m_fLenseRadius;
-			CUIStatic*		m_pUIReticle;
-	CBinocularsVision*		m_pVision;
-	CNightVisionEffector*	m_pNight_vision;
+	eScopeType							m_Type;
+	SRangeFloat							m_Magnificaion;
+	shared_str							m_Reticle;
+	shared_str							m_AliveDetector;
+	shared_str							m_Nighvision;
+	float								m_fLenseRadius;
+	CUIStatic*							m_pUIReticle;
+	CBinocularsVision*					m_pVision;
+	CNightVisionEffector*				m_pNight_vision;
 
-			bool			install_upgrade_impl	(LPCSTR section, bool test);
-			void			InitVisors				();
-			float			ReticleCircleOffset		(int idx, const hud_item_measures& m, Fvector* const hud_offset) const;
+	bool								install_upgrade_impl					(LPCSTR section, bool test);
+	void								InitVisors								();
+	float								ReticleCircleOffset						(int idx, CWeaponHud CR$ hud) const;
 
 public:
-	static	Fvector			lense_circle_scale;
-	static	Fvector4		lense_circle_offset[2];
+	static	Fvector						lense_circle_scale;
+	static	Fvector4					lense_circle_offset[2];
 
-			eScopeType		Type					()								const	{ return m_Type; }
-			void			modify_holder_params	(float &range, float &fov)		const;
-			void			ZoomChange				(int val);
-			bool			HasLense				()								const;
-			float			GetLenseRadius			()								const	{ return m_fLenseRadius; }
-			float			GetReticleScale			()								const	{ return m_Magnificaion.current; }
-			float			GetCurrentMagnification	()								const	{ return m_Magnificaion.current; }
-			void			RenderUI				(const hud_item_measures& m, Fvector* const hud_offset);
+	eScopeType							Type								C$	()		{ return m_Type; }
+	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
+	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
+
+	float								GetReticleScale						C$	(CWeaponHud CR$ hud);
+	void								modify_holder_params				C$	(float &range, float &fov);
+	bool								HasLense							C$	();
+
+	void								ZoomChange								(int val);
+	void								RenderUI								(CWeaponHud CR$ hud);
 };

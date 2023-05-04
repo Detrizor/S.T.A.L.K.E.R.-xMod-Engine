@@ -253,7 +253,6 @@ public:
 	static SPowerDependency StrikeDamageThreshold;
 	static SPowerDependency StrikeDamageResistance;
 	static SPowerDependency ExplDamageResistance;
-	static SPowerDependency MassExplDamageResistance;
 	static SPowerDependency ArmorDamageResistance;
 
 	static SPowerDependency AnomalyDamageThreshold;

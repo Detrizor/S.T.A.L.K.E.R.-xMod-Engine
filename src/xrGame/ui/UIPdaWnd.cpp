@@ -169,14 +169,18 @@ void CUIPdaWnd::Update()
 	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(pUILogsWnd,&CUILogsWnd::PerformWork));
 
 	CActor* actor						= smart_cast<CActor*>(Level().CurrentEntity());
-	if (!actor)
-		HideDialog();
-	PIItem active_item					= actor->inventory().ActiveItem();
-	if (!active_item)
-		HideDialog();
-	CAmountable* aiitem					= active_item->cast<CAmountable*>();
-	if (!aiitem || aiitem->Empty())
-		HideDialog();
+	if (actor)
+	{
+		PIItem active_item				= actor->inventory().ActiveItem();
+		if (active_item)
+		{
+			CAmountable* aiitem			= active_item->cast<CAmountable*>();
+			if (aiitem && !aiitem->Empty())
+				return;
+		}
+	}
+
+	HideDialog();
 }
 
 void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)

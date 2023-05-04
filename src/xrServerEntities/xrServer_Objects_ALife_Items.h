@@ -147,10 +147,6 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeapon,CSE_ALifeItem)
 		eWeaponAddonSilencer = 0x04
 	};
 
-	EWeaponAddonStatus				m_scope_status;
-	EWeaponAddonStatus				m_silencer_status;				
-	EWeaponAddonStatus				m_grenade_launcher_status;
-
 	u32								timestamp;
 	u8								wpn_flags;
 	u8								wpn_state;

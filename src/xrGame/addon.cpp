@@ -22,7 +22,11 @@ void CAddon::Load(LPCSTR section)
 		if (addon_type == "magazine")
 			AddModule<CMagazine>		();
 		else if (addon_type == "scope")
-			AddModule<CScope>			();
+		{
+			AddModule<CScope>			(cNameSect());
+			m_hud_offset[0]				= pSettings->r_fvector3(section, "hud_offset_pos");
+			m_hud_offset[1]				= pSettings->r_fvector3(section, "hud_offset_rot");
+		}
 		else if (addon_type == "silencer")
 			AddModule<CSilencer>		(cNameSect());
 		else if (addon_type == "grenade_launcher")

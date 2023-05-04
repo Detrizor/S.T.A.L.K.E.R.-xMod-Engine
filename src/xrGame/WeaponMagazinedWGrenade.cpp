@@ -59,6 +59,10 @@ void CWeaponMagazinedWGrenade::Load(LPCSTR section)
     }
 
     iMagazineSize2 = iMagazineSize;
+
+	shared_str integrated_gl			= READ_IF_EXISTS(pSettings, r_string, section, "grenade_launcher", "");
+	if (integrated_gl.size())
+		ProcessGL						(xr_new<CGrenadeLauncher>(this, integrated_gl), true);
 }
 
 void CWeaponMagazinedWGrenade::net_Destroy()
@@ -181,8 +185,8 @@ void  CWeaponMagazinedWGrenade::PerformSwitchGL()
 
     m_magazine.swap(m_magazine2);
 	iAmmoElapsed = m_magazine.size();
-	//if (!m_bGrenadeMode && m_pMagazine)
-		//--xdiAmmoElapsed += m_pMagazine->Amount();
+	if (!m_bGrenadeMode && m_pMagazine)
+		iAmmoElapsed += m_pMagazine->Amount();
 
     m_BriefInfo_CalcFrame = 0;
 }
@@ -871,7 +875,7 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 {
 	if (m_bGrenadeMode)
 	{
-		if (mode == -1)
+		if (mode < 0)
 			return;
 		if (mode == 1)
 			mode = 2;

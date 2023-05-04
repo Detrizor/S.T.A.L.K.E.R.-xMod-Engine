@@ -19,9 +19,9 @@ CAmountable::CAmountable(CGameObject* obj) : CModule(obj)
 
 void CAmountable::OnAmountChange()
 {
-	if (fLess(m_fAmount, 0.f))
+	if (m_fAmount < 0.f)
 		m_fAmount						= 0.f;
-	else if (!m_unlimited && fMore(m_fAmount, Capacity()))
+	else if (!m_unlimited && m_fAmount > Capacity())
 		m_fAmount						= m_capacity;
 
 	if (!Useful() && O.Local() && OnServer())

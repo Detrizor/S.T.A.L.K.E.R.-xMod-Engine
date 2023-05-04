@@ -213,7 +213,6 @@ protected:
 
 	void						InitCellForSlot				(u16 slot_idx);
 	void						InitPocket					(u16 pocket_idx);
-	void						InitInventoryContents		(CUIDragDropListEx* pBagList);
 	void						ClearAllLists				();
 	void						BindDragDropListEvents		(CUIDragDropListEx* lst);
 	
@@ -236,7 +235,6 @@ protected:
 	bool		xr_stdcall		OnItemFocusedUpdate			(CUICellItem* itm);
 	void		xr_stdcall		OnDragItemOnTrash			(CUIDragItem* item, bool b_receive);
 	void		xr_stdcall		OnDragItemOnPocket			(CUIDragItem* item, bool b_receive);
-	void						OnItemDropped				(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner);
 
 	void						ResetMode					();
 	void						InitInventoryMode			();
@@ -285,7 +283,6 @@ protected:
 	bool						ToPartnerTradeBag			(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
 
-	void						AttachAddon					(CAddonOwner* ao, CAddon* addon, u16 slot = u16_max);
 	void						DetachAddon					(CAddonOwner* ao, CAddon* addon);
 	
 	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);
@@ -347,6 +344,8 @@ public:
 
 			float			CalcItemWeight			(LPCSTR section);
 			float			CalcItemVolume			(LPCSTR section);
+			
+	void						InitInventoryContents		();
 
 	//AxelDominator && Alundaio consumable use condition
 	void RefreshCurrentItemCell();
@@ -363,7 +362,11 @@ public:
 
 private:
 			Ivector2		m_dLastResolution; //--xd tst
+
+public:
+	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, u16 slot = u16_max);
 }; // class CUIActorMenu
+
 add_to_type_list(CUIActorMenu)
 #undef script_type_list
 #define script_type_list save_type_list(CUIActorMenu)

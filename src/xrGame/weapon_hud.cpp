@@ -7,10 +7,12 @@
 #include <fstream>
 #include "player_hud.h"
 #include "Level_Bullet_Manager.h"
+#include "addon.h"
+#include "scope.h"
 
 const float aim_factor = pSettings->r_float("weapon_manager", "aim_factor");
 
-Fvector2 rotate_vector2(const float& x, const float& y, const float& angle)
+Fvector2 rotate_vector2(float x, float y, float angle)
 {
 	Fvector2	res;
 	res.x		= x * cos(angle) + y * sin(angle);
@@ -18,12 +20,12 @@ Fvector2 rotate_vector2(const float& x, const float& y, const float& angle)
 	return		res;
 }
 
-Fvector2 rotate_vector2(const Fvector2& source, const float& angle)
+Fvector2 rotate_vector2(Fvector2 CR$ source, float angle)
 {
 	return		rotate_vector2(source.x, source.y, angle);
 }
 
-Fvector rotate_vector3(const Fvector& source, const Fvector& angle)
+Fvector rotate_vector3(Fvector CR$ source, Fvector CR$ angle)
 {
 	Fvector res		= source;
 	Fvector2 tmp	= rotate_vector2(res.z, res.y, angle.x);
@@ -38,92 +40,118 @@ Fvector rotate_vector3(const Fvector& source, const Fvector& angle)
 	return			res;
 }
 
-CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : pO(obj), O(*obj)
+void CWeaponHud::ApplyRoot(Fvector* offset, bool barrel)
 {
-	LPCSTR scope = 0;   //--xd temp
-	//--xd may have to use eventually m_hands_offset[0][eAlt].add		(rotate_vector3(m_hands_attach[0], m_hands_offset[1][eAlt]));
+	offset[0].add						(rotate_vector3((barrel) ? m_barrel_offset : m_root_offset, offset[1]));
+}
 
-	shared_str CR$ section = O.HudSection();
+CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
+{
+	m_root_offset = m_barrel_offset		= pSettings->r_fvector3(O.HudSection(), "root_offset");
+	m_barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_offset"));
 
-	m_hands_offset[0][eArmed]			= pSettings->r_fvector3(section, "armed_pos");
-	m_hands_offset[1][eArmed]			= pSettings->r_fvector3(section, "armed_rot");
+	m_hands_offset[eArmed][0]			= pSettings->r_fvector3(O.HudSection(), "armed_pos");
+	m_hands_offset[eArmed][1]			= pSettings->r_fvector3(O.HudSection(), "armed_rot");
+	ApplyRoot							(m_hands_offset[eArmed]);
 
-	if (scope)
-	{
-		m_hands_offset[0][eADS]			= pSettings->r_fvector3(section, "scope_pos");
-		m_hands_offset[1][eADS]			= pSettings->r_fvector3(section, "scope_rot");
-		m_hands_offset[0][eADS].add		(pSettings->r_fvector3(scope, "hud_offset_pos"));
-		m_hands_offset[1][eADS].add		(pSettings->r_fvector3(scope, "hud_offset_rot"));
-	}
-	else
-	{
-		m_hands_offset[0][eADS]			= pSettings->r_fvector3(section, "iron_sights_pos");
-		m_hands_offset[1][eADS]			= pSettings->r_fvector3(section, "iron_sights_rot");
-	}
+	m_hands_offset[eIS][0]				= pSettings->r_fvector3(O.HudSection(), "iron_sights_pos");
+	m_hands_offset[eIS][1]				= pSettings->r_fvector3(O.HudSection(), "iron_sights_rot");
+	//ApplyRoot							(m_hands_offset[eIS], false);
 
-	m_lense_offset						= m_hands_offset[0][eADS].z;
-	if (scope && pSettings->line_exist(section, "scope_cam_z_offset"))
-		m_hands_offset[0][eADS].z		+= pSettings->r_float(section, "scope_cam_z_offset");
-	else if (pSettings->line_exist(section, "cam_z_offset"))
-		m_hands_offset[0][eADS].z		= pSettings->r_float(section, "cam_z_offset");
-
-	m_hands_offset[0][eAim].lerp		(m_hands_offset[0][eArmed], m_hands_offset[0][eADS], aim_factor);
-	m_hands_offset[1][eAim].lerp		(m_hands_offset[1][eArmed], m_hands_offset[1][eADS], aim_factor);
-
-	m_hands_offset[0][eGL]			= pSettings->r_fvector3(section, "gl_sights_pos");
-	m_hands_offset[1][eGL]			= pSettings->r_fvector3(section, "gl_sights_rot");
+	m_hands_offset[eGL][0]				= pSettings->r_fvector3(O.HudSection(), "gl_sights_pos");
+	m_hands_offset[eGL][1]				= pSettings->r_fvector3(O.HudSection(), "gl_sights_rot");
+	//ApplyRoot							(m_hands_offset[eGL], false);
 
 	////////////////////////////////////////////
 	//--#SM+# Begin--
 
 	// Альтернативное прицеливание
-	if (scope && pSettings->r_bool(section, "scope_alt_aim_via_iron_sights"))
+	m_hands_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
+	m_hands_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
+	ApplyRoot							(m_hands_offset[eAlt]);
+	m_hands_offset[eAlt][0].y			-= pSettings->r_float(O.HudSection(), "alt_aim_height");
+
+	if (pSettings->line_exist(O.HudSection(), "cam_z_offset"))
 	{
-		m_hands_offset[0][eAlt]			= pSettings->r_fvector3(section, "iron_sights_pos");
-		m_hands_offset[1][eAlt]			= pSettings->r_fvector3(section, "iron_sights_rot");
+		m_hands_offset[eIS][0].z		= m_barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+		m_hands_offset[eGL][0].z		= m_hands_offset[eIS][0].z;
+		m_hands_offset[eAlt][0].z		= m_hands_offset[eIS][0].z;
 	}
-	else if (scope && pSettings->line_exist(scope, "alt_aim_pos"))
-	{
-		m_hands_offset[0][eAlt]			= m_hands_offset[0][eADS];
-		m_hands_offset[0][eAlt].add		(pSettings->r_fvector3(scope, "alt_aim_pos"));
-		m_hands_offset[1][eAlt]			= m_hands_offset[1][eADS];
-		m_hands_offset[1][eAlt].add		(pSettings->r_fvector3(scope, "alt_aim_rot"));
-	}
-	else
-	{
-		m_hands_offset[0][eAlt]			= pSettings->r_fvector3(section, "alt_aim_pos");
-		m_hands_offset[1][eAlt]			= pSettings->r_fvector3(section, "alt_aim_rot");
-		m_hands_offset[0][eAlt].y		-= pSettings->r_float(section, "alt_aim_height");
-	}
-	
-	m_hands_offset[0][eGL].z			= m_hands_offset[0][eADS].z;
-	m_hands_offset[0][eAlt].z			= m_hands_offset[0][eADS].z;
+
+	m_hands_offset[eAim][0].lerp		(m_hands_offset[eArmed][0], m_hands_offset[eIS][0], aim_factor);
+	m_hands_offset[eAim][1].lerp		(m_hands_offset[eArmed][1], m_hands_offset[eIS][1], aim_factor);
 
 	// Safemode / lowered weapon position
-	m_hands_offset[0][eRelaxed]			= pSettings->r_fvector3(section, "relaxed_pos");
-	m_hands_offset[1][eRelaxed]			= pSettings->r_fvector3(section, "relaxed_rot");
+	m_hands_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
+	m_hands_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
+	ApplyRoot							(m_hands_offset[eRelaxed]);
 
 	// Загрузка параметров смещения при стрельбе
-	m_shooting_params.bShootShake = READ_IF_EXISTS(pSettings, r_bool, section, "shooting_hud_effect", false);
-	m_shooting_params.m_shot_max_offset_LRUD = READ_IF_EXISTS(pSettings, r_fvector4, section, "shooting_max_LRUD", Fvector4().set(0, 0, 0, 0));
-	m_shooting_params.m_shot_max_offset_LRUD_aim = READ_IF_EXISTS(pSettings, r_fvector4, section, "shooting_max_LRUD_aim", Fvector4().set(0, 0, 0, 0));
-	m_shooting_params.m_shot_offset_BACKW = READ_IF_EXISTS(pSettings, r_fvector2, section, "shooting_backward_offset", Fvector2().set(0, 0));
-	m_shooting_params.m_ret_speed = READ_IF_EXISTS(pSettings, r_float, section, "shooting_ret_speed", 1.0f);
-	m_shooting_params.m_ret_speed_aim = READ_IF_EXISTS(pSettings, r_float, section, "shooting_ret_aim_speed", 1.0f);
-	m_shooting_params.m_min_LRUD_power = READ_IF_EXISTS(pSettings, r_float, section, "shooting_min_LRUD_power", 0.0f);
+	m_shooting_params.bShootShake		= READ_IF_EXISTS(pSettings, r_bool, O.HudSection(), "shooting_hud_effect", false);
+	m_shooting_params.m_shot_max_offset_LRUD = READ_IF_EXISTS(pSettings, r_fvector4, O.HudSection(), "shooting_max_LRUD", Fvector4().set(0, 0, 0, 0));
+	m_shooting_params.m_shot_max_offset_LRUD_aim = READ_IF_EXISTS(pSettings, r_fvector4, O.HudSection(), "shooting_max_LRUD_aim", Fvector4().set(0, 0, 0, 0));
+	m_shooting_params.m_shot_offset_BACKW = READ_IF_EXISTS(pSettings, r_fvector2, O.HudSection(), "shooting_backward_offset", Fvector2().set(0, 0));
+	m_shooting_params.m_ret_speed		= READ_IF_EXISTS(pSettings, r_float, O.HudSection(), "shooting_ret_speed", 1.0f);
+	m_shooting_params.m_ret_speed_aim	= READ_IF_EXISTS(pSettings, r_float, O.HudSection(), "shooting_ret_aim_speed", 1.0f);
+	m_shooting_params.m_min_LRUD_power	= READ_IF_EXISTS(pSettings, r_float, O.HudSection(), "shooting_min_LRUD_power", 0.0f);
 
 	//--#SM+# End--
 
+	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
+
 	for (int i = 0; i < 2; i++)
-		m_hud_offset[i] = vZero;
+		m_hud_offset[i]					= vZero;
 
-	m_fRotationFactor = 0.f;
+	m_fRotationFactor					= 0.f;
+	m_fLR_ShootingFactor				= 0.f;
+	m_fUD_ShootingFactor				= 0.f;
+	m_fBACKW_ShootingFactor				= 0.f;
+	m_shoot_shake_mat.identity			();
+	m_cur_offs							= { 0.f, 0.f, 0.f };
+	m_lense_offset						= 0.f;
+	m_scope								= false;
+}
 
-	m_fLR_ShootingFactor = 0.f;
-	m_fUD_ShootingFactor = 0.f;
-	m_fBACKW_ShootingFactor = 0.f;
+void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
+{
+	m_scope								= attach;
+	if (!m_scope)
+		return;
 
-	m_shoot_shake_mat.identity();
+	m_hands_offset[eScope][0]			= vZero;
+	m_hands_offset[eScope][0].sub		(slot->model_offset[0]);
+	m_hands_offset[eScope][1]			= vZero;
+	m_hands_offset[eScope][1].sub		(slot->model_offset[1]);
+
+	if (pSettings->line_exist(slot->addon->cNameSect(), "alt_aim_pos"))
+	{
+		m_hands_offset[eScopeAlt][0]	= m_hands_offset[eScope][0];
+		m_hands_offset[eScopeAlt][1]	= m_hands_offset[eScope][1];
+
+		m_hands_offset[eScopeAlt][0].sub(pSettings->r_fvector3(slot->addon->cNameSect(), "alt_aim_pos"));
+		m_hands_offset[eScopeAlt][1].sub(pSettings->r_fvector3(slot->addon->cNameSect(), "alt_aim_rot"));
+
+		ApplyRoot						(m_hands_offset[eScopeAlt], false);
+	}
+	else
+	{
+		m_hands_offset[eScopeAlt][0]	= m_hands_offset[eAlt][0];
+		m_hands_offset[eScopeAlt][1]	= m_hands_offset[eAlt][1];
+	}
+
+	m_hands_offset[eScope][0].sub		(slot->addon->HudOffset()[0]);
+	m_hands_offset[eScope][1].sub		(slot->addon->HudOffset()[1]);
+	ApplyRoot							(m_hands_offset[eScope], false);
+
+	m_lense_offset						= m_hands_offset[eScope][0].z;
+	if (pSettings->line_exist(O.HudSection(), "scope_cam_z_offset"))
+		m_hands_offset[eScope][0].z		+= pSettings->r_float(O.HudSection(), "scope_cam_z_offset");
+	else
+		m_hands_offset[eScope][0].z		= m_hands_offset[eIS][0].z;
+	m_hands_offset[eScopeAlt][0].z		= m_hands_offset[eScope][0].z;
+
+	m_hands_offset[eAim][0].lerp		(m_hands_offset[eArmed][0], m_hands_offset[eScope][0], aim_factor);
+	m_hands_offset[eAim][1].lerp		(m_hands_offset[eArmed][1], m_hands_offset[eScope][1], aim_factor);
 }
 
 bool CWeaponHud::IsRotatingToZoom C$()
@@ -155,9 +183,9 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 		case 0:
 			return eAim;
 		case 1:
-			return eADS;
+			return (m_scope) ? eScope : eIS;
 		case -1:
-			return eAlt;
+			return (m_scope) ? ((m_scope_alt_aim_via_iron_sights) ? eIS : eScopeAlt) : eAlt;
 		case 2:
 			return eGL;
 		}
@@ -177,7 +205,6 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 	return eArmed;
 }
 
-Fvector cur_offs = Fvector().set(0.f, 0.f, 0.f);
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
 	attachable_hud_item* hi = O.HudItemData();
@@ -187,8 +214,8 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	
 	//============= Поворот ствола во время аима =============//
 	{
-		Fvector CR$ curr_offs = m_hands_offset[0][idx]; //pos,aim
-		Fvector CR$ curr_rot = m_hands_offset[1][idx]; //rot,aim
+		Fvector CR$ curr_offs = m_hands_offset[idx][0]; //pos,aim
+		Fvector CR$ curr_rot = m_hands_offset[idx][1]; //rot,aim
 
 		float factor = Device.fTimeDelta;
 		if (idx == eRelaxed || last_idx == eRelaxed)
@@ -591,11 +618,11 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	float fLR_lim = (O.m_fLR_InertiaFactor < 0.0f ? vIOffsets.x : vIOffsets.y);
 	float fUD_lim = (O.m_fUD_InertiaFactor < 0.0f ? vIOffsets.z : vIOffsets.w);
 
-	cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
+	m_cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
 
 	Fmatrix hud_rotation;
 	hud_rotation.identity();
-	hud_rotation.translate_over(cur_offs);
+	hud_rotation.translate_over(m_cur_offs);
 	trans.mulB_43(hud_rotation);
 }
 
@@ -633,12 +660,12 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 			{
 				std::ofstream			out;
 				out.open				("C:\\tmp.txt");
-				Fvector CP$ vp			= &O.HudItemData()->m_measures.m_hands_attach[0];
+				Fvector vp				= O.HudItemData()->m_measures.m_hands_attach[0];
 				Fvector CP$ vr			= &O.HudItemData()->m_measures.m_hands_attach[1];
-				out						<< shared_str().printf("m_hands_attach pos [%.6f,%.6f,%.6f] m_hands_attach rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
-				vp						= &m_hands_offset[0][GetCurrentHudOffsetIdx()];
-				vr						= &m_hands_offset[1][GetCurrentHudOffsetIdx()];
-				out						<< shared_str().printf("m_hands_offset pos [%.6f,%.6f,%.6f] m_hands_offset rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
+				out						<< shared_str().printf("m_hands_attach pos [%.6f,%.6f,%.6f] m_hands_attach rot [%.6f,%.6f,%.6f]", vp.x, vp.y, vp.z, vr->x, vr->y, vr->z).c_str() << std::endl;
+				vp						= m_hands_offset[GetCurrentHudOffsetIdx()][0];
+				vr						= &m_hands_offset[GetCurrentHudOffsetIdx()][1];
+				out						<< shared_str().printf("m_hands_offset pos [%.6f,%.6f,%.6f] m_hands_offset rot [%.6f,%.6f,%.6f]", vp.x, vp.y, vp.z, vr->x, vr->y, vr->z).c_str() << std::endl;
 			}
 			return						true;
 		}
@@ -667,7 +694,7 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 				O.HudItemData()->m_measures.m_hands_attach[rot][axis] += val;
 			}
 			else
-				m_hands_offset[rot][GetCurrentHudOffsetIdx()][axis] += val;
+				m_hands_offset[GetCurrentHudOffsetIdx()][rot][axis] += val;
 			return						true;
 		}
 	}

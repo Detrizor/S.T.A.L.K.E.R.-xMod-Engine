@@ -194,7 +194,7 @@ public:
 		return m_zoom_params.m_bHideCrosshairInZoom;
 	}
 
-	virtual float			CurrentZoomFactor	() const;
+	virtual float			CurrentZoomFactor	(bool for_svp) const;
 
 	virtual EHandDependence		HandDependence()	const
 	{

@@ -336,28 +336,34 @@ CHelmet* CEntityCondition::GetHelmet()
 template <typename T>
 float GearExplEffect(T gear, float damage, float protection, CInventoryOwner* io, bool head)
 {
-	damage					*= head ? CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion] : 1.f - CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion];
-	if (!gear || fEqual(damage, 0.f))
-		return				damage;
-	protection				+= gear->GetBoneArmor(0);
-	float armor_damage		= damage * CEntityCondition::ArmorDamageResistance.Calc(protection);
-	gear->Hit				(armor_damage, ALife::eHitTypeExplosion);
-	io->HitArtefacts		(armor_damage, ALife::eHitTypeExplosion);
-	return					damage * CEntityCondition::ExplDamageResistance.Calc(protection);
+	damage								*= head ? CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion] : 1.f - CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion];
+	if (fEqual(damage, 0.f))
+		return							damage;
+
+	if (gear)
+		protection						+= gear->GetBoneArmor(0);
+	float armor_damage					= damage * CEntityCondition::ArmorDamageResistance.Calc(protection);
+	if (gear)
+		gear->Hit						(armor_damage, ALife::eHitTypeExplosion);
+	io->HitArtefacts					(armor_damage, ALife::eHitTypeExplosion);
+
+	return								damage * CEntityCondition::ExplDamageResistance.Calc(protection);
 }
 
 template <typename T>
 float GearProtectionEffect(T gear, const ALife::EHitType& hit_type, float damage, bool head)
 {
-	damage					*= head ? CEntityCondition::HitTypeHeadPart[hit_type] : 1.f - CEntityCondition::HitTypeHeadPart[hit_type];
+	damage								*= head ? CEntityCondition::HitTypeHeadPart[hit_type] : 1.f - CEntityCondition::HitTypeHeadPart[hit_type];
 	if (!gear || fEqual(damage, 0.f))
-		return				damage;
-	float protection		= gear->GetHitTypeProtection(hit_type);
-	gear->Hit				(damage * CEntityCondition::ProtectionDamageResistance.Calc(protection), hit_type);
-	damage					-= min(damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
+		return							damage;
+
+	float protection					= gear->GetHitTypeProtection(hit_type);
+	gear->Hit							(damage * CEntityCondition::ProtectionDamageResistance.Calc(protection), hit_type);
+	damage								-= min(damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
 	if (fMore(damage, 0.f))
-		damage				*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
-	return					damage;
+		damage							*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
+
+	return								damage;
 }
 
 void CEntityCondition::HitProtectionEffect(SHit* pHDS)
@@ -412,9 +418,13 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{
 		if (smart_cast<const CBaseMonster*>(m_object))
-			pHDS->main_damage				*= ExplDamageResistance.Calc(protection) * MassExplDamageResistance.Calc(pSettings->r_float(m_object->cNameSect(), "ph_mass"));
+			pHDS->main_damage				*= ExplDamageResistance.Calc(protection);
 		else if (io)
-			pHDS->main_damage				= GearExplEffect(outfit, pHDS->main_damage, protection, io, false) + (outfit && !outfit->bIsHelmetAvaliable ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true));
+		{
+			float outfit_part				= GearExplEffect(outfit, pHDS->main_damage, protection, io, false);
+			float helmet_part				= (outfit && !outfit->bIsHelmetAvaliable) ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
+			pHDS->main_damage				= outfit_part + helmet_part;
+		}
 	}
 	else
 	{

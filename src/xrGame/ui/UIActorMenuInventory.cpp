@@ -54,7 +54,7 @@ void CUIActorMenu::InitInventoryMode()
 
 	m_pTrashList->Show					(true);
 
-	InitInventoryContents				(m_pInventoryBagList);
+	InitInventoryContents				();
 }
 
 void CUIActorMenu::UpdatePocketsPresence()
@@ -298,24 +298,6 @@ _finish:
 	UpdateConditionProgressBars();
 }
 
-void CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
-{
-	if (ao->AttachAddon(addon, slot) == 2)
-	{
-		PlaySnd							(eAttachAddon);
-		HideDialog						();
-	}
-}
-
-void CUIActorMenu::DetachAddon(CAddonOwner* ao, CAddon* addon)
-{
-	if (ao->DetachAddon(addon) == 2)
-	{
-		PlaySnd							(eDetachAddon);
-		HideDialog						();
-	}
-}
-
 void CUIActorMenu::InitCellForSlot( u16 slot_idx )
 {
 	PIItem item	= m_pActorInv->ItemFromSlot		(slot_idx);
@@ -363,7 +345,7 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 	}
 }
 
-void CUIActorMenu::InitInventoryContents(CUIDragDropListEx* pBagList)
+void CUIActorMenu::InitInventoryContents()
 {
 	ClearAllLists						();
 	m_pMouseCapturer					= NULL;
@@ -543,21 +525,6 @@ bool CUIActorMenu::TryUseItem(CUICellItem* cell_itm)
 	return true;
 }
 
-void CUIActorMenu::OnItemDropped(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner)
-{
-	CUICellItem* _citem					= (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
-	if (_citem)
-	{
-		PIItem item						= (PIItem)_citem->m_pData;
-		if (item && item->InHands())
-		{
-			CAddonOwner* ao				= item->cast<CAddonOwner*>();
-			if (ao)
-				AttachAddon				(ao, itm->cast<CAddon*>());
-		}
-	}
-}
-
 void CUIActorMenu::TryHidePropertiesBox()
 {
 	if (m_UIPropertiesBox->IsShown())
@@ -694,6 +661,8 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 {
 	PIItem active_item					= m_pActorInv->ActiveItem();
+	if (!active_item)
+		return;
 	CAddonOwner* ao						= active_item->cast<CAddonOwner*>();
 	if (!ao)
 		return;
@@ -904,5 +873,26 @@ void CUIActorMenu::RefreshCurrentItemCell()
 
 			invlist->SetItem(parent, GetUICursor().GetCursorPosition());
 		}
+	}
+}
+
+bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
+{
+	int res								= ao->AttachAddon(addon, slot);
+	if (res == 2)
+	{
+		PlaySnd							(eAttachAddon);
+		if (IsShown())
+			HideDialog					();
+	}
+	return								!!res;
+}
+
+void CUIActorMenu::DetachAddon(CAddonOwner* ao, CAddon* addon)
+{
+	if (ao->DetachAddon(addon) == 2)
+	{
+		PlaySnd							(eDetachAddon);
+		HideDialog						();
 	}
 }

@@ -70,6 +70,9 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 CWeaponMagazined::~CWeaponMagazined()
 {
 	xr_delete(m_hud);
+
+	if (m_pSilencer && !m_pSilencer->cast<CAddon*>())
+		xr_delete(m_pSilencer);
 }
 
 void CWeaponMagazined::net_Destroy()
@@ -161,6 +164,14 @@ void CWeaponMagazined::Load(LPCSTR section)
 			}
 		}
 	}
+
+	shared_str integrated_addon			= READ_IF_EXISTS(pSettings, r_string, section, "scope", "");
+	if (integrated_addon.size())
+		m_pScope						= xr_new<CScope>(this, integrated_addon);
+
+	integrated_addon					= READ_IF_EXISTS(pSettings, r_string, section, "silencer", "");
+	if (integrated_addon.size())
+		ProcessSilencer					(xr_new<CSilencer>(this, integrated_addon), true);
 }
 
 void CWeaponMagazined::FireStart()
@@ -1326,7 +1337,7 @@ void CWeaponMagazined::UpdateBonesVisibility()
 	pWeaponVisual->CalculateBones_Invalidate();
 	pWeaponVisual->CalculateBones		(TRUE);
 
-	_UpdateHudBonesVisibility			();
+	UpdateHudBonesVisibility			();
 }
 
 void CWeaponMagazined::OnMotionHalf()
@@ -1427,51 +1438,35 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	//--xd tmp GetActiveScope()->RenderUI(HudItemData()->m_measures, m_hud_offset);
+	GetActiveScope()->RenderUI(*m_hud);
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
 {
-	CScope* scope		= GetActiveScope();
-	bool res			= false;
-	if (!scope);
-	else if (!scope->HasLense());
-	else res = true;
-	Device.m_SecondViewport.SetSVPActive(res);
+	CScope* scope = GetActiveScope();
+	Device.m_SecondViewport.SetSVPActive(scope && scope->HasLense());
 }
 
 extern float aim_fov_tan;
 float CWeaponMagazined::GetReticleScale() const
 {
-	CScope* scope = GetActiveScope();
-	if (scope)
+	if (HudItemData())
 	{
-		if (scope->Type() == eOptics)
-		{
-			if (scope->HasLense())
-			{
-				attachable_hud_item* hi = HudItemData();
-				if (hi)
-				{
-					float lense_fov_tan = scope->GetLenseRadius();//--xd / abs(hi->m_measures.m_lense_offset - m_hud_offset[0].z);
-					return lense_fov_tan / aim_fov_tan;
-				}
-			}
-		}
-		else if (scope->Type() == eCollimator)
-			return scope->GetReticleScale();
+		CScope* scope = GetActiveScope();
+		if (scope)
+			return scope->GetReticleScale(*m_hud);
 	}
 
 	return 1.f;
 }
 
-float CWeaponMagazined::CurrentZoomFactor() const
+float CWeaponMagazined::CurrentZoomFactor(bool for_svp) const
 {
 	CScope* scope = GetActiveScope();
-	if (scope && scope->Type() == eOptics)
+	if (scope && scope->Type() == eOptics && (!scope->HasLense() && !IsRotatingToZoom() || for_svp))
 		return scope->GetCurrentMagnification();
 	else
-		return inherited::CurrentZoomFactor();
+		return inherited::CurrentZoomFactor(for_svp);
 }
 
 void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
@@ -1539,6 +1534,8 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 					UpdateBonesVisibility();
 					SetInvIconType		((u8)param);
 				}
+
+				m_hud->ProcessScope		(slot, !!param);
 			}
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
@@ -1562,6 +1559,10 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 			}
 			break;
 		}
+
+		case eUpdateHudBonesVisibility:
+			UpdateHudBonesVisibility	();
+			break;
 	}
 
 	return								inherited::Aboba(type, data, param);
@@ -1595,7 +1596,7 @@ void CWeaponMagazined::InitRotateTime()
 	m_hud->InitRotateTime(GetControlInertionFactor());
 }
 
-void CWeaponMagazined::_UpdateHudBonesVisibility()
+void CWeaponMagazined::UpdateHudBonesVisibility()
 {
 	attachable_hud_item* hi				= HudItemData();
 	if (!hi)

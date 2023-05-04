@@ -1,13 +1,17 @@
 #pragma once
 #include "Weapon.h"
 
+struct SAddonSlot;
+
 enum EHandsOffset
 {
 	eRelaxed,
 	eArmed,
 	eAim,
-	eADS,
+	eIS,
+	eScope,
 	eAlt,
+	eScopeAlt,
 	eGL,
 	eTotal
 };
@@ -26,7 +30,6 @@ struct SShootingParams
 class CWeaponHud
 {
 private:
-	CWeaponMagazined PC$				pO;
 	CWeaponMagazined&					O;
 
 public:
@@ -41,21 +44,33 @@ private:
 	float								m_fLR_ShootingFactor; // Фактор горизонтального сдвига худа при стрельбе [-1; +1]
 	float								m_fUD_ShootingFactor; // Фактор вертикального сдвига худа при стрельбе [-1; +1]
 	float								m_fBACKW_ShootingFactor; // Фактор сдвига худа в сторону лица при стрельбе [0; +1]
-	Fvector								m_hands_offset[2][eTotal];
+	Fvector								m_hands_offset[eTotal][2];
 	Fvector								m_hud_offset[2];
+	Fvector								m_root_offset;
+	Fvector								m_barrel_offset;
 	SShootingParams						m_shooting_params;
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
+	Fvector								m_cur_offs;
+	bool								m_scope;
+	bool								m_scope_alt_aim_via_iron_sights;
+
+	void								ApplyRoot								(Fvector* offset, bool barrel = true);
 
 public:
 	SPowerDependency				S$	HandlingToRotationTime;
 	SPowerDependency				S$	HandlingToRelaxTime;
 
-	Fmatrix CR$							shoot_shake_mat						C$	()		{ return m_shoot_shake_mat; }
+	Fmatrix CR$							shoot_shake_mat						C$	()				{ return m_shoot_shake_mat; }
+	Fvector CPC							HandsOffset							C$	(int idx)		{ return m_hands_offset[idx]; }
+	Fvector CPC							HudOffset							C$	()				{ return m_hud_offset; }
+	Fvector CR$							CurOffs								C$	()				{ return m_cur_offs; }
+	float								LenseOffset							C$	()				{ return m_lense_offset; }
 
 	void								InitRotateTime							(float cif);
 	void								UpdateHudAdditional						(Fmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
+	void								ProcessScope							(SAddonSlot* slot, bool attach);
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();

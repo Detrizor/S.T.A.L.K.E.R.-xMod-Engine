@@ -62,6 +62,8 @@ private:
 		shared_str						name;
 		shared_str						type;
 		shared_str						addon_name;
+		u8								addon_type;
+		u8								addon_index;
 		CUIStatic*						addon_icon;
 		Fvector2						icon_offset;
 
@@ -77,7 +79,7 @@ public:
 private:
 	VUISlots							m_slots;
 
-	void								InitAddon								(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading, bool drag = false);
+	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);
 
 public:
 	VUISlots CR$						Slots								C$	()		{ return m_slots; }

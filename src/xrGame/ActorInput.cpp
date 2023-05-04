@@ -66,6 +66,14 @@ bool TryCustomUse(PIItem item)
 		}
 	}
 
+	PIItem active_item					= Actor()->inventory().ActiveItem();
+	if (active_item)
+	{
+		CAddonOwner* ao					= active_item->cast<CAddonOwner*>();
+		if (ao)
+			return						CurrentGameUI()->GetActorMenu().AttachAddon(ao, item->cast<CAddon*>());
+	}
+
 	return false;
 }
 
@@ -224,16 +232,9 @@ void CActor::IR_OnKeyboardPress(int cmd)
 					inventory().ActivateItem	(tmp, eItemPlacePocket, idx);
 				else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
 					inventory().ActivateItem	(tmp);
-				else if (!TryCustomUse(tmp))
-				{
-					CMagazine* mag				= tmp->cast<CMagazine*>();
-					if (mag)
-					{
-						CWeaponMagazined* wm	= active_item->cast<CWeaponMagazined*>();
-						if (wm && wm->MagazineSlot() && wm->MagazineSlot()->Compatible(mag->cast<CAddon*>()))
-							wm->cast<CAddonOwner*>()->AttachAddon(mag->cast<CAddon*>(), wm->MagazineSlot()->idx);
-					}
-				}
+				else
+					TryCustomUse				(tmp);
+				
 			}
 		}
 		break;

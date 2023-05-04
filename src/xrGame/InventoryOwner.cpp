@@ -694,42 +694,42 @@ bool CInventoryOwner::Discharge(PIItem item, bool full)
 
 float CInventoryOwner::GetProtection(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const
 {
-	float res				= 0.f;
-	outfit					= GetOutfit();
-	helmet					= GetHelmet();
+	float res							= 0.f;
+	outfit								= GetOutfit();
+	helmet								= GetHelmet();
 
 	if (SHit::DamageType(hit_type) == 1)
 	{
-		res					= outfit ? outfit->GetBoneArmor(bone_id) : -1.f;
+		res								= outfit ? outfit->GetBoneArmor(bone_id) : -1.f;
 		if (fEqual(res, -1.f))
 		{
-			res				= helmet ? helmet->GetBoneArmor(bone_id) : -1.f;
+			res							= helmet ? helmet->GetBoneArmor(bone_id) : -1.f;
 			if (fEqual(res, -1.f))
 			{
-				res			= 0.f;
-				outfit		= NULL;
-				helmet		= NULL;
+				res						= 0.f;
+				outfit					= NULL;
+				helmet					= NULL;
 			}
 			else
-				outfit		= NULL;
+				outfit					= NULL;
 		}
 		else
-			helmet			= NULL;
+			helmet						= NULL;
 	}
 
-	return res + GetProtectionArtefacts(hit_type);
+	return								res + GetProtectionArtefacts(hit_type);
 }
 
 float CInventoryOwner::GetProtectionArtefacts(ALife::EHitType hit_type) const
 {
-	float res	= 0.f;
-	for (xr_vector<CArtefact*>::const_iterator I = inventory().m_artefacts.begin(), E = inventory().m_artefacts.end(); I != E; I++)
-		res		+= (*I)->HitProtection(hit_type);
-	return		res;
+	float res							= 0.f;
+	for (auto I : inventory().m_artefacts)
+		res								+= I->HitProtection(hit_type);
+	return								res;
 }
 
 void CInventoryOwner::HitArtefacts(float d_damage, ALife::EHitType hit_type) const
 {
-	for (xr_vector<CArtefact*>::const_iterator I = inventory().m_artefacts.begin(), E = inventory().m_artefacts.end(); I != E; I++)
-		(*I)->ProcessHit(d_damage, hit_type);
+	for (auto I : inventory().m_artefacts)
+		I->ProcessHit					(d_damage, hit_type);
 }

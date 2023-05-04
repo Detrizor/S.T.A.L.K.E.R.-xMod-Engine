@@ -67,14 +67,16 @@ public:
 protected:
 	virtual bool				install_upgrade_impl	( LPCSTR section, bool test );
 
+	DECLARE_SCRIPT_REGISTER_FUNCTION
+
 private:
-			float			m_fHealth;
+	float								m_fHealth;
+
+protected:
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	const	float&			Health					()								const	{ return m_fHealth; }
-
-	virtual float			GetBar 					()								const	{ return fLess(GetCondition(), 1.f) ? GetCondition() : -1.f; }
-	DECLARE_SCRIPT_REGISTER_FUNCTION
+	float								Health								C$	()	{ return m_fHealth; }
 };
 
 add_to_type_list(CCustomOutfit)

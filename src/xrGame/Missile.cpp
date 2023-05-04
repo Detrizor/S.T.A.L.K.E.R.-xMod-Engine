@@ -480,36 +480,41 @@ void CMissile::Throw()
 
 void CMissile::OnEvent(NET_Packet& P, u16 type) 
 {
-	inherited::OnEvent		(P,type);
-	u16						id;
-	switch (type) {
-		case GE_OWNERSHIP_TAKE : {
+	u16 id;
+	switch (type)
+	{
+		case GE_OWNERSHIP_TAKE:
+		{
 			P.r_u16(id);
-			CMissile		*missile = smart_cast<CMissile*>(Level().Objects.net_Find(id));			
-			m_fake_missile	= missile;
+			CMissile* missile = smart_cast<CMissile*>(Level().Objects.net_Find(id));			
+			m_fake_missile = missile;
 			missile->H_SetParent(this);
 			missile->Position().set(Position());
 			break;
-		} 
-		case GE_OWNERSHIP_REJECT : {
-			P.r_u16			(id);
+		}
+
+		case GE_OWNERSHIP_REJECT:
+		{
+			P.r_u16(id);
 			bool IsFakeMissile = false;
 			if (m_fake_missile && (id == m_fake_missile->ID()))
 			{
-				m_fake_missile	= NULL;
+				m_fake_missile = NULL;
 				IsFakeMissile = true;
 			}
 
-			CMissile		*missile = smart_cast<CMissile*>(Level().Objects.net_Find(id));
+			CMissile* missile = smart_cast<CMissile*>(Level().Objects.net_Find(id));
 			if (!missile)
-			{
 				break;
-			}
+
 			missile->H_SetParent(0,!P.r_eof() && P.r_u8());
 			if (IsFakeMissile && OnClient()) 
 				missile->set_destroy_time(m_dwDestroyTimeMax);
 			break;
 		}
+
+		default:
+			inherited::OnEvent(P, type);
 	}
 }
 

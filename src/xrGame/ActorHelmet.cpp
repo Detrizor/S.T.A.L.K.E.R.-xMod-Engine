@@ -42,11 +42,8 @@ void CHelmet::Load(LPCSTR section)
 	m_HitTypeProtection[ALife::eHitTypeLightBurn]		= m_HitTypeProtection[ALife::eHitTypeBurn];
 
 	m_NightVisionSect				= READ_IF_EXISTS(pSettings, r_string, section, "nightvision_sect", "");
-	if (m_NightVisionSect != "")
-	{
-		CAmountable* a				= AddModule<CAmountable>();
-		a->SetDepletionSpeed		(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
-	}
+	if (m_NightVisionSect.size())
+		Cast<CAmountable*>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
 
 	m_fRecuperationFactor			= READ_IF_EXISTS(pSettings, r_float, section, "recuperation_factor", 0.f);
 
@@ -166,10 +163,7 @@ bool CHelmet::install_upgrade_impl( LPCSTR section, bool test )
 	if (result2 && !test)
 	{
 		m_NightVisionSect._set			(str);
-		CAmountable* a					= cast<CAmountable*>();
-		if (!a)
-			a							= AddModule<CAmountable>();
-		a->SetDepletionSpeed			(pSettings->r_float("nightvision_depletes", str));
+		Cast<CAmountable*>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", str));
 	}
 	result |= result2;
 
@@ -201,4 +195,15 @@ void CHelmet::AddBonesProtection(LPCSTR bones_section, float value)
 	CObject* parent					= smart_cast<CObject*>(Level().CurrentViewEntity()); //TODO: FIX THIS OR NPC Can't wear outfit without resetting actor 
 	if (parent && parent->Visual() && m_BonesProtectionSect.size())
 		m_boneProtection->add		(bones_section, smart_cast<IKinematics*>(parent->Visual()), value);
+}
+
+float CHelmet::Aboba o$(EEventTypes type, void* data, int param)
+{
+	switch (type)
+	{
+		case eGetBar:
+			return						(fLess(GetCondition(), 1.f)) ? GetCondition() : -1.f;
+	}
+
+	return								inherited::Aboba(type, data, param);
 }

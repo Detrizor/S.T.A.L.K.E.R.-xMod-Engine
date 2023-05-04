@@ -121,7 +121,6 @@ SPowerDependency CEntityCondition::ArmorDamageResistance;
 SPowerDependency CEntityCondition::StrikeDamageThreshold;
 SPowerDependency CEntityCondition::StrikeDamageResistance;
 SPowerDependency CEntityCondition::ExplDamageResistance;
-SPowerDependency CEntityCondition::MassExplDamageResistance;
 
 SPowerDependency CEntityCondition::AnomalyDamageThreshold;
 SPowerDependency CEntityCondition::AnomalyDamageResistance;
@@ -134,6 +133,11 @@ Fvector CScope::lense_circle_scale;
 Fvector4 CScope::lense_circle_offset[2];
 
 float CFireDispertionController::crosshair_inertion;
+
+extern CUIStatic*			pUILenseCircle;
+extern CUIStatic*			pUILenseBlackFill;
+extern CUIStatic*			pUILenseGlass;
+extern void createStatic	(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment al = aCenter);
 
 CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 {
@@ -291,6 +295,10 @@ CActor::~CActor()
 #endif
 	//-Alundaio
 	xr_delete(g_items_library);
+
+	xr_delete(pUILenseCircle);
+	xr_delete(pUILenseBlackFill);
+	xr_delete(pUILenseGlass);
 }
 
 void CActor::reinit()
@@ -540,7 +548,6 @@ void CActor::Load(LPCSTR section)
 	CEntityCondition::StrikeDamageThreshold.Load		("damage_manager", "strike_damage_threshold");
 	CEntityCondition::StrikeDamageResistance.Load		("damage_manager", "strike_damage_resistance");
 	CEntityCondition::ExplDamageResistance.Load			("damage_manager", "expl_damage_resistance");
-	CEntityCondition::MassExplDamageResistance.Load		("damage_manager", "mass_expl_damage_resistance");
 	CEntityCondition::ArmorDamageResistance.Load		("damage_manager", "armor_damage_resistance");
 	
 	CEntityCondition::AnomalyDamageThreshold.Load		("damage_manager", "anomaly_damage_threshold");
@@ -559,6 +566,10 @@ void CActor::Load(LPCSTR section)
 	aim_fov_tan		= tanf(psAIM_FOV * (0.5f * PI / 180.f));
 
 	g_items_library = xr_new<CItemsLibrary>();
+
+	createStatic(pUILenseCircle, "wpn\\lense\\circle", 4.f);
+	createStatic(pUILenseBlackFill, "wpn\\lense\\black_fill", .125f, aLeftTop);
+	createStatic(pUILenseGlass, "wpn\\lense\\glass");
 }
 
 void CActor::PHHit(SHit &H)
@@ -952,7 +963,7 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
     }
 }
 
-float CActor::currentFOV()
+float CActor::currentFOV(bool for_svp)
 {
     if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
         return g_fov;
@@ -962,13 +973,9 @@ float CActor::currentFOV()
 		CWeapon* pWeapon		= smart_cast<CWeapon*>(inventory().ActiveItem());
 		if (pWeapon && pWeapon->IsZoomed())
 		{
-			float zoom_factor	= pWeapon->CurrentZoomFactor();
+			float zoom_factor	= pWeapon->CurrentZoomFactor(for_svp);
 			if (fMore(zoom_factor, 0.f))
-			{
-				if (pWeapon->render_item_ui_query())
-					return		atanf(aim_fov_tan / zoom_factor) / (.5f * PI / 180.f); 
-				return			psAIM_FOV;
-			}
+				return			(fMore(zoom_factor, 1.f)) ? atanf(aim_fov_tan / zoom_factor) / (.5f * PI / 180.f) : psAIM_FOV;
 		}
 	}
 	return						g_fov;
@@ -1102,8 +1109,7 @@ void CActor::UpdateCL()
 
 				// Apply Weapon Data in Shaders
 				g_pGamePersistent->m_pGShaderConstants->hud_params.z = pWM->GetReticleScale();
-				if (Device.m_SecondViewport.IsSVPFrame())
-					g_pGamePersistent->m_pGShaderConstants->hud_params.y = currentFOV();		//--xd протестировать и добить тему
+				g_pGamePersistent->m_pGShaderConstants->hud_params.y = currentFOV(true);
 			}
         }
     }

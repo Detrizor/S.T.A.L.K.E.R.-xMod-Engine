@@ -191,7 +191,6 @@ public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 
 	void								UpdateHudBonesVisibility				();
-	void							V$	_UpdateHudBonesVisibility				()		{}
 
 	friend class CWeaponHud;
 };

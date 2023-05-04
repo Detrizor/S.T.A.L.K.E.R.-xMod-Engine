@@ -16,16 +16,18 @@ class IKinematics;
 
 class CParticlesPlayer 
 {
-
 public:
 	//структура с внутренней информацией о партикле
 	struct SParticlesInfo
 	{
-		CParticlesObject*	ps;
-		bool				active;		//fix for some freaky bug when ps somehow gets non-null value after being set to null
+		CParticlesObject*	macabre;
+		CParticlesObject*	macabre_backup;		//fix for absolutely insane bug when value of ps was somehow changing by itself, appeared on transition to VS2022
 		Fvector				angles;
 		u16					sender_id;	//id - объекта, который запустил партиклы
 		u32					life_time;	//время жизни партикла (-1) - бесконечно
+
+		CParticlesObject*	ps() { if (macabre_backup != macabre) macabre = macabre_backup; return macabre; }
+		void				Deactivate() { CParticlesObject::Destroy(macabre); macabre_backup = NULL; }
 	};
 	DEFINE_VECTOR			(SParticlesInfo,ParticlesInfoList,ParticlesInfoListIt);
 

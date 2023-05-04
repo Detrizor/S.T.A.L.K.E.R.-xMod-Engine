@@ -157,6 +157,8 @@ void CAddonOwner::renderable_Render()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+extern Fvector rotate_vector3(Fvector CR$ source, Fvector CR$ angle);
+
 SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slots(slots)
 {
 	idx									= _idx;
@@ -174,12 +176,17 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, VSlots CR$ slots) : parent_slot
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
 
-	tmp.printf							("bone_offset_%d", idx);
-	if (pSettings->line_exist(section, *tmp))
-		model_offset[0].sub				(pSettings->r_fvector3(section, *tmp));
-
 	tmp.printf							("model_offset_rot_%d", idx);
 	model_offset[1]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
+
+	tmp.printf							("bone_offset_rot_%d", idx);
+	bone_offset[1]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
+
+	tmp.printf							("bone_offset_pos_%d", idx);
+	bone_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
+
+	bone_offset[0].mul					(-1.f);
+	bone_offset[0]						= rotate_vector3(bone_offset[0], bone_offset[1]);
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
@@ -210,9 +217,23 @@ void SAddonSlot::UpdateRenderPos(IRenderVisual* model, Fmatrix parent)
 
 	Fmatrix								hud_rotation;
 	hud_rotation.identity				();
-	hud_rotation.rotateX				(model_offset[1].x);
+	hud_rotation.rotateX				(bone_offset[1].x);
 
 	Fmatrix								hud_rotation_y;
+	hud_rotation_y.identity				();
+	hud_rotation_y.rotateY				(bone_offset[1].y);
+	hud_rotation.mulA_43				(hud_rotation_y);
+
+	hud_rotation_y.identity				();
+	hud_rotation_y.rotateZ				(bone_offset[1].z);
+	hud_rotation.mulA_43				(hud_rotation_y);
+
+	hud_rotation.translate_over			(bone_offset[0]);
+	render_pos.mulB_43					(hud_rotation);
+
+	hud_rotation.identity				();
+	hud_rotation.rotateX				(model_offset[1].x);
+
 	hud_rotation_y.identity				();
 	hud_rotation_y.rotateY				(model_offset[1].y);
 	hud_rotation.mulA_43				(hud_rotation_y);
@@ -248,7 +269,13 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix parent)
 bool SAddonSlot::Compatible(CAddon CPC _addon) const
 {
 	if (_addon->SlotType() != type)
-		return							false;
+	{
+		if (!pSettings->line_exist("slot_exceptions", _addon->SlotType()))
+			return						false;
+		
+		if (!strstr(pSettings->r_string("slot_exceptions", *_addon->SlotType()), *type))
+			return						false;
+	}
 
 	if (overlaping_slot != u16_max && parent_slots[overlaping_slot]->addon)
 		return							false;
@@ -258,5 +285,5 @@ bool SAddonSlot::Compatible(CAddon CPC _addon) const
 
 bool SAddonSlot::CanTake(CAddon CPC _addon) const
 {
-	return								Compatible(_addon) && !addon;
+	return								Compatible(_addon) && (!addon || magazine);
 }

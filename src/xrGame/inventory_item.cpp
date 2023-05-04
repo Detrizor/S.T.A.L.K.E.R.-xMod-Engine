@@ -341,6 +341,15 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 
 	m_just_after_spawn = true;
 	m_activated = false;
+
+	LPCSTR s_vis_name					= pSettings->r_string(m_section_id, "visual");
+	if (xr_strcmp(s_vis_name, O.visual_name(e)))
+	{
+		O.cNameVisual_set				(s_vis_name);
+		CSE_Visual* visual				= smart_cast<CSE_Visual*>(e);
+		visual->set_visual				(s_vis_name);
+	}
+
 	return							TRUE;
 }
 

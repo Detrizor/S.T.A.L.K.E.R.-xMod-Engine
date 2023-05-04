@@ -42,7 +42,7 @@ void CUIActorMenu::InitDeadBodySearchMode()
 	}
 
 	m_PartnerCharacterInfo->Show		(!!m_pPartnerInvOwner);
-	InitInventoryContents				(m_pInventoryBagList);
+	InitInventoryContents				();
 
 	UpdatePocketsPresence				();
 
@@ -136,7 +136,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 void CUIActorMenu::UpdateDeadBodyBag()
 {
-	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->Cast<CInventoryContainer*>() : m_pContainer->cast<CInventoryContainer*>());
+	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->Cast<CInventoryContainer*>() : m_pContainer);
 	//InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 }
 

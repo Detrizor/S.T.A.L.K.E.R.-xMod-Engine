@@ -242,7 +242,6 @@ private:
 	CScope*								m_pScope;
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
-	CMagazine*							m_pMagazine;
 	CMagazine*							m_pNextMagazine;
 	CWeaponHud*							m_hud;
 	SAddonSlot*							m_pMagazineSlot;
@@ -262,6 +261,7 @@ private:
 	void								OnHiddenItem						O$	();
 
 protected:
+	CMagazine*							m_pMagazine;
 	CWeaponAmmo*						m_pCartridgeToReload;
 
 	void								InitRotateTime						O$	();
@@ -282,11 +282,11 @@ public:
 	float								GetReticleScale						C$	();
 	bool								CanTrade							C$	();
 
-	float								CurrentZoomFactor					CO$	();
+	float								CurrentZoomFactor					CO$	(bool for_svp);
 
 	void								OnTaken								O$	();
 
-	void								_UpdateHudBonesVisibility			O$	();
+	void								UpdateHudBonesVisibility				();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	OnMotionHalf							();

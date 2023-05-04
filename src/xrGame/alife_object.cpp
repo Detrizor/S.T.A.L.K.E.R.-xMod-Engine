@@ -107,13 +107,6 @@ void CSE_ALifeObject::spawn_supplies		(LPCSTR ini_string)
 					CSE_ALifeItemWeapon* W = smart_cast<CSE_ALifeItemWeapon*>(E);
 					if (W) 
 					{
-						if (W->m_scope_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonScope, bScope);
-						if (W->m_silencer_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonSilencer, bSilencer);
-						if (W->m_grenade_launcher_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, bLauncher);
-
 						//spawn count box(es) of the correct ammo for weapon
 						if (pSettings->line_exist(itmSection, "ammo_class"))
 						{
@@ -183,16 +176,6 @@ void CSE_ALifeObject::spawn_supplies		(LPCSTR ini_string)
 				for (u32 i = 0; i < j; ++i) {
 					if (randF(1.f) < p) {
 						CSE_Abstract* E = alife().spawn_item(N, o_Position, m_tNodeID, m_tGraphID, ID);
-						//подсоединить аддоны к оружию, если включены соответствующие флажки
-						CSE_ALifeItemWeapon* W = smart_cast<CSE_ALifeItemWeapon*>(E);
-						if (W) {
-							if (W->m_scope_status == ALife::eAddonAttachable)
-								W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonScope, bScope);
-							if (W->m_silencer_status == ALife::eAddonAttachable)
-								W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonSilencer, bSilencer);
-							if (W->m_grenade_launcher_status == ALife::eAddonAttachable)
-								W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, bLauncher);
-						}
 						CSE_ALifeInventoryItem* IItem = smart_cast<CSE_ALifeInventoryItem*>(E);
 						if (IItem)
 							IItem->m_fCondition = f_cond;
