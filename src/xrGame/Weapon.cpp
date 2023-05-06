@@ -1352,7 +1352,7 @@ void CWeapon::ZoomDec()
 
 void CWeapon::SetADS(int mode)
 {
-	if (mode == -1 && !m_bHasAltAim)
+	if (mode == -1 && !HasAltAim())
 		return;
 
 	if (mode)

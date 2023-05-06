@@ -189,8 +189,9 @@ public:
 	virtual void			OnMotionHalf			()										{}
 
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
-
 	void								UpdateHudBonesVisibility				();
+
+	bool							V$	AltHandsAttachRotation				C$	()	{ return false; }
 
 	friend class CWeaponHud;
 };

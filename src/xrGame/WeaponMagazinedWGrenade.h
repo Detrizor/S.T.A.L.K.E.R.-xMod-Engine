@@ -92,7 +92,10 @@ private:
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
 protected:
+	bool								AltHandsAttachRotation				CO$	()	{ return m_bGrenadeMode; }
+
 	BOOL								Chamber								CO$	();
+	bool								HasAltAim							CO$	();
 
 	void								SetADS								O$	(int mode);
 	void								OnMotionHalf						O$	();

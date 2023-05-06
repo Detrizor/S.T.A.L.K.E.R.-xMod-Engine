@@ -243,7 +243,6 @@ private:
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
 	CMagazine*							m_pNextMagazine;
-	CWeaponHud*							m_hud;
 	SAddonSlot*							m_pMagazineSlot;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
@@ -261,6 +260,7 @@ private:
 	void								OnHiddenItem						O$	();
 
 protected:
+	CWeaponHud*							m_hud;
 	CMagazine*							m_pMagazine;
 	CWeaponAmmo*						m_pCartridgeToReload;
 

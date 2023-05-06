@@ -8,7 +8,9 @@
 CAddon::CAddon()
 {
 	m_SlotType							= 0;
-	m_IconOffset						= { 0.f, 0.f };
+	m_IconOffset						= vZero2;
+	m_hud_offset[0]						= vZero;
+	m_hud_offset[1]						= vZero;
 }
 
 void CAddon::Load(LPCSTR section)
@@ -24,14 +26,22 @@ void CAddon::Load(LPCSTR section)
 		else if (addon_type == "scope")
 		{
 			AddModule<CScope>			(cNameSect());
-			m_hud_offset[0]				= pSettings->r_fvector3(section, "hud_offset_pos");
-			m_hud_offset[1]				= pSettings->r_fvector3(section, "hud_offset_rot");
+			LoadHudOffset				();
 		}
 		else if (addon_type == "silencer")
 			AddModule<CSilencer>		(cNameSect());
 		else if (addon_type == "grenade_launcher")
+		{
 			AddModule<CGrenadeLauncher>	(cNameSect());
+			LoadHudOffset				();
+		}
 	}
+}
+
+void CAddon::LoadHudOffset()
+{
+	m_hud_offset[0].sub					(pSettings->r_fvector3(m_section_id, "hud_offset_pos"));
+	m_hud_offset[1].sub					(pSettings->r_fvector3(m_section_id, "hud_offset_rot"));
 }
 
 void CAddon::Render(Fmatrix* pos)

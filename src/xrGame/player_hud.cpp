@@ -216,6 +216,11 @@ void attachable_hud_item::render_item_ui()
 	m_parent_hud_item->render_item_3d_ui();
 }
 
+Fvector CR$ attachable_hud_item::hands_attach_rot()
+{
+	return m_measures.m_hands_attach[(m_parent_hud_item->AltHandsAttachRotation()) ? 2 : 1];
+}
+
 void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 {
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point") == pSettings->line_exist(hud_section, "fire_bone"), hud_section);
@@ -224,6 +229,7 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 
 	m_hands_attach[0] = pSettings->r_fvector3(hud_section, "hands_position");
 	m_hands_attach[1] = pSettings->r_fvector3(hud_section, "hands_orientation");
+	m_hands_attach[2] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "hands_orientation_alt", m_hands_attach[1]);
 
 	m_item_attach[0] = pSettings->r_fvector3(hud_section, "item_position");
 	m_item_attach[1] = pSettings->r_fvector3(hud_section, "item_orientation");

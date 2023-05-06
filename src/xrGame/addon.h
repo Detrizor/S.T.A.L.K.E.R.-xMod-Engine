@@ -8,13 +8,15 @@ private:
 
 public:
 										CAddon									();
+										
+	void								Load								O$	(LPCSTR section);
 
 private:
 	shared_str							m_SlotType;
 	Fvector2							m_IconOffset;
 	Fvector								m_hud_offset[2];
 
-	void								Load								O$	(LPCSTR section);
+	void								LoadHudOffset							();
 
 public:
 	void								Render									(Fmatrix* pos);

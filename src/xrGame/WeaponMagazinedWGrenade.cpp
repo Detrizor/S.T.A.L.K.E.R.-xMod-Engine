@@ -14,6 +14,7 @@
 #include "player_hud.h"
 #include "Magazine.h"
 #include "../build_config_defines.h"
+#include "weapon_hud.h"
 
 #ifdef DEBUG
 #	include "phdebug.h"
@@ -189,6 +190,8 @@ void  CWeaponMagazinedWGrenade::PerformSwitchGL()
 		iAmmoElapsed += m_pMagazine->Amount();
 
     m_BriefInfo_CalcFrame = 0;
+
+	m_hud->SwitchGL();
 }
 
 xr_vector<CCartridge>& CWeaponMagazinedWGrenade::Magazine()
@@ -871,18 +874,6 @@ int CWeaponMagazinedWGrenade::GetAmmoCount2(u8 ammo2_type) const
     return GetAmmoCount_forType(m_ammoTypes2[ammo2_type]);
 }
 
-void CWeaponMagazinedWGrenade::SetADS(int mode)
-{
-	if (m_bGrenadeMode)
-	{
-		if (mode < 0)
-			return;
-		if (mode == 1)
-			mode = 2;
-	}
-	inherited::SetADS(mode);
-}
-
 void CWeaponMagazinedWGrenade::OnMotionHalf()
 {
 	if (!m_bGrenadeMode)
@@ -929,7 +920,10 @@ float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param
 			SAddonSlot* slot			= (SAddonSlot*)data;
 			CGrenadeLauncher* gl		= slot->addon->cast<CGrenadeLauncher*>();
 			if (gl)
+			{
 				ProcessGL				(gl, !!param);
+				m_hud->ProcessGL		(slot, !!param);
+			}
 			break;
 		}
 
@@ -943,4 +937,16 @@ float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param
 BOOL CWeaponMagazinedWGrenade::Chamber C$()
 {
 	return (m_bGrenadeMode) ? FALSE : inherited::Chamber();
+}
+
+bool CWeaponMagazinedWGrenade::HasAltAim C$()
+{
+	return (m_bGrenadeMode) ? FALSE : inherited::HasAltAim();
+}
+
+void CWeaponMagazinedWGrenade::SetADS(int mode)
+{
+	if (m_bGrenadeMode && mode == 1)
+		mode = 2;
+	inherited::SetADS(mode);
 }

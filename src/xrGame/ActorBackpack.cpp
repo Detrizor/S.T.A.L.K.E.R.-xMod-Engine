@@ -13,7 +13,7 @@ bool CBackpack::install_upgrade_impl(LPCSTR section, bool test)
 		float					tmp;
 		bool result2			= process_if_exists(section, "capacity", tmp, test);
 		if (result2)
-			cont->SetCapacity	(tmp);
+			cont->SetCapacity	(cont->GetCapacity() + tmp);
 		result					|= result2;
 	}
 	return						result;

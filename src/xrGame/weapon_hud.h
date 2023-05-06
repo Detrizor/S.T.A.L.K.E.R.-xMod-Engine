@@ -47,15 +47,17 @@ private:
 	Fvector								m_hands_offset[eTotal][2];
 	Fvector								m_hud_offset[2];
 	Fvector								m_root_offset;
-	Fvector								m_barrel_offset;
+	Fvector								m_root_offset_gl;
 	SShootingParams						m_shooting_params;
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
 	Fvector								m_cur_offs;
 	bool								m_scope;
+	bool								m_gl;
 	bool								m_scope_alt_aim_via_iron_sights;
 
-	void								ApplyRoot								(Fvector* offset, bool barrel = true);
+	Fvector								CalcBarrelOffsets						(Fvector root_offset);
+	void								CalcAimOffset							();
 
 public:
 	SPowerDependency				S$	HandlingToRotationTime;
@@ -71,6 +73,8 @@ public:
 	void								UpdateHudAdditional						(Fmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessScope							(SAddonSlot* slot, bool attach);
+	void								ProcessGL								(SAddonSlot* slot, bool attach);
+	void								SwitchGL								();
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();
