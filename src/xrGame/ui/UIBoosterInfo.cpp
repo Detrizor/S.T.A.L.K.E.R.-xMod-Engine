@@ -9,6 +9,7 @@
 #include "UIHelper.h"
 #include "../string_table.h"
 #include "UICellItem.h"
+#include "item_container.h"
 
 static const float BULLET_AP_SCALE						= pSettings->r_float("bullet_manager", "ap_scale");
 static const float BULLET_ARMOR_PIERCING_AP_FACTOR		= pSettings->r_float("bullet_manager", "armor_piercing_ap_factor");
@@ -32,6 +33,9 @@ CUIBoosterInfo::CUIBoosterInfo()
 
 	m_ammo_type				= NULL;
 	m_capacity				= NULL;
+
+	m_artefact_isolation	= NULL;
+	m_radiation_protection	= NULL;
 }
 
 CUIBoosterInfo::~CUIBoosterInfo()
@@ -48,6 +52,8 @@ CUIBoosterInfo::~CUIBoosterInfo()
 	xr_delete	(m_armor_piercing);
 	xr_delete	(m_ammo_type);
 	xr_delete	(m_capacity);
+	xr_delete	(m_artefact_isolation);
+	xr_delete	(m_radiation_protection);
 	xr_delete	(m_Prop_line);
 }
 
@@ -160,6 +166,21 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_capacity->SetAutoDelete			(false);
 	name								= CStringTable().translate("ui_capacity").c_str();
 	m_capacity->SetCaption				(name);
+	xml.SetLocalRoot					(base_node);
+
+	m_artefact_isolation				= xr_new<UIBoosterInfoItem>();
+	m_artefact_isolation->Init			(xml, "artefact_isolation");
+	m_artefact_isolation->SetAutoDelete	(false);
+	name								= CStringTable().translate("ui_artefact_isolation").c_str();
+	m_artefact_isolation->SetCaption	(name);
+	m_artefact_isolation->SetStrValue	("");
+	xml.SetLocalRoot					(base_node);
+
+	m_radiation_protection				= xr_new<UIBoosterInfoItem>();
+	m_radiation_protection->Init		(xml, "radiation_protection");
+	m_radiation_protection->SetAutoDelete(false);
+	name								= CStringTable().translate("ui_radiation_protection").c_str();
+	m_radiation_protection->SetCaption	(name);
 	xml.SetLocalRoot					(stored_root);
 }
 
@@ -169,6 +190,7 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 	CActor* actor		= smart_cast<CActor*>(Level().CurrentViewEntity());
 	if (!actor)
 		return;
+
 	const shared_str&	section = itm->m_section;
 	Fvector2			pos;
 	float				val;
@@ -356,7 +378,43 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		AttachChild							(m_capacity);
 	}
 
-	SetHeight(h);
+	PIItem item							= (PIItem)itm->m_pData;
+	CInventoryContainer* cont			= (item) ? item->cast<CInventoryContainer*>() : NULL;
+	if (cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
+	{
+		if (!((cont) ? cont->StockCount() : pSettings->r_u32(section, "stock_count")))
+		{
+			float capacity				= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
+			m_capacity->SetValue		(capacity);
+			pos.set						(m_capacity->GetWndPos());
+			pos.y						= h;
+			m_capacity->SetWndPos		(pos);
+			h							+= m_capacity->GetWndSize().y;
+			AttachChild					(m_capacity);
+		}
+
+		if ((cont) ? cont->ArtefactIsolation(true) : pSettings->r_bool(section, "artefact_isolation"))
+		{
+			pos.set						(m_artefact_isolation->GetWndPos());
+			pos.y						= h;
+			m_artefact_isolation->SetWndPos(pos);
+			h							+= m_artefact_isolation->GetWndSize().y;
+			AttachChild					(m_artefact_isolation);
+		}
+
+		float radiation_protection		= (cont) ? cont->RadiationProtection(true) : pSettings->r_float(section, "radiation_protection");
+		if (fMore(radiation_protection, 0.f))
+		{
+			m_radiation_protection->SetValue(1.f - radiation_protection);
+			pos.set						(m_radiation_protection->GetWndPos());
+			pos.y						= h;
+			m_radiation_protection->SetWndPos(pos);
+			h							+= m_radiation_protection->GetWndSize().y;
+			AttachChild					(m_radiation_protection);
+		}
+	}
+
+	SetHeight							(h);
 }
 
 /// ----------------------------------------------------------------

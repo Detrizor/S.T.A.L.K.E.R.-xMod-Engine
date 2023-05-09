@@ -124,7 +124,6 @@ void CInventory::Clear()
 {
 	m_all.clear							();
 	m_ruck.clear						();
-	m_to_check.clear					();
 	m_artefacts.clear					();
 	
 	for(u16 i=FirstSlot(); i<=LastSlot(); i++)
@@ -143,6 +142,8 @@ void CInventory::Clear()
 
 void CInventory::OnInventoryAction(PIItem item, bool take, u8 zone)
 {
+	CheckArtefact						(item, take);
+
 	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
 	if (!actor_menu || !actor_menu->IsShown())
 		return;
@@ -251,7 +252,7 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	case eItemPlaceRuck:
 	{
 		VERIFY									(InRuck(pIItem));
-		TIItemContainer::iterator temp_iter		= std::find(m_ruck.begin(), m_ruck.end(), pIItem);
+		TIItemContainer::iterator temp_iter		= ::std::find(m_ruck.begin(), m_ruck.end(), pIItem);
 		if (temp_iter != m_ruck.end())
 			m_ruck.erase						(temp_iter);
 		else
@@ -274,22 +275,21 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	case eItemPlacePocket:
 	{
 		TIItemContainer& pocket					= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator				it = std::find(pocket.begin(), pocket.end(), pIItem);
+		TIItemContainer::iterator				it = ::std::find(pocket.begin(), pocket.end(), pIItem);
 		if (it != pocket.end())
 			pocket.erase						(it);
 		else
 			Msg									("! ERROR: CInventory::Drop item not found in pocket...");
 		pIItem->object().processing_deactivate	();
-		CheckArtefact							(pIItem);
 
 		break;
 	}
 	default:
 		NODEFAULT;
 	}
-	TIItemContainer::iterator it				= std::find(m_all.begin(), m_all.end(), pIItem);
+	TIItemContainer::iterator it				= ::std::find(m_all.begin(), m_all.end(), pIItem);
 	if (it != m_all.end())
-		m_all.erase								(std::find(m_all.begin(), m_all.end(), pIItem));
+		m_all.erase								(::std::find(m_all.begin(), m_all.end(), pIItem));
 	else
 		Msg										("! CInventory::Drop item not found in inventory!!!");
 
@@ -333,7 +333,7 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem)
 	m_slots[slot_id].m_pIItem = pIItem;
 	
 	//удалить из инвентаря
-	TIItemContainer::iterator it_ruck = std::find(m_ruck.begin(), m_ruck.end(), pIItem);
+	TIItemContainer::iterator it_ruck = ::std::find(m_ruck.begin(), m_ruck.end(), pIItem);
 	if (it_ruck != m_ruck.end())
 		m_ruck.erase(it_ruck);
 
@@ -348,10 +348,9 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem)
 	if (!in_slot && pIItem->CurrPlace() == eItemPlacePocket)
 	{
 		TIItemContainer& pocket				= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator it		= std::find(pocket.begin(), pocket.end(), pIItem);
+		TIItemContainer::iterator it		= ::std::find(pocket.begin(), pocket.end(), pIItem);
 		if (it != pocket.end())
 			pocket.erase(it);
-		CheckArtefact						(pIItem);
 	}
 
 	if (m_bActors)
@@ -393,10 +392,9 @@ bool CInventory::Ruck(PIItem pIItem, bool strict_placement)
 	if (!in_slot && pIItem->CurrPlace() == eItemPlacePocket)
 	{
 		TIItemContainer& pocket				= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator it		= std::find(pocket.begin(), pocket.end(), pIItem);
+		TIItemContainer::iterator it		= ::std::find(pocket.begin(), pocket.end(), pIItem);
 		if (it != pocket.end())
 			pocket.erase(it);
-		CheckArtefact						(pIItem);
 	}
 	
 	m_ruck.insert									(m_ruck.end(), pIItem); 
@@ -427,19 +425,18 @@ bool CInventory::Pocket(PIItem pIItem, u16 pocket_id, bool forced)
 	else if (pIItem->CurrPlace() == eItemPlacePocket)
 	{
 		TIItemContainer& pocket				= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator it		= std::find(pocket.begin(), pocket.end(), pIItem);
+		TIItemContainer::iterator it		= ::std::find(pocket.begin(), pocket.end(), pIItem);
 		if (it != pocket.end())
 			pocket.erase(it);
 	}
 	else
 	{
-		TIItemContainer::iterator it				= std::find(m_ruck.begin(), m_ruck.end(), pIItem); 
+		TIItemContainer::iterator it				= ::std::find(m_ruck.begin(), m_ruck.end(), pIItem); 
 		if (m_ruck.end() != it) 
 			m_ruck.erase							(it);
 	}
 	
 	m_pockets[pocket_id].push_back(pIItem);
-	m_to_check.push_back(pIItem);
 
 	CalcTotalWeight						();
 	CalcTotalVolume						();
@@ -871,13 +868,6 @@ void CInventory::UpdateDropTasks()
 	{
 		m_drop_last_frame			= false;
 		m_pOwner->OnItemDropUpdate	();
-	}
-
-	if (m_to_check.size())
-	{
-		for (TIItemContainer::const_iterator I = m_to_check.begin(), E = m_to_check.end(); I != E; I++)
-			CheckArtefact(*I, true);
-		m_to_check.clear();
 	}
 }
 
@@ -1388,7 +1378,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 		{
 			if (bOverride)
 			{
-				luabind::functor<bool> funct;
+				::luabind::functor<bool> funct;
 				if (ai().script_engine().functor("actor_menu_inventory.CInventory_ItemAvailableToTrade", funct))
 				{
 					if (!funct(m_pOwner->cast_game_object()->lua_game_object(),pIItem->cast_game_object()->lua_game_object()))
@@ -1412,7 +1402,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 				{
 					if (bOverride)
 					{
-						luabind::functor<bool> funct;
+						::luabind::functor<bool> funct;
 						if (ai().script_engine().functor("actor_menu_inventory.CInventory_ItemAvailableToTrade", funct))
 						{
 							if (!funct(m_pOwner->cast_game_object()->lua_game_object(), item->cast_game_object()->lua_game_object()))
@@ -1550,22 +1540,25 @@ bool CInventory::IsSlotBlocked(PIItem const iitem) const
 
 void CInventory::CheckArtefact(PIItem item, bool add)
 {
-	CArtefact* artefact				= smart_cast<CArtefact*>(item);
+	CArtefact* artefact					= smart_cast<CArtefact*>(item);
 	if (artefact)
 	{
 		xr_vector<CArtefact*>::iterator it = ::std::find(m_artefacts.begin(), m_artefacts.end(), artefact);
 		if (it != m_artefacts.end())
 		{
 			if (!add)
-				m_artefacts.erase	(it);
+				m_artefacts.erase		(it);
 		}
 		else if (add)
-			m_artefacts.push_back	(artefact);
+			m_artefacts.push_back		(artefact);
 	}
-	else if (READ_IF_EXISTS(pSettings, r_bool, item->m_section_id, "artefact_container", FALSE))
+	else
 	{
-		CInventoryContainer* con	= item->cast<CInventoryContainer*>();
-		for (auto I : con->Items())
-			CheckArtefact			(I, add);
+		CInventoryContainer* con		= item->cast<CInventoryContainer*>();
+		if (con)
+		{
+			for (auto I : con->Items())
+				CheckArtefact			(I, add);
+		}
 	}
 }

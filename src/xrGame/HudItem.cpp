@@ -23,6 +23,7 @@ CHudItem::CHudItem()
     EnableHudInertion(TRUE);
     AllowHudInertion(TRUE);
     m_bStopAtEndAnimIsRunning = false;
+	m_fHalfPosition = .5f;
 	m_bStopAtHalf = false;
     m_current_motion_def = NULL;
 	m_started_rnd_anim_idx = u8(-1);
@@ -450,13 +451,14 @@ void CHudItem::UpdateCL()
 
             m_dwMotionCurrTm = Device.dwTimeGlobal;
 
-			if (m_dwMotionCurrTm > (m_dwMotionStartTm + u32(.4f * float(m_dwMotionEndTm - m_dwMotionStartTm))))
+			if (m_dwMotionCurrTm > (m_dwMotionStartTm + u32(m_fHalfPosition * float(m_dwMotionEndTm - m_dwMotionStartTm))))
 			{
 				OnMotionHalf();
 				if (m_bStopAtHalf)
 				{
 					m_dwMotionCurrTm = m_dwMotionEndTm + 1;
 					m_bStopAtHalf = false;
+					m_sounds.StopAllSounds();
 				}
 			}
 
@@ -530,7 +532,7 @@ void CHudItem::on_a_hud_attach()
     }
 }
 
-u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, bool stop_at_half)
+u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float half_position, bool stop_at_half)
 {
 	if (HudItemData() && !HudAnimationExist(*M))
 	{
@@ -542,6 +544,7 @@ u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 
     if (anim_time > 0)
     {
         m_bStopAtEndAnimIsRunning = true;
+		m_fHalfPosition = half_position;
 		m_bStopAtHalf = stop_at_half;
 		m_dwMotionStartTm = Device.dwTimeGlobal;
 		m_dwMotionCurrTm = m_dwMotionStartTm;
@@ -584,6 +587,7 @@ void CHudItem::StopCurrentAnimWithoutCallback()
     m_dwMotionEndTm = 0;
     m_dwMotionCurrTm = 0;
     m_bStopAtEndAnimIsRunning = false;
+	m_fHalfPosition = .5f;
 	m_bStopAtHalf = false;
     m_current_motion_def = NULL;
 }

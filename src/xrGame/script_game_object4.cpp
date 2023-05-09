@@ -511,12 +511,12 @@ float CScriptGameObject::GetArmorLevel()
 
 float CScriptGameObject::GetWeightDump()
 {
-	CCustomOutfit*	outfit		= smart_cast<CCustomOutfit*>(&object());
-	CArtefact*	art				= smart_cast<CArtefact*>(&object());
+	CCustomOutfit* outfit				= object().Cast<CCustomOutfit*>();
+	CArtefact* art						= object().Cast<CArtefact*>();
 	if (!outfit && !art)
-		return					0.f;
+		return							0.f;
 
-	return (outfit) ? outfit->m_fWeightDump : art->m_fWeightDump;
+	return								(outfit) ? outfit->m_fWeightDump : art->WeightDump();
 }
 
 float CScriptGameObject::GetRecuperationFactor()
@@ -531,11 +531,12 @@ float CScriptGameObject::GetRecuperationFactor()
 
 float CScriptGameObject::GetDrainFactor()
 {
-	CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(&object());
-	if (!outfit)
-		return					0.f;
+	CCustomOutfit* outfit				= object().Cast<CCustomOutfit*>();
+	CArtefact* art						= object().Cast<CArtefact*>();
+	if (!outfit && !art)
+		return							0.f;
 
-	return outfit->m_fDrainFactor;
+	return								(outfit) ? outfit->m_fDrainFactor : art->DrainFactor();
 }
 
 float CScriptGameObject::GetPowerLoss()
@@ -611,12 +612,6 @@ void CScriptGameObject::Deactivate()
 	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
 	if (artefact)
 		artefact->Deactivate		();
-}
-
-float CScriptGameObject::Power() const
-{
-	CArtefact* artefact				= smart_cast<CArtefact*>(&object());
-	return							(artefact) ? artefact->Power() : 0.f;
 }
 
 void CScriptGameObject::AmmoChangeCount(u16 val)
@@ -776,6 +771,30 @@ u8 CScriptGameObject::GetInvIconIndex() const
 		return						item->GetInvIconIndex();
 
 	return							0;
+}
+
+float CScriptGameObject::Power() const
+{
+	CArtefact* artefact					= object().Cast<CArtefact*>();
+	return								(artefact) ? artefact->Power() : 0.f;
+}
+
+float CScriptGameObject::Radiation() const
+{
+	CArtefact* artefact					= object().Cast<CArtefact*>();
+	return								(artefact) ? artefact->Radiation() : 0.f;
+}
+
+float CScriptGameObject::Absorbation C$(int hit_type)
+{
+	CArtefact* artefact					= object().Cast<CArtefact*>();
+	return								(artefact) ? artefact->Absorbation(hit_type) : 0.f;
+}
+
+bool CScriptGameObject::Aiming C$()
+{
+	CActor* actor						= object().Cast<CActor*>();
+	return								(actor) ? actor->IsZoomAimingMode() : false;
 }
 
 #define SPECIFIC_CAST(A,B)\

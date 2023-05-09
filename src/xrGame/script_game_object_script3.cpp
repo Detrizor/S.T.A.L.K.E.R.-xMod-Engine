@@ -464,7 +464,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("is_active",					&CScriptGameObject::IsActive)
 		.def("activate",					&CScriptGameObject::Activate)
 		.def("deactivate",					&CScriptGameObject::Deactivate)
-		.def("get_power",					&CScriptGameObject::Power)
 		.def("ammo_change_count",			&CScriptGameObject::AmmoChangeCount)
 		.def("get_depletion_rate",			&CScriptGameObject::GetDepletionRate)
 		.def("get_depletion_speed",			&CScriptGameObject::GetDepletionSpeed)
@@ -487,6 +486,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("transfer",					&CScriptGameObject::Transfer)
 		.def("set_inv_icon",				&CScriptGameObject::SetInvIcon)
 		.def("get_inv_icon_index",			&CScriptGameObject::GetInvIconIndex)
+		.def("artefact_power",				&CScriptGameObject::Power)
+		.def("artefact_radiation",			&CScriptGameObject::Radiation)
+		.def("absorbation",					&CScriptGameObject::Absorbation)
+		.def("aiming",						&CScriptGameObject::Aiming)
 #endif
 
 

@@ -242,7 +242,6 @@ private:
 	CScope*								m_pScope;
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
-	CMagazine*							m_pNextMagazine;
 	SAddonSlot*							m_pMagazineSlot;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
@@ -262,6 +261,7 @@ private:
 protected:
 	CWeaponHud*							m_hud;
 	CMagazine*							m_pMagazine;
+	CMagazine*							m_pNextMagazine;
 	CWeaponAmmo*						m_pCartridgeToReload;
 
 	void								InitRotateTime						O$	();

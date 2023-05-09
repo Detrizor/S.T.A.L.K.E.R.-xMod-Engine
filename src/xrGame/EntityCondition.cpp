@@ -353,15 +353,14 @@ float GearExplEffect(T gear, float damage, float protection, CInventoryOwner* io
 template <typename T>
 float GearProtectionEffect(T gear, const ALife::EHitType& hit_type, float damage, bool head)
 {
-	damage								*= head ? CEntityCondition::HitTypeHeadPart[hit_type] : 1.f - CEntityCondition::HitTypeHeadPart[hit_type];
+	damage								*= (head) ? CEntityCondition::HitTypeHeadPart[hit_type] : 1.f - CEntityCondition::HitTypeHeadPart[hit_type];
 	if (!gear || fEqual(damage, 0.f))
 		return							damage;
 
 	float protection					= gear->GetHitTypeProtection(hit_type);
 	gear->Hit							(damage * CEntityCondition::ProtectionDamageResistance.Calc(protection), hit_type);
+	damage								*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
 	damage								-= min(damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
-	if (fMore(damage, 0.f))
-		damage							*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
 
 	return								damage;
 }
@@ -373,7 +372,8 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 	float protection			= m_object->GetProtection(outfit, helmet, pHDS->boneID, pHDS->hit_type);
 	CInventoryOwner* io			= smart_cast<CInventoryOwner*>(m_object);
 
-	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::HitProtectionEffect frame [%d] main_damage [%.5f] pierce_damage [%.5f] protection [%.5f]", Device.dwFrame, pHDS->main_damage, pHDS->pierce_damage, protection);		//--xd отладка
+	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::HitProtectionEffect frame [%d] main_damage [%.5f] pierce_damage [%.5f] protection [%.5f]",
+		Device.dwFrame, pHDS->main_damage, pHDS->pierce_damage, protection);		//--xd отладка
 	if (pHDS->DamageType() == 1)
 	{
 		pHDS->pierce_hit_type				= pHDS->hit_type;
@@ -426,18 +426,23 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 			pHDS->main_damage				= outfit_part + helmet_part;
 		}
 	}
-	else
+	else if (io)
 	{
 		if (fMore(protection, 0.f))
 		{
-			float d_damage					= min(pHDS->main_damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
-			pHDS->main_damage				-= d_damage;
-			if (io && fMore(d_damage, 0.f))
-				io->HitArtefacts			(d_damage * ProtectionDamageResistance.Calc(protection), pHDS->hit_type);
+			io->HitArtefacts			(pHDS->main_damage * ProtectionDamageResistance.Calc(protection), pHDS->hit_type);
+			pHDS->main_damage			*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
+			pHDS->main_damage			-= min(pHDS->main_damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
 		}
+
 		if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd after anom arts main_damage [%.5f]", pHDS->main_damage);
-		if (io && fMore(pHDS->main_damage, 0.f))
-			pHDS->main_damage				= GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, false) + (outfit && !outfit->bIsHelmetAvaliable ? GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, true) : GearProtectionEffect(helmet, pHDS->hit_type, pHDS->main_damage, true));
+
+		if (fMore(pHDS->main_damage, 0.f))
+		{
+			float outfit_part			= GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, false);
+			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ? GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, true) : GearProtectionEffect(helmet, pHDS->hit_type, pHDS->main_damage, true);
+			pHDS->main_damage			= outfit_part + helmet_part;
+		}
 	}
 }
 

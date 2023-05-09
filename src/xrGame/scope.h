@@ -4,7 +4,7 @@
 
 enum eScopeType
 {
-	eOptics,
+	eOptics = 1,
 	eCollimator
 };
 

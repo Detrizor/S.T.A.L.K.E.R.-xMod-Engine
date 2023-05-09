@@ -989,12 +989,12 @@ void CWeaponMagazined::PlayAnimReload()
         if (iAmmoElapsed == 0)
         {
             if (HudAnimationExist("anm_reload_empty"))
-				PlayHUDMotion("anm_reload_empty", TRUE, this, GetState(), half);
+				PlayHUDMotion("anm_reload_empty", TRUE, this, GetState(), .3f, half);
             else
-				PlayHUDMotion("anm_reload", TRUE, this, GetState(), half);
+				PlayHUDMotion("anm_reload", TRUE, this, GetState(), .4f, half);
         }
         else
-			PlayHUDMotion("anm_reload", TRUE, this, GetState(), half);
+			PlayHUDMotion("anm_reload", TRUE, this, GetState(), .4f, half);
     }
 #else
     PlayHUDMotion("anm_reload", TRUE, this, GetState());
@@ -1593,7 +1593,7 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 
 void CWeaponMagazined::InitRotateTime()
 {
-	m_hud->InitRotateTime(GetControlInertionFactor());
+	m_hud->InitRotateTime(GetControlInertionFactorBase());
 }
 
 void CWeaponMagazined::UpdateHudBonesVisibility()

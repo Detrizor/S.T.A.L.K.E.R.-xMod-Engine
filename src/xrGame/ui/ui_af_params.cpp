@@ -13,6 +13,7 @@
 #include "UICellItem.h"
 
 #include "..\items_library.h"
+#include "Artefact.h"
 
 u32 const red_clr		= color_argb(255, 210, 50, 50);
 u32 const green_clr		= color_argb(255, 170, 170, 170);
@@ -28,6 +29,7 @@ CUIArtefactParams::CUIArtefactParams()
 	m_drain_factor				= NULL;
 	m_weight_dump				= NULL;
 	m_armor						= NULL;
+	m_radiation					= NULL;
 }
 
 CUIArtefactParams::~CUIArtefactParams()
@@ -37,6 +39,7 @@ CUIArtefactParams::~CUIArtefactParams()
 	xr_delete		(m_drain_factor);
 	xr_delete		(m_weight_dump);
 	xr_delete		(m_armor);
+	xr_delete		(m_radiation);
 	xr_delete		(m_Prop_line);
 }
 
@@ -101,12 +104,12 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		m_restore_item[i]					= xr_new<UIArtefactParamItem>();
-		m_restore_item[i]->Init				(xml, af_restore_section_names[i]);
-		m_restore_item[i]->SetAutoDelete	(false);
-		LPCSTR name							= *CStringTable().translate(af_restore_caption[i]);
-		m_restore_item[i]->SetCaption		(name);
-		xml.SetLocalRoot					(base_node);
+		m_restore_item[i]				= xr_new<UIArtefactParamItem>();
+		m_restore_item[i]->Init			(xml, af_restore_section_names[i]);
+		m_restore_item[i]->SetAutoDelete(false);
+		LPCSTR name						= *CStringTable().translate(af_restore_caption[i]);
+		m_restore_item[i]->SetCaption	(name);
+		xml.SetLocalRoot				(base_node);
 	}
 	
 	m_drain_factor						= xr_new<UIArtefactParamItem>();
@@ -115,18 +118,24 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 	m_drain_factor->SetCaption			(*CStringTable().translate("st_drain_factor"));
 	xml.SetLocalRoot					(base_node);
 	
-	m_weight_dump					= xr_new<UIArtefactParamItem>();
-	m_weight_dump->Init				(xml, "weight_dump");
-	m_weight_dump->SetAutoDelete	(false);
-	m_weight_dump->SetCaption		(*CStringTable().translate("ui_inv_weight"));
-	xml.SetLocalRoot				(base_node);
+	m_weight_dump						= xr_new<UIArtefactParamItem>();
+	m_weight_dump->Init					(xml, "weight_dump");
+	m_weight_dump->SetAutoDelete		(false);
+	m_weight_dump->SetCaption			(*CStringTable().translate("st_weight_dump"));
+	xml.SetLocalRoot					(base_node);
 	
-	m_armor					= xr_new<UIArtefactParamItem>();
-	m_armor->Init			(xml, "armor");
-	m_armor->SetAutoDelete	(false);
-	m_armor->SetCaption		(*CStringTable().translate("st_armor"));
+	m_armor								= xr_new<UIArtefactParamItem>();
+	m_armor->Init						(xml, "armor");
+	m_armor->SetAutoDelete				(false);
+	m_armor->SetCaption					(*CStringTable().translate("st_armor"));
+	xml.SetLocalRoot					(base_node);
 
-	xml.SetLocalRoot(stored_root);
+	m_radiation							= xr_new<UIArtefactParamItem>();
+	m_radiation->Init					(xml, "radiation");
+	m_radiation->SetAutoDelete			(false);
+	m_radiation->SetCaption				(*CStringTable().translate("st_radiation"));
+
+	xml.SetLocalRoot					(stored_root);
 }
 
 void InitMaxArtValues()
@@ -142,86 +151,71 @@ void InitMaxArtValues()
 	}
 }
 
-void CUIArtefactParams::SetInfo(LPCSTR section, float power)
+void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 {
-	DetachAll					();
-	CActor* actor				= smart_cast<CActor*>(Level().CurrentViewEntity());
+	DetachAll							();
+	CActor* actor						= smart_cast<CActor*>(Level().CurrentViewEntity());
 	if (!actor)
 		return;
-	Fvector2					pos;
-	float						val, h;
+
+	Fvector2							pos;
+	float								val, h;
 	if (xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "description", ""), ""))
 	{
-		AttachChild				(m_Prop_line);
-		h						= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
+		AttachChild						(m_Prop_line);
+		h								= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
 	}
 	else
-		h						= 0.f;
+		h								= 0.f;
 
-	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
+	for (int i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		val								= pSettings->r_float(section, af_absorbation_names[i]) * power;
-		if (fis_zero(val))
-			continue;
-		m_absorbation_item[i]->SetValue	(val);
-		pos.set							(m_absorbation_item[i]->GetWndPos());
-		pos.y							= h;
-		m_absorbation_item[i]->SetWndPos(pos);
-		h								+= m_absorbation_item[i]->GetWndSize().y;
-		AttachChild						(m_absorbation_item[i]);
+		val								= (art) ? art->Absorbation(i) : pSettings->r_float(section, af_absorbation_names[i]);
+		if (!fis_zero(val))
+			SetInfoItem					(m_absorbation_item[i], val, pos, h);
 	}
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		val								= pSettings->r_float(section, af_restore_section_names[i]) * power;
+		val								= pSettings->r_float(section, af_restore_section_names[i]) * ((art) ? art->Power() : 1.f);
 		if (fis_zero(val))
 			continue;
+
 		if (m_max_restores[i] == -1.f)
 			InitMaxArtValues			();
 		if (i != eRadiationSpeed)
 			val							/= m_max_restores[i];
-		m_restore_item[i]->SetValue		(val);
-		pos.set							(m_restore_item[i]->GetWndPos());
-		pos.y							= h;
-		m_restore_item[i]->SetWndPos	(pos);
-		h								+= m_restore_item[i]->GetWndSize().y;
-		AttachChild						(m_restore_item[i]);
+
+		SetInfoItem						(m_restore_item[i], val, pos, h);
 	}
 
-	val									= pSettings->r_float(section, "drain_factor") * power;
+	val									= (art) ? art->DrainFactor() : pSettings->r_float(section, "drain_factor");
 	if (!fis_zero(val))
-	{
-		m_drain_factor->SetValue		(val);
-		pos.set							(m_drain_factor->GetWndPos());
-		pos.y							= h;
-		m_drain_factor->SetWndPos		(pos);
-		h								+= m_drain_factor->GetWndSize().y;
-		AttachChild						(m_drain_factor);
-	}
+		SetInfoItem						(m_drain_factor, val, pos, h);
 
-	val									= pSettings->r_float(section, "weight_dump") * power;
+	val									= (art) ? art->WeightDump() : pSettings->r_float(section, "weight_dump");
 	if (!fis_zero(val))
-	{
-		m_weight_dump->SetValue			(val);
-		pos.set							(m_weight_dump->GetWndPos());
-		pos.y							= h;
-		m_weight_dump->SetWndPos		(pos);
-		h								+= m_weight_dump->GetWndSize().y;
-		AttachChild						(m_weight_dump);
-	}
+		SetInfoItem						(m_weight_dump, val, pos, h);
 
-	val						= pSettings->r_float(section, "armor") * power;
+	val									= (art) ? art->GetArmor() : pSettings->r_float(section, "armor");
 	if (!fis_zero(val))
-	{
-		m_armor->SetValue	(val);
-		pos.set				(m_armor->GetWndPos());
-		pos.y				= h;
-		m_armor->SetWndPos	(pos);
-		h					+= m_armor->GetWndSize().y;
-		AttachChild			(m_armor);
-	}
+		SetInfoItem						(m_armor, val, pos, h);
 
-	SetHeight(h);
+	val									= (art) ? art->Radiation() : pSettings->r_float(section, "radiation");
+	if (!fis_zero(val))
+		SetInfoItem						(m_radiation, val, pos, h);
+
+	SetHeight							(h);
+}
+
+void CUIArtefactParams::SetInfoItem(UIArtefactParamItem* item, float value, Fvector2& pos, float& h)
+{
+	item->SetValue						(value);
+	pos.set								(item->GetWndPos());
+	pos.y								= h;
+	item->SetWndPos						(pos);
+	h									+= item->GetWndSize().y;
+	AttachChild							(item);
 }
 
 /// ----------------------------------------------------------------

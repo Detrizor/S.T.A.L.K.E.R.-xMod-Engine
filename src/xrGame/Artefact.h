@@ -58,6 +58,7 @@ protected:
 	bool							m_bActive;
 
 	virtual void					UpdateLights					();
+
 public:
 	IC u8							GetAfRank						() const		{return m_af_rank;}
 	IC bool							CanBeActivated					()				{return m_bCanSpawnZone;};
@@ -74,9 +75,6 @@ public:
 	virtual void					PhTune							(float step)	{};
 	
 	bool							m_bCanSpawnZone;
-	float 							m_fRadiationRestoreSpeed;
-	float							m_fWeightDump;
-	float							m_HitAbsorbation[ALife::eHitTypeMax];
 
 public:
 	enum EAFHudStates {
@@ -111,16 +109,24 @@ public:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+private:
+	float 								m_fRadiation;
+	float								m_fWeightDump;
+	float								m_fDrainFactor;
+	float								m_HitAbsorbation[ALife::eHitTypeMax];
+
 public:
-			float			GetArmor				()								const	{ return m_fArmor * Power(); }
-			bool			IsActive				()								const	{ return m_bActive; }
-			void			SetActive				(bool status)							{ m_bActive = status; }
-			float			HitAbsorbation			(ALife::EHitType hit_type)		const	{ return m_HitAbsorbation[hit_type] * Power(); }
+	float								WeightDump							C$	()		{ return m_fWeightDump * Power(); }
+	float								DrainFactor							C$	()		{ return m_fDrainFactor * Power(); }
+	float								GetArmor							C$	()		{ return m_fArmor * Power(); }
 
-			float			Power					()								const;
-			float			HitProtection			(ALife::EHitType hit_type)		const;
+	float								Absorbation							C$	(int hit_type)		{ return m_HitAbsorbation[hit_type] * Power(); }
 
-			void			ProcessHit				(float d_damage, ALife::EHitType hit_type);
+	float								Power								C$	();
+	float								Radiation							C$	();
+	float								HitProtection						C$	(ALife::EHitType hit_type);
+
+	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
 };
 
 struct SArtefactDetectorsSupport

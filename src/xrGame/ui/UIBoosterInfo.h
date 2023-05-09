@@ -32,6 +32,9 @@ protected:
 	UIBoosterInfoItem*	m_ammo_type;
 	UIBoosterInfoItem*	m_capacity;
 
+	UIBoosterInfoItem*	m_artefact_isolation;
+	UIBoosterInfoItem*	m_radiation_protection;
+
 	CUIStatic*			m_Prop_line;
 
 }; // class CUIBoosterInfo

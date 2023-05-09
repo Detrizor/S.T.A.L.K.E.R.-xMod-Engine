@@ -84,6 +84,12 @@ public:
 				bool		m_select_equipped;
 				bool		m_cur_mark;
 				bool		m_has_upgrade;
+
+protected:
+	CLASS_ID							m_class_id;
+
+public:
+	CLASS_ID							ClassID								C$	()		{ return m_class_id; }
 };
 
 class CUIDragItem: public CUIWindow, public pureRender, public pureFrame

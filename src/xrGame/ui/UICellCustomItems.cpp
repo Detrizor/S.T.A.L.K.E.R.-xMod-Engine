@@ -104,6 +104,8 @@ CUISectionCellItem::CUISectionCellItem(shared_str section)
 		field = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer");
 	}
 	//-Alundaio
+
+	m_class_id = TEXT2CLSID(pSettings->r_string(section, "class"));
 }
 
 void CUIInventoryCellItem::OnAfterChild(CUIDragDropListEx* parent_list)

@@ -787,9 +787,9 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		if (IsPending())
 			return false;
 
-		if (flags&CMD_START && ParentIsActor() && !ReadyToFire())
+		if (ParentIsActor() && !ReadyToFire())
 		{
-			if (!ArmedMode() && !IsZoomed())
+			if (flags&CMD_START && !ArmedMode() && !IsZoomed())
 				SwitchArmedMode();
 			return false;
 		}
@@ -801,21 +801,19 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		return true;
 
 	case kWPN_ZOOM:
-		if (IsZoomEnabled())
-		{
-			if (flags&CMD_START)
-			{
-				if (g_hud_adjusment_mode && IsZoomed())
-					OnZoomOut();
-				else if (!IsPending() && !IsZoomed())
-					OnZoomIn();
-			}
-			else if (!g_hud_adjusment_mode)
-				OnZoomOut();
-			return true;
-		}
-		else
+		if (IsPending() || !IsZoomEnabled())
 			return false;
+
+		if (flags&CMD_START)
+		{
+			if (g_hud_adjusment_mode && IsZoomed())
+				OnZoomOut();
+			else if (!IsZoomed())
+				OnZoomIn();
+		}
+		else if (!g_hud_adjusment_mode)
+			OnZoomOut();
+		return true;
 
 	case kWPN_ZOOM_INC:
 	case kWPN_ZOOM_DEC:
@@ -1226,7 +1224,8 @@ float CWeapon::GetMagazineWeight(const decltype(CWeapon::m_magazine)& mag) const
 
 bool CWeapon::show_crosshair()
 {
-	return ArmedMode() || ADS() && !ZoomHideCrosshair();
+	return !ArmedMode() && !IsZoomed();
+	//--xd return (ADS()) ? !ZoomHideCrosshair() : (IsZoomed() || ArmedMode());
 }
 
 bool CWeapon::show_indicators()

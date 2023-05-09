@@ -141,8 +141,6 @@ public:
 	TIItemContainer			m_activ_last_items;
 	TISlotArr				m_slots;
 	TIICArr					m_pockets;
-
-	TIItemContainer			m_to_check;
 	xr_vector<CArtefact*>	m_artefacts;
 
 public:
@@ -211,9 +209,10 @@ private:
 	bool				IsSlotBlocked(u16 slot_id) const;
 	void				TryActivatePrevSlot		();
 	void				TryDeactivateActiveSlot	();
-													
-			void			OnInventoryAction		(PIItem item, bool take = true, u8 zone = 1);
 
 private:
-			void			CheckArtefact			(PIItem item, bool add = false);
+	void								OnInventoryAction						(PIItem item, bool take = true, u8 zone = 1);
+
+public:
+	void								CheckArtefact							(PIItem item, bool add = false);
 };

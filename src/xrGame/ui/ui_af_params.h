@@ -32,7 +32,7 @@ public:
 					CUIArtefactParams		();
 	virtual			~CUIArtefactParams		();
 			void	InitFromXml				(CUIXml& xml);
-			void	SetInfo					(LPCSTR section, float power);
+			void	SetInfo					(LPCSTR section, CArtefact* art);
 
 protected:
 	UIArtefactParamItem*	m_absorbation_item[eAbsorbationTypeMax];
@@ -40,9 +40,12 @@ protected:
 	UIArtefactParamItem*	m_drain_factor;
 	UIArtefactParamItem*	m_weight_dump;
 	UIArtefactParamItem*	m_armor;
+	UIArtefactParamItem*	m_radiation;
 
 	CUIStatic*				m_Prop_line;
 
+private:
+	void								SetInfoItem								(UIArtefactParamItem* item, float value, Fvector2& pos, float& h);
 }; // class CUIArtefactParams
 
 // -----------------------------------

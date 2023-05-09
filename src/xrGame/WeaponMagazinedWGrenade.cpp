@@ -489,7 +489,6 @@ void CWeaponMagazinedWGrenade::PlayAnimReload()
 {
     VERIFY(GetState() == eReload);
 
-#ifdef NEW_ANIMS //AVO: use new animations
 	if (m_pLauncher)
     {
         if (bMisfire)
@@ -501,27 +500,22 @@ void CWeaponMagazinedWGrenade::PlayAnimReload()
         }
         else
         {
+			bool half = m_pMagazine && !m_pNextMagazine;
             if (iAmmoElapsed == 0)
             {
                 if (HudAnimationExist("anm_reload_empty_w_gl"))
-                    PlayHUDMotion("anm_reload_empty_w_gl", TRUE, this, GetState());
+                    PlayHUDMotion("anm_reload_empty_w_gl", TRUE, this, GetState(), .3f, half);
                 else
-                    PlayHUDMotion("anm_reload_w_gl", TRUE, this, GetState());
+                    PlayHUDMotion("anm_reload_w_gl", TRUE, this, GetState(), .4f, half);
             }
             else
             {
-                PlayHUDMotion("anm_reload_w_gl", TRUE, this, GetState());
+                PlayHUDMotion("anm_reload_w_gl", TRUE, this, GetState(), .4f, half);
             }
         }
     }
     else
         inherited::PlayAnimReload();
-#else
-    if (IsGrenadeLauncherAttached())
-        PlayHUDMotion("anm_reload_w_gl", TRUE, this, GetState());
-    else
-        inherited::PlayAnimReload();
-#endif //-NEW_ANIMS
 }
 
 void CWeaponMagazinedWGrenade::PlayAnimIdle()

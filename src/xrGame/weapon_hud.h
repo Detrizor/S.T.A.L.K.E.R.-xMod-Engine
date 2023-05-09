@@ -39,7 +39,6 @@ private:
 	EHandsOffset						last_idx;
 	float								m_lense_offset;
 	float								m_fRotateTime;
-	float								m_fRelaxTime;
 	float								m_fRotationFactor;
 	float								m_fLR_ShootingFactor; // Фактор горизонтального сдвига худа при стрельбе [-1; +1]
 	float								m_fUD_ShootingFactor; // Фактор вертикального сдвига худа при стрельбе [-1; +1]
@@ -52,7 +51,7 @@ private:
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
 	Fvector								m_cur_offs;
-	bool								m_scope;
+	u8									m_scope;
 	bool								m_gl;
 	bool								m_scope_alt_aim_via_iron_sights;
 
@@ -61,7 +60,6 @@ private:
 
 public:
 	SPowerDependency				S$	HandlingToRotationTime;
-	SPowerDependency				S$	HandlingToRelaxTime;
 
 	Fmatrix CR$							shoot_shake_mat						C$	()				{ return m_shoot_shake_mat; }
 	Fvector CPC							HandsOffset							C$	(int idx)		{ return m_hands_offset[idx]; }

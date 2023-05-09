@@ -73,7 +73,7 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_shoot_shake_mat.identity			();
 	m_cur_offs							= { 0.f, 0.f, 0.f };
 	m_lense_offset						= 0.f;
-	m_scope								= false;
+	m_scope								= 0;
 	m_gl								= false;
 
 	for (int i = 0; i < 2; i++)
@@ -81,9 +81,10 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 
 	m_root_offset						= pSettings->r_fvector3(O.HudSection(), "root_offset");
 
-	m_hands_offset[eIS][0]				= pSettings->r_fvector3(O.HudSection(), "iron_sights_pos");
+	m_hands_offset[eIS][0]				= vZero;
 	m_hands_offset[eIS][1]				= pSettings->r_fvector3(O.HudSection(), "iron_sights_rot");
-	//--xd ApplyRoot							(m_hands_offset[eIS], false);
+	ApplyPivot							(m_hands_offset[eIS], m_root_offset);
+	m_hands_offset[eIS][0].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_pos"));
 
 	Fvector barrel_offset				= CalcBarrelOffsets(m_root_offset);
 
@@ -137,7 +138,7 @@ void CWeaponHud::CalcAimOffset()
 
 void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 {
-	m_scope								= attach;
+	m_scope								= (attach) ? slot->addon->cast<CScope*>()->Type() : 0;
 	if (!m_scope)
 		return;
 
@@ -199,14 +200,13 @@ bool CWeaponHud::IsRotatingToZoom C$()
 
 bool CWeaponHud::ReadyToFire C$()
 {
-	return (GetCurrentHudOffsetIdx() != eRelaxed && last_idx != eRelaxed);
+	return GetCurrentHudOffsetIdx() != eRelaxed && last_idx != eRelaxed;
 }
 
 void CWeaponHud::InitRotateTime(float cif)
 {
 	float inertion = cif - 1.f;
 	m_fRotateTime = HandlingToRotationTime.Calc(inertion);
-	m_fRelaxTime = HandlingToRelaxTime.Calc(inertion);
 }
 
 EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
@@ -253,10 +253,23 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		Fvector CR$ curr_rot = m_hands_offset[idx][1]; //rot,aim
 
 		float factor = Device.fTimeDelta;
-		if (idx == eRelaxed || last_idx == eRelaxed)
-			factor /= m_fRelaxTime;
-		else
-			factor /= m_fRotateTime;
+		switch (idx)
+		{
+			case eRelaxed:
+			case eIS:
+			case eAlt:
+			case eScopeAlt:
+			case eGL:
+				factor /= .8f * m_fRotateTime;
+				break;
+			case eArmed:
+			case eAim:
+				factor /= .4f * m_fRotateTime;
+				break;
+			case eScope:
+				factor /= ((m_scope == eOptics) ? 1.f : .6f) * m_fRotateTime;
+				break;
+		}
 
 		if (curr_offs.similar(m_hud_offset[0], EPS))
 			m_hud_offset[0].set(curr_offs);
@@ -663,7 +676,7 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 				std::ofstream			out;
 				out.open				("C:\\tmp.txt");
 				Fvector vp				= O.HudItemData()->m_measures.m_hands_attach[0];
-				Fvector CP$ vr			= &O.HudItemData()->m_measures.m_hands_attach[1];
+				Fvector CP$ vr			= &O.HudItemData()->m_measures.m_hands_attach[(m_gl) ? 2 : 1];
 				out						<< shared_str().printf("m_hands_attach pos [%.6f,%.6f,%.6f] m_hands_attach rot [%.6f,%.6f,%.6f]", vp.x, vp.y, vp.z, vr->x, vr->y, vr->z).c_str() << std::endl;
 				vp						= m_hands_offset[GetCurrentHudOffsetIdx()][0];
 				vr						= &m_hands_offset[GetCurrentHudOffsetIdx()][1];
@@ -685,6 +698,8 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 				val						/= 10.f;
 
 			BOOL rot					= BOOL(cmd == kUP || cmd == kDOWN || cmd == kLEFT || cmd == kRIGHT || pInput->iGetAsyncKeyState(DIK_RCONTROL) && axis == 2);
+			if (m_gl && rot)
+				rot						= 2;
 
 			if (hands_mode == 1 && rot || hands_mode == 2 && !rot)
 			{

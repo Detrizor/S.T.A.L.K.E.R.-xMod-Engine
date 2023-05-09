@@ -14,6 +14,13 @@ CInventoryContainer::CInventoryContainer(CGameObject* obj) : CModule(obj)
 		m_stock							= pSettings->r_string(O.cNameSect(), "stock");
 		m_stock_count					= pSettings->r_u32(O.cNameSect(), "stock_count");
 		m_content_volume_scale			= !!pSettings->r_bool(O.cNameSect(), "content_volume_scale");
+		m_ArtefactIsolation				= !!pSettings->r_bool(O.cNameSect(), "artefact_isolation");
+		m_RadiationProtection			= pSettings->r_float(O.cNameSect(), "radiation_protection");
+	}
+	else
+	{
+		m_ArtefactIsolation				= false;
+		m_RadiationProtection			= 1.f;
 	}
 }
 
@@ -66,6 +73,8 @@ float CInventoryContainer::aboba o$(EEventTypes type, void* data, int param)
 				m_Items.erase			(::std::find(m_Items.begin(), m_Items.end(), item));
 			OnInventoryAction			(item, (bool)param);
 			InvalidateState				();
+			ParentCheck					(item, !!param);
+
 			break;
 		}
 
@@ -91,6 +100,18 @@ float CInventoryContainer::aboba o$(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
+void CInventoryContainer::ParentCheck C$(PIItem item, bool add)
+{
+	if (O.H_Parent())
+	{
+		CInventoryOwner* io				= O.H_Parent()->Cast<CInventoryOwner*>();
+		if (io)
+			io->inventory().CheckArtefact(item, add);
+		else
+			O.H_Parent()->Cast<CInventoryContainer*>()->ParentCheck(item, add);
+	}
+}
+
 bool CInventoryContainer::CanTakeItem(PIItem item)
 {
 	if (item->cast<CInventoryContainer*>() == this)
@@ -105,4 +126,33 @@ void CInventoryContainer::AddAvailableItems(TIItemContainer& items_container) co
 {
 	for (auto I : m_Items)
 		items_container.push_back		(I);
+}
+
+bool CInventoryContainer::ArtefactIsolation(bool own) const
+{
+	if (m_ArtefactIsolation)
+		return							true;
+
+	if (!own && O.H_Parent())
+	{
+		CInventoryContainer* cont		= O.H_Parent()->Cast<CInventoryContainer*>();
+		if (cont)
+			return						cont->ArtefactIsolation();
+	}
+
+	return								false;
+}
+
+float CInventoryContainer::RadiationProtection(bool own) const
+{
+	float res							= m_RadiationProtection;
+
+	if (!own && O.H_Parent())
+	{
+		CInventoryContainer* cont		= O.H_Parent()->Cast<CInventoryContainer*>();
+		if (cont)
+			res							*= cont->RadiationProtection();
+	}
+
+	return								res;
 }

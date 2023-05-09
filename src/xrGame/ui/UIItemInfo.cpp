@@ -26,6 +26,7 @@
 #include "UICellItem.h"
 #include "UIActorMenu.h"
 #include "uigamecustom.h"
+#include "clsid_game.h"
 
 extern const LPCSTR g_inventory_upgrade_xml;
 
@@ -238,22 +239,26 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 	
 	if (UIAmount)
 	{
-		shared_str amount_str					= "";
+		shared_str amount_str			= "";
 		if (pSettings->line_exist(section, "amount_display_type"))
 		{
-			LPCSTR amount_display_type			= pSettings->r_string(section, "amount_display_type");
-			CCustomOutfit* outfit				= smart_cast<CCustomOutfit*>(pInvItem);
-			CHelmet* helmet						= smart_cast<CHelmet*>(pInvItem);
-			bool								no_nightvision;
-			if (outfit || helmet)
-				no_nightvision					= outfit && (outfit->m_NightVisionSect == "") || helmet && (helmet->m_NightVisionSect == "");
-			else
-				no_nightvision					= ItemCategory(section, "outfit") && !pSettings->line_exist(section, "nightvision_sect");
+			LPCSTR amount_display_type	= pSettings->r_string(section, "amount_display_type");
+			CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(pInvItem);
+			CHelmet* helmet				= smart_cast<CHelmet*>(pInvItem);
+			bool no_nightvision			= false;
+			if (pInvItem)
+			{
+				if (outfit || helmet)
+					no_nightvision		= outfit && !outfit->m_NightVisionSect.size() || helmet && !helmet->m_NightVisionSect.size();
+			}
+			else if (pCellItem->ClassID() == CLSID_EQUIPMENT_STALKER || pCellItem->ClassID() == CLSID_EQUIPMENT_HELMET)
+				no_nightvision			= !pSettings->line_exist(section, "nightvision_sect");
+
 			if (xr_strcmp(amount_display_type, "hide") && !no_nightvision)
 			{
 				LPCSTR title					= *CStringTable().translate(pSettings->r_string(amount_display_type, "title"));
 				LPCSTR unit						= pSettings->r_string(amount_display_type, "unit");
-				bool empty_cont					= pSettings->line_exist(section, "bind_storage") && READ_IF_EXISTS(pSettings, r_u32, section, "stock_count", 0) == 0;
+				bool empty_cont					= pSettings->line_exist(section, "bind_container") && READ_IF_EXISTS(pSettings, r_u32, section, "stock_count", 0) == 0;
 				float amount					= (pInvItem)	? pInvItem->GetAmount()		: (empty_cont) ? 0.f : pSettings->r_float(section, "capacity");
 				float fill						= (pInvItem)	? pInvItem->GetFill()		: (empty_cont) ? 0.f : 1.f;
 				if (!xr_strcmp(unit, "percent"))
@@ -384,7 +389,7 @@ void CUIItemInfo::TryAddArtefactInfo(CUICellItem* itm)
 	if (ItemCategory(itm->m_section, "artefact"))
 	{
 		CArtefact* artefact			= smart_cast<CArtefact*>((PIItem)itm->m_pData);
-		UIArtefactParams->SetInfo	(*itm->m_section, (artefact) ? artefact->Power() : 1.f);
+		UIArtefactParams->SetInfo	(*itm->m_section, artefact);
 		UIDesc->AddWindow			(UIArtefactParams, false);
 	}
 }

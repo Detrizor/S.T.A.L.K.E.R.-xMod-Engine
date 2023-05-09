@@ -127,7 +127,6 @@ SPowerDependency CEntityCondition::AnomalyDamageResistance;
 SPowerDependency CEntityCondition::ProtectionDamageResistance;
 
 SPowerDependency CWeaponHud::HandlingToRotationTime;
-SPowerDependency CWeaponHud::HandlingToRelaxTime;
 
 Fvector CScope::lense_circle_scale;
 Fvector4 CScope::lense_circle_offset[2];
@@ -556,7 +555,6 @@ void CActor::Load(LPCSTR section)
 
 	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
 	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
-	CWeaponHud::HandlingToRelaxTime.Load				("weapon_manager", "handling_to_relax_time");
 
 	CScope::lense_circle_scale			= pSettings->r_fvector3("weapon_manager", "lense_circle_scale");
 	CScope::lense_circle_offset[0]		= pSettings->r_fvector4("weapon_manager", "lense_circle_offset_x");
@@ -1169,13 +1167,13 @@ void CActor::UpdateCL()
     m_bPickupMode = false;
 	m_bInfoDraw = false;
 
-	int time_factor = !inventory().ActiveItem() && !inventory().LeftItem() && mstate_real&mcAnyMove ? 10 : 1;
+	/*--xd int time_factor = !inventory().ActiveItem() && !inventory().LeftItem() && mstate_real&mcAnyMove ? 10 : 1;
 	if (time_factor != prev_time_factor)
 	{
 		Level().SetGameTimeFactor((float)time_factor);
 		Level().SetEnvironmentGameTimeFactor((float)time_factor);
 		prev_time_factor = time_factor;
-	}
+	}*/
 }
 
 float	NET_Jump = 0;

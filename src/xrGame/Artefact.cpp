@@ -23,6 +23,7 @@
 
 #include "Level_Bullet_Manager.h"
 #include "ui/ui_af_params.h"
+#include "item_container.h"
 
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
 
@@ -63,8 +64,9 @@ void CArtefact::Load(LPCSTR section)
 		m_fTrailLightRange							= pSettings->r_float(section, "trail_light_range");
 	}
 
-	m_fRadiationRestoreSpeed						= pSettings->r_float(section, "radiation_speed");
+	m_fRadiation									= pSettings->r_float(section, "radiation");
 	m_fWeightDump									= pSettings->r_float(section, "weight_dump");
+	m_fDrainFactor									= pSettings->r_float(section, "drain_factor") - 1.f;
 	m_fArmor										= pSettings->r_float(section, "armor");
 
 	m_bCanSpawnZone									= !!pSettings->line_exist("artefact_spawn_zones", section);
@@ -528,18 +530,35 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 
 float CArtefact::Power() const
 {
-	if (!IsActive())
-		return		0.f;
+	if (Parent)
+	{
+		CInventoryContainer* cont		= Parent->Cast<CInventoryContainer*>();
+		if (cont && cont->ArtefactIsolation())
+			return						0.f;
+	}
 
-	float dfill		= GetFill() / m_fChargeThreshold;
+	float dfill							= GetFill() / m_fChargeThreshold;
 	if (dfill > 1.f)
-		dfill		= 1.f;
-	return			sqrt(dfill);
+		dfill							= 1.f;
+	return								sqrt(dfill);
+}
+
+float CArtefact::Radiation() const
+{
+	float res							= m_fRadiation * Power();
+	if (Parent)
+	{
+		CInventoryContainer* cont		= Parent->Cast<CInventoryContainer*>();
+		if (cont)
+			res							*= cont->RadiationProtection();
+	}
+
+	return								res;
 }
 
 float CArtefact::HitProtection(ALife::EHitType hit_type) const
 {
-	return SHit::DamageType(hit_type) ? GetArmor() : HitAbsorbation(hit_type);
+	return SHit::DamageType(hit_type) ? GetArmor() : Absorbation(hit_type);
 }
 
 void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)

@@ -69,6 +69,7 @@ protected:
 		u32						m_startedMotionState;
 		u8						m_started_rnd_anim_idx;
 		bool					m_bStopAtEndAnimIsRunning;
+		float					m_fHalfPosition;
 		bool					m_bStopAtHalf;
 	};
 public:
@@ -124,7 +125,7 @@ public:
 
 	virtual	void				UpdateXForm			()						= 0;
 
-	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, bool stop_at_half = false);
+	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float half_position = .5f, bool stop_at_half = false);
 	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
 	void						StopCurrentAnimWithoutCallback();
 

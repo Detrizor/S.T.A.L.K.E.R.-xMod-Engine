@@ -341,6 +341,8 @@ void CActor::IR_OnKeyboardHold(int cmd)
 		{
 			if (!isActorAccelerated(mstate_wishful, IsZoomADSMode()))
 				mstate_wishful ^= mcAccel;
+			if (mstate_wishful&mcCrouch && AnyMove())
+				mstate_wishful ^= mcCrouch;
 			mstate_wishful |= mcSprint;
 			m_state_last_tg = Device.dwTimeGlobal;
 		}
@@ -351,7 +353,7 @@ void CActor::IR_OnKeyboardHold(int cmd)
 	case kR_LOOKOUT:	mstate_wishful |= mcRLookout;								break;
 	case kFWD:			mstate_wishful |= mcFwd;									break;
 	case kBACK:			mstate_wishful |= mcBack;									break;
-	case kCROUCH:{
+	case kCROUCH:
 		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
 		{
 			if (!(mstate_wishful&mcCrouch))
@@ -359,7 +361,7 @@ void CActor::IR_OnKeyboardHold(int cmd)
 			mstate_wishful |= mcCrouchLow;
 			m_state_last_tg = Device.dwTimeGlobal;
 		}
-		}break;
+		break;
 	}
 }
 
