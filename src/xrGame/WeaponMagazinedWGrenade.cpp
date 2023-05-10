@@ -166,11 +166,9 @@ bool CWeaponMagazinedWGrenade::SwitchMode()
 
     PlaySound("sndSwitch", get_LastFP());
 
-    PlayAnimModeSwitch();
-
     m_BriefInfo_CalcFrame = 0;
 
-    return					true;
+    return PlayAnimModeSwitch();
 }
 
 void  CWeaponMagazinedWGrenade::PerformSwitchGL()
@@ -429,19 +427,13 @@ void CWeaponMagazinedWGrenade::OnStateSwitch(u32 S, u32 oldState)
 
 void CWeaponMagazinedWGrenade::OnAnimationEnd(u32 state)
 {
-    switch (state)
-    {
-    case eSwitch:
-    {
-        SwitchState(eIdle);
-    }break;
-    case eFire:
-    {
-        if (m_bGrenadeMode)
-            Reload();
-    }break;
-    }
-    inherited::OnAnimationEnd(state);
+	switch (state)
+	{
+		case eSwitch:
+			SwitchState(eIdle);
+			break;
+	}
+	inherited::OnAnimationEnd(state);
 }
 
 void CWeaponMagazinedWGrenade::OnH_B_Independent(bool just_before_destroy)
@@ -592,12 +584,17 @@ void CWeaponMagazinedWGrenade::PlayAnimShoot()
     }
 }
 
-void  CWeaponMagazinedWGrenade::PlayAnimModeSwitch()
+bool CWeaponMagazinedWGrenade::PlayAnimModeSwitch()
 {
-    if (m_bGrenadeMode)
-        PlayHUDMotion("anm_switch_g", /*FALSE*/ TRUE, this, eSwitch); //AVO: fix fast anim switch
-    else
-        PlayHUDMotion("anm_switch", /*FALSE*/ TRUE, this, eSwitch); //AVO: fix fast anim switch
+	if (HudAnimationExist("anm_switch"))
+	{
+		if (m_bGrenadeMode)
+			PlayHUDMotion("anm_switch_g", /*FALSE*/ TRUE, this, eSwitch); //AVO: fix fast anim switch
+		else
+			PlayHUDMotion("anm_switch", /*FALSE*/ TRUE, this, eSwitch); //AVO: fix fast anim switch
+		return true;
+	}
+	return false;
 }
 
 void CWeaponMagazinedWGrenade::PlayAnimBore()
@@ -943,4 +940,9 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 	if (m_bGrenadeMode && mode == 1)
 		mode = 2;
 	inherited::SetADS(mode);
+}
+
+bool CWeaponMagazinedWGrenade::AltHandsAttachRotation() const
+{
+	return m_bGrenadeMode && ADS();
 }

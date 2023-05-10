@@ -55,7 +55,6 @@ private:
 	bool								m_gl;
 	bool								m_scope_alt_aim_via_iron_sights;
 
-	Fvector								CalcBarrelOffsets						(Fvector root_offset);
 	void								CalcAimOffset							();
 
 public:

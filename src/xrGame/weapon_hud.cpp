@@ -86,7 +86,16 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	ApplyPivot							(m_hands_offset[eIS], m_root_offset);
 	m_hands_offset[eIS][0].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_pos"));
 
-	Fvector barrel_offset				= CalcBarrelOffsets(m_root_offset);
+	Fvector barrel_offset				= m_root_offset;
+	barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
+
+	m_hands_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
+	m_hands_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
+	ApplyPivot							(m_hands_offset[eRelaxed], barrel_offset);
+
+	m_hands_offset[eArmed][0]			= pSettings->r_fvector3(O.HudSection(), "armed_pos");
+	m_hands_offset[eArmed][1]			= pSettings->r_fvector3(O.HudSection(), "armed_rot");
+	ApplyPivot							(m_hands_offset[eArmed], barrel_offset);
 
 	m_hands_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hands_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
@@ -111,22 +120,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	//--#SM+# End--
 
 	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
-}
-
-Fvector CWeaponHud::CalcBarrelOffsets(Fvector root_offset)
-{
-	Fvector barrel_offset				= root_offset;
-	barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
-
-	m_hands_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
-	m_hands_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
-	ApplyPivot							(m_hands_offset[eRelaxed], barrel_offset);
-
-	m_hands_offset[eArmed][0]			= pSettings->r_fvector3(O.HudSection(), "armed_pos");
-	m_hands_offset[eArmed][1]			= pSettings->r_fvector3(O.HudSection(), "armed_rot");
-	ApplyPivot							(m_hands_offset[eArmed], barrel_offset);
-
-	return								barrel_offset;
 }
 
 void CWeaponHud::CalcAimOffset()
@@ -189,7 +182,6 @@ void CWeaponHud::ProcessGL(SAddonSlot* slot, bool attach)
 void CWeaponHud::SwitchGL()
 {
 	m_gl								= !m_gl;
-	CalcBarrelOffsets					(m_root_offset_gl);
 	CalcAimOffset						();
 }
 

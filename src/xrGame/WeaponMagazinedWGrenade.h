@@ -56,7 +56,7 @@ public:
 	virtual void	PlayAnimReload		();
 	virtual void	PlayAnimIdle		();
 	virtual void	PlayAnimShoot		();
-	virtual void	PlayAnimModeSwitch	();
+	virtual bool	PlayAnimModeSwitch	();
 	virtual void	PlayAnimBore		();
 	
 private:
@@ -92,7 +92,7 @@ private:
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
 protected:
-	bool								AltHandsAttachRotation				CO$	()	{ return m_bGrenadeMode; }
+	bool								AltHandsAttachRotation				CO$	();
 
 	BOOL								Chamber								CO$	();
 	bool								HasAltAim							CO$	();
