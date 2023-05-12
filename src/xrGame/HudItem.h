@@ -136,7 +136,7 @@ public:
 	virtual void				on_b_hud_detach			();
 	IC BOOL						HudInertionEnabled		()	const			{ return m_huditem_flags.test(fl_inertion_enable);}
 	IC BOOL						HudInertionAllowed		()	const			{ return m_huditem_flags.test(fl_inertion_allow);}
-	virtual void				render_hud_mode			()					{};
+	virtual void				render_hud_mode			();
 	virtual bool				need_renderable			()					{return true;};
 	virtual void				render_item_3d_ui		()					{}
 	virtual bool				render_item_3d_ui_query	()					{return false;}

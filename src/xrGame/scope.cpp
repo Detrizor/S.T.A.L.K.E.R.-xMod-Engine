@@ -58,18 +58,28 @@ CScope::~CScope()
 	xr_delete							(m_pNight_vision);
 }
 
-bool CScope::install_upgrade_impl(LPCSTR section, bool test)
+float CScope::aboba o$(EEventTypes type, void* data, int param)
 {
-	bool result							= false;
-	if (Type() == eOptics)
+	switch (type)
 	{
-		result							|= CInventoryItem::process_if_exists(section, "reticle", m_Reticle, test);
-		result							|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
-		result							|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
-		if (result)
-			InitVisors					();
+		case eInstallUpgrade:
+		{
+			bool result					= false;
+			LPCSTR section				= (LPCSTR)data;
+			bool test					= !!param;
+			if (Type() == eOptics)
+			{
+				result					|= CInventoryItem::process_if_exists(section, "reticle", m_Reticle, test);
+				result					|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
+				result					|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
+				if (result)
+					InitVisors			();
+			}
+			return						(result) ? 1.f : flt_max;
+		}
 	}
-	return								result;
+
+	return								CModule::aboba(type, data, param);
 }
 
 void CScope::InitVisors()
@@ -130,8 +140,14 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 		m_pVision->Draw					();
 	}
 
-	float scale							= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	float reticle_scale					= GetReticleScale(hud);
+	if (m_pUIReticle)
+	{
+		m_pUIReticle->SetScale			(reticle_scale);
+		m_pUIReticle->Draw				();
+	}
+
+	float scale							= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	pUILenseCircle->SetScale			(reticle_scale * scale);
 	pUILenseCircle->SetX				(ReticleCircleOffset(0, hud));
 	pUILenseCircle->SetY				(ReticleCircleOffset(1, hud));
@@ -146,12 +162,6 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 	pUILenseBlackFill->Draw				();
 	pUILenseBlackFill->SetWndRect		(Frect().set(0.f, crect.top, crect.left, UI_BASE_HEIGHT));
 	pUILenseBlackFill->Draw				();
-
-	if (m_pUIReticle)
-	{
-		m_pUIReticle->SetScale			(reticle_scale);
-		m_pUIReticle->Draw				();
-	}
 
 	if (!HasLense())
 	{

@@ -298,6 +298,8 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 	if (result2 && !test)
 		CHitImmunity::AddImmunities		(str, pSettings);
 
+	result |= O.Aboba(eInstallUpgrade, (void*)section, (int)test) != flt_max;
+
 	return result;
 }
 

@@ -364,7 +364,7 @@ private:
 			Ivector2		m_dLastResolution; //--xd tst
 
 public:
-	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, u16 slot = u16_max);
+	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot = NULL);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

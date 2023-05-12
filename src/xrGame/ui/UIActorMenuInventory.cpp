@@ -651,7 +651,7 @@ void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, b
 	{
 		if (slot->addon)
 		{
-			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(dettach), slot->addon->NameShort(), *CStringTable().translate(slot->name));
+			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(dettach), slot->addon->NameShort(), *slot->name);
 			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
 			b_show = true;
 		}
@@ -675,7 +675,7 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 	{
 		if (slot->CanTake(addon))
 		{
-			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(attach_to), active_item->NameShort(), *CStringTable().translate(slot->name));
+			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(attach_to), active_item->NameShort(), *slot->name);
 			m_UIPropertiesBox->AddItem	(title, (void*)slot, INVENTORY_ATTACH_ADDON);
 			b_show						= true;
 		}
@@ -822,7 +822,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	{
 		CAddonOwner* ao					= m_pActorInv->ActiveItem()->cast<CAddonOwner*>();
 		SAddonSlot* slot				= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		AttachAddon						(ao, item->cast<CAddon*>(), slot->idx);
+		AttachAddon						(ao, item->cast<CAddon*>(), slot);
 		break;
 	}
 	case INVENTORY_DETACH_ADDON:
@@ -876,7 +876,7 @@ void CUIActorMenu::RefreshCurrentItemCell()
 	}
 }
 
-bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, u16 slot)
+bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot)
 {
 	int res								= ao->AttachAddon(addon, slot);
 	if (res == 2)

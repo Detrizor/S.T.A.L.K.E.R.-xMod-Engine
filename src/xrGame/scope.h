@@ -41,6 +41,9 @@ class CScope : public CModule
 public:
 										CScope									(CGameObject* obj, shared_str CR$ section);
 										~CScope									();
+
+private:
+	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 protected:
 	eScopeType							m_Type;
@@ -53,7 +56,6 @@ protected:
 	CBinocularsVision*					m_pVision;
 	CNightVisionEffector*				m_pNight_vision;
 
-	bool								install_upgrade_impl					(LPCSTR section, bool test);
 	void								InitVisors								();
 	float								ReticleCircleOffset						(int idx, CWeaponHud CR$ hud) const;
 

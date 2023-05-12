@@ -1320,6 +1320,7 @@ void CWeapon::OnAnimationEnd(u32 state)
 
 void CWeapon::render_hud_mode()
 {
+	inherited::render_hud_mode();
 	RenderLight();
 }
 
@@ -1386,7 +1387,6 @@ void CWeapon::SwitchArmedMode()
 	m_bArmedMode = new_state;
 	g_player_hud->OnMovementChanged(mcAnyMove);
 	g_player_hud->updateMovementLayerState();
-	SetPending(TRUE);
 	if (!new_state && m_safemode_anm[1].name)
 		PlayBlendAnm(m_safemode_anm[1].name, m_safemode_anm[1].speed, m_safemode_anm[1].power, false);
 	else if (m_safemode_anm[0].name)

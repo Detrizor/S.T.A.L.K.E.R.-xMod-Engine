@@ -74,6 +74,7 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_cur_offs							= { 0.f, 0.f, 0.f };
 	m_lense_offset						= 0.f;
 	m_scope								= 0;
+	m_alt_scope							= false;
 	m_gl								= false;
 
 	for (int i = 0; i < 2; i++)
@@ -82,9 +83,10 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_root_offset						= pSettings->r_fvector3(O.HudSection(), "root_offset");
 
 	m_hands_offset[eIS][0]				= vZero;
-	m_hands_offset[eIS][1]				= pSettings->r_fvector3(O.HudSection(), "iron_sights_rot");
-	ApplyPivot							(m_hands_offset[eIS], m_root_offset);
 	m_hands_offset[eIS][0].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_pos"));
+	m_hands_offset[eIS][1]				= vZero;
+	m_hands_offset[eIS][1].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_rot"));
+	ApplyPivot							(m_hands_offset[eIS], m_root_offset);
 
 	Fvector barrel_offset				= m_root_offset;
 	barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
@@ -102,8 +104,7 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	ApplyPivot							(m_hands_offset[eAlt], barrel_offset);
 	m_hands_offset[eAlt][0].y			-= pSettings->r_float(O.HudSection(), "alt_aim_height");
 
-	if (pSettings->line_exist(O.HudSection(), "cam_z_offset"))
-		m_hands_offset[eIS][0].z		= barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+	m_hands_offset[eIS][0].z			= barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
 	m_hands_offset[eAlt][0].z			= m_hands_offset[eIS][0].z;
 
 	CalcAimOffset						();
@@ -120,6 +121,7 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	//--#SM+# End--
 
 	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
+	m_scope_own_alt_aim					= false;
 }
 
 void CWeaponHud::CalcAimOffset()
@@ -131,38 +133,45 @@ void CWeaponHud::CalcAimOffset()
 
 void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 {
-	m_scope								= (attach) ? slot->addon->cast<CScope*>()->Type() : 0;
-	if (!m_scope)
+	if (slot->alt_scope)
+		m_alt_scope						= attach;
+	else
+		m_scope							= (attach) ? slot->addon->cast<CScope*>()->Type() : 0;
+	if (!attach)
 		return;
 
-	m_hands_offset[eScope][0]			= vZero;
-	m_hands_offset[eScope][0].sub		(slot->model_offset[0]);
-	m_hands_offset[eScope][1]			= vZero;
-	m_hands_offset[eScope][1].sub		(slot->model_offset[1]);
-	ApplyPivot							(m_hands_offset[eScope], m_root_offset);
+	EHandsOffset idx					= (slot->alt_scope) ? eScopeAlt : eScope;
 
-	if (pSettings->line_exist(slot->addon->cNameSect(), "alt_aim_pos"))
+	m_hands_offset[idx][0]				= vZero;
+	m_hands_offset[idx][1]				= vZero;
+	m_hands_offset[idx][1].sub			(slot->model_offset[1]);
+
+	Fvector tmp							= m_root_offset;
+	tmp.sub								(slot->model_offset[0]);
+	ApplyPivot							(m_hands_offset[idx], tmp);
+
+	if (idx == eScope)
 	{
-		m_hands_offset[eScopeAlt][0]	= m_hands_offset[eScope][0];
-		m_hands_offset[eScopeAlt][1]	= m_hands_offset[eScope][1];
-		m_hands_offset[eScopeAlt][0].sub(pSettings->r_fvector3(slot->addon->cNameSect(), "alt_aim_pos"));
+		if (!m_alt_scope && pSettings->line_exist(slot->addon->cNameSect(), "alt_aim_pos"))
+		{
+			m_hands_offset[eScopeAlt][0] = m_hands_offset[eScope][0];
+			m_hands_offset[eScopeAlt][1] = m_hands_offset[eScope][1];
+			m_hands_offset[eScopeAlt][0].sub(pSettings->r_fvector3(slot->addon->cNameSect(), "alt_aim_pos"));
+			m_scope_own_alt_aim			= true;
+		}
+		else
+			m_scope_own_alt_aim			= false;
 	}
-	else
+
+	m_hands_offset[idx][0].add			(slot->addon->HudOffset()[0]);
+
+	if (idx == eScope)
 	{
-		m_hands_offset[eScopeAlt][0]	= m_hands_offset[eAlt][0];
-		m_hands_offset[eScopeAlt][1]	= m_hands_offset[eAlt][1];
-	}
-
-	m_hands_offset[eScope][0].add		(slot->addon->HudOffset()[0]);
-
-	m_lense_offset						= m_hands_offset[eScope][0].z;
-	if (pSettings->line_exist(O.HudSection(), "scope_cam_z_offset"))
-		m_hands_offset[eScope][0].z		+= pSettings->r_float(O.HudSection(), "scope_cam_z_offset");
-	else
+		m_lense_offset					= m_hands_offset[eScope][0].z;
 		m_hands_offset[eScope][0].z		= m_hands_offset[eIS][0].z;
-	m_hands_offset[eScopeAlt][0].z		= m_hands_offset[eScope][0].z;
-
-	CalcAimOffset						();
+		CalcAimOffset					();
+	}
+	m_hands_offset[eScopeAlt][0].z		= m_hands_offset[eIS][0].z;
 }
 
 void CWeaponHud::ProcessGL(SAddonSlot* slot, bool attach)
@@ -217,7 +226,7 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 		case 2:
 			return eGL;
 		case -1:
-			return (m_scope) ? ((m_scope_alt_aim_via_iron_sights) ? eIS : eScopeAlt) : eAlt;
+			return (m_alt_scope || m_scope_own_alt_aim) ? eScopeAlt : ((m_scope && m_scope_alt_aim_via_iron_sights) ? eIS : eAlt);
 		}
 	}
 
@@ -263,13 +272,17 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 				break;
 		}
 
+		float mul = 0.0001f;
+
 		if (curr_offs.similar(m_hud_offset[0], EPS))
 			m_hud_offset[0].set(curr_offs);
 		else
 		{
 			Fvector diff = curr_offs;
 			diff.sub(m_hud_offset[0]);
-			diff.mul(factor * 2.5f);
+			mul = mul/diff.magnitude() + factor * 2.5f;
+			clamp(mul, 0.f, 1.f);
+			diff.mul(mul);
 			m_hud_offset[0].add(diff);
 		}
 
@@ -279,17 +292,13 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		{
 			Fvector diff = curr_rot;
 			diff.sub(m_hud_offset[1]);
-			diff.mul(factor * 2.5f);
+			diff.mul(mul);
 			m_hud_offset[1].add(diff);
 		}
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
 		if (curr_offs.similar(m_hud_offset[0], .02f) && curr_rot.similar(m_hud_offset[1], .02f))
-		{
-			if ((idx == eRelaxed || last_idx == eRelaxed) && O.IsPending())
-				O.SetPending(FALSE);
 			last_idx = idx;
-		}
 
 		ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
 

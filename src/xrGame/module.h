@@ -4,6 +4,8 @@ class CGameObject;
 
 enum EEventTypes
 {
+	//CObject
+	eRenderableRender,
 	//CGameObject
 	eOnChild,
 	//CAddonOwner
@@ -16,8 +18,11 @@ enum EEventTypes
 	eWeight,
 	eVolume,
 	eCost,
+	eInstallUpgrade,
 	//CHudItem
-	eUpdateHudBonesVisibility
+	eUpdateHudBonesVisibility,
+	eRenderHudMode,
+	eUpdateSlotsTransform
 };
 
 class CModule

@@ -2,6 +2,7 @@
 #include "Weapon.h"
 
 struct SAddonSlot;
+enum eScopeType;
 
 enum EHandsOffset
 {
@@ -52,8 +53,10 @@ private:
 	Fmatrix								m_shoot_shake_mat;
 	Fvector								m_cur_offs;
 	u8									m_scope;
+	bool								m_alt_scope;
 	bool								m_gl;
 	bool								m_scope_alt_aim_via_iron_sights;
+	bool								m_scope_own_alt_aim;
 
 	void								CalcAimOffset							();
 

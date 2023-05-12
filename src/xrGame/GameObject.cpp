@@ -708,6 +708,8 @@ void CGameObject::renderable_Render	()
 	::Render->set_Transform		(&XFORM());
 	::Render->add_Visual		(Visual());
 	Visual()->getVisData().hom_frame = Device.dwFrame;
+
+	Aboba(eRenderableRender);
 }
 
 /*

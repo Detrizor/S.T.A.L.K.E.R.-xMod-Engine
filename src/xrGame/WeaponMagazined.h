@@ -230,8 +230,6 @@ public:
 	void								render_item_ui						O$	();
 	void								ZoomInc								O$	();
 	void								ZoomDec								O$	();
-	void								renderable_Render					O$	();
-	void								render_hud_mode						O$	();
 	void								modify_holder_params				CO$	(float& range, float& fov);
 	bool								IsRotatingToZoom					CO$	();
 

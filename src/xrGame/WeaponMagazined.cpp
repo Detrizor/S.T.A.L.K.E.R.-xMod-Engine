@@ -1359,22 +1359,6 @@ void CWeaponMagazined::OnHiddenItem()
 	inherited::OnHiddenItem				();
 }
 
-void CWeaponMagazined::renderable_Render()
-{
-	inherited::renderable_Render();
-	CAddonOwner* ao = cast<CAddonOwner*>();
-	if (ao)
-		ao->renderable_Render();
-}
-
-void CWeaponMagazined::render_hud_mode()
-{
-	inherited::render_hud_mode();
-	CAddonOwner* ao = cast<CAddonOwner*>();
-	if (ao)
-		ao->render_hud_mode();
-}
-
 float CWeaponMagazined::GetControlInertionFactorBase() const
 {
 	float res = inherited::GetControlInertionFactorBase();
@@ -1526,7 +1510,7 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 			CScope* scope				= slot->addon->cast<CScope*>();
 			if (scope)
 			{
-				((slot->primary_scope) ? m_pScope : m_pAltScope) = (param) ? scope : NULL;
+				((slot->alt_scope) ? m_pAltScope : m_pScope) = (param) ? scope : NULL;
 
 				if (slot->lower_iron_sights)
 				{
