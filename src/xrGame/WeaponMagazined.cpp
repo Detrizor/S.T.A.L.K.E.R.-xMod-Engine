@@ -972,47 +972,41 @@ void CWeaponMagazined::PlayAnimHide()
 
 void CWeaponMagazined::PlayAnimReload()
 {
-    VERIFY(GetState() == eReload);
-#ifdef NEW_ANIMS //AVO: use new animations
-    if (bMisfire)
-    {
-        //Msg("AVO: ------ MISFIRE");
-        if (HudAnimationExist("anm_reload_misfire"))
-            PlayHUDMotion("anm_reload_misfire", TRUE, this, GetState());
-        else
-            PlayHUDMotion("anm_reload", TRUE, this, GetState());
-    }
-    else
-    {
-		bool half = m_pMagazine && !m_pNextMagazine;
+	VERIFY(GetState() == eReload);
 
-        if (iAmmoElapsed == 0)
-        {
-            if (HudAnimationExist("anm_reload_empty"))
-				PlayHUDMotion("anm_reload_empty", TRUE, this, GetState(), .3f, half);
-            else
-				PlayHUDMotion("anm_reload", TRUE, this, GetState(), .4f, half);
-        }
-        else
+	if (bMisfire)
+	{
+		if (HudAnimationExist("anm_reload_misfire"))
+			PlayHUDMotion("anm_reload_misfire", TRUE, this, GetState());
+		else
+			PlayHUDMotion("anm_reload", TRUE, this, GetState());
+	}
+	else
+	{
+		bool half = m_pMagazine && !m_pNextMagazine;
+		if (!iAmmoElapsed && HudAnimationExist("anm_reload_empty"))
+			PlayHUDMotion("anm_reload_empty", TRUE, this, GetState(), .3f, half);
+		else
 			PlayHUDMotion("anm_reload", TRUE, this, GetState(), .4f, half);
-    }
-#else
-    PlayHUDMotion("anm_reload", TRUE, this, GetState());
-#endif //-NEW_ANIM
+	}
 }
 
 void CWeaponMagazined::PlayAnimAim()
 {
-    PlayHUDMotion("anm_idle_aim", TRUE, NULL, GetState());
+	shared_str ms;
+	ms.printf("anm_idle_%s_aim", *m_MotionsSuffix);
+	if (HudAnimationExist(*ms))
+		PlayHUDMotion(ms, TRUE, NULL, GetState());
+	else
+		PlayHUDMotion("anm_idle_aim", TRUE, NULL, GetState());
 }
 
 void CWeaponMagazined::PlayAnimIdle()
 {
-    if (GetState() != eIdle)	return;
+    if (GetState() != eIdle)
+		return;
     if (IsZoomed())
-    {
         PlayAnimAim();
-    }
     else
         inherited::PlayAnimIdle();
 }
@@ -1020,7 +1014,10 @@ void CWeaponMagazined::PlayAnimIdle()
 void CWeaponMagazined::PlayAnimShoot()
 {
     VERIFY(GetState() == eFire);
-    PlayHUDMotion("anm_shots", FALSE, this, GetState());
+	if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
+		PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
+	else
+		PlayHUDMotion("anm_shots", FALSE, this, GetState());
 }
 
 void CWeaponMagazined::OnZoomIn()
@@ -1361,11 +1358,11 @@ void CWeaponMagazined::OnHiddenItem()
 
 float CWeaponMagazined::GetControlInertionFactorBase() const
 {
-	float res = inherited::GetControlInertionFactorBase();
-	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
+	float res							= inherited::GetControlInertionFactorBase();
+	CAddonOwner CPC ao					= cast<CAddonOwner CP$>();
 	if (ao)
-		ao->ModifyControlInertionFactor(res);
-	return res;
+		ao->ModifyControlInertionFactor	(res);
+	return								res;
 }
 
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
@@ -1527,6 +1524,13 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				ProcessSilencer			(sil, !!param);
 
 			InitRotateTime				();
+
+			if (slot->addon->MotionSuffix().size())
+			{
+				m_MotionsSuffix			= (param) ? slot->addon->MotionSuffix() : 0;
+				PlayAnimIdle			();
+			}
+
 			break;
 		}
 

@@ -18,6 +18,7 @@ void CAddon::Load(LPCSTR section)
 	inherited::Load						(section);
 	m_SlotType							= pSettings->r_string(section, "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
+	m_MotionsSuffix						= pSettings->r_string(section, "motions_suffix");
 	if (pSettings->line_exist(section, "addon_type"))
 	{
 		shared_str addon_type			= pSettings->r_string(section, "addon_type");

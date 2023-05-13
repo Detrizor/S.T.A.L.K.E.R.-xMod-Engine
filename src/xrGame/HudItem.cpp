@@ -32,6 +32,8 @@ CHudItem::CHudItem()
 	m_fLR_MovingFactor = 0.f;
 	m_fLR_InertiaFactor = 0.f;
 	m_fUD_InertiaFactor = 0.f;
+
+	m_MotionsSuffix = 0;
 }
 
 DLL_Pure *CHudItem::_construct()
@@ -534,13 +536,24 @@ void CHudItem::on_a_hud_attach()
 
 u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float half_position, bool stop_at_half)
 {
-	if (HudItemData() && !HudAnimationExist(*M))
+	shared_str							m;
+	if (m_MotionsSuffix.size())
 	{
-		Msg("!Missing hud animation %s", *M);
+		m.printf						("%s_%s", *M, *m_MotionsSuffix);
+		if (!HudAnimationExist(*m))
+			m							= M;
+	}
+	else
+		m								= M;
+
+
+	if (HudItemData() && !HudAnimationExist(*m))
+	{
+		Msg("!Missing hud animation %s", *m);
 		return 0;
 	}
 
-    u32 anim_time = PlayHUDMotion_noCB(M, bMixIn);
+    u32 anim_time = PlayHUDMotion_noCB(m, bMixIn);
     if (anim_time > 0)
     {
         m_bStopAtEndAnimIsRunning = true;

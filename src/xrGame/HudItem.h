@@ -189,6 +189,10 @@ public:
 	virtual	bool			NeedBlendAnm			();
 	virtual void			OnMotionHalf			()										{}
 
+protected:
+	shared_str							m_MotionsSuffix;
+
+public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 

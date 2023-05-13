@@ -1380,7 +1380,7 @@ void CWeapon::SetADS(int mode)
 
 void CWeapon::SwitchArmedMode()
 {
-	if (IsPending() || !m_bArmedRelaxedSwitch)
+	if (!m_bArmedRelaxedSwitch)
 		return;
 
 	bool new_state = !ArmedMode();
@@ -1406,21 +1406,21 @@ bool CWeapon::NeedBlendAnm()
 
 float CWeapon::GetControlInertionFactorBase C$()
 {
-	return inherited::GetControlInertionFactor();
+	return								inherited::GetControlInertionFactor() - 1.f;
 }
 
 float CWeapon::GetControlInertionFactor C$()
 {
-	float inertion = GetControlInertionFactorBase() - 1.f;
+	float inertion						= GetControlInertionFactorBase();
 	if (IsZoomed());
 	else if (ArmedMode())
-		inertion *= .5f;
+		inertion						*= .5f;
 	else
-		inertion *= .1f;
-	return 1.f + inertion;
+		inertion						*= .1f;
+	return								1.f + inertion;
 }
 
 float CWeapon::CurrentZoomFactor C$(bool for_svp)
 {
-	return (float)(!!ADS());
+	return								(float)(!!ADS());
 }
