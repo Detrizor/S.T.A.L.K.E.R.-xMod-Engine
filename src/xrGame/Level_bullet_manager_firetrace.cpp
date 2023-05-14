@@ -502,27 +502,30 @@ bool CBulletManager::ObjectHit( SBullet_Hit* hit_res, SBullet* bullet, const Fve
 
 	if (fMore(pierce, 0.f))
 	{
-		float pierce_damage_resist_factor			= m_fBulletPierceDamageFromResist.Calc(bullet->bullet_resist);
-		float pierce_damage_kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet_kap);
-		float pierce_damage_speed_factor			= m_fBulletPierceDamageFromSpeed.Calc(bullet->speed);
+		float resist_factor				= m_fBulletPierceDamageFromResist.Calc(bullet->bullet_resist);
+		float kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet_kap);
+		float speed_factor				= m_fBulletPierceDamageFromSpeed.Calc(bullet->speed);
 
-		float pierce_damage_speed_scale_factor		= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
-		float pierce_damage_hydroshock_factor		= m_fBulletPierceDamageFromHydroshock.Calc(bullet->speed);
-		float pierce_damage_stability_factor		= m_fBulletPierceDamageFromStability.Calc(bullet->bullet_mass);
-		float pierce_damage_density_factor			= m_fBulletPierceDamageFromDensity.Calc(k_density);
-		float pierce_damage_pierce_factor			= m_fBulletPierceDamageFromPierce.Calc(pierce);
+		float speed_scale_factor		= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
+		float hydroshock_factor			= m_fBulletPierceDamageFromHydroshock.Calc(bullet->speed);
+		float stability_factor			= m_fBulletPierceDamageFromStability.Calc(bullet->bullet_mass);
+		float density_factor			= m_fBulletPierceDamageFromDensity.Calc(k_density);
+		float pierce_factor				= m_fBulletPierceDamageFromPierce.Calc(pierce);
 
-		float base_pierce_damage					= pierce_damage_resist_factor * pierce_damage_kap_factor * pierce_damage_speed_factor;
+		float base_pierce_damage		= resist_factor * kap_factor * speed_factor;
+		float flesh_pierce_damage		= speed_scale_factor * hydroshock_factor * stability_factor * density_factor * pierce_factor;
 
-		hit_res->pierce_damage						= m_fBulletPierceDamageScale * base_pierce_damage * pierce_damage_speed_scale_factor * pierce_damage_hydroshock_factor * pierce_damage_stability_factor * pierce_damage_density_factor * pierce_damage_pierce_factor;
-		hit_res->armor_pierce_damage				= m_fBulletArmorPierceDamageScale * base_pierce_damage;
+		hit_res->pierce_damage			= m_fBulletPierceDamageScale * base_pierce_damage * flesh_pierce_damage;
+		hit_res->armor_pierce_damage	= m_fBulletArmorPierceDamageScale * base_pierce_damage;
 	}
 	
-	hit_res->impulse		= m_fBulletHitImpulseScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_out);
-	hit_res->main_damage	= m_fBulletArmorDamageScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_in);
+	hit_res->impulse					= m_fBulletHitImpulseScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_out);
+	hit_res->main_damage				= m_fBulletArmorDamageScale * sqrt(bullet->bullet_mass * bullet->speed * (1.f - k_speed_in));
+
 	if (R.O && !R.O->ID() || (!bullet->parent_id && ea)) Msg("--xd CBulletManager::ObjectHit main_damage [%.5f] bullet_mass [%.5f] speed [%.5f] k_speed_in [%.5f] k_speed_bone [%.5f] k_speed_out [%.5f] pierce [%.5f] ricoshet [%d]",
 		hit_res->main_damage, bullet->bullet_mass, bullet->speed, k_speed_in, k_speed_bone, k_speed_out, pierce, ricoshet);
-	bullet->speed			*= k_speed_out;
+
+	bullet->speed						*= k_speed_out;
 
 	return true;
 }

@@ -413,7 +413,7 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 
 		pHDS->main_damage					-= min(pHDS->main_damage, StrikeDamageThreshold.Calc(protection));
 		if (fMore(pHDS->main_damage, 0.f))
-			pHDS->main_damage				*= StrikeDamageResistance.Calc(protection);
+			pHDS->main_damage				/= (1.f + StrikeDamageResistance.Calc(protection));
 	}
 	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{

@@ -65,6 +65,9 @@
 
 #include "addon.h"
 #include "addon_owner.h"
+#include "ui\UIDragDropListEx.h"
+#include "ui\UIActorMenu.h"
+#include "ui\UICellItem.h"
 
 using namespace luabind;
 //-Alundaio
@@ -244,6 +247,29 @@ void CScriptGameObject::ForEachInventoryItems(const luabind::functor<bool> &func
 			   return;
         }
     }
+}
+
+void CScriptGameObject::IterateVicinity(luabind::functor<bool> functor)
+{
+	CActor* actor						= object().Cast<CActor*>();
+	if (!actor)
+		return;
+
+	actor->VicinityUpdate				();
+	CUIDragDropListEx* vicinity			= CurrentGameUI()->GetActorMenu().m_pTrashList;
+	for (int i = 0; i < vicinity->ItemsCount(); i++)
+	{
+		CUICellItem* cell_item			= vicinity->GetItemIdx(i);
+		for (int j = 0; j < cell_item->ChildsCount(); j++)
+		{
+			PIItem item					= (PIItem)cell_item->Child(j)->m_pData;
+			if (functor(NULL, item->object().lua_game_object()) == true)
+				return;
+		}
+		PIItem item						= (PIItem)cell_item->m_pData;
+		if (functor(NULL, item->object().lua_game_object()) == true)
+			return;
+	}
 }
 
 void CScriptGameObject::IterateInventory(luabind::functor<bool> functor, luabind::object object, int division_index)

@@ -285,6 +285,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : paren
 	render_pos.identity					();
 }
 
+extern void ApplyPivot(Fvector* offset, Fvector CR$ pivot);
 extern void ApplyOffset(Fmatrix& trans, Fvector CR$ position, Fvector CR$ rotation);
 
 SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent) : parent_ao(parent), forwarded_slot(slot)
@@ -292,10 +293,10 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 	name.printf							("%s - %s", *CStringTable().translate(root_slot->addon->NameShort()), *CStringTable().translate(slot->name));
 	type								= slot->type;
 	bone_name							= root_slot->bone_name;
-	model_offset[0]						= slot->model_offset[0];
-	model_offset[0].add					(root_slot->model_offset[0]);
-	model_offset[1]						= slot->model_offset[1];
-	model_offset[1].add					(root_slot->model_offset[1]);
+	model_offset[0]						= root_slot->model_offset[0];
+	model_offset[1]						= root_slot->model_offset[1];
+	ApplyPivot							(model_offset, slot->model_offset[0]);
+	model_offset[1].add					(slot->model_offset[1]);
 	bone_offset[0]						= root_slot->bone_offset[0];
 	bone_offset[1]						= root_slot->bone_offset[1];
 	icon_offset							= slot->icon_offset;

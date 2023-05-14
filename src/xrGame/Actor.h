@@ -384,7 +384,6 @@ protected:
     float					m_fFeelGrenadeTime; 	//время гранаты (сек) после которого актер чувствует гранату
 #endif
 //-Alundaio
-	void					VicinityUpdate		();
     void					PickupModeUpdate	();
     void					PickupInfoDraw		(CObject* object);
     void					PickupModeUpdate_COD ();
@@ -799,8 +798,10 @@ private:
 public:
 			float			fFPCamYawMagnitude; //--#SM+#--
 			float			fFPCamPitchMagnitude;
-      
 DECLARE_SCRIPT_REGISTER_FUNCTION
+
+public:
+	void								VicinityUpdate							();
 };
 add_to_type_list(CActor)
 #undef script_type_list

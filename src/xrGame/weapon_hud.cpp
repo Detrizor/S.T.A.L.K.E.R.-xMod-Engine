@@ -206,8 +206,7 @@ bool CWeaponHud::ReadyToFire C$()
 
 void CWeaponHud::InitRotateTime(float cif)
 {
-	float inertion = cif - 1.f;
-	m_fRotateTime = HandlingToRotationTime.Calc(inertion);
+	m_fRotateTime = HandlingToRotationTime.Calc(cif);
 }
 
 EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const

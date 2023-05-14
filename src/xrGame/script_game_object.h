@@ -360,6 +360,7 @@ public:
             bool				IsInvUpgradeEnabled	();
 
             void				ActorLookAtPoint	(Fvector point);
+			void				IterateVicinity		(luabind::functor<bool> functor);
             void				IterateInventory	(luabind::functor<bool> functor, luabind::object object, int division_index = 0);
             void				IterateInventoryBox	(luabind::functor<bool> functor, luabind::object object) const;
             void				MarkItemDropped		(CScriptGameObject *item, bool flag = true);
