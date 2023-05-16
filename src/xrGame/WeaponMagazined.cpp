@@ -27,6 +27,7 @@
 #include "scope.h"
 #include "silencer.h"
 #include "addon.h"
+#include "UI.h"
 
 ENGINE_API	bool	g_dedicated_server;
 
@@ -65,6 +66,9 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_pSilencer					= NULL;
 	m_pMagazine					= NULL;
 	m_pMagazineSlot				= NULL;
+
+	m_ScopeBoneName				= 0;
+	m_ScopePos					= vZero;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -641,8 +645,7 @@ void CWeaponMagazined::state_Fire(float dt)
         p1.set(get_LastFP());
         d.set(get_LastFD());
 		
-        
-        E->g_fireParams(this, p1, d);
+		//E->g_fireParams(this, p1, d);
 		
         if (m_iShotNum == 0)
         {
@@ -1419,26 +1422,13 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI(*m_hud);
+	GetActiveScope()->RenderUI(*m_hud, ScopeAxisDeviation());
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
 {
 	CScope* scope = GetActiveScope();
 	Device.m_SecondViewport.SetSVPActive(scope && scope->HasLense());
-}
-
-extern float aim_fov_tan;
-float CWeaponMagazined::GetReticleScale() const
-{
-	if (HudItemData())
-	{
-		CScope* scope = GetActiveScope();
-		if (scope)
-			return scope->GetReticleScale(*m_hud);
-	}
-
-	return 1.f;
 }
 
 float CWeaponMagazined::CurrentZoomFactor(bool for_svp) const
@@ -1517,6 +1507,13 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				}
 
 				m_hud->ProcessScope		(slot, !!param);
+
+				if (scope->Type() == eOptics && param)
+				{
+					m_ScopeBoneName		= slot->bone_name;
+					m_ScopePos			= slot->model_offset[0];
+					m_ScopePos.sub		(slot->addon->HudOffset()[0]);
+				}
 			}
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
@@ -1592,4 +1589,37 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 
 	hi->set_bone_visible				(wpn_iron_sights, !m_bIronSightsLowered, TRUE);
 	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
+}
+
+float zeroing = 100.f;		//--xd for future zeroing system implementation
+extern float aim_fov_tan;
+void CWeaponMagazined::UpdateShadersData()
+{
+	CScope* scope						= GetActiveScope();
+	if (!scope || scope->Type() != eCollimator)
+		return;
+
+	Fvector2 offset						= ScopeAxisDeviation(false);
+	float h								= 2.f * aim_fov_tan * zeroing;
+	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
+	offset.x							/= w;
+	offset.y							/= h;
+	g_pGamePersistent->m_pGShaderConstants->hud_params.x = offset.x;
+	g_pGamePersistent->m_pGShaderConstants->hud_params.y = offset.y;
+	g_pGamePersistent->m_pGShaderConstants->hud_params.z = scope->GetReticleScale(*m_hud);
+}
+
+Fvector2 CR$ CWeaponMagazined::ScopeAxisDeviation(bool for_optics)
+{
+	if (for_optics)
+	{
+		Fvector							lense_pos;
+		attachable_hud_item* hi			= HudItemData();
+		u16 bone_id						= hi->m_model->LL_BoneID(m_ScopeBoneName);
+		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(bone_id);
+		fire_mat.transform_tiny			(lense_pos, m_ScopePos);
+		hi->m_item_transform.transform_tiny(lense_pos);
+		return							Actor()->CameraAxisDeviation(lense_pos, get_LastFD(), 1.f);
+	}
+	return								Actor()->CameraAxisDeviation(Actor()->Cameras().Position(), get_LastFD(), zeroing);
 }

@@ -129,7 +129,7 @@ SPowerDependency CEntityCondition::ProtectionDamageResistance;
 SPowerDependency CWeaponHud::HandlingToRotationTime;
 
 Fvector CScope::lense_circle_scale;
-Fvector4 CScope::lense_circle_offset[2];
+Fvector2 CScope::lense_circle_offset;
 
 float CFireDispertionController::crosshair_inertion;
 
@@ -557,8 +557,7 @@ void CActor::Load(LPCSTR section)
 	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
 
 	CScope::lense_circle_scale			= pSettings->r_fvector3("weapon_manager", "lense_circle_scale");
-	CScope::lense_circle_offset[0]		= pSettings->r_fvector4("weapon_manager", "lense_circle_offset_x");
-	CScope::lense_circle_offset[1]		= pSettings->r_fvector4("weapon_manager", "lense_circle_offset_y");
+	CScope::lense_circle_offset			= pSettings->r_fvector2("weapon_manager", "lense_circle_offset");
 
 	psAIM_FOV		= pSettings->r_float("weapon_manager", "aim_fov");
 	aim_fov_tan		= tanf(psAIM_FOV * (0.5f * PI / 180.f));
@@ -1099,15 +1098,15 @@ void CActor::UpdateCL()
             psHUD_Flags.set(HUD_WEAPON_RT, TRUE);
 			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
 
-			CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
+			CWeaponMagazined* pWM		= smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
 			if (pWM)
 			{
 				// Update SecondVP with Weapon Data
-				pWM->UpdateSecondVP();
+				pWM->UpdateSecondVP		();
 
 				// Apply Weapon Data in Shaders
-				g_pGamePersistent->m_pGShaderConstants->hud_params.z = pWM->GetReticleScale();
-				g_pGamePersistent->m_pGShaderConstants->hud_params.y = currentFOV(true);
+				pWM->UpdateShadersData	();
+				g_pGamePersistent->m_pGShaderConstants->hud_params.w = currentFOV(true);
 			}
         }
     }
@@ -1858,7 +1857,7 @@ bool CActor::can_attach(const CInventoryItem *inventory_item) const
         return			(false);
 
     //можно ли присоединять объекты такого типа
-    if (m_attach_item_sections.end() == std::find(m_attach_item_sections.begin(), m_attach_item_sections.end(), inventory_item->object().cNameSect()))
+    if (m_attach_item_sections.end() == ::std::find(m_attach_item_sections.begin(), m_attach_item_sections.end(), inventory_item->object().cNameSect()))
         return false;
 
     //если уже есть присоединненый объет такого типа 
@@ -1912,4 +1911,27 @@ bool CActor::unlimited_ammo()
 void CActor::SetPower(float p)
 {
 	conditions().SetPower(p);
+}
+
+Fvector2 CActor::CameraAxisDeviation C$(Fvector CR$ pos, Fvector CR$ dir, float distance)
+{
+	static Fvector cam_pos_prev			= cameras[eacFirstEye]->vPosition;
+	static float cam_yaw_prev			= cameras[eacFirstEye]->yaw;		//because weapon fire direction is one frame behind actor camera direction
+	static float cam_pitch_prev			= cameras[eacFirstEye]->pitch;
+
+	Fvector dpos						= pos;
+	dpos.sub							(cam_pos_prev);
+	Fvector ddir						= dir;
+	ddir.sub							(smart_cast<CEffectorZoomInertion*>(m_pActorEffector->GetCamEffector(eCEZoom))->CurPoint());
+	Fvector								offset;
+	offset.mad							(dpos, ddir, distance);
+
+	offset.rotate						(-cam_yaw_prev, 1);
+	offset.rotate						(-cam_pitch_prev, 0);
+
+	cam_pos_prev						= cameras[eacFirstEye]->vPosition;
+	cam_yaw_prev						= cameras[eacFirstEye]->yaw;
+	cam_pitch_prev						= cameras[eacFirstEye]->pitch;
+
+	return								Fvector2().set(-offset.x, offset.y);
 }

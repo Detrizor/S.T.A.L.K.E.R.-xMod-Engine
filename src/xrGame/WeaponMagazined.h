@@ -241,12 +241,15 @@ private:
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
 	SAddonSlot*							m_pMagazineSlot;
+	shared_str							m_ScopeBoneName;
+	Fvector								m_ScopePos;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
+	Fvector2 CR$						ScopeAxisDeviation						(bool for_optics = true);
 
 	CScope*								GetActiveScope						C$	();
 
@@ -273,18 +276,17 @@ public:
 	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }
 
 	bool								Discharge								(CCartridge& destination);
+	void								UpdateShadersData						();
+	void								UpdateHudBonesVisibility				();
 
 	bool								ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
 	SAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
-	float								GetReticleScale						C$	();
 	bool								CanTrade							C$	();
 
 	float								CurrentZoomFactor					CO$	(bool for_svp);
 
 	void								OnTaken								O$	();
-
-	void								UpdateHudBonesVisibility				();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	OnMotionHalf							();

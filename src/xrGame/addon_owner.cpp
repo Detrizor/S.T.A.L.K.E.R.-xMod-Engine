@@ -235,8 +235,6 @@ int CAddonOwner::DetachAddon(CAddon CPC addon)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern Fvector rotate_vector3(Fvector CR$ source, Fvector CR$ angle);
-
 SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : parent_ao(parent), forwarded_slot(NULL)
 {
 	idx									= _idx;
@@ -262,9 +260,8 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : paren
 
 	tmp.printf							("bone_offset_pos_%d", idx);
 	bone_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
-
 	bone_offset[0].mul					(-1.f);
-	bone_offset[0]						= rotate_vector3(bone_offset[0], bone_offset[1]);
+	bone_offset[0].rotate				(bone_offset[1]);
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);

@@ -12,37 +12,9 @@
 
 const float aim_factor = pSettings->r_float("weapon_manager", "aim_factor");
 
-Fvector2 rotate_vector2(float x, float y, float angle)
-{
-	Fvector2	res;
-	res.x		= x * cos(angle) + y * sin(angle);
-	res.y		= y * cos(angle) - x * sin(angle);
-	return		res;
-}
-
-Fvector2 rotate_vector2(Fvector2 CR$ source, float angle)
-{
-	return		rotate_vector2(source.x, source.y, angle);
-}
-
-Fvector rotate_vector3(Fvector CR$ source, Fvector CR$ angle)
-{
-	Fvector res		= source;
-	Fvector2 tmp	= rotate_vector2(res.z, res.y, angle.x);
-	res.z			= tmp.x;
-	res.y			= tmp.y;
-	tmp				= rotate_vector2(res.x, res.z, angle.y);
-	res.x			= tmp.x;
-	res.z			= tmp.y;
-	tmp				= rotate_vector2(res.y, res.x, angle.z);
-	res.y			= tmp.x;
-	res.x			= tmp.y;
-	return			res;
-}
-
 void ApplyPivot(Fvector* offset, Fvector CR$ pivot)
 {
-	offset[0].add						(rotate_vector3(pivot, offset[1]));
+	offset[0].add						(pivot.rotate_(offset[1]));
 }
 
 void ApplyOffset(Fmatrix& trans, Fvector CR$ position, Fvector CR$ rotation)
@@ -71,7 +43,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_fUD_ShootingFactor				= 0.f;
 	m_fBACKW_ShootingFactor				= 0.f;
 	m_shoot_shake_mat.identity			();
-	m_cur_offs							= { 0.f, 0.f, 0.f };
 	m_lense_offset						= 0.f;
 	m_scope								= 0;
 	m_alt_scope							= false;
@@ -196,7 +167,7 @@ void CWeaponHud::SwitchGL()
 
 bool CWeaponHud::IsRotatingToZoom C$()
 {
-	return !fEqual(m_fRotationFactor, 1.f, EPS_S) && !fEqual(m_fRotationFactor, 0.f, EPS_S);
+	return GetCurrentHudOffsetIdx() != last_idx;
 }
 
 bool CWeaponHud::ReadyToFire C$()
@@ -211,7 +182,7 @@ void CWeaponHud::InitRotateTime(float cif)
 
 EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 {
-	if (HUD().GetCurrentRayQuery().range < 1.f && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
+	if (HUD().GetCurrentRayQuery().range < .7f && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
 		return eRelaxed;
 
 	if (O.IsZoomed())
@@ -273,7 +244,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 
 		float mul = 0.0001f;
 
-		if (curr_offs.similar(m_hud_offset[0], EPS))
+		if (curr_offs.similar(m_hud_offset[0], EPS_S))
 			m_hud_offset[0].set(curr_offs);
 		else
 		{
@@ -285,7 +256,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_hud_offset[0].add(diff);
 		}
 
-		if (curr_rot.similar(m_hud_offset[1], EPS))
+		if (curr_rot.similar(m_hud_offset[1], EPS_S))
 			m_hud_offset[1].set(curr_rot);
 		else
 		{
@@ -296,7 +267,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		}
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
-		if (curr_offs.similar(m_hud_offset[0], .02f) && curr_rot.similar(m_hud_offset[1], .02f))
+		if (curr_offs.similar(m_hud_offset[0], EPS_S) && curr_rot.similar(m_hud_offset[1], EPS_S))
 			last_idx = idx;
 
 		ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
@@ -637,8 +608,8 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	float fLR_lim = (O.m_fLR_InertiaFactor < 0.0f ? vIOffsets.x : vIOffsets.y);
 	float fUD_lim = (O.m_fUD_InertiaFactor < 0.0f ? vIOffsets.z : vIOffsets.w);
 
-	m_cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
-	ApplyOffset(trans, m_cur_offs, vZero);
+	Fvector cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
+	ApplyOffset(trans, cur_offs, vZero);
 }
 
 extern BOOL								g_hud_adjusment_mode;

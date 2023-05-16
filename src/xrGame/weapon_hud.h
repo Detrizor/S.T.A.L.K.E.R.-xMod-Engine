@@ -66,7 +66,6 @@ public:
 	Fmatrix CR$							shoot_shake_mat						C$	()				{ return m_shoot_shake_mat; }
 	Fvector CPC							HandsOffset							C$	(int idx)		{ return m_hands_offset[idx]; }
 	Fvector CPC							HudOffset							C$	()				{ return m_hud_offset; }
-	Fvector CR$							CurOffs								C$	()				{ return m_cur_offs; }
 	float								LenseOffset							C$	()				{ return m_lense_offset; }
 
 	void								InitRotateTime							(float cif);

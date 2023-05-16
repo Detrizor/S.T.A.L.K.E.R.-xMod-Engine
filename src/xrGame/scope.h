@@ -57,11 +57,10 @@ protected:
 	CNightVisionEffector*				m_pNight_vision;
 
 	void								InitVisors								();
-	float								ReticleCircleOffset						(int idx, CWeaponHud CR$ hud) const;
 
 public:
 	static	Fvector						lense_circle_scale;
-	static	Fvector4					lense_circle_offset[2];
+	static	Fvector2					lense_circle_offset;
 
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
@@ -72,5 +71,5 @@ public:
 	bool								HasLense							C$	();
 
 	void								ZoomChange								(int val);
-	void								RenderUI								(CWeaponHud CR$ hud);
+	void								RenderUI								(CWeaponHud CR$ hud, Fvector2 axis_deviation);
 };

@@ -460,7 +460,55 @@ public:
             up.z = -dir.y * right.x;
         }
     }
+
+	IC SelfRef rotate(float angle, int axis)
+	{
+		T* dx, *dy;
+		switch (axis)
+		{
+			case 0:
+				dx = &z;
+				dy = &y;
+				break;
+			case 1:
+				dx = &x;
+				dy = &z;
+				break;
+			case 2:
+				dx = &y;
+				dy = &x;
+				break;
+			default:
+				return *this;
+		}
+		T dx_backup = *dx;
+		*dx = *dx * cos(angle) + *dy * sin(angle);
+		*dy = *dy * cos(angle) - dx_backup * sin(angle);
+		return *this;
+	}
+
+	IC SelfRef rotate(float angle_x, float angle_y, float angle_z)
+	{
+		rotate(angle_x, 0);
+		rotate(angle_y, 1);
+		rotate(angle_z, 2);
+		return *this;
+	}
+
+	IC SelfRef rotate(const SelfRef angle_vec)
+	{
+		rotate(angle_vec.x, angle_vec.y, angle_vec.z);
+		return *this;
+	}
+
+	IC Self rotate_(const SelfRef angle_vec) const
+	{
+		Self res = *this;
+		res.rotate(angle_vec.x, angle_vec.y, angle_vec.z);
+		return res;
+	}
 };
+
 typedef _vector3<float> Fvector;
 typedef _vector3<float> Fvector3;
 typedef _vector3<double> Dvector;

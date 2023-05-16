@@ -120,16 +120,7 @@ bool CScope::HasLense() const
 	return								!fIsZero(m_fLenseRadius);
 }
 
-float CScope::ReticleCircleOffset(int idx, CWeaponHud CR$ hud) const
-{
-	float offset						= lense_circle_offset[idx].x * (hud.HudOffset()[0][idx] - hud.HandsOffset(eScope)[0][idx]);
-	offset								+= lense_circle_offset[idx].y * (hud.HudOffset()[1][idx] - hud.HandsOffset(eScope)[1][idx]);
-	offset								+= lense_circle_offset[idx].z * hud.CurOffs()[idx];
-	offset								*= pow(GetCurrentMagnification(), lense_circle_offset[idx].w);
-	return								offset;
-}
-
-void CScope::RenderUI(CWeaponHud CR$ hud)
+void CScope::RenderUI(CWeaponHud CR$ hud, Fvector2 axis_deviation)
 {
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
@@ -149,8 +140,7 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 
 	float scale							= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	pUILenseCircle->SetScale			(reticle_scale * scale);
-	pUILenseCircle->SetX				(ReticleCircleOffset(0, hud));
-	pUILenseCircle->SetY				(ReticleCircleOffset(1, hud));
+	pUILenseCircle->SetWndPos			(axis_deviation.mul(lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
 	pUILenseCircle->Draw				();
 
 	Frect crect							= pUILenseCircle->GetWndRect();

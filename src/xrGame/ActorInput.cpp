@@ -388,7 +388,7 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 
 	float LookFactor = GetLookFactor();
 
-	float fov		= (Device.m_SecondViewport.IsSVPActive()) ? g_pGamePersistent->m_pGShaderConstants->hud_params.y : cameras[cam_active]->f_fov;
+	float fov		= (Device.m_SecondViewport.IsSVPActive()) ? g_pGamePersistent->m_pGShaderConstants->hud_params.w : cameras[cam_active]->f_fov;
 	float scale		= (fov / g_fov) * psMouseSens * psMouseSensScale / 50.f / LookFactor;
 
 	if (dx)

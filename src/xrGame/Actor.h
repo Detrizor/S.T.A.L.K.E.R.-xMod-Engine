@@ -802,6 +802,7 @@ DECLARE_SCRIPT_REGISTER_FUNCTION
 
 public:
 	void								VicinityUpdate							();
+	Fvector2							CameraAxisDeviation					C$	(Fvector CR$ pos, Fvector CR$ dir, float distance);
 };
 add_to_type_list(CActor)
 #undef script_type_list
