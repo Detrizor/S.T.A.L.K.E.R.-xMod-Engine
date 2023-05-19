@@ -43,9 +43,6 @@ public:
 										~CScope									();
 
 private:
-	float								aboba								O$	(EEventTypes type, void* data, int param);
-	
-protected:
 	eScopeType							m_Type;
 	SRangeFloat							m_Magnificaion;
 	shared_str							m_Reticle;
@@ -55,16 +52,26 @@ protected:
 	CUIStatic*							m_pUIReticle;
 	CBinocularsVision*					m_pVision;
 	CNightVisionEffector*				m_pNight_vision;
-
+	float								m_fZeroing;
+	float								m_fDefaultZeroing;
+	bool								m_fZeroingMagnificationPower;
+	
 	void								InitVisors								();
+	void								OnZoomChange							();
+
+	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
 	static	Fvector						lense_circle_scale;
 	static	Fvector2					lense_circle_offset;
 
+	shared_str							sight_bone_name;
+	Fvector								sight_offset;
+
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
+	float								Zeroing								C$	()		{ return m_fZeroing; }
 
 	float								GetReticleScale						C$	(CWeaponHud CR$ hud);
 	void								modify_holder_params				C$	(float &range, float &fov);

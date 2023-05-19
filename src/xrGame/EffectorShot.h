@@ -41,7 +41,7 @@ public:
 				CWeaponShotEffector	();
 	virtual		~CWeaponShotEffector(){};
 
-		void	Initialize			(const CameraRecoil& cam_recoil);
+		void	Initialize			(CameraRecoil CR$ cam_recoil, float recoil_modifier = 1.f);
 		void	Reset				();
 
 	IC	bool	IsActive			(){return m_actived;}
@@ -69,7 +69,7 @@ protected:
 	CActor*			m_pActor;
 public:
 //-					CCameraShotEffector	(float max_angle, float relax_speed, float max_angle_horz, float step_angle_horz, float angle_frac);
-					CCameraShotEffector	(const CameraRecoil& cam_recoil);
+					CCameraShotEffector	(CameraRecoil CR$ cam_recoil, float recoil_modifier = 1.f);
 	virtual			~CCameraShotEffector();
 	
 	virtual BOOL	ProcessCam			(SCamEffectorInfo& info);

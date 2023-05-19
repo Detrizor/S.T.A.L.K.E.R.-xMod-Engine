@@ -37,17 +37,17 @@ struct CameraRecoil
 
 	CameraRecoil( const CameraRecoil& clone )		{	Clone( clone );	}
 
-	IC void Clone( const CameraRecoil& clone )
+	IC void Clone(CameraRecoil CR$ clone, float recoil_modifier = 1.f)
 	{
 		// *this = clone;
-		RelaxSpeed		= clone.RelaxSpeed;
-		RelaxSpeed_AI	= clone.RelaxSpeed_AI;
-		Dispersion		= clone.Dispersion;
-		DispersionInc	= clone.DispersionInc;
-		DispersionFrac	= clone.DispersionFrac;
-		MaxAngleVert	= clone.MaxAngleVert;
-		MaxAngleHorz	= clone.MaxAngleHorz;
-		StepAngleHorz	= clone.StepAngleHorz;
+		RelaxSpeed		= clone.RelaxSpeed / recoil_modifier;
+		RelaxSpeed_AI	= clone.RelaxSpeed_AI / recoil_modifier;
+		Dispersion		= clone.Dispersion * recoil_modifier;
+		DispersionInc	= clone.DispersionInc * recoil_modifier;
+		DispersionFrac	= clone.DispersionFrac * recoil_modifier;
+		MaxAngleVert	= clone.MaxAngleVert * recoil_modifier;
+		MaxAngleHorz	= clone.MaxAngleHorz * recoil_modifier;
+		StepAngleHorz	= clone.StepAngleHorz * recoil_modifier;
 
 		ReturnMode		= clone.ReturnMode;
 		StopReturn		= clone.StopReturn;

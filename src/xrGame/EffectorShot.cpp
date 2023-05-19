@@ -15,9 +15,9 @@ CWeaponShotEffector::CWeaponShotEffector()
 //	m_first_shot_pos = 0.0f;
 }
 
-void CWeaponShotEffector::Initialize( const CameraRecoil& cam_recoil )
+void CWeaponShotEffector::Initialize(CameraRecoil CR$ cam_recoil, float recoil_modifier)
 {
-	m_cam_recoil.Clone( cam_recoil );
+	m_cam_recoil.Clone(cam_recoil, recoil_modifier);
 	Reset();
 }
 
@@ -206,10 +206,10 @@ void CWeaponShotEffector::ChangeHP( float* pitch, float* yaw )
 // Camera shot effector
 //-----------------------------------------------------------------------------
 
-CCameraShotEffector::CCameraShotEffector(const CameraRecoil& cam_recoil)
+CCameraShotEffector::CCameraShotEffector(CameraRecoil CR$ cam_recoil, float recoil_modifier)
  : CEffectorCam(eCEShot,100000.0f)
 {
-	CWeaponShotEffector::Initialize( cam_recoil );
+	CWeaponShotEffector::Initialize(cam_recoil, recoil_modifier);
 	m_pActor		= NULL;
 }
 
@@ -222,4 +222,3 @@ BOOL CCameraShotEffector::ProcessCam(SCamEffectorInfo& info)
 	Update();
 	return TRUE;
 }
-

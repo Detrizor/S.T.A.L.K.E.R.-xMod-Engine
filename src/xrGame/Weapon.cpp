@@ -72,6 +72,7 @@ CWeapon::CWeapon()
 	m_bArmedMode = false;
 	m_bHasAltAim = true;
 	m_bArmedRelaxedSwitch = true;
+	m_recoil_modifier = 1.f;
 }
 
 CWeapon::~CWeapon()

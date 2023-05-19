@@ -531,6 +531,7 @@ protected:
 	bool								m_bArmedMode;
 	bool								m_bHasAltAim;
 	bool								m_bArmedRelaxedSwitch;
+	float								m_recoil_modifier;
 
 	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
 	float							V$	GetControlInertionFactorBase		C$	();
@@ -542,4 +543,5 @@ protected:
 public:
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
+	float								RecoilModifier						C$	()		{ return m_recoil_modifier; }
 };

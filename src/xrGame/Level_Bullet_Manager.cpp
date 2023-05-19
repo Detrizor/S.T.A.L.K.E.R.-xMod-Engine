@@ -81,9 +81,9 @@ void SBullet::Init(const Fvector& position,
 	hit_type				= e_hit_type;
 	
 	air_resistance			= cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletAirResistanceScale;
-	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? (cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletWallMarkSizeScale) : cartridge.param_s.fWMS;
+	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? Level().BulletManager().m_fBulletWallMarkSizeScale * sqrt(cartridge.param_s.fBulletResist) : cartridge.param_s.fWMS;
 	if (cartridge.param_s.mHollowPoint)
-		wallmark_size		*= Level().BulletManager().m_fBulletHollowPointResistFactor;
+		wallmark_size		*= 2.f;
 	bullet_mass				= cartridge.param_s.fBulletMass;
 	bullet_resist			= cartridge.param_s.fBulletResist;
 	hollow_point			= cartridge.param_s.mHollowPoint;

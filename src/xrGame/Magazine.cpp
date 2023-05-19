@@ -23,6 +23,7 @@ CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 	}
 	
 	InvalidateState						();
+	UpdateBulletsVisibility				();
 }
 
 void CMagazine::InvalidateState()
@@ -31,7 +32,7 @@ void CMagazine::InvalidateState()
 	m_SumWeight							= flt_max;
 }
 
-shared_str bullets						= "bullets";
+shared_str bullets_str					= "bullets";
 extern void UpdateBoneVisibility		(IKinematics* pVisual, const shared_str& bone_name, bool status);
 void CMagazine::UpdateBulletsVisibility()
 {
@@ -40,7 +41,7 @@ void CMagazine::UpdateBulletsVisibility()
 
 	IKinematics* pVisual				= smart_cast<IKinematics*>(O.Visual());
 	pVisual->CalculateBones_Invalidate	();
-	UpdateBoneVisibility				(pVisual, bullets, vis);
+	UpdateBoneVisibility				(pVisual, bullets_str, vis);
 	pVisual->CalculateBones_Invalidate	();
 	pVisual->CalculateBones				(TRUE);
 	UpdateHudBulletsVisibility			();
@@ -50,7 +51,7 @@ void CMagazine::UpdateHudBulletsVisibility()
 {
 	auto hi								= cast<CHudItem*>()->HudItemData();
 	if (hi)
-		hi->set_bone_visible			(bullets, (BOOL)!Empty(), TRUE);
+		hi->set_bone_visible			(bullets_str, (BOOL)!Empty(), TRUE);
 }
 
 float CMagazine::aboba o$(EEventTypes type, void* data, int param)

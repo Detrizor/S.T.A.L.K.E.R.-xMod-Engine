@@ -67,8 +67,12 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_pMagazine					= NULL;
 	m_pMagazineSlot				= NULL;
 
-	m_ScopeBoneName				= 0;
-	m_ScopePos					= vZero;
+	m_ReloadHalfPoint			= 0.f;
+	m_ReloadEmptyHalfPoint		= 0.f;
+	m_ReloadPartialPoint		= 0.f;
+
+	m_dwSightCalculationFrame	= 0;
+	m_SightPosition				= vZero;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -168,7 +172,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 			}
 		}
 	}
-
+	
 	shared_str integrated_addon			= READ_IF_EXISTS(pSettings, r_string, section, "scope", "");
 	if (integrated_addon.size())
 		m_pScope						= xr_new<CScope>(this, integrated_addon);
@@ -176,6 +180,10 @@ void CWeaponMagazined::Load(LPCSTR section)
 	integrated_addon					= READ_IF_EXISTS(pSettings, r_string, section, "silencer", "");
 	if (integrated_addon.size())
 		ProcessSilencer					(xr_new<CSilencer>(this, integrated_addon), true);
+
+	m_ReloadHalfPoint					= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_half_point", .4f);
+	m_ReloadEmptyHalfPoint				= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_empty_half_point", .3f);
+	m_ReloadPartialPoint				= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_partial_point", .75f);
 }
 
 void CWeaponMagazined::FireStart()
@@ -646,7 +654,12 @@ void CWeaponMagazined::state_Fire(float dt)
         d.set(get_LastFD());
 		
 		//E->g_fireParams(this, p1, d);
-		
+		Fvector dpos = SightPosition();
+		dpos.sub(p1);
+		CScope* as = GetActiveScope();
+		d.mad(dpos, d, (as) ? as->Zeroing() : 10.f);
+		d.normalize();
+
         if (m_iShotNum == 0)
         {
             m_vStartPos = p1;
@@ -822,35 +835,27 @@ void CWeaponMagazined::switch2_Empty()
 {
     OnZoomOut();
 }
+
 void CWeaponMagazined::PlayReloadSound()
 {
-    if (m_sounds_enabled)
-    {
-#ifdef NEW_SOUNDS //AVO: use custom sounds
-        if (bMisfire)
-        {
-            //TODO: make sure correct sound is loaded in CWeaponMagazined::Load(LPCSTR section)
-            if (m_sounds.FindSoundItem("sndReloadMisfire", false))
-                PlaySound("sndReloadMisfire", get_LastFP());
-            else
-                PlaySound("sndReload", get_LastFP());
-        }
-        else
-        {
-            if (iAmmoElapsed == 0)
-            {
-                if (m_sounds.FindSoundItem("sndReloadEmpty", false))
-                    PlaySound("sndReloadEmpty", get_LastFP());
-                else
-                    PlaySound("sndReload", get_LastFP());
-            }
-            else
-                PlaySound("sndReload", get_LastFP());
-        }
-#else
-        PlaySound("sndReload", get_LastFP());
-#endif //-AVO
-    }
+	if (m_sounds_enabled)
+	{
+		if (bMisfire)
+		{
+			//TODO: make sure correct sound is loaded in CWeaponMagazined::Load(LPCSTR section)
+			if (m_sounds.FindSoundItem("sndReloadMisfire", false))
+				PlaySound				("sndReloadMisfire", get_LastFP());
+			else
+				PlaySound				("sndReload", get_LastFP());
+		}
+		else
+		{
+			if (!iAmmoElapsed && !(m_pMagazine && !m_pNextMagazine) && m_sounds.FindSoundItem("sndReloadEmpty", false))
+				PlaySound				("sndReloadEmpty", get_LastFP());
+			else
+				PlaySound				("sndReload", get_LastFP());
+		}
+	}
 }
 
 void CWeaponMagazined::switch2_Reload()
@@ -975,22 +980,32 @@ void CWeaponMagazined::PlayAnimHide()
 
 void CWeaponMagazined::PlayAnimReload()
 {
-	VERIFY(GetState() == eReload);
+	VERIFY								(GetState() == eReload);
 
 	if (bMisfire)
 	{
 		if (HudAnimationExist("anm_reload_misfire"))
-			PlayHUDMotion("anm_reload_misfire", TRUE, this, GetState());
+			PlayHUDMotion				("anm_reload_misfire", TRUE, this, GetState());
 		else
-			PlayHUDMotion("anm_reload", TRUE, this, GetState());
+			PlayHUDMotion				("anm_reload", TRUE, this, GetState());
 	}
 	else
 	{
-		bool half = m_pMagazine && !m_pNextMagazine;
-		if (!iAmmoElapsed && HudAnimationExist("anm_reload_empty"))
-			PlayHUDMotion("anm_reload_empty", TRUE, this, GetState(), .3f, half);
+		bool detach						= m_pMagazine && !m_pNextMagazine;
+		if (HudAnimationExist("anm_reload_empty"))
+		{
+			if (iAmmoElapsed || detach)
+				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadHalfPoint, detach);
+			else
+				PlayHUDMotion			("anm_reload_empty", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach);
+		}
 		else
-			PlayHUDMotion("anm_reload", TRUE, this, GetState(), .4f, half);
+		{
+			if (iAmmoElapsed)
+				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach, m_ReloadPartialPoint);
+			else
+				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach);
+		}
 	}
 }
 
@@ -1422,7 +1437,7 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI(*m_hud, ScopeAxisDeviation());
+	GetActiveScope()->RenderUI(*m_hud, Actor()->CameraAxisDeviation(SightPosition(), get_LastFD(), 1.f));
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
@@ -1508,12 +1523,10 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 
 				m_hud->ProcessScope		(slot, !!param);
 
-				if (scope->Type() == eOptics && param)
-				{
-					m_ScopeBoneName		= slot->bone_name;
-					m_ScopePos			= slot->model_offset[0];
-					m_ScopePos.sub		(slot->addon->HudOffset()[0]);
-				}
+				scope->sight_bone_name	= slot->bone_name;
+				scope->sight_offset		= slot->model_offset[0];
+				scope->sight_offset.add	(slot->bone_offset[0]);
+				scope->sight_offset.sub	(slot->addon->HudOffset()[0]);
 			}
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
@@ -1527,6 +1540,9 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				m_MotionsSuffix			= (param) ? slot->addon->MotionSuffix() : 0;
 				PlayAnimIdle			();
 			}
+
+			float b						= READ_IF_EXISTS(pSettings, r_float, slot->addon->Section(), "recoil_modifier", 1.f);
+			m_recoil_modifier			*= (param) ? b : 1.f/b;
 
 			break;
 		}
@@ -1591,7 +1607,6 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
 }
 
-float zeroing = 100.f;		//--xd for future zeroing system implementation
 extern float aim_fov_tan;
 void CWeaponMagazined::UpdateShadersData()
 {
@@ -1599,8 +1614,8 @@ void CWeaponMagazined::UpdateShadersData()
 	if (!scope || scope->Type() != eCollimator)
 		return;
 
-	Fvector2 offset						= ScopeAxisDeviation(false);
-	float h								= 2.f * aim_fov_tan * zeroing;
+	Fvector2 offset						= Actor()->CameraAxisDeviation(SightPosition(), get_LastFD(), scope->Zeroing());
+	float h								= 2.f * aim_fov_tan * scope->Zeroing();
 	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
 	offset.x							/= w;
 	offset.y							/= h;
@@ -1609,17 +1624,22 @@ void CWeaponMagazined::UpdateShadersData()
 	g_pGamePersistent->m_pGShaderConstants->hud_params.z = scope->GetReticleScale(*m_hud);
 }
 
-Fvector2 CR$ CWeaponMagazined::ScopeAxisDeviation(bool for_optics)
+Fvector CR$ CWeaponMagazined::SightPosition()
 {
-	if (for_optics)
+	if (m_dwSightCalculationFrame != Device.dwFrame)
 	{
-		Fvector							lense_pos;
-		attachable_hud_item* hi			= HudItemData();
-		u16 bone_id						= hi->m_model->LL_BoneID(m_ScopeBoneName);
-		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(bone_id);
-		fire_mat.transform_tiny			(lense_pos, m_ScopePos);
-		hi->m_item_transform.transform_tiny(lense_pos);
-		return							Actor()->CameraAxisDeviation(lense_pos, get_LastFD(), 1.f);
+		CScope* scope					= GetActiveScope();
+		if (scope)
+		{
+			attachable_hud_item* hi		= HudItemData();
+			u16 bone_id					= hi->m_model->LL_BoneID(scope->sight_bone_name);
+			Fmatrix CR$ fire_mat		= hi->m_model->LL_GetTransform(bone_id);
+			fire_mat.transform_tiny		(m_SightPosition, scope->sight_offset);
+			hi->m_item_transform.transform_tiny(m_SightPosition);
+		}
+		else
+			m_SightPosition				= Actor()->Cameras().Position();
+		m_dwSightCalculationFrame		= Device.dwFrame;
 	}
-	return								Actor()->CameraAxisDeviation(Actor()->Cameras().Position(), get_LastFD(), zeroing);
+	return								m_SightPosition;
 }

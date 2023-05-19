@@ -241,15 +241,18 @@ private:
 	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
 	SAddonSlot*							m_pMagazineSlot;
-	shared_str							m_ScopeBoneName;
-	Fvector								m_ScopePos;
+	float								m_ReloadHalfPoint;
+	float								m_ReloadEmptyHalfPoint;
+	float								m_ReloadPartialPoint;
+	Fvector								m_SightPosition;
+	u16									m_dwSightCalculationFrame;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
-	Fvector2 CR$						ScopeAxisDeviation						(bool for_optics = true);
+	Fvector CR$							SightPosition							();
 
 	CScope*								GetActiveScope						C$	();
 
