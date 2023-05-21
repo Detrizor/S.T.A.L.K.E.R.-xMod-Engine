@@ -105,8 +105,6 @@ extern BOOL		g_invert_zoom; //Alundaio
 
 ENGINE_API extern float	g_console_sensitive;
 
-float			psUI_SCALE = 1.f;
-
 BOOL			g_hud_adjusment_mode = FALSE;
 
 void register_mp_console_commands();
@@ -1926,7 +1924,6 @@ void CCC_RegisterCommands()
 	CMD3(CCC_Mask, "hud_crosshair", &psHUD_Flags, HUD_CROSSHAIR);
 	CMD3(CCC_Mask, "hud_crosshair_dist", &psHUD_Flags, HUD_CROSSHAIR_DIST);
 	
-	CMD4(CCC_Float, "ui_scale", &psUI_SCALE, 0.1f, 10.0f);
 	CMD4(CCC_Float, "fov", &g_fov, 5.0f, 180.0f);
 	CMD4(CCC_Integer, "objects_per_client_update", &g_objects_per_client_update, 1, 65535)
 

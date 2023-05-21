@@ -708,6 +708,9 @@ extern Flags32 psEnvFlags;
 extern int g_ErrorLineCount;
 
 ENGINE_API int ps_r__Supersample = 1;
+
+ENGINE_API float psUI_SCALE = 1.f;
+
 void CCC_Register()
 {
     // General
@@ -854,4 +857,6 @@ void CCC_Register()
     extern BOOL debug_destroy;
     CMD4(CCC_Integer, "debug_destroy", &debug_destroy, FALSE, TRUE);
 #endif
+
+	CMD4(CCC_Float, "ui_scale", &psUI_SCALE, 0.1f, 10.0f);
 };

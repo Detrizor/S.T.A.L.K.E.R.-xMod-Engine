@@ -4,8 +4,7 @@
 #include "UICursor.h"
 #include "ui/UIWindow.h"
 
-extern				float			psUI_SCALE;
-extern	ENGINE_API	float			g_font_scale;	//--xd to fix
+extern	ENGINE_API	float			psUI_SCALE;
 
 CUICursor&	GetUICursor				()	{return UI().GetUICursor();};
 ui_core&	UI						()	{return *GamePersistent().m_pUI_core;};
@@ -203,7 +202,7 @@ ui_core::ui_core()
 {
 	m_layout_unit					= pSettings->r_float("miscellaneous", "layout_unit");
 	m_layout_factor					= pSettings->r_float("miscellaneous", "basic_layout_height") / m_layout_unit;
-	m_fonts_layout_factor			= m_layout_unit / pSettings->r_float("miscellaneous", "fonts_layout_unit");
+	m_text_scale_factor				= 1.f / m_layout_factor;
 	OnDeviceReset					();
 
 	if (!g_dedicated_server)
@@ -271,7 +270,7 @@ shared_str	ui_core::get_xml_name(LPCSTR fn)
 	return							str;
 }
 
-const float ui_core::GetScale(EScaling scaling) const
+float ui_core::GetScale(EScaling scaling) const
 {
 	switch (scaling)
 	{
@@ -287,14 +286,9 @@ const float ui_core::GetScale(EScaling scaling) const
 	}
 }
 
-const float ui_core::GetScaleFactor() const
+float ui_core::GetScaleFactor() const
 {
 	return							psUI_SCALE * m_layout_factor;
-}
-
-const float ui_core::GetTextScale(EScaling scaling) const
-{
-	return							GetScaleFactor() * GetScale(scaling) * m_fonts_layout_factor;
 }
 
 void ui_core::SetCurScale(const Fvector2& res)

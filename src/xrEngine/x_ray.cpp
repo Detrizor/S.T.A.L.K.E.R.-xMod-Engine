@@ -982,9 +982,6 @@ void _InitializeFont(CGameFont*& F, LPCSTR section, u32 flags)
         if (flags&CGameFont::fsDeviceIndependent) F->SetHeightI(sz);
         else F->SetHeight(sz);
     }
-    if (pSettings->line_exist(section, "interval"))
-        F->SetInterval(pSettings->r_fvector2(section, "interval"));
-
 }
 
 CApplication::CApplication()

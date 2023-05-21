@@ -81,11 +81,7 @@ private:
 
 private:
 	const	CUIWindow*		m_parent_wnd;
-			EScaling		m_text_scaling;
-			
-	const	float			GetScale				()										{ return UI().GetTextScale(m_text_scaling); }
 
 public:
 			void			SetParentWnd			(const CUIWindow* wnd)					{ m_parent_wnd = wnd; }
-			void			SetTextScaling			(const EScaling& val)					{ m_text_scaling = val; }
 };

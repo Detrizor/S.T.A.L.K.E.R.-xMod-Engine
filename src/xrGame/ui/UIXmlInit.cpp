@@ -316,10 +316,6 @@ bool CUIXmlInit::InitText(CUIXml& xml_doc, LPCSTR path, int index, CUIWindow* pW
 	if (text.size())
 		pLines->SetText(CStringTable().translate(text).c_str());
 
-	LPCSTR str						= xml_doc.ReadAttrib(path, index, "scaling", NULL);
-	if (str)
-		pLines->SetTextScaling		((EScaling)atoi(str));
-
 	return true;
 }
 

@@ -24,7 +24,6 @@ private:
         float height;
         u32 c;
         EAligment align;
-		float scale;
     };
 protected:
     Fvector2 vHalfPixel;
@@ -92,14 +91,13 @@ public:
     void OutSet(float x, float y);
 
     void MasterOut(BOOL bCheckDevice, BOOL bUseCoords, BOOL bScaleCoords, BOOL bUseSkip,
-		float _x, float _y, float _skip, float scale, LPCSTR fmt, va_list p);
+		float _x, float _y, float _skip, LPCSTR fmt, va_list p);
 
     u32 smart_strlen(const char* S);
     BOOL IsMultibyte() { return (uFlags & fsMultibyte); };
     u16 SplitByWidth(u16* puBuffer, u16 uBufferSize, float fTargetWidth, const char* pszText);
     u16 GetCutLengthPos(float fTargetWidth, const char* pszText);
 
-	void OutS(float _x, float _y, float scale, LPCSTR fmt, ...);
 	void OutI(float _x, float _y, LPCSTR fmt, ...);
 	void Out(float _x, float _y, LPCSTR fmt, ...);
 	void OutNext(LPCSTR fmt, ...); 

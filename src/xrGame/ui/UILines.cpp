@@ -29,7 +29,6 @@ CUILines::CUILines()
 	uFlags.set(flColoringMode,		TRUE);
 	uFlags.set(flCutWordsMode,		FALSE);
 	uFlags.set(flRecognizeNewLine,	TRUE);
-	m_text_scaling					= sAbsolute;
 	m_parent_wnd					= NULL;
 }
 
@@ -300,7 +299,7 @@ void CUILines::SetFont(CGameFont* pFont)
 
 LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR buff, int buff_len)
 {
-	float text_len					= pFont->SizeOf_(source_text);
+	float text_len					= pFont->SizeOf_(source_text) * UI().GetTextScaleFactor();
 
 	if(text_len<width)
 	{
@@ -308,14 +307,14 @@ LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR b
 	}else
 	{
 		buff[0]							= 0;
-		float el_len					= pFont->SizeOf_("..");
+		float el_len					= pFont->SizeOf_("..") * UI().GetTextScaleFactor();
 		float total						= 0.0f;
 		u16		pos						= 0;
 		
 		while(total+el_len < width)
 		{
 			const char c					= *(source_text+pos);
-			float ch_len					= pFont->SizeOf_(c);
+			float ch_len					= pFont->SizeOf_(c) * UI().GetTextScaleFactor();
 		
 			if(total+ch_len+el_len < width)
 				buff[pos]				= c;
@@ -357,7 +356,7 @@ void CUILines::Draw(float x, float y)
 				passText[i]			= '*';
 			passText[sz]			= 0;
 			m_pFont->SetAligment((CGameFont::EAligment)m_eTextAlign);
-			m_pFont->OutS			(text_pos.x, text_pos.y, GetScale(), "%s", passText);
+			m_pFont->Out			(text_pos.x, text_pos.y, "%s", passText);
 		}
 		else
 		{
@@ -369,24 +368,21 @@ void CUILines::Draw(float x, float y)
 				char* p				= static_cast<char*>(_alloca(buff_len));
 				LPCSTR				str = GetElipsisText(m_pFont, m_parent_wnd->GetWidth(), m_text.c_str(), p, buff_len);
 
-				m_pFont->OutS		(text_pos.x, text_pos.y, GetScale(), "%s", str);
+				m_pFont->Out		(text_pos.x, text_pos.y, "%s", str);
 			}else
-				m_pFont->OutS		(text_pos.x, text_pos.y, GetScale(), "%s", m_text.c_str());
+				m_pFont->Out		(text_pos.x, text_pos.y, "%s", m_text.c_str());
 		}
 	}
 	else
 	{
 		ParseText();
-
-		Fvector2					pos, indent;
-		pos.set						(x, y);
-		indent.set					(GetIndentByAlign(), GetVIndentByAlign());
-		u32 size					= m_lines.size();
-		float height				= m_pFont->CurrentHeight_() * UI().GetTextScaleFactor();
 		m_pFont->SetAligment		((CGameFont::EAligment)m_eTextAlign);
-		for (int i = 0; i < (int)size; i++)
+
+		Fvector2 pos				= { x + GetIndentByAlign(), y + GetVIndentByAlign() };
+		float height				= m_pFont->CurrentHeight_() * UI().GetTextScaleFactor();
+		for (int i = 0, i_e = m_lines.size(); i < i_e; i++)
 		{
-			m_lines[i].Draw			(m_pFont, pos.x, pos.y, indent, GetScale());
+			m_lines[i].Draw			(m_pFont, pos.x, pos.y);
 			pos.y					+= height;
 		}
 	}

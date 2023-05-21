@@ -45,7 +45,7 @@ public:
 	void 			Clear					();
 	void 			ProcessNewLines			();
 
-void 				Draw					(CGameFont* pFont, float x, float y, const Fvector2& indent, const float& size_scale) const;
+void 				Draw					(CGameFont* pFont, float x, float y) const;
 bool				IsEmpty					() {return m_subLines.empty();}
 
 protected:

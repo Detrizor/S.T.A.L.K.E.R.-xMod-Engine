@@ -4,10 +4,10 @@
 #include "../../xrEngine/GameFont.h"
 
 extern ENGINE_API BOOL		g_bRendering;
+extern ENGINE_API float		psUI_SCALE;
 
 dxFontRender::dxFontRender()
 {
-
 }
 
 dxFontRender::~dxFontRender()
@@ -68,7 +68,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 			if (len) {
 				float	X	= float(iFloor(PS.x));
 				float	Y	= float(iFloor(PS.y));
-				float	S	= floor(PS.height * PS.scale);
+				float	S	= floor(PS.height * psUI_SCALE);
 				float	Y2	= Y+S;
 				float fSize = 0;
 
@@ -78,10 +78,10 @@ void dxFontRender::OnRender(CGameFont &owner)
 				switch ( PS.align )
 				{
 				case CGameFont::alCenter:	
-					X	-= ( floor( fSize * 0.5f * PS.scale ) );	
+					X	-= ( floor( fSize * 0.5f * psUI_SCALE ) );	
 					break;
 				case CGameFont::alRight:	
-					X	-=	floor( fSize * PS.scale );
+					X	-=	floor( fSize * psUI_SCALE );
 					break;
 				}
 
@@ -108,7 +108,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 
 					l = owner.IsMultibyte() ? owner.GetCharTC( wsStr[ 1 + j ] ) : owner.GetCharTC( ( u16 ) ( u8 ) PS.string[j] );
 
-					float scw		= floor(l.z * PS.scale);
+					float scw		= floor(l.z * psUI_SCALE);
 
 					float fTCWidth	= l.z/owner.vTS.x;
 

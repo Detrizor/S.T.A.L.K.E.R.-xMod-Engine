@@ -91,15 +91,15 @@ private:
 			float			m_width_scale;
 			float			m_layout_unit;
 			float			m_layout_factor;
-			float			m_fonts_layout_factor;
+			float			m_text_scale_factor;
 
 			void			SetCurScale				(const Fvector2& res);
 
 public:
-	const	float			GetScale				(EScaling scaling)				const;
-	const	float			GetScaleFactor			()								const;
-	const	float			GetTextScale			(EScaling scaling)				const;
-	const	float			GetTextScaleFactor		()								const	{ return m_fonts_layout_factor; }
+	float								GetTextScaleFactor					C$	()		{ return m_text_scale_factor; }
+
+	float								GetScale							C$	(EScaling scaling);
+	float								GetScaleFactor						C$	();
 };
 
 extern CUICursor&		GetUICursor				();
