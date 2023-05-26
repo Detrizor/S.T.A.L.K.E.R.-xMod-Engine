@@ -48,6 +48,7 @@ private:
 	Fvector								m_hud_offset[2];
 	Fvector								m_root_offset;
 	Fvector								m_root_offset_gl;
+	Fvector								m_barrel_offset;
 	SShootingParams						m_shooting_params;
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
@@ -78,5 +79,5 @@ public:
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();
 	bool								ReadyToFire							C$	();
-	//type_name						V$	method_name							C$	()
+	Fvector								BarrelSightOffset					C$	();
 };

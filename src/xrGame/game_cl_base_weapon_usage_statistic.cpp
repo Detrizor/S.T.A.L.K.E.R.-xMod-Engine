@@ -590,7 +590,7 @@ void WeaponUsageStatistic::OnBullet_Hit(SBullet* pBullet, u16 TargetID, s16 elem
 		NewHit.BoneID = element;
 		NewHit.TargetID = TargetID;
 		NewHit.BulletID = BD.Bullet.m_dwID;
-		NewHit.Pos0 = BD.Bullet.bullet_pos;
+		NewHit.Pos0 = BD.Bullet.pos;
 		NewHit.Pos1 = HitLocation;
 		NewHit.TargetName = pTarget->cName();
 		NewHit.BoneName = smart_cast<IKinematics*>(pTarget->Visual())->LL_BoneName_dbg(element);

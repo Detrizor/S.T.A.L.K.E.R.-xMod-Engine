@@ -8,6 +8,7 @@
 #include "InventoryBox.h"
 
 #include "addon_owner.h"
+#include "scope.h"
 
 class ENGINE_API CMotionDef;
 
@@ -246,6 +247,7 @@ private:
 	float								m_ReloadPartialPoint;
 	Fvector								m_SightPosition;
 	u16									m_dwSightCalculationFrame;
+	SRangeNum<u16>						m_IronSightsZeroing;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
@@ -286,8 +288,10 @@ public:
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
 	SAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
 	bool								CanTrade							C$	();
+	u16									Zeroing								C$	();
 
 	float								CurrentZoomFactor					CO$	(bool for_svp);
+	Fvector								FireDirection						CO$	();
 
 	void								OnTaken								O$	();
 

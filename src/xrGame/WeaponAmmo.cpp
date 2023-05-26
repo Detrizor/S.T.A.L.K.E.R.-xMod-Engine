@@ -11,8 +11,6 @@
 #include "level.h"
 #include "string_table.h"
 
-#define BULLET_WALLMARK_SIZE_SCALE pSettings->r_float("bullet_manager", "bullet_wallmark_size_scale")
-
 CCartridge::CCartridge() 
 {
 	m_flags.assign			(cfTracer | cfRicochet);
@@ -37,6 +35,8 @@ void CCartridge::Load(LPCSTR section, u8 LocalAmmoType, float condition)
 	float area				= PI * pow((caliber / 2.f), 2);
 	float sharpness			= pSettings->r_float(section, "sharpness");
 	param_s.fBulletResist	= area / sharpness;
+	param_s.fAirResist		= Level().BulletManager().m_fBulletAirResistanceScale * param_s.fBulletResist * .000001f / param_s.fBulletMass;
+	param_s.fAirResistZeroingCorrection = pow(Level().BulletManager().m_fZeroingAirResistCorrectionK1 * param_s.fAirResist, Level().BulletManager().m_fZeroingAirResistCorrectionK2);
 	m_fCondition			= condition;
 
 	m_flags.set					(cfTracer, pSettings->r_bool(section, "tracer"));
@@ -104,6 +104,8 @@ void CWeaponAmmo::Load(LPCSTR section)
 	float area						= PI * pow((caliber / 2.f), 2);
 	float sharpness					= pSettings->r_float(section, "sharpness");
 	cartridge_param.fBulletResist	= area / sharpness;
+	cartridge_param.fAirResist		= Level().BulletManager().m_fBulletAirResistanceScale * cartridge_param.fBulletResist * .000001f / cartridge_param.fBulletMass;
+	cartridge_param.fAirResistZeroingCorrection = pow(Level().BulletManager().m_fZeroingAirResistCorrectionK1 * cartridge_param.fAirResist, Level().BulletManager().m_fZeroingAirResistCorrectionK2);
 
 	m_tracer						= !!pSettings->r_bool(section, "tracer");
 

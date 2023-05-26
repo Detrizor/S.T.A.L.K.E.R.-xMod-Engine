@@ -5,7 +5,7 @@
 
 struct SCartridgeParam
 {
-	float	kDisp, kBulletSpeed, impair, fBulletMass, fBulletResist, fWMS;
+	float	kDisp, kBulletSpeed, impair, fBulletMass, fBulletResist, fWMS, fAirResist, fAirResistZeroingCorrection;
 	int		buckShot;
 	u8		u8ColorID;
 	bool	mHollowPoint;
@@ -17,6 +17,8 @@ struct SCartridgeParam
 		kDisp = kBulletSpeed = impair = 1.0f;
 		fBulletMass = fBulletResist = 0.0f;
 		fWMS		= -1.f;
+		fAirResist	= 1.f;
+		fAirResistZeroingCorrection = 1000.f;
 		buckShot	= 1;
 		u8ColorID	= 0;
 	}

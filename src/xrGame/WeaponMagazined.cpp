@@ -28,6 +28,7 @@
 #include "silencer.h"
 #include "addon.h"
 #include "UI.h"
+#include "Level_Bullet_Manager.h"
 
 ENGINE_API	bool	g_dedicated_server;
 
@@ -184,6 +185,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_ReloadHalfPoint					= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_half_point", .4f);
 	m_ReloadEmptyHalfPoint				= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_empty_half_point", .3f);
 	m_ReloadPartialPoint				= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_partial_point", .75f);
+
+	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
 }
 
 void CWeaponMagazined::FireStart()
@@ -649,20 +652,12 @@ void CWeaponMagazined::state_Fire(float dt)
 			return;
 		}
 
-		Fvector p1, d;
-        p1.set(get_LastFP());
-        d.set(get_LastFD());
-		
-		//E->g_fireParams(this, p1, d);
-		Fvector dpos = SightPosition();
-		dpos.sub(p1);
-		CScope* as = GetActiveScope();
-		d.mad(dpos, d, (as) ? as->Zeroing() : 10.f);
-		d.normalize();
+		Fvector p = get_LastFP();
+		Fvector d = get_LastFD();
 
         if (m_iShotNum == 0)
         {
-            m_vStartPos = p1;
+            m_vStartPos = p;
             m_vStartDir = d;
         }
 
@@ -691,7 +686,7 @@ void CWeaponMagazined::state_Fire(float dt)
             OnShot();
 
             if (m_iShotNum > m_iBaseDispersionedBulletsCount)
-                FireTrace(p1, d);
+                FireTrace(p, d);
             else
                 FireTrace(m_vStartPos, m_vStartDir);
         }
@@ -1023,7 +1018,7 @@ void CWeaponMagazined::PlayAnimIdle()
 {
     if (GetState() != eIdle)
 		return;
-    if (IsZoomed())
+    if (ADS())
         PlayAnimAim();
     else
         inherited::PlayAnimIdle();
@@ -1184,9 +1179,18 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
     VERIFY(m_pInventory);
     string32	int_str;
 
-    int	ae = GetAmmoElapsed();
-    xr_sprintf(int_str, "%d", ae);
-    info.cur_ammo = int_str;
+	CScope* scope						= GetActiveScope();
+	if (!scope && !ADS())
+		scope							= m_pScope;
+	info.cur_ammo.printf				("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
+	if (scope && scope->Type() == eOptics)
+	{
+		float magnification				= scope->GetCurrentMagnification();
+		info.fmj_ammo.printf			(fEqual(round(magnification), magnification) ? "%.0fx" : "%.1fx", magnification);
+
+	}
+	else
+		info.fmj_ammo._set				("");
 
     if (HasFireModes())
     {
@@ -1213,14 +1217,12 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
     u32 at_size = m_ammoTypes.size();
     if (unlimited_ammo() || at_size == 0)
     {
-        info.fmj_ammo._set("--");
         info.ap_ammo._set("--");
 		info.third_ammo._set("--"); //Alundaio
     }
     else
     {
 		//Alundaio: Added third ammo type and cleanup
-		info.fmj_ammo._set("");
 		info.ap_ammo._set("");
 		info.third_ammo._set("");
 
@@ -1242,7 +1244,7 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
 		//-Alundaio
     }
 
-	info.icon = (ae != 0 && m_magazine.size() != 0) ? m_ammoTypes[m_magazine.back().m_LocalAmmoType].c_str() : m_ammoTypes[m_ammoType].c_str();
+	info.icon = m_ammoTypes[m_ammoType];
     return true;
 }
 
@@ -1408,6 +1410,14 @@ void CWeaponMagazined::ZoomInc()
 		if (scope)
 			scope->ZoomChange(1);
 	}
+	else if (pInput->iGetAsyncKeyState(DIK_LALT))
+	{
+		CScope* scope = GetActiveScope();
+		if (scope)
+			scope->ZeroingChange(1);
+		else
+			m_IronSightsZeroing.Shift(1);
+	}
 	else
 		inherited::ZoomInc();
 }
@@ -1419,6 +1429,14 @@ void CWeaponMagazined::ZoomDec()
 		CScope* scope = GetActiveScope();
 		if (scope)
 			scope->ZoomChange(-1);
+	}
+	else if (pInput->iGetAsyncKeyState(DIK_LALT))
+	{
+		CScope* scope = GetActiveScope();
+		if (scope)
+			scope->ZeroingChange(-1);
+		else
+			m_IronSightsZeroing.Shift(-1);
 	}
 	else
 		inherited::ZoomDec();
@@ -1437,7 +1455,7 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI(*m_hud, Actor()->CameraAxisDeviation(SightPosition(), get_LastFD(), 1.f));
+	GetActiveScope()->RenderUI(*m_hud, Actor()->CameraAxisDeviation(SightPosition(), get_LastFDD(), 1.f));
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
@@ -1614,7 +1632,7 @@ void CWeaponMagazined::UpdateShadersData()
 	if (!scope || scope->Type() != eCollimator)
 		return;
 
-	Fvector2 offset						= Actor()->CameraAxisDeviation(SightPosition(), get_LastFD(), scope->Zeroing());
+	Fvector2 offset						= Actor()->CameraAxisDeviation(SightPosition(), get_LastFDD(), scope->Zeroing());
 	float h								= 2.f * aim_fov_tan * scope->Zeroing();
 	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
 	offset.x							/= w;
@@ -1642,4 +1660,31 @@ Fvector CR$ CWeaponMagazined::SightPosition()
 		m_dwSightCalculationFrame		= Device.dwFrame;
 	}
 	return								m_SightPosition;
+}
+
+u16 CWeaponMagazined::Zeroing C$()
+{
+	CScope* active_scope				= GetActiveScope();
+	return								(active_scope) ? active_scope->Zeroing() : m_IronSightsZeroing.current;
+}
+
+Fvector CWeaponMagazined::FireDirection() const
+{
+	CCartridge							cartridge;
+	if (m_magazine.size())
+		cartridge						= m_magazine.back();
+	else if (m_pMagazine)
+		m_pMagazine->GetCartridge		(cartridge, false);
+	else
+		return							inherited::FireDirection();
+
+	Fvector								res[2];
+	float ar_correction					= Level().BulletManager().CalcZeroingCorrection(cartridge.param_s.fAirResistZeroingCorrection, Zeroing());
+	TransferenceAndThrowVelToThrowDir(m_hud->BarrelSightOffset().mad(inherited::FireDirection(), Zeroing()),
+		m_fStartBulletSpeed * m_silencer_koef.bullet_speed * cartridge.param_s.kBulletSpeed * ar_correction,
+		Level().BulletManager().GravityConst(),
+		res);
+
+	res[0].normalize					();
+	return								res[0];
 }

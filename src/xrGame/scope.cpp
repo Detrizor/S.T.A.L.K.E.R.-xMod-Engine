@@ -31,15 +31,12 @@ CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 	m_pVision							= NULL;
 	m_pNight_vision						= NULL;
 
-	m_fDefaultZeroing = m_fZeroing		= pSettings->r_float(section, "default_zeroing");
+	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	m_Type								= (eScopeType)pSettings->r_u8(section, "type");
 	switch (m_Type)
 	{
 		case eOptics:
-			m_fZeroingMagnificationPower= pSettings->r_float(section, "zeroing_magnification_power");
 			m_Magnificaion.Load			(pSettings->r_string(section, "magnification"));
-			m_Magnificaion.current		= m_Magnificaion.vmin;
-			OnZoomChange				();
 			m_fLenseRadius				= pSettings->r_float(section, "lense_radius");
 			m_Reticle					= pSettings->r_string(section, "reticle");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
@@ -111,18 +108,6 @@ void CScope::modify_holder_params C$(float &range, float &fov)
 		range							*= m_Magnificaion.vmax;
 		fov								*= pow(m_Magnificaion.vmax, .25f);
 	}
-}
-
-void CScope::ZoomChange(int val)
-{
-	m_Magnificaion.Shift				(val);
-	OnZoomChange						();
-}
-
-void CScope::OnZoomChange()
-{
-	if (m_fZeroingMagnificationPower > 0.f)
-		m_fZeroing						= m_fDefaultZeroing * pow(m_Magnificaion.current, m_fZeroingMagnificationPower);
 }
 
 bool CScope::HasLense() const

@@ -15,14 +15,17 @@ class CWeaponHud;
 
 struct hud_item_measures;
 
-struct SRangeFloat
+template<typename T>
+struct SRangeNum
 {
-	float vmin, vmax, step, current;
+	T vmin, vmax, step, current;
 	bool dynamic;
 
 	void Load(LPCSTR S)
 	{
-		int r = sscanf(S, "%f,%f,%f", &vmin, &step, &vmax);
+		float _min, _step, _max;
+		int r = sscanf(S, "%f,%f,%f", &_min, &_step, &_max);
+		vmin = (T)_min; step = (T)_step; vmax = (T)_max;
 		dynamic = (r == 3);
 		current = vmin;
 	}
@@ -44,7 +47,7 @@ public:
 
 private:
 	eScopeType							m_Type;
-	SRangeFloat							m_Magnificaion;
+	SRangeNum<float>					m_Magnificaion;
 	shared_str							m_Reticle;
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
@@ -52,12 +55,9 @@ private:
 	CUIStatic*							m_pUIReticle;
 	CBinocularsVision*					m_pVision;
 	CNightVisionEffector*				m_pNight_vision;
-	float								m_fZeroing;
-	float								m_fDefaultZeroing;
-	bool								m_fZeroingMagnificationPower;
+	SRangeNum<u16>						m_Zeroing;
 	
 	void								InitVisors								();
-	void								OnZoomChange							();
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
@@ -71,12 +71,14 @@ public:
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
-	float								Zeroing								C$	()		{ return m_fZeroing; }
+	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
 
 	float								GetReticleScale						C$	(CWeaponHud CR$ hud);
 	void								modify_holder_params				C$	(float &range, float &fov);
 	bool								HasLense							C$	();
 
-	void								ZoomChange								(int val);
+	void								ZoomChange								(int val)		{ m_Magnificaion.Shift(val); }
+	void								ZeroingChange							(int val)		{ m_Zeroing.Shift(val); }
+
 	void								RenderUI								(CWeaponHud CR$ hud, Fvector2 axis_deviation);
 };

@@ -160,11 +160,13 @@ void attachable_hud_item::setup_firedeps(firedeps& fd)
 		Fmatrix& fire_mat								= m_model->LL_GetTransform(m_measures.m_fire_bone);
 		fire_mat.transform_tiny							(fd.vLastFP, m_measures.m_fire_point_offset);
 		m_item_transform.transform_tiny					(fd.vLastFP);
-
-		fd.vLastFD.set									(0.f,0.f,1.f);
+		
+		fd.vLastFD.set									(m_parent_hud_item->FireDirection());
 		m_item_transform.transform_dir					(fd.vLastFD);
 		VERIFY(_valid(fd.vLastFD));
 		VERIFY(_valid(fd.vLastFD));
+		fd.vLastFDD.set									(m_parent_hud_item->FireDirectionDefault());
+		m_item_transform.transform_dir					(fd.vLastFDD);
 
 		fd.m_FireParticlesXForm.identity				();
 		fd.m_FireParticlesXForm.k.set					(fd.vLastFD);

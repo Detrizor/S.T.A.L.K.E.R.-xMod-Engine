@@ -59,23 +59,23 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hands_offset[eIS][1].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_rot"));
 	ApplyPivot							(m_hands_offset[eIS], m_root_offset);
 
-	Fvector barrel_offset				= m_root_offset;
-	barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
+	m_barrel_offset						= m_root_offset;
+	m_barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
 
 	m_hands_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
 	m_hands_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
-	ApplyPivot							(m_hands_offset[eRelaxed], barrel_offset);
+	ApplyPivot							(m_hands_offset[eRelaxed], m_barrel_offset);
 
 	m_hands_offset[eArmed][0]			= pSettings->r_fvector3(O.HudSection(), "armed_pos");
 	m_hands_offset[eArmed][1]			= pSettings->r_fvector3(O.HudSection(), "armed_rot");
-	ApplyPivot							(m_hands_offset[eArmed], barrel_offset);
+	ApplyPivot							(m_hands_offset[eArmed], m_barrel_offset);
 
 	m_hands_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hands_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
-	ApplyPivot							(m_hands_offset[eAlt], barrel_offset);
+	ApplyPivot							(m_hands_offset[eAlt], m_barrel_offset);
 	m_hands_offset[eAlt][0].y			-= pSettings->r_float(O.HudSection(), "alt_aim_height");
 
-	m_hands_offset[eIS][0].z			= barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+	m_hands_offset[eIS][0].z			= m_barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
 	m_hands_offset[eAlt][0].z			= m_hands_offset[eIS][0].z;
 
 	CalcAimOffset						();
@@ -688,4 +688,9 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 	}
 
 	return false;
+}
+
+Fvector CWeaponHud::BarrelSightOffset C$()
+{
+	return								Fvector(m_barrel_offset).sub(m_hands_offset[GetCurrentHudOffsetIdx()][0]);
 }

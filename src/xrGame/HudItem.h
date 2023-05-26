@@ -199,7 +199,10 @@ public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
+	Fvector								FireDirectionDefault				C$	()	{ return {0.f,0.f,1.f}; }
+
 	bool							V$	AltHandsAttachRotation				C$	()	{ return false; }
+	Fvector							V$	FireDirection						C$	()	{ return FireDirectionDefault(); }
 
 	friend class CWeaponHud;
 };

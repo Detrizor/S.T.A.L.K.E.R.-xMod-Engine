@@ -6,11 +6,12 @@ struct	firedeps
 	Fvector				vLastFP; 				//fire point
 	Fvector				vLastFP2;				//fire point2
 	Fvector				vLastFD;				//fire direction
+	Fvector				vLastFDD;				//fire direction default (con-compensated by zeroing)
 	Fvector				vLastSP;				//shell point	
 
-	firedeps			()			{	m_FireParticlesXForm.identity();
-										vLastFP.set			(0,0,0);
-										vLastFP2.set		(0,0,0);
-										vLastFD.set			(0,0,0);
-										vLastSP.set			(0,0,0);}
+	firedeps			()
+	{
+		m_FireParticlesXForm.identity();
+		vLastFP = vLastFP2 = vLastFD = vLastFDD = vLastSP = vZero;
+	}
 };

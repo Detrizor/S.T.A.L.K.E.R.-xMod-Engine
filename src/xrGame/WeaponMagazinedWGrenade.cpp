@@ -289,7 +289,7 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
     {
         Fvector						p1, d;
         p1.set(get_LastFP2());
-        d.set(get_LastFD());
+        d.set(get_LastFDD());
         CEntity*					E = smart_cast<CEntity*>(H_Parent());
 
         if (E)
@@ -599,110 +599,6 @@ void CWeaponMagazinedWGrenade::net_Spawn_install_upgrades(Upgrades_type saved_up
 {
     // do not delete this
     // this is intended behaviour
-}
-
-#include "string_table.h"
-bool CWeaponMagazinedWGrenade::GetBriefInfo(II_BriefInfo& info)
-{
-    VERIFY(m_pInventory);
-    /*
-        if(!inherited::GetBriefInfo(info))
-        return false;
-        */
-    string32 int_str;
-    int	ae = GetAmmoElapsed();
-    xr_sprintf(int_str, "%d", ae);
-    info.cur_ammo._set(int_str);
-    if (HasFireModes())
-    {
-        if (m_iQueueSize == WEAPON_ININITE_QUEUE)
-            info.fire_mode._set("A");
-        else
-        {
-            xr_sprintf(int_str, "%d", m_iQueueSize);
-            info.fire_mode._set(int_str);
-        }
-    }
-    if (m_pInventory->ModifyFrame() <= m_BriefInfo_CalcFrame)
-        return false;
-
-    u32 at_size = m_bGrenadeMode ? m_ammoTypes2.size() : m_ammoTypes.size();
-    if (unlimited_ammo() || at_size == 0)
-    {
-        info.fmj_ammo._set("--");
-        info.ap_ammo._set("--");
-		info.third_ammo._set("--"); //Alundaio
-    }
-    else
-    {
-		//Alundaio: Added third ammo type and cleanup
-		info.fmj_ammo._set("");
-		info.ap_ammo._set("");
-		info.third_ammo._set("");
-
-		u8 ammo_type = m_bGrenadeMode ? m_ammoType2 : m_ammoType;
-		xr_sprintf(int_str, "%d", m_bGrenadeMode ? GetAmmoCount2(ammo_type) : GetAmmoCount(ammo_type));
-
-		if (m_ammoType == 0)
-			info.fmj_ammo._set(int_str);
-		else if (m_ammoType == 1)
-			info.ap_ammo._set(int_str);
-		else
-			info.third_ammo._set(int_str);
-
-		//Alundaio: Added third ammo type and cleanup
-		info.fmj_ammo._set("");
-		info.ap_ammo._set("");
-		info.third_ammo._set("");
-
-		if (at_size >= 1)
-		{
-			xr_sprintf(int_str, "%d", m_bGrenadeMode ? GetAmmoCount2(0) : GetAmmoCount(0));
-			info.fmj_ammo._set(int_str);
-		}
-		if (at_size >= 2)
-		{
-			xr_sprintf(int_str, "%d", m_bGrenadeMode ? GetAmmoCount2(1) : GetAmmoCount(1));
-			info.ap_ammo._set(int_str);
-		}
-		if (at_size >= 3)
-		{
-			xr_sprintf(int_str, "%d", m_bGrenadeMode ? GetAmmoCount2(2) : GetAmmoCount(2));
-			info.third_ammo._set(int_str);
-		}
-		//-Alundaio
-    }
-
-    if (ae != 0 && m_magazine.size() != 0)
-    {
-        LPCSTR ammo_type = m_ammoTypes[m_magazine.back().m_LocalAmmoType].c_str();
-        info.icon._set(ammo_type);
-    }
-    else
-    {
-        LPCSTR ammo_type = m_ammoTypes[m_ammoType].c_str();
-        info.icon._set(ammo_type);
-    }
-
-    if (!m_pLauncher)
-    {
-        info.grenade = "";
-        return false;
-    }
-
-    int total2 = m_bGrenadeMode ? GetAmmoCount(0) : GetAmmoCount2(0);
-    if (unlimited_ammo())
-        xr_sprintf(int_str, "--");
-    else
-    {
-        if (total2)
-            xr_sprintf(int_str, "%d", total2);
-        else
-            xr_sprintf(int_str, "X");
-    }
-    info.grenade = int_str;
-
-    return true;
 }
 
 int CWeaponMagazinedWGrenade::GetAmmoCount2(u8 ammo2_type) const

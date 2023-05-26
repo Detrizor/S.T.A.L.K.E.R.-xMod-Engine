@@ -1327,7 +1327,7 @@ void CWeapon::render_hud_mode()
 
 bool CWeapon::MovingAnimAllowedNow()
 {
-	return !IsZoomed();
+	return !ADS();
 }
 
 bool CWeapon::IsHudModeNow()
@@ -1377,6 +1377,9 @@ void CWeapon::SetADS(int mode)
 		ResetSubStateTime();
 	}
 	m_iADS = mode;
+
+	if (GetState() == eIdle)
+		PlayAnimIdle();
 }
 
 void CWeapon::SwitchArmedMode()
@@ -1399,7 +1402,7 @@ bool CWeapon::NeedBlendAnm()
 	if (GetState() == eIdle && !ArmedMode() && HandSlot() == BOTH_HANDS_SLOT)
 		return true;
 
-	if (IsZoomed())
+	if (ADS())
 		return true;
 
 	return inherited::NeedBlendAnm();

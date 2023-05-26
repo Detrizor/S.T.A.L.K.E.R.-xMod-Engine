@@ -114,10 +114,10 @@ void CUIHudStatesWnd::InitFromXml( CUIXml& xml, LPCSTR path )
 	m_indik[ALife::infl_acid] = UIHelper::CreateStatic( xml, "indik_acid", this );
 	m_indik[ALife::infl_psi]  = UIHelper::CreateStatic( xml, "indik_psi", this );
 
-//	m_lanim_name				= xml.ReadAttrib( "indik_rad", 0, "light_anim", "" );
+	m_ui_weapon_cur_ammo		= UIHelper::CreateTextWnd( xml, "static_zeroing", this );
+	m_fire_mode					= UIHelper::CreateTextWnd( xml, "static_fire_mode", this );
+	m_ui_weapon_fmj_ammo		= UIHelper::CreateTextWnd( xml, "static_magnification", this );
 
-	m_ui_weapon_cur_ammo		= UIHelper::CreateTextWnd( xml, "static_cur_ammo", this );
-	m_ui_weapon_fmj_ammo		= UIHelper::CreateTextWnd( xml, "static_fmj_ammo", this );
 	m_ui_weapon_ap_ammo			= UIHelper::CreateTextWnd( xml, "static_ap_ammo", this );
 
 	//Alundaio: Option to display a third ammo type
@@ -126,8 +126,6 @@ void CUIHudStatesWnd::InitFromXml( CUIXml& xml, LPCSTR path )
 
 	m_ui_weapon_ammo_color_active = CUIXmlInit::GetColor(xml, "active_ammo_color", 0, color_rgba(238, 155, 23, 255));
 	m_ui_weapon_ammo_color_inactive = CUIXmlInit::GetColor(xml, "inactive_ammo_color", 0, color_rgba(238, 155, 23, 150));
-
-	m_fire_mode					= UIHelper::CreateTextWnd( xml, "static_fire_mode", this );
 	m_ui_grenade				= UIHelper::CreateTextWnd( xml, "static_grenade", this );
 	
 	m_ui_weapon_icon			= UIHelper::CreateStatic( xml, "static_wpn_icon", this );
@@ -342,28 +340,6 @@ void CUIHudStatesWnd::UpdateActiveItemInfo( CActor* actor )
 			m_ui_weapon_third_ammo->SetText(m_item_info.third_ammo.c_str());
 		
 		m_ui_grenade->SetText	( m_item_info.grenade.c_str() );
-
-		m_ui_weapon_fmj_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-		m_ui_weapon_ap_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-		m_ui_weapon_third_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-
-		CWeaponMagazinedWGrenade* wpn = smart_cast<CWeaponMagazinedWGrenade*>(item);
-		if(wpn && wpn->m_bGrenadeMode)
-			m_ui_grenade->SetTextColor(m_ui_weapon_ammo_color_active);
-		else
-			m_ui_grenade->SetTextColor(m_ui_weapon_ammo_color_inactive);
-
-		CWeaponMagazined* wpnm = smart_cast<CWeaponMagazined*>(item);
-		if (wpnm)
-		{
-			if (wpnm->m_ammoType == 0)
-				m_ui_weapon_fmj_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-			else if (wpnm->m_ammoType == 1)
-				m_ui_weapon_ap_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-			else if (wpnm->m_ammoType == 2)
-				m_ui_weapon_third_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-		}
-		//-Alundaio
 	}
 	else
 	{

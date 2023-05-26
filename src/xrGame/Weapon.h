@@ -266,6 +266,10 @@ public:
 	{
 		UpdateFireDependencies(); return m_current_firedeps.vLastFD;
 	}
+	IC		const Fvector&	get_LastFDD()
+	{
+		UpdateFireDependencies(); return m_current_firedeps.vLastFDD;
+	}
 	IC		const Fvector&	get_LastSP()
 	{
 		UpdateFireDependencies(); return m_current_firedeps.vLastSP;
