@@ -9,6 +9,7 @@
 #include "Level_Bullet_Manager.h"
 #include "addon.h"
 #include "scope.h"
+#include "weapon.h"
 
 const float aim_factor = pSettings->r_float("weapon_manager", "aim_factor");
 
@@ -177,7 +178,7 @@ bool CWeaponHud::ReadyToFire C$()
 
 void CWeaponHud::InitRotateTime(float cif)
 {
-	m_fRotateTime = HandlingToRotationTime.Calc(cif);
+	m_fRotateTime = HandlingToRotationTime.Calc(cif - 1.f);
 }
 
 EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
@@ -199,6 +200,9 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 			return (m_alt_scope || m_scope_own_alt_aim) ? eScopeAlt : ((m_scope && m_scope_alt_aim_via_iron_sights) ? eIS : eAlt);
 		}
 	}
+
+	if (O.Cast<CHudItem*>()->GetState() == CWeapon::eReload)
+		return eArmed;
 
 	if (!O.ArmedMode())
 	{
@@ -223,7 +227,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		Fvector CR$ curr_offs = m_hands_offset[idx][0]; //pos,aim
 		Fvector CR$ curr_rot = m_hands_offset[idx][1]; //rot,aim
 
-		float factor = Device.fTimeDelta;
+		float factor = Device.fTimeDelta / m_fRotateTime;
 		switch (idx)
 		{
 			case eRelaxed:
@@ -231,39 +235,31 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			case eAlt:
 			case eScopeAlt:
 			case eGL:
-				factor /= .8f * m_fRotateTime;
+				factor /= .8f;
 				break;
 			case eArmed:
 			case eAim:
-				factor /= .4f * m_fRotateTime;
+				factor /= .4f;
 				break;
 			case eScope:
-				factor /= ((m_scope == eOptics) ? 1.f : .6f) * m_fRotateTime;
+				factor /= (m_scope == eOptics) ? 1.f : .6f;
 				break;
 		}
 
-		float mul = 0.0001f;
-
-		if (curr_offs.similar(m_hud_offset[0], EPS_S))
+		if (curr_offs.similar(m_hud_offset[0], EPS))
 			m_hud_offset[0].set(curr_offs);
 		else
 		{
-			Fvector diff = curr_offs;
-			diff.sub(m_hud_offset[0]);
-			mul = mul/diff.magnitude() + factor * 2.5f;
-			clamp(mul, 0.f, 1.f);
-			diff.mul(mul);
-			m_hud_offset[0].add(diff);
+			Fvector diff = Fvector(curr_offs).sub(m_hud_offset[0]);
+			m_hud_offset[0].mad(diff, factor * 2.5f);
 		}
 
-		if (curr_rot.similar(m_hud_offset[1], EPS_S))
+		if (curr_rot.similar(m_hud_offset[1], EPS))
 			m_hud_offset[1].set(curr_rot);
 		else
 		{
-			Fvector diff = curr_rot;
-			diff.sub(m_hud_offset[1]);
-			diff.mul(mul);
-			m_hud_offset[1].add(diff);
+			Fvector diff = Fvector(curr_rot).sub(m_hud_offset[1]);
+			m_hud_offset[1].mad(diff, factor * 2.5f);
 		}
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay

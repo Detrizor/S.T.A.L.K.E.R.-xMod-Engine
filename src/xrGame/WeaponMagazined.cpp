@@ -158,8 +158,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_Chamber = pSettings->r_bool(section, "has_chamber");
 
 	m_hud = xr_new<CWeaponHud>(this);
-	if (IsZoomEnabled())
-		InitRotateTime();
+	InitRotateTime();
 
 	CAddonOwner* ao						= cast<CAddonOwner*>();
 	if (ao)
@@ -1376,15 +1375,6 @@ void CWeaponMagazined::OnHiddenItem()
 	inherited::OnHiddenItem				();
 }
 
-float CWeaponMagazined::GetControlInertionFactorBase() const
-{
-	float res							= inherited::GetControlInertionFactorBase();
-	CAddonOwner CPC ao					= cast<CAddonOwner CP$>();
-	if (ao)
-		ao->ModifyControlInertionFactor	(res);
-	return								res;
-}
-
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 {
 	if (m_pScope && m_pScope->Type() == eOptics)
@@ -1612,7 +1602,7 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 
 void CWeaponMagazined::InitRotateTime()
 {
-	m_hud->InitRotateTime(GetControlInertionFactorBase());
+	m_hud->InitRotateTime(GetControlInertionFactor());
 }
 
 void CWeaponMagazined::UpdateHudBonesVisibility()

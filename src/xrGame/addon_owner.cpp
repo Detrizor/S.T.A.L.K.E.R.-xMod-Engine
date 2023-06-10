@@ -191,15 +191,6 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, SAddonSlot PC$ slot, bool atta
 	}
 }
 
-void CAddonOwner::ModifyControlInertionFactor C$(float& cif)
-{
-	for (auto& slot : m_Slots)
-	{
-		if (slot->addon)
-			cif							*= slot->addon->GetControlInertionFactor();
-	}
-}
-
 int CAddonOwner::AttachAddon(CAddon CPC addon, SAddonSlot* slot)
 {
 	if (!addon)

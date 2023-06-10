@@ -295,7 +295,7 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 	if (ItemCategory(section, "ammo") && (ItemSubcategory(section, "box") || ItemSubcategory(section, "cartridge")))
 	{
 		LPCSTR sect							= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "stock") : *section;
-		float bullet_speed					= pSettings->r_float(sect, "bullet_speed");
+		float bullet_speed					= pSettings->r_float(sect, "bullet_speed") * pSettings->r_float(sect, "k_bullet_speed");
 		m_bullet_speed->SetValue			(bullet_speed);
 		pos.set								(m_bullet_speed->GetWndPos());
 		pos.y								= h;

@@ -164,7 +164,6 @@ void attachable_hud_item::setup_firedeps(firedeps& fd)
 		fd.vLastFD.set									(m_parent_hud_item->FireDirection());
 		m_item_transform.transform_dir					(fd.vLastFD);
 		VERIFY(_valid(fd.vLastFD));
-		VERIFY(_valid(fd.vLastFD));
 		fd.vLastFDD.set									(m_parent_hud_item->FireDirectionDefault());
 		m_item_transform.transform_dir					(fd.vLastFDD);
 

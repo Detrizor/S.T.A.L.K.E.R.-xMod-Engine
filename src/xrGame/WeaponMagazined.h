@@ -255,10 +255,10 @@ private:
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
 	Fvector CR$							SightPosition							();
+	void								InitRotateTime							();
 
 	CScope*								GetActiveScope						C$	();
 
-	float								GetControlInertionFactorBase		CO$	();
 	bool								ReadyToFire							CO$	();
 
 	void								PrepareCartridgeToShoot				O$	();
@@ -270,7 +270,6 @@ protected:
 	CMagazine*							m_pNextMagazine;
 	CWeaponAmmo*						m_pCartridgeToReload;
 
-	void								InitRotateTime						O$	();
 	void								ConsumeShotCartridge				O$	();
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);

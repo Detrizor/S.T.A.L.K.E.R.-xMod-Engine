@@ -1408,20 +1408,17 @@ bool CWeapon::NeedBlendAnm()
 	return inherited::NeedBlendAnm();
 }
 
-float CWeapon::GetControlInertionFactorBase C$()
-{
-	return								inherited::GetControlInertionFactor() - 1.f;
-}
-
 float CWeapon::GetControlInertionFactor C$()
 {
-	float inertion						= GetControlInertionFactorBase();
+	float inertion						= inherited::GetControlInertionFactor() - 1.f;
+	inertion							+= Weight() * .1f;
 	if (IsZoomed());
 	else if (ArmedMode())
 		inertion						*= .5f;
 	else
 		inertion						*= .1f;
-	return								1.f + inertion;
+
+	return								sqrt(1.f + inertion);
 }
 
 float CWeapon::CurrentZoomFactor C$(bool for_svp)

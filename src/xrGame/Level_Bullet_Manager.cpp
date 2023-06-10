@@ -265,6 +265,7 @@ void CBulletManager::UpdateWorkload()
 
 bool CBulletManager::process_bullet(collide::rq_results & storage, SBullet& bullet, float time_delta)
 {
+	Msg("--xd process_bullet bullet_mass [%f] speed [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.updates);
 	bullet.tracer_start_position		= bullet.pos;
 	Fbox CR$ level_box					= Level().ObjectSpace.GetBoundingVolume();
 	if ((bullet.pos.x < level_box.x1) ||
@@ -288,6 +289,7 @@ bool CBulletManager::update_bullet(
 	Fvector const& gravity
 )
 {
+	Msg("--xd update_bullet bullet_mass [%f] speed [%f] fly_dist [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.fly_dist, bullet.updates);
 	R_ASSERT							(bullet.updates++ < 1000);
 
 	bullet_test_callback_data			data;
@@ -318,7 +320,8 @@ bool CBulletManager::update_bullet(
 	collide::ray_defs RD				(bullet.pos, start_to_target, distance, CDB::OPT_FULL_TEST, collide::rqtBoth);
 	if (Level().ObjectSpace.RayQuery(storage, RD, CBulletManager::firetrace_callback, &data, CBulletManager::test_callback, NULL))
 	{
-		if (fIsZero(bullet.speed))
+		Msg("--xd after firetrace_callback bullet_mass [%f] speed [%f] fly_dist [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.fly_dist, bullet.updates);
+		if (bullet.speed < 1.f)
 			return						false;
 		bullet.pos.mad					(bullet.dir, EPS_L);
 		bullet.fly_dist					+= EPS_L;
@@ -335,13 +338,14 @@ bool CBulletManager::update_bullet(
 
 BOOL CBulletManager::firetrace_callback	(collide::rq_result& result, LPVOID params)
 {
+	Msg("--xd firetrace_callback range [%f]", result.range);
+
+	bullet_test_callback_data& data		= *(bullet_test_callback_data*)params;
+	data.collide_time					= result.range / data.avg_velocity.magnitude();
 	if (fIsZero(result.range))
 		return							TRUE;
 
-	bullet_test_callback_data& data		= *(bullet_test_callback_data*)params;
 	SBullet& bullet						= *data.pBullet;
-	data.collide_time					= result.range / data.avg_velocity.magnitude();
-
 	Fvector collide_position			= Fvector(bullet.pos).mad(data.avg_velocity.normalize(), result.range);
 	bullet.fly_dist						+= bullet.pos.distance_to(collide_position);
 	bullet.pos							= collide_position;

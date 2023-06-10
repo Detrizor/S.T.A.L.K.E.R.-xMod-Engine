@@ -459,6 +459,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 			bullet->pos					= end_point;
 			bullet->flags.ricochet_was	= 1;
 			ricoshet					= true;
+			bullet->density				= 1.f;
 		}
 	}
 

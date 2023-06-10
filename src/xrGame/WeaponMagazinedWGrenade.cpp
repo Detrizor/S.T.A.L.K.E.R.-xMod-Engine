@@ -315,7 +315,7 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 
         launch_matrix.c.set(p1);
 
-        if (IsZoomed() && smart_cast<CActor*>(H_Parent()))
+        if (ADS())
         {
             H_Parent()->setEnabled(FALSE);
             setEnabled(FALSE);
@@ -688,5 +688,10 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 
 bool CWeaponMagazinedWGrenade::AltHandsAttachRotation() const
 {
-	return m_bGrenadeMode && ADS();
+	return m_bGrenadeMode;// && ADS();
+}
+
+Fvector CWeaponMagazinedWGrenade::FireDirection C$()
+{
+	return (m_bGrenadeMode) ? FireDirectionDefault() : inherited::FireDirection();
 }

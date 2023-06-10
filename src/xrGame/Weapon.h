@@ -538,9 +538,7 @@ protected:
 	float								m_recoil_modifier;
 
 	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
-	float							V$	GetControlInertionFactorBase		C$	();
-
-	void							V$	InitRotateTime							()		{}
+	
 	void							V$	SetADS									(int mode);
 	void							V$	ConsumeShotCartridge					();
 

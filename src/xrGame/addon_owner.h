@@ -57,7 +57,6 @@ private:
 public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
 
-	void								ModifyControlInertionFactor			C$	(float& cif);
 	CAddonOwner*						ParentAO							C$	();
 
 	int									AttachAddon								(CAddon CPC addon, SAddonSlot* slot = NULL);
