@@ -173,7 +173,7 @@ bool CWeaponHud::IsRotatingToZoom C$()
 
 bool CWeaponHud::ReadyToFire C$()
 {
-	return GetCurrentHudOffsetIdx() != eRelaxed && last_idx != eRelaxed;
+	return GetCurrentHudOffsetIdx() != eRelaxed;
 }
 
 void CWeaponHud::InitRotateTime(float cif)
