@@ -94,6 +94,9 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 
 	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
 	m_scope_own_alt_aim					= false;
+
+	m_last_idx							= eRelaxed;
+	m_going_to_fire						= false;
 }
 
 void CWeaponHud::CalcAimOffset()
@@ -168,7 +171,7 @@ void CWeaponHud::SwitchGL()
 
 bool CWeaponHud::IsRotatingToZoom C$()
 {
-	return GetCurrentHudOffsetIdx() != last_idx;
+	return GetCurrentHudOffsetIdx() != m_last_idx;
 }
 
 bool CWeaponHud::ReadyToFire C$()
@@ -263,8 +266,15 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		}
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
-		if (curr_offs.similar(m_hud_offset[0], EPS_S) && curr_rot.similar(m_hud_offset[1], EPS_S))
-			last_idx = idx;
+		if (idx != m_last_idx && curr_offs.similar(m_hud_offset[0], EPS) && curr_rot.similar(m_hud_offset[1], EPS))
+		{
+			m_last_idx = idx;
+			if (m_going_to_fire)
+			{
+				O.FireStart();
+				m_going_to_fire = false;
+			}
+		}
 
 		ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
 
@@ -612,6 +622,9 @@ extern BOOL								g_hud_adjusment_mode;
 int hands_mode							= 0;
 bool CWeaponHud::Action(u16 cmd, u32 flags)
 {
+	if (cmd == kWPN_FIRE && m_last_idx == eRelaxed)
+		m_going_to_fire					= !!flags&CMD_START;
+
 	if (g_hud_adjusment_mode && flags&CMD_START)
 	{
 		int axis						= -1;

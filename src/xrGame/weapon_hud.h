@@ -37,7 +37,7 @@ public:
 										CWeaponHud								(CWeaponMagazined* obj);
 
 private:
-	EHandsOffset						last_idx;
+	EHandsOffset						m_last_idx;
 	float								m_lense_offset;
 	float								m_fRotateTime;
 	float								m_fRotationFactor;
@@ -58,6 +58,7 @@ private:
 	bool								m_gl;
 	bool								m_scope_alt_aim_via_iron_sights;
 	bool								m_scope_own_alt_aim;
+	bool								m_going_to_fire;
 
 	void								CalcAimOffset							();
 
