@@ -23,7 +23,7 @@
 #define HIT_POWER_EPSILON 0.05f
 #define WALLMARK_SIZE 0.04f
 
-float CBulletManager::m_fMinBulletSpeed					= 2.f;
+float CBulletManager::m_fMinBulletSpeed					= 3.f;
 float const CBulletManager::parent_ignore_distance		= 3.f;
 
 #ifdef DEBUG
@@ -274,7 +274,7 @@ bool CBulletManager::process_bullet(collide::rq_results & storage, SBullet& bull
 		//		(bullet.pos.y > level_box.y2) ||
 		(bullet.pos.z < level_box.z1) ||
 		(bullet.pos.z > level_box.z2) ||
-		(bullet.speed < 1.f) ||
+		(bullet.speed < m_fMinBulletSpeed) ||
 		(bullet.updates > 999))
 		return							false;
 
@@ -321,7 +321,7 @@ bool CBulletManager::update_bullet(
 	if (Level().ObjectSpace.RayQuery(storage, RD, CBulletManager::firetrace_callback, &data, CBulletManager::test_callback, NULL))
 	{
 		Msg("--xd after firetrace_callback bullet_mass [%f] speed [%f] fly_dist [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.fly_dist, bullet.updates);
-		if (bullet.speed < 1.f)
+		if (bullet.speed < m_fMinBulletSpeed)
 			return						false;
 		bullet.pos.mad					(bullet.dir, EPS_L);
 		bullet.fly_dist					+= EPS_L;
