@@ -788,13 +788,6 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		if (IsPending())
 			return false;
 
-		if (ParentIsActor() && !ReadyToFire())
-		{
-			if (flags&CMD_START && !ArmedMode() && !IsZoomed())
-				SwitchArmedMode();
-			return false;
-		}
-
 		if (flags&CMD_START)
 			FireStart();
 		else

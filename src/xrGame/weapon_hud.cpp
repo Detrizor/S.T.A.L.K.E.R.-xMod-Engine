@@ -95,7 +95,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
 	m_scope_own_alt_aim					= false;
 
-	m_last_idx							= eRelaxed;
 	m_going_to_fire						= false;
 }
 
@@ -171,12 +170,8 @@ void CWeaponHud::SwitchGL()
 
 bool CWeaponHud::IsRotatingToZoom C$()
 {
-	return GetCurrentHudOffsetIdx() != m_last_idx;
-}
-
-bool CWeaponHud::ReadyToFire C$()
-{
-	return GetCurrentHudOffsetIdx() != eRelaxed;
+	EHandsOffset idx = GetCurrentHudOffsetIdx();
+	return !(m_hands_offset[idx][0].similar(m_hud_offset[0], EPS) && m_hands_offset[idx][1].similar(m_hud_offset[1], EPS));
 }
 
 void CWeaponHud::InitRotateTime(float cif)
@@ -249,7 +244,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 				break;
 		}
 
-		if (curr_offs.similar(m_hud_offset[0], EPS))
+		if (curr_offs.similar(m_hud_offset[0], EPS_S))
 			m_hud_offset[0].set(curr_offs);
 		else
 		{
@@ -257,7 +252,7 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_hud_offset[0].mad(diff, factor * 2.5f);
 		}
 
-		if (curr_rot.similar(m_hud_offset[1], EPS))
+		if (curr_rot.similar(m_hud_offset[1], EPS_S))
 			m_hud_offset[1].set(curr_rot);
 		else
 		{
@@ -266,14 +261,10 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 		}
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
-		if (idx != m_last_idx && curr_offs.similar(m_hud_offset[0], EPS) && curr_rot.similar(m_hud_offset[1], EPS))
+		if (m_going_to_fire && curr_offs.similar(m_hud_offset[0], .01f) && curr_rot.similar(m_hud_offset[1], .01f))
 		{
-			m_last_idx = idx;
-			if (m_going_to_fire)
-			{
-				O.FireStart();
-				m_going_to_fire = false;
-			}
+			O.FireStart();
+			m_going_to_fire = false;
 		}
 
 		ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
@@ -622,8 +613,20 @@ extern BOOL								g_hud_adjusment_mode;
 int hands_mode							= 0;
 bool CWeaponHud::Action(u16 cmd, u32 flags)
 {
-	if (cmd == kWPN_FIRE && m_last_idx == eRelaxed)
-		m_going_to_fire					= !!flags&CMD_START;
+	if (cmd == kWPN_FIRE)
+	{
+		if (flags&CMD_START)
+		{
+			if (GetCurrentHudOffsetIdx() == eRelaxed)
+			{
+				if (!O.ArmedMode())
+					O.SwitchArmedMode	();
+				return					true;
+			}
+		}
+		else if (m_going_to_fire)
+			m_going_to_fire				= false;
+	}
 
 	if (g_hud_adjusment_mode && flags&CMD_START)
 	{

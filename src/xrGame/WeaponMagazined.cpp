@@ -359,11 +359,6 @@ void CWeaponMagazined::OnMagazineEmpty()
     inherited::OnMagazineEmpty();
 }
 
-bool CWeaponMagazined::ReadyToFire C$()
-{
-	return m_hud->ReadyToFire();
-}
-
 void CWeaponMagazined::PrepareCartridgeToShoot()
 {
 	if (m_magazine.empty())
@@ -892,10 +887,10 @@ void CWeaponMagazined::switch2_Showing()
 
 bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 {
-    if (inherited::Action(cmd, flags))
+	if (m_hud->Action(cmd, flags))
 		return true;
 
-	if (m_hud->Action(cmd, flags))
+	if (inherited::Action(cmd, flags))
 		return true;
 
     //если оружие чем-то занято, то ничего не делать

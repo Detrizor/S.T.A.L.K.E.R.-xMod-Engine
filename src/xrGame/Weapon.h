@@ -519,16 +519,12 @@ public:
 
 //xMod altered
 public:
-	bool							V$	IsRotatingToZoom					C$	()		{ return false; }
 	float								GetControlInertionFactor			CO$	();
 
 //xMod added
 private:
 	int									m_iADS;
 
-	void								SwitchArmedMode							();
-
-	bool							V$	ReadyToFire							C$	()		{ return true; }
 	void							V$	PrepareCartridgeToShoot					()		{}
 
 protected:
@@ -543,6 +539,8 @@ protected:
 	void							V$	ConsumeShotCartridge					();
 
 public:
+	void								SwitchArmedMode							();
+
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	float								RecoilModifier						C$	()		{ return m_recoil_modifier; }

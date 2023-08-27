@@ -225,14 +225,16 @@ public:
 
 //xMod altered
 public:
+	bool								IsRotatingToZoom					C$	();
+
+	void								modify_holder_params				CO$	(float& range, float& fov);
+
 	void								UpdateHudAdditional					O$	(Fmatrix& trans);
 	bool								need_renderable						O$	();
 	bool								render_item_ui_query				O$	();
 	void								render_item_ui						O$	();
 	void								ZoomInc								O$	();
 	void								ZoomDec								O$	();
-	void								modify_holder_params				CO$	(float& range, float& fov);
-	bool								IsRotatingToZoom					CO$	();
 
 //xMod added
 private:
@@ -258,8 +260,6 @@ private:
 	void								InitRotateTime							();
 
 	CScope*								GetActiveScope						C$	();
-
-	bool								ReadyToFire							CO$	();
 
 	void								PrepareCartridgeToShoot				O$	();
 	void								OnHiddenItem						O$	();

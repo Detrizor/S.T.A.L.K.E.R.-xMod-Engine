@@ -37,7 +37,6 @@ public:
 										CWeaponHud								(CWeaponMagazined* obj);
 
 private:
-	EHandsOffset						m_last_idx;
 	float								m_lense_offset;
 	float								m_fRotateTime;
 	float								m_fRotationFactor;
@@ -79,6 +78,5 @@ public:
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();
-	bool								ReadyToFire							C$	();
 	Fvector								BarrelSightOffset					C$	();
 };
