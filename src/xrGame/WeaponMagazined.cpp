@@ -1435,7 +1435,13 @@ bool CWeaponMagazined::need_renderable()
 bool CWeaponMagazined::render_item_ui_query()
 {
 	CScope* scope = GetActiveScope();
-	return scope && scope->Type() == eOptics && (!scope->HasLense() && !IsRotatingToZoom() || Device.m_SecondViewport.IsSVPFrame());
+	if (!scope || scope->Type() != eOptics)
+		return false;
+
+	if (scope->HasLense())
+		return Device.m_SecondViewport.IsSVPFrame();
+
+	return !IsRotatingToZoom();
 }
 
 void CWeaponMagazined::render_item_ui()

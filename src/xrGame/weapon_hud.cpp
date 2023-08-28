@@ -171,7 +171,15 @@ void CWeaponHud::SwitchGL()
 bool CWeaponHud::IsRotatingToZoom C$()
 {
 	EHandsOffset idx = GetCurrentHudOffsetIdx();
-	return !(m_hands_offset[idx][0].similar(m_hud_offset[0], EPS) && m_hands_offset[idx][1].similar(m_hud_offset[1], EPS));
+	static const float eps = .01f;
+
+	if (!m_hands_offset[idx][0].similar(m_hud_offset[0], eps))
+		return true;
+
+	if (!m_hands_offset[idx][1].similar(m_hud_offset[1], eps))
+		return true;
+
+	return false;
 }
 
 void CWeaponHud::InitRotateTime(float cif)
