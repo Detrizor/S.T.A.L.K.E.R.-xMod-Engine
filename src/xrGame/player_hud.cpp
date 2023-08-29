@@ -242,7 +242,6 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 		bone_name = pSettings->r_string(hud_section, "fire_bone");
 		m_fire_bone = K->LL_BoneID(bone_name);
 		m_fire_point_offset = pSettings->r_fvector3(hud_section, "fire_point");
-		//--xd m_fire_direction = READ_IF_EXISTS(pSettings, r_fvector3, sect_name, "fire_direction", Fvector().set(0.f, 0.f, 1.0f));
 	}
 	else
 		m_fire_point_offset.set(0, 0, 0);

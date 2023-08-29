@@ -32,7 +32,6 @@ CUIActorMenu::CUIActorMenu()
 	Construct						();
 	currency_str					= *CStringTable().translate("st_currency");
 	money_delimiter					= *CStringTable().translate("st_money_delimiter");
-	m_dLastResolution.set			((int)Device.dwWidth, (int)Device.dwHeight);	//--xd tst
 }
 
 CUIActorMenu::~CUIActorMenu()

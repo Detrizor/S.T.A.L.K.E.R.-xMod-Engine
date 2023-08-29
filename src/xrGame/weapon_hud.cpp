@@ -627,8 +627,11 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 		{
 			if (GetCurrentHudOffsetIdx() == eRelaxed)
 			{
-				if (!O.ArmedMode())
+				if (!O.ArmedMode() && ! O.IsZoomed())
+				{
 					O.SwitchArmedMode	();
+					m_going_to_fire		= true;
+				}
 				return					true;
 			}
 		}

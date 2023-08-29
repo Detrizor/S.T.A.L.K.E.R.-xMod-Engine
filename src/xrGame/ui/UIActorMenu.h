@@ -360,9 +360,6 @@ public:
 	void DonateCurrentItem(CUICellItem* cell_item); //Alundaio: Donate item via context menu while in trade menu
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
-private:
-			Ivector2		m_dLastResolution; //--xd tst
-
 public:
 	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot = NULL);
 }; // class CUIActorMenu
