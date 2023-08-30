@@ -304,33 +304,28 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 }
 
 void CInventoryItem::pre_install_upgrade()
-{/*--xd
-	CWeaponMagazined* wm = smart_cast<CWeaponMagazined*>( this );
-	if (wm)
+{
+	if (!cast<CWeaponMagazined*>())
+		return;
+
+	Actor()->Discharge					(this, true);
+
+	CWeaponMagazinedWGrenade* wg		= smart_cast<CWeaponMagazinedWGrenade*>(this);
+	if (wg)
 	{
-		if (wm->HasMagazine())
-			wm->UnplugMagazine(true);
-		inventory_owner().Discharge(smart_cast<PIItem>(wm), true);
-		CWeaponMagazinedWGrenade* wg = smart_cast<CWeaponMagazinedWGrenade*>( this );
-		if (wg)
-		{
-			if (wg->IsGrenadeLauncherAttached())
-			{
-				wg->PerformSwitchGL();
-				inventory_owner().Discharge(smart_cast<PIItem>(wg), true);
-				wg->PerformSwitchGL(); // restore state
-			}
-		}
+		if (!wg->m_bGrenadeMode)
+			wg->PerformSwitchGL			();
+		Actor()->Discharge				(this, true);
+		wg->PerformSwitchGL				();
 	}
 
-	CWeapon* weapon = smart_cast<CWeapon*>( this );
-	if (weapon)
+	CAddonOwner* ao						= cast<CAddonOwner*>();
+	if (ao)
 	{
-		if (weapon->ScopeAttachable() && weapon->IsScopeAttached())
-			weapon->Detach(weapon->GetScopeName().c_str(), true);
-		if (weapon->SilencerAttachable() && weapon->IsSilencerAttached())
-			weapon->Detach(weapon->GetSilencerName().c_str(), true);
-		if (weapon->GrenadeLauncherAttachable() && weapon->IsGrenadeLauncherAttached())
-			weapon->Detach(weapon->GetGrenadeLauncherName().c_str(), true);
-	}*/
+		for (auto slot : ao->AddonSlots())
+		{
+			if (slot->addon)
+				ao->DetachAddon			(slot->addon);
+		}
+	}
 }

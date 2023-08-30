@@ -79,7 +79,7 @@ public:
 			void					SetGrenade(u8 cnt);
 
 private:
-	CGrenadeLauncher CP$						m_pLauncher;
+	CGrenadeLauncher CP$				m_pLauncher;
 
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
