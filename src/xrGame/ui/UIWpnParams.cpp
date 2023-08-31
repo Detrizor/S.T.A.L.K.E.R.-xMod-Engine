@@ -7,9 +7,10 @@
 #include "../../xrServerEntities/script_engine.h"
 #include "inventory_item_object.h"
 #include "UIInventoryUtilities.h"
-#include "Weapon.h"
+#include "WeaponMagazined.h"
 #include "../string_table.h"
 #include "UICellItem.h"
+#include "addon_owner.h"
 
 CUIWpnParams::CUIWpnParams()
 {
@@ -75,9 +76,9 @@ void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
 
 void CUIWpnParams::SetInfo(CUICellItem* itm)
 {
-	shared_str& section			= itm->m_section;
-	PIItem item					= (PIItem)itm->m_pData;
-	CWeapon* wpn				= (item) ? item->cast_weapon() : NULL;
+	shared_str& section					= itm->m_section;
+	PIItem item							= (PIItem)itm->m_pData;
+	CWeaponMagazined* wpn				= (item) ? item->cast<CWeaponMagazined*>() : NULL;
 
 	float bullet_speed					= (wpn) ? wpn->GetBulletSpeed() : pSettings->r_float(section, "bullet_speed");
 	float rpm							= (wpn) ? wpn->GetRPM() : pSettings->r_float(section, "rpm");
@@ -107,29 +108,19 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
-	/*--xd
-	xr_vector<shared_str>				mag_types;
+	
+	LPCSTR mag_type						= 0;
 	if (wpn)
-		mag_types						= wpn->m_magazineTypes;
+		mag_type						= *wpn->MagazineSlot()->type;
 	else
-		FillVector						(mag_types, *section, "magazine_class");
-	if (mag_types.size())
 	{
-		LPCSTR name_s					= pSettings->r_string(mag_types[0], "inv_name_short");
-		str._set						(CStringTable().translate(name_s));
-		for (u32 i = 1, count = mag_types.size(); i < count; i++)
-		{
-			LPCSTR mag_section			= *mag_types[i];
-			if (READ_IF_EXISTS(pSettings, r_bool, mag_section, "pseudosection", FALSE))
-				continue;
-			name_s						= pSettings->r_string(mag_section, "inv_name_short");
-			str.printf					("%s, %s", *str, *CStringTable().translate(name_s));
-		}
+		LPCSTR slots_section			= READ_IF_EXISTS(pSettings, r_string, section, "slots", 0);
+		if (slots_section && READ_IF_EXISTS(pSettings, r_bool, slots_section, "magazine_0", FALSE))
+			mag_type					= pSettings->r_string(slots_section, "type_0");
 	}
-	else
-		str._set						("---");
-	m_textMagazineTypesValue.SetText	(*str);
+	m_textMagazineTypesValue.SetText	((mag_type) ? *CStringTable().translate(mag_type) : "---");
 
+	/*--xd
 	u8 scope_status						= (wpn) ? (u8)wpn->get_ScopeStatus() : pSettings->r_u8(section, "scope_status");
 	if (scope_status == 2)
 	{
