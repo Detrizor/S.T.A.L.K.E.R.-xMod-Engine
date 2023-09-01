@@ -111,7 +111,11 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	
 	LPCSTR mag_type						= 0;
 	if (wpn)
-		mag_type						= *wpn->MagazineSlot()->type;
+	{
+		SAddonSlot CP$ mag_slot			= wpn->MagazineSlot();
+		if (mag_slot)
+			mag_type					= *mag_slot->type;
+	}
 	else
 	{
 		LPCSTR slots_section			= READ_IF_EXISTS(pSettings, r_string, section, "slots", 0);
