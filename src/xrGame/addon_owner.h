@@ -62,4 +62,6 @@ public:
 	int									AttachAddon								(CAddon CPC addon, SAddonSlot* slot = NULL);
 	int									DetachAddon								(CAddon CPC addon);
 	void								RegisterAddon							(CAddon PC$ addon, SAddonSlot PC$ slot, bool attach);
+
+	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
 };

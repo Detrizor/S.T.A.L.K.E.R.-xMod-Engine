@@ -16,15 +16,20 @@ CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 
 CAddonOwner::~CAddonOwner()
 {
-	m_Slots.clear();
+	m_Slots.clear						();
 }
 
 void CAddonOwner::LoadAddonSlots(LPCSTR section)
 {
+	LoadAddonSlots						(section, m_Slots, this);
+}
+
+void CAddonOwner::LoadAddonSlots(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao)
+{
 	shared_str							tmp;
 	u16 i								= 0;
 	while (pSettings->line_exist(section, tmp.printf("name_%d", i)))
-		m_Slots.push_back				(xr_new<SAddonSlot>(section, i++, this));
+		slots.push_back					(xr_new<SAddonSlot>(section, i++, parent_ao));
 }
 
 int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
