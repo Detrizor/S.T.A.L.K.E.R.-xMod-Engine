@@ -124,6 +124,41 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	}
 	m_textMagazineTypesValue.SetText	((mag_type) ? *CStringTable().translate(mag_type) : "---");
 
+
+	VSlots CP$ slots					= NULL;
+	VSlots* s							= NULL;
+	if (item)
+	{
+		CAddonOwner* ao					= item->cast<CAddonOwner*>();
+		if (ao)
+			slots						= &ao->AddonSlots();
+	}
+	else
+	{
+		LPCSTR slots_section			= READ_IF_EXISTS(pSettings, r_string, section, "slots", 0);
+		if (slots_section)
+		{
+			s							= xr_new<VSlots>();
+			CAddonOwner::LoadAddonSlots	(slots_section, *s);
+			slots						= s;
+		}
+	}
+	if (slots && slots->size())
+	{
+		str								= "";
+		for (auto slot : *slots)
+		{
+			if (str.size())
+				str.printf				("%s, ", *str);
+			str.printf					("%s%s", *str, slot->name);
+		}
+	}
+	else
+		str								= "---";
+	m_textScopesValue.SetText			(*str);
+	if (s)
+		xr_delete						(s);
+
 	/*--xd
 	u8 scope_status						= (wpn) ? (u8)wpn->get_ScopeStatus() : pSettings->r_u8(section, "scope_status");
 	if (scope_status == 2)
