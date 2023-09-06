@@ -22,5 +22,5 @@ CUICellItem*	create_cell_item(CInventoryItem* itm)
 
 CUICellItem* create_cell_item_from_section(shared_str& section)
 {
-	return								xr_new<CUISectionCellItem>(section);
+	return								xr_new<CUIInventoryCellItem>(section);
 }

@@ -65,8 +65,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 	//-Alundaio
 }
 
-CUISectionCellItem::CUISectionCellItem(shared_str section)
-:inherited(NULL)
+CUIInventoryCellItem::CUIInventoryCellItem(shared_str section)
 {
 	m_section._set						(section);
 	m_pData								= NULL;

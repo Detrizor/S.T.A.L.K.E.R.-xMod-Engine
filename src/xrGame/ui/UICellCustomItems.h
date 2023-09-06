@@ -19,6 +19,7 @@ class CUIInventoryCellItem :public CUICellItem
 	typedef  CUICellItem	inherited;
 public:
 											CUIInventoryCellItem		(CInventoryItem* itm);
+											CUIInventoryCellItem		(shared_str section);
 	virtual		bool						EqualTo						(CUICellItem* itm);
 	virtual		void						UpdateItemText				();
 				CUIDragItem*				CreateDragItem				();
@@ -101,11 +102,4 @@ public:
 						CBuyItemCustomDrawCell	(LPCSTR str, CGameFont* pFont);
 	virtual void		OnDraw					(CUICellItem* cell);
 
-};
-
-class CUISectionCellItem :public CUIInventoryCellItem
-{
-	typedef  CUIInventoryCellItem	inherited;
-public:
-	CUISectionCellItem				(shared_str section);
 };
