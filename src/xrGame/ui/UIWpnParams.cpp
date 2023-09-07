@@ -150,7 +150,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		{
 			if (str.size())
 				str.printf				("%s, ", *str);
-			str.printf					("%s%s", *str, *slot->name);
+			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));
 		}
 	}
 	else
