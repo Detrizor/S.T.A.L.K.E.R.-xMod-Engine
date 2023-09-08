@@ -25,14 +25,8 @@ protected:
 	CUITextWnd				m_textRPMValue;
 	CUITextWnd				m_textAmmoTypes;
 	CUITextWnd				m_textAmmoTypesValue;
-	CUITextWnd				m_textMagazineTypes;
-	CUITextWnd				m_textMagazineTypesValue;
-	CUITextWnd				m_textScopes;
-	CUITextWnd				m_textScopesValue;
-	CUITextWnd				m_textSilencer;
-	CUITextWnd				m_textSilencerValue;
-	CUITextWnd				m_textGLauncher;
-	CUITextWnd				m_textGLauncherValue;
+	CUITextWnd				m_textAddonSlots;
+	CUITextWnd				m_textAddonSlotsValue;
 	CUIStatic				m_Prop_line;
 };
 

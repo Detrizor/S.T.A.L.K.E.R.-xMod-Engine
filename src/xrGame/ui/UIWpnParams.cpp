@@ -23,14 +23,8 @@ CUIWpnParams::CUIWpnParams()
 
 	AttachChild		(&m_textAmmoTypes);
 	AttachChild		(&m_textAmmoTypesValue);
-	AttachChild		(&m_textMagazineTypes);
-	AttachChild		(&m_textMagazineTypesValue);
-	AttachChild		(&m_textScopes);
-	AttachChild		(&m_textScopesValue);
-	AttachChild		(&m_textSilencer);
-	AttachChild		(&m_textSilencerValue);
-	AttachChild		(&m_textGLauncher);
-	AttachChild		(&m_textGLauncherValue);
+	AttachChild		(&m_textAddonSlots);
+	AttachChild		(&m_textAddonSlotsValue);
 }
 
 CUIWpnParams::~CUIWpnParams()
@@ -50,14 +44,8 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm_value",				0, &m_textRPMValue);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",				0, &m_textAmmoTypes);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types_value",		0, &m_textAmmoTypesValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_magazine_types",			0, &m_textMagazineTypes);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_magazine_types_value",	0, &m_textMagazineTypesValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_scopes",					0, &m_textScopes);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_scopes_value",			0, &m_textScopesValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_silencer",				0, &m_textSilencer);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_silencer_value",			0, &m_textSilencerValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_glauncher",				0, &m_textGLauncher);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_glauncher_value",			0, &m_textGLauncherValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_addon_slots",				0, &m_textAddonSlots);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:addon_slots_value",			0, &m_textAddonSlotsValue);
 }
 
 void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
@@ -108,22 +96,6 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
-	
-	LPCSTR mag_type						= 0;
-	if (wpn)
-	{
-		SAddonSlot CP$ mag_slot			= wpn->MagazineSlot();
-		if (mag_slot)
-			mag_type					= *mag_slot->type;
-	}
-	else
-	{
-		LPCSTR slots_section			= READ_IF_EXISTS(pSettings, r_string, section, "slots", 0);
-		if (slots_section && READ_IF_EXISTS(pSettings, r_bool, slots_section, "magazine_0", FALSE))
-			mag_type					= pSettings->r_string(slots_section, "type_0");
-	}
-	m_textMagazineTypesValue.SetText	((mag_type) ? *CStringTable().translate(mag_type) : "---");
-
 
 	VSlots CP$ slots					= NULL;
 	VSlots* s							= NULL;
@@ -155,66 +127,9 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	}
 	else
 		str								= "---";
-	m_textScopesValue.SetText			(*str);
+	m_textAddonSlotsValue.SetText		(*str);
 	if (s)
 		xr_delete						(s);
-
-	/*--xd
-	u8 scope_status						= (wpn) ? (u8)wpn->get_ScopeStatus() : pSettings->r_u8(section, "scope_status");
-	if (scope_status == 2)
-	{
-		xr_vector<shared_str>			scopes;
-		if (wpn)
-			scopes						= wpn->m_scopes;
-		else
-			FillVector					(scopes, *section, "scopes");
-		LPCSTR name						= pSettings->r_string(scopes[0], "inv_name_short");
-		str._set						(CStringTable().translate(name));
-		for (u32 i = 1, count = scopes.size(); i < count; i++)
-		{
-			name						= pSettings->r_string(scopes[i], "inv_name_short");
-			str.printf					("%s, %s", *str, *CStringTable().translate(name));
-		}
-		m_textScopes.SetText			(*CStringTable().translate("st_scopes"));
-	}
-	else if (scope_status == 1)
-	{
-		LPCSTR scope					= (wpn) ? *wpn->GetScopeName() : READ_IF_EXISTS(pSettings, r_string, section, "scope", 0);
-		LPCSTR name						= pSettings->r_string(scope, "inv_name_short");
-		str.printf						("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
-		m_textScopes.SetText			(*CStringTable().translate("st_scope"));
-	}
-	else
-		str._set						("---");
-	m_textScopesValue.SetText			(*str);
-
-	u8 silencer_status					= (wpn) ? (u8)wpn->get_SilencerStatus() : pSettings->r_u8(section, "silencer_status");
-	if (silencer_status)
-	{
-		LPCSTR silencer					= (wpn) ? *wpn->GetSilencerName() : READ_IF_EXISTS(pSettings, r_string, section, "silencer_name", 0);
-		LPCSTR name						= pSettings->r_string(silencer, "inv_name_short");
-		if (silencer_status == 2)
-			str._set					(CStringTable().translate(name));
-		else
-			str.printf					("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
-	}
-	else
-		str._set						("---");
-	m_textSilencerValue.SetText			(*str);
-	
-	u8 glauncher_status					= (wpn) ? (u8)wpn->get_GrenadeLauncherStatus() : pSettings->r_u8(section, "grenade_launcher_status");
-	if (glauncher_status)
-	{
-		LPCSTR glauncher				= (wpn) ? *wpn->GetGrenadeLauncherName() : READ_IF_EXISTS(pSettings, r_string, section, "grenade_launcher_name", 0);
-		LPCSTR name						= pSettings->r_string(glauncher, "inv_name_short");
-		if (glauncher_status == 2)
-			str._set					(CStringTable().translate(name));
-		else
-			str.printf					("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
-	}
-	else
-		str._set						("---");
-	m_textGLauncherValue.SetText		(*str);*/
 }
 
 // -------------------------------------------------------------------------------------------------
