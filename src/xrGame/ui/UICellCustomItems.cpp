@@ -385,6 +385,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
 {
 	m_slots.clear						();
+
 	for (auto S : itm->AddonSlots())
 	{
 		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*S);
@@ -428,6 +429,21 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 	}
 
 	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
+}
+
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str section) : inherited(section)
+{
+	m_slots.clear						();
+
+	VSlots								slots;
+	CAddonOwner::LoadAddonSlots			(pSettings->r_string(section, "slots"), slots);
+	for (auto slot : slots)
+	{
+		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*slot);
+		m_slots.push_back(s);
+	}
+
+	slots.clear							();
 }
 
 CUIAddonOwnerCellItem::~CUIAddonOwnerCellItem()

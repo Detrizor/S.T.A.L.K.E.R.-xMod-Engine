@@ -75,6 +75,7 @@ private:
 
 public:
 										CUIAddonOwnerCellItem					(CAddonOwner* item);
+										CUIAddonOwnerCellItem					(shared_str section);
 										~CUIAddonOwnerCellItem					();
 
 private:

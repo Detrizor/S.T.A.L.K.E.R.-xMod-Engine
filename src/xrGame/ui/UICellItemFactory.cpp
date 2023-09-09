@@ -22,5 +22,7 @@ CUICellItem*	create_cell_item(CInventoryItem* itm)
 
 CUICellItem* create_cell_item_from_section(shared_str& section)
 {
+	if (READ_IF_EXISTS(pSettings, r_string, section, "slots", 0))
+		return							xr_new<CUIAddonOwnerCellItem>(section);
 	return								xr_new<CUIInventoryCellItem>(section);
 }
