@@ -11,6 +11,7 @@
 #include "../string_table.h"
 #include "UICellItem.h"
 #include "addon_owner.h"
+#include "ui\UICellCustomItems.h"
 
 CUIWpnParams::CUIWpnParams()
 {
@@ -97,28 +98,11 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
 
-	VSlots CP$ slots					= NULL;
-	VSlots* s							= NULL;
-	if (item)
-	{
-		CAddonOwner* ao					= item->cast<CAddonOwner*>();
-		if (ao)
-			slots						= &ao->AddonSlots();
-	}
-	else
-	{
-		LPCSTR slots_section			= READ_IF_EXISTS(pSettings, r_string, section, "slots", 0);
-		if (slots_section)
-		{
-			s							= xr_new<VSlots>();
-			CAddonOwner::LoadAddonSlots	(slots_section, *s);
-			slots						= s;
-		}
-	}
-	if (slots && slots->size())
+	CUIAddonOwnerCellItem* uiao			= smart_cast<CUIAddonOwnerCellItem*>(itm);
+	if (uiao && uiao->Slots().size())
 	{
 		str								= "";
-		for (auto slot : *slots)
+		for (auto slot : uiao->Slots())
 		{
 			if (str.size())
 				str.printf				("%s, ", *str);
@@ -128,8 +112,6 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str								= "---";
 	m_textAddonSlotsValue.SetText		(*str);
-	if (s)
-		xr_delete						(s);
 }
 
 // -------------------------------------------------------------------------------------------------
