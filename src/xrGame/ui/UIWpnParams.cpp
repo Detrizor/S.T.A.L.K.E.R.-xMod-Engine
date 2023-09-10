@@ -112,6 +112,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str								= "---";
 	m_textAddonSlotsValue.SetText		(*str);
+	m_textAddonSlotsValue.AdjustHeightToText();
 }
 
 // -------------------------------------------------------------------------------------------------
