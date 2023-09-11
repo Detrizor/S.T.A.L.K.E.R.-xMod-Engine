@@ -67,6 +67,7 @@ private:
 		u8								addon_index;
 		CUIStatic*						addon_icon;
 		Fvector2						icon_offset;
+		bool							forwarded;
 
 		SUIAddonSlot					(SAddonSlot CR$ slot);
 	};

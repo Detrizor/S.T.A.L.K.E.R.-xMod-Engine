@@ -104,6 +104,8 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		str								= "";
 		for (auto slot : uiao->Slots())
 		{
+			if (slot->forwarded)
+				continue;
 			if (str.size())
 				str.printf				("%s, ", *str);
 			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));

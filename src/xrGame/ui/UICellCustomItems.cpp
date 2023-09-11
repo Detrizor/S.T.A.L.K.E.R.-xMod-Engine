@@ -380,6 +380,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 	addon_index							= 0;
 	addon_icon							= NULL;
 	icon_offset							= { 0.f, 0.f };
+	forwarded							= !!slot.forwarded_slot;
 }
 
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
