@@ -59,6 +59,7 @@ SERVER_ENTITY_DECLARE_BEGIN0(CSE_ALifeTraderAbstract)
 	CHARACTER_RANK_VALUE			Rank					();
 	CHARACTER_REPUTATION_VALUE		Reputation				();
 	void							SetRank					(CHARACTER_RANK_VALUE val);
+	void							SetMoney				(u32 val);
 
 #endif
 

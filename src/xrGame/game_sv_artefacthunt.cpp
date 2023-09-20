@@ -1451,7 +1451,8 @@ void	game_sv_ArtefactHunt::OnPlayerHitPlayer_Case	(game_PlayerState* ps_hitter, 
 	//{
 		if (ps_hitted->testFlag(GAME_PLAYER_FLAG_ONBASE) && Get_ShieldedBases())
 		{
-			pHitS->power = 0;
+			pHitS->main_damage = 0;
+			pHitS->pierce_damage= 0;
 			pHitS->impulse = 0;
 		}
 //	}	

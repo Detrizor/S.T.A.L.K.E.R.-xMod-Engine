@@ -273,7 +273,7 @@ void CBreakableObject::ProcessDamage()
 	HS.whoID			= (ID());			
 	HS.weaponID			= (ID());			
 	HS.dir				= (m_contact_damage_dir);
-	HS.power			= (m_max_frame_damage);					
+	HS.main_damage		= (m_max_frame_damage);					
 	HS.boneID			= (PKinematics(Visual())->LL_GetBoneRoot());				
 	HS.p_in_bone_space	= (m_contact_damage_pos);
 	HS.impulse			= (0.f);

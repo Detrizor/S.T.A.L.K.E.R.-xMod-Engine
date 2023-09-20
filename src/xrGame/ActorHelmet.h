@@ -25,23 +25,17 @@ public:
 	virtual void			net_Import				(NET_Packet& P);
 	virtual void			OnH_A_Chield			();
 
-	float					GetDefHitTypeProtection	(ALife::EHitType hit_type);
-	float					GetHitTypeProtection	(ALife::EHitType hit_type, s16 element);
+	float					GetHitTypeProtection	(ALife::EHitType hit_type);
 	float					GetBoneArmor			(s16 element);
-
-	float					HitThroughArmor			(float hit_power, s16 element, float ap, bool& add_wound, ALife::EHitType hit_type);
-
-	float					m_fPowerLoss;
-	float					m_fHealthRestoreSpeed;
-	float 					m_fRadiationRestoreSpeed;
-	float 					m_fSatietyRestoreSpeed;
-	float					m_fPowerRestoreSpeed;
-	float					m_fBleedingRestoreSpeed;
+	float					GetBoneArmorLevel		(s16 element);
 
 	float					m_fShowNearestEnemiesDistance;
+	float					m_fRecuperationFactor;
+	float					m_fArmorLevel;
 
 	void					ReloadBonesProtection	();
-	void					AddBonesProtection		(LPCSTR bones_section);
+	void					AddBonesProtection		(LPCSTR bones_section, float value);
+
 protected:
 	HitImmunity::HitTypeSVec	m_HitTypeProtection;
 	SBoneProtections*		m_boneProtection;	

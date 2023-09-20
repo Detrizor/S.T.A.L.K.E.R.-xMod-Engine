@@ -61,5 +61,7 @@ public:
 	virtual void		Draw						();
 	virtual void		Update						();
 
+	void				SetProgressTexture			(LPCSTR tex_name);
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

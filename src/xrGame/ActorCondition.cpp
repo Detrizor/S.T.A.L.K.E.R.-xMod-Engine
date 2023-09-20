@@ -117,8 +117,6 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 	m_fV_Satiety				= pSettings->r_float(section,"satiety_v");		
 	m_fV_SatietyPower			= pSettings->r_float(section,"satiety_power_v");
 	m_fV_SatietyHealth			= pSettings->r_float(section,"satiety_health_v");
-	
-	m_MaxWalkWeight				= pSettings->r_float(section,"max_walk_weight");
 
 	m_zone_max_power[ALife::infl_rad]	= pSettings->r_float(section, "radio_zone_max_power" );
 	m_zone_max_power[ALife::infl_fire]	= pSettings->r_float(section, "fire_zone_max_power" );
@@ -140,11 +138,7 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 
 float CActorCondition::GetZoneMaxPower( ALife::EInfluenceType type) const
 {
-	if ( type < ALife::infl_rad || ALife::infl_electra < type )
-	{
-		return 1.0f;
-	}
-	return m_zone_max_power[type];
+	return (type < ALife::infl_rad || ALife::infl_electra < type) ? 1.0f : m_zone_max_power[type];		
 }
 
 float CActorCondition::GetZoneMaxPower( ALife::EHitType hit_type ) const
@@ -193,31 +187,16 @@ void CActorCondition::UpdateCondition()
 	if (!object().g_Alive())	return;
 	if (!object().Local() && m_object != Level().CurrentViewEntity())		return;	
 	
-	float base_weight			= object().MaxCarryWeight();
 	float cur_weight			= object().inventory().TotalWeight();
 
 	if ((object().mstate_real&mcAnyMove))
 	{
-		ConditionWalk( cur_weight / base_weight,
+		ConditionWalk( cur_weight,
 			isActorAccelerated( object().mstate_real,object().IsZoomAimingMode() ),
 			(object().mstate_real&mcSprint) != 0 );
 	}
 	else
-	{
-		ConditionStand( cur_weight / base_weight );
-	}
-	
-	float k_max_power = 1.0f;
-	if( true )
-	{
-		k_max_power = 1.0f + _min(cur_weight, base_weight) / base_weight
-			+ _max(0.0f, (cur_weight - base_weight) / 10.0f);
-	}
-	else
-	{
-		k_max_power = 1.0f;
-	}
-	SetMaxPower		(GetMaxPower() - m_fPowerLeakSpeed * m_fDeltaTime * k_max_power);
+		ConditionStand(cur_weight);
 
 	m_fAlcohol		+= m_fV_Alcohol*m_fDeltaTime;
 	clamp			(m_fAlcohol,			0.0f,		1.0f);
@@ -364,9 +343,7 @@ void CActorCondition::AffectDamage_InjuriousMaterialAndMonstersInfluence()
 								BI_NONE, 
 								Fvector().set(0,0,0), 
 								0.0f, 
-								type, 
-								0.0f, 
-								false);
+								type);
 
 				HDS.GenHeader(GE_HIT, m_object->ID());
 				HDS.Write_Packet( np );
@@ -449,7 +426,7 @@ void CActorCondition::ConditionJump(float weight)
 		return;
 	float power			=	m_fJumpPower;
 	power				+=	m_fJumpWeightPower*weight*(weight>1.f?m_fOverweightJumpK:1.f);
-	m_fPower			-=	HitPowerEffect(power);
+	ConditionPowerDrain(power);
 }
 
 void CActorCondition::ConditionWalk(float weight, bool accel, bool sprint)
@@ -457,7 +434,14 @@ void CActorCondition::ConditionWalk(float weight, bool accel, bool sprint)
 	float power			=	m_fWalkPower;
 	power				+=	m_fWalkWeightPower*weight*(weight>1.f?m_fOverweightWalkK:1.f);
 	power				*=	m_fDeltaTime*(accel?(sprint?m_fSprintK:m_fAccelK):1.f);
-	m_fPower			-=	HitPowerEffect(power);
+	ConditionPowerDrain(power);
+}
+
+void CActorCondition::ConditionPowerDrain(float power)
+{
+	luabind::functor<void>funct;
+	ai().script_engine().functor("actor_condition_manager.process_power_drain", funct);
+	funct(power);
 }
 
 void CActorCondition::ConditionStand(float weight)
@@ -479,16 +463,6 @@ bool CActorCondition::IsCantWalk() const
 
 bool CActorCondition::IsCantWalkWeight()
 {
-	if(!GodMode())
-	{
-		float max_w	= m_object->MaxWalkWeight();
-
-		if( object().inventory().TotalWeight() > max_w )
-		{
-			m_condition_flags.set			(eCantWalkWeight, TRUE);
-			return true;
-		}
-	}
 	m_condition_flags.set					(eCantWalkWeight, FALSE);
 	return false;
 }
@@ -587,58 +561,36 @@ void CActorCondition::ChangeSatiety(float value)
 
 void CActorCondition::BoostParameters(const SBooster& B)
 {
-	if(OnServer())
-	{
-		switch(B.m_type)
-		{
-			case eBoostHpRestore: BoostHpRestore(B.fBoostValue); break;
-			case eBoostPowerRestore: BoostPowerRestore(B.fBoostValue); break;
-			case eBoostRadiationRestore: BoostRadiationRestore(B.fBoostValue); break;
-			case eBoostBleedingRestore: BoostBleedingRestore(B.fBoostValue); break;
-			case eBoostMaxWeight: BoostMaxWeight(B.fBoostValue); break;
-			case eBoostBurnImmunity: BoostBurnImmunity(B.fBoostValue); break;
-			case eBoostShockImmunity: BoostShockImmunity(B.fBoostValue); break;
-			case eBoostRadiationImmunity: BoostRadiationImmunity(B.fBoostValue); break;
-			case eBoostTelepaticImmunity: BoostTelepaticImmunity(B.fBoostValue); break;
-			case eBoostChemicalBurnImmunity: BoostChemicalBurnImmunity(B.fBoostValue); break;
-			case eBoostExplImmunity: BoostExplImmunity(B.fBoostValue); break;
-			case eBoostStrikeImmunity: BoostStrikeImmunity(B.fBoostValue); break;
-			case eBoostFireWoundImmunity: BoostFireWoundImmunity(B.fBoostValue); break;
-			case eBoostWoundImmunity: BoostWoundImmunity(B.fBoostValue); break;
-			case eBoostRadiationProtection: BoostRadiationProtection(B.fBoostValue); break;
-			case eBoostTelepaticProtection: BoostTelepaticProtection(B.fBoostValue); break;
-			case eBoostChemicalBurnProtection: BoostChemicalBurnProtection(B.fBoostValue); break;
-			default: NODEFAULT;	
-		}
-	}
-}
-void CActorCondition::DisableBoostParameters(const SBooster& B)
-{
-	if(!OnServer())
+	if (!OnServer())
 		return;
-
+	/*
 	switch(B.m_type)
 	{
-		case eBoostHpRestore: BoostHpRestore(-B.fBoostValue); break;
-		case eBoostPowerRestore: BoostPowerRestore(-B.fBoostValue); break;
-		case eBoostRadiationRestore: BoostRadiationRestore(-B.fBoostValue); break;
-		case eBoostBleedingRestore: BoostBleedingRestore(-B.fBoostValue); break;
-		case eBoostMaxWeight: BoostMaxWeight(-B.fBoostValue); break;
-		case eBoostBurnImmunity: BoostBurnImmunity(-B.fBoostValue); break;
-		case eBoostShockImmunity: BoostShockImmunity(-B.fBoostValue); break;
-		case eBoostRadiationImmunity: BoostRadiationImmunity(-B.fBoostValue); break;
-		case eBoostTelepaticImmunity: BoostTelepaticImmunity(-B.fBoostValue); break;
-		case eBoostChemicalBurnImmunity: BoostChemicalBurnImmunity(-B.fBoostValue); break;
-		case eBoostExplImmunity: BoostExplImmunity(-B.fBoostValue); break;
-		case eBoostStrikeImmunity: BoostStrikeImmunity(-B.fBoostValue); break;
-		case eBoostFireWoundImmunity: BoostFireWoundImmunity(-B.fBoostValue); break;
-		case eBoostWoundImmunity: BoostWoundImmunity(-B.fBoostValue); break;
-		case eBoostRadiationProtection: BoostRadiationProtection(-B.fBoostValue); break;
-		case eBoostTelepaticProtection: BoostTelepaticProtection(-B.fBoostValue); break;
-		case eBoostChemicalBurnProtection: BoostChemicalBurnProtection(-B.fBoostValue); break;
+		case eBoostHpRestore:			BoostHpRestore(B.fBoostValue); break;
+		case eBoostPowerRestore:		BoostPowerRestore(B.fBoostValue); break;
+		case eBoostRadiationRestore:	BoostRadiationRestore(B.fBoostValue); break;
+		case eBoostBleedingRestore:		BoostBleedingRestore(B.fBoostValue); break;
 		default: NODEFAULT;	
 	}
+	*/
 }
+
+void CActorCondition::DisableBoostParameters(const SBooster& B)
+{
+	if (!OnServer())
+		return;
+	/*
+	switch(B.m_type)
+	{
+		case eBoostHpRestore:			BoostHpRestore(-B.fBoostValue); break;
+		case eBoostPowerRestore:		BoostPowerRestore(-B.fBoostValue); break;
+		case eBoostRadiationRestore:	BoostRadiationRestore(-B.fBoostValue); break;
+		case eBoostBleedingRestore:		BoostBleedingRestore(-B.fBoostValue); break;
+		default: NODEFAULT;	
+	}
+	*/
+}
+
 void CActorCondition::BoostHpRestore(const float value)
 {
 	m_change_v.m_fV_HealthRestore += value;
@@ -654,59 +606,6 @@ void CActorCondition::BoostRadiationRestore(const float value)
 void CActorCondition::BoostBleedingRestore(const float value)
 {
 	m_change_v.m_fV_WoundIncarnation += value;
-}
-void CActorCondition::BoostMaxWeight(const float value)
-{
-	m_object->inventory().SetMaxWeight(object().inventory().GetMaxWeight()+value);
-	m_MaxWalkWeight += value;
-}
-void CActorCondition::BoostBurnImmunity(const float value)
-{
-	m_fBoostBurnImmunity += value;
-}
-void CActorCondition::BoostShockImmunity(const float value)
-{
-	m_fBoostShockImmunity += value;
-}
-void CActorCondition::BoostRadiationImmunity(const float value)
-{
-	m_fBoostRadiationImmunity += value;
-}
-void CActorCondition::BoostTelepaticImmunity(const float value)
-{
-	m_fBoostTelepaticImmunity += value;
-}
-void CActorCondition::BoostChemicalBurnImmunity(const float value)
-{
-	m_fBoostChemicalBurnImmunity += value;
-}
-void CActorCondition::BoostExplImmunity(const float value)
-{
-	m_fBoostExplImmunity += value;
-}
-void CActorCondition::BoostStrikeImmunity(const float value)
-{
-	m_fBoostStrikeImmunity += value;
-}
-void CActorCondition::BoostFireWoundImmunity(const float value)
-{
-	m_fBoostFireWoundImmunity += value;
-}
-void CActorCondition::BoostWoundImmunity(const float value)
-{
-	m_fBoostWoundImmunity += value;
-}
-void CActorCondition::BoostRadiationProtection(const float value)
-{
-	m_fBoostRadiationProtection += value;
-}
-void CActorCondition::BoostTelepaticProtection(const float value)
-{
-	m_fBoostTelepaticProtection += value;
-}
-void CActorCondition::BoostChemicalBurnProtection(const float value)
-{
-	m_fBoostChemicalBurnProtection += value;
 }
 
 void CActorCondition::UpdateTutorialThresholds()
@@ -860,7 +759,7 @@ bool CActorCondition::ApplyBooster(const SBooster& B, const shared_str& sect)
 {
 	if(B.fBoostValue>0.0f)
 	{
-		if (m_object->Local() && m_object == Level().CurrentViewEntity())
+		/*if (m_object->Local() && m_object == Level().CurrentViewEntity())
 		{
 			if(pSettings->line_exist(sect, "use_sound"))
 			{
@@ -871,7 +770,7 @@ bool CActorCondition::ApplyBooster(const SBooster& B, const shared_str& sect)
 				m_use_sound.create			(snd_name.c_str(), st_Effect, sg_SourceType);
 				m_use_sound.play			(NULL, sm_2D);
 			}
-		}
+		}*/
 
 		BOOSTER_MAP::iterator it = m_booster_influences.find(B.m_type);
 		if (it != m_booster_influences.end())

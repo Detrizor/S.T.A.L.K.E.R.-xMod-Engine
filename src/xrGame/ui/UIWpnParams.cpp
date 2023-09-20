@@ -8,78 +8,28 @@
 #include "inventory_item_object.h"
 #include "UIInventoryUtilities.h"
 #include "Weapon.h"
-
-struct SLuaWpnParams
-{
-	luabind::functor<float>		m_functorRPM;
-	luabind::functor<float>		m_functorAccuracy;
-	luabind::functor<float>		m_functorDamage;
-	luabind::functor<float>		m_functorDamageMP;
-	luabind::functor<float>		m_functorHandling;
-
-	SLuaWpnParams();
-	~SLuaWpnParams();
-};
-
-SLuaWpnParams::SLuaWpnParams()
-{
-	bool	functor_exists;
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetRPM",		m_functorRPM);		VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetDamage",	m_functorDamage);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetDamageMP", m_functorDamageMP);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetHandling", m_functorHandling);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetAccuracy", m_functorAccuracy);	VERIFY(functor_exists);
-}
-
-SLuaWpnParams::~SLuaWpnParams()
-{
-}
-
-SLuaWpnParams* g_lua_wpn_params = NULL;
-
-void destroy_lua_wpn_params()
-{
-	if(g_lua_wpn_params)
-		xr_delete(g_lua_wpn_params);
-}
-
-// =====================================================================
+#include "../string_table.h"
+#include "UICellItem.h"
 
 CUIWpnParams::CUIWpnParams()
 {
-	AttachChild(&m_Prop_line);
+	AttachChild		(&m_Prop_line);
 
-	AttachChild(&m_icon_acc);
-	AttachChild(&m_icon_dam);
-	AttachChild(&m_icon_han);
-	AttachChild(&m_icon_rpm);
+	AttachChild		(&m_textBulletSpeed);
+	AttachChild		(&m_textBulletSpeedValue);
+	AttachChild		(&m_textRPM);
+	AttachChild		(&m_textRPMValue);
 
-	AttachChild(&m_textAccuracy);
-	AttachChild(&m_textDamage);
-	AttachChild(&m_textHandling);
-	AttachChild(&m_textRPM);
-
-	AttachChild(&m_progressAccuracy);
-	AttachChild(&m_progressDamage);
-	AttachChild(&m_progressHandling);
-	AttachChild(&m_progressRPM);
-
-	AttachChild(&m_stAmmo);
-	AttachChild(&m_textAmmoCount);
-	AttachChild(&m_textAmmoCount2);
-	AttachChild(&m_textAmmoTypes);
-	AttachChild(&m_textAmmoUsedType);
-	AttachChild(&m_stAmmoType1);
-	AttachChild(&m_stAmmoType2);
-
-	AttachChild(&m_textAccuracy_inc_shadow);
-	AttachChild(&m_textDamage_inc_shadow);
-	AttachChild(&m_textHandling_inc_shadow);
-	AttachChild(&m_textRPM_inc_shadow);
-	AttachChild(&m_textAccuracy_inc);
-	AttachChild(&m_textDamage_inc);
-	AttachChild(&m_textHandling_inc);
-	AttachChild(&m_textRPM_inc);
+	AttachChild		(&m_textAmmoTypes);
+	AttachChild		(&m_textAmmoTypesValue);
+	AttachChild		(&m_textMagazineTypes);
+	AttachChild		(&m_textMagazineTypesValue);
+	AttachChild		(&m_textScopes);
+	AttachChild		(&m_textScopesValue);
+	AttachChild		(&m_textSilencer);
+	AttachChild		(&m_textSilencerValue);
+	AttachChild		(&m_textGLauncher);
+	AttachChild		(&m_textGLauncherValue);
 }
 
 CUIWpnParams::~CUIWpnParams()
@@ -88,197 +38,153 @@ CUIWpnParams::~CUIWpnParams()
 
 void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 {
-	if (!xml_doc.NavigateToNode("wpn_params", 0))	return;
-	CUIXmlInit::InitWindow			(xml_doc, "wpn_params", 0, this);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:prop_line",			0, &m_Prop_line);
+	if (!xml_doc.NavigateToNode("wpn_params", 0))
+		return;
+	CUIXmlInit::InitWindow			(xml_doc, "wpn_params",								0, this);
+	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:prop_line",					0, &m_Prop_line);
 
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_accuracy",		0, &m_icon_acc);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_damage",		0, &m_icon_dam);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_handling",		0, &m_icon_han);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_rpm",			0, &m_icon_rpm);
-
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_accuracy",		0, &m_textAccuracy);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_damage",			0, &m_textDamage);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_handling",		0, &m_textHandling);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm",				0, &m_textRPM);
-
-	m_progressAccuracy.InitFromXml	( xml_doc, "wpn_params:progress_accuracy" );
-	m_progressDamage.InitFromXml	( xml_doc, "wpn_params:progress_damage" );
-	m_progressHandling.InitFromXml	( xml_doc, "wpn_params:progress_handling" );
-	m_progressRPM.InitFromXml		( xml_doc, "wpn_params:progress_rpm" );
-
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo",			0, &m_stAmmo);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_count",		0, &m_textAmmoCount);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_count2",		0, &m_textAmmoCount2);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",		0, &m_textAmmoTypes);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_used_type",	0, &m_textAmmoUsedType);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo_type1",	0, &m_stAmmoType1);
-	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo_type2",	0, &m_stAmmoType2);
-
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_accuracy_inc", 0, &m_textAccuracy_inc);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_damage_inc", 0, &m_textDamage_inc);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_handling_inc", 0, &m_textHandling_inc);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_rpm_inc", 0, &m_textRPM_inc);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_accuracy_inc_shadow", 0, &m_textAccuracy_inc_shadow);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_damage_inc_shadow", 0, &m_textDamage_inc_shadow);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_handling_inc_shadow", 0, &m_textHandling_inc_shadow);
-	CUIXmlInit::InitTextWnd(xml_doc, "wpn_params:cap_rpm_inc_shadow", 0, &m_textRPM_inc_shadow);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_bullet_speed",			0, &m_textBulletSpeed);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_bullet_speed_value",		0, &m_textBulletSpeedValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm",						0, &m_textRPM);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm_value",				0, &m_textRPMValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",				0, &m_textAmmoTypes);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types_value",		0, &m_textAmmoTypesValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_magazine_types",			0, &m_textMagazineTypes);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_magazine_types_value",	0, &m_textMagazineTypesValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_scopes",					0, &m_textScopes);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_scopes_value",			0, &m_textScopesValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_silencer",				0, &m_textSilencer);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_silencer_value",			0, &m_textSilencerValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_glauncher",				0, &m_textGLauncher);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_glauncher_value",			0, &m_textGLauncherValue);
 }
 
-void CUIWpnParams::SetInfo( CInventoryItem* slot_wpn, CInventoryItem& cur_wpn )
+void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
 {
-	if ( !g_lua_wpn_params )
+	LPCSTR str					= READ_IF_EXISTS(pSettings, r_string, section, line, 0);
+	if (str && str[0])
 	{
-		g_lua_wpn_params = xr_new<SLuaWpnParams>();
+		string128				tmp;
+		for (int it = 0, count = _GetItemCount(str); it < count; ++it)
+		{
+			_GetItem			(str, it, tmp);
+			vector.push_back	(tmp);
+		}
 	}
-	
-	LPCSTR cur_section  = cur_wpn.object().cNameSect().c_str();
-	string2048 str_upgrades;
-	str_upgrades[0] = 0;
-	cur_wpn.get_upgrades_str( str_upgrades );
-
-	float cur_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( cur_section, str_upgrades )*34.0f)/34.0f;
-	float cur_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( cur_section, str_upgrades )*34.0f)/34.0f;
-	float cur_hand   = iFloor(g_lua_wpn_params->m_functorHandling( cur_section, str_upgrades )*34.0f)/34.0f;
-	float cur_damage = iFloor(g_lua_wpn_params->m_functorDamage( cur_section, str_upgrades )*34.0f)/34.0f;
-
-	float slot_rpm    = cur_rpm;
-	float slot_accur  = cur_accur;
-	float slot_hand   = cur_hand;
-	float slot_damage = cur_damage;
-
-	if ( slot_wpn && (slot_wpn != &cur_wpn) )
-	{
-		LPCSTR slot_section  = slot_wpn->object().cNameSect().c_str();
-		str_upgrades[0] = 0;
-		slot_wpn->get_upgrades_str( str_upgrades );
-
-		slot_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( slot_section, str_upgrades )*34.0f)/34.0f;
-		slot_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( slot_section, str_upgrades )*34.0f)/34.0f;
-		slot_hand   = iFloor(g_lua_wpn_params->m_functorHandling( slot_section, str_upgrades )*34.0f)/34.0f;
-		slot_damage = iFloor(g_lua_wpn_params->m_functorDamage( slot_section, str_upgrades )*34.0f)/34.0f;
-
-		string128 str_value;
-		float adj_value = cur_accur - slot_accur;
-		xr_sprintf(str_value, sizeof(str_value), adj_value>0 ? "+%.1f%%" : "%.1f%%", adj_value);
-		m_textAccuracy_inc.SetText(str_value);
-		m_textAccuracy_inc_shadow.SetText(str_value);
-		adj_value = cur_damage - slot_damage;
-		xr_sprintf(str_value, sizeof(str_value), adj_value>0 ? "+%.1f%%" : "%.1f%%", adj_value);
-		m_textDamage_inc.SetText(str_value);
-		m_textDamage_inc_shadow.SetText(str_value);
-		adj_value = cur_hand - slot_hand;
-		xr_sprintf(str_value, sizeof(str_value), adj_value>0 ? "+%.1f%%" : "%.1f%%", adj_value);
-		m_textHandling_inc.SetText(str_value);
-		m_textHandling_inc_shadow.SetText(str_value);
-		adj_value = cur_rpm - slot_rpm;
-		xr_sprintf(str_value, sizeof(str_value), adj_value>0 ? "+%.1f%%" : "%.1f%%", adj_value);
-		m_textRPM_inc.SetText(str_value);
-		m_textRPM_inc_shadow.SetText(str_value);
-	}
-	else
-	{
-		m_textAccuracy_inc.SetText("");
-		m_textDamage_inc.SetText("");
-		m_textHandling_inc.SetText("");
-		m_textRPM_inc.SetText("");
-		m_textAccuracy_inc_shadow.SetText("");
-		m_textDamage_inc_shadow.SetText("");
-		m_textHandling_inc_shadow.SetText("");
-		m_textRPM_inc_shadow.SetText("");
-	}
-	
-	m_progressAccuracy.SetTwoPos( cur_accur,  slot_accur );
-	m_progressDamage.SetTwoPos(   cur_damage, slot_damage );
-	m_progressHandling.SetTwoPos( cur_hand,   slot_hand );
-	m_progressRPM.SetTwoPos(      cur_rpm,    slot_rpm );
-
-	xr_vector<shared_str> ammo_types;
-
-	CWeapon* weapon = cur_wpn.cast_weapon();
-	if(!weapon)
-		return;
-
-	int ammo_count = weapon->GetAmmoMagSize();
-	int ammo_count2 = ammo_count;
-
-	if(slot_wpn)
-	{
-		CWeapon* slot_weapon = slot_wpn->cast_weapon();
-		if(slot_weapon)
-			ammo_count2 = slot_weapon->GetAmmoMagSize(); 
-	}
-
-	if(ammo_count==ammo_count2)
-		m_textAmmoCount2.SetTextColor(color_rgba(170,170,170,255));
-	else if(ammo_count<ammo_count2)
-		m_textAmmoCount2.SetTextColor(color_rgba(255,0,0,255));
-	else
-		m_textAmmoCount2.SetTextColor(color_rgba(0,255,0,255));
-
-	string128 str;
-	xr_sprintf(str, sizeof(str), "%d", ammo_count);
-	m_textAmmoCount2.SetText(str);
-
-	ammo_types = weapon->m_ammoTypes;
-	if(ammo_types.empty())
-		return;
-
-	xr_sprintf(str, sizeof(str), "%s", pSettings->r_string(ammo_types[0].c_str(), "inv_name_short"));
-	m_textAmmoUsedType.SetTextST(str);
-
-	m_stAmmoType1.SetShader(InventoryUtilities::GetEquipmentIconsShader());
-	Frect				tex_rect;
-	tex_rect.x1			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_x") * INV_GRID_WIDTH);
-	tex_rect.y1			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_y") * INV_GRID_HEIGHT);
-	tex_rect.x2			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_width") * INV_GRID_WIDTH );
-	tex_rect.y2			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_height") * INV_GRID_HEIGHT);
-	tex_rect.rb.add		(tex_rect.lt);
-	m_stAmmoType1.SetTextureRect(tex_rect);
-	m_stAmmoType1.TextureOn();
-	m_stAmmoType1.SetStretchTexture(true);
-	m_stAmmoType1.SetWndSize(Fvector2().set((tex_rect.x2-tex_rect.x1)*UI().get_current_kx(), tex_rect.y2-tex_rect.y1));
-
-	m_stAmmoType2.SetShader(InventoryUtilities::GetEquipmentIconsShader());
-	if(ammo_types.size()==1)
-	{
-		tex_rect.set(0,0,1,1);
-	}
-	else
-	{
-		tex_rect.x1			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_x") * INV_GRID_WIDTH);
-		tex_rect.y1			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_y") * INV_GRID_HEIGHT);
-		tex_rect.x2			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_width") * INV_GRID_WIDTH );
-		tex_rect.y2			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_height") * INV_GRID_HEIGHT);
-		tex_rect.rb.add		(tex_rect.lt);
-	}
-	m_stAmmoType2.SetTextureRect(tex_rect);
-	m_stAmmoType2.TextureOn();
-	m_stAmmoType2.SetStretchTexture(true);
-	m_stAmmoType2.SetWndSize(Fvector2().set((tex_rect.x2-tex_rect.x1)*UI().get_current_kx(), tex_rect.y2-tex_rect.y1));
 }
 
-bool CUIWpnParams::Check(const shared_str& wpn_section)
+void CUIWpnParams::SetInfo(CUICellItem* itm)
 {
-	if (pSettings->line_exist(wpn_section, "fire_dispersion_base"))
+	shared_str& section			= itm->m_section;
+	PIItem item					= (PIItem)itm->m_pData;
+	CWeapon* wpn				= (item) ? item->cast_weapon() : NULL;
+
+	float bullet_speed					= (wpn) ? wpn->GetBulletSpeed() : pSettings->r_float(section, "bullet_speed");
+	float rpm							= (wpn) ? wpn->GetRPM() : pSettings->r_float(section, "rpm");
+	shared_str							str;
+	LPCSTR mps_str						= CStringTable().translate("st_mps").c_str();
+	str.printf							("%.0f %s", bullet_speed, mps_str);
+	m_textBulletSpeedValue.SetText		(*str);
+	LPCSTR rpm_str						= CStringTable().translate("st_rpm").c_str();
+	str.printf							("%.0f %s", rpm, rpm_str);
+	m_textRPMValue.SetText				(*str);
+
+	xr_vector<shared_str>				ammo_types;
+	if (wpn)
+		ammo_types						= wpn->m_ammoTypes;
+	else
+		FillVector						(ammo_types, *section, "ammo_class");
+	LPCSTR name_s						= READ_IF_EXISTS(pSettings, r_string, ammo_types[0], "inv_name_short", false);
+	if (name_s)
 	{
-		//Alundaio: Most likely a fake weapon or melee weapon
-		if (pSettings->line_exist(wpn_section, "ammo_mag_size"))
-			if (pSettings->r_u32(wpn_section, "ammo_mag_size") == 0)
-				return false;
-
-		if (0==xr_strcmp(pSettings->r_string(wpn_section,"class"),"WP_KNIFE"))
-			return false;
-        if (0==xr_strcmp(wpn_section, "wpn_addon_silencer"))
-            return false;
-        if (0==xr_strcmp(wpn_section, "wpn_binoc"))
-            return false;
-        if (0==xr_strcmp(wpn_section, "mp_wpn_binoc"))
-            return false;
-
-        return true;		
+		str._set						(CStringTable().translate(name_s));
+		for (u32 i = 1, i_e = ammo_types.size(); i < i_e; i++)
+		{
+			name_s						= pSettings->r_string(ammo_types[i], "inv_name_short");
+			str.printf					("%s, %s", *str, *CStringTable().translate(name_s));
+		}
 	}
-	return false;
+	else
+		str._set						("---");
+	m_textAmmoTypesValue.SetText		(*str);
+
+	xr_vector<shared_str>				mag_types;
+	if (wpn)
+		mag_types						= wpn->m_magazineTypes;
+	else
+		FillVector						(mag_types, *section, "magazine_class");
+	if (mag_types.size())
+	{
+		LPCSTR name_s					= pSettings->r_string(mag_types[0], "inv_name_short");
+		str._set						(CStringTable().translate(name_s));
+		for (u32 i = 1, count = mag_types.size(); i < count; i++)
+		{
+			LPCSTR mag_section			= *mag_types[i];
+			if (READ_IF_EXISTS(pSettings, r_bool, mag_section, "pseudosection", FALSE))
+				continue;
+			name_s						= pSettings->r_string(mag_section, "inv_name_short");
+			str.printf					("%s, %s", *str, *CStringTable().translate(name_s));
+		}
+	}
+	else
+		str._set						("---");
+	m_textMagazineTypesValue.SetText	(*str);
+
+	u8 scope_status						= (wpn) ? (u8)wpn->get_ScopeStatus() : pSettings->r_u8(section, "scope_status");
+	if (scope_status == 2)
+	{
+		xr_vector<shared_str>			scopes;
+		if (wpn)
+			scopes						= wpn->m_scopes;
+		else
+			FillVector					(scopes, *section, "scopes");
+		LPCSTR name						= pSettings->r_string(scopes[0], "inv_name_short");
+		str._set						(CStringTable().translate(name));
+		for (u32 i = 1, count = scopes.size(); i < count; i++)
+		{
+			name						= pSettings->r_string(scopes[i], "inv_name_short");
+			str.printf					("%s, %s", *str, *CStringTable().translate(name));
+		}
+		m_textScopes.SetText			(*CStringTable().translate("st_scopes"));
+	}
+	else if (scope_status == 1)
+	{
+		LPCSTR scope					= (wpn) ? *wpn->GetScopeName() : READ_IF_EXISTS(pSettings, r_string, section, "scope", 0);
+		LPCSTR name						= pSettings->r_string(scope, "inv_name_short");
+		str.printf						("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
+		m_textScopes.SetText			(*CStringTable().translate("st_scope"));
+	}
+	else
+		str._set						("---");
+	m_textScopesValue.SetText			(*str);
+
+	u8 silencer_status					= (wpn) ? (u8)wpn->get_SilencerStatus() : pSettings->r_u8(section, "silencer_status");
+	if (silencer_status)
+	{
+		LPCSTR silencer					= (wpn) ? *wpn->GetSilencerName() : READ_IF_EXISTS(pSettings, r_string, section, "silencer_name", 0);
+		LPCSTR name						= pSettings->r_string(silencer, "inv_name_short");
+		if (silencer_status == 2)
+			str._set					(CStringTable().translate(name));
+		else
+			str.printf					("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
+	}
+	else
+		str._set						("---");
+	m_textSilencerValue.SetText			(*str);
+	
+	u8 glauncher_status					= (wpn) ? (u8)wpn->get_GrenadeLauncherStatus() : pSettings->r_u8(section, "grenade_launcher_status");
+	if (glauncher_status)
+	{
+		LPCSTR glauncher				= (wpn) ? *wpn->GetGrenadeLauncherName() : READ_IF_EXISTS(pSettings, r_string, section, "grenade_launcher_name", 0);
+		LPCSTR name						= pSettings->r_string(glauncher, "inv_name_short");
+		if (glauncher_status == 2)
+			str._set					(CStringTable().translate(name));
+		else
+			str.printf					("%s (%s)", *CStringTable().translate(name), *CStringTable().translate("st_integraged"));
+	}
+	else
+		str._set						("---");
+	m_textGLauncherValue.SetText		(*str);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -295,20 +201,18 @@ CUIConditionParams::~CUIConditionParams()
 
 void CUIConditionParams::InitFromXml(CUIXml& xml_doc)
 {
-	if (!xml_doc.NavigateToNode("condition_params", 0))	return;
-	CUIXmlInit::InitWindow	(xml_doc, "condition_params", 0, this);
-	CUIXmlInit::InitStatic	( xml_doc, "condition_params:caption", 0, &m_text );
-	m_progress.InitFromXml	( xml_doc, "condition_params:progress_state" );
+	if (!xml_doc.NavigateToNode("condition_params", 0))
+		return;
+	CUIXmlInit::InitWindow		(xml_doc, "condition_params", 0, this);
+	CUIXmlInit::InitStatic		(xml_doc, "condition_params:caption", 0, &m_text);
+	m_progress.InitFromXml		(xml_doc, "condition_params:progress_state");
 }
 
-void CUIConditionParams::SetInfo( CInventoryItem const* slot_item, CInventoryItem const& cur_item )
+void CUIConditionParams::SetInfo(CInventoryItem const* slot_item, CInventoryItem const& cur_item )
 {
-	float cur_value  = cur_item.GetConditionToShow() * 100.0f + 1.0f - EPS;
-	float slot_value = cur_value;
-
-	if ( slot_item && (slot_item != &cur_item) /*&& (cur_item.object().cNameSect()._get() == slot_item->object().cNameSect()._get())*/ )
-	{
-		slot_value = slot_item->GetConditionToShow() * 100.0f + 1.0f - EPS;
-	}
+	float cur_value		= cur_item.GetConditionToShow() * 100.0f + 1.0f - EPS;
+	float slot_value	= cur_value;
+	if (slot_item && (slot_item != &cur_item))
+		slot_value		= slot_item->GetConditionToShow() * 100.0f + 1.0f - EPS;
 	m_progress.SetTwoPos( cur_value, slot_value );
 }

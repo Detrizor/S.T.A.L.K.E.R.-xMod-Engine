@@ -1919,7 +1919,7 @@ void CCC_RegisterCommands()
 	psHUD_Flags.set(HUD_CROSSHAIR, true);
 	psHUD_Flags.set(HUD_WEAPON, true);
 	psHUD_Flags.set(HUD_DRAW, true);
-	psHUD_Flags.set(HUD_INFO, true);
+	psHUD_Flags.set(HUD_INFO, false);
 
 	CMD3(CCC_Mask, "hud_crosshair", &psHUD_Flags, HUD_CROSSHAIR);
 	CMD3(CCC_Mask, "hud_crosshair_dist", &psHUD_Flags, HUD_CROSSHAIR_DIST);
@@ -2338,10 +2338,12 @@ void CCC_RegisterCommands()
 
 	*g_last_saved_game = 0;
 
-	CMD3(CCC_String, "slot_0", g_quick_use_slots[0], 32);
-	CMD3(CCC_String, "slot_1", g_quick_use_slots[1], 32);
-	CMD3(CCC_String, "slot_2", g_quick_use_slots[2], 32);
-	CMD3(CCC_String, "slot_3", g_quick_use_slots[3], 32);
+	shared_str			str;
+	for (u8 i = 0; i < 10; i++)
+	{
+		str.printf		("slot_%d", i);
+		CMD3			(CCC_String, *str, g_quick_use_slots[i], 32);
+	}
 
 	CMD4(CCC_Integer, "keypress_on_start", &g_keypress_on_start, 0, 1);
 	register_mp_console_commands();

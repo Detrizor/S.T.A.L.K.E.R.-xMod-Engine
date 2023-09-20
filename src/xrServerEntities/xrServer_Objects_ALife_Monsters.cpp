@@ -509,6 +509,12 @@ void CSE_ALifeTraderAbstract::SetRank(CHARACTER_RANK_VALUE val)
 	m_rank = val;
 }
 
+void CSE_ALifeTraderAbstract::SetMoney(u32 val)
+{
+	specific_character		();
+	m_dwMoney				= val;
+}
+
 CHARACTER_REPUTATION_VALUE	CSE_ALifeTraderAbstract::Reputation ()
 {
 	specific_character();

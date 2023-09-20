@@ -46,19 +46,19 @@ void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, 
         xr_strlwr(Params);
 
 
-		if (strstr(Params, "-dbg"))
+		if (strstr(Params, "-x_dbg"))
 			ParamFlags.set(ParamFlag::dbg, TRUE);
 
-		if (strstr(Params, "-dbgdev"))
+		if (strstr(Params, "-x_dbgdev"))
 			ParamFlags.set(ParamFlag::dbgdev, TRUE);
 
-		if (strstr(Params, "-dbgact"))
+		if (strstr(Params, "-x_dbgact"))
 			ParamFlags.set(ParamFlag::dbgact, TRUE);
 
-		if (strstr(Params, "-dbgbullet"))
+		if (strstr(Params, "-x_dbgbullet"))
 			ParamFlags.set(ParamFlag::dbgbullet, TRUE);
 		
-		if (strstr(Params, "-dbganim"))
+		if (strstr(Params, "-x_dbganim"))
 			ParamFlags.set(ParamFlag::dbganim, TRUE);
 
 		if (strstr(Params, "-nofpslock"))

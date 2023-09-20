@@ -125,6 +125,7 @@ void CSE_ALifeHumanAbstract::script_register(lua_State *L)
 #ifdef XRGAME_EXPORTS
 		.def("rank",				&CSE_ALifeTraderAbstract::Rank)
 		.def("set_rank",			&CSE_ALifeTraderAbstract::SetRank)
+		.def("set_money",			&CSE_ALifeTraderAbstract::SetMoney)
 
 #endif
 	];

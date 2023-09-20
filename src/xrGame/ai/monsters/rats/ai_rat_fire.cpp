@@ -45,7 +45,7 @@ void CAI_Rat::Exec_Action(float /**dt/**/)
 					HS.whoID			= (id_from);				//					l_P.w_u16	(id_from);
 					HS.weaponID			= (id_from);				//					l_P.w_u16	(id_from);
 					HS.dir				= (tDirection);				//					l_P.w_dir	(tDirection);
-					HS.power			= (m_fHitPower);			//					l_P.w_float	(m_fHitPower);
+					HS.main_damage		= (m_fHitPower);			//					l_P.w_float	(m_fHitPower);
 					HS.boneID			= (0);						//					l_P.w_s16	(0);
 					HS.p_in_bone_space	= (position_in_bone_space);	//					l_P.w_vec3	(position_in_bone_space);
 					HS.impulse			= (0.f);					//					l_P.w_float	(0.f);

@@ -8,53 +8,33 @@ class CLevel;
 #include "hit_immunity.h"
 #include "Hit.h"
 #include "Level.h"
+#include "ActorHelmet.h"
+#include "CustomOutfit.h"
 enum EBoostParams{
-	eBoostHpRestore = 0,
-	eBoostPowerRestore,
-	eBoostRadiationRestore,
-	eBoostBleedingRestore,
-	eBoostMaxWeight,
-	eBoostRadiationProtection,
-	eBoostTelepaticProtection,
-	eBoostChemicalBurnProtection,
-	eBoostBurnImmunity,
-	eBoostShockImmunity,
-	eBoostRadiationImmunity,
-	eBoostTelepaticImmunity,
-	eBoostChemicalBurnImmunity,
-	eBoostExplImmunity,
-	eBoostStrikeImmunity,
-	eBoostFireWoundImmunity,
-	eBoostWoundImmunity,
-	eBoostMaxCount,
+	eBoostPainkill= 0,
+	eBoostRegeneration,
+	eBoostRecuperation,
+	eBoostEndurance,
+	eBoostTenacity,
+	eBoostAntirad,
+	eBoostMaxCount
 };
 
 static const LPCSTR ef_boosters_section_names[] =
 {
-	"boost_health_restore",
-	"boost_power_restore",
-	"boost_radiation_restore",
-	"boost_bleeding_restore",
-	"boost_max_weight",
-	"boost_radiation_protection",
-	"boost_telepat_protection",
-	"boost_chemburn_protection",
-	"boost_burn_immunity",
-	"boost_shock_immunity",
-	"boost_radiation_immunity",
-	"boost_telepat_immunity",
-	"boost_chemburn_immunity",
-	"boost_explosion_immunity",
-	"boost_strike_immunity",
-	"boost_fire_wound_immunity",
-	"boost_wound_immunity"
+	"boost_painkill",
+	"boost_regeneration",
+	"boost_recuperation",
+	"boost_endurance",
+	"boost_tenacity",
+	"boost_antirad"
 };
 
 struct SBooster{
 	float fBoostTime;
 	float fBoostValue;
 	EBoostParams m_type;
-	SBooster() :fBoostTime(-1.0f), fBoostValue(0.f), m_type(eBoostHpRestore){};
+	SBooster() :fBoostTime(-1.0f), fBoostValue(0.f), m_type(eBoostPainkill){};
 	void Load(const shared_str& sect, EBoostParams type);
 };
 
@@ -153,11 +133,12 @@ public:
 	IC bool					CanBeHarmed				() const					{return OnServer() && m_bCanBeHarmed;};
 	virtual bool			ApplyInfluence			(const SMedicineInfluenceValues& V, const shared_str& sect);
 	virtual bool			ApplyBooster			(const SBooster& B, const shared_str& sect);
-	void					ClearWounds();
-
-	IC float				GetBoostRadiationImmunity() const {return m_fBoostRadiationImmunity;};
+	void					ClearWounds				();
 
 	typedef					xr_map<EBoostParams, SBooster> BOOSTER_MAP;
+	
+	float					GetArtefactArmor		();
+	float					GetBoneArmor			(u16 element);
 protected:
 	void					UpdateHealth			();
 	void					UpdatePower				();
@@ -166,10 +147,16 @@ protected:
 
 	void					UpdateEntityMorale		();
 
-
 	//изменение силы хита в зависимости от надетого костюма
 	//(только для InventoryOwner)
-	float					HitOutfitEffect			(float hit_power, ALife::EHitType hit_type, s16 element, float ap, bool& add_wound );
+	CCustomOutfit*			GetOutfit				();
+	CHelmet*				GetHelmet				();
+
+	void					HitProtectionEffect		(SHit* pHDS);
+	template<typename T>
+	bool					HitThroughGear			(SHit* pHDS, T pGear, u16 main_bone, bool armor_type);
+	void					HitThroughArmor			(SHit* pHDS, float bone_armor, CCustomOutfit* pOutfit = NULL, CHelmet* pHelmet = NULL);
+	void					ExplProcess				(float& damage, float& armor, CCustomOutfit* pOutfit, CHelmet* pHelmet, ALife::EHitType& hit_type);
 	//изменение потери сил в зависимости от надетого костюма
 	float					HitPowerEffect			(float power_loss);
 	
@@ -227,19 +214,6 @@ protected:
 	float				m_fHealthHitPart;
 	float				m_fPowerHitPart;
 
-	float				m_fBoostBurnImmunity;
-	float				m_fBoostShockImmunity;
-	float				m_fBoostRadiationImmunity;
-	float 				m_fBoostTelepaticImmunity;
-	float 				m_fBoostChemicalBurnImmunity;
-	float 				m_fBoostExplImmunity;
-	float 				m_fBoostStrikeImmunity;
-	float 				m_fBoostFireWoundImmunity;
-	float 				m_fBoostWoundImmunity;
-	float 				m_fBoostRadiationProtection;
-	float 				m_fBoostTelepaticProtection;
-	float 				m_fBoostChemicalBurnProtection;
-
 	//потеря здоровья от последнего хита
 	float				m_fHealthLost;
 
@@ -255,8 +229,8 @@ protected:
 	u16					m_iWhoID;
 
 	//для передачи параметров из DamageManager
-	float				m_fHitBoneScale;
-	float				m_fWoundBoneScale;
+	float				m_fArmorDamageBoneScale;
+	float				m_fPierceDamageBoneScale;
 
 	float				m_limping_threshold;
 
@@ -265,13 +239,13 @@ protected:
 	BOOSTER_MAP			m_booster_influences;
 
 public:
-	virtual void					reinit				();
+	virtual void					reinit					();
 	
-	IC const	float				fdelta_time			() const 	{return		(m_fDeltaTime);			}
-	IC const	WOUND_VECTOR&		wounds				() const	{return		(m_WoundVector);		}
-	IC float&						radiation			()			{return		(m_fRadiation);			}
-	IC float&						hit_bone_scale		()			{return		(m_fHitBoneScale);		}
-	IC float&						wound_bone_scale	()			{return		(m_fWoundBoneScale);	}
-	IC SConditionChangeV&			change_v			()			{return		(m_change_v);			}
+	IC const	float				fdelta_time				() const 	{return		(m_fDeltaTime);				}
+	IC const	WOUND_VECTOR&		wounds					() const	{return		(m_WoundVector);			}
+	IC float&						radiation				()			{return		(m_fRadiation);				}
+	IC float&						armor_damage_bone_scale	()			{return		(m_fArmorDamageBoneScale);	}
+	IC float&						pierce_damage_bone_scale()			{return		(m_fPierceDamageBoneScale);	}
+	IC SConditionChangeV&			change_v				()			{return		(m_change_v);				}
 
 };

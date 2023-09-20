@@ -82,7 +82,6 @@ CAI_Stalker::CAI_Stalker			() :
 	m_sound_user_data_visitor		= 0;
 	m_movement_manager				= 0;
 	m_group_behaviour				= true;
-	m_boneHitProtection				= NULL;
 	m_power_fx_factor				= flt_max;
 	m_wounded						= false;
 #ifdef DEBUG
@@ -588,27 +587,7 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 	if (!g_Alive())
 		sound().set_sound_mask(u32(eStalkerSoundMaskDie));
 
-	//загрузить иммунитеты из модельки сталкера
-	IKinematics* pKinematics = smart_cast<IKinematics*>(Visual()); VERIFY(pKinematics);
-	CInifile* ini = pKinematics->LL_UserData();
-	if(ini)
-	{
-		if(ini->section_exist("immunities"))
-		{
-			LPCSTR imm_sect = ini->r_string("immunities", "immunities_sect");
-			conditions().LoadImmunities(imm_sect,pSettings);
-		}
-
-		if(ini->line_exist("bone_protection","bones_protection_sect")){
-			m_boneHitProtection			= xr_new<SBoneProtections>();
-			m_boneHitProtection->reload	(ini->r_string("bone_protection","bones_protection_sect"), pKinematics );
-		}
-	}
-
 	//вычислить иммунета в зависимости от ранга
-	static float novice_rank_immunity			= pSettings->r_float("ranks_properties", "immunities_novice_k");
-	static float expirienced_rank_immunity		= pSettings->r_float("ranks_properties", "immunities_experienced_k");
-
 	static float novice_rank_visibility			= pSettings->r_float("ranks_properties", "visibility_novice_k");
 	static float expirienced_rank_visibility	= pSettings->r_float("ranks_properties", "visibility_experienced_k");
 
@@ -619,7 +598,6 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 	CHARACTER_RANK_VALUE rank = Rank();
 	clamp(rank, 0, 100);
 	float rank_k = float(rank)/100.f;
-	m_fRankImmunity = novice_rank_immunity + (expirienced_rank_immunity - novice_rank_immunity) * rank_k;
 	m_fRankVisibility = novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_k;
 	m_fRankDisperison = expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1-rank_k);
 
@@ -685,7 +663,6 @@ void CAI_Stalker::net_Destroy()
 	xr_delete						(m_ce_angle);
 	xr_delete						(m_ce_safe);
 	xr_delete						(m_ce_ambush);
-	xr_delete						(m_boneHitProtection);
 }
 
 void CAI_Stalker::net_Save			(NET_Packet& P)
@@ -1383,24 +1360,4 @@ bool CAI_Stalker::can_fire_right_now							( )
 bool CAI_Stalker::unlimited_ammo()
 {
 	return infinite_ammo() && CObjectHandler::planner().object().g_Alive();
-}
-
-void CAI_Stalker::ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect)
-{
-	IKinematics* pKinematics = smart_cast<IKinematics*>(Visual());
-	CInifile* ini = pKinematics->LL_UserData();
-	if (ini)
-	{
-		if (imm_sect || ini->section_exist("immunities"))
-		{
-			imm_sect = imm_sect ? imm_sect : ini->r_string("immunities", "immunities_sect");
-			conditions().LoadImmunities(imm_sect, pSettings);
-		}
-
-		if (bone_sect || ini->line_exist("bone_protection", "bones_protection_sect"))
-		{
-			bone_sect = ini->r_string("bone_protection", "bones_protection_sect");
-			m_boneHitProtection->reload(bone_sect, pKinematics);
-		}
-	}
 }

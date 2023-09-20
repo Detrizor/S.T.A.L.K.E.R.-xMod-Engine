@@ -5,6 +5,7 @@
 #include "UIWndCallback.h"
 #include "restrictions.h"
 #include "UIMpItemsStoreWnd.h"
+#include "string_table.h"
 
 class CUIDragDropListEx;
 class CUI3tButton;
@@ -16,6 +17,7 @@ class CUICellItem;
 class CInventoryItem;
 class CItemMgr;
 class CUIItemInfo;
+class CStringTable;
 
 struct SBuyItemInfo
 {

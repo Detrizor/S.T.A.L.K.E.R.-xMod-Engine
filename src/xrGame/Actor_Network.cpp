@@ -517,7 +517,7 @@ BOOL CActor::net_Spawn(CSE_Abstract* DC)
 
 	//mstate_wishful = E->mstate;
 	mstate_wishful = 0;
-	mstate_wishful = E->mstate&(mcCrouch | mcAccel);
+	mstate_wishful = E->mstate&(mcCrouch | mcCrouchLow | mcAccel);
 	mstate_old = mstate_real = mstate_wishful;
 	set_state_box(mstate_real);
 	m_pPhysics_support->in_NetSpawn(e);
@@ -1300,10 +1300,8 @@ void CActor::save(NET_Packet &output_packet)
 	output_packet.w_u8(task_wnd->IsSecondaryTasksEnabled() ? 1 : 0);
 	output_packet.w_u8(task_wnd->IsPrimaryObjectsEnabled() ? 1 : 0);
 
-	output_packet.w_stringZ(g_quick_use_slots[0]);
-	output_packet.w_stringZ(g_quick_use_slots[1]);
-	output_packet.w_stringZ(g_quick_use_slots[2]);
-	output_packet.w_stringZ(g_quick_use_slots[3]);
+	for (u8 i = 0; i < 10; i++)
+		output_packet.w_stringZ(g_quick_use_slots[i]);
 }
 
 void CActor::load(IReader &input_packet)
@@ -1318,10 +1316,8 @@ void CActor::load(IReader &input_packet)
 	task_wnd->PrimaryObjectsEnabled(!!input_packet.r_u8());
 	//need_quick_slot_reload = true;
 
-	input_packet.r_stringZ(g_quick_use_slots[0], sizeof(g_quick_use_slots[0]));
-	input_packet.r_stringZ(g_quick_use_slots[1], sizeof(g_quick_use_slots[1]));
-	input_packet.r_stringZ(g_quick_use_slots[2], sizeof(g_quick_use_slots[2]));
-	input_packet.r_stringZ(g_quick_use_slots[3], sizeof(g_quick_use_slots[3]));
+	for (u8 i = 0; i < 10; i++)
+		input_packet.r_stringZ(g_quick_use_slots[i], sizeof(g_quick_use_slots[i]));
 }
 
 #ifdef DEBUG
@@ -1797,18 +1793,6 @@ bool CActor::InventoryAllowSprint()
 		return false;
 
 	return true;
-};
-
-BOOL CActor::BonePassBullet(int boneID)
-{
-	CCustomOutfit* pOutfit = GetOutfit();
-	if (!pOutfit)
-	{
-		IKinematics* V = smart_cast<IKinematics*>(Visual()); VERIFY(V);
-		CBoneInstance			&bone_instance = V->LL_GetBoneInstance(u16(boneID));
-		return (bone_instance.get_param(3)> 0.5f);
-	}
-	return pOutfit->BonePassBullet(boneID);
 }
 
 void CActor::On_B_NotCurrentEntity()

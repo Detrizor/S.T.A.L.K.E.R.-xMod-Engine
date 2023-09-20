@@ -43,7 +43,7 @@ void CExplosiveItem::net_Destroy()
 void	CExplosiveItem::Hit					(SHit* pHDS)
 {
 //	inherited::Hit(P,dir,who,element,position_in_object_space,impulse,hit_type);
-	if(CDelayedActionFuse::isActive())pHDS->power=0.f;
+	if(CDelayedActionFuse::isActive()){pHDS->main_damage=0.f;pHDS->pierce_damage=0.f;}
 	inherited::Hit(pHDS);
 	VERIFY(pHDS->who);
 	if(!CDelayedActionFuse::isActive() &&

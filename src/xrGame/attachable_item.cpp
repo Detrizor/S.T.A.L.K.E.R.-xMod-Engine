@@ -107,16 +107,7 @@ void CAttachableItem::enable			(bool value)
 
 bool  CAttachableItem::can_be_attached	() const
 {
-	if (!item().m_pInventory)
-		return				(false);
-
-	if (!item().m_pInventory->IsBeltUseful())
-		return				(true);
-
-	if (item().m_ItemCurrPlace.type != eItemPlaceBelt)
-		return				(false);
-	 
-	return					(true);
+	return false;
 }
 void CAttachableItem::afterAttach		()
 {

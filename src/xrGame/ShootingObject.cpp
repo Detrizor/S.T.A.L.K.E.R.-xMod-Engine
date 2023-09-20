@@ -22,20 +22,13 @@
 
 CShootingObject::CShootingObject(void)
 {
-	fShotTimeCounter							= 0;
- 	fOneShotTime						= 0;
-	//fHitPower						= 0.0f;
-	fvHitPower.set					(0.0f,0.0f,0.0f,0.0f);
-	fvHitPowerCritical.set			(0.0f,0.0f,0.0f,0.0f);
+	fShotTimeCounter				= 0;
+ 	fOneShotTime					= 0;
 	m_fStartBulletSpeed				= 1000.f;
 
 	m_vCurrentShootDir.set			(0,0,0);
 	m_vCurrentShootPos.set			(0,0,0);
 	m_iCurrentParentID				= 0xFFFF;
-
-	m_fPredBulletTime				= 0.0f;
-	m_bUseAimBullet					= false;
-	m_fTimeToAim					= 0.0f;
 
 	//particles
 	m_sFlameParticlesCurrent		= m_sFlameParticles = NULL;
@@ -89,8 +82,6 @@ void CShootingObject::Load	(LPCSTR section)
 	LoadLights			(section, "");
 	LoadShellParticles	(section, "");
 	LoadFlameParticles	(section, "");
-
-	m_air_resistance_factor	= READ_IF_EXISTS(pSettings,r_float,section,"air_resistance_factor",1.f);
 }
 
 void CShootingObject::Light_Create		()
@@ -108,60 +99,10 @@ void CShootingObject::Light_Destroy		()
 
 void CShootingObject::LoadFireParams( LPCSTR section )
 {
-	string32	buffer;
-	shared_str	s_sHitPower;
-	shared_str	s_sHitPowerCritical;
-
 	//базовая дисперсия оружия
 	fireDispersionBase	= deg2rad( pSettings->r_float	(section,"fire_dispersion_base"	) );
-
-	//сила выстрела и его мощьность
-	s_sHitPower			= pSettings->r_string_wb(section, "hit_power" );//читаем строку силы хита пули оружия
-	s_sHitPowerCritical	= pSettings->r_string_wb(section, "hit_power_critical" );
-	fvHitPower[egdMaster]			= (float)atof(_GetItem(*s_sHitPower,0,buffer));//первый параметр - это хит для уровня игры мастер
-	fvHitPowerCritical[egdMaster]	= (float)atof(_GetItem(*s_sHitPowerCritical,0,buffer));//первый параметр - это хит для уровня игры мастер
-
-	fvHitPower[egdNovice] = fvHitPower[egdStalker] = fvHitPower[egdVeteran] = fvHitPower[egdMaster];//изначально параметры для других уровней сложности такие же
-	fvHitPowerCritical[egdNovice] = fvHitPowerCritical[egdStalker] = fvHitPowerCritical[egdVeteran] = fvHitPowerCritical[egdMaster];//изначально параметры для других уровней сложности такие же
-
-	int num_game_diff_param=_GetItemCount(*s_sHitPower);//узнаём колличество параметров для хитов
-	if (num_game_diff_param>1)//если задан второй параметр хита
-	{
-		fvHitPower[egdVeteran]	= (float)atof(_GetItem(*s_sHitPower,1,buffer));//то вычитываем его для уровня ветерана
-	}
-	if (num_game_diff_param>2)//если задан третий параметр хита
-	{
-		fvHitPower[egdStalker]	= (float)atof(_GetItem(*s_sHitPower,2,buffer));//то вычитываем его для уровня сталкера
-	}
-	if (num_game_diff_param>3)//если задан четвёртый параметр хита
-	{
-		fvHitPower[egdNovice]	= (float)atof(_GetItem(*s_sHitPower,3,buffer));//то вычитываем его для уровня новичка
-	}
-
-	num_game_diff_param=_GetItemCount(*s_sHitPowerCritical);//узнаём колличество параметров
-	if (num_game_diff_param>1)//если задан второй параметр хита
-	{
-		fvHitPowerCritical[egdVeteran]	= (float)atof(_GetItem(*s_sHitPowerCritical,1,buffer));//то вычитываем его для уровня ветерана
-	}
-	if (num_game_diff_param>2)//если задан третий параметр хита
-	{
-		fvHitPowerCritical[egdStalker]	= (float)atof(_GetItem(*s_sHitPowerCritical,2,buffer));//то вычитываем его для уровня сталкера
-	}
-	if (num_game_diff_param>3)//если задан четвёртый параметр хита
-	{
-		fvHitPowerCritical[egdNovice]	= (float)atof(_GetItem(*s_sHitPowerCritical,3,buffer));//то вычитываем его для уровня новичка
-	}
-
-	fHitImpulse			= pSettings->r_float	(section, "hit_impulse" );
-	//максимальное расстояние полета пули
-	fireDistance		= pSettings->r_float	(section, "fire_distance" );
 	//начальная скорость пули
 	m_fStartBulletSpeed = pSettings->r_float	(section, "bullet_speed" );
-	m_bUseAimBullet		= pSettings->r_bool		(section, "use_aim_bullet" );
-	if (m_bUseAimBullet)
-	{
-		m_fTimeToAim		= pSettings->r_float	(section, "time_to_aim" );
-	}
 }
 
 void CShootingObject::LoadLights		(LPCSTR section, LPCSTR prefix)
@@ -465,62 +406,17 @@ void CShootingObject::FireBullet(const Fvector& pos,
 	m_vCurrentShootDir = dir;
 	m_vCurrentShootPos = pos;
 	m_iCurrentParentID = parent_id;
-	
-	bool aim_bullet;
-	if (m_bUseAimBullet)
-	{
-		if (ParentMayHaveAimBullet())
-		{
-			if (m_fPredBulletTime==0.0)
-			{
-				aim_bullet=true;
-			}
-			else
-			{
-				if ((Device.fTimeGlobal-m_fPredBulletTime)>=m_fTimeToAim)
-				{
-					aim_bullet=true;
-				}
-				else
-				{
-					aim_bullet=false;
-				}
-			}
-		}
-		else
-		{
-			aim_bullet=false;
-		}
-	}
-	else
-	{
-		aim_bullet=false;
-	}
-	m_fPredBulletTime = Device.fTimeGlobal;
-
-	float l_fHitPower = 0.0f;
-	if (ParentIsActor())//если из оружия стреляет актёр(игрок)
-	{
-		l_fHitPower			= fvHitPower[g_SingleGameDifficulty];
-	}
-	else
-	{
-		l_fHitPower			= fvHitPower[egdMaster];
-	}
 
 	Level().BulletManager().AddBullet( pos, 
 										dir,
 										m_fStartBulletSpeed * cur_silencer_koef.bullet_speed,
-										l_fHitPower * cur_silencer_koef.hit_power,
-										fHitImpulse * cur_silencer_koef.hit_impulse,
 										parent_id, 
 										weapon_id,
-										ALife::eHitTypeFireWound, 
-										fireDistance, 
-										cartridge, 
-										m_air_resistance_factor,
-										send_hit, 
-										aim_bullet,
+										ALife::eHitTypeFireWound, 0.f,
+										cartridge,
+										send_hit,
+										-1.f,
+										-1.f,
 										iShotNum);
 }
 void CShootingObject::FireStart	()

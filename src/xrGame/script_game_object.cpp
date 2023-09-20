@@ -491,6 +491,17 @@ void CScriptGameObject::SetCondition(float val)
     inventory_item->ChangeCondition(val);
 }
 
+void CScriptGameObject::ChangeCondition(float val)
+{
+	CInventoryItem*		inventory_item = smart_cast<CInventoryItem*>(&object());
+	if (!inventory_item)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member ChangeCondition!");
+		return;
+	}
+	inventory_item->ChangeCondition(val);
+}
+
 void CScriptGameObject::eat(CScriptGameObject *item)
 {
     if (!item)
@@ -728,8 +739,6 @@ bool CScriptGameObject::Use(CScriptGameObject* obj)
 
 		return true;
 	}
-
-	return false;
 }
 
 void CScriptGameObject::StartTrade(CScriptGameObject* obj)

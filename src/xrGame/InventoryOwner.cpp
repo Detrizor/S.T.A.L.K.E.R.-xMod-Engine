@@ -25,6 +25,7 @@
 #include "purchase_list.h"
 #include "alife_object_registry.h"
 #include "CustomOutfit.h"
+#include "ActorHelmet.h"
 #include "Bolt.h"
 
 CInventoryOwner::CInventoryOwner()
@@ -68,9 +69,6 @@ CInventoryOwner::~CInventoryOwner()
 
 void CInventoryOwner::Load(LPCSTR section)
 {
-    if (pSettings->line_exist(section, "inv_max_weight"))
-        m_inventory->SetMaxWeight(pSettings->r_float(section, "inv_max_weight"));
-
     if (pSettings->line_exist(section, "need_osoznanie_mode"))
     {
         m_need_osoznanie_mode = pSettings->r_bool(section, "need_osoznanie_mode");
@@ -216,6 +214,20 @@ void CInventoryOwner::UpdateInventoryOwner(u32 deltaT)
     }
 }
 
+bool CInventoryOwner::CanPutInSlot(PIItem item, u32 slot)
+{
+	if (smart_cast<const CActor*>(this))
+	{
+		shared_str			slot_ai;
+		slot_ai.printf		("slot_ai_%d", slot);
+		return				!READ_IF_EXISTS(pSettings, r_bool, "inventory", *slot_ai, FALSE);
+	}
+	else if (slot == LEFT_HAND_SLOT || slot == RIGHT_HAND_SLOT || slot == BOTH_HANDS_SLOT)
+		return				false;
+
+	return true;
+}
+
 //достать PDA из специального слота инвентаря
 CPda* CInventoryOwner::GetPDA() const
 {
@@ -330,21 +342,10 @@ float CInventoryOwner::GetWeaponAccuracy() const
     return 0.f;
 }
 
-#include "ActorBackpack.h"
-//максимальный переносимы вес
-float  CInventoryOwner::MaxCarryWeight() const
+//вместимость инвентаря
+float  CInventoryOwner::InventoryCapacity() const
 {
-    float ret = inventory().GetMaxWeight();
-
-    const CCustomOutfit* outfit = GetOutfit();
-    if (outfit)
-        ret += outfit->m_additional_weight2;
-
-	CBackpack* pBackpack = smart_cast<CBackpack*>(inventory().ItemFromSlot(BACKPACK_SLOT));
-	if (pBackpack)
-		ret += pBackpack->m_additional_weight2;
-	
-    return ret;
+	return GetOutfit()->m_capacity;
 }
 
 void CInventoryOwner::spawn_supplies()
@@ -354,7 +355,7 @@ void CInventoryOwner::spawn_supplies()
     if (smart_cast<CBaseMonster*>(this))	return;
 
     if (use_bolts())
-        Level().spawn_item("bolt", game_object->Position(), game_object->ai_location().level_vertex_id(), game_object->ID());
+        //Level().spawn_item("bolt", game_object->Position(), game_object->ai_location().level_vertex_id(), game_object->ID());
 
     if (!ai().get_alife())
     {
@@ -503,7 +504,63 @@ void CInventoryOwner::OnItemSlot(CInventoryItem *inventory_item, const SInvItemP
 
 CCustomOutfit* CInventoryOwner::GetOutfit() const
 {
-    return smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT));
+	CCustomOutfit* pOutfit;
+	if (smart_cast<const CActor*>(this))
+	{
+		pOutfit = smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT));
+		if (!pOutfit)
+			pOutfit = smart_cast<CCustomOutfit*>(inventory().Get("without_outfit"));
+	}
+	else
+	{
+		PIItem without_outfit = inventory().Get("without_outfit");
+		pOutfit = smart_cast<CCustomOutfit*>(inventory().SameSlot(OUTFIT_SLOT, without_outfit));
+		if (!pOutfit)
+			pOutfit = smart_cast<CCustomOutfit*>(without_outfit);
+	}
+
+	return pOutfit;
+}
+
+CHelmet* CInventoryOwner::GetHelmet() const
+{
+	return (smart_cast<const CActor*>(this)) ? smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT)) : smart_cast<CHelmet*>(inventory().SameSlot(HELMET_SLOT, NULL));
+}
+
+extern CSE_Abstract* CALifeSimulator__spawn_item(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, float condition, bool reg);
+CSE_Abstract* CInventoryOwner::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
+{
+	CALifeSimulator* alife			= const_cast<CALifeSimulator*>(ai().get_alife());
+	CGameObject* obj				= smart_cast<CGameObject*>(this);
+	const Fvector& position			= obj->Position();
+	const u32& level_vertex_id		= obj->ai_location().level_vertex_id();
+	const u16& game_vertex_id		= obj->ai_location().game_vertex_id();
+	const ALife::_OBJECT_ID& id		= obj->ID();
+
+	CSE_Abstract* result			= NULL;
+	for (u32 i = 0; i < count; i++)
+		result						= CALifeSimulator__spawn_item(alife, section, position, level_vertex_id, game_vertex_id, id, condition, !dont_reg);
+
+	return							result;
+}
+
+extern CSE_Abstract* CALifeSimulator__spawn_ammo(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, u16 ammo_to_spawn);
+CSE_Abstract* CInventoryOwner::GiveAmmo(LPCSTR section, u16 count)
+{
+	CALifeSimulator* alife				= const_cast<CALifeSimulator*>(ai().get_alife());
+	CGameObject* obj					= smart_cast<CGameObject*>(this);
+	const Fvector& position				= obj->Position();
+	const u32& level_vertex_id			= obj->ai_location().level_vertex_id();
+	const u16& game_vertex_id			= obj->ai_location().game_vertex_id();
+	const ALife::_OBJECT_ID& id			= obj->ID();
+
+	u8 box_size							= pSettings->r_u8(section, "box_size");
+	while (count > box_size)
+	{
+		CALifeSimulator__spawn_item		(alife, section, position, level_vertex_id, game_vertex_id, id, 1.f, true);
+		count							-= box_size;
+	}
+	return								CALifeSimulator__spawn_ammo(alife, section, position, level_vertex_id, game_vertex_id, id, count);
 }
 
 void CInventoryOwner::on_weapon_shot_start(CWeapon *weapon)
@@ -551,57 +608,32 @@ void CInventoryOwner::buy_supplies(CInifile &ini_file, LPCSTR section)
 
 void CInventoryOwner::sell_useless_items()
 {
-    CGameObject					*object = smart_cast<CGameObject*>(this);
-
-    TIItemContainer::iterator	I = inventory().m_all.begin();
-    TIItemContainer::iterator	E = inventory().m_all.end();
-    for (; I != E; ++I)
-    {
-        if (smart_cast<CBolt*>(*I))
-        {
-            continue;
-        }
-        CInventoryItem* item = smart_cast<CInventoryItem*>(*I);
-        if (item->CurrSlot() && item->cast_weapon())
-            continue;
-
-        CPda* pda = smart_cast<CPda*>(*I);
-        if (pda)
-        {
-            if (pda->GetOriginalOwnerID() == object->ID())
-            {
-                continue;
-            }
-        }
-        (*I)->SetDropManual(FALSE);
-        (*I)->object().DestroyObject();
+    CGameObject* object					= smart_cast<CGameObject*>(this);
+	for (TIItemContainer::iterator I = inventory().m_all.begin(), E = inventory().m_all.end(); I != E; ++I)
+	{
+		CPda* pda						= smart_cast<CPda*>(*I);
+		if (pda && pda->GetOriginalOwnerID() == object->ID())
+			continue;
+        (*I)->SetDropManual				(FALSE);
+        (*I)->object().DestroyObject	();
     }
 }
 
-bool CInventoryOwner::AllowItemToTrade(CInventoryItem const * item, const SInvItemPlace& place) const
+bool CInventoryOwner::AllowItemToTrade(const shared_str& section, const SInvItemPlace& place) const
 {
-    return						(
-        trade_parameters().enabled(
-        CTradeParameters::action_sell(0),
-        item->object().cNameSect()
-        )
-        );
+	return						(!smart_cast<const CActor*>(this)) ? trade_parameters().enabled(CTradeParameters::action_sell(0), section) : true;
 }
 
 void CInventoryOwner::set_money(u32 amount, bool bSendEvent)
 {
-    if (InfinitiveMoney())
-        m_money = _max(m_money, amount);
-    else
-        m_money = amount;
-
+	m_money						= (InfinitiveMoney()) ? _max(m_money, amount) : amount;
     if (bSendEvent)
     {
-        CGameObject				*object = smart_cast<CGameObject*>(this);
+		CGameObject*			object = smart_cast<CGameObject*>(this);
         NET_Packet				packet;
-        object->u_EventGen(packet, GE_MONEY, object->ID());
-        packet.w_u32(m_money);
-        object->u_EventSend(packet);
+        object->u_EventGen		(packet, GE_MONEY, object->ID());
+        packet.w_u32			(m_money);
+        object->u_EventSend		(packet);
     }
 }
 

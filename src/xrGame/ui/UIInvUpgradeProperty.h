@@ -68,7 +68,7 @@ public:
 		void		init_from_xml( LPCSTR xml_name );
 		
 		void		set_upgrade_info( Upgrade_type& upgrade );
-		void		set_item_info( CInventoryItem& item );
+		void		set_item_info(PIItem item);
 
 protected:
 		void		set_info( ItemUpgrades_type const& item_upgrades );

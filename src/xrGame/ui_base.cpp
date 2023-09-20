@@ -257,6 +257,11 @@ bool ui_core::is_widescreen()
 	return (Device.dwWidth)/float(Device.dwHeight) > (UI_BASE_WIDTH/UI_BASE_HEIGHT +0.01f);
 }
 
+float ui_core::widescreen_factor()
+{
+	return ((float)Device.dwHeight * UI_BASE_WIDTH) / ((float)Device.dwWidth * UI_BASE_HEIGHT);
+}
+
 float ui_core::get_current_kx()
 {
 	float h		= float(Device.dwHeight);

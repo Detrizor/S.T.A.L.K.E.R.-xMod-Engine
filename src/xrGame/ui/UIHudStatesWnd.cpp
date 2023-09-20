@@ -591,33 +591,9 @@ void CUIHudStatesWnd::UpdateIndicatorType( CActor* actor, ALife::EInfluenceType 
 	
 	CCustomOutfit* outfit = actor->GetOutfit();
 	CHelmet* helmet = smart_cast<CHelmet*>(actor->inventory().ItemFromSlot(HELMET_SLOT));
-	float protect = (outfit) ? outfit->GetDefHitTypeProtection( hit_type ) : 0.0f;
-	protect += (helmet) ? helmet->GetDefHitTypeProtection(hit_type) : 0.0f;
-	protect += actor->GetProtection_ArtefactsOnBelt( hit_type );
-
-	CEntityCondition::BOOSTER_MAP cur_booster_influences = actor->conditions().GetCurBoosterInfluences();
-	CEntityCondition::BOOSTER_MAP::const_iterator it;
-	if(hit_type==ALife::eHitTypeChemicalBurn)
-	{
-		it = cur_booster_influences.find(eBoostChemicalBurnProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
-	else if(hit_type==ALife::eHitTypeRadiation)
-	{
-		it = cur_booster_influences.find(eBoostRadiationProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
-	else if(hit_type==ALife::eHitTypeTelepatic)
-	{
-		it = cur_booster_influences.find(eBoostTelepaticProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
-
-//	float max_power = actor->conditions().GetZoneMaxPower( hit_type );
-//	protect = protect / max_power; // = 0..1
+	float protect = (outfit) ? outfit->GetHitTypeProtection( hit_type ) : 0.0f;
+	protect += (helmet) ? helmet->GetHitTypeProtection(hit_type) : 0.0f;
+	protect += actor->GetProtectionArtefacts(hit_type);
 
 	if ( hit_power < EPS )
 	{
@@ -736,30 +712,9 @@ void CUIHudStatesWnd::FakeUpdateIndicatorType(u8 t, float power)
 	
 	CCustomOutfit* outfit = actor->GetOutfit();
 	CHelmet* helmet = smart_cast<CHelmet*>(actor->inventory().ItemFromSlot(HELMET_SLOT));
-	float protect = (outfit) ? outfit->GetDefHitTypeProtection( hit_type ) : 0.0f;
-	protect += (helmet) ? helmet->GetDefHitTypeProtection(hit_type) : 0.0f;
-	protect += actor->GetProtection_ArtefactsOnBelt( hit_type );
-
-	CEntityCondition::BOOSTER_MAP cur_booster_influences = actor->conditions().GetCurBoosterInfluences();
-	CEntityCondition::BOOSTER_MAP::const_iterator it;
-	if(hit_type==ALife::eHitTypeChemicalBurn)
-	{
-		it = cur_booster_influences.find(eBoostChemicalBurnProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
-	else if(hit_type==ALife::eHitTypeRadiation)
-	{
-		it = cur_booster_influences.find(eBoostRadiationProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
-	else if(hit_type==ALife::eHitTypeTelepatic)
-	{
-		it = cur_booster_influences.find(eBoostTelepaticProtection);
-		if(it!=cur_booster_influences.end())
-			protect += it->second.fBoostValue;
-	}
+	float protect = (outfit) ? outfit->GetHitTypeProtection( hit_type ) : 0.0f;
+	protect += (helmet) ? helmet->GetHitTypeProtection(hit_type) : 0.0f;
+	protect += actor->GetProtectionArtefacts(hit_type);
 
 	float max_power = actor->conditions().GetZoneMaxPower( hit_type );
 	protect = protect / max_power; // = 0..1

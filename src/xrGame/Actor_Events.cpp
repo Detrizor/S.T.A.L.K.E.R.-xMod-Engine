@@ -45,11 +45,10 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 		
 			CGameObject* _GO		= smart_cast<CGameObject*>(Obj);
 			
-			if( inventory().CanTakeItem(smart_cast<CInventoryItem*>(_GO)) )
+			if (inventory().CanTakeItem(smart_cast<CInventoryItem*>(_GO)))
 			{
-				Obj->H_SetParent		(smart_cast<CObject*>(this));
+				Obj->H_SetParent	(smart_cast<CObject*>(this));
 				inventory().Take	(_GO, false, true);
-				SelectBestWeapon(Obj);
 			}
 			else
 			{
@@ -127,9 +126,6 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 				}
 			}
 
-			if (!just_before_destroy)
-				SelectBestWeapon(Obj);
-
 		}
 		break;
 	case GE_INV_ACTION:
@@ -154,7 +150,6 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 		}
 		break;
 	case GEG_PLAYER_ITEM2SLOT:
-	case GEG_PLAYER_ITEM2BELT:
 	case GEG_PLAYER_ITEM2RUCK:
 	case GEG_PLAYER_ITEM_EAT:
 	case GEG_PLAYER_ACTIVATEARTEFACT:
@@ -195,20 +190,16 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 
 			switch (type)
 			{
-			case GEG_PLAYER_ITEM2SLOT:
-			{
-				u16 slot_id = P.r_u16();
-				inventory().Slot(slot_id, iitem ); 
-			}break;//2
-			case GEG_PLAYER_ITEM2BELT:	 
-				inventory().Belt( iitem ); 
-				break;//2
-			case GEG_PLAYER_ITEM2RUCK:	 
-				inventory().Ruck( iitem ); 
-				break;//2
-			case GEG_PLAYER_ITEM_EAT:	 
-				inventory().Eat( iitem );
-				break;//2
+			case GEG_PLAYER_ITEM2SLOT:{
+				u16 slot_id				= P.r_u16();
+				inventory().Slot		(slot_id, iitem); 
+				}break;
+			case GEG_PLAYER_ITEM2RUCK:
+				inventory().Ruck		(iitem);
+				break;
+			case GEG_PLAYER_ITEM_EAT:
+				inventory().Eat			(iitem);
+				break;
 			}//switch
 
 		}break;//1

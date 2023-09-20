@@ -263,7 +263,7 @@ float CScriptGameObject::GetCurrentOutfitProtection(int hit_type)
 	CCustomOutfit* o = smart_cast<CCustomOutfit*>(current_equipment);
 	if(!o)				return 0.0f;
 
-	return		o->GetDefHitTypeProtection(ALife::EHitType(hit_type));
+	return		o->GetHitTypeProtection(ALife::EHitType(hit_type));
 }
 
 CScriptGameObject *CScriptGameObject::GetFood() const
@@ -809,18 +809,30 @@ u32	CScriptGameObject::GetInventoryObjectCount() const
 	}
 }
 
-CScriptGameObject	*CScriptGameObject::GetActiveItem()
+CScriptGameObject* CScriptGameObject::GetActiveItem()
 {
-	CInventoryOwner		*l_tpInventoryOwner = smart_cast<CInventoryOwner*>(&object());
-	if (l_tpInventoryOwner)
-		if (l_tpInventoryOwner->inventory().ActiveItem())
-			return		(l_tpInventoryOwner->inventory().ActiveItem()->object().lua_game_object());
-		else
-			return		(0);
-	else {
-		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member activge_item!");
-		return			(0);
+	CInventoryOwner* l_tpInventoryOwner		= smart_cast<CInventoryOwner*>(&object());
+	if (!l_tpInventoryOwner)
+	{
+		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member active_item!");
+		return			(NULL);
 	}
+
+	PIItem active_item						= l_tpInventoryOwner->inventory().ActiveItem();
+	return									(active_item) ? active_item->object().lua_game_object() : NULL;
+}
+
+CScriptGameObject* CScriptGameObject::GetLeftItem()
+{
+	CInventoryOwner* l_tpInventoryOwner		= smart_cast<CInventoryOwner*>(&object());
+	if (!l_tpInventoryOwner)
+	{
+		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member left_item!");
+		return			(NULL);
+	}
+
+	PIItem left_item						= l_tpInventoryOwner->inventory().LeftItem();
+	return									(left_item) ? left_item->object().lua_game_object() : NULL;
 }
 
 CScriptGameObject	*CScriptGameObject::GetObjectByName	(LPCSTR caObjectName) const
@@ -1180,84 +1192,6 @@ u16 CScriptGameObject::AmmoBoxSize()
 	return ammo->m_boxSize;
 }
 
-float CScriptGameObject::GetArtefactHealthRestoreSpeed()
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	return artefact->GetHealthPower();
-}
-
-float CScriptGameObject::GetArtefactRadiationRestoreSpeed()
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	return artefact->GetRadiationPower();
-}
-
-float CScriptGameObject::GetArtefactSatietyRestoreSpeed()
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	return artefact->GetSatietyPower();
-}
-float CScriptGameObject::GetArtefactPowerRestoreSpeed()
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	return artefact->GetPowerPower();
-}
-
-float CScriptGameObject::GetArtefactBleedingRestoreSpeed()
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	return artefact->GetBleedingPower();
-}
-
-void CScriptGameObject::SetArtefactHealthRestoreSpeed(float value)
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	artefact->SetHealthPower(value);
-}
-
-void CScriptGameObject::SetArtefactRadiationRestoreSpeed(float value)
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	artefact->SetRadiationPower(value);
-}
-
-void CScriptGameObject::SetArtefactSatietyRestoreSpeed(float value)
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	artefact->SetSatietyPower(value);
-}
-void CScriptGameObject::SetArtefactPowerRestoreSpeed(float value)
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	artefact->SetPowerPower(value);
-}
-
-void CScriptGameObject::SetArtefactBleedingRestoreSpeed(float value)
-{
-	CArtefact* artefact = smart_cast<CArtefact*>(&object());
-	THROW(artefact);
-
-	artefact->SetBleedingPower(value);
-}
-
 void CScriptGameObject::AttachVehicle(CScriptGameObject* veh, bool bForce)
 {
 	CActor *actor = smart_cast<CActor*>(&object());
@@ -1437,17 +1371,17 @@ void CScriptGameObject::ForceSetPosition(Fvector pos, bool bActivate)
 		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "force_set_position: object %s has no physics shell!", *object().cName());
 }
 
-void CScriptGameObject::SetRemainingUses(u8 value)
+u8 CScriptGameObject::GetMaxUses()
 {
 	CInventoryItem* IItm = object().cast_inventory_item();
 	if (!IItm)
-		return;
+		return 0;
 
 	CEatableItem* eItm = IItm->cast_eatable_item();
 	if (!eItm)
-		return;
+		return 0;
 
-	eItm->SetRemainingUses(value);
+	return eItm->GetMaxUses();
 }
 
 u8 CScriptGameObject::GetRemainingUses()
@@ -1463,17 +1397,30 @@ u8 CScriptGameObject::GetRemainingUses()
 	return eItm->GetRemainingUses();
 }
 
-u8 CScriptGameObject::GetMaxUses()
+void CScriptGameObject::SetRemainingUses(u8 value)
 {
 	CInventoryItem* IItm = object().cast_inventory_item();
 	if (!IItm)
-		return 0;
+		return;
 
 	CEatableItem* eItm = IItm->cast_eatable_item();
 	if (!eItm)
-		return 0;
+		return;
 
-	return eItm->GetMaxUses();
+	eItm->SetRemainingUses(value);
+}
+
+void CScriptGameObject::ChangeRemainingUses(int value)
+{
+	CInventoryItem* IItm = object().cast_inventory_item();
+	if (!IItm)
+		return;
+
+	CEatableItem* eItm = IItm->cast_eatable_item();
+	if (!eItm)
+		return;
+
+	eItm->ChangeRemainingUses(value);
 }
 
 void CScriptGameObject::IterateFeelTouch(const luabind::functor<bool> &functor)

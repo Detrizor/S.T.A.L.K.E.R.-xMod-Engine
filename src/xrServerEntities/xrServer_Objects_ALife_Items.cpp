@@ -30,9 +30,14 @@ CSE_ALifeInventoryItem::CSE_ALifeInventoryItem(LPCSTR caSection)
 {
 	//текущее состояние вещи
 	m_fCondition				= 1.0f;
+	m_dwCost					= 0;
 
 	m_fMass						= pSettings->r_float(caSection, "inv_weight");
-	m_dwCost					= pSettings->r_u32(caSection, "cost");
+	
+	if (pSettings->line_exist("costs", caSection))
+		m_dwCost				= pSettings->r_u32("costs", caSection);
+	else if (pSettings->line_exist(caSection, "cost"))
+		m_dwCost				= pSettings->r_u32(caSection, "cost");
 
 	if (pSettings->line_exist(caSection, "condition"))
 		m_fCondition			= pSettings->r_float(caSection, "condition");
@@ -607,12 +612,8 @@ void CSE_ALifeItemWeapon::OnEvent			(NET_Packet	&tNetPacket, u16 type, u32 time,
 
 u8	 CSE_ALifeItemWeapon::get_slot			()
 {
-	return						((u8)pSettings->r_u8(s_name,"slot"));
-}
-
-u16	 CSE_ALifeItemWeapon::get_ammo_limit	()
-{
-	return						(u16) pSettings->r_u16(s_name,"ammo_limit");
+	LPCSTR sl = pSettings->r_string(s_name, "slot");
+	return						pSettings->r_u8("slot_ids", sl);
 }
 
 u16	 CSE_ALifeItemWeapon::get_ammo_total	()

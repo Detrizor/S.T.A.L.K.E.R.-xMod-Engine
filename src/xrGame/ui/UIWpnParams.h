@@ -5,10 +5,9 @@
 
 class CUIXml;
 class CInventoryItem;
+class CUICellItem;
 
 #include "../../xrServerEntities/script_export_space.h"
-
-struct SLuaWpnParams;
 
 class CUIWpnParams : public CUIWindow 
 {
@@ -17,41 +16,24 @@ public:
 	virtual					~CUIWpnParams		();
 
 	void 					InitFromXml			(CUIXml& xml_doc);
-	void					SetInfo				(CInventoryItem* slot_wpn, CInventoryItem& cur_wpn);
-	bool 					Check				(const shared_str& wpn_section);
+	void					SetInfo				(CUICellItem* item);
 
 protected:
-	CUIDoubleProgressBar	m_progressAccuracy; // red or green
-	CUIDoubleProgressBar	m_progressHandling;
-	CUIDoubleProgressBar	m_progressDamage;
-	CUIDoubleProgressBar	m_progressRPM;
-
-	CUIStatic				m_icon_acc;
-	CUIStatic				m_icon_dam;
-	CUIStatic				m_icon_han;
-	CUIStatic				m_icon_rpm;
-
-	CUIStatic				m_stAmmo;
-	CUITextWnd				m_textAccuracy;
-	CUITextWnd				m_textHandling;
-	CUITextWnd				m_textDamage;
+	CUITextWnd				m_textBulletSpeed;
+	CUITextWnd				m_textBulletSpeedValue;
 	CUITextWnd				m_textRPM;
+	CUITextWnd				m_textRPMValue;
 	CUITextWnd				m_textAmmoTypes;
-	CUITextWnd				m_textAmmoUsedType;
-	CUITextWnd				m_textAmmoCount;
-	CUITextWnd				m_textAmmoCount2;
-	CUIStatic				m_stAmmoType1;
-	CUIStatic				m_stAmmoType2;
+	CUITextWnd				m_textAmmoTypesValue;
+	CUITextWnd				m_textMagazineTypes;
+	CUITextWnd				m_textMagazineTypesValue;
+	CUITextWnd				m_textScopes;
+	CUITextWnd				m_textScopesValue;
+	CUITextWnd				m_textSilencer;
+	CUITextWnd				m_textSilencerValue;
+	CUITextWnd				m_textGLauncher;
+	CUITextWnd				m_textGLauncherValue;
 	CUIStatic				m_Prop_line;
-
-	CUITextWnd				m_textAccuracy_inc;
-	CUITextWnd				m_textHandling_inc;
-	CUITextWnd				m_textDamage_inc;
-	CUITextWnd				m_textRPM_inc;
-	CUITextWnd				m_textAccuracy_inc_shadow;
-	CUITextWnd				m_textHandling_inc_shadow;
-	CUITextWnd				m_textDamage_inc_shadow;
-	CUITextWnd				m_textRPM_inc_shadow;
 };
 
 // -------------------------------------------------------------------------------------------------

@@ -18,8 +18,8 @@ private:
 public:
 	IC			CTradeBoolParameters	();
 	IC	void	clear					();
-	IC	void	disable					(const shared_str &section);
-	IC	bool	disabled				(const shared_str &section) const;
+	IC	void	disable					(const shared_str& section);
+	IC	bool	enabled					(const shared_str& section) const;
 };
 
 #include "trade_bool_parameters_inline.h"

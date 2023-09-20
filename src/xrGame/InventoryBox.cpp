@@ -12,13 +12,20 @@
 
 CInventoryBox::CInventoryBox()
 {
-	m_in_use   = false;
-	m_can_take = true;
-	m_closed   = false;
+	m_in_use		= false;
+	m_can_take		= true;
+	m_closed		= false;
+	m_capacity		= 0.f;
 }
 
 CInventoryBox::~CInventoryBox()
 {
+}
+
+void CInventoryBox::Load(LPCSTR section)
+{
+	inherited::Load		(section);
+	m_capacity			= READ_IF_EXISTS(pSettings, r_float, section, "capacity", 10.f);
 }
 
 void CInventoryBox::OnEvent(NET_Packet& P, u16 type)
@@ -148,4 +155,30 @@ void CInventoryBox::SE_update_status()
 	P.w_u8( (m_closed)? 1 : 0 );
 	P.w_stringZ( tip_text() );
 	CGameObject::u_EventSend( P );
+}
+
+float CInventoryBox::CalcItemsWeight()
+{
+	float res = 0.f;
+	for (xr_vector<u16>::const_iterator I = m_items.begin(); I != m_items.end(); ++I)
+	{
+		CGameObject* GO = smart_cast<CGameObject*>(Level().Objects.net_Find(*I));
+		PIItem item = smart_cast<PIItem>(GO);
+		if (item)
+			res += item->Weight();
+	}
+	return res;
+}
+
+float CInventoryBox::CalcItemsVolume()
+{
+	float res = 0.f;
+	for (xr_vector<u16>::const_iterator I = m_items.begin(); I != m_items.end(); ++I)
+	{
+		CGameObject* GO = smart_cast<CGameObject*>(Level().Objects.net_Find(*I));
+		PIItem item = smart_cast<PIItem>(GO);
+		if (item)
+			res += item->Volume();
+	}
+	return res;
 }

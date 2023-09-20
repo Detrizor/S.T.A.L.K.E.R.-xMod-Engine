@@ -16,75 +16,75 @@ CUIScrollBar::CUIScrollBar()
 	m_b_enabled			= true;
 	m_mouse_state		= 0;
 
-	m_DecButton			= xr_new<CUI3tButton>();	m_DecButton->SetAutoDelete(true); AttachChild(m_DecButton);
-	m_IncButton			= xr_new<CUI3tButton>();	m_IncButton->SetAutoDelete(true); AttachChild(m_IncButton);
-	m_ScrollBox			= xr_new<CUIScrollBox>();	m_ScrollBox->SetAutoDelete(true); AttachChild(m_ScrollBox);
-	m_FrameBackground	= xr_new<CUIFrameLineWnd>();m_FrameBackground->SetAutoDelete(true); AttachChild(m_FrameBackground);
+	m_DecButton			= xr_new<CUI3tButton>();		m_DecButton->SetAutoDelete(true); AttachChild(m_DecButton);
+	m_IncButton			= xr_new<CUI3tButton>();		m_IncButton->SetAutoDelete(true); AttachChild(m_IncButton);
+	m_FrameBackground	= xr_new<CUIFrameLineWnd>();	m_FrameBackground->SetAutoDelete(true); AttachChild(m_FrameBackground);
+	m_ScrollBox			= xr_new<CUIScrollBox>();		m_ScrollBox->SetAutoDelete(true); AttachChild(m_ScrollBox);
 }
 
 void CUIScrollBar::InitScrollBar(Fvector2 pos, float length, bool bIsHorizontal, LPCSTR profile)
 {
 	string256 _path;
 	CUIXml xml_doc;
-	xml_doc.Load	(CONFIG_PATH, UI_PATH, "scroll_bar.xml");
+	xml_doc.Load						(CONFIG_PATH, UI_PATH, "scroll_bar.xml");
 
-	float height					= xml_doc.ReadAttribFlt(profile, 0, (bIsHorizontal)? "height" : "height_v");
-	R_ASSERT						(height>0);
-	m_hold_delay					= xml_doc.ReadAttribFlt(profile, 0, "hold_delay", 50.0f);
+	float size							= xml_doc.ReadAttribFlt(profile, 0, bIsHorizontal ? "height_h" : "width");
+	R_ASSERT							(size > 0);
+	m_fParam							= xml_doc.ReadAttribFlt(profile, 0, bIsHorizontal ? "width_h" : "height");
+	m_hold_delay						= xml_doc.ReadAttribFlt(profile, 0, "hold_delay", 50.0f);
 
-	inherited::SetWndPos			(pos);
-	m_bIsHorizontal					= bIsHorizontal;
-	m_FrameBackground->SetHorizontal(m_bIsHorizontal);
-	if(m_bIsHorizontal)
+	inherited::SetWndPos				(pos);
+	m_bIsHorizontal						= bIsHorizontal;
+	m_FrameBackground->SetHorizontal	(m_bIsHorizontal);
+	m_ScrollBox->SetHorizontal			(m_bIsHorizontal);
+
+	if (m_bIsHorizontal)
 	{
-		inherited::SetWndSize		(Fvector2().set(length, height));
+		inherited::SetWndSize			(Fvector2().set(length, size));
 
-        strconcat					(sizeof(_path),_path, profile, ":left_arrow");
-		CUIXmlInit::Init3tButton	(xml_doc, _path, 0, m_DecButton);
-		m_DecButton->SetWndPos		(Fvector2().set(0,0));
+		strconcat						(sizeof(_path), _path, profile, ":left_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_DecButton);
+		m_DecButton->SetWndPos			(Fvector2().set(0, 0));
 
-		strconcat					(sizeof(_path),_path, profile, ":right_arrow");
-		CUIXmlInit::Init3tButton	(xml_doc, _path, 0, m_IncButton);
-		m_IncButton->SetWndPos		(Fvector2().set(length - m_IncButton->GetWidth(), 0.0f));
+		strconcat						(sizeof(_path), _path, profile, ":right_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_IncButton);
+		m_IncButton->SetWndPos			(Fvector2().set(length - m_IncButton->GetWidth(), 0.0f));
 
-		m_ScrollBox->SetHorizontal	(true);
+		strconcat						(sizeof(_path),_path, profile, ":back_h:texture");
+		LPCSTR texture					= xml_doc.Read(_path, 0, "");
+		R_ASSERT						(texture);
+		m_FrameBackground->InitTexture	(texture);
 
-		strconcat					(sizeof(_path),_path, profile, ":box");
-		CUIXmlInit::InitFrameLine	(xml_doc, _path, 0, m_ScrollBox);
+		strconcat						(sizeof(_path), _path, profile, ":box_h");
+		CUIXmlInit::InitFrameLine		(xml_doc, _path, 0, m_ScrollBox);
 
-		strconcat					(sizeof(_path),_path, profile, ":back:texture");
-		LPCSTR texture				= xml_doc.Read(_path, 0, "");
-		R_ASSERT					(texture);
-		m_FrameBackground->InitTexture(texture);
-		m_ScrollWorkArea			= _max(0,iFloor(GetWidth()-2*height));
-	}else
+		m_ScrollWorkArea				= _max(0, iFloor(GetWidth() - 2 * size));
+	}
+	else
 	{
-		inherited::SetWndSize		(Fvector2().set(height, length));
+		inherited::SetWndSize			(Fvector2().set(size, length));
 
-		strconcat					(sizeof(_path),_path, profile, ":up_arrow");
-		CUIXmlInit::Init3tButton	(xml_doc, _path, 0, m_DecButton);
-		m_DecButton->SetWndPos		(Fvector2().set(0,0));
+		strconcat						(sizeof(_path),_path, profile, ":up_arrow");
+		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_DecButton);
+		m_DecButton->SetWndPos			(Fvector2().set(0, 0));
 
-		strconcat					(sizeof(_path),_path, profile, ":down_arrow");
- 		CUIXmlInit::Init3tButton	(xml_doc, _path, 0, m_IncButton);
-		m_IncButton->SetWndPos		(Fvector2().set(0.0f, length - m_IncButton->GetHeight()));
+		strconcat						(sizeof(_path),_path, profile, ":down_arrow");
+ 		CUIXmlInit::Init3tButton		(xml_doc, _path, 0, m_IncButton);
+		m_IncButton->SetWndPos			(Fvector2().set(0.0f, length - m_IncButton->GetHeight()));
 
-		m_ScrollBox->SetHorizontal	(false);
+		strconcat						(sizeof(_path), _path, profile, ":back:texture");
+		LPCSTR texture					= xml_doc.Read(_path, 0, "");
+		R_ASSERT						(texture);
+		m_FrameBackground->InitTexture	(texture);
 
-		strconcat					(sizeof(_path),_path, profile, ":box_v");
-		CUIXmlInit::InitFrameLine	(xml_doc, _path, 0, m_ScrollBox);	
+		strconcat						(sizeof(_path), _path, profile, ":box");
+		CUIXmlInit::InitFrameLine		(xml_doc, _path, 0, m_ScrollBox);	
 
-		strconcat					(sizeof(_path),_path, profile, ":back_v:texture");
-		LPCSTR texture				= xml_doc.Read(_path, 0, "");
-		R_ASSERT					(texture);
+		m_ScrollWorkArea				= _max(0, iFloor(GetHeight() - 2 * size));
+	}
 
-		m_FrameBackground->InitTexture(texture);
-		m_ScrollWorkArea			= _max(0,iFloor(GetHeight()-2*height));
-	}	
-
-	UpdateScrollBar					();
+	UpdateScrollBar						();
 }
-
 
 //корректировка размеров скроллера
 void CUIScrollBar::SetWidth(float width)
@@ -154,7 +154,7 @@ void CUIScrollBar::UpdateScrollBar()
 				m_ScrollBox->SetWidth	(box_sz);
 				m_ScrollBox->SetHeight	(GetHeight());
 				// set pos
-				int pos					= PosViewFromScroll(iFloor(m_ScrollBox->GetWidth()),iFloor(GetHeight()));
+				int pos					= PosViewFromScroll(iFloor(m_ScrollBox->GetWidth()),iFloor(m_fParam));
 				m_ScrollBox->SetWndPos	(Fvector2().set(float(pos), m_ScrollBox->GetWndRect().top));
 				m_IncButton->SetWndPos	(Fvector2().set(GetWidth() - m_IncButton->GetWidth(), 0.0f));
 			}else
@@ -164,7 +164,7 @@ void CUIScrollBar::UpdateScrollBar()
 				m_ScrollBox->SetHeight	(box_sz);
 				m_ScrollBox->SetWidth	(GetWidth());
 				// set pos
-				int pos				= PosViewFromScroll(iFloor(m_ScrollBox->GetHeight()),iFloor(GetWidth()));
+				int pos					= PosViewFromScroll(iFloor(m_ScrollBox->GetHeight()),iFloor(m_fParam));
 				m_ScrollBox->SetWndPos	(Fvector2().set(m_ScrollBox->GetWndRect().left, float(pos)));
 				m_IncButton->SetWndPos	(Fvector2().set(0.0f, GetHeight() - m_IncButton->GetHeight()));
 			}

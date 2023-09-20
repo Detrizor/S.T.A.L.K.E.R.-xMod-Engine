@@ -83,17 +83,11 @@ float _sign(const float& v)
 void CUIProgressBar::Update()
 {
 	inherited::Update();
-	if(!fsimilar(m_ProgressPos.x, m_ProgressPos.y))
+	if (!fsimilar(m_ProgressPos.x, m_ProgressPos.y))
 	{
-		if( fsimilar(m_MaxPos,m_MinPos) ) m_MaxPos	+= EPS;	//hack ^(
-		float _diff				= m_ProgressPos.y - m_ProgressPos.x;
-		
-		float _length			= (m_MaxPos-m_MinPos);
-		float _val				= _length*(1.0f-m_inertion)*Device.fTimeDelta;
-
-		_val					= _min(_abs(_val), _abs(_diff) );
-		_val					*= _sign(_diff);
-		m_ProgressPos.x			+= _val;
+		if (fsimilar(m_MaxPos, m_MinPos))
+			m_MaxPos			+= EPS;	//hack ^(
+		m_ProgressPos.x			+= m_ProgressPos.y - m_ProgressPos.x;
 		UpdateProgressBar		();
 	}
 }
@@ -139,4 +133,9 @@ void CUIProgressBar::Draw()
 		UI().PopScissor	();
 	}
 	m_last_render_frame	= Device.dwFrame;
+}
+
+void CUIProgressBar::SetProgressTexture(LPCSTR tex_name)
+{
+	m_UIProgressItem.InitTexture(tex_name);
 }

@@ -4,14 +4,7 @@
 #include "../xrEngine/bone.h"
 #include "Level.h"
 
-float SBoneProtections::getBoneProtection(s16 bone_id)
-{
-	storage_it it = m_bones_koeff.find(bone_id);
-	if( it != m_bones_koeff.end() )
-		return it->second.koeff;
-	else
-		return m_default.koeff;
-}
+static LPCSTR ARMOR_LEVELS = pSettings->r_string("damage_manager", "armor_levels");
 
 float SBoneProtections::getBoneArmor(s16 bone_id)
 {
@@ -22,13 +15,13 @@ float SBoneProtections::getBoneArmor(s16 bone_id)
 		return m_default.armor;
 }
 
-BOOL SBoneProtections::getBonePassBullet(s16 bone_id)
+float SBoneProtections::getBoneArmorLevel(s16 bone_id)
 {
 	storage_it it = m_bones_koeff.find(bone_id);
-	if( it != m_bones_koeff.end() )
-		return it->second.BonePassBullet;
+	if (it != m_bones_koeff.end())
+		return it->second.level;
 	else
-		return m_default.BonePassBullet;
+		return m_default.level;
 }
 
 void SBoneProtections::reload(const shared_str& bone_sect, IKinematics* kinematics)
@@ -36,63 +29,52 @@ void SBoneProtections::reload(const shared_str& bone_sect, IKinematics* kinemati
 	VERIFY						(kinematics);
 	m_bones_koeff.clear			();
 
-	m_fHitFracNpc				= READ_IF_EXISTS(pSettings, r_float, bone_sect, "hit_fraction_npc",	0.1f);
-
-	m_default.koeff				= 1.0f;
-	m_default.armor				= 0.0f;
-	m_default.BonePassBullet	= FALSE;
+	m_default.level				= -1.f;
+	m_default.armor				= -1.f;
 
 	CInifile::Sect	&protections = pSettings->r_section(bone_sect);
 	for (CInifile::SectCIt i = protections.Data.begin(); protections.Data.end() != i; i++)
 	{
-		string256			buffer;
+		string256				buffer;
 
-		BoneProtection	BP;
+		BoneProtection			BP;
 
-		BP.koeff			= (float)atof( _GetItem( i->second.c_str(), 0, buffer) );
-		BP.armor			= (float)atof( _GetItem( i->second.c_str(), 1, buffer) );
-		BP.BonePassBullet	= (BOOL) (atof( _GetItem(i->second.c_str(), 2, buffer) )>0.5f);
+		BP.level				= (float)atof(_GetItem(i->second.c_str(), 0, buffer));
+		BP.armor				= ComputeArmor(BP.level);
 		
-		if (!xr_strcmp(i->first.c_str(), "default"))
-		{
-			m_default = BP;
-		}
-		else 
-		{
-			if (!xr_strcmp(i->first.c_str(), "hit_fraction")) continue;
-
-			s16	bone_id				= kinematics->LL_BoneID(i->first);
-			R_ASSERT2				(BI_NONE != bone_id, i->first.c_str());			
-			m_bones_koeff.insert	(mk_pair(bone_id,BP));
-		}
+		s16	bone_id				= kinematics->LL_BoneID(i->first);
+		R_ASSERT2				(BI_NONE != bone_id, i->first.c_str());			
+		m_bones_koeff.insert	(mk_pair(bone_id,BP));
 	}
 }
 
-void SBoneProtections::add(const shared_str& bone_sect, IKinematics* kinematics)
+void SBoneProtections::add(const shared_str& bone_sect, IKinematics* kinematics, float value)
 {
 	VERIFY(kinematics);
-	m_fHitFracNpc += READ_IF_EXISTS(pSettings, r_float, bone_sect.c_str(), "hit_fraction_npc", 0.0f);
 
-	CInifile::Sect	&protections = pSettings->r_section(bone_sect);
+	CInifile::Sect&				protections = pSettings->r_section(bone_sect);
 	for(CInifile::SectCIt i=protections.Data.begin(); protections.Data.end()!=i; ++i) 
 	{
-		if(!xr_strcmp(i->first.c_str(), "hit_fraction")) 
-			continue;
-
 		string256				buffer;
-		if(!xr_strcmp(i->first.c_str(), "default"))
-		{
-			BoneProtection&	BP	= m_default;
-			BP.koeff			+= (float)atof( _GetItem( i->second.c_str(), 0, buffer) );
-			BP.armor			+= (float)atof( _GetItem( i->second.c_str(), 1, buffer) );
-		}
-		else 
-		{
-			s16	bone_id			= kinematics->LL_BoneID(i->first);
-			R_ASSERT2			(BI_NONE != bone_id, i->first.c_str());			
-			BoneProtection&	BP	= m_bones_koeff[bone_id];
-			BP.koeff			+= (float)atof( _GetItem( i->second.c_str(), 0, buffer) );
-			BP.armor			+= (float)atof( _GetItem( i->second.c_str(), 1, buffer) );
-		}
+		s16	bone_id				= kinematics->LL_BoneID(i->first);
+		R_ASSERT2				(BI_NONE != bone_id, i->first.c_str());			
+		BoneProtection&	BP		= m_bones_koeff[bone_id];
+		BP.level				+= (value > 0.f) ? value : (float)atof(_GetItem(*i->second, 0, buffer));
+		BP.armor				= ComputeArmor(BP.level);
 	}
+}
+
+float SBoneProtections::ComputeArmor(float level)
+{
+	if (level < 0.f)
+		return 0.f;
+
+	string256				buffer;
+	int level_low			= iFloor(level);
+	int level_high			= iCeil(level);
+	float armor_low			= (float)atof(_GetItem(ARMOR_LEVELS, level_low, buffer));
+	float armor_high		= (float)atof(_GetItem(ARMOR_LEVELS, level_high, buffer));
+	float k_level			= level - (float)level_low;
+
+	return (armor_low + (armor_high - armor_low) * k_level);
 }

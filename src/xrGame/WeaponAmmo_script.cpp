@@ -16,6 +16,7 @@ void CWeaponAmmo::script_register(lua_State *L)
 			.def_readwrite("m_tracer", &CWeaponAmmo::m_tracer)
 			.def_readwrite("m_4to1_tracer", &CWeaponAmmo::m_4to1_tracer)
 			.def("Weight", &CWeaponAmmo::Weight)
+			.def("Volume", &CWeaponAmmo::Volume)
 			.def("Cost", &CWeaponAmmo::Cost)
 		];
 }

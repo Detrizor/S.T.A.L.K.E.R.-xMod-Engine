@@ -155,9 +155,7 @@ void CUIWindow::script_register(lua_State *L)
 		class_<CUIMMShniaga, CUIWindow>("CUIMMShniaga")
 		.enum_("enum_page_id")
 		[
-			value("epi_main",				CUIMMShniaga::epi_main),
-			value("epi_new_game",			CUIMMShniaga::epi_new_game),
-			value("epi_new_network_game",	CUIMMShniaga::epi_new_network_game)
+			value("epi_main",				CUIMMShniaga::epi_main)
 		]
 		.def("SetVisibleMagnifier",			&CUIMMShniaga::SetVisibleMagnifier)
 		.def("SetPage",						&CUIMMShniaga::SetPage)

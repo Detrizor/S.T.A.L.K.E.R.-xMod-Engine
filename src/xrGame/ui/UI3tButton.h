@@ -38,10 +38,13 @@ public:
 	bool			m_bUseTextColor[4]; // note: 0 index will be ignored
 
 
-	bool					m_frameline_mode;
-	bool					vertical;
+	bool					frame_mode;
+	bool					frame_custom;
+	bool					frame_outer;
+
 	CUI_IB_Static*			m_background;
-	CUI_IB_FrameLineWnd*	m_back_frameline;
+	CUIFrameWindow*			m_frame;
+
 private:	
 			void		PlaySoundH					();
 			void		PlaySoundT					();

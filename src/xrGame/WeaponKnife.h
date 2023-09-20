@@ -31,13 +31,11 @@ protected:
 	ALife::EHitType		m_eHitType;
 
 	ALife::EHitType		m_eHitType_1;
-	Fvector4			fvHitPower_1;
-	Fvector4			fvHitPowerCritical_1;
+	float				fHitPower_1;
 	float				fHitImpulse_1;
 
 	ALife::EHitType		m_eHitType_2;
-	Fvector4			fvHitPower_2;
-	Fvector4			fvHitPowerCritical_2;
+	float				fHitPower_2;
 	float				fHitImpulse_2;
 
 	float				fCurrentHit;

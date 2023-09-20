@@ -23,10 +23,10 @@
 #include "actor.h"
 #include "ai/monsters/basemonster/base_monster.h"
 
-//константы ShootFactor, определяющие 
-//поведение пули при столкновении с объектом
-#define RICOCHET_THRESHOLD		0.1
-#define STUCK_THRESHOLD			0.4
+#define BULLET_MANAGER_SECTION						"bullet_manager"
+
+#define RICOCHET_THRESHOLD								0.1
+#define STUCK_THRESHOLD									0.4
 
 //расстояния не пролетев которого пуля не трогает того кто ее пустил
 extern float gCheckHitK;
@@ -256,8 +256,7 @@ void CBulletManager::DynamicObjectHit	(CBulletManager::_event& E)
 		}
 	}
 
-	E.Repeated = false;
-	bool NeedShootmark = true;//!E.Repeated;
+	bool NeedShootmark = true;
 	
 	if (smart_cast<CActor*>(E.R.O))
 	{
@@ -305,17 +304,17 @@ void CBulletManager::DynamicObjectHit	(CBulletManager::_event& E)
 	}
 
 	//отправить хит пораженному объекту
-	if (E.bullet.flags.allow_sendhit && !E.Repeated)
+	if (E.bullet.flags.allow_sendhit)
 	{
-		SHit	Hit = SHit(	hit_param.power,
+		SHit	Hit = SHit(	hit_param.main_damage,
 							original_dir,
 							NULL,
 							u16(E.R.element),
 							position_in_bone_space,
 							hit_param.impulse,
 							E.bullet.hit_type,
-							E.bullet.armor_piercing,
-							E.bullet.flags.aim_bullet);
+							hit_param.pierce_damage,
+							hit_param.pierce_damage_armor);
 
 		Hit.GenHeader(u16(GE_HIT)&0xffff, E.R.O->ID());
 		Hit.whoID			= E.bullet.parent_id;
@@ -387,121 +386,144 @@ bool CBulletManager::ObjectHit( SBullet_Hit* hit_res, SBullet* bullet, const Fve
 		}
 	}		
 	//----------- normal - end
-	float old_speed = bullet->speed;
 
-	//коэффициент уменьшение силы с падением скорости
-	float speed_factor = bullet->speed / bullet->max_speed;
-	//получить силу хита выстрела с учетом патрона
-	*hit_res = bullet->hit_param; //default param
-	
-	hit_res->power = bullet->hit_param.power*speed_factor;
-	
+	hit_res->impulse = 0.f;
+	hit_res->main_damage = 0.f;
+	hit_res->pierce_damage = 0.f;
+
 	//(Если = 0, то пуля либо рикошетит(если контакт идёт по касательной), либо застряёт в текущем 
 	//объекте, если больше 0, то пуля прошивает объект)
 
-	SGameMtl* mtl = GMLib.GetMaterialByIdx( target_material );
-	float mtl_ap = mtl->fShootFactor;
-	float shoot_factor = 0.0f; //default >> пуля НЕ пробила материал!
-	float ap = bullet->armor_piercing;
+	float bullet_energy		= bullet->bullet_mass * pow(bullet->speed, 2) / 2;
+	float bullet_resist		= bullet->bullet_resist;
+	float ap				= m_fBulletArmorPiercingScale * (bullet_energy / bullet_resist);
+	if (bullet->hollow_point)
+		ap					*= m_fBulletHollowPointAPFactor;
+	float energy_lost		= bullet_energy;
+	float armor_factor		= 1.f, pierce_factor = 0.f, pierce = 0.f, max_density = 0.f;
 
-	if ( ap > EPS && ap >= mtl_ap )
+	if (bullet->hit_param.main_damage != -1.f)
 	{
-		//пуля пробила материал
-		shoot_factor = (( ap - mtl_ap ) / ap);
+		bullet_energy		= 1.f;
+		ap					= bullet->hit_param.main_damage * 20.f;
 	}
 
-	hit_res->impulse = 0.0f;
-	float speed_scale = 0.0f;
-
-#ifdef DEBUG
-	//Fvector dbg_bullet_pos;
-	//dbg_bullet_pos.mad(bullet->bullet_pos,bullet->dir,R.range);
-	int bullet_state = 0;
-#endif
-
-	if ( fsimilar( mtl_ap, 0.0f ) )//Если материал полностью простреливаемый (кусты)
+	CEntityAlive* EntityAlive = smart_cast<CEntityAlive*>(R.O);
+	SGameMtl* mtl = GMLib.GetMaterialByIdx(target_material);
+	if (EntityAlive)
 	{
-#ifdef DEBUG
-		bullet_state = 2;
-#endif	
-		return true;
-	}
+		IKinematics* V = smart_cast<IKinematics*>(EntityAlive->Visual());
+		u16 element = (u16)R.element;
+		CBoneInstance& bone = V->LL_GetBoneInstance(element);
+		if (bone.get_param(2) != 1.f)
+			bullet->targetID = R.O->ID();
+		float bone_armor = EntityAlive->conditions().GetBoneArmor(element);
 
-	if (bullet->flags.magnetic_beam && (shoot_factor > EPS))
-	{
-#ifdef DEBUG
-		bullet_state = 2;
-#endif
-		//air resistance of magnetic_beam bullet is armor resistance too
-		bullet->armor_piercing	-= mtl_ap * bullet->air_resistance;
-		return true;
-	}
-
-	//рикошет
-	Fvector			new_dir;
-	new_dir.reflect	( bullet->dir,hit_normal );
-	Fvector			tgt_dir;
-	random_dir		( tgt_dir, new_dir, deg2rad( 10.0f ) );
-	float ricoshet_factor = bullet->dir.dotproduct( tgt_dir );
-
-	float f			= Random.randF( 0.5f, 0.8f ); //(0.5f,1.f);
-	if ( (f < ricoshet_factor) && !mtl->Flags.test(SGameMtl::flNoRicoshet) && bullet->flags.allow_ricochet )	
-	{
-		// уменьшение скорости полета в зависимости от угла падения пули (чем прямее угол, тем больше потеря)
-		bullet->flags.allow_ricochet = 0;
-		float scale = 1.0f - _abs(bullet->dir.dotproduct(hit_normal)) * m_fCollisionEnergyMin;
-		clamp(scale, 0.0f, m_fCollisionEnergyMax);
-		speed_scale = scale;
-
-		// вычисление рикошета, делается немного фейком, т.к. пуля остается в точке столкновения
-		// и сразу выходит из RayQuery()
-		bullet->dir.set				(tgt_dir);
-		bullet->bullet_pos			= end_point;
-		bullet->flags.ricochet_was	= 1;
-
-#ifdef DEBUG
-		bullet_state = 0;
-#endif		
-	}
-	else if ( shoot_factor < EPS )
-	{
-		//застрявание пули в материале
-		speed_scale = 0.0f;
-#ifdef DEBUG
-		bullet_state = 1;
-#endif		
+		if (ap >= bone_armor)
+		{
+			armor_factor = m_fBulletArmorPiercingLose * (bone_armor / ap);
+			float armor_energy_lost = bullet_energy * armor_factor;
+			float pierce_energy_lost = bullet_energy * (1 - armor_factor);
+			float ap_pierce = ap * (1 - armor_factor);
+			if (bullet->hollow_point)
+			{
+				bullet_resist *= m_fBulletHollowPointResistFactor;
+				ap_pierce /= m_fBulletHollowPointResistFactor;
+			}
+			float bone_density = bone.get_param(0);
+			for (u16 i = 0, i_e = V->LL_BoneCount(); i < i_e; i++)
+			{
+				float density = V->LL_GetBoneInstance(i).get_param(0);
+				if (density > max_density)
+					max_density = density;
+			}
+			pierce = bone_density / max_density;
+			pierce_factor = 1.f - armor_factor;
+			if (ap_pierce < bone_density)
+				pierce *= ap_pierce / bone_density;
+			else
+			{
+				pierce_factor *= m_fBulletArmorPiercingLose * (bone_density / ap_pierce);
+				pierce_energy_lost = bullet_energy * pierce_factor;
+			}
+			float ap_armor2 = ap * (1 - armor_factor - pierce_factor);
+			if (ap_armor2 >= bone_armor)
+			{
+				float armor2_factor = m_fBulletArmorPiercingLose * (bone_armor / ap);
+				float armor2_energy_lost = bullet_energy * armor2_factor;
+				energy_lost = armor_energy_lost + pierce_energy_lost + armor2_energy_lost;
+			}
+		}
 	}
 	else
 	{
-		//пробивание материала
-		speed_scale = shoot_factor;//mtl->fShootFactor;
-		
-		bullet->bullet_pos.mad(bullet->bullet_pos,bullet->dir,EPS);//fake
-		//ввести коэффициент случайности при простреливании
-		Fvector rand_normal;
-		rand_normal.random_dir(bullet->dir, deg2rad(2.0f), Random);
-		bullet->dir.set(rand_normal);
-#ifdef DEBUG
-		bullet_state = 2;
-#endif
+		float mtl_ap = mtl->fShootFactor;
+		if (fsimilar(mtl_ap, 0.0f))	//Если материал полностью простреливаемый (кусты)
+			return true;
+		mtl_ap = 50.f * pow(mtl_ap / 0.5f, 2);
+		if ((ap >= mtl_ap) && (!bullet->hollow_point))
+		{
+			armor_factor = m_fBulletArmorPiercingLose * mtl_ap / ap;
+			energy_lost *= armor_factor;
+		}
 	}
 
-	//уменьшить скорость в зависимости от простреливаемости
-	bullet->speed *= speed_scale;
-	//сколько энергии в процентах потеряла пуля при столкновении
-	float energy_lost = 1.0f - bullet->speed / old_speed;
-	//импульс переданный объекту равен прямопропорционален потерянной энергии
-	hit_res->impulse = bullet->hit_param.impulse * speed_factor * energy_lost;
+	float energy_factor = (bullet_energy - energy_lost) / bullet_energy;
+	float speed_scale = pow(energy_factor, 0.5f);
 
-
-#ifdef DEBUG
-	extern BOOL g_bDrawBulletHit;
-	if(g_bDrawBulletHit)
+	if (!bullet->flags.magnetic_beam)
 	{
-//		g_hit[bullet_state].push_back(dbg_bullet_pos);
-		g_hit[bullet_state].push_back(end_point);
+		//рикошет
+		Fvector			new_dir;
+		new_dir.reflect(bullet->dir, hit_normal);
+		Fvector			tgt_dir;
+		random_dir(tgt_dir, new_dir, deg2rad(10.0f));
+		float ricoshet_factor = bullet->dir.dotproduct(tgt_dir);
+
+		float f = Random.randF(0.5f, 0.8f); //(0.5f,1.f);
+		if ((f < ricoshet_factor) && !mtl->Flags.test(SGameMtl::flNoRicoshet) && bullet->flags.allow_ricochet)
+		{
+			// уменьшение скорости полета в зависимости от угла падения пули (чем прямее угол, тем больше потеря)
+			bullet->flags.allow_ricochet = 0;
+			float scale = 1.0f - _abs(bullet->dir.dotproduct(hit_normal)) * m_fCollisionEnergyMin;
+			clamp(scale, 0.0f, m_fCollisionEnergyMax);
+			speed_scale = scale;
+
+			// вычисление рикошета, делается немного фейком, т.к. пуля остается в точке столкновения
+			// и сразу выходит из RayQuery()
+			bullet->dir.set(tgt_dir);
+			bullet->bullet_pos = end_point;
+			bullet->flags.ricochet_was = 1;
+		}
+		else if (speed_scale < EPS)	//застрявание пули в материале
+			speed_scale = 0.0f;
+		else
+		{
+			bullet->bullet_pos.mad(bullet->bullet_pos, bullet->dir, EPS);//fake
+			//ввести коэффициент случайности при простреливании
+			Fvector rand_normal;
+			rand_normal.random_dir(bullet->dir, deg2rad(2.0f), Random);
+			bullet->dir.set(rand_normal);
+		}
 	}
-#endif 
+
+	float given_pulse			= (1 - speed_scale) * bullet->speed * bullet->bullet_mass;
+	hit_res->impulse			= (bullet->hit_param.impulse == -1.f)		? m_fBulletHitImpulseScale * given_pulse							: bullet->hit_param.impulse * (1 - speed_scale);
+	hit_res->main_damage		= (bullet->hit_param.main_damage == -1.f)	? m_fBulletArmorDamageScale * (given_pulse * armor_factor)			: bullet->hit_param.main_damage * (1 - speed_scale) * armor_factor;
+	
+	if (pierce > 0.f)
+	{
+		float pierce_speed_1				= bullet->speed * pow(1 - armor_factor, 0.5f);
+		float pierce_speed_2				= bullet->speed * pow(1 - armor_factor - pierce_factor, 0.5f);
+		float pierce_speed					= (pierce_speed_1 + pierce_speed_2) / 2;
+		float pierce_resist_damage			= pow(1.f + bullet_resist * m_fBulletPierceDamageResistFactor, m_fBulletPierceDamageResistPower);
+		float pierce_speed_damage			= pow(1.f + pierce_speed * m_fBulletPierceDamageSpeedFactor, m_fBulletPierceDamageSpeedPower);
+		float pierce_density_factor			= pow(max_density * m_fBulletPierceDamageDensityFactor, m_fBulletPierceDamageDensityPower);
+		float pierce_damage					= pierce_resist_damage * pierce_speed_damage;
+		hit_res->pierce_damage				= m_fBulletPierceDamageScale * pierce_damage * sqrt(pierce) * pierce_density_factor;
+		hit_res->pierce_damage_armor		= m_fBulletPierceDamageArmorScale * pierce_damage;
+	}
+	bullet->speed							*= speed_scale;
 
 	return true;
 }

@@ -10,10 +10,12 @@
 
 #include "physic_item.h"
 #include "eatable_item.h"
+#include "HudItem.h"
 
 class CEatableItemObject : 
 			public CEatableItem, 
-			public CPhysicItem
+			public CPhysicItem,
+			public CHudItem
 {
 public:
 							CEatableItemObject	();
@@ -27,11 +29,24 @@ public:
 	virtual CWeapon				*cast_weapon				()	{return 0;}
 	virtual CFoodItem			*cast_food_item				()	{return 0;}
 	virtual CMissile			*cast_missile				()	{return 0;}
-	virtual CHudItem			*cast_hud_item				()	{return 0;}
+	virtual CHudItem			*cast_hud_item				()	{return this;}
 	virtual CWeaponAmmo			*cast_weapon_ammo			()	{return 0;}
 	virtual CGameObject			*cast_game_object			()  {return this;};
 
 public:
+	virtual bool	Action					(u16 cmd, u32 flags);
+	virtual void	SwitchState				(u32 S);
+	virtual void	OnMoveToRuck			(const SInvItemPlace& prev);
+	virtual void	on_renderable_Render	();
+
+	virtual void	OnStateSwitch			(u32 S, u32 oldState);
+	virtual void	OnAnimationEnd			(u32 state);
+	virtual void	Show					();
+	virtual void	Hide					();
+	virtual void	OnActiveItem			();
+	virtual void	OnHiddenItem			();
+	virtual	void	UpdateXForm				();
+
 	virtual void	Load					(LPCSTR section);
 	virtual	void	Hit						(SHit* pHDS);
 

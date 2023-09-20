@@ -12,6 +12,8 @@ public:
 	virtual void	Load							(LPCSTR section);
 
 protected:
+			bool	SingleCartridgeReload			();
+
 	virtual void	PlayAnimShoot					();
 	virtual void	PlayAnimReload					();
 	virtual void	PlayReloadSound					();

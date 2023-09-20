@@ -9,70 +9,119 @@
 #include "stdafx.h"
 #include "purchase_list.h"
 #include "inventoryowner.h"
-#include "gameobject.h"
-#include "ai_object_location.h"
-#include "level.h"
+#include "ai\trader\ai_trader.h"
 
-static float min_deficit_factor = .3f;
+#define CHECK_SECTION_VALID(section) !!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, section, "inv_name", "default"), "default")
 
-void CPurchaseList::process	(CInifile &ini_file, LPCSTR section, CInventoryOwner &owner)
+CItems ITEMS;
+
+CItems::CItems()
 {
-	owner.sell_useless_items();
-
-	m_deficits.clear		();
-
-	const CGameObject		&game_object = smart_cast<const CGameObject &>(owner);
-	CInifile::Sect			&S = ini_file.r_section(section);
-	CInifile::SectCIt		I = S.Data.begin();
-	CInifile::SectCIt		E = S.Data.end();
-	for ( ; I != E; ++I) {
-		if (!(*I).second.size())
+	data.clear							();
+	const CInifile::Root sections		= pSettings->sections();
+	for (CInifile::Root::const_iterator it = sections.begin(), it_e = sections.end(); it != it_e; ++it)
+	{
+		shared_str section				= (*it)->Name;
+		if (!CHECK_SECTION_VALID(*section) || READ_IF_EXISTS(pSettings, r_bool, section, "pseudosection", false))
 			continue;
 
-		if (!pSettings->section_exist((*I).first))
-			continue;
+		shared_str main_class			= READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil");
+		shared_str subclass				= READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
+		shared_str division				= READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
 
-		//VERIFY3				((*I).second.size(),"PurchaseList : cannot handle lines in section without values",section);
-		string256			temp0, temp1;
-		//THROW3				(_GetItemCount(*(*I).second) == 2,"Invalid parameters in section",section);
-
-		LPCSTR count = _GetItem(*(*I).second, 0, temp0);
-		LPCSTR prob = _GetItemCount(*(*I).second) >= 2 ? _GetItem(*(*I).second, 1, temp1) : "1.0f";
-
-		process				(
-			game_object,
-			(*I).first,
-			atoi(count),
-			(float)atof(prob)
-		);
+		MAINCLASS MainClass				= data.find(main_class);
+		if (MainClass == data.end())
+		{
+			SUBCLASSES					tmp;
+			tmp.clear					();
+			data.insert					(std::make_pair(main_class, tmp));
+			MainClass					= data.find(main_class);
+		}
+		SUBCLASS Subclass				= MainClass->second.find(subclass);
+		if (Subclass == MainClass->second.end())
+		{
+			DIVISIONS					tmp;
+			tmp.clear					();
+			MainClass->second.insert	(std::make_pair(subclass, tmp));
+			Subclass					= MainClass->second.find(subclass);
+		}
+		DIVISION Division				= Subclass->second.find(division);
+		if (Division == Subclass->second.end())
+		{
+			SECTIONS					tmp;
+			tmp.clear					();
+			Subclass->second.insert		(std::make_pair(division, tmp));
+			Division					= Subclass->second.find(division);
+		}
+		Division->second.push_back		(section);
 	}
 }
 
-void CPurchaseList::process	(const CGameObject &owner, const shared_str &name, const u32 &count, const float &probability)
+CItems::~CItems()
 {
-	VERIFY3					(count,"Invalid count for section in the purchase list",*name);
-	VERIFY3					(!fis_zero(probability,EPS_S),"Invalid probability for section in the purchase list",*name);
+}
 
-	const Fvector			&position = owner.Position();
-	const u32				&level_vertex_id = owner.ai_location().level_vertex_id();
-	const ALife::_OBJECT_ID	&id = owner.ID();
-	CRandom					random((u32)(CPU::QPC() & u32(-1)));
-	for (u32 i=0, j=0; i<count; ++i) {
-		if (random.randF() > probability)
+MAINCLASS CItems::Get(LPCSTR main_class)
+{
+	return data.find(main_class);
+}
+
+SUBCLASS CItems::Get(LPCSTR main_class, LPCSTR subclass)
+{
+	MAINCLASS mc	= Get(main_class);
+	return			mc->second.find		(subclass);
+}
+
+DIVISION CItems::Get(LPCSTR main_class, LPCSTR subclass, LPCSTR division)
+{
+	SUBCLASS sc		= Get(main_class, subclass);
+	return			sc->second.find(division);
+}
+
+void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner& owner)
+{
+	owner.sell_useless_items		();
+	CAI_Trader& trader				= smart_cast<CAI_Trader&>(owner);
+	trader.supplies_list.clear_not_free();
+	CInifile::Sect& S				= ini_file.r_section(section);
+	CRandom random					((u32)(CPU::QPC() & u32(-1)));
+	for (CInifile::SectCIt I = S.Data.begin(), I_e = S.Data.end(); I != I_e; ++I)
+	{
+		LPCSTR line					= *I->first;
+
+		if (CHECK_SECTION_VALID(line))
+		{
+			GiveObject				(owner, line);
 			continue;
+		}
 
-		++j;
-		Level().spawn_item		(*name,position,level_vertex_id,id,false);
+		string256					tmp0, tmp1, tmp2;
+		shared_str main_class		= _GetItem(line, 0, tmp0, '.');
+		int count					= _GetItemCount(line, '.');
+		shared_str subclass			= (count > 1) ? _GetItem(line, 1, tmp1, '.') : "any";
+		shared_str division			= (count > 2) ? _GetItem(line, 2, tmp2, '.') : "any";
+
+		MAINCLASS MainClass			= ITEMS.Get(*main_class);
+		for (SUBCLASS Subclass = MainClass->second.begin(), Subclass_e = MainClass->second.end(); Subclass != Subclass_e; ++Subclass)
+		{
+			if (subclass != "any" && Subclass->first != subclass)
+				continue;
+			for (DIVISION Division = Subclass->second.begin(), Division_e = Subclass->second.end(); Division != Division_e; ++Division)
+			{
+				if (division != "any" && Division->first != division)
+					continue;
+				for (SECTION Section = Division->second.begin(), Section_e = Division->second.end(); Section != Section_e; ++Section)
+					GiveObject		(owner, **Section);
+			}
+		}
 	}
+	owner.inventory().InvalidateState();
+}
 
-	DEFICITS::const_iterator	I = m_deficits.find(name);
-	VERIFY3						(I == m_deficits.end(),"Duplicate section in the purchase list",*name);
-	m_deficits.insert			(
-		std::make_pair(
-			name,
-			(float)count*probability
-			/
-			_max((float)j,min_deficit_factor)
-		)
-	);
+void CPurchaseList::GiveObject(CInventoryOwner& owner, LPCSTR section)
+{
+	CAI_Trader& trader					= smart_cast<CAI_Trader&>(owner);
+	shared_str							str;
+	str._set							(section);
+	trader.supplies_list.push_back		(str);
 }

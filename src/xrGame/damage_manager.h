@@ -21,7 +21,7 @@ public:
 	virtual	void		reload			(LPCSTR section, CInifile const * ini);
 	virtual	void		reload			(LPCSTR section, LPCSTR sub_section, CInifile const * ini);
 	
-	virtual	void		HitScale		(const int bone_num, float& hit_scale, float& wound_scale, bool aim_bullet=false);
+	virtual	void		HitScale		(const u16 element, float& main_damage_scale, float& pierce_damage_scale);
 
 private:
 			void		load_section	(LPCSTR section, CInifile const * ini);

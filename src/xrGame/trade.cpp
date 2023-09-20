@@ -134,8 +134,13 @@ void CTrade::StartTrade()
 	TradeState = true;
 	m_dwLastTradeTime =  Level().timeServer();
 	m_bNeedToUpdateArtefactTasks = false;
-
-//	if (pThis.type == TT_TRADER) smart_cast<CAI_Trader*>(pThis.base)->OnStartTrade();
+	
+	if (pThis.type == TT_TRADER)
+	{
+		luabind::functor<float>	func;
+		R_ASSERT(ai().script_engine().functor("trade_manager.start_trade", func));
+		func(smart_cast<const CGameObject*>(pThis.inv_owner)->ID());
+	}
 }
 
 void CTrade::StartTradeEx(CInventoryOwner* pInvOwner)
@@ -155,7 +160,7 @@ void CTrade::TradeCB(bool bStart)
 
 void CTrade::OnPerformTrade(u32 money_get, u32 money_put)
 {
-	if (pThis.type == TT_TRADER) 
+	if (pThis.type == TT_TRADER)
 		smart_cast<CAI_Trader*>(pThis.base)->callback(GameObject::eTradePerformTradeOperation)(money_get, money_put);
 }
 

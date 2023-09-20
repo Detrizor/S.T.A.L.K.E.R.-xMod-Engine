@@ -143,8 +143,8 @@ void CHUDCrosshair::OnRender ()
 	UIRender->PushPoint(center.x - x_max,	center.y,			0, cross_color, 0,0);
 	
 	// point
-	UIRender->PushPoint(center.x-0.5f,		center.y,			0, cross_color, 0,0);
-	UIRender->PushPoint(center.x+0.5f,		center.y,			0, cross_color, 0,0);
+	//UIRender->PushPoint(center.x-0.5f,		center.y,			0, cross_color, 0,0);
+	//UIRender->PushPoint(center.x+0.5f,		center.y,			0, cross_color, 0,0);
 
 
 	// render	

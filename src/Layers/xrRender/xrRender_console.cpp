@@ -233,7 +233,7 @@ Flags32 ps_actor_shadow_flags = {0}; //Swartz: actor shadow
 //AVO: detail draw radius
 Flags32		ps_common_flags = {0};		// r1-only
 u32			ps_steep_parallax = 0;
-int			ps_r__detail_radius = 49;
+int			ps_r__detail_radius = 100;
 #ifdef DETAIL_RADIUS // управление радиусом отрисовки травы
 u32			dm_size = 24;
 u32 		dm_cache1_line = 12;	//dm_size*2/dm_cache1_count
@@ -246,7 +246,7 @@ u32			dm_current_cache_line = 49;	//dm_current_size+1+dm_current_size
 u32			dm_current_cache_size = 2401;	//dm_current_cache_line*dm_current_cache_line
 float		dm_current_fade = 47.5;	//float(2*dm_current_size)-.5f;
 #endif
-float		ps_current_detail_density = 0.6f;
+float		ps_current_detail_density = 0.3f;
 float		ps_current_detail_scale = 1.f;
 xr_token							ext_quality_token[] = {
     {"qt_off", 0},
@@ -259,7 +259,7 @@ xr_token							ext_quality_token[] = {
 //-AVO
 
 //- Mad Max
-float		ps_r2_gloss_factor			= 4.0f;
+float		ps_r2_gloss_factor			= 0.5f;
 //- Mad Max
 #ifndef _EDITOR
 #include	"../../xrEngine/xr_ioconsole.h"
@@ -743,11 +743,6 @@ void		xrRender_initconsole	()
 	Fvector	tw_min,tw_max;
 	
 	CMD4(CCC_Float,		"r__geometry_lod",		&ps_r__LOD,					0.1f, 1.5f		);
-//.	CMD4(CCC_Float,		"r__geometry_lod_pow",	&ps_r__LOD_Power,			0,		2		);
-
-//.	CMD4(CCC_Float,		"r__detail_density",	&ps_r__Detail_density,		.05f,	0.99f	);
-    CMD4(CCC_Float, "r__detail_density", &ps_current_detail_density/*&ps_r__Detail_density*/, 0.3f, 1.0f);
-	CMD4(CCC_Float, "r__detail_scale", &ps_current_detail_scale, 0.2f, 3.0f);
 #ifdef DEBUG
 	CMD4(CCC_Float,		"r__detail_l_ambient",	&ps_r__Detail_l_ambient,	.5f,	.95f	);
 	CMD4(CCC_Float,		"r__detail_l_aniso",	&ps_r__Detail_l_aniso,		.1f,	.5f		);
@@ -933,7 +928,7 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Token,		"r3_minmax_sm",					&ps_r3_minmax_sm,			qminmax_sm_token);
 
 #ifdef DETAIL_RADIUS
-    CMD4(CCC_detail_radius, "r__detail_radius", &ps_r__detail_radius, 49, 200);
+    CMD4(CCC_detail_radius, "r__detail_radius", &ps_r__detail_radius, 50, 250);
 	CMD4(CCC_Integer, "r__clear_models_on_unload", &ps_clear_models_on_unload, 0, 1); //Alundaio
 	CMD4(CCC_Integer, "r__no_scale_on_fade", &ps_no_scale_on_fade, 0, 1); //Alundaio
 #endif

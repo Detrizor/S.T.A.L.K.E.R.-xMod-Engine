@@ -95,15 +95,7 @@ void CWeaponKnife::OnStateSwitch	(u32 S, u32 oldState)
 		{
 			//-------------------------------------------
 			m_eHitType		= m_eHitType_1;
-			//fHitPower		= fHitPower_1;
-			if (ParentIsActor())
-			{
-				fCurrentHit			= fvHitPower_1[g_SingleGameDifficulty];
-			}
-			else
-			{
-				fCurrentHit			= fvHitPower_1[egdMaster];
-			}
+			fCurrentHit		= fHitPower_1;
 			fHitImpulse_cur	= fHitImpulse_1;
 			//-------------------------------------------
 			switch2_Attacking	(S);
@@ -112,15 +104,7 @@ void CWeaponKnife::OnStateSwitch	(u32 S, u32 oldState)
 		{
 			//-------------------------------------------
 			m_eHitType		= m_eHitType_2;
-			//fHitPower		= fHitPower_2;
-			if (ParentIsActor())
-			{
-				fCurrentHit			= fvHitPower_2[g_SingleGameDifficulty];
-			}
-			else
-			{
-				fCurrentHit			= fvHitPower_2[egdMaster];
-			}
+			fCurrentHit		= fHitPower_2;
 			fHitImpulse_cur	= fHitImpulse_2;
 			//-------------------------------------------
 			switch2_Attacking	(S);
@@ -168,37 +152,30 @@ void CWeaponKnife::KnifeStrike(const Fvector& pos, const Fvector& dir)
 
 void CWeaponKnife::MakeShot(Fvector const & pos, Fvector const & dir, float const k_hit)
 {
-	CCartridge						cartridge; 
-	cartridge.param_s.buckShot		= 1;				
-	cartridge.param_s.impair		= 1.0f;
-	cartridge.param_s.kDisp			= 1.0f;
-	cartridge.param_s.kHit			= k_hit;
-//.	cartridge.param_s.kCritical		= 1.0f;
-	cartridge.param_s.kImpulse		= 1.0f;
-	cartridge.param_s.kAP			= EPS_L;
-	cartridge.m_flags.set			(CCartridge::cfTracer, FALSE);
-	cartridge.m_flags.set			(CCartridge::cfRicochet, FALSE);
-	cartridge.param_s.fWallmarkSize	= fWallmarkSize;
-	cartridge.bullet_material_idx	= knife_material_idx;
+	CCartridge							cartridge;
+	cartridge.m_flags.set				(CCartridge::cfTracer, FALSE);
+	cartridge.m_flags.set				(CCartridge::cfRicochet, FALSE);
+	cartridge.param_s.fBulletResist		= 100.f;
+	cartridge.param_s.fWMS				= fWallmarkSize;
+	cartridge.bullet_material_idx		= knife_material_idx;
 
 	/*while(m_magazine.size() < 2)*/	m_magazine.push_back(cartridge);
-	iAmmoElapsed					= m_magazine.size();
-	bool SendHit					= SendHitAllowed(H_Parent());
+	iAmmoElapsed						= m_magazine.size();
+	bool SendHit						= SendHitAllowed(H_Parent());
 
-	PlaySound						("sndShot",pos);
+	PlaySound							("sndShot", pos);
 
-	Level().BulletManager().AddBullet(	pos, 
-										dir, 
-										m_fStartBulletSpeed, 
-										fCurrentHit, 
-										fHitImpulse_cur, 
-										H_Parent()->ID(), 
-										ID(), 
-										m_eHitType, 
-										fireDistance, 
-										cartridge, 
-										1.f, 
-										SendHit);
+	Level().BulletManager().AddBullet(	pos,
+										dir,
+										m_fStartBulletSpeed,
+										H_Parent()->ID(),
+										ID(),
+										m_eHitType,
+										fireDistance,
+										cartridge,
+										SendHit,
+										fCurrentHit,
+										fHitImpulse_cur);
 }
 
 void CWeaponKnife::OnMotionMark(u32 state, const motion_marks& M)
@@ -326,61 +303,18 @@ void CWeaponKnife::LoadFireParams(LPCSTR section)
 {
 	inherited::LoadFireParams(section);
 
-	string32			buffer;
-	shared_str			s_sHitPower_2;
-	shared_str			s_sHitPowerCritical_2;
-
-	fvHitPower_1		= fvHitPower;
-	fvHitPowerCritical_1= fvHitPowerCritical;
-	fHitImpulse_1		= fHitImpulse;
-	m_eHitType_1		= ALife::g_tfString2HitType(pSettings->r_string(section, "hit_type"));
-
-	//fHitPower_2			= pSettings->r_float	(section,strconcat(full_name, prefix, "hit_power_2"));
-	s_sHitPower_2			= pSettings->r_string_wb	(section, "hit_power_2" );
-	s_sHitPowerCritical_2	= pSettings->r_string_wb	(section, "hit_power_critical_2" );
+	fHitPower_1			= pSettings->r_float		(section, "hit_power");
+	fHitImpulse_1		= pSettings->r_float		(section, "hit_impulse");
+	m_eHitType_1		= ALife::g_tfString2HitType	(pSettings->r_string(section, "hit_type"));
 	
-	fvHitPower_2[egdMaster]			= (float)atof(_GetItem(*s_sHitPower_2,0,buffer));//первый параметр - это хит для уровня игры мастер
-	fvHitPowerCritical_2[egdMaster]	= (float)atof(_GetItem(*s_sHitPowerCritical_2,0,buffer));//первый параметр - это хит для уровня игры мастер
-
-	fvHitPower_2[egdNovice] = fvHitPower_2[egdStalker] = fvHitPower_2[egdVeteran] = fvHitPower_2[egdMaster];//изначально параметры для других уровней сложности такие же
-	fvHitPowerCritical_2[egdNovice] = fvHitPowerCritical_2[egdStalker] = fvHitPowerCritical_2[egdVeteran] = fvHitPowerCritical_2[egdMaster];//изначально параметры для других уровней сложности такие же
-
-	int num_game_diff_param=_GetItemCount(*s_sHitPower_2);//узнаём колличество параметров для хитов
-	if (num_game_diff_param>1)//если задан второй параметр хита
-	{
-		fvHitPower_2[egdVeteran] = (float)atof(_GetItem(*s_sHitPower_2,1,buffer));//то вычитываем его для уровня ветерана
-	}
-	if (num_game_diff_param>2)//если задан третий параметр хита
-	{
-		fvHitPower_2[egdStalker] = (float)atof(_GetItem(*s_sHitPower_2,2,buffer));//то вычитываем его для уровня сталкера
-	}
-	if (num_game_diff_param>3)//если задан четвёртый параметр хита
-	{
-		fvHitPower_2[egdNovice]  = (float)atof(_GetItem(*s_sHitPower_2,3,buffer));//то вычитываем его для уровня новичка
-	}
-
-	num_game_diff_param=_GetItemCount(*s_sHitPowerCritical_2);//узнаём колличество параметров
-	if (num_game_diff_param>1)//если задан второй параметр хита
-	{
-		fvHitPowerCritical_2[egdVeteran] = (float)atof(_GetItem(*s_sHitPowerCritical_2,1,buffer));//то вычитываем его для уровня ветерана
-	}
-	if (num_game_diff_param>2)//если задан третий параметр хита
-	{
-		fvHitPowerCritical_2[egdStalker] = (float)atof(_GetItem(*s_sHitPowerCritical_2,2,buffer));//то вычитываем его для уровня сталкера
-	}
-	if (num_game_diff_param>3)//если задан четвёртый параметр хита
-	{
-		fvHitPowerCritical_2[egdNovice]  = (float)atof(_GetItem(*s_sHitPowerCritical_2,3,buffer));//то вычитываем его для уровня новичка
-	}
-
-	fHitImpulse_2		= pSettings->r_float	(section, "hit_impulse_2" );
-	m_eHitType_2		= ALife::g_tfString2HitType(pSettings->r_string(section, "hit_type_2"));
+	fHitPower_1			= pSettings->r_float		(section, "hit_power_2");
+	fHitImpulse_2		= pSettings->r_float		(section, "hit_impulse_2" );
+	m_eHitType_2		= ALife::g_tfString2HitType	(pSettings->r_string(section, "hit_type_2"));
 }
 
 bool CWeaponKnife::GetBriefInfo( II_BriefInfo& info )
 {
 	info.clear();
-	info.name._set( m_nameShort );
 	info.icon._set( cNameSect() );
 	return true;
 }

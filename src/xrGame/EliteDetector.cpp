@@ -230,7 +230,9 @@ void CUIArtefactDetectorElite::RegisterItemToDraw(const Fvector& p, const shared
 
 CScientificDetector::CScientificDetector()
 {
-	m_artefacts.m_af_rank = 3;
+	m_artefacts.m_af_rank		= 3;
+	bZonesEnabled				= true;
+	m_iAfDetectRadiusCurPower	= 0;
 }
 
 CScientificDetector::~CScientificDetector()
@@ -240,45 +242,45 @@ CScientificDetector::~CScientificDetector()
 
 void  CScientificDetector::Load(LPCSTR section)
 {
-	inherited::Load(section);
-	m_zones.load(section,"zone");
+	inherited::Load					(section);
+	m_zones.load					(section,"zone");
+	m_sounds.LoadSound				(section, "snd_toggle", "sndToggle");
+	m_fAfDetectRadiusBase			= pSettings->r_float(section, "af_radius");
+	m_fAfVisRadiusBase				= pSettings->r_float(section, "af_vis_radius");
+	m_fAfDetectRadiusFactor			= pSettings->r_float(section, "af_radius_factor");
+	m_iAfDetectRadiusPowersNum		= pSettings->r_u8(section, "af_radius_powers_num");
 }
 
 void CScientificDetector::UpfateWork()
 {
-	ui().Clear							();
+	ui().Clear				();
+	Fvector detector_pos	= Position();
 
-	CAfList::ItemsMapIt ait_b	= m_artefacts.m_ItemInfos.begin();
-	CAfList::ItemsMapIt ait_e	= m_artefacts.m_ItemInfos.end();
-	CAfList::ItemsMapIt ait		= ait_b;
-	Fvector						detector_pos = Position();
-	for(;ait_b!=ait_e;++ait_b)
+	for (CAfList::ItemsMapIt ait = m_artefacts.m_ItemInfos.begin(), ait_e = m_artefacts.m_ItemInfos.end(); ait != ait_e; ++ait)
 	{
-		CArtefact *pAf			= ait_b->first;
-		if(pAf->H_Parent())		
+		CArtefact* pAf					= ait->first;
+		if (pAf->H_Parent())		
 			continue;
 
-		ui().RegisterItemToDraw	(pAf->Position(), pAf->cNameSect());
-
-		if(pAf->CanBeInvisible())
+		ui().RegisterItemToDraw			(pAf->Position(), pAf->cNameSect());
+		if (pAf->CanBeInvisible())
 		{
-			float d = detector_pos.distance_to(pAf->Position());
-			if(d<m_fAfVisRadius)
-				pAf->SwitchVisibility(true);
+			float d						= detector_pos.distance_to(pAf->Position());
+			if (d < m_fAfVisRadius)
+				pAf->SwitchVisibility	(true);
 		}
 	}
 
-	CZoneList::ItemsMapIt zit_b	= m_zones.m_ItemInfos.begin();
-	CZoneList::ItemsMapIt zit_e	= m_zones.m_ItemInfos.end();
-	CZoneList::ItemsMapIt zit	= zit_b;
-
-	for(;zit_b!=zit_e;++zit_b)
+	if (bZonesEnabled)
 	{
-		CCustomZone* pZone			= zit_b->first;
-		ui().RegisterItemToDraw		(pZone->Position(),pZone->cNameSect());
+		for (CZoneList::ItemsMapIt zit = m_zones.m_ItemInfos.begin(), zit_e = m_zones.m_ItemInfos.end(); zit != zit_e; ++zit)
+		{
+			CCustomZone* pZone			= zit->first;
+			ui().RegisterItemToDraw		(pZone->Position(), pZone->cNameSect());
+		}
 	}
 
-	m_ui->update			();
+	m_ui->update();
 }
 
 void CScientificDetector::shedule_Update(u32 dt) 
@@ -298,4 +300,75 @@ void CScientificDetector::OnH_B_Independent(bool just_before_destroy)
 	m_zones.clear			();
 }
 
+extern BOOL g_invert_zoom;
+bool CScientificDetector::Action(u16 cmd, u32 flags)
+{
+	if (inherited::Action(cmd, flags))
+		return true;
 
+	switch (cmd)
+	{
+	case kWPN_ZOOM_INC:
+	case kWPN_ZOOM_DEC:
+		if (flags&CMD_START)
+		{
+			if (g_invert_zoom == 0)
+			{
+				if (cmd == kWPN_ZOOM_INC)
+					ChangeLevel		(true);
+				else
+					ChangeLevel		(false);
+			}
+			else
+			{
+				if (cmd == kWPN_ZOOM_INC)
+					ChangeLevel		(false);
+				else
+					ChangeLevel		(true);
+			}
+			return					true;
+		}
+		else
+			return					false;
+	}
+
+	return false;
+}
+
+void CScientificDetector::ChangeLevel(bool increase)
+{
+	bool changed						= false;
+	if (increase)
+	{
+		if (m_iAfDetectRadiusCurPower != m_iAfDetectRadiusPowersNum)
+		{
+			m_iAfDetectRadiusCurPower	+= 1;
+			changed						= true;
+		}
+	}
+	else if (m_iAfDetectRadiusCurPower != 0)
+	{
+		m_iAfDetectRadiusCurPower		-= 1;
+		changed							= true;
+	}
+
+	if (changed)
+	{
+		m_fAfDetectRadius		= m_fAfDetectRadiusBase * (float)pow(m_fAfDetectRadiusFactor, m_iAfDetectRadiusCurPower);
+		m_fAfVisRadius			= (m_iAfDetectRadiusCurPower == 0) ? m_fAfVisRadiusBase : 0.f;
+		bZonesEnabled			= (m_iAfDetectRadiusCurPower == 0);
+		m_sounds.PlaySound		("sndToggle", Fvector().set(0, 0, 0), this, true, false);
+	}
+}
+
+bool CScientificDetector::install_upgrade_impl(LPCSTR section, bool test)
+{
+	bool result = inherited::install_upgrade_impl(section, test);
+	
+	result		|= process_if_exists(section,	"af_radius",				m_fAfDetectRadiusBase,			test);
+	result		|= process_if_exists(section,	"af_vis_radius",			m_fAfVisRadiusBase,				test);
+	result		|= process_if_exists(section,	"af_radius_factor",			m_fAfDetectRadiusFactor,		test);
+	result		|= process_if_exists(section,	"af_radius_powers_num",		m_iAfDetectRadiusPowersNum,		test);
+
+	return result;
+}

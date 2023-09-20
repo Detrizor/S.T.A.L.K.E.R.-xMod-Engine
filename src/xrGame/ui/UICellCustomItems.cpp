@@ -25,6 +25,10 @@ struct is_helper_pred
 
 CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 {
+	if (!itm)
+		return;
+
+	m_section._set									(itm->m_section_id);
 	m_pData											= (void*)itm;
 
 	inherited::SetShader							(InventoryUtilities::GetEquipmentIconsShader());
@@ -70,6 +74,49 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 	//-Alundaio
 }
 
+CUISectionCellItem::CUISectionCellItem(shared_str section)
+:inherited(NULL)
+{
+	m_section._set						(section);
+	m_pData								= NULL;
+
+	inherited::SetShader				(InventoryUtilities::GetEquipmentIconsShader());
+
+	m_grid_size.set						((int)pSettings->r_float(section, "inv_grid_width"), (int)pSettings->r_float(section, "inv_grid_height"));
+	Frect								rect;
+	rect.lt.set							(pSettings->r_float(section, "inv_grid_x") * INV_GRID_WIDTH, pSettings->r_float(section, "inv_grid_y") * INV_GRID_HEIGHT);
+	rect.rb.set							(rect.lt.x + INV_GRID_WIDTH * m_grid_size.x, rect.lt.y + INV_GRID_HEIGHT * m_grid_size.y);
+
+	inherited::SetTextureRect			(rect);
+	inherited::SetStretchTexture		(true);
+
+	//Alundaio; Layered icon
+	u8 itrNum = 1;
+	LPCSTR field = "1icon_layer";
+	while (pSettings->line_exist(section, field))
+	{
+		string32 buf;
+
+		LPCSTR sect = pSettings->r_string(section, field);
+		if (!sect)
+			continue;
+
+		Fvector2 offset;
+		offset.x = pSettings->r_float(section, strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_x"));
+		offset.y = pSettings->r_float(section, strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_y"));
+
+		LPCSTR field_scale = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_scale");
+		float scale = pSettings->line_exist(section, field_scale) ? pSettings->r_float(section, field_scale) : 1.0f;
+
+		CreateLayer(sect, offset, scale);
+
+		itrNum++;
+
+		field = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer");
+	}
+	//-Alundaio
+}
+
 void CUIInventoryCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
 
@@ -82,24 +129,21 @@ void CUIInventoryCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 
 bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 {
-	CUIInventoryCellItem* ci = smart_cast<CUIInventoryCellItem*>( itm );
-	if ( !itm )
+	CUIInventoryCellItem* ci = smart_cast<CUIInventoryCellItem*>(itm);
+	if (!itm)
+		return			false;
+	if (m_section != ci->m_section)
+		return			false;
+	PIItem item			= object();
+	PIItem ci_item		= ci->object();
+	if (item && ci_item)
 	{
-		return false;
+		if (!fsimilar(item->GetCondition(), ci_item->GetCondition(), 0.01f))
+			return		false;
+		if (!item->equal_upgrades(ci_item->upgardes()))
+			return		false;
 	}
-	if ( object()->object().cNameSect() != ci->object()->object().cNameSect() )
-	{
-		return false;
-	}
-	if ( !fsimilar( object()->GetCondition(), ci->object()->GetCondition(), 0.01f ) )
-	{
-		return false;
-	}
-	if ( !object()->equal_upgrades( ci->object()->upgardes() ) )
-	{
-		return false;
-	}
-	return true;
+	return				true;
 }
 
 bool CUIInventoryCellItem::IsHelperOrHasHelperChild()
@@ -140,7 +184,8 @@ void CUIInventoryCellItem::SetTextureColor(u32 color)
 
 bool CUIInventoryCellItem::IsHelper ()
 {
-	return object()->is_helper_item();
+	PIItem item		= object();
+	return			(item) ? item->is_helper_item() : false;
 }
 
 void CUIInventoryCellItem::SetIsHelper (bool is_helper)
@@ -274,7 +319,7 @@ void CUIInventoryCellItem::Update()
 void CUIInventoryCellItem::UpdateItemText()
 {
 	const u32	helper_count	=  	(u32)std::count_if(m_childs.begin(), m_childs.end(), detail::is_helper_pred()) 
-									+ IsHelper() ? 1 : 0;
+									+ (u32)IsHelper();
 
 	const u32	count			=	ChildsCount() + 1 - helper_count;
 
@@ -334,15 +379,14 @@ u32 CUIAmmoCellItem::CalculateAmmoCount()
 
 void CUIAmmoCellItem::UpdateItemText()
 {
-	m_text->Show( false );
-	if ( !m_custom_draw )
+	m_text->Show							(false);
+	if (!m_custom_draw)
 	{
-		const u32 total = CalculateAmmoCount();
-		
-		string32			str;
-		xr_sprintf			(str, "%d", total);
-		m_text->TextItemControl()->SetText(str);
-		m_text->Show		(true);
+		const u32 total						= CalculateAmmoCount();
+		string32							str;
+		xr_sprintf							(str, "x%d", total);
+		m_text->TextItemControl()->SetText	(str);
+		m_text->Show						(true);
 	}
 }
 

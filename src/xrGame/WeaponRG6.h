@@ -17,7 +17,7 @@ public:
 	virtual void	OnEvent					(NET_Packet& P, u16 type);
 protected:
 	virtual void	FireStart				();
-	virtual u8		AddCartridge			(u8 cnt);
+	virtual bool	AddCartridge			();
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

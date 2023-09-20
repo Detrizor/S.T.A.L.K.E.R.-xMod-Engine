@@ -101,10 +101,11 @@ protected:
 	float 						m_fBlastRadius;
 	
 	//параметры и количество осколков
-	float 						m_fFragsRadius; 
-	float 						m_fFragHit;
-	float 						m_fFragHitImpulse;
 	int	  						m_iFragsNum;
+
+	float						frag_fSpeed;
+	float						frag_fMass;
+	float						frag_fResist;
 
 	//типы наносимых хитов
 	ALife::EHitType 			m_eHitTypeBlast;
@@ -139,15 +140,9 @@ protected:
 	//bool						m_bExplodeEventSent;
 
 	//////////////////////////////////////////////
-	//для разлета осколков
-	float						m_fFragmentSpeed;
-	
 	//звуки
 	ref_sound					sndExplode;
 	ESoundTypes					m_eSoundExplode;
-
-	//размер отметки на стенах
-	float						fWallmarkSize;
 	
 	//эффекты и подсветка
 	shared_str					m_sExplodeParticles;

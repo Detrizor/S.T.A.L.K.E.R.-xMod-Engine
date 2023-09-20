@@ -10,6 +10,7 @@
 #include "../string_table.h"
 #include "../Inventory.h"
 #include "../InventoryOwner.h"
+#include "../InventoryBox.h"
 
 #include "../InfoPortion.h"
 #include "game_base_space.h"
@@ -387,20 +388,72 @@ LPCSTR InventoryUtilities::GetTimePeriodAsString(LPSTR _buff, u32 buff_sz, ALife
 
 //////////////////////////////////////////////////////////////////////////
 
-void InventoryUtilities::UpdateWeightStr(CUITextWnd &wnd, CUITextWnd &wnd_max, CInventoryOwner *pInvOwner)
+void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryBox* pInventoryBox)
 {
-	R_ASSERT		(pInvOwner);
-	string128		buf;
+	float								total_weight, total_volume;
+	float max_volume					= 0.f;
+	CActor* actor						= (pInventoryOwner) ? smart_cast<CActor*>(pInventoryOwner) : NULL;
+	if (pInventoryOwner)
+	{
+		total_weight					= pInventoryOwner->inventory().CalcTotalWeight();
+		total_volume					= pInventoryOwner->inventory().CalcTotalVolume();
+		if (actor)
+		{
+			CInventoryBox* container	= smart_cast<CInventoryBox*>(Level().Objects.net_Find((u16)pInventoryOwner->inventory().m_iRuckVboxID));
+			max_volume					= (container) ? container->GetCapacity() : pInventoryOwner->inventory().m_fRuckVboxCapacity;
+		}
+	}
+	else
+	{
+		total_weight					= pInventoryBox->CalcItemsWeight();
+		total_volume					= pInventoryBox->CalcItemsVolume();
+		max_volume						= pInventoryBox->GetCapacity();
+	}
 
-	float total		= pInvOwner->inventory().CalcTotalWeight();
-	float max		= pInvOwner->MaxCarryWeight();
+	u32									color_weight, color_volume;
+	if (pInventoryOwner && pInventoryOwner->is_alive())
+	{
+		float d_weight					= total_weight / 100.f;
+		clamp<float>					(d_weight, 0.f, 1.f);
+		u32 red							= u32(255.f * d_weight) * 2;
+		clamp<u32>						(red, 0, 255);
+		u32 green						= u32(255.f * (1 - d_weight)) * 2;
+		clamp<u32>						(green, 0, 255);
+		color_weight					= color_argb(255, red, green, 0);
+		color_volume					= ((actor || pInventoryBox) && (total_volume > max_volume)) ? color_argb(255, 255, 0, 0) : color_argb(255, 255, 255, 255);
+	}
+	else
+		color_weight = color_volume		= color_argb(255, 255, 255, 255);
 
-	LPCSTR kg_str	= CStringTable().translate( "st_kg" ).c_str();
-	xr_sprintf		(buf, "%.1f %s", total, kg_str);
-	wnd.SetText	(buf);
+	string128							buf;
 
-	xr_sprintf		(buf, "(max %.1f %s)", max, kg_str);
-	wnd_max.SetText	(buf);
+	LPCSTR kg_str						= CStringTable().translate( "st_kg" ).c_str();
+	xr_sprintf							(buf, "%.2f %s", total_weight, kg_str);
+	pWeight->SetText					(buf);
+	pWeight->SetTextColor				(color_weight);
+	pWeight->AdjustWidthToText			();
+
+	LPCSTR li_str						= CStringTable().translate("st_li").c_str();
+	if (actor || pInventoryBox)
+		xr_sprintf						(buf, "%.2f/%.2f %s", total_volume, max_volume, li_str);
+	else
+		xr_sprintf						(buf, "%.2f %s", total_volume, li_str);
+	pVolume->SetText					(buf);
+	pVolume->SetTextColor				(color_volume);
+	pVolume->AdjustWidthToText			();
+}
+
+void InventoryUtilities::AlighLabels(CUIStatic* pWeightInfo, CUITextWnd* pWeight, CUIStatic* pVolumeInfo, CUITextWnd* pVolume)
+{
+	Fvector2 pos						= pWeightInfo->GetWndPos();
+	pos.x								+= pWeightInfo->GetWndSize().x + 5.f;
+	pWeight->SetWndPos					(pos);
+
+	pos.x								+= pWeight->GetWndSize().x + 5.f;
+	pVolumeInfo->SetWndPos				(pos);
+
+	pos.x								+= pVolumeInfo->GetWndSize().x + 5.f;
+	pVolume->SetWndPos					(pos);
 }
 
 //////////////////////////////////////////////////////////////////////////

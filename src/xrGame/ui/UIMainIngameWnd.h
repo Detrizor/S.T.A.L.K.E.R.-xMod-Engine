@@ -63,12 +63,6 @@ public:
 	CUIHudStatesWnd*	get_hud_states() { return m_ui_hud_states; } //temp
 	void				OnSectorChanged			(int sector);
 
-	xr_vector<CUIStatic* > m_quick_slots_icons;
-	CUITextWnd*			m_QuickSlotText1;
-	CUITextWnd*			m_QuickSlotText2;
-	CUITextWnd*			m_QuickSlotText3;
-	CUITextWnd*			m_QuickSlotText4;
-
 protected:
 
 	// 5 статиков для отображения иконок:
@@ -134,7 +128,6 @@ public:
 	void				UpdateBoosterIndicators			(const xr_map<EBoostParams, SBooster> influences);
 
 protected:
-	void				UpdateQuickSlots				();
 	void				SetWarningIconColorUI			(CUIStatic* s, const u32 cl);
 	void				InitFlashingIcons				(CUIXml* node);
 	void				DestroyFlashingIcons			();

@@ -485,7 +485,8 @@ void game_sv_TeamDeathmatch::OnPlayerHitPlayer_Case(game_PlayerState* ps_hitter,
 		{
 			if (ps_hitter->team == ps_hitted->team && ps_hitter != ps_hitted)
 			{
-				pHitS->power *= GetFriendlyFire();
+				pHitS->main_damage *= GetFriendlyFire();
+				pHitS->pierce_damage *= GetFriendlyFire();
 				pHitS->impulse *= (GetFriendlyFire()>1.0f) ? GetFriendlyFire() : 1.0f;
 			}
 		}

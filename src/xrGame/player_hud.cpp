@@ -304,13 +304,16 @@ attachable_hud_item::~attachable_hud_item()
 	m_model						= NULL;
 }
 
-void attachable_hud_item::load(const shared_str& sect_name)
+void attachable_hud_item::load(const shared_str& sect_name, const shared_str& section)
 {
 	m_sect_name					= sect_name;
+	m_section_name				= section;
 
 	// Visual
-	const shared_str& visual_name = pSettings->r_string(sect_name, "item_visual");
-	m_model						 = smart_cast<IKinematics*>(::Render->model_Create(visual_name.c_str()));
+	shared_str visual_name		= pSettings->r_string(sect_name, "item_visual");
+	if (visual_name == "default")
+		visual_name				= pSettings->r_string(section, "visual");
+	m_model						= smart_cast<IKinematics*>(::Render->model_Create(*visual_name));
 
 	m_attach_place_idx			= pSettings->r_u16(sect_name, "attach_place_idx");
 	m_measures.load				(sect_name, m_model);
@@ -514,10 +517,10 @@ void player_hud::render_hud()
 
 #include "../xrEngine/motion.h"
 
-u32 player_hud::motion_length(const shared_str& anim_name, const shared_str& hud_name, const CMotionDef*& md)
+u32 player_hud::motion_length(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md)
 {
 	float speed						= CalcMotionSpeed(anim_name);
-	attachable_hud_item* pi			= create_hud_item(hud_name);
+	attachable_hud_item* pi			= create_hud_item(hud_name, section);
 	player_hud_motion*	pm			= pi->m_hand_motions.find_motion(anim_name);
 	if(!pm)
 		return						100; // ms TEMPORARY
@@ -659,18 +662,16 @@ void player_hud::update_inertion(Fmatrix& trans)
 }
 
 
-attachable_hud_item* player_hud::create_hud_item(const shared_str& sect)
+attachable_hud_item* player_hud::create_hud_item(const shared_str& sect, const shared_str& section)
 {
-	xr_vector<attachable_hud_item*>::iterator it = m_pool.begin();
-	xr_vector<attachable_hud_item*>::iterator it_e = m_pool.end();
-	for(;it!=it_e;++it)
+	for (xr_vector<attachable_hud_item*>::iterator it = m_pool.begin(), it_e = m_pool.end(); it != it_e; ++it)
 	{
 		attachable_hud_item* itm = *it;
-		if(itm->m_sect_name==sect)
+		if (itm->m_sect_name == sect && itm->m_section_name == section)
 			return itm;
 	}
 	attachable_hud_item* res	= xr_new<attachable_hud_item>(this);
-	res->load					(sect);
+	res->load					(sect, section);
 	res->m_hand_motions.load	(m_model, sect);
 	m_pool.push_back			(res);
 
@@ -687,7 +688,7 @@ bool player_hud::allow_activation(CHudItem* item)
 
 void player_hud::attach_item(CHudItem* item)
 {
-	attachable_hud_item* pi			= create_hud_item(item->HudSection());
+	attachable_hud_item* pi			= create_hud_item(item->HudSection(), *item->hud_section);
 	int item_idx					= pi->m_attach_place_idx;
 	
 	if(	m_attached_items[item_idx] != pi)

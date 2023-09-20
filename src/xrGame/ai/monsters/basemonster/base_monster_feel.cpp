@@ -96,7 +96,7 @@ void CBaseMonster::HitEntity(const CEntity *pEntity, float fDamage, float impuls
 		HS.whoID			= (ID());															//		l_P.w_u16	(ID());
 		HS.weaponID			= (ID());															//		l_P.w_u16	(ID());
 		HS.dir				= (hit_dir);														//		l_P.w_dir	(hit_dir);
-		HS.power			= (fDamage);														//		l_P.w_float	(fDamage);
+		HS.main_damage		= (fDamage);														//		l_P.w_float	(fDamage);
 		HS.boneID			= (smart_cast<IKinematics*>(pEntityNC->Visual())->LL_GetBoneRoot());//		l_P.w_s16	(smart_cast<IKinematics*>(pEntityNC->Visual())->LL_GetBoneRoot());
 		HS.p_in_bone_space	= (position_in_bone_space);											//		l_P.w_vec3	(position_in_bone_space);
 		HS.impulse			= (impulse);														//		l_P.w_float	(impulse);
@@ -275,7 +275,7 @@ void CBaseMonster::Hit_Psy(CObject *object, float value)
 	HS.whoID			= (ID());									// own		//	P.w_u16			(ID());									// own
 	HS.weaponID			= (ID());									// own		//	P.w_u16			(ID());									// own
 	HS.dir				= (Fvector().set(0.f,1.f,0.f));			// direction	//	P.w_dir			(Fvector().set(0.f,1.f,0.f));			// direction
-	HS.power			= (value);								// hit value	//	P.w_float		(value);								// hit value
+	HS.main_damage		= (value);								// hit value	//	P.w_float		(value);								// hit value
 	HS.boneID			= (BI_NONE);								// bone		//	P.w_s16			(BI_NONE);								// bone
 	HS.p_in_bone_space	= (Fvector().set(0.f,0.f,0.f));							//	P.w_vec3		(Fvector().set(0.f,0.f,0.f));			
 	HS.impulse			= (0.f);												//	P.w_float		(0.f);									
@@ -292,7 +292,7 @@ void CBaseMonster::Hit_Wound(CObject *object, float value, const Fvector &dir, f
 	HS.whoID			= (ID());															//	P.w_u16		(ID());
 	HS.weaponID			= (ID());															//	P.w_u16		(ID());
 	HS.dir				= (dir);															//	P.w_dir		(dir);
-	HS.power			= (value);															//	P.w_float	(value);
+	HS.main_damage		= (value);															//	P.w_float	(value);
 	HS.boneID			= (smart_cast<IKinematics*>(object->Visual())->LL_GetBoneRoot());	//	P.w_s16		(smart_cast<IKinematics*>(object->Visual())->LL_GetBoneRoot());
 	HS.p_in_bone_space	= (Fvector().set(0.f,0.f,0.f));										//	P.w_vec3	(Fvector().set(0.f,0.f,0.f));
 	HS.impulse			= (impulse);														//	P.w_float	(impulse);

@@ -20,6 +20,7 @@ void CEatableItem::script_register(lua_State *L)
 			.def_readwrite("m_fWeightFull", &CEatableItem::m_fWeightFull)
 			.def_readwrite("m_fWeightEmpty", &CEatableItem::m_fWeightEmpty)
 			.def("Weight", &CEatableItem::Weight)
+			.def("Volume", &CEatableItem::Volume)
 			.def("Cost", &CEatableItem::Cost)
 		];
 }

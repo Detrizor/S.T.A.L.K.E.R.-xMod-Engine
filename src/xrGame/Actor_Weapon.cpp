@@ -114,15 +114,12 @@ void CActor::SetWeaponHideState (u16 State, bool bSet)
 	};
 }
 static	u16 BestWeaponSlots [] = {
-	INV_SLOT_3		,		// 2
-	INV_SLOT_2		,		// 1
-	GRENADE_SLOT	,		// 3
-	KNIFE_SLOT		,		// 0
+	PRIMARY_SLOT	,
+	SECONDARY_SLOT	,
+	PISTOL_SLOT		,
+	KNIFE_SLOT		,
+	GRENADE_SLOT	,
 };
-void CActor::SelectBestWeapon(CObject* O)
-{
-	return;
-}
 
 #define ENEMY_HIT_SPOT	"mp_hit_sector_location"
 BOOL	g_bShowHitSectors	= TRUE;

@@ -7,6 +7,10 @@
 #include "../xr_level_controller.h"
 #include "../string_table.h"
 
+#include "../ai/monsters/BaseMonster/base_monster.h"
+
+using namespace luabind;
+
 CUIKeyBinding::CUIKeyBinding()
 {
 	for (int i=0; i<3; i++)
@@ -37,17 +41,26 @@ void CUIKeyBinding::FillUpList(CUIXml& xml_doc_ui, LPCSTR path_ui)
 	CStringTable	st;
 	xml_doc.Load							(CONFIG_PATH, UI_PATH, "ui_keybinding.xml");
 
-	int groupsCount = xml_doc.GetNodesNum	("",0,"group");
+	int groupsCount = xml_doc.GetNodesNum	("", 0, "group");
 
-	for (int i = 0; i<groupsCount; ++i)
+	for (int i = 0; i < groupsCount; ++i)
 	{
 		// add group
-		shared_str grp_name					= xml_doc.ReadAttrib("group",i,"name");
+		shared_str grp_name					= xml_doc.ReadAttrib("group", i, "name");
 		R_ASSERT							(xr_strlen(grp_name));
+
+		if (!xr_strcmp(grp_name, "kb_grp_debug"))
+		{
+			if (!Core.ParamFlags.test(Core.dbg))
+			{
+				xml_doc.SetLocalRoot(xml_doc.GetRoot());
+				continue;
+			}
+		}
 
 		CUIStatic* pItem					= xr_new<CUIStatic>();
 		CUIXmlInit::InitStatic				(xml_doc_ui, strconcat(sizeof(buf),buf,path_ui,":scroll_view:item_group"),	0, pItem);
-		pItem->TextItemControl()->SetTextST		(grp_name.c_str());
+		pItem->TextItemControl()->SetTextST	(grp_name.c_str());
 		m_scroll_wnd->AddWindow				(pItem, true);
 
 		// add group items
@@ -66,14 +79,6 @@ void CUIKeyBinding::FillUpList(CUIXml& xml_doc_ui, LPCSTR path_ui)
 			m_scroll_wnd->AddWindow			(pItem, true);
 
 			shared_str exe					= xml_doc.ReadAttrib("command",j,"exe");
-
-#ifdef DEBUG
-			if ( kNOTBINDED == action_name_to_id(*exe) )
-			{
-				Msg("action [%s] not exist. update data",exe.c_str());
-				continue;
-			}
-#endif
 			
 			float item_width				= m_header[1].GetWidth()-3.0f;
 			float item_pos					= m_header[1].GetWndPos().x;

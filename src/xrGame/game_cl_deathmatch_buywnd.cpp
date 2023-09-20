@@ -180,32 +180,7 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 				}
 				pCurBuyMenu->ItemToSlot(pItem->object().cNameSect(), Addons);
 			}
-		};
-
-		//проверяем пояс
-		TIItemContainer::const_iterator	IBelt = pCurActor->inventory().m_belt.begin();
-		TIItemContainer::const_iterator	EBelt = pCurActor->inventory().m_belt.end();
-
-		for ( ; IBelt != EBelt; ++IBelt) 
-		{
-			PIItem pItem = (*IBelt);
-			//if (pItem->IsInvalid() || pItem->object().CLS_ID == CLSID_OBJECT_W_KNIFE) continue;
-			if ( pItem->IsInvalid() || smart_cast<CWeaponKnife*>( &pItem->object() ) )	continue;
-			if (!pItem->CanTrade())
-			{
-				continue;
-			}
-
-			if(pSettings->line_exist(GetBaseCostSect(), pItem->object().cNameSect()))
-			{
-				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
-				if (pAmmo)
-				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
-				}
-				pCurBuyMenu->ItemToBelt(pItem->object().cNameSect());
-			}
-		};
+		}
 
 		//проверяем ruck
 		TIItemContainer::const_iterator	IRuck = pCurActor->inventory().m_ruck.begin();
@@ -284,7 +259,7 @@ void game_cl_Deathmatch::CheckItem			(PIItem pItem, PRESET_ITEMS* pPresetItems, 
 		if (PresetItemIt == pPresetItems->end()) return;
 	}
 
-	if (SlotID == INV_SLOT_2)
+	if (SlotID == PISTOL_SLOT)
 	{
 		PRESET_ITEMS_it DefPistolIt = std::find(PlayerDefItems.begin(), PlayerDefItems.end(), BigID);
 		if (DefPistolIt != PlayerDefItems.end() && PresetItemIt == pPresetItems->end()) return;

@@ -15,6 +15,7 @@
 #include "object_broker.h"
 #include "UIXmlInit.h"
 #include "UIProgressBar.h"
+#include "../string_table.h"
 
 #include "Weapon.h"
 #include "CustomOutfit.h"
@@ -55,31 +56,25 @@ void CUICellItem::init()
 {
 	CUIXml	uiXml;
 	uiXml.Load( CONFIG_PATH, UI_PATH, "actor_menu_item.xml" );
-	
-	m_text					= xr_new<CUIStatic>();
-	m_text->SetAutoDelete	( true );
-	AttachChild				( m_text );
-	CUIXmlInit::InitStatic	( uiXml, "cell_item_text", 0, m_text );
-	m_text->Show			( false );
 
-/*	m_mark					= xr_new<CUIStatic>();
-	m_mark->SetAutoDelete	( true );
-	AttachChild				( m_mark );
-	CUIXmlInit::InitStatic	( uiXml, "cell_item_mark", 0, m_mark );
-	m_mark->Show			( false );*/
+	m_text								= xr_new<CUIStatic>();
+	m_text->SetAutoDelete				(true);
+	AttachChild							(m_text);
+	CUIXmlInit::InitStatic				(uiXml, "cell_item_text", 0, m_text);
+	m_text->Show						(false);
 
-	m_upgrade				= xr_new<CUIStatic>();
-	m_upgrade->SetAutoDelete( true );
-	AttachChild				( m_upgrade );
-	CUIXmlInit::InitStatic	( uiXml, "cell_item_upgrade", 0, m_upgrade );
-	m_upgrade_pos			= m_upgrade->GetWndPos();
-	m_upgrade->Show			( false );
+	m_upgrade							= xr_new<CUIStatic>();
+	m_upgrade->SetAutoDelete			(true);
+	AttachChild							(m_upgrade);
+	CUIXmlInit::InitStatic				(uiXml, "cell_item_upgrade", 0, m_upgrade);
+	m_upgrade_pos						= m_upgrade->GetWndPos();
+	m_upgrade->Show						(false);
 
-	m_pConditionState = xr_new<CUIProgressBar>();
-	m_pConditionState->SetAutoDelete(true);
-	AttachChild(m_pConditionState);
-	CUIXmlInit::InitProgressBar(uiXml, "condition_progess_bar", 0, m_pConditionState);
-	m_pConditionState->Show(true);
+	m_pConditionState					= xr_new<CUIProgressBar>();
+	m_pConditionState->SetAutoDelete	(true);
+	AttachChild							(m_pConditionState);
+	CUIXmlInit::InitProgressBar			(uiXml, "cell_item_condition", 0, m_pConditionState);
+	m_pConditionState->Show				(false);
 }
 
 void CUICellItem::Draw()
@@ -112,23 +107,20 @@ void CUICellItem::Update()
 			GetMessageTarget()->SendMessage(this, DRAG_DROP_ITEM_FOCUSED_UPDATE, NULL);
 	}
 	
-	PIItem item = (PIItem)m_pData;
-	if ( item )
+	PIItem item					= (PIItem)m_pData;
+	m_has_upgrade				= (item) ? item->has_any_upgrades() : false;
+	if (m_has_upgrade)
 	{
-		m_has_upgrade = item->has_any_upgrades();
-
-//		Fvector2 size      = GetWndSize();
-//		Fvector2 up_size = m_upgrade->GetWndSize();
-//		pos.x = size.x - up_size.x - 4.0f;
-		Fvector2 pos;
-		pos.set( m_upgrade_pos );
-		if ( ChildsCount() )
-		{
-			pos.x += m_text->GetWndSize().x + 2.0f;
-		}
-		m_upgrade->SetWndPos( pos );
+		Ivector2 itm_grid_size	= GetGridSize();
+		if (m_pParentList->GetVerticalPlacement())
+			std::swap			(itm_grid_size.x, itm_grid_size.y);
+		Ivector2 cell_size		= m_pParentList->CellSize();
+		Ivector2 cell_space		= m_pParentList->CellsSpacing();
+		float x					= itm_grid_size.x * (cell_size.x + cell_space.x) - m_upgrade->GetWidth() - m_upgrade_pos.x;
+		float y					= cell_space.y + m_upgrade_pos.y;
+		m_upgrade->SetWndPos	(Fvector2().set(x, y));
 	}
-	m_upgrade->Show( m_has_upgrade );
+	m_upgrade->Show(m_has_upgrade);
 }
 
 bool CUICellItem::OnMouseAction(float x, float y, EUIMessages mouse_action)
@@ -203,60 +195,35 @@ CUIDragItem* CUICellItem::CreateDragItem()
 void CUICellItem::SetOwnerList(CUIDragDropListEx* p)	
 {
 	m_pParentList = p;
-	//UpdateConditionProgressBar();
 }
 
 void CUICellItem::UpdateConditionProgressBar()
 {
-	if (!m_pData)
-		return;
-
-	if(m_pParentList && m_pParentList->GetConditionProgBarVisibility())
+	PIItem item									= (PIItem)m_pData;
+	CEatableItem* eitem							= (CEatableItem*)item;
+	if (m_pParentList && m_pParentList->GetConditionProgBarVisibility() && item && item->IsUsingCondition() && ((item->GetCondition() < (1.f - EPS)) || item->ShowFullCondition()))
 	{
-		PIItem itm = (PIItem)m_pData;
-		if (itm && itm->IsUsingCondition())
-		{
-			float cond = itm->GetCondition();
-			
-			CEatableItem* eitm = smart_cast<CEatableItem*>( itm );
-			if (eitm)
-			{
-				u8 max_uses = eitm->GetMaxUses();
-				u8 remaining_uses = eitm->GetRemainingUses();
+		m_pConditionState->ShowBackground		(true);
+		m_pConditionState->m_bUseGradient		= true;
 
-				if (max_uses < 8)
-				{
-					m_pConditionState->ShowBackground(false);
-				}
+		Ivector2 itm_grid_size		= GetGridSize();
+		if (m_pParentList->GetVerticalPlacement())
+			std::swap				(itm_grid_size.x, itm_grid_size.y);
+		Ivector2 cell_size			= m_pParentList->CellSize();
+		Ivector2 cell_space			= m_pParentList->CellsSpacing();
+		float x						= 1.f;
+		float y						= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
 
-				 if (max_uses > 8)
-				{
-					cond = (float)remaining_uses / (float)max_uses;
-				}
-				else
-				{
-					cond = ((float)remaining_uses * 0.125f) - 0.0625f;
-				}
-
-				m_pConditionState->m_bUseGradient = false;
-			}
-
-			Ivector2 itm_grid_size = GetGridSize();
-			if(m_pParentList->GetVerticalPlacement())
-				std::swap(itm_grid_size.x, itm_grid_size.y);
-
-			Ivector2 cell_size = m_pParentList->CellSize();
-			Ivector2 cell_space = m_pParentList->CellsSpacing();
-			float x = 1.f;
-			float y = itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 2.f;
-
-			m_pConditionState->SetWndPos(Fvector2().set(x,y));
-			m_pConditionState->SetProgressPos( iCeil( cond * 13.0f ) / 13.0f );
-			m_pConditionState->Show(true);
-			return;
-		}
+		m_pConditionState->SetWndPos					(Fvector2().set(x, y));
+		float width										= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
+		m_pConditionState->SetWidth						(width);
+		m_pConditionState->m_UIProgressItem.SetWidth	(width);
+		m_pConditionState->m_UIBackgroundItem.SetWidth	(width);
+		m_pConditionState->SetProgressPos				(item->GetCondition());
+		m_pConditionState->Show							(true);
 	}
-	m_pConditionState->Show(false);
+	else
+		m_pConditionState->Show(false);
 }
 
 bool CUICellItem::EqualTo(CUICellItem* itm)
@@ -303,18 +270,17 @@ bool CUICellItem::HasChild(CUICellItem* item)
 
 void CUICellItem::UpdateItemText()
 {
-	if ( ChildsCount() )
+	if (ChildsCount())
 	{
-		string32	str;
-		xr_sprintf( str, "x%d", ChildsCount()+1 );
-		m_text->TextItemControl()->SetText( str );
-		m_text->Show( true );
+		string32							str;
+		xr_sprintf							(str, "x%d", ChildsCount() + 1);
+		m_text->TextItemControl()->SetText	(str);
+		m_text->AdjustWidthToText			();
+		m_text->AdjustHeightToText			();
+		m_text->Show						(true);
 	}
 	else
-	{
-		m_text->TextItemControl()->SetText( "" );
-		m_text->Show( false );
-	}
+		m_text->Show						(false);
 }
 
 void CUICellItem::Mark( bool status )

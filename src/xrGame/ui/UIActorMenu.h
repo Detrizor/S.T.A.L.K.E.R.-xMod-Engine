@@ -14,12 +14,12 @@ class CUIDragDropListEx;
 class CUIDragDropReferenceList;
 class CUICellItem;
 class CUIDragItem;
-class ui_actor_state_wnd;
 class CUIItemInfo;
 class CUIFrameLineWnd;
 class CUIStatic;
 class CUITextWnd;
 class CUI3tButton;
+class CUIComboBox;
 class CInventoryOwner;
 class CInventoryBox;
 class CUIInventoryUpgradeWnd;
@@ -37,13 +37,12 @@ enum EDDListType{
 		iInvalid,
 		iActorSlot,
 		iActorBag,
-		iActorBelt,
+		iActorPocket,
 
 		iActorTrade,
 		iPartnerTradeBag,
 		iPartnerTrade,
 		iDeadBodyBag,
-		iQuickSlot,
 		iTrashSlot,
 		iListTypeMax
 };
@@ -56,6 +55,17 @@ enum EMenuMode{
 		mmDeadBodySearch,
 };
 
+enum eActorMenuSndAction{
+	eItemToSlot = 0,
+	eItemToHands,
+	eItemToRuck,
+	eProperties,
+	eAttachAddon,
+	eDetachAddon,
+	eItemUse,
+	eSndMax
+};
+
 class CUIActorMenu :	public CUIDialogWnd, 
 						public CUIWndCallback
 {
@@ -63,21 +73,8 @@ class CUIActorMenu :	public CUIDialogWnd,
 	typedef inventory::upgrade::Upgrade 	Upgrade_type;
 
 protected:
-	enum eActorMenuSndAction{	eSndOpen	=0,
-								eSndClose,
-								eItemToSlot,
-								eItemToBelt,
-								eItemToRuck,
-								eProperties,
-								eDropItem,
-								eAttachAddon,
-								eDetachAddon,
-								eItemUse,
-								eSndMax};
-
 	EMenuMode					m_currMenuMode;
 	ref_sound					sounds					[eSndMax];
-	void						PlaySnd					(eActorMenuSndAction a);
 
 	UIHint*						m_hint_wnd;
 	CUIItemInfo*				m_ItemInfo;
@@ -88,35 +85,32 @@ protected:
 	CUICellItem*				m_upgrade_selected;
 	CUIPropertiesBox*			m_UIPropertiesBox;
 
-	ui_actor_state_wnd*			m_ActorStateInfo;
 	CUICharacterInfo*			m_ActorCharacterInfo;
 	CUICharacterInfo*			m_PartnerCharacterInfo;
 
-	CUIDragDropListEx*			m_pInventoryBeltList;
-	CUIDragDropListEx*			m_pInventoryBagList;
+	CUIDragDropListEx*					m_pInventoryBagList;
+
+	u8									m_pockets_count;
+	CUIStatic*							m_PocketsWnd;
+	xr_vector<CUIDragDropListEx*>		m_pInvPocket;
+	xr_vector<CUITextWnd*>				m_pPocketInfo;
+	xr_vector<CUIStatic*>				m_pPocketOver;
 
 	CUIDragDropListEx*			m_pTradeActorBagList;
 	CUIDragDropListEx*			m_pTradeActorList;
 	CUIDragDropListEx*			m_pTradePartnerBagList;
 	CUIDragDropListEx*			m_pTradePartnerList;
 	CUIDragDropListEx*			m_pDeadBodyBagList;
-	CUIDragDropListEx*			m_pTrashList;
 	
-	enum						{e_af_count = 5};
-	CUIStatic*					m_belt_list_over[e_af_count];
 	CUIStatic*					m_HelmetOver;
 
-	u8							m_slot_count;
-	CUIStatic*					m_pInvSlotHighlight[LAST_SLOT + 1];
-	CUIProgressBar*				m_pInvSlotProgress[LAST_SLOT + 1];
-	CUIDragDropListEx*			m_pInvList[LAST_SLOT + 1];
-
-	CUIStatic*					m_QuickSlotsHighlight[4];
-	CUIStatic*					m_ArtefactSlotsHighlight[e_af_count];
+	u8									m_slot_count;
+	CUIStatic*							m_SlotsWnd;
+	xr_vector<CUIDragDropListEx*>		m_pInvList;
+	xr_vector<CUIStatic*>				m_pInvSlotHighlight;
+	xr_vector<CUIProgressBar*>			m_pInvSlotProgress;
 
 	CUIInventoryUpgradeWnd*		m_pUpgradeWnd;
-	
-	CUIStatic*					m_LeftBackground;
 
 	UIInvUpgradeInfo*			m_upgrade_info;
 	CUIMessageBoxEx*			m_message_box_yes_no;
@@ -128,40 +122,38 @@ protected:
 
 	CUITextWnd*					m_ActorMoney;
 	CUITextWnd*					m_PartnerMoney;
-	CUITextWnd*					m_QuickSlot1;
-	CUITextWnd*					m_QuickSlot2;
-	CUITextWnd*					m_QuickSlot3;
-	CUITextWnd*					m_QuickSlot4;
 	
 	// bottom ---------------------------------
-	CUIStatic*					m_ActorBottomInfo;
+	CUIStatic*					m_ActorWeightInfo;
 	CUITextWnd*					m_ActorWeight;
-	CUITextWnd*					m_ActorWeightMax;
+	CUIStatic*					m_ActorVolumeInfo;
+	CUITextWnd*					m_ActorVolume;
 	
-	CUIStatic*					m_PartnerBottomInfo;
+	CUIStatic*					m_PartnerWeightInfo;
 	CUITextWnd*					m_PartnerWeight;
-	float						m_PartnerWeight_end_x;
-//*	CUIStatic*					m_PartnerWeightMax;
+	CUIStatic*					m_PartnerVolumeInfo;
+	CUITextWnd*					m_PartnerVolume;
 
 	// delimiter ------------------------------
-	CUIStatic*					m_LeftDelimiter;
-//	CUITextWnd*					m_PartnerTradeCaption;
+	CUIStatic*					m_PartnerInventoryTrade;
 	CUITextWnd*					m_PartnerTradePrice;
-	CUITextWnd*					m_PartnerTradeWeightMax;
+	CUITextWnd*					m_PartnerTradeWeight;
+	CUITextWnd*					m_PartnerTradeVolume;
 
-	CUIStatic*					m_RightDelimiter;
-//	CUITextWnd*					m_ActorTradeCaption;
+	CUIStatic*					m_ActorInventoryTrade;
 	CUITextWnd*					m_ActorTradePrice;
-	CUITextWnd*					m_ActorTradeWeightMax;
+	CUITextWnd*					m_ActorTradeWeight;
+	CUITextWnd*					m_ActorTradeVolume;
 
 	CTrade*						m_actor_trade;
 	CTrade*						m_partner_trade;
+
+	CUIComboBox*				m_trade_list;
 
 	CUI3tButton*				m_trade_buy_button;
 	CUI3tButton*				m_trade_sell_button;
 	CUI3tButton*				m_takeall_button;
 	CUI3tButton*				m_exit_button;
-//	CUIStatic*					m_clock_value;
 
 	u32							m_last_time;
 	bool						m_repair_mode;
@@ -169,7 +161,7 @@ protected:
 	bool						m_highlight_clear;
 	u32							m_trade_partner_inventory_state;
 public:
-	CUIDragDropReferenceList*	m_pQuickSlot;
+	CUIDragDropListEx*							m_pTrashList;
 
 public:
 	void						SetMenuMode					(EMenuMode mode);
@@ -179,6 +171,12 @@ public:
 	CInventoryOwner*			GetPartner					() {return m_pPartnerInvOwner;};
 	void						SetInvBox					(CInventoryBox* box);
 	CInventoryBox*				GetInvBox					() {return m_pInvBox;};
+	
+	bool						ToSlot						(u16 slot_id, PIItem item);
+	bool						ToBag						(PIItem item);
+	bool						ToPocket					(PIItem item, u16 pocket_id);
+	void						PlaySnd						(eActorMenuSndAction a);
+
 private:
 	void						PropertiesBoxForSlots		(PIItem item, bool& b_show);
 	void						PropertiesBoxForWeapon		(CUICellItem* cell_item, PIItem item, bool& b_show);
@@ -193,17 +191,18 @@ private:
 	void						clear_highlight_lists		();
 	void						set_highlight_item			(CUICellItem* cell_item);
 	void						highlight_item_slot			(CUICellItem* cell_item);
-	void						highlight_armament			(PIItem item, CUIDragDropListEx* ddlist);
-	void						highlight_ammo_for_weapon	(PIItem weapon_item, CUIDragDropListEx* ddlist);
-	void						highlight_weapons_for_ammo	(PIItem ammo_item, CUIDragDropListEx* ddlist);
-	bool						highlight_addons_for_weapon	(PIItem weapon_item, CUICellItem* ci);
-	void						highlight_weapons_for_addon	(PIItem addon_item, CUIDragDropListEx* ddlist);
+	void						highlight_armament			(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
+	void						highlight_ammo_for_weapon	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
+	void						highlight_weapons_for_ammo	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
+	void						highlight_addons_for_weapon	(CUICellItem* cell_item, CUICellItem* ci);
+	void						highlight_weapons_for_addon	(CUICellItem* cell_item, CUIDragDropListEx* ddlist);
 
 protected:			
 	void						Construct					();
 	void						InitCallbacks				();
 
 	void						InitCellForSlot				(u16 slot_idx);
+	void						InitPocket					(u16 pocket_idx);
 	void						InitInventoryContents		(CUIDragDropListEx* pBagList);
 	void						ClearAllLists				();
 	void						BindDragDropListEvents		(CUIDragDropListEx* lst);
@@ -211,6 +210,7 @@ protected:
 	EDDListType					GetListType					(CUIDragDropListEx* l);
 	CUIDragDropListEx*			GetListByType				(EDDListType t);
 	CUIDragDropListEx*			GetSlotList					(u16 slot_idx);
+	u16							GetPocketIdx				(CUIDragDropListEx* pocket);
 	bool						CanSetItemToList			(PIItem item, CUIDragDropListEx* l, u16& ret_slot);
 	
 	xr_vector<EDDListType>		m_allowed_drops				[iListTypeMax];
@@ -225,6 +225,7 @@ protected:
 	bool		xr_stdcall		OnItemFocusLost				(CUICellItem* itm);
 	bool		xr_stdcall		OnItemFocusedUpdate			(CUICellItem* itm);
 	void		xr_stdcall		OnDragItemOnTrash			(CUIDragItem* item, bool b_receive);
+	void		xr_stdcall		OnDragItemOnPocket			(CUIDragItem* item, bool b_receive);
 	bool						OnItemDropped				(PIItem itm, CUIDragDropListEx* new_owner, CUIDragDropListEx* old_owner);
 
 	void						ResetMode					();
@@ -262,15 +263,10 @@ protected:
 	bool						ToSlotScript				(CScriptGameObject* GO, bool force_place, u16 slot_id);
 	bool						ToSlot						(CUICellItem* itm, bool force_place, u16 slot_id);
 	bool						ToBag						(CUICellItem* itm, bool b_use_cursor_pos);
-	bool						ToBeltScript				(CScriptGameObject* GO, bool b_use_cursor_pos);
-	bool						ToBelt						(CUICellItem* itm, bool b_use_cursor_pos);
+	bool						ToPocket					(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_id);
 	bool						TryUseItem					(CUICellItem* cell_itm);
-	bool						ToQuickSlot					(CUICellItem* itm);
 
-	void						UpdateActorMP				();
 	void						UpdateOutfit				();
-	void						MoveArtefactsToBag			();
-	bool						TryActiveSlot				(CUICellItem* itm);
 	void		xr_stdcall		TryRepairItem				(CUIWindow* w, void* d);
 	bool						CanUpgradeItem				(PIItem item);
 
@@ -280,14 +276,12 @@ protected:
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
 
 	void						AttachAddon					(PIItem item_to_upgrade);
-	void						DetachAddon					(LPCSTR addon_name, PIItem itm = NULL);
-
-	void						SendEvent_Item2Slot			(PIItem	pItem, u16 parent, u16 slot_id);
-	void						SendEvent_Item2Belt			(PIItem	pItem, u16 parent);
-	void						SendEvent_Item2Ruck			(PIItem	pItem, u16 parent);
+	void						DetachAddon					(LPCSTR addon_name);
+	
+	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);
 	void						SendEvent_Item_Drop			(PIItem	pItem, u16 parent);
 	void						SendEvent_Item_Eat			(PIItem	pItem, u16 parent);
-	void						SendEvent_ActivateSlot		(u16 slot, u16 recipient);
+	void						ActivateItem				(CUICellItem* pItem, u16 return_place = 0, u16 return_slot = 0);
 	void						DropAllCurrentItem			();
 	void						OnPressUserKey				();
 
@@ -295,6 +289,7 @@ protected:
 	void						InitPartnerInventoryContents();
 	void						ColorizeItem				(CUICellItem* itm, bool colorize);
 	float						CalcItemsWeight				(CUIDragDropListEx* pList);
+	float						CalcItemsVolume				(CUIDragDropListEx* pList);
 	u32							CalcItemsPrice				(CUIDragDropListEx* pList, CTrade* pTrade, bool bBuying);
 	void						UpdatePrices				();
 	bool						CanMoveToPartner			(PIItem pItem);
@@ -328,13 +323,17 @@ public:
 	void						UpdateActor					();
 	void						UpdatePartnerBag			();
 	void						UpdateDeadBodyBag			();
-
+	
+	void		xr_stdcall		OnTradeList					(CUIWindow* w, void* d);
 	void		xr_stdcall		OnBtnPerformTradeBuy		(CUIWindow* w, void* d);
 	void		xr_stdcall		OnBtnPerformTradeSell		(CUIWindow* w, void* d);
 	void		xr_stdcall		OnBtnExitClicked			(CUIWindow* w, void* d);
 	void		xr_stdcall		TakeAllFromPartner			(CUIWindow* w, void* d);
 	void						TakeAllFromInventoryBox		();
 	void						UpdateConditionProgressBars	();
+
+	void						UpdatePocketsPresence		();
+	void						ToggleRuckContainer			(PIItem container);
 
 	IC	UIHint*					get_hint_wnd				() { return m_hint_wnd; }
 

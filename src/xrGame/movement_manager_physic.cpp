@@ -81,9 +81,7 @@ void CMovementManager::apply_collision_hit	(CPHMovementControl *movement_control
 							movement_control->ContactBone(),
 							di->HitPos(),
 							0.f,
-							di->HitType(),
-							0.0f,
-							false);
+							di->HitType());
 		object().Hit(&HDS);
 	}
 }

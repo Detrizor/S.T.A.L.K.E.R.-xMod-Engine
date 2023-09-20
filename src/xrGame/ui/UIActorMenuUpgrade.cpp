@@ -21,12 +21,12 @@
 
 void CUIActorMenu::InitUpgradeMode()
 {
-	m_PartnerCharacterInfo->Show( true );
+	m_PartnerCharacterInfo->Show(true);
 	m_PartnerMoney->Show( false );
 	m_pUpgradeWnd->Show( true );
-	m_pQuickSlot->Show(true);
 	
 	InitInventoryContents( m_pInventoryBagList );
+	UpdatePocketsPresence();
 	VERIFY( m_pPartnerInvOwner );
 	m_pPartnerInvOwner->StartTrading();
 //-	UpdateUpgradeItem();
@@ -34,7 +34,7 @@ void CUIActorMenu::InitUpgradeMode()
 
 void CUIActorMenu::DeInitUpgradeMode()
 {
-	m_PartnerCharacterInfo->Show( false );
+	m_PartnerCharacterInfo->Show(false);
 	m_pUpgradeWnd->Show( false );
 	m_pUpgradeWnd->set_info_cur_upgrade( NULL );
 	m_pUpgradeWnd->m_btn_repair->Enable( false );

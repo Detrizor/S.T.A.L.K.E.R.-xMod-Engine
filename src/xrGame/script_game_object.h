@@ -193,6 +193,7 @@ public:
             u32					Cost				() const;
             float				GetCondition		() const;
             void				SetCondition		(float val);
+            void				ChangeCondition		(float val);
 
     // CEntity
     _DECLARE_FUNCTION10	(DeathTime	,	u32		);
@@ -362,21 +363,22 @@ public:
             void				DisableInvUpgrade	();
             bool				IsInvUpgradeEnabled	();
 
-
             void				ActorLookAtPoint	(Fvector point);
-            void				IterateInventory	(luabind::functor<bool> functor, luabind::object object);
+            void				IterateInventory	(luabind::functor<bool> functor, luabind::object object, int division_index = 0);
             void				IterateInventoryBox	(luabind::functor<bool> functor, luabind::object object);
             void				MarkItemDropped		(CScriptGameObject *item, bool flag = true);
             bool				MarkedDropped		(CScriptGameObject *item);
-            void				UnloadMagazine		();
+            void				Discharge			(bool spawn = false);
 
             void				DropItem			(CScriptGameObject* pItem);
             void				DropItemAndTeleport	(CScriptGameObject* pItem, Fvector position);
             void				ForEachInventoryItems(const luabind::functor<bool> &functor);
             void				TransferItem		(CScriptGameObject* pItem, CScriptGameObject* pForWho);
             void				TransferMoney		(int money, CScriptGameObject* pForWho);
-            void				GiveMoney			(int money);
             u32					Money				();
+			bool				InfinitiveMoney		();
+            void				SetMoney			(u32 money);
+            void				GiveMoney			(int money);
             void				MakeItemActive		(CScriptGameObject* pItem);
             
             void				SetRelation			(ALife::ERelationType relation, CScriptGameObject* pWhoToSet);
@@ -434,7 +436,8 @@ public:
 
             u32					GetInventoryObjectCount() const;
 
-            CScriptGameObject	*GetActiveItem		();
+			CScriptGameObject*	GetActiveItem();
+			CScriptGameObject*	GetLeftItem();
 
             CScriptGameObject	*GetObjectByName	(LPCSTR caObjectName) const;
             CScriptGameObject	*GetObjectByIndex	(int iIndex) const;
@@ -665,6 +668,10 @@ public:
             CScriptGameObject	*active_detector					() const;
             u32					active_slot							();
             void				activate_slot						(u32 slot_id);
+			void				ActivateItem						(CScriptGameObject* obj, u16 return_place = 0, u16 return_slot = 0);
+			void				Ruck								(CScriptGameObject* obj);
+			void				Slot								(CScriptGameObject* obj, u16 slot_id);
+			void				Pocket								(CScriptGameObject* obj, int pocket_id);
             void				enable_level_changer				(bool b);
             bool				is_level_changer_enabled			();
             void				set_level_changer_invitation		(LPCSTR str);
@@ -899,42 +906,19 @@ public:
 			bool				IsBoneVisible(LPCSTR bone_name);
 			void				SetBoneVisible(LPCSTR bone_name, bool bVisibility, bool bRecursive = true);
 
-			//CAI_Stalker
-			void				ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect);
 			//Anything with PPhysicShell (ie. car, actor, stalker, monster, heli)
 			void				ForceSetPosition(Fvector pos, bool bActivate = false);
 
-			//Artifacts
-			float				GetArtefactHealthRestoreSpeed();
-			float				GetArtefactRadiationRestoreSpeed();
-			float				GetArtefactSatietyRestoreSpeed();
-			float				GetArtefactPowerRestoreSpeed();
-			float				GetArtefactBleedingRestoreSpeed();
-
-			void				SetArtefactHealthRestoreSpeed(float value);
-			void				SetArtefactRadiationRestoreSpeed(float value);
-			void				SetArtefactSatietyRestoreSpeed(float value);
-			void				SetArtefactPowerRestoreSpeed(float value);
-			void				SetArtefactBleedingRestoreSpeed(float value);
-
 			//Eatable items
-			void				SetRemainingUses(u8 value);
-			u8					GetRemainingUses();
 			u8					GetMaxUses();
+			u8					GetRemainingUses();
+			void				SetRemainingUses(u8 value);
+			void				ChangeRemainingUses(int value);
 
 			//Phantom
 			void				PhantomSetEnemy(CScriptGameObject*);
 
 			//Actor
-
-			float				GetActorMaxWeight					() const;
-			void				SetActorMaxWeight					(float max_weight);
-			float				GetActorMaxWalkWeight				() const;
-			void				SetActorMaxWalkWeight				(float max_walk_weight);
-			float				GetAdditionalMaxWeight				() const;
-			void				SetAdditionalMaxWeight				(float add_max_weight);
-			float				GetAdditionalMaxWalkWeight			() const;
-			void				SetAdditionalMaxWalkWeight			(float add_max_walk_weight);
 			float				GetTotalWeight						() const;
 			float				Weight								() const;
 		      
@@ -950,6 +934,56 @@ public:
 			void		SetCharacterIcon(LPCSTR iconName);
 #endif
 //-Alundaio
+			
+			float				Volume					() const;
+			void				SetVolume				(float v);
+			float				GetTotalVolume			() const;
+			LPCSTR				CustomData				();
+			void				SetCustomData			(LPCSTR data);
+			void				AppendCustomData		(u8 data);
+			LPCSTR				GetMagazine				();
+			void				SetMagazine				(LPCSTR data);
+			u8					GetGrenade				();
+			void				SetGrenade				(u8 cnt);
+			u8					MagazineIndex			();
+			void				SetMagazineIndex		(u8 index);
+			bool				LoadMagazine			(CScriptGameObject* obj);
+			bool				LoadCartridge			(CScriptGameObject* obj);
+			bool				LoadGrenade				(CScriptGameObject* obj);
+			void				ActorSetHealth			(float h);
+			void				ActorSetPower			(float p);
+			void				ActorSetSpeedScale		(float p);
+			void				ActorSetSprintBlock		(bool p);
+			void				ActorSetAccelBlock		(bool p);
+			float				GetInventoryCapacity	();
+			CSE_Abstract*		GiveObjects				(LPCSTR section, u16 count, float condition, bool dont_reg);
+			CSE_Abstract*		GiveObjects1			(LPCSTR section, u16 count, float condition)					{ return GiveObjects(section, count, condition, false); }
+			CSE_Abstract*		GiveObjects2			(LPCSTR section, u16 count)										{ return GiveObjects1(section, count, 1.f); }
+			CSE_Abstract*		GiveObject				(LPCSTR section, float condition, bool dont_reg)				{ return GiveObjects(section, 1, condition, dont_reg); }
+			CSE_Abstract*		GiveObject1				(LPCSTR section, float condition)								{ return GiveObject(section, condition, false); }
+			CSE_Abstract*		GiveObject2				(LPCSTR section)												{ return GiveObject1(section, 1.f); }
+			CSE_Abstract*		GiveAmmo				(LPCSTR section, u16 count);
+			CSE_Abstract*		GiveAmmo1				(LPCSTR section)												{ return GiveAmmo(section, 1); }
+			LPCSTR				MainClass				();
+			LPCSTR				Subclass				();
+			LPCSTR				Division				();
+			LPCSTR				FullClass				(bool with_division = false);
+			bool				InHands					();
+			float				GetCapacity				();
+			void				SetCapacity				(float v);
+			float				GetProtection			(u8 type);
+			float				GetArmorLevel			();
+			float				GetWeightDump			();
+			float				GetRecuperationFactor	();
+			float				GetDrainFactor			();
+			float				GetPowerLoss			();
+			float				GetScopeZoomFactor		();
+			void				SetScopeZoomFactor		(float f);
+			float				GetScopeMinZoomFactor	();
+			void				SetScopeMinZoomFactor	(float f);
+			LPCSTR				GetScopeAliveDetector	();
+			void				SetScopeAliveDetector	(LPCSTR p);
+			float				GetInertion				();
 
     doors::door*				m_door;
 

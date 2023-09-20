@@ -156,7 +156,8 @@ void CScriptGameObject::Hit(CScriptHit *tpLuaHit)
 	HS.whoID  = u16(tLuaHit.m_tpDraftsman->ID());							//	P.w_u16			(u16(tLuaHit.m_tpDraftsman->ID()));
 	HS.weaponID = 0;														//	P.w_u16			(0);
 	HS.dir = tLuaHit.m_tDirection;											//	P.w_dir			(tLuaHit.m_tDirection);
-	HS.power = tLuaHit.m_fPower;											//	P.w_float		(tLuaHit.m_fPower);
+	HS.main_damage = tLuaHit.m_fMainDamage;									//	P.w_float		(tLuaHit.m_fPower);
+	HS.pierce_damage = tLuaHit.m_fPierceDamage;
 	IKinematics		*V = smart_cast<IKinematics*>(object().Visual());		//	IKinematics		*V = smart_cast<IKinematics*>(object().Visual());
 	VERIFY			(V);													//	VERIFY			(V);
 	if (xr_strlen	(tLuaHit.m_caBoneName))									//	if (xr_strlen	(tLuaHit.m_caBoneName))
@@ -527,15 +528,6 @@ bool CScriptGameObject::is_there_items_to_pickup	() const
 		return	false;
 	}
 	return (!!stalker->memory().item().selected());
-}
-
-void CScriptGameObject::ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect)
-{
-	CAI_Stalker* stalker = smart_cast<CAI_Stalker*>(&object());
-	if (!stalker)
-		return;
-
-	stalker->ResetBoneProtections(imm_sect,bone_sect);
 }
 
 void CScriptGameObject::set_visual_name(LPCSTR visual)

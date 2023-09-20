@@ -24,18 +24,14 @@ void CArtefact::script_register(lua_State *L)
 	[
 		class_<CArtefact			,CGameObject>("CArtefact")
 		.def(						constructor<>() )
-		.def("ActivateArtefact", &CArtefact::ActivateArtefact)
-		.def("CanBeActivated", &CArtefact::CanBeActivated)
-		.def("AdditionalInventoryWeight", &CArtefact::AdditionalInventoryWeight)
-		.def_readwrite("m_bCanSpawnZone", &CArtefact::m_bCanSpawnZone)
-		.def_readwrite("m_fHealthRestoreSpeed", &CArtefact::m_fHealthRestoreSpeed)
-		.def_readwrite("m_fRadiationRestoreSpeed", &CArtefact::m_fRadiationRestoreSpeed)
-		.def_readwrite("m_fSatietyRestoreSpeed", &CArtefact::m_fSatietyRestoreSpeed)
-		.def_readwrite("m_fPowerRestoreSpeed", &CArtefact::m_fPowerRestoreSpeed)
-		.def_readwrite("m_fBleedingRestoreSpeed", &CArtefact::m_fBleedingRestoreSpeed)
-		.def("FollowByPath",		&CArtefact::FollowByPath)
-		.def("SwitchVisibility",	&CArtefact::SwitchVisibility)
-		.def("GetAfRank",			&CArtefact::GetAfRank),
+		.def("ActivateArtefact",					&CArtefact::ActivateArtefact)
+		.def("CanBeActivated",						&CArtefact::CanBeActivated)
+		.def_readwrite("m_bCanSpawnZone",			&CArtefact::m_bCanSpawnZone)
+		.def_readwrite("radiation_speed",			&CArtefact::m_fRadiationRestoreSpeed)
+		.def_readwrite("weight_dump",				&CArtefact::m_fWeightDump)
+		.def("FollowByPath",						&CArtefact::FollowByPath)
+		.def("SwitchVisibility",					&CArtefact::SwitchVisibility)
+		.def("GetAfRank",							&CArtefact::GetAfRank),
 
 		class_<CMercuryBall			,CArtefact>("CMercuryBall").def		(constructor<>()),
 		class_<CBlackDrops			,CArtefact>("CBlackDrops").def		(constructor<>()),

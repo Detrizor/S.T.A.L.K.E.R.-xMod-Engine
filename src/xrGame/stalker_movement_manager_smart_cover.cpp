@@ -245,7 +245,8 @@ void stalker_movement_manager_smart_cover::reach_enter_location			(u32 const& ti
 			return;
 		}
 
-		if (inventory_item->BaseSlot() != INV_SLOT_3) {
+		if (inventory_item->BaseSlot() != PRIMARY_SLOT)
+		{
 			if (!object().CObjectHandler::goal_reached())
 				return;
 

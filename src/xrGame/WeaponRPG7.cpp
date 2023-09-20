@@ -20,7 +20,7 @@ void CWeaponRPG7::Load	(LPCSTR section)
 	inherited::Load						(section);
 	CRocketLauncher::Load				(section);
 
-	m_zoom_params.m_fScopeZoomFactor	= pSettings->r_float	(section,"max_zoom_factor");
+	m_zoom_params.m_fScopeZoomFactor = 1.f;
 
 	m_sRocketSection					= pSettings->r_string	(section,"rocket_class");
 }
@@ -75,9 +75,9 @@ void CWeaponRPG7::OnStateSwitch(u32 S, u32 oldState)
 	UpdateMissileVisibility();
 }
 
-void CWeaponRPG7::UnloadMagazine(bool spawn_ammo)
+void CWeaponRPG7::Discharge(bool spawn_ammo)
 {
-	inherited::UnloadMagazine	(spawn_ammo);
+	inherited::Discharge		(spawn_ammo);
 	UpdateMissileVisibility		();
 }
 

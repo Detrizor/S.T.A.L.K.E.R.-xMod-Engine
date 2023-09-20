@@ -36,15 +36,14 @@ public:
 	CInventoryItem*		CurrentItem			() const {return m_pInvItem;}
 	void				InitItemInfo		(Fvector2 pos, Fvector2 size, LPCSTR xml_name);
 	void				InitItemInfo		(LPCSTR xml_name);
-	void				InitItem			(CUICellItem* pCellItem, CInventoryItem* pCompareItem = NULL, u32 item_price=u32(-1), LPCSTR trade_tip=NULL);
+	void				InitItem			(CUICellItem* pCellItem, u32 item_price = u32(-1), LPCSTR trade_tip = NULL);
 
-
-	void				TryAddConditionInfo	(CInventoryItem& pInvItem, CInventoryItem* pCompareItem);
-	void				TryAddWpnInfo		(CInventoryItem& pInvItem, CInventoryItem* pCompareItem);
-	void				TryAddArtefactInfo	(CInventoryItem& pInvItem); //(const shared_str& af_section);
-	void				TryAddOutfitInfo	(CInventoryItem& pInvItem, CInventoryItem* pCompareItem);
-	void				TryAddUpgradeInfo	(CInventoryItem& pInvItem);
-	void				TryAddBoosterInfo	(CInventoryItem& pInvItem);
+	void				TryAddConditionInfo	(CUICellItem* item);
+	void				TryAddWpnInfo		(CUICellItem* item);
+	void				TryAddArtefactInfo	(CUICellItem* item);
+	void				TryAddOutfitInfo	(CUICellItem* item);
+	void				TryAddUpgradeInfo	(CUICellItem* item);
+	void				TryAddBoosterInfo	(CUICellItem* item);
 	
 	virtual void		Draw				();
 	bool				m_b_FitToHeight;
@@ -53,6 +52,8 @@ public:
 	CUIFrameWindow*		UIBackground;
 	CUITextWnd*			UIName;
 	CUITextWnd*			UIWeight;
+	CUITextWnd*			UIVolume;
+	CUITextWnd*			UICondition;
 	CUITextWnd*			UICost;
 	CUITextWnd*			UITradeTip;
 //	CUIStatic*			UIDesc_line;

@@ -42,6 +42,7 @@ enum EMoveCommand
 	mcSprint	= (1ul<<12ul),
 	mcLLookout	= (1ul<<13ul),
 	mcRLookout	= (1ul<<14ul),
+	mcCrouchLow	= (1ul<<15ul),
 	mcAnyMove	= (mcFwd|mcBack|mcLStrafe|mcRStrafe),
 	mcAnyAction = (mcAnyMove|mcJump|mcFall|mcLanding|mcLanding2), //mcTurn|
 	mcAnyState	= (mcCrouch|mcAccel|mcClimb|mcSprint),
@@ -61,7 +62,7 @@ enum EActorAction
 
 typedef const char*		EActorSleep;
 extern EActorSleep		easCanSleepResult;
-extern 	string32		g_quick_use_slots[4];
+extern 	string32		g_quick_use_slots[10];
 
 /*
 //результат функции GoSleep у актера

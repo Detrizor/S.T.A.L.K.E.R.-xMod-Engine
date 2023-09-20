@@ -17,6 +17,11 @@
 #include "Level.h"
 #include "clsid_game.h"
 #include "hudmanager.h"
+#include "ui/UIActorMenu.h"
+#include "ui/UIDragDropListEx.h"
+#include "ui/UICellItemFactory.h"
+#include "ui/UICellItem.h"
+#include "ui/UICellCustomItems.h"
 
 #define PICKUP_INFO_COLOR 0xFFDDDDDD
 
@@ -92,6 +97,170 @@ ICF static BOOL info_trace_callback(collide::rq_result& result, LPVOID params)
 	return				FALSE;
 }
 
+void CActor::feel_sound_new(CObject* who, int type, CSound_UserDataPtr user_data, const Fvector& Position, float power)
+{
+	if (who == this)
+		m_snd_noise = _max(m_snd_noise, power);
+}
+
+bool CheckCellVicinity(Fvector center, float radius, CUIDragDropListEx* vicinity, CUICellItem* ci)
+{
+	if (PIItem(ci->m_pData)->object().Position().distance_to(center) < radius)
+		return					true;
+	CUICellItem* dying_cell		= vicinity->RemoveItem(ci, false);
+	xr_delete					(dying_cell);
+	return						false;
+}
+
+bool ValidateItem(PIItem item)
+{
+	if (!item)																	return false;
+	if (item->object().H_Parent())												return false;
+	if (item->object().getDestroy())											return false;
+	if (!item->CanTake())														return false;
+	if (smart_cast<CExplosiveRocket*>(&item->object()))							return false;
+	if (item->BaseSlot() != BOLT_SLOT)
+	{
+		CGrenade* pGrenade		= smart_cast<CGrenade*>(item);
+		if (pGrenade && !pGrenade->Useful())									return false;
+		CMissile* pMissile		= smart_cast<CMissile*>(item);
+		if (pMissile && !pMissile->Useful())									return false;
+	}
+	return						true;
+}
+
+bool FindItemInList(CUIDragDropListEx* lst, PIItem pItem)
+{
+	for (u32 i = 0, count = lst->ItemsCount(); i < count; ++i)
+	{
+		CUICellItem* ci = lst->GetItemIdx(i);
+		for (u32 j = 0, ccount = ci->ChildsCount(); j < ccount; ++j)
+		{
+			if ((PIItem)ci->Child(j)->m_pData == pItem)
+				return true;
+		}
+
+		if ((PIItem)ci->m_pData == pItem)
+			return true;
+	}
+	return false;
+}
+
+void CActor::VicinityUpdate()
+{
+	CUIActorMenu& actor_menu				= CurrentGameUI()->GetActorMenu();
+	if (actor_menu.GetMenuMode() == mmUndefined)
+		return;
+	
+	Fvector									center;
+	Center									(center);
+	CUIDragDropListEx* vicinity				= actor_menu.m_pTrashList;
+	for (u32 i = 0; i < vicinity->ItemsCount(); ++i)
+	{
+		CUICellItem* cell_item				= vicinity->GetItemIdx(i);
+		for (u32 j = 0; j < cell_item->ChildsCount(); ++j)
+		{
+			if (!CheckCellVicinity(center, m_fVicinityRadius, vicinity, cell_item->Child(j)))
+				j--;
+		}
+		if (!CheckCellVicinity(center, m_fVicinityRadius, vicinity, cell_item))
+			i--;
+	}
+
+	ISpatialResultVicinity.clear_not_free	();
+	g_SpatialSpace->q_sphere				(ISpatialResultVicinity, 0, STYPE_COLLIDEABLE, center, m_fVicinityRadius);
+
+	for (u32 it = 0, it_e = ISpatialResultVicinity.size(); it < it_e; it++)
+	{
+		ISpatial*							spatial = ISpatialResultVicinity[it];
+		CObject*							pObj = spatial->dcast_CObject();
+		CInventoryItem*						pIItem = smart_cast<CInventoryItem*>(pObj);
+
+		if (!ValidateItem(pIItem))
+			continue;
+
+		if ((pObj->Position().distance_to(center) < m_fVicinityRadius) && !FindItemInList(vicinity, pIItem))
+			vicinity->SetItem				(create_cell_item(pIItem));
+	}
+}
+
+#include "../xrEngine/CameraBase.h"
+
+void CActor::PickupModeUpdate_COD()
+{
+	if (m_pPersonWeLookingAt || Level().CurrentViewEntity() != this)
+		return;
+
+	CFrustum						frustum;
+	frustum.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
+
+	ISpatialResult.clear_not_free	();
+	g_SpatialSpace->q_frustum		(ISpatialResult, 0, STYPE_COLLIDEABLE, frustum);
+
+	float maxlen					= m_fVicinityRadius;
+	CInventoryItem* pNearestItem	= NULL;
+
+	for (u32 it = 0, it_e = ISpatialResult.size(); it != it_e; it++)
+	{
+		ISpatial* spatial			= ISpatialResult[it];
+		CInventoryItem*	pIItem		= smart_cast<CInventoryItem*>(spatial->dcast_CObject());
+
+		if (!ValidateItem(pIItem))
+			continue;
+		
+		Fvector						A; 
+		pIItem->object().Center		(A);
+		if (A.distance_to_sqr(Position()) > 4)
+			continue;
+
+		Fvector						B, tmp;
+		tmp.sub						(A, cam_Active()->vPosition);
+		B.mad						(cam_Active()->vPosition, cam_Active()->vDirection, tmp.dotproduct(cam_Active()->vDirection));
+		float len					= B.distance_to_sqr(A);
+		if (len < maxlen)
+		{
+			maxlen					= len;
+			pNearestItem			= pIItem;
+		}
+	}
+
+	if (pNearestItem)
+	{
+		CFrustum					frustum;
+		frustum.CreateFromMatrix	(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
+		CGameObject* go				= pNearestItem->cast_game_object();
+		if (!CanPickItem(frustum, Device.vCameraPosition, &pNearestItem->object()) || (go && (Level().m_feel_deny.is_object_denied(go) || !go->getVisible())))
+			pNearestItem			= NULL;
+	}
+
+	if (pNearestItem && m_bPickupMode && CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined)
+	{
+		CUsableScriptObject*		pUsableObject = smart_cast<CUsableScriptObject*>(pNearestItem);
+		if(pUsableObject && (!m_pUsableObject))
+			pUsableObject->use		(this);
+
+		//подбирание объекта
+		Game().SendPickUpEvent		(ID(), pNearestItem->object().ID());
+	}
+}
+
+void CActor::PickupModeUpdate()
+{
+	if (!m_bInfoDraw)
+		return;
+
+	feel_touch_update(Position(), m_fVicinityRadius);
+
+	CFrustum frustum;
+	frustum.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB | FRUSTUM_P_FAR);
+
+	for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
+	{
+		if (CanPickItem(frustum, Device.vCameraPosition, *it))
+			PickupInfoDraw(*it);
+	}
+}
+
 BOOL CActor::CanPickItem(const CFrustum& frustum, const Fvector& from, CObject* item)
 {
 	if(!item->getVisible())
@@ -114,112 +283,6 @@ BOOL CActor::CanPickItem(const CFrustum& frustum, const Fvector& from, CObject* 
 	}
 	return !bOverlaped;
 }
-
-void CActor::PickupModeUpdate()
-{
-	if (!m_bInfoDraw)
-		return;
-
-	feel_touch_update(Position(), m_fPickupInfoRadius);
-
-	CFrustum frustum;
-	frustum.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB | FRUSTUM_P_FAR);
-
-	for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
-	{
-		if (CanPickItem(frustum, Device.vCameraPosition, *it))
-			PickupInfoDraw(*it);
-	}
-}
-
-#include "../xrEngine/CameraBase.h"
-
-void	CActor::PickupModeUpdate_COD	()
-{
-	if (m_pPersonWeLookingAt || Level().CurrentViewEntity() != this)
-	{
-		CurrentGameUI()->UIMainIngameWnd->SetPickUpItem(NULL);
-		return;
-	}
-	
-	CFrustum						frustum;
-	frustum.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
-
-	ISpatialResult.clear_not_free	();
-	g_SpatialSpace->q_frustum		(ISpatialResult, 0, STYPE_COLLIDEABLE, frustum);
-
-	float maxlen					= 1000.0f;
-	CInventoryItem* pNearestItem	= NULL;
-
-	for (u32 o_it=0; o_it<ISpatialResult.size(); o_it++)
-	{
-		ISpatial*		spatial	= ISpatialResult[o_it];
-		CInventoryItem*	pIItem	= smart_cast<CInventoryItem*> (spatial->dcast_CObject        ());
-
-		if (0 == pIItem)											continue;
-		if (pIItem->object().H_Parent() != NULL)					continue;
-		if (!pIItem->CanTake())										continue;
-		if ( smart_cast<CExplosiveRocket*>( &pIItem->object() ) )	continue;
-
-		CGrenade*	pGrenade	= smart_cast<CGrenade*> (spatial->dcast_CObject        ());
-		if (pGrenade && !pGrenade->Useful())						continue;
-
-		CMissile*	pMissile	= smart_cast<CMissile*> (spatial->dcast_CObject        ());
-		if (pMissile && !pMissile->Useful())						continue;
-		
-		Fvector A; 
-		pIItem->object().Center			(A);
-		if (A.distance_to_sqr(Position())>4)						continue;
-
-		Fvector B, tmp;
-		tmp.sub(A, cam_Active()->vPosition);
-		B.mad(cam_Active()->vPosition, cam_Active()->vDirection, tmp.dotproduct(cam_Active()->vDirection));
-		float len = B.distance_to_sqr(A);
-		if (len > 1)												continue;
-
-		if (maxlen>len && !pIItem->object().getDestroy())
-		{
-			maxlen = len;
-			pNearestItem = pIItem;
-		};
-	}
-
-	if(pNearestItem)
-	{
-		CFrustum					frustum;
-		frustum.CreateFromMatrix	(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
-		if (!CanPickItem(frustum, Device.vCameraPosition, &pNearestItem->object()))
-			pNearestItem = NULL;
-	}
-	if (pNearestItem && pNearestItem->cast_game_object())
-	{
-		if (Level().m_feel_deny.is_object_denied(pNearestItem->cast_game_object()))
-				pNearestItem = NULL;
-	}
-	if (pNearestItem && pNearestItem->cast_game_object())
-	{
-		if(!pNearestItem->cast_game_object()->getVisible())
-				pNearestItem = NULL;
-	}
-
-	CurrentGameUI()->UIMainIngameWnd->SetPickUpItem(pNearestItem);
-
-	if (pNearestItem && m_bPickupMode && !m_pPersonWeLookingAt)
-	{
-		CUsableScriptObject*	pUsableObject = smart_cast<CUsableScriptObject*>(pNearestItem);
-		if(pUsableObject && (!m_pUsableObject))
-			pUsableObject->use(this);
-
-		//подбирание объекта
-		Game().SendPickUpEvent(ID(), pNearestItem->object().ID());
-	}
-};
-
-void	CActor::Check_for_AutoPickUp()
-{
-	return;
-}
-
 
 void CActor::PickupInfoDraw(CObject* object)
 {
@@ -248,48 +311,3 @@ void CActor::PickupInfoDraw(CObject* object)
 	UI().Font().pFontLetterica16Russian->SetColor		(PICKUP_INFO_COLOR);
 	UI().Font().pFontLetterica16Russian->Out			(x,y,draw_str);
 }
-
-void CActor::feel_sound_new(CObject* who, int type, CSound_UserDataPtr user_data, const Fvector& Position, float power)
-{
-	if(who == this)
-		m_snd_noise = _max(m_snd_noise, power);
-}
-
-//Alundaio: Put this behind define so that it can be disabled
-#ifdef	ACTOR_FEEL_GRENADE
-void CActor::Feel_Grenade_Update( float rad )
-{
-	// Find all nearest objects
-	Fvector pos_actor;
-	Center( pos_actor );
-
-	q_nearest.clear_not_free();
-	g_pGameLevel->ObjectSpace.GetNearest( q_nearest, pos_actor, rad, NULL );
-
-	xr_vector<CObject*>::iterator	it_b = q_nearest.begin();
-	xr_vector<CObject*>::iterator	it_e = q_nearest.end();
-
-	// select only grenade
-	for ( ; it_b != it_e; ++it_b )
-	{
-		if ( (*it_b)->getDestroy() ) continue;					// Don't touch candidates for destroy
-
-		CGrenade* grn = smart_cast<CGrenade*>( *it_b );
-		if( !grn || grn->Initiator() == ID() || grn->Useful() )
-		{
-			continue;
-		}
-		if ( grn->time_from_begin_throw() < m_fFeelGrenadeTime )
-		{
-			continue;
-		}
-		if ( HUD().AddGrenade_ForMark( grn ) )
-		{
-			//.	Msg("__ __ Add new grenade! id = %d ", grn->ID() );
-		}
-	}// for it
-
-	HUD().Update_GrenadeView( pos_actor );
-}
-#endif
-

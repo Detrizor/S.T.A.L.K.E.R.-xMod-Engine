@@ -89,3 +89,10 @@ public:
 	virtual void		OnDraw					(CUICellItem* cell);
 
 };
+
+class CUISectionCellItem :public CUIInventoryCellItem
+{
+	typedef  CUIInventoryCellItem	inherited;
+public:
+	CUISectionCellItem				(shared_str section);
+};

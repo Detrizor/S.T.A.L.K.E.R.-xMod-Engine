@@ -50,7 +50,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	case kWPN_FIRE:
 		{
 			u16 slot = inventory().GetActiveSlot();
-			if(inventory().ActiveItem() && (slot==INV_SLOT_3 || slot==INV_SLOT_2 || slot==KNIFE_SLOT) )
+			if (inventory().ActiveItem() && (slot == KNIFE_SLOT || slot == PISTOL_SLOT || slot == PRIMARY_SLOT || slot == SECONDARY_SLOT))
 				mstate_wishful &=~mcSprint;
 			//-----------------------------
 			if (OnServer())
@@ -89,15 +89,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		{
 			mstate_wishful |= mcJump;
 		}break;
-	case kSPRINT_TOGGLE:	
-		{
-			mstate_wishful ^= mcSprint;
-		}break;
-	case kCROUCH:	
-		{
-		if( psActorFlags.test(AF_CROUCH_TOGGLE) )
-			mstate_wishful ^= mcCrouch;
-		}break;
+	case kSPRINT_TOGGLE:
+	case kCROUCH:
+		m_state_toggle_tg = Device.dwTimeGlobal;
+		break;
 	case kCAM_1:	cam_Set			(eacFirstEye);				break;
 	case kCAM_2:	cam_Set			(eacLookAt);				break;
 	case kCAM_3:	cam_Set			(eacFreeLook);				break;
@@ -143,42 +138,77 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		}break;
 */
 	case kUSE:
-		ActorUse();
-		m_bPickupMode = true;
+		ActorUse		();
+		m_bPickupMode	= true;
 		break;
 	case kDROP:
 		b_DropActivated			= TRUE;
 		f_DropPower				= 0;
 		break;
 	case kNEXT_SLOT:
-		{
-			OnNextWeaponSlot();
-		}break;
+		OnNextWeaponSlot();
+		break;
 	case kPREV_SLOT:
-		{
-			OnPrevWeaponSlot();
-		}break;
-
+		OnPrevWeaponSlot();
+		break;
 	case kQUICK_USE_1:
 	case kQUICK_USE_2:
 	case kQUICK_USE_3:
 	case kQUICK_USE_4:
+	case kQUICK_USE_5:
+	case kQUICK_USE_6:
+	case kQUICK_USE_7:
+	case kQUICK_USE_8:
+	case kQUICK_USE_9:
+	case kQUICK_USE_10:
 		{
-			const shared_str& item_name		= g_quick_use_slots[cmd-kQUICK_USE_1];
-			if(item_name.size())
+			u8 idx							= u8(cmd - kQUICK_USE_1);
+			const shared_str& item_name		= g_quick_use_slots[idx];
+			if (item_name.size())
 			{
-				PIItem itm = inventory().GetAny(item_name.c_str());
+				PIItem tmp					= NULL;
 
-				if(itm)
+				PIItem active_item			= inventory().ActiveItem();
+				PIItem left_item			= inventory().LeftItem();
+				PIItem itm					= inventory().Get(*item_name, idx);
+				if (active_item && active_item->m_section_id == item_name)
+					tmp						= active_item;
+				else if (left_item && left_item->m_section_id == item_name)
+					tmp						= left_item;
+				else if (itm)
+					tmp						= itm;
+
+				if (tmp)
 				{
-					inventory().Eat				(itm);
-					
-					StaticDrawableWrapper* _s		= CurrentGameUI()->AddCustomStatic("item_used", true);
-					string1024					str;
-					strconcat					(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", itm->NameItem());
-					_s->wnd()->TextItemControl()->SetText(str);
-					
-					CurrentGameUI()->GetActorMenu().m_pQuickSlot->ReloadReferences(this);
+					bool flag = false;
+					if (active_item)
+					{
+						CWeaponMagazined* wpn = smart_cast<CWeaponMagazined*>(active_item);
+						if (tmp->m_main_class == "magazine")
+						{
+							if (wpn)
+								flag = wpn->LoadMagazine(smart_cast<CEatableItem*>(tmp));
+						}
+						else if (tmp->FullClass() == "ammo.cartridge")
+						{
+							if (wpn)
+								flag = wpn->LoadCartridge(smart_cast<CWeaponAmmo*>(tmp));
+						}
+						else if (tmp->FullClass() == "ammo.grenade")
+						{
+							CWeaponMagazinedWGrenade* wpn_grenade = smart_cast<CWeaponMagazinedWGrenade*>(wpn);
+							if (wpn_grenade)
+								flag = wpn_grenade->LoadGrenade(smart_cast<CWeaponAmmo*>(tmp));
+						}
+					}
+
+					if (!flag)
+					{
+						if (tmp->InHands())
+							inventory().ActivateItem		(tmp, eItemPlacePocket, idx);
+						else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
+							inventory().ActivateItem		(tmp);
+					}
 				}
 			}
 		}break;
@@ -196,13 +226,7 @@ void CActor::IR_OnMouseWheel(int direction)
 		return;
 	}
 
-	if(inventory().Action( (direction>0)? (u16)kWPN_ZOOM_DEC:(u16)kWPN_ZOOM_INC , CMD_START)) return;
-
-
-	if (direction>0)
-		OnNextWeaponSlot				();
-	else
-		OnPrevWeaponSlot				();
+	inventory().Action((direction > 0) ? (u16)kWPN_ZOOM_DEC : (u16)kWPN_ZOOM_INC, CMD_START);
 }
 
 void CActor::IR_OnKeyboardRelease(int cmd)
@@ -230,6 +254,14 @@ void CActor::IR_OnKeyboardRelease(int cmd)
 		{
 		case kJUMP:		mstate_wishful &=~mcJump;		break;
 		case kDROP:		if(GAME_PHASE_INPROGRESS == Game().Phase()) g_PerformDrop();				break;
+		case kSPRINT_TOGGLE:{
+			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
+				mstate_wishful ^= mcAccel;
+			}break;
+		case kCROUCH:{
+			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
+				mstate_wishful ^= mcCrouch;
+			}break;
 		}
 	}
 }
@@ -269,18 +301,29 @@ void CActor::IR_OnKeyboardHold(int cmd)
 	case kRIGHT:
 		if (eacFreeLook!=cam_active) cam_Active()->Move(cmd, 0, LookFactor);	break;
 
-	case kACCEL:	mstate_wishful |= mcAccel;									break;
-	case kL_STRAFE:	mstate_wishful |= mcLStrafe;								break;
-	case kR_STRAFE:	mstate_wishful |= mcRStrafe;								break;
-	case kL_LOOKOUT:mstate_wishful |= mcLLookout;								break;
-	case kR_LOOKOUT:mstate_wishful |= mcRLookout;								break;
-	case kFWD:		mstate_wishful |= mcFwd;									break;
-	case kBACK:		mstate_wishful |= mcBack;									break;
-	case kCROUCH:
+	case kSPRINT_TOGGLE:{
+		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
 		{
-			if( !psActorFlags.test(AF_CROUCH_TOGGLE) )
-					mstate_wishful |= mcCrouch;
-
+			if (!isActorAccelerated(mstate_wishful, IsZoomAimingMode()))
+				mstate_wishful ^= mcAccel;
+			mstate_wishful |= mcSprint;
+			m_state_last_tg = Device.dwTimeGlobal;
+		}
+		}break;
+	case kL_STRAFE:		mstate_wishful |= mcLStrafe;								break;
+	case kR_STRAFE:		mstate_wishful |= mcRStrafe;								break;
+	case kL_LOOKOUT:	mstate_wishful |= mcLLookout;								break;
+	case kR_LOOKOUT:	mstate_wishful |= mcRLookout;								break;
+	case kFWD:			mstate_wishful |= mcFwd;									break;
+	case kBACK:			mstate_wishful |= mcBack;									break;
+	case kCROUCH:{
+		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
+		{
+			if (!(mstate_wishful&mcCrouch))
+				mstate_wishful ^= mcCrouch;
+			mstate_wishful |= mcCrouchLow;
+			m_state_last_tg = Device.dwTimeGlobal;
+		}
 		}break;
 	}
 }
@@ -364,100 +407,133 @@ bool CActor::use_Holder				(CHolderCustom* holder)
 	}
 }
 
-void CActor::ActorUse()
+bool TryCustomUse(PIItem item)
 {
-	if (m_holder)
-	{
-		CGameObject*	GO			= smart_cast<CGameObject*>(m_holder);
-		NET_Packet		P;
-		CGameObject::u_EventGen		(P, GEG_PLAYER_DETACH_HOLDER, ID());
-		P.w_u16						(GO->ID());
-		CGameObject::u_EventSend	(P);
-		return;
-	}
-				
-	if(character_physics_support()->movement()->PHCapture())
-		character_physics_support()->movement()->PHReleaseObject();
+	if (item->cast_weapon() || smart_cast<CCustomDetector*>(item) || (item->InHands() && item->cast_hud_item()->GetState() != CHUDState::eIdle))
+		return false;
 
-	
+	shared_str functor_field;
+	LPCSTR functor_name = NULL;
+	CGameObject* GO = item->cast_game_object();
+	shared_str section_name = GO->cNameSect();
 
-	if(m_pUsableObject && NULL==m_pObjectWeLookingAt->cast_inventory_item())
+	for (u8 i = 1; i <= 4; ++i)
 	{
-		m_pUsableObject->use(this);
-	}
-	
-	if ( m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable() )
-	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI());
-		if ( pGameSP ) //single
+		functor_field.printf("use%d_functor", i);
+		functor_name = READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+		if (functor_name)
 		{
-			if ( !m_pInvBoxWeLookingAt->closed() )
+			luabind::functor<bool>funct;
+			ai().script_engine().functor(functor_name, funct);
+			if (funct(GO->lua_game_object()))
 			{
-				pGameSP->StartCarBody( this, m_pInvBoxWeLookingAt );
+				functor_field.printf("use%d_action_functor", i);
+				functor_name = READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), false);
+				if (functor_name)
+				{
+					ai().script_engine().functor(functor_name, funct);
+					funct(GO->lua_game_object(), i);
+					return true;
+				}
 			}
 		}
-		return;
 	}
 
-	if(!m_pUsableObject||m_pUsableObject->nonscript_usable())
+	return false;
+}
+
+void CActor::ActorUse()
+{
+	if (CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined)
 	{
-		bool bCaptured = false;
-
-		collide::rq_result& RQ = HUD().GetCurrentRayQuery();
-		CPhysicsShellHolder* object = smart_cast<CPhysicsShellHolder*>(RQ.O);
-		u16 element = BI_NONE;
-		if (object)
+		if (m_holder)
 		{
-			element = (u16)RQ.element;
+			CGameObject*				GO = smart_cast<CGameObject*>(m_holder);
+			NET_Packet					P;
+			CGameObject::u_EventGen		(P, GEG_PLAYER_DETACH_HOLDER, ID());
+			P.w_u16						(GO->ID());
+			CGameObject::u_EventSend	(P);
+			return;
+		}
 
-			if (Level().IR_GetKeyState(DIK_LSHIFT))
-			{
-				bool b_allow = !!pSettings->line_exist("ph_capture_visuals", object->cNameVisual());
-				if (b_allow && !character_physics_support()->movement()->PHCapture())
-				{
-					character_physics_support()->movement()->PHCaptureObject(object, element);
-					bCaptured = true;
-				}
+		if (character_physics_support()->movement()->PHCapture())
+			character_physics_support()->movement()->PHReleaseObject();
 
-			}
-			else if (smart_cast<CHolderCustom*>(object))
+		if (m_pUsableObject && !m_pObjectWeLookingAt->cast_inventory_item())
+			m_pUsableObject->use(this);
+
+		if (m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
+		{
+			CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
+			if (pGameSP && !m_pInvBoxWeLookingAt->closed())
 			{
-				NET_Packet		P;
-				CGameObject::u_EventGen(P, GEG_PLAYER_ATTACH_HOLDER, ID());
-				P.w_u16(object->ID());
-				CGameObject::u_EventSend(P);
+				pGameSP->StartCarBody		(this, m_pInvBoxWeLookingAt);
 				return;
 			}
 		}
 
-		if(m_pPersonWeLookingAt)
+		if (!m_pUsableObject || m_pUsableObject->nonscript_usable())
 		{
-			CEntityAlive* pEntityAliveWeLookingAt = 
-				smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
-
-			VERIFY(pEntityAliveWeLookingAt);
-
-			if(pEntityAliveWeLookingAt->g_Alive())
+			bool bCaptured						= false;
+			collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
+			CPhysicsShellHolder* object			= smart_cast<CPhysicsShellHolder*>(RQ.O);
+			u16 element							= BI_NONE;
+			if (object)
 			{
-				TryToTalk();
-			}
-			else if (!bCaptured)
-			{
-				//только если находимся в режиме single
-				CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI());
-				if (pGameSP)
+				element							= (u16)RQ.element;
+				if (Level().IR_GetKeyState(DIK_LSHIFT))
 				{
-					if (!m_pPersonWeLookingAt->deadbody_closed_status())
+					bool b_allow				= !!pSettings->line_exist("ph_capture_visuals", object->cNameVisual());
+					if (b_allow && !character_physics_support()->movement()->PHCapture())
 					{
-						if (pEntityAliveWeLookingAt->AlreadyDie() && pEntityAliveWeLookingAt->GetLevelDeathTime() + 3000 < Device.dwTimeGlobal)
-						{	
-							// 99.9% dead
-							pGameSP->StartCarBody(this, m_pPersonWeLookingAt);
-						}
+						character_physics_support()->movement()->PHCaptureObject(object, element);
+						bCaptured				= true;
+					}
+				}
+				else if (smart_cast<CHolderCustom*>(object))
+				{
+					NET_Packet					P;
+					CGameObject::u_EventGen		(P, GEG_PLAYER_ATTACH_HOLDER, ID());
+					P.w_u16						(object->ID());
+					CGameObject::u_EventSend	(P);
+					return;
+				}
+			}
+
+			if (m_pPersonWeLookingAt)
+			{
+				CEntityAlive* pEntityAliveWeLookingAt	= smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
+				VERIFY									(pEntityAliveWeLookingAt);
+				if (pEntityAliveWeLookingAt->g_Alive())
+				{
+					TryToTalk							();
+					return;
+				}
+				if (!bCaptured)
+				{
+					//только если находимся в режиме single
+					CUIGameSP* pGameSP					= smart_cast<CUIGameSP*>(CurrentGameUI());
+					if (pGameSP && !m_pPersonWeLookingAt->deadbody_closed_status() && pEntityAliveWeLookingAt->AlreadyDie())
+					{
+						pGameSP->StartCarBody			(this, m_pPersonWeLookingAt);
+						return;
 					}
 				}
 			}
 		}
+	}
+
+	if ((CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined) ? !m_bPickupMode : m_bPickupMode)
+	{
+		bool used					= false;
+		PIItem active_item			= inventory().ActiveItem();
+		PIItem left_item			= inventory().LeftItem();
+		if (active_item)
+			used					= TryCustomUse(active_item);
+		if (!used && left_item)
+			used					= TryCustomUse(left_item);
+		if (used)
+			m_bPickupMode			= false;
 	}
 }
 
@@ -468,11 +544,11 @@ BOOL CActor::HUDview				( )const
 }
 
 static	u16 SlotsToCheck [] = {
-		KNIFE_SLOT		,		// 0
-		INV_SLOT_2		,		// 1
-		INV_SLOT_3		,		// 2
-		GRENADE_SLOT	,		// 3
-		ARTEFACT_SLOT	,		// 10
+		KNIFE_SLOT		,
+		PISTOL_SLOT		,
+		PRIMARY_SLOT	,
+		SECONDARY_SLOT	,
+		GRENADE_SLOT	,
 };
 
 void	CActor::OnNextWeaponSlot()
@@ -499,12 +575,7 @@ void	CActor::OnNextWeaponSlot()
 	{
 		if (inventory().ItemFromSlot(SlotsToCheck[i]))
 		{
-			if (SlotsToCheck[i] == ARTEFACT_SLOT) 
-			{
-				IR_OnKeyboardPress(kARTEFACT);
-			}
-			else
-				IR_OnKeyboardPress(kWPN_1 + i);
+			IR_OnKeyboardPress(kWPN_1 + i);
 			return;
 		}
 	}
@@ -534,12 +605,7 @@ void	CActor::OnPrevWeaponSlot()
 	{
 		if (inventory().ItemFromSlot(SlotsToCheck[i]))
 		{
-			if (SlotsToCheck[i] == ARTEFACT_SLOT) 
-			{
-				IR_OnKeyboardPress(kARTEFACT);
-			}
-			else
-				IR_OnKeyboardPress(kWPN_1 + i);
+			IR_OnKeyboardPress(kWPN_1 + i);
 			return;
 		}
 	}
@@ -581,24 +647,25 @@ void CActor::SwitchNightVision()
 {
 	CWeapon* wpn1 = NULL;
 	CWeapon* wpn2 = NULL;
-	if(inventory().ItemFromSlot(INV_SLOT_2))
-		wpn1 = smart_cast<CWeapon*>(inventory().ItemFromSlot(INV_SLOT_2));
-
-	if(inventory().ItemFromSlot(INV_SLOT_3))
-		wpn2 = smart_cast<CWeapon*>(inventory().ItemFromSlot(INV_SLOT_3));
+	CWeapon* wpn3 = NULL;
+	if (inventory().ItemFromSlot(PISTOL_SLOT))
+		wpn1 = smart_cast<CWeapon*>(inventory().ItemFromSlot(PISTOL_SLOT));
+	if (inventory().ItemFromSlot(PRIMARY_SLOT))
+		wpn2 = smart_cast<CWeapon*>(inventory().ItemFromSlot(PRIMARY_SLOT));
+	if (inventory().ItemFromSlot(SECONDARY_SLOT))
+		wpn3 = smart_cast<CWeapon*>(inventory().ItemFromSlot(SECONDARY_SLOT));
 
 	xr_vector<CAttachableItem*> const& all = CAttachmentOwner::attached_objects();
-	xr_vector<CAttachableItem*>::const_iterator it = all.begin();
-	xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
-	for ( ; it != it_e; ++it )
+	for (xr_vector<CAttachableItem*>::const_iterator it = all.begin(), it_e = all.end(); it != it_e; ++it)
 	{
 		CTorch* torch = smart_cast<CTorch*>(*it);
-		if ( torch )
+		if (torch)
 		{	
-			if(wpn1 && wpn1->IsZoomed())
+			if (wpn1 && wpn1->IsZoomed())
 				return;
-
-			if(wpn2 && wpn2->IsZoomed())
+			if (wpn2 && wpn2->IsZoomed())
+				return;
+			if (wpn3 && wpn3->IsZoomed())
 				return;
 
 			torch->SwitchNightVision();
@@ -608,18 +675,20 @@ void CActor::SwitchNightVision()
 }
 
 void CActor::SwitchTorch()
-{ 
-	xr_vector<CAttachableItem*> const& all = CAttachmentOwner::attached_objects();
-	xr_vector<CAttachableItem*>::const_iterator it = all.begin();
-	xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
-	for ( ; it != it_e; ++it )
+{
+	CTorch* pTorch = smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
+	if (pTorch)
 	{
-		CTorch* torch = smart_cast<CTorch*>(*it);
-		if ( torch )
-		{		
-			torch->Switch();
-			return;
+		bool flashlight = false;
+		PIItem det_active = inventory().ItemFromSlot(LEFT_HAND_SLOT);
+		if (det_active)
+		{
+			CCustomDetector* det = smart_cast<CCustomDetector*>(det_active);
+			if (det && det->FullClass() == "device.torch" && !det->IsHiding() && !det->IsShowing())
+				flashlight = true;
 		}
+		if (inventory().ItemFromSlot(HEADLAMP_SLOT) || flashlight)
+			pTorch->Switch();
 	}
 }
 
@@ -676,7 +745,7 @@ void CActor::actor_kick()
 
 	//shell->applyForce(dir, kick_power * conditions().GetPower());
 	Fvector h_pos = O->Position();
-	SHit hit = SHit(hit_power, dir, this, bone_id, h_pos, kick_impulse, ALife::eHitTypeStrike, 0.f, false);
+	SHit hit = SHit(hit_power, dir, this, bone_id, h_pos, kick_impulse, ALife::eHitTypeStrike);
 	O->Hit(&hit);
 	if (EA)
 	{

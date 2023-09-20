@@ -39,42 +39,34 @@ CArtefact::CArtefact()
 	m_pTrailLight				= NULL;
 	m_activationObj				= NULL;
 	m_detectorObj				= NULL;
-	m_additional_weight			= 0.0f;
 }
 
-
 CArtefact::~CArtefact() 
-{}
+{
+}
 
 void CArtefact::Load(LPCSTR section) 
 {
-	inherited::Load			(section);
-
+	inherited::Load									(section);
 
 	if (pSettings->line_exist(section, "particles"))
-		m_sParticlesName	= pSettings->r_string(section, "particles");
+		m_sParticlesName							= pSettings->r_string(section, "particles");
 
-	m_bLightsEnabled		= !!pSettings->r_bool(section, "lights_enabled");
-	if(m_bLightsEnabled){
-		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", 
-			&m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
-		m_fTrailLightRange	= pSettings->r_float(section,"trail_light_range");
-	}
-
-
-	m_fHealthRestoreSpeed    = pSettings->r_float	(section,"health_restore_speed"		);
-	m_fRadiationRestoreSpeed = pSettings->r_float	(section,"radiation_restore_speed"	);
-	m_fSatietyRestoreSpeed   = pSettings->r_float	(section,"satiety_restore_speed"	);
-	m_fPowerRestoreSpeed     = pSettings->r_float	(section,"power_restore_speed"		);
-	m_fBleedingRestoreSpeed  = pSettings->r_float	(section,"bleeding_restore_speed"	);
-	
-	if(pSettings->section_exist(pSettings->r_string(section,"hit_absorbation_sect")))
+	m_bLightsEnabled								= !!pSettings->r_bool(section, "lights_enabled");
+	if (m_bLightsEnabled)
 	{
-		m_ArtefactHitImmunities.LoadImmunities(pSettings->r_string(section,"hit_absorbation_sect"),pSettings);
+		sscanf										(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
+		m_fTrailLightRange							= pSettings->r_float(section, "trail_light_range");
 	}
-	m_bCanSpawnZone			= !!pSettings->line_exist("artefact_spawn_zones", section);
-	m_af_rank				= pSettings->r_u8(section, "af_rank");
-	m_additional_weight		= pSettings->r_float(section,"additional_inventory_weight");
+
+	m_fRadiationRestoreSpeed						= pSettings->r_float(section, "radiation_speed");
+	m_fWeightDump									= pSettings->r_float(section, "weight_dump");
+	m_fArmor										= pSettings->r_float(section, "armor");
+
+	if (pSettings->section_exist(pSettings->r_string(section, "hit_absorbation_sect")))
+		m_ArtefactHitImmunities.LoadImmunities		(pSettings->r_string(section, "hit_absorbation_sect"), pSettings);
+	m_bCanSpawnZone									= !!pSettings->line_exist("artefact_spawn_zones", section);
+	m_af_rank										= pSettings->r_u8(section, "af_rank");
 }
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
@@ -598,14 +590,15 @@ void CArtefact::OnActiveItem ()
 {
 	SwitchState					(eShowing);
 	inherited::OnActiveItem		();
-	SetState					(eIdle);
-	SetNextState				(eIdle);
 }
 
 void CArtefact::OnHiddenItem ()
 {
 	SwitchState(eHiding);
 	inherited::OnHiddenItem		();
-	SetState					(eHidden);
-	SetNextState				(eHidden);
+}
+
+bool CArtefact::IsActivated()
+{
+	return (GetCondition() < 1.f);
 }

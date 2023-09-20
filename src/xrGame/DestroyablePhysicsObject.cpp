@@ -76,18 +76,18 @@ void	CDestroyablePhysicsObject::Hit					(SHit* pHDS)
 	SHit	HDS = *pHDS;
 	callback(GameObject::eHit)(
 		lua_game_object(), 
-		HDS.power,
+		HDS.main_damage,
 		HDS.dir,
 		smart_cast<const CGameObject*>(HDS.who)->lua_game_object(),
 		HDS.bone()
 		);
-	HDS.power=CHitImmunity::AffectHit(HDS.power,HDS.hit_type);
-	float hit_scale=1.f,wound_scale=1.f;
-	CDamageManager::HitScale(HDS.bone(),hit_scale,wound_scale);
-	HDS.power*=hit_scale;
+	HDS.main_damage = CHitImmunity::AffectHit(HDS.main_damage, HDS.hit_type);
+	float hit_scale = 1.f, pierce_scale = -1.f;
+	CDamageManager::HitScale(HDS.bone(), hit_scale, pierce_scale);
+	HDS.main_damage *= hit_scale;
 //	inherited::Hit(P,dir,who,element,p_in_object_space,impulse,hit_type);
 	inherited::Hit(&HDS);
-	m_fHealth-=HDS.power;
+	m_fHealth -= HDS.main_damage;
 	if(m_fHealth<=0.f)
 	{
 //		CPHDestroyable::SetFatalHit(SHit(P,dir,who,element,p_in_object_space,impulse,hit_type));

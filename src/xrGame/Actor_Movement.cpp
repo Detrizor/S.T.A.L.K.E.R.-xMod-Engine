@@ -188,13 +188,17 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			{
 				character_physics_support()->movement()->EnableCharacter();
 				bool Crouched = false;
-				if(isActorAccelerated(mstate_wf, IsZoomAimingMode()))
-					Crouched = character_physics_support()->movement()->ActivateBoxDynamic(1);
-				else
+				if (mstate_wf&mcCrouchLow)
 					Crouched = character_physics_support()->movement()->ActivateBoxDynamic(2);
+				else
+					Crouched = character_physics_support()->movement()->ActivateBoxDynamic(1);
 				
-				if(Crouched) 
-					mstate_real			|=	mcCrouch;
+				if (Crouched)
+				{
+					mstate_real |= mcCrouch;
+					if (mstate_wf&mcCrouchLow)
+						mstate_real |= mcCrouchLow;
+				}
 			}
 		}
 		// jump
@@ -210,24 +214,26 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 
 			//уменьшить силу игрока из-за выполненого прыжка
 			if (!GodMode())
-				conditions().ConditionJump(inventory().TotalWeight() / MaxCarryWeight());
+				conditions().ConditionJump(inventory().TotalWeight());
 		}
 
 		// mask input into "real" state
-		u32 move	= mcAnyMove|mcAccel;
+		u32 move	= mcAnyMove|mcAccel|mcCrouchLow;
 
 		if(mstate_real&mcCrouch)
 		{
-			if (!isActorAccelerated(mstate_real, IsZoomAimingMode()) && isActorAccelerated(mstate_wf, IsZoomAimingMode()))
+			if (mstate_real&mcCrouchLow && !(mstate_wf&mcCrouchLow))
 			{
 				character_physics_support()->movement()->EnableCharacter();
-				if(!character_physics_support()->movement()->ActivateBoxDynamic(1))move	&=~mcAccel;
+				if (!character_physics_support()->movement()->ActivateBoxDynamic(1))
+					move &= ~mcCrouchLow;
 			}
 
-			if (isActorAccelerated(mstate_real, IsZoomAimingMode()) && !isActorAccelerated(mstate_wf, IsZoomAimingMode()))
+			if (!(mstate_real&mcCrouchLow) && mstate_wf&mcCrouchLow)
 			{
 				character_physics_support()->movement()->EnableCharacter();
-				if(character_physics_support()->movement()->ActivateBoxDynamic(2))mstate_real	&=~mcAccel;
+				if (character_physics_support()->movement()->ActivateBoxDynamic(2))
+					mstate_real &= ~mcCrouchLow;
 			}
 		}
 
@@ -284,6 +290,8 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 						scale *= m_fWalk_StrafeFactor;
 				}
 
+				scale *= m_fSpeedScale;
+
 				vControlAccel.mul			(scale);
 				cam_eff_factor				= scale;
 			}//scale>EPS
@@ -296,12 +304,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 
 	if(mstate_real&mcSprint && !(mstate_old&mcSprint) )
 		state_anm					= "sprint";
-	else
-	if(mstate_real&mcLStrafe && !(mstate_old&mcLStrafe) )
-		state_anm					= "strafe_left";
-	else
-	if(mstate_real&mcRStrafe && !(mstate_old&mcRStrafe) )
-		state_anm					= "strafe_right";
 	else
 	if(mstate_real&mcFwd && !(mstate_old&mcFwd) )
 		state_anm					= "move_fwd";
@@ -528,11 +530,7 @@ void CActor::g_sv_Orientate(u32 /**mstate_rl/**/, float /**dt/**/)
 
 bool isActorAccelerated(u32 mstate, bool ZoomMode) 
 {
-	bool res = false;
-	if (mstate&mcAccel)
-		res = false;
-	else
-		res = true;
+	bool res = !!(mstate&mcAccel);
 
 	if (mstate&(mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))
 		return res;
@@ -548,7 +546,7 @@ bool CActor::CanAccelerate()
 		(m_time_lock_accel < Device.dwTimeGlobal)
 	;		
 
-	return can_accel;
+	return can_accel && !m_fAccelBlock;
 }
 
 bool CActor::CanRun()
@@ -566,7 +564,7 @@ bool CActor::CanSprint()
 						&& InventoryAllowSprint()
 						;
 
-	return can_Sprint && (m_block_sprint_counter<=0);
+	return can_Sprint && (m_block_sprint_counter<=0) && !m_fSprintBlock;
 }
 
 bool CActor::CanJump()
@@ -621,42 +619,8 @@ bool CActor::is_jump()
 	return ((mstate_real & (mcJump|mcFall|mcLanding|mcLanding2)) != 0);
 }
 
-//максимальный переносимы вес
-#include "CustomOutfit.h"
-float CActor::MaxCarryWeight () const
+float CActor::InventoryCapacity() const
 {
-	float res = inventory().GetMaxWeight();
-	res      += get_additional_weight();
-	return res;
-}
-
-float CActor::MaxWalkWeight() const
-{
-	float max_w = CActor::conditions().MaxWalkWeight();
-	max_w      += get_additional_weight();
-	return max_w;
-}
-#include "artefact.h"
-#include "ActorBackpack.h"
-float CActor::get_additional_weight() const
-{
-	float res = 0.0f ;
-	
 	CCustomOutfit* outfit	= GetOutfit();
-	if ( outfit )
-		res				+= outfit->m_additional_weight;
-
-	CBackpack* pBackpack = smart_cast<CBackpack*>(inventory().ItemFromSlot(BACKPACK_SLOT));
-	if (pBackpack)
-		res += pBackpack->m_additional_weight;
-
-	for(TIItemContainer::const_iterator it = inventory().m_belt.begin(); 
-		inventory().m_belt.end() != it; ++it) 
-	{
-		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-		if(artefact)
-			res			+= (artefact->AdditionalInventoryWeight()*artefact->GetCondition());
-	}
-
-	return res;
+	return					(outfit) ? outfit->m_capacity : 0.f;
 }

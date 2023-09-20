@@ -11,14 +11,16 @@
 //коэфициенты и параметры патрона
 struct SBullet_Hit 
 {
-	float	power;				// power          * cartridge
-	float	impulse;			// impulse        * cartridge
+	float	impulse;
+	float	main_damage;
+	float	pierce_damage;
+	float	pierce_damage_armor;
 };
 
 //структура, описывающая пулю и ее свойства в полете
 struct SBullet
 {
-	u32				init_frame_num			;			//номер кадра на котором была запущена пуля
+	u32				init_frame_num		;			//номер кадра на котором была запущена пуля
 	union			{
 		struct			{
 			u16			ricochet_was	: 1	;			//пуля срикошетила
@@ -26,8 +28,6 @@ struct SBullet
 			u16			allow_tracer	: 1	;
 			u16			allow_ricochet	: 1	;			//разрешить рикошет
 			u16			allow_sendhit	: 1	;			//statistics
-//.			u16			skipped_frame	: 1	;			//пропуск первой отрисовки
-			u16			aim_bullet		: 1 ;			//прицеленная пуля( вылетевшая первой после длительного молчания оружия (1-3 сек.))
 			u16			magnetic_beam	: 1 ;			//магнитный луч (нет отклонения после пробивания, не падает скорость после пробивания)
 		};
 		u16				_storage			;
@@ -57,8 +57,10 @@ struct SBullet
 	//-------------------------------------------------------------------
 	float			max_speed			;			// maxspeed*cartridge
 	float			max_dist			;			// maxdist*cartridge
-	float			armor_piercing		;			// ap
 	float			wallmark_size		;
+	float			bullet_mass			;
+	float			bullet_resist		;
+	bool			hollow_point		;
 	//-------------------------------------------------------------------
 	u8				m_u8ColorID			;
 	
@@ -84,16 +86,14 @@ public:
 	void			Init				(const	Fvector& position,
 										const	Fvector& direction,
 										float	start_speed,
-										float	power,
-//.										float	power_critical,
-										float	impulse,
 										u16		sender_id,
 										u16		sendersweapon_id,
 										ALife::EHitType e_hit_type,
 										float	maximum_distance,
 										const	CCartridge& cartridge,
-										float const air_resistance_factor,
 										bool	SendHit,
+										float	power,
+										float	impulse,
 										int iShotNum = 0);
 };
 
@@ -122,7 +122,6 @@ private:
 	struct	_event			{
 		EventType			Type;
 		BOOL				dynamic		;
-		BOOL				Repeated	;	// последовательное повторное попадание в динамический объект
 		SBullet_Hit			hit_result	;
 		SBullet				bullet		;
 		Fvector				normal		;
@@ -159,9 +158,6 @@ protected:
 
 	//константа G
 	float					m_fGravityConst;
-	//сопротивление воздуха, процент, который отнимается от скорости
-	//полета пули
-	float					m_fAirResistanceK;
 	//cколько процентов энергии потеряет пуля при столкновении с материалом (при падении под прямым углом)
 	float					m_fCollisionEnergyMin;
 	//сколькол процентов энергии устанется у пули при любом столкновении
@@ -171,6 +167,7 @@ protected:
 	float					m_fTracerWidth;
 	float 					m_fTracerLengthMax;
 	float 					m_fTracerLengthMin;
+
 protected:
 	void					PlayWhineSound		(SBullet* bullet, CObject* object, const Fvector& pos);
 	void					PlayExplodePS		(const Fmatrix& xf);
@@ -228,17 +225,37 @@ public:
 
 	void 					Load				();
 	void 					Clear				();
-	void 					AddBullet			(const Fvector& position, const Fvector& direction, float starting_speed,
-												float power, /*float power_critical,*/ float impulse, 
+	void 					AddBullet			(const Fvector& position, const Fvector& direction, float starting_speed, 
 												u16	sender_id, u16 sendersweapon_id,
 												ALife::EHitType e_hit_type, float maximum_distance, 
-												const CCartridge& cartridge,
-												float const air_resistance_factor,
-												bool SendHit,bool AimBullet=false, int iShotNum = 0);
+												const CCartridge& cartridge, bool SendHit,
+												float power, float impulse, int iShotNum = 0);
 
 	void					CommitEvents		();	// @ the start of frame
 	void					CommitRenderSet		();	// @ the end of frame
 	void 					Render				();
+
+	float					m_fBulletAirResistanceScale;
+	float					m_fBulletWallMarkSizeScale;
+	float					m_fBulletFireDistanceScale;
+
+	float					m_fBulletArmorPiercingScale;
+	float					m_fBulletHollowPointAPFactor;
+	float					m_fBulletHollowPointResistFactor;
+	float					m_fBulletArmorPiercingLose;
+
+	float					m_fBulletHitImpulseScale;
+	float					m_fBulletArmorDamageScale;
+
+	float					m_fBulletPierceDamageResistFactor;
+	float					m_fBulletPierceDamageResistPower;
+	float					m_fBulletPierceDamageSpeedFactor;
+	float					m_fBulletPierceDamageSpeedPower;
+	float					m_fBulletPierceDamageDensityFactor;
+	float					m_fBulletPierceDamageDensityPower;
+
+	float					m_fBulletPierceDamageScale;
+	float					m_fBulletPierceDamageArmorScale;
 };
 
 struct bullet_test_callback_data

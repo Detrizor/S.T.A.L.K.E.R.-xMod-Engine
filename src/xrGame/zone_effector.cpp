@@ -69,7 +69,7 @@ void CZoneEffector::Update(float dist, float r, ALife::EHitType hit_type)
 	{
 		CCustomOutfit* outfit = m_pActor->GetOutfit();
 		if(outfit)
-			protection = outfit->GetDefHitTypeProtection(hit_type);
+			protection = outfit->GetHitTypeProtection(hit_type);
 	}
 	if (m_pp_effector) {
 		m_factor = ((max_r - dist) / (max_r - min_r)) - protection;

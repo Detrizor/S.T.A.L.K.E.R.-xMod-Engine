@@ -31,42 +31,32 @@ void move_item_from_to (u16 from_id, u16 to_id, u16 what_id)
 	CGameObject::u_EventSend				(P);
 }
 
-bool move_item_check( PIItem itm, CInventoryOwner* from, CInventoryOwner* to, bool weight_check )
-{
-	if ( weight_check )
-	{
-		float invWeight		= to->inventory().CalcTotalWeight();
-		float maxWeight		= to->MaxCarryWeight();
-		float itmWeight		= itm->Weight();
-		if ( invWeight + itmWeight >= maxWeight )
-		{
-			return false;
-		}
-	}
-	move_item_from_to( from->object_id(), to->object_id(), itm->object_id() );
-	return true;
-}
-
 // -------------------------------------------------------------------------------------------------
 
 void CUIActorMenu::InitDeadBodySearchMode()
 {
 	m_pDeadBodyBagList->Show		(true);
-	m_LeftBackground->Show			(true);
-	m_PartnerBottomInfo->Show		(true);
+	m_PartnerWeightInfo->Show		(true);
 	m_PartnerWeight->Show			(true);
-	m_takeall_button->Show			(true);
+	m_PartnerVolumeInfo->Show		(true);
+	m_PartnerVolume->Show			(true);
 
-	if ( m_pPartnerInvOwner )
+	if (m_pInvBox)
 	{
-		m_PartnerCharacterInfo->Show(true);
-	}
-	else
-	{
-		m_PartnerCharacterInfo->Show(false);
+		m_takeall_button->Show								(true);
+		shared_str section									= m_pInvBox->cNameSect();
+		bool virtual_box									= !xr_strcmp(*section, "virtual_box");
+		m_takeall_button->Enable							(pSettings->line_exist(section, "pick_up_section") || virtual_box);
+		shared_str text										= (virtual_box) ? "st_close" : "st_pick_up";
+		m_takeall_button->TextItemControl()->SetText		(*CStringTable().translate(text));
+		text.printf											("%s_hint", *text);
+		m_takeall_button->m_hint_text._set					(CStringTable().translate(text));
 	}
 
+	m_PartnerCharacterInfo->Show	(!!m_pPartnerInvOwner);
 	InitInventoryContents			(m_pInventoryBagList);
+
+	UpdatePocketsPresence();
 
 	TIItemContainer					items_list;
 	if ( m_pPartnerInvOwner )
@@ -119,55 +109,36 @@ void CUIActorMenu::DeInitDeadBodySearchMode()
 {
 	m_pDeadBodyBagList->Show		(false);
 	m_PartnerCharacterInfo->Show	(false);
-	m_LeftBackground->Show			(false);
-	m_PartnerBottomInfo->Show		(false);
+	m_PartnerWeightInfo->Show		(false);
 	m_PartnerWeight->Show			(false);
+	m_PartnerVolumeInfo->Show		(false);
+	m_PartnerVolume->Show			(false);
 	m_takeall_button->Show			(false);
 
-	if ( m_pInvBox )
-	{
-		m_pInvBox->set_in_use( false );
-	}
+	if (m_pInvBox)
+		m_pInvBox->set_in_use		(false);
 }
 
 bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	PIItem quest_item = (PIItem)itm->m_pData;
-	if (quest_item->IsQuestItem())
+	PIItem item = (PIItem)itm->m_pData;
+	if (item->IsQuestItem())
 		return false;
 
-	if ( m_pPartnerInvOwner )
+	if (m_pPartnerInvOwner)
 	{
-		if ( !m_pPartnerInvOwner->deadbody_can_take_status() )
+		if (!m_pPartnerInvOwner->deadbody_can_take_status())
 			return false;
-		
-		if (m_pPartnerInvOwner->is_alive())
-		{
-			//Alundaio: 
-			luabind::functor<bool> funct;
-			if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_CanMoveToPartner", funct))
-		{
-				float itmWeight			 = quest_item->Weight();
-				float partner_inv_weight = m_pPartnerInvOwner->inventory().CalcTotalWeight();
-				float partner_max_weight = m_pPartnerInvOwner->MaxCarryWeight();
-			
-				if (funct(m_pPartnerInvOwner->cast_game_object()->lua_game_object(),quest_item->object().lua_game_object(), 0, 0, itmWeight, partner_inv_weight, partner_max_weight) == false)
-			return false;
-		}
-			//-Alundaio
-		}
 	}
 	else // box
 	{
-		if ( !m_pInvBox->can_take() )
+		if (!m_pInvBox->can_take())
 			return false;
 
 		luabind::functor<bool> funct;
 		if (ai().script_engine().functor("_G.CInventoryBox_CanTake", funct))
-		{
-			if (funct(m_pInvBox->cast_game_object()->lua_game_object(), quest_item->cast_game_object()->lua_game_object()) == false)
+			if (funct(m_pInvBox->cast_game_object()->lua_game_object(), item->cast_game_object()->lua_game_object()) == false)
 				return false;
-		}
 	}
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
@@ -190,13 +161,9 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 	PIItem iitem						= (PIItem)i->m_pData;
 
 	if ( m_pPartnerInvOwner )
-	{
 		move_item_from_to				(m_pActorInvOwner->object_id(), m_pPartnerInvOwner->object_id(), iitem->object_id());
-	}
 	else // box
-	{
 		move_item_from_to				(m_pActorInvOwner->object_id(), m_pInvBox->ID(), iitem->object_id());
-	}
 	
 	UpdateDeadBodyBag();
 	return true;
@@ -204,64 +171,19 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 void CUIActorMenu::UpdateDeadBodyBag()
 {
-	string64 buf;
-
-	LPCSTR kg_str = CStringTable().translate( "st_kg" ).c_str();
-	float total	= CalcItemsWeight( m_pDeadBodyBagList );
-	xr_sprintf( buf, "%.1f %s", total, kg_str );
-	m_PartnerWeight->SetText( buf );
-	m_PartnerWeight->AdjustWidthToText();
-
-	Fvector2 pos = m_PartnerWeight->GetWndPos();
-	pos.x = m_PartnerWeight_end_x - m_PartnerWeight->GetWndSize().x - 5.0f;
-	m_PartnerWeight->SetWndPos( pos );
-	pos.x = pos.x - m_PartnerBottomInfo->GetWndSize().x - 5.0f;
-	m_PartnerBottomInfo->SetWndPos( pos );
+	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, m_pInvBox);
+	InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 }
 
 void CUIActorMenu::TakeAllFromPartner(CUIWindow* w, void* d)
 {
-	VERIFY( m_pActorInvOwner );
-	if ( !m_pPartnerInvOwner )
-	{
-		if ( m_pInvBox )
-		{
-			TakeAllFromInventoryBox();
-		}
-		return;
-	}
-
-	u32 const cnt = m_pDeadBodyBagList->ItemsCount();
-	for ( u32 i = 0; i < cnt; ++i )
-	{
-		CUICellItem* ci = m_pDeadBodyBagList->GetItemIdx(i);
-		for ( u32 j = 0; j < ci->ChildsCount(); ++j )
-		{
-			PIItem j_item = (PIItem)(ci->Child(j)->m_pData);
-			move_item_check( j_item, m_pPartnerInvOwner, m_pActorInvOwner, false );
-		}
-		PIItem item = (PIItem)(ci->m_pData);
-		move_item_check( item, m_pPartnerInvOwner, m_pActorInvOwner, false );
-	}//for i
-	m_pDeadBodyBagList->ClearAll( true ); // false
+	if (m_pInvBox)
+		TakeAllFromInventoryBox();
 }
 
 void CUIActorMenu::TakeAllFromInventoryBox()
 {
-	u16 actor_id = m_pActorInvOwner->object_id();
-
-	u32 const cnt = m_pDeadBodyBagList->ItemsCount();
-	for ( u32 i = 0; i < cnt; ++i )
-	{
-		CUICellItem* ci = m_pDeadBodyBagList->GetItemIdx(i);
-		for ( u32 j = 0; j < ci->ChildsCount(); ++j )
-		{
-			PIItem j_item = (PIItem)(ci->Child(j)->m_pData);
-			move_item_from_to( m_pInvBox->ID(), actor_id, j_item->object_id() );
-		}
-
-		PIItem item = (PIItem)(ci->m_pData);
-		move_item_from_to( m_pInvBox->ID(), actor_id, item->object_id() );
-	}//for i
-	m_pDeadBodyBagList->ClearAll( true ); // false
+	luabind::functor<void>funct;
+	ai().script_engine().functor("xmod_container_manager.pick_up_box", funct);
+	funct(m_pInvBox->lua_game_object());
 }

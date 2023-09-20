@@ -96,7 +96,7 @@ void CUIInventoryUpgradeWnd::LoadSchemes( CUIXml& uiXml )
 	
 	t_cell_item.x1 = uiXml.ReadAttribFlt( "cell_item", 0, "x" );
 	t_cell_item.y1 = uiXml.ReadAttribFlt( "cell_item", 0, "y" );
-	t_cell_item.x2 = t_cell_item.x1 + uiXml.ReadAttribFlt( "cell_item", 0, "width" )*(UI().is_widescreen()?0.8f:1.0f);
+	t_cell_item.x2 = t_cell_item.x1 + uiXml.ReadAttribFlt( "cell_item", 0, "width" );
 	t_cell_item.y2 = t_cell_item.y1 + uiXml.ReadAttribFlt( "cell_item", 0, "height" );
 
 	int tmpl_count = uiXml.GetNodesNum( tmpl_root, "template" );

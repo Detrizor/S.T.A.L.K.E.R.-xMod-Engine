@@ -123,7 +123,7 @@ const CCoverPoint *CAI_Stalker::find_best_cover(const Fvector &position_to_cover
 		if (!weapon)
 			m_ce_best->can_use_smart_covers(false);
 		else {
-			if (weapon->BaseSlot() != INV_SLOT_3)
+			if (weapon->BaseSlot() != PRIMARY_SLOT)
 				m_ce_best->can_use_smart_covers(false);
 			else
 				m_ce_best->can_use_smart_covers(true);

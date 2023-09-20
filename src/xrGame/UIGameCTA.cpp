@@ -578,8 +578,6 @@ void CUIGameCTA::SetPlayerItemsToBuyMenu()
 		TryToDefuseAllWeapons(add_ammo);
         for (u16 i = inventory.FirstSlot(); i <= inventory.LastSlot(); i++)
             BuyMenuItemInserter(inventory.ItemFromSlot(i));
-        for (auto& item : actor->inventory().m_belt)
-            BuyMenuItemInserter(item);
         for (auto& item : actor->inventory().m_ruck)
             BuyMenuItemInserter(item);
         for (auto& ammo_item : add_ammo)

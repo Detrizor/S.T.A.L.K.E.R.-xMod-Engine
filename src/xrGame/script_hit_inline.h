@@ -10,7 +10,8 @@
 
 IC	CScriptHit::CScriptHit			()
 {
-	m_fPower			= 0;
+	m_fMainDamage		= 0;
+	m_fPierceDamage		= 0;
 	m_tDirection.set	(1,0,0);
 	m_caBoneName		= "";
 	m_tpDraftsman		= 0;

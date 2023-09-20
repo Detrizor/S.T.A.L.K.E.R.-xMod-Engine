@@ -101,13 +101,13 @@ bool CUIXmlInit::InitWindow(CUIXml& xml_doc, LPCSTR path,
 
 //////////////////////////////////////////////////////////////////////////
 
-bool CUIXmlInit::InitFrameWindow(CUIXml& xml_doc, LPCSTR path, 
-									int index, CUIFrameWindow* pWnd)
+bool CUIXmlInit::InitFrameWindow(CUIXml& xml_doc, LPCSTR path, int index, CUIFrameWindow* pWnd)
 {
 	R_ASSERT4		(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
 
-	InitTexture		(xml_doc, path, index, pWnd);
+	pWnd->SetOuter	(xml_doc.ReadAttribInt(path, index, "outer") ? true : false);
 	InitWindow		(xml_doc, path, index, pWnd);
+	InitTexture		(xml_doc, path, index, pWnd);
 	return			true;
 }
 
@@ -353,9 +353,9 @@ bool CUIXmlInit::Init3tButton(CUIXml& xml_doc, LPCSTR path, int index, CUI3tButt
 {
 	R_ASSERT4(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
 
-	pWnd->m_frameline_mode = (xml_doc.ReadAttribInt(path, index, "frame_mode", 0) == 1)? true : false;
-
-	pWnd->vertical = (xml_doc.ReadAttribInt(path, index, "vertical", 0) == 1)? true : false;
+	pWnd->frame_mode		= !!xml_doc.ReadAttribInt(path, index, "frame_mode", 0);
+	pWnd->frame_custom		= !!xml_doc.ReadAttribInt(path, index, "frame_custom", 0);
+	pWnd->frame_outer		= !!xml_doc.ReadAttribInt(path, index, "frame_outer", 1);
 
 	InitWindow			(xml_doc, path, index, pWnd);				
 	pWnd->InitButton	(pWnd->GetWndPos(), pWnd->GetWndSize());
@@ -463,6 +463,8 @@ bool CUIXmlInit::InitDragDropListEx(CUIXml& xml_doc, LPCSTR path, int index, CUI
 {
 	R_ASSERT4(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
 
+	InitAutoStaticGroup		(xml_doc, path, index, pWnd);
+
 	Fvector2 pos, size;
 	pos.x			= xml_doc.ReadAttribFlt(path, index, "x");
 	pos.y			= xml_doc.ReadAttribFlt(path, index, "y");
@@ -471,16 +473,14 @@ bool CUIXmlInit::InitDragDropListEx(CUIXml& xml_doc, LPCSTR path, int index, CUI
 
 	InitAlignment	(xml_doc, path, index, pos.x, pos.y, pWnd);
 
-
-
 	pWnd->InitDragDropList		(pos, size);
 
 	Ivector2 w_cell_sz, w_cells, w_cell_sp;
 
-	w_cell_sz.x				= xml_doc.ReadAttribInt(path, index, "cell_width");
-	w_cell_sz.y				= xml_doc.ReadAttribInt(path, index, "cell_height");
-	w_cells.y				= xml_doc.ReadAttribInt(path, index, "rows_num");
-	w_cells.x				= xml_doc.ReadAttribInt(path, index, "cols_num");
+	w_cell_sz.x				= xml_doc.ReadAttribInt(path, index, "cell_width", size.x);
+	w_cell_sz.y				= xml_doc.ReadAttribInt(path, index, "cell_height", size.y);
+	w_cells.y				= xml_doc.ReadAttribInt(path, index, "rows_num", 1);
+	w_cells.x				= xml_doc.ReadAttribInt(path, index, "cols_num", 1);
 
 	w_cell_sp.x				= xml_doc.ReadAttribInt(path, index, "cell_sp_x");
 	w_cell_sp.y				= xml_doc.ReadAttribInt(path, index, "cell_sp_y");
@@ -641,14 +641,15 @@ void CUIXmlInit::InitAutoStaticGroup(CUIXml& xml_doc, LPCSTR path, int index, CU
 	
 	XML_NODE* node						= curr_root->IterateChildren(NULL);
 	int cnt_static						= 0;
+	int cnt_frame						= 0;
 	int cnt_frameline					= 0;
 	int cnt_text						= 0;
 	string512							buff;
 
-	while(node)
+	while (node)
 	{
 		LPCSTR node_name			= node->Value();
-		if(0==stricmp(node_name,"auto_static"))
+		if (0 == stricmp(node_name, "auto_static"))
 		{
 			CUIStatic* pUIStatic		= xr_new<CUIStatic>();
 			InitStatic					(xml_doc, "auto_static", cnt_static, pUIStatic);
@@ -658,8 +659,19 @@ void CUIXmlInit::InitAutoStaticGroup(CUIXml& xml_doc, LPCSTR path, int index, CU
 			pParentWnd->AttachChild		(pUIStatic);
 
 			++cnt_static;
-		}else
-		if(0==stricmp(node_name,"auto_frameline"))
+		}
+		else if (!stricmp(node_name, "auto_frame"))
+		{
+			CUIFrameWindow* pUIFrameWindow = xr_new<CUIFrameWindow>();
+			InitFrameWindow(xml_doc, "auto_frame", cnt_frame, pUIFrameWindow);
+			xr_sprintf(buff, "auto_frame_%d", cnt_frame);
+			pUIFrameWindow->SetWindowName(buff);
+			pUIFrameWindow->SetAutoDelete(true);
+			pParentWnd->AttachChild(pUIFrameWindow);
+
+			++cnt_frame;
+		}
+		else if (0 == stricmp(node_name, "auto_frameline"))
 		{
 			CUIFrameLineWnd* pUIFrameline = xr_new<CUIFrameLineWnd>();
 			InitFrameLine				(xml_doc, "auto_frameline", cnt_frameline, pUIFrameline);
@@ -669,27 +681,11 @@ void CUIXmlInit::InitAutoStaticGroup(CUIXml& xml_doc, LPCSTR path, int index, CU
 			pParentWnd->AttachChild	(pUIFrameline);
 
 			++cnt_frameline;
-		}else
-		if(0==stricmp(node_name,"auto_text"))
-		{
-			++cnt_text;
 		}
+		else if (0 == stricmp(node_name, "auto_text"))
+			++cnt_text;
 		node						= curr_root->IterateChildren(node);
 	}
-/*
-	CUIStatic* pUIStatic				= NULL;
-	string64							sname;
-	for(int i=0; i<items_num; i++)
-	{
-		pUIStatic						= xr_new<CUIStatic>();
-		InitStatic						(xml_doc, "auto_static", i, pUIStatic);
-		xr_sprintf						(sname,"auto_static_%d", i);
-		pUIStatic->SetWindowName		(sname);
-		pUIStatic->SetAutoDelete		(true);
-		pParentWnd->AttachChild			(pUIStatic);
-		pUIStatic						= NULL;
-	}
-*/
 	xml_doc.SetLocalRoot				(_stored_root);
 }
 
@@ -945,7 +941,7 @@ bool CUIXmlInit::InitTexture(CUIXml& xml_doc, LPCSTR path, int index, ITextureOw
 		if(shader)
 			pWnd->InitTextureEx(texture, shader);
 		else
-	       pWnd->InitTexture(texture);
+			pWnd->InitTexture(texture);
 	}
 //--------------------
 	Frect			rect;
@@ -998,15 +994,8 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 	texture = xml_doc.Read(buff, index, NULL);
 	if (texture.size())
 	{
-		if ( pWnd->m_background )			
-		{ 
-			pWnd->m_background->InitState(S_Enabled, texture.c_str()); 
-		}
-		else if ( pWnd->m_back_frameline )	
-		{ 
-			pWnd->m_back_frameline->InitState(S_Enabled, texture.c_str()); 
-			pWnd->m_back_frameline->Get(S_Enabled)->SetHorizontal(!(pWnd->vertical));
-		}
+		if (pWnd->m_background)
+			pWnd->m_background->InitState(S_Enabled, texture.c_str());
 		success = true;
 	}
 
@@ -1014,15 +1003,8 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 	texture = xml_doc.Read(buff, index, NULL);
 	if (texture.size())
 	{
-		if ( pWnd->m_background )			
-		{ 
-			pWnd->m_background->InitState(S_Touched, texture.c_str()); 
-		}
-		else if ( pWnd->m_back_frameline )	
-		{ 
-			pWnd->m_back_frameline->InitState(S_Touched, texture.c_str()); 
-			pWnd->m_back_frameline->Get(S_Touched)->SetHorizontal(!(pWnd->vertical));
-		}
+		if (pWnd->m_background)
+			pWnd->m_background->InitState(S_Touched, texture.c_str());
 		success = true;
 	}
 
@@ -1030,15 +1012,8 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 	texture = xml_doc.Read(buff, index, NULL);
 	if (texture.size())
 	{
-		if ( pWnd->m_background )			
-		{ 
-			pWnd->m_background->InitState(S_Disabled, texture.c_str()); 
-		}
-		else if ( pWnd->m_back_frameline )	
-		{ 
-			pWnd->m_back_frameline->InitState(S_Disabled, texture.c_str()); 
-			pWnd->m_back_frameline->Get(S_Disabled)->SetHorizontal(!(pWnd->vertical));
-		}
+		if (pWnd->m_background)
+			pWnd->m_background->InitState(S_Disabled, texture.c_str());
 		success = true;
 	}
 
@@ -1046,15 +1021,8 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 	texture = xml_doc.Read(buff, index, NULL);   
 	if (texture.size())
 	{
-		if ( pWnd->m_background )			
-		{ 
-			pWnd->m_background->InitState(S_Highlighted, texture.c_str()); 
-		}
-		else if ( pWnd->m_back_frameline )	
-		{ 
-			pWnd->m_back_frameline->InitState(S_Highlighted, texture.c_str()); 
-			pWnd->m_back_frameline->Get(S_Highlighted)->SetHorizontal(!(pWnd->vertical));
-		}
+		if (pWnd->m_background)
+			pWnd->m_background->InitState(S_Highlighted, texture.c_str());
 		success = true;
 	}
 

@@ -27,7 +27,7 @@ public:
 	virtual void SwitchState	(u32 S);
 
 			void UpdateMissileVisibility	();
-	virtual void UnloadMagazine				(bool spawn_ammo = true);
+	virtual void Discharge					(bool spawn_ammo = true);
 
 	virtual void net_Import			( NET_Packet& P);				// import from server
 protected:

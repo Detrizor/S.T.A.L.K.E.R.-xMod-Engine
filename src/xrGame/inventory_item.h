@@ -82,6 +82,7 @@ protected:
 								FIsQuestItem		=(1<<11),
 								FIsHelperItem		=(1<<12),
 								FCanStack			=(1<<13),
+								FShowFullCondition	=(1<<14)
 	};
 
 	Flags16						m_flags;
@@ -101,8 +102,9 @@ public:
 	virtual void				OnEvent				(NET_Packet& P, u16 type);
 	
 	virtual bool				Useful				() const;									// !!! Переопределить. (см. в Inventory.cpp)
-	virtual bool				IsUsingCondition() const { return ( m_flags.test( FUsingCondition ) > 0 ); };
-	virtual bool				CanStack() const { return (m_flags.test(FCanStack) > 0); };
+	virtual bool				IsUsingCondition	() const { return (m_flags.test(FUsingCondition) > 0); };
+	virtual bool				ShowFullCondition	() const { return (m_flags.test(FShowFullCondition) > 0); };
+	virtual bool				CanStack			() const;
 	virtual bool				Attach				(PIItem pIItem, bool b_send_event) {return false;}
 	virtual bool				Detach				(PIItem pIItem) {return false;}
 	//при детаче спаунится новая вещь при заданно названии секции
@@ -138,21 +140,28 @@ public:
 
 			BOOL				IsInvalid			() const;
 
-			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}			
-	virtual	u32					Cost				()	const	{ return m_cost; }
-//			u32					Cost				()	const	{ return m_cost; }
-	virtual float				Weight				() 	const	{ return m_weight;}		
-	void						SetWeight(float w) { m_weight = w; };
+			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}
+	virtual	float				Cost				()	const;
+	virtual float				Weight				() 	const	{ return m_weight;}
+			void				SetWeight			(float w)	{ m_weight = w; }
+	virtual float				Volume				() 	const	{ return m_volume;}
+			void				SetVolume			(float v)	{ m_volume = v; }
+			shared_str			FullClass			(bool with_division = false);
+			bool				PercentCondition	() const	{ return m_bPercentCondition; }
 
 public:
 	CInventory*					m_pInventory;
 	shared_str					m_section_id;
+	shared_str					m_main_class;
+	shared_str					m_subclass;
+	shared_str					m_division;
 	shared_str					m_name;
 	shared_str					m_nameShort;
 	shared_str					m_nameComplex;
 	bool						m_highlight_equipped;
 
 	SInvItemPlace				m_ItemCurrPlace;
+	SInvItemPlace				m_ItemCurrPlaceBackup;
 
 
 	virtual void				OnMoveToSlot		(const SInvItemPlace& prev) {};
@@ -165,16 +174,19 @@ public:
 			Frect				GetKillMsgRect		() const;
 	//---------------------------------------------------------------------
 	IC		float				GetCondition		() const					{return m_fCondition;}
+			float				GetConditionToWork	() const;
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
 	IC		void				SetCondition		(float val)					{m_fCondition = val;}
 			void				ChangeCondition		(float fDeltaCondition);
 
 			u16					BaseSlot			()  const					{return m_ItemCurrPlace.base_slot_id;}
-			u16					CurrSlot			()  const					{return m_ItemCurrPlace.slot_id;}
+			u16					HandSlot			()  const					{return m_ItemCurrPlace.hand_slot_id;}
+			u16					CurrSlot			()  const					{return (m_ItemCurrPlace.type == eItemPlaceSlot) ? m_ItemCurrPlace.slot_id : NO_ACTIVE_SLOT;}
+			u16					CurrPocket			()  const					{return (m_ItemCurrPlace.type == eItemPlacePocket) ? m_ItemCurrPlace.slot_id : 0;}
 			u16					CurrPlace			()  const					{return m_ItemCurrPlace.type;}
 
-			bool				Belt				()							{return !!m_flags.test(Fbelt);}
-			void				Belt				(bool on_belt)				{m_flags.set(Fbelt,on_belt);}
+			bool				InHands				()	const;
+
 			bool				Ruck				()							{return !!m_flags.test(Fruck);}
 			void				Ruck				(bool on_ruck)				{m_flags.set(Fruck,on_ruck);}
 			bool				RuckDefault			()							{return !!m_flags.test(FRuckDefault);}
@@ -186,11 +198,18 @@ public:
 
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
+
+	float						GetControlInertionFactor() { return m_fControlInertionFactor; }
+
 protected:	
-	u32							m_cost;
+	float						m_cost;
+	float						m_cost_factor;
 	float						m_weight;
+	float						m_volume;
 	float						m_fCondition;
 	shared_str					m_Description;
+	bool						m_bPercentCondition;
+
 protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
 
@@ -308,12 +327,15 @@ public:
 protected:
 	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
 	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
+	
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, float& value, bool test);
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, int& value, bool test);
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, u32& value, bool test);
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, u8& value, bool test);
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, bool& value, bool test);
 
-	template <typename T>
-	IC static bool	process_if_exists			( LPCSTR section, LPCSTR name, T (CInifile::*method)(LPCSTR, LPCSTR)const, T& value, bool test );
-
-	template <typename T>
-	IC static bool	process_if_exists_set		( LPCSTR section, LPCSTR name, T (CInifile::*method)(LPCSTR, LPCSTR)const, T& value, bool test );
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, shared_str& value, bool test);
+			bool	process_if_exists			(LPCSTR section, LPCSTR name, LPCSTR& value, bool test);
 
 	void								net_Export_PH_Params			(NET_Packet& P, SPHNetState& State, mask_inv_num_items&	num_items);
 	void								net_Import_PH_Params			(NET_Packet& P, net_update_IItem& N, mask_inv_num_items& num_items);

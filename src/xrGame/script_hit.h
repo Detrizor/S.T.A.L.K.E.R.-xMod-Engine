@@ -15,7 +15,8 @@ class CScriptGameObject;
 
 class CScriptHit {
 public:
-	float				m_fPower; 
+	float				m_fMainDamage;
+	float				m_fPierceDamage;
 	Fvector				m_tDirection;
 	shared_str				m_caBoneName;
 	CScriptGameObject		*m_tpDraftsman;

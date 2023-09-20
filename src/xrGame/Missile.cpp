@@ -681,7 +681,7 @@ void	CMissile::net_Relcase(CObject* O)
 void CMissile::create_physic_shell	()
 {
 	//create_box2sphere_physic_shell();
-	CInventoryItemObject::CreatePhysicsShell();
+	CInventoryItemObjectOld::CreatePhysicsShell();
 }
 
 void CMissile::setup_physic_shell	()
@@ -740,7 +740,6 @@ void	 CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMt
 bool CMissile::GetBriefInfo( II_BriefInfo& info )
 {
 	info.clear();
-	info.name._set( m_nameShort );
 	return true;
 }
 

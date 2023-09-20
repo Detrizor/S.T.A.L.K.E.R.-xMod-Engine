@@ -14,10 +14,13 @@ protected:
 	bool	m_in_use;
 	bool	m_can_take;
 	bool	m_closed;
+	float	m_capacity;
 
 public:
 						CInventoryBox					();
 	virtual				~CInventoryBox					();
+
+	virtual		void	Load							(LPCSTR section);
 
 	virtual		void	OnEvent							(NET_Packet& P, u16 type);
 	virtual		BOOL	net_Spawn						(CSE_Abstract* DC);
@@ -28,13 +31,18 @@ public:
 	virtual		void	UpdateCL						();
 
 	IC			void	set_in_use						(bool status) { m_in_use = status; }
-	IC			bool	in_use							() const { return m_in_use; }
+	IC			bool	in_use							() const	{ return m_in_use; }
 				
 				void	set_can_take					(bool status);
-	IC			bool	can_take						() const { return m_can_take; }
+	IC			bool	can_take						() const	{ return m_can_take; }
 
 				void	set_closed						(bool status, LPCSTR reason);
-	IC			bool	closed							() const { return m_closed; }
+	IC			bool	closed							() const	{ return m_closed; }
+
+				float	CalcItemsWeight					();
+				float	CalcItemsVolume					();
+				float	GetCapacity						()			{ return m_capacity; }
+				void	SetCapacity						(float v)	{ m_capacity = v; }
 
 protected:
 				void	SE_update_status				();

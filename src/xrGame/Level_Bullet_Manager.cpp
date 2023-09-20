@@ -23,8 +23,8 @@
 #define HIT_POWER_EPSILON 0.05f
 #define WALLMARK_SIZE 0.04f
 
-float CBulletManager::m_fMinBulletSpeed				= 2.f;
-float const CBulletManager::parent_ignore_distance	= 3.f;
+float CBulletManager::m_fMinBulletSpeed					= 2.f;
+float const CBulletManager::parent_ignore_distance		= 3.f;
 
 #ifdef DEBUG
 	float air_resistance_epsilon					= .1f;
@@ -45,16 +45,15 @@ SBullet::~SBullet()
 void SBullet::Init(const Fvector& position,
 				   const Fvector& direction,
 				   float starting_speed,
-				   float power,
-//.				   float power_critical,
-				   float impulse,
 				   u16	sender_id,
 				   u16 sendersweapon_id,
 				   ALife::EHitType e_hit_type,
 				   float maximum_distance,
 				   const CCartridge& cartridge,
-				   float const air_resistance_factor,
-				   bool SendHit, int iShotNum)
+				   bool SendHit,
+				   float power,
+				   float impulse,
+				   int iShotNum)
 {
 	flags._storage			= 0;
 	bullet_pos 				= position;
@@ -66,14 +65,13 @@ void SBullet::Init(const Fvector& position,
 	start_velocity.mul		(direction, starting_speed);
 	born_time				= Device.dwTimeGlobal;
 	life_time				= 0.f;
+	
+	hit_param.impulse		= impulse;
+	hit_param.main_damage	= power;
 
 	VERIFY					(direction.magnitude() > 0.f);
 	dir.normalize			(direction);
 
-	hit_param.power			= power          * cartridge.param_s.kHit;
-	hit_param.impulse		= impulse        * cartridge.param_s.kImpulse;
-
-	max_dist				= maximum_distance * cartridge.param_s.kDist;
 	fly_dist				= 0;
 	tracer_start_position	= bullet_pos;
 
@@ -81,11 +79,15 @@ void SBullet::Init(const Fvector& position,
 	flags.allow_sendhit		= SendHit;
 	weapon_id				= sendersweapon_id;
 	hit_type				= e_hit_type;
-
-	armor_piercing			= cartridge.param_s.kAP;
-	air_resistance			= cartridge.param_s.kAirRes*air_resistance_factor;
-	wallmark_size			= cartridge.param_s.fWallmarkSize;
+	
+	air_resistance			= cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletAirResistanceScale;
+	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? (cartridge.param_s.fBulletResist * Level().BulletManager().m_fBulletWallMarkSizeScale) : cartridge.param_s.fWMS;
+	bullet_mass				= cartridge.param_s.fBulletMass * 0.001f;
+	bullet_resist			= cartridge.param_s.fBulletResist;
+	hollow_point			= cartridge.param_s.mHollowPoint;
 	m_u8ColorID				= cartridge.param_s.u8ColorID;
+	
+	max_dist				= (maximum_distance > 0.f) ? maximum_distance : (Level().BulletManager().m_fBulletFireDistanceScale * bullet_mass * pow(speed, 2) / air_resistance);
 
 	bullet_material_idx		= cartridge.bullet_material_idx;
 	VERIFY					( u16(-1) != bullet_material_idx );
@@ -104,7 +106,7 @@ void SBullet::Init(const Fvector& position,
 
 	init_frame_num			= Device.dwFrame;
 
-	targetID				= 0;	
+	targetID				= u16(-1);
 	density_mode			= 0;
 }
 
@@ -139,21 +141,37 @@ void CBulletManager::Load		()
 	m_fTracerWidth			= pSettings->r_float(bullet_manager_sect, "tracer_width");
 	m_fTracerLengthMax		= pSettings->r_float(bullet_manager_sect, "tracer_length_max");
 	m_fTracerLengthMin		= pSettings->r_float(bullet_manager_sect, "tracer_length_min");
-
 	m_fGravityConst			= pSettings->r_float(bullet_manager_sect, "gravity_const");
-	m_fAirResistanceK		= pSettings->r_float(bullet_manager_sect, "air_resistance_k");
-
 	m_fMinBulletSpeed		= pSettings->r_float(bullet_manager_sect, "min_bullet_speed");
 	m_fCollisionEnergyMin	= pSettings->r_float(bullet_manager_sect, "collision_energy_min");
 	m_fCollisionEnergyMax	= pSettings->r_float(bullet_manager_sect, "collision_energy_max");
 
 	m_fHPMaxDist			= pSettings->r_float(bullet_manager_sect, "hit_probability_max_dist");
 
-	if (pSettings->line_exist(bullet_manager_sect, "bullet_velocity_time_factor"))
-	{
-		g_bullet_time_factor	= pSettings->r_float(bullet_manager_sect, "bullet_velocity_time_factor");
-	}
+	m_fBulletAirResistanceScale		= pSettings->r_float(bullet_manager_sect, "air_resistance_scale");
+	m_fBulletWallMarkSizeScale		= pSettings->r_float(bullet_manager_sect, "wallmark_size_scale");
+	m_fBulletFireDistanceScale		= pSettings->r_float(bullet_manager_sect, "fire_distance_scale");
 
+	m_fBulletArmorPiercingScale			= pSettings->r_float(bullet_manager_sect, "armor_piercing_scale");
+	m_fBulletHollowPointAPFactor		= pSettings->r_float(bullet_manager_sect, "hollow_point_ap_factor");
+	m_fBulletHollowPointResistFactor	= pSettings->r_float(bullet_manager_sect, "hollow_point_resist_factor");
+	m_fBulletArmorPiercingLose			= pSettings->r_float(bullet_manager_sect, "armor_piercing_lose");
+
+	m_fBulletHitImpulseScale		= pSettings->r_float(bullet_manager_sect, "hit_impulse_scale");
+	m_fBulletArmorDamageScale		= pSettings->r_float(bullet_manager_sect, "armor_damage_scale");
+	
+	m_fBulletPierceDamageResistFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_resist_factor");
+	m_fBulletPierceDamageResistPower		= pSettings->r_float(bullet_manager_sect, "pierce_damage_resist_power");
+	m_fBulletPierceDamageSpeedFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_speed_factor");
+	m_fBulletPierceDamageSpeedPower			= pSettings->r_float(bullet_manager_sect, "pierce_damage_speed_power");
+	m_fBulletPierceDamageDensityFactor		= pSettings->r_float(bullet_manager_sect, "pierce_damage_density_factor");
+	m_fBulletPierceDamageDensityPower		= pSettings->r_float(bullet_manager_sect, "pierce_damage_density_power");
+
+	m_fBulletPierceDamageScale				= pSettings->r_float(bullet_manager_sect, "pierce_damage_scale");
+	m_fBulletPierceDamageArmorScale			= pSettings->r_float(bullet_manager_sect, "pierce_damage_armor_scale");
+
+	if (pSettings->line_exist(bullet_manager_sect, "bullet_velocity_time_factor"))
+		g_bullet_time_factor	= pSettings->r_float(bullet_manager_sect, "bullet_velocity_time_factor");
 
 	LPCSTR whine_sounds		= pSettings->r_string(bullet_manager_sect, "whine_sounds");
 	int cnt					= _GetItemCount(whine_sounds);
@@ -200,30 +218,23 @@ void CBulletManager::Clear		()
 void CBulletManager::AddBullet(const Fvector& position,
 							   const Fvector& direction,
 							   float starting_speed,
-							   float power,
-//.							   float power_critical,
-							   float impulse,
 							   u16	sender_id,
 							   u16 sendersweapon_id,
 							   ALife::EHitType e_hit_type,
 							   float maximum_distance,
 							   const CCartridge& cartridge,
-							   float const air_resistance_factor,
 							   bool SendHit,
-							   bool AimBullet,
+							   float power,
+							   float impulse,
 							   int iShotNum)
 {
 #ifdef DEBUG
 	VERIFY						( m_thread_id == GetCurrentThreadId() );
 #endif
 	VERIFY						(u16(-1)!=cartridge.bullet_material_idx);
-//	u32 CurID					= Level().CurrentControlEntity()->ID();
-//	u32 OwnerID					= sender_id;
 	m_Bullets.push_back			(SBullet());
 	SBullet& bullet				= m_Bullets.back();
-	bullet.Init					(position, direction, starting_speed, power, /*power_critical,*/ impulse, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, air_resistance_factor, SendHit, iShotNum);
-//	bullet.frame_num			= Device.dwFrame;
-	bullet.flags.aim_bullet		= AimBullet;
+	bullet.Init					(position, direction, starting_speed, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit, power, impulse, iShotNum);
 }
 
 void CBulletManager::UpdateWorkload()
@@ -1064,6 +1075,9 @@ void CBulletManager::RegisterEvent			(EventType Type, BOOL _dynamic, SBullet* bu
 	}
 #endif // #ifdef DEBUG
 
+	if (_dynamic && (bullet->targetID == R.O->ID()))
+		return;
+
 	m_Events.push_back	(_event())		;
 	_event&	E		= m_Events.back()	;
 	E.Type			= Type				;
@@ -1077,23 +1091,7 @@ void CBulletManager::RegisterEvent			(EventType Type, BOOL _dynamic, SBullet* bu
 			E.point			= end_point			;
 			E.R				= R					;
 			E.tgt_material	= tgt_material		;
-			
 			ObjectHit( &E.hit_result, bullet, end_point, R, tgt_material, E.normal );
-			
-			if (_dynamic)	
-			{
-				//	E.Repeated = (R.O->ID() == E.bullet.targetID);
-				//	bullet->targetID = R.O->ID();
-
-				E.Repeated = (R.O->ID() == E.bullet.targetID);
-				//Alun: Enable BonePassBullet for singleplayer, good for bullets going through finger bones
-				if (bullet->targetID != R.O->ID())
-				{
-					CGameObject* pGO = smart_cast<CGameObject*>(R.O);
-					if (!pGO || !pGO->BonePassBullet(R.element))
-						bullet->targetID = R.O->ID();						
-				}
-			};
 		}break;
 	case EVENT_REMOVE:
 		{

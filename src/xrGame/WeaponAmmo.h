@@ -5,22 +5,19 @@
 
 struct SCartridgeParam
 {
-	float	kDist, kDisp, kHit/*, kCritical*/, kImpulse, kAP, kAirRes, kBulletSpeed;
+	float	kDisp, kBulletSpeed, impair, fBulletMass, fBulletResist, fWMS;
 	int		buckShot;
-	float	impair;
-	float	fWallmarkSize;
 	u8		u8ColorID;
+	bool	mHollowPoint;
 
 	IC void Init()
 	{
-		kDist = kDisp = kHit = kImpulse = kBulletSpeed = 1.0f;
-//		kCritical = 0.0f;
-		kAP       = 0.0f;
-		kAirRes   = 0.0f;
-		buckShot  = 1;
-		impair    = 1.0f;
-		fWallmarkSize = 0.0f;
-		u8ColorID     = 0;
+		kDisp = kBulletSpeed = impair = 1.0f;
+		fBulletMass = fBulletResist = 0.0f;
+		fWMS = -1.f;
+		buckShot		= 1;
+		u8ColorID		= 0;
+		mHollowPoint	= false;
 	}
 };
 
@@ -30,6 +27,7 @@ public:
 	CCartridge();
 	void Load(LPCSTR section, u8 LocalAmmoType);
 	float Weight() const;
+	float Volume() const;
 
 	shared_str	m_ammoSect;
 	enum{
@@ -47,7 +45,6 @@ public:
 	u16		bullet_material_idx;
 	Flags8	m_flags;
 
-	shared_str	m_InvShortName;
 	virtual void				DumpActiveParams		(shared_str const & section_name, CInifile & dst_ini) const;
 	virtual shared_str const 	GetAnticheatSectionName	() const { return m_ammoSect; };
 };
@@ -72,7 +69,8 @@ public:
 
 	virtual bool					Useful				() const;
 	virtual float					Weight				() const;
-	virtual	u32						Cost				() const;
+	virtual float					Volume				() const;
+	virtual	float					Cost				() const;
 
 	bool							Get					(CCartridge &cartridge);
 

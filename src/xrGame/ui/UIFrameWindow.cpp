@@ -9,7 +9,8 @@ void draw_rect(Fvector2 LTp, Fvector2 RBp, Fvector2 LTt, Fvector2 RBt, u32 clr, 
 CUIFrameWindow::CUIFrameWindow()
 :m_bTextureVisible(false)
 {
-	m_texture_color	= color_argb(255,255,255,255);
+	m_texture_color		= color_argb(255,255,255,255);
+	m_outer				= false;
 }
 
 void CUIFrameWindow::SetWndSize(const Fvector2& sz)
@@ -43,7 +44,7 @@ void  CUIFrameWindow::InitTextureEx(LPCSTR texture, LPCSTR  sh_name)
 {
 	dbg_tex_name				= texture;
 	m_bTextureVisible			= true;
-	string256		buf;
+	string256 buf;
 	CUITextureMaster::InitTexture(strconcat(sizeof(buf), buf, texture,"_back"),	sh_name, m_shader, m_tex_rect[fmBK]);
 	CUITextureMaster::InitTexture(strconcat(sizeof(buf), buf, texture,"_l"),	sh_name, m_shader, m_tex_rect[fmL]);
 	CUITextureMaster::InitTexture(strconcat(sizeof(buf), buf, texture,"_r"),	sh_name, m_shader, m_tex_rect[fmR]);
@@ -69,6 +70,25 @@ void  CUIFrameWindow::InitTextureEx(LPCSTR texture, LPCSTR  sh_name)
 
 	R_ASSERT2(fsimilar(m_tex_rect[fmRT].width(), m_tex_rect[fmR].width()),texture );
 	R_ASSERT2(fsimilar(m_tex_rect[fmRT].width(), m_tex_rect[fmRB].width()),texture );
+
+	Fvector2 pos				= GetWndPos();
+	Fvector2 size				= GetWndSize();
+	if (m_outer)
+	{
+		float dx				= UI_BASE_WIDTH / (float)Device.dwWidth;
+		float dy				= UI_BASE_HEIGHT / (float)Device.dwHeight;
+
+		float left_width		= m_tex_rect[fmL].width();
+		pos.x					-= left_width * dx;
+		float right_width		= m_tex_rect[fmR].width();
+		size.x					+= (left_width + right_width) * dx;
+		float top_height		= m_tex_rect[fmT].height();
+		pos.y					-= top_height * dy;
+		float bottom_height		= m_tex_rect[fmB].height();
+		size.y					+= (top_height + bottom_height) * dy;
+	}
+	SetWndPos					(pos);
+	SetWndSize					(size);
 }
 
 void CUIFrameWindow::InitTexture(LPCSTR texture)

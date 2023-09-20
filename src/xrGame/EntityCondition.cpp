@@ -10,8 +10,12 @@
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "object_broker.h"
-#include "ActorHelmet.h"
 #include "ActorBackpack.h"
+#include "ai/monsters/basemonster/base_monster.h"
+#include "actor.h"
+#include "artefact.h"
+
+#define DAMAGE_MANAGER_SECTION "damage_manager"
 
 #define MAX_HEALTH 1.0f
 #define MIN_HEALTH -0.01f
@@ -20,6 +24,25 @@
 #define MAX_POWER 1.0f
 #define MAX_RADIATION 1.0f
 #define MAX_PSY_HEALTH 1.0f
+
+#define ARMOR_HIT_TYPE(type) (type == ALife::eHitTypeFireWound || type == ALife::eHitTypeStrike || type == ALife::eHitTypeWound)
+
+#define OUTFIT_MAIN_BONE 11
+#define HELMET_MAIN_BONE 15
+
+static const float DAMAGE_RESISTANCE_FACTOR				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "damage_resistance_factor");
+static const float DAMAGE_RESISTANCE_POWER				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "damage_resistance_power");
+static const float MASS_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_damage_resistance_factor");
+static const float MASS_DAMAGE_RESISTANCE_POWER			= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_damage_resistance_power");
+static const float ARMOR_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_damage_resistance_factor");
+static const float ARMOR_DAMAGE_RESISTANCE_POWER		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_damage_resistance_power");
+static const float ARMOR_PROTECTION_FACTOR				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_protection_factor");
+static const float ARMOR_PROTECTION_POWER				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_protection_power");
+
+static const float MASS_EXPL_FACTOR						= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_expl_factor");
+static const float MASS_EXPL_POWER						= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_expl_power");
+static const float EXPL_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "expl_damage_resistance_factor");
+static const float EXPL_DAMAGE_RESISTANCE_POWER			= pSettings->r_float(DAMAGE_MANAGER_SECTION, "expl_damage_resistance_power");
 
 CEntityConditionSimple::CEntityConditionSimple()
 {
@@ -57,19 +80,6 @@ CEntityCondition::CEntityCondition(CEntityAlive *object)
 	m_fHealthHitPart		= 1.0f;
 	m_fPowerHitPart			= 0.5f;
 
-	m_fBoostBurnImmunity			= 0.f;
-	m_fBoostShockImmunity			= 0.f;
-	m_fBoostRadiationImmunity		= 0.f;
-	m_fBoostTelepaticImmunity		= 0.f;
-	m_fBoostChemicalBurnImmunity	= 0.f;
-	m_fBoostExplImmunity			= 0.f;
-	m_fBoostStrikeImmunity			= 0.f;
-	m_fBoostFireWoundImmunity		= 0.f;
-	m_fBoostWoundImmunity			= 0.f;
-	m_fBoostRadiationProtection		= 0.f;
-	m_fBoostTelepaticProtection		= 0.f;
-	m_fBoostChemicalBurnProtection	= 0.f;
-
 	m_fDeltaHealth			= 0;
 	m_fDeltaPower			= 0;
 	m_fDeltaRadiation		= 0;
@@ -86,8 +96,8 @@ CEntityCondition::CEntityCondition(CEntityAlive *object)
 	m_fInvulnerableTime		= 0;
 	m_fInvulnerableTimeDelta= 0;
 
-	m_fHitBoneScale			= 1.f;
-	m_fWoundBoneScale		= 1.f;
+	m_fArmorDamageBoneScale	= 1.f;
+	m_fPierceDamageBoneScale= 1.f;
 
 	m_bIsBleeding			= false;
 	m_bCanBeHarmed			= true;
@@ -328,42 +338,195 @@ void CEntityCondition::UpdateCondition()
 	clamp						(m_fPsyHealth,		0.0f,		m_fPsyHealthMax);
 }
 
-
-
-float CEntityCondition::HitOutfitEffect(float hit_power, ALife::EHitType hit_type, s16 element, float ap, bool& add_wound)
+CCustomOutfit* CEntityCondition::GetOutfit()
 {
-    CInventoryOwner* pInvOwner = smart_cast<CInventoryOwner*>(m_object);
-	if(!pInvOwner)
-		return hit_power;
+	CInventoryOwner* pInvOwner	= smart_cast<CInventoryOwner*>(m_object);
+	return						(pInvOwner) ? pInvOwner->GetOutfit() : false;
+}
 
-	CCustomOutfit* pOutfit = (CCustomOutfit*)pInvOwner->inventory().ItemFromSlot(OUTFIT_SLOT);
-	CHelmet* pHelmet = (CHelmet*)pInvOwner->inventory().ItemFromSlot(HELMET_SLOT);
-	if(!pOutfit && !pHelmet)
-		return hit_power;
+CHelmet* CEntityCondition::GetHelmet()
+{
+	CInventoryOwner* pInvOwner	= smart_cast<CInventoryOwner*>(m_object);
+	return						(pInvOwner) ? pInvOwner->GetHelmet() : false;
+}
 
-	float new_hit_power = hit_power;
-	if(pOutfit)
-		new_hit_power = pOutfit->HitThroughArmor(hit_power, element, ap, add_wound, hit_type);
+float CEntityCondition::GetArtefactArmor()
+{
+	CActor* actor = smart_cast<CActor*>(m_object);
+	if (actor)
+	{
+		float armor = 0.f;
+		for (TIItemContainer::iterator it = actor->inventory().m_all.begin(), it_e = actor->inventory().m_all.end(); it != it_e; ++it)
+		{
+			CArtefact* artefact = smart_cast<CArtefact*>(*it);
+			if (artefact && artefact->IsActivated())
+				armor += artefact->GetArmor();
+		}
+		return armor;
+	}
+	return 0.f;
+}
 
-	if(pHelmet)
-		new_hit_power = pHelmet->HitThroughArmor(new_hit_power, element, ap, add_wound, hit_type);
+float CEntityCondition::GetBoneArmor(u16 element)
+{
+	CCustomOutfit* pOutfit = GetOutfit();
+	CHelmet* pHelmet = GetHelmet();
+	if (!pOutfit && !pHelmet)
+	{
+		CBaseMonster* pBaseMonster = smart_cast<CBaseMonster*>(m_object);
+		return pBaseMonster ? pBaseMonster->GetSkinArmor() : 0.f;
+	}
 
-	if(bDebug)	
-		Msg("new_hit_power = %.3f  hit_type = %s  ap = %.3f", new_hit_power, ALife::g_cafHitType2String(hit_type), ap);
+	float bone_armor = -1.f, cond = 0.f;
+	if (pHelmet)
+	{
+		bone_armor = pHelmet->GetBoneArmor(element);
+		cond = pHelmet->GetConditionToWork();
+	}
+	if (bone_armor == -1.f)
+	{
+		bone_armor = pOutfit->GetBoneArmor(element);
+		cond = pOutfit->GetConditionToWork();
+	}
+	bone_armor *= (bone_armor == -1.f) ? 0.f : sqrt(cond);
+	bone_armor += GetArtefactArmor();
 
-	return new_hit_power;
+	return bone_armor;
+}
+
+void CEntityCondition::HitProtectionEffect(SHit* pHDS)
+{
+    CInventoryOwner* pInvOwner		= smart_cast<CInventoryOwner*>(m_object);
+	if (!pInvOwner)
+	{
+		CBaseMonster* pMonster		= smart_cast<CBaseMonster*>(m_object);
+		if (pMonster)
+			HitThroughArmor			(pHDS, pMonster->GetSkinArmor());
+		return;
+	}
+
+	CCustomOutfit* outfit			= pInvOwner->GetOutfit();
+	CHelmet* helmet					= pInvOwner->GetHelmet();
+	bool armor_type					= ARMOR_HIT_TYPE(pHDS->hit_type);
+	if (armor_type)
+	{
+		if (!HitThroughGear(pHDS, outfit, 11, armor_type))
+			HitThroughGear			(pHDS, helmet, HELMET_MAIN_BONE, armor_type);
+	}
+	else
+	{
+		HitThroughGear				(pHDS, outfit, OUTFIT_MAIN_BONE, armor_type);
+		if (outfit->bIsHelmetAvaliable)
+			HitThroughGear			(pHDS, helmet, HELMET_MAIN_BONE, armor_type);
+	}
+}
+
+template<typename T>
+bool CEntityCondition::HitThroughGear(SHit* pHDS, T pGear, u16 main_bone, bool armor_type)
+{
+	if (pGear)
+	{
+		float bone_armor		= pGear->GetBoneArmor((pHDS->boneID == 0) ? main_bone : pHDS->boneID);
+		if (armor_type && bone_armor == -1.f)
+			return				false;
+		else
+		{
+			bone_armor			*= sqrt(pGear->GetConditionToWork());
+			bone_armor			+= GetArtefactArmor();
+			HitThroughArmor		(pHDS, bone_armor, smart_cast<CCustomOutfit*>(pGear), smart_cast<CHelmet*>(pGear));
+		}
+	}
+	else
+		HitThroughArmor(pHDS, 0.f);
+	return true;
+}
+
+void CEntityCondition::HitThroughArmor(SHit* pHDS, float bone_armor, CCustomOutfit* pOutfit, CHelmet* pHelmet)
+{
+	ALife::EHitType& hit_type				= pHDS->hit_type;
+	if (ARMOR_HIT_TYPE(hit_type))
+	{
+		ALife::EHitType& pierce_hit_type	= pHDS->pierce_hit_type;
+		pierce_hit_type						= hit_type;
+		hit_type							= ALife::eHitTypeStrike;
+		float& armor_damage					= pHDS->main_damage;
+		float& pierce_damage				= pHDS->pierce_damage;
+		float& pierce_damage_armor			= pHDS->pierce_damage_armor;
+		if (pierce_hit_type == ALife::eHitTypeWound)
+		{
+			float ap						= armor_damage * 10.f;
+			float armor_factor				= ((ap < bone_armor) ? 1.f : (0.5f * bone_armor / ap));
+			armor_damage					*= armor_factor;
+			pierce_damage_armor				= armor_damage * (1.f - armor_factor);
+			pierce_damage					= pierce_damage_armor * 1.5f;
+		}
+		float armor_damage_resistance		= pow(1.f + ARMOR_DAMAGE_RESISTANCE_FACTOR * bone_armor, -ARMOR_DAMAGE_RESISTANCE_POWER);
+		float damage_resistance				= pow(1.f + DAMAGE_RESISTANCE_FACTOR * bone_armor, -DAMAGE_RESISTANCE_POWER);
+		if (pOutfit)
+		{
+			pOutfit->Hit					(armor_damage * armor_damage_resistance, hit_type);
+			pOutfit->Hit					(pierce_damage_armor, pierce_hit_type);
+		}
+		else if (pHelmet)
+		{
+			pHelmet->Hit					(armor_damage * armor_damage_resistance, hit_type);
+			pHelmet->Hit					(pierce_damage_armor, pierce_hit_type);
+		}
+		else
+			damage_resistance				= pow(MASS_DAMAGE_RESISTANCE_FACTOR * pSettings->r_float(m_object->cNameSect(), "ph_mass"), -MASS_DAMAGE_RESISTANCE_POWER);
+		armor_damage						*= damage_resistance;
+		armor_damage						*= m_fArmorDamageBoneScale;
+		pierce_damage						*= m_fPierceDamageBoneScale;
+	}
+	else if (hit_type == ALife::eHitTypeExplosion)
+	{
+		float armor							= 0.f;
+		float armor2						= (pHelmet) ? 0.1f * pHelmet->GetBoneArmor(HELMET_MAIN_BONE) : 0.f;
+		if (pOutfit)
+		{
+			armor							= pOutfit->GetBoneArmor(OUTFIT_MAIN_BONE);
+			if (!pOutfit->bIsHelmetAvaliable)
+				armor2						= armor * 0.1f;
+		}
+		armor								+= GetArtefactArmor();
+		if (smart_cast<CBaseMonster*>(m_object))
+			armor							= pow(MASS_EXPL_FACTOR * pSettings->r_float(m_object->cNameSect(), "ph_mass"), MASS_EXPL_POWER);
+		if (armor > 0.f)
+			ExplProcess						(pHDS->main_damage, armor, pOutfit, pHelmet, hit_type);
+		if (armor2 > 0.f)
+			ExplProcess						(pHDS->main_damage, armor2, pOutfit, pHelmet, hit_type);
+	}
+	else
+	{
+		float protection					= (pOutfit) ? pOutfit->GetHitTypeProtection(hit_type) : ((pHelmet) ? pHelmet->GetHitTypeProtection(hit_type) : 0.f);
+		if (protection > 0.f)
+		{
+			float& damage					= pHDS->main_damage;				
+			protection						*= 0.1f;
+			float resistance				=  pow(1.f + ARMOR_PROTECTION_FACTOR * protection, -ARMOR_PROTECTION_POWER);
+			if (pOutfit)
+				pOutfit->Hit				(damage * resistance, hit_type);
+			else
+				pHelmet->Hit				(damage * resistance, hit_type);
+			damage							-= protection;
+			if (damage < 0.f)
+				damage						= 0.f;
+		}
+	}
+}
+
+void CEntityCondition::ExplProcess(float& damage, float& armor, CCustomOutfit* pOutfit, CHelmet* pHelmet, ALife::EHitType& hit_type)
+{
+	damage					*= pow(1.f + EXPL_DAMAGE_RESISTANCE_FACTOR * armor, -EXPL_DAMAGE_RESISTANCE_POWER);
+	if (pOutfit)
+		pOutfit->Hit		(damage * 0.1f, hit_type);
+	else if (pHelmet)
+		pHelmet->Hit		(damage * 0.1f, hit_type);
 }
 
 float CEntityCondition::HitPowerEffect(float power_loss)
 {
-	CInventoryOwner* pInvOwner		 = smart_cast<CInventoryOwner*>(m_object);
-	if(!pInvOwner)					 return power_loss;
-
-	CCustomOutfit* pOutfit			= pInvOwner->GetOutfit();
-	CHelmet* pHelmet = (CHelmet*)pInvOwner->inventory().ItemFromSlot(HELMET_SLOT);
-	CBackpack* pBackpack = (CBackpack*)pInvOwner->inventory().ItemFromSlot(BACKPACK_SLOT);
-	
-	return power_loss * (0.5f +(pOutfit?pOutfit->m_fPowerLoss:EPS) + (pHelmet?pHelmet->m_fPowerLoss:EPS) + (pBackpack?pBackpack->m_fPowerLoss:EPS));
+	return power_loss;
 }
 
 CWound* CEntityCondition::AddWound(float hit_power, ALife::EHitType hit_type, u16 element)
@@ -401,105 +564,90 @@ CWound* CEntityCondition::AddWound(float hit_power, ALife::EHitType hit_type, u1
 
 CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 {
-	//кто нанес последний хит
-	m_pWho = pHDS->who;
-	m_iWhoID = (NULL != pHDS->who) ? pHDS->who->ID() : 0;
-
-	bool bAddWound = pHDS->add_wound;
+	m_pWho					= pHDS->who;
+	m_iWhoID				= (m_pWho) ? m_pWho->ID() : 0;
+	if (!CanBeHarmed())
+		return				NULL;
 	
-	float hit_power_org = pHDS->damage();
-	float hit_power = hit_power_org;
-	hit_power = HitOutfitEffect( hit_power_org, pHDS->hit_type, pHDS->boneID, pHDS->armor_piercing, bAddWound );
+	HitProtectionEffect		(pHDS);
+	float main_damage		= pHDS->main_damage * GetHitImmunity(pHDS->hit_type) * m_fHealthHitPart;
+
+	float					d_neural, d_outer, d_inner, d_radiation;
+	d_neural = d_outer = d_inner = d_radiation = main_damage;
 
 	switch(pHDS->hit_type)
 	{
 	case ALife::eHitTypeTelepatic:
-		hit_power -= m_fBoostTelepaticProtection;
-		if(hit_power < 0.f)
-			hit_power = 0.f;
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostTelepaticImmunity;
-		ChangePsyHealth(-hit_power);
-		m_fHealthLost = hit_power*m_fHealthHitPart;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
-		bAddWound		=  false;
+		d_neural			*= 1.f;
+		d_outer				*= 0.f;
+		d_inner				*= 0.f;
+		d_radiation			*= 0.f;
 		break;
-	case ALife::eHitTypeLightBurn:
 	case ALife::eHitTypeBurn:
-		hit_power *= GetHitImmunity(ALife::eHitTypeBurn)-m_fBoostBurnImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart*m_fHitBoneScale;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
-//		bAddWound		=  is_special_hit_2_self;
-		bAddWound		=  false;
+		d_neural			*= 1.f;
+		d_outer				*= 1.f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
 		break;
 	case ALife::eHitTypeChemicalBurn:
-		hit_power -= m_fBoostChemicalBurnProtection;
-		if(hit_power < 0.f)
-			hit_power = 0.f;
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostChemicalBurnImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
-		bAddWound		=  false;
+		d_neural			*= 1.f;
+		d_outer				*= 0.75f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
 		break;
 	case ALife::eHitTypeShock:
-		hit_power		*= GetHitImmunity(pHDS->hit_type)-m_fBoostShockImmunity;
-		m_fHealthLost	=  hit_power*m_fHealthHitPart;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower	-= hit_power*m_fPowerHitPart;
-		bAddWound		=  false;
+		d_neural			*= 1.f;
+		d_outer				*= 0.25f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
 		break;
 	case ALife::eHitTypeRadiation:
-		hit_power			-= m_fBoostRadiationProtection;
-		if(hit_power < 0.f)
-			hit_power = 0.f;
-		hit_power			*= GetHitImmunity(pHDS->hit_type)-m_fBoostRadiationImmunity;
-		m_fDeltaRadiation	+= hit_power;
-		bAddWound			=  false;
-		return NULL;
+		d_neural			*= 0.f;
+		d_outer				*= 0.f;
+		d_inner				*= 0.f;
+		d_radiation			*= 1.f;
 		break;
 	case ALife::eHitTypeExplosion:
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostExplImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
+		d_neural			*= 1.f;
+		d_outer				*= 0.25f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
 		break;
 	case ALife::eHitTypeStrike:
-//	case ALife::eHitTypePhysicStrike:
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostStrikeImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
-		bAddWound		=  false;
-		break;
-	case ALife::eHitTypeFireWound:
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostFireWoundImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart*m_fHitBoneScale;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
-		break;
-	case ALife::eHitTypeWound:
-		hit_power *= GetHitImmunity(pHDS->hit_type)-m_fBoostWoundImmunity;
-		m_fHealthLost = hit_power*m_fHealthHitPart*m_fHitBoneScale;
-		m_fDeltaHealth -= CanBeHarmed() ? m_fHealthLost : 0;
-		m_fDeltaPower -= hit_power*m_fPowerHitPart;
+		d_neural			*= 1.f;
+		d_outer				*= 0.5f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
 		break;
 	default:
-		{
-			R_ASSERT2(0,"unknown hit type");
-		}break;
+		R_ASSERT2			(0, "unknown hit type");
+		break;
+	}
+
+	float& pierce_damage	= pHDS->pierce_damage;
+	if (pierce_damage > 0.f)
+	{
+		pierce_damage		*= GetHitImmunity(pHDS->pierce_hit_type) * m_fHealthHitPart;
+		d_neural			+= pierce_damage;
+		d_outer				+= pierce_damage;
+		d_inner				+= pierce_damage;
+	}
+
+	if (m_object->cast_actor())
+	{
+		luabind::functor<void>funct;
+		ai().script_engine().functor("actor_condition_manager.process_hit", funct);
+		funct(d_neural, d_outer, d_inner, d_radiation);
+	}
+	else
+	{
+		m_fHealthLost		= d_neural;
+		m_fDeltaHealth		-= m_fHealthLost;
 	}
 
 	//раны добавляются только живому
-	if( bAddWound && GetHealth()>0 )
-	{
-		return AddWound(hit_power*m_fWoundBoneScale, pHDS->hit_type, pHDS->boneID);
-	}else{
-		return NULL;
-	}
+	return /*(add_wound && (GetHealth() > 0)) ? AddWound(hit_power, pHDS->hit_type, pHDS->boneID) : */NULL;
 }
-
 
 float CEntityCondition::BleedingSpeed()
 {
@@ -508,10 +656,8 @@ float CEntityCondition::BleedingSpeed()
 	for(WOUND_VECTOR_IT it = m_WoundVector.begin(); m_WoundVector.end() != it; ++it)
 		bleeding_speed			+= (*it)->TotalSize();
 	
-	
 	return (m_WoundVector.empty() ? 0.f : bleeding_speed / m_WoundVector.size());
 }
-
 
 void CEntityCondition::UpdateHealth()
 {
@@ -664,28 +810,7 @@ void SMedicineInfluenceValues::Load(const shared_str& sect)
 
 void SBooster::Load(const shared_str& sect, EBoostParams type)
 {
-	fBoostTime = pSettings->r_float(sect.c_str(), "boost_time");
-	m_type = type;
-	switch(type)
-	{
-		case eBoostHpRestore: fBoostValue = pSettings->r_float(sect.c_str(), "boost_health_restore"); break;
-		case eBoostPowerRestore: fBoostValue = pSettings->r_float(sect.c_str(), "boost_power_restore"); break;
-		case eBoostRadiationRestore: fBoostValue = pSettings->r_float(sect.c_str(), "boost_radiation_restore"); break;
-		case eBoostBleedingRestore: fBoostValue = pSettings->r_float(sect.c_str(), "boost_bleeding_restore"); break;
-		case eBoostMaxWeight: fBoostValue = pSettings->r_float(sect.c_str(), "boost_max_weight"); break;
-		case eBoostBurnImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_burn_immunity"); break;
-		case eBoostShockImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_shock_immunity"); break;
-		case eBoostRadiationImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_radiation_immunity"); break;
-		case eBoostTelepaticImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_telepat_immunity"); break;
-		case eBoostChemicalBurnImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_chemburn_immunity"); break;
-		case eBoostExplImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_explosion_immunity"); break;
-		case eBoostStrikeImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_strike_immunity"); break;
-		case eBoostFireWoundImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_fire_wound_immunity"); break;
-		case eBoostWoundImmunity: fBoostValue = pSettings->r_float(sect.c_str(), "boost_wound_immunity"); break;
-		case eBoostRadiationProtection: fBoostValue = pSettings->r_float(sect.c_str(), "boost_radiation_protection"); break;
-		case eBoostTelepaticProtection: fBoostValue = pSettings->r_float(sect.c_str(), "boost_telepat_protection"); break;
-		case eBoostChemicalBurnProtection: fBoostValue = pSettings->r_float(sect.c_str(), "boost_chemburn_protection"); break;
-		default: NODEFAULT;	
-	}
+	fBoostTime		= pSettings->r_float(sect, "boost_time");
+	fBoostValue		= pSettings->r_float(sect, ef_boosters_section_names[type]);
+	m_type			= type;
 }
-

@@ -38,16 +38,17 @@ bool  CUIActorMenu::AllowItemDrops(EDDListType from, EDDListType to)
 
 	return(it!=v.end());
 }
+
 class CUITrashIcon :public ICustomDrawDragItem
 {
 	CUIStatic			m_icon;
 public:
-	CUITrashIcon		()
+	CUITrashIcon		(LPCSTR texture)
 	{
-		m_icon.SetWndSize		(Fvector2().set(29.0f*UI().get_current_kx(), 36.0f));
+		m_icon.SetWndSize		(Fvector2().set(25.f * UI().get_current_kx(), 25.0f));
 		m_icon.SetStretchTexture(true);
 //		m_icon.SetAlignment		(waCenter);
-		m_icon.InitTexture		("ui_inGame2_inv_trash");
+		m_icon.InitTexture		(texture);
 	}
 	virtual void		OnDraw		(CUIDragItem* drag_item)
 	{
@@ -62,25 +63,65 @@ public:
 //		m_icon.SetWndSize(sz);
 		m_icon.Draw		();
 	}
-
 };
-void CUIActorMenu::OnDragItemOnTrash(CUIDragItem* item, bool b_receive)
+
+void CUIActorMenu::OnDragItemOnTrash(CUIDragItem* di, bool b_receive)
 {
-	if(b_receive && !CurrentIItem()->IsQuestItem())
-		item->SetCustomDraw(xr_new<CUITrashIcon>());
-	else
-		item->SetCustomDraw(NULL);
+	CUICellItem* ci					= di->ParentItem();
+	if (ci->OwnerList() != m_pTrashList && ci->m_pData)
+	{
+		if (b_receive && !CurrentIItem()->IsQuestItem())
+			di->SetCustomDraw		(xr_new<CUITrashIcon>("ui_inGame2_inv_trash"));
+		else
+			di->SetCustomDraw		(NULL);
+	}
 }
 
+void CUIActorMenu::OnDragItemOnPocket(CUIDragItem* di, bool b_receive)
+{
+	CUICellItem* ci						= di->ParentItem();
+	CUIDragDropListEx* list				= di->BackList();
+	if (ci->OwnerList() != list && ci->m_pData)
+	{
+		u16 idx							= GetPocketIdx(list);
+		if (b_receive && m_pActorInvOwner->inventory().PocketPresent(idx))
+		{
+			if (m_pActorInvOwner->inventory().CanPutInPocket((PIItem)ci->m_pData, idx))
+				di->SetCustomDraw		(xr_new<CUITrashIcon>("ui_inGame2_pocket_fit"));
+			else
+				di->SetCustomDraw		(xr_new<CUITrashIcon>("ui_inGame2_pocket_not_fit"));
+		}
+		else
+			di->SetCustomDraw			(NULL);
+	}
+}
+
+extern bool TryCustomUse(PIItem item);
 bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 {
 	InfoCurItem( NULL );
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	CUIDragDropListEx*	new_owner		= CUIDragDropListEx::m_drag_item->BackList();
-	if (!old_owner || !new_owner )
+	
+	CUIDragDropListEx* left_hand		= m_pInvList[LEFT_HAND_SLOT];
+	CUIDragDropListEx* right_hand		= m_pInvList[RIGHT_HAND_SLOT];
+	CUIDragDropListEx* both_hands		= m_pInvList[BOTH_HANDS_SLOT];
+	if (itm->m_pData && (new_owner == left_hand || new_owner == right_hand || new_owner == both_hands))
 	{
-		return false;
+		if (old_owner == left_hand || old_owner == right_hand || old_owner == both_hands)
+			return						true;
+		u16 hand_slot					= PIItem(itm->m_pData)->HandSlot();
+		if (both_hands->ItemsCount() == 1 || hand_slot == BOTH_HANDS_SLOT)
+			new_owner					= both_hands;
+		else if (!left_hand->ItemsCount() && !right_hand->ItemsCount())
+			new_owner					= m_pInvList[hand_slot];
+		else if (new_owner == both_hands)
+			new_owner					= left_hand;
 	}
+
+	if (!old_owner || !new_owner )
+		return false;
+
 	EDDListType t_new		= GetListType(new_owner);
 	EDDListType t_old		= GetListType(old_owner);
 
@@ -90,7 +131,8 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 		return true;
 	}
 
-	if (old_owner == new_owner){
+	if (old_owner == new_owner)
+	{
 		//Alundaio: Here we export the action of dragging one inventory item ontop of another! 
 		luabind::functor<bool> funct1;
 		if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemDropped", funct1))
@@ -120,60 +162,76 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 		return false;
 	}
 
+	PIItem item				= CurrentIItem();
+	bool ho					= (smart_cast<CCustomOutfit*>(item) || smart_cast<CHelmet*>(item));
+	bool ho_equipped		= (ho && item->CurrSlot() == item->BaseSlot());
 	switch(t_new)
 	{
 	case iTrashSlot:
+		if (item->IsQuestItem() || ho_equipped)
+			return true;
+		
+		if (t_old == iDeadBodyBag)
 		{
-			if(CurrentIItem()->IsQuestItem())
-				return true;
-
-			if(t_old==iQuickSlot)	
-			{
-				old_owner->RemoveItem(itm, false);
-				return true;
-			}
-			SendEvent_Item_Drop		(CurrentIItem(), m_pActorInvOwner->object_id());
-			SetCurrentItem			(NULL);
-		}break;
+			ToBag(itm, false);
+			m_pActorInvOwner->inventory().m_iToDropID = item->object_id();
+		}
+		else
+			SendEvent_Item_Drop(item, m_pActorInvOwner->object_id());
+		SetCurrentItem(NULL);
+		break;
 	case iActorSlot:
+		u16 slot_to_place;
+		if (CanSetItemToList(item, new_owner, slot_to_place))
 		{
-			//.			if(GetSlotList(CurrentIItem()->GetSlot())==new_owner)
-			u16 slot_to_place;
-			if( CanSetItemToList(CurrentIItem(), new_owner, slot_to_place) )
-				ToSlot	(itm, true, slot_to_place);
-		}break;
+			if (slot_to_place == item->HandSlot())
+			{
+				if (m_pActorInvOwner->inventory().CanPutInSlot(item, slot_to_place))
+				{
+					if (ho_equipped)
+						TryCustomUse(item);
+					else
+						ActivateItem(itm);
+				}
+			}
+			else if (ho)
+				TryCustomUse(item);
+			else
+				ToSlot(itm, false, slot_to_place);
+		}
+		break;
 	case iActorBag:
+		if (!ho_equipped)
+			ToBag(itm, true);
+		break;
+	case iActorPocket:
+		if (!ho_equipped)
 		{
-			ToBag	(itm, true);
-		}break;
-	case iActorBelt:
-		{
-			ToBelt	(itm, true);
-		}break;
+			Ivector2 cells		= new_owner->CellsCapacity();
+			Ivector2 grid		= itm->GetGridSize();
+			if (cells.x >= grid.x)
+				ToPocket(itm, true, GetPocketIdx(new_owner));
+		}
+		break;
 	case iActorTrade:
-		{
+		if (!ho_equipped)
 			ToActorTrade(itm, true);
-		}break;
+		break;
 	case iPartnerTrade:
-		{
-			if(t_old!=iPartnerTradeBag)	
-				return false;
-			ToPartnerTrade(itm, true);
-		}break;
+		if (t_old != iPartnerTradeBag)
+			return false;
+		ToPartnerTrade(itm, true);
+		break;
 	case iPartnerTradeBag:
-		{
-			if(t_old!=iPartnerTrade)	
-				return false;
-			ToPartnerTradeBag(itm, true);
-		}break;
+		if (t_old != iPartnerTrade)
+			return false;
+		ToPartnerTradeBag(itm, true);
+		break;
 	case iDeadBodyBag:
-		{
-			ToDeadBodyBag(itm, true);
-		}break;
-	case iQuickSlot:
-		{
-			ToQuickSlot(itm);
-		}break;
+		if (t_old == iTrashSlot)
+			ToBag(itm, false);
+		ToDeadBodyBag(itm, true);
+		break;
 	};
 
 	OnItemDropped(CurrentIItem(), new_owner, old_owner);
@@ -219,89 +277,59 @@ bool CUIActorMenu::OnItemStartDrag(CUICellItem* itm)
 
 bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 {
-	SetCurrentItem(itm);
-	InfoCurItem( NULL );
-	CUIDragDropListEx*	old_owner		= itm->OwnerList();
-	EDDListType t_old					= GetListType(old_owner);
+	SetCurrentItem					(itm);
+	InfoCurItem						(NULL);
+	CUIDragDropListEx* old_owner	= itm->OwnerList();
+	EDDListType t_old				= GetListType(old_owner);
+	PIItem item						= (PIItem)itm->m_pData;
 
-	switch ( t_old )
+	switch (t_old)
 	{
 	case iActorSlot:
+	{
+		u16 slot_id = item->CurrSlot();
+		if (slot_id == item->BaseSlot() && slot_id != OUTFIT_SLOT && slot_id != HELMET_SLOT)
 		{
-			if ( m_currMenuMode == mmDeadBodySearch )
-				ToDeadBodyBag	( itm, false );
-			else
-				ToBag			( itm, false );
-			break;
+			if (m_pActorInvOwner->inventory().CanPutInSlot(item, item->HandSlot()))
+				ActivateItem(itm);
 		}
+		else
+			TryCustomUse(item);
+		break;
+	}
 	case iActorBag:
-		{
-			if ( m_currMenuMode == mmTrade )
-			{
-				ToActorTrade( itm, false );
-				break;
-			}else
-				if ( m_currMenuMode == mmDeadBodySearch )
-				{
-					ToDeadBodyBag( itm, false );
-					break;
-				}
-				if(m_currMenuMode!=mmUpgrade && TryUseItem( itm ))
-				{
-					break;
-				}
-				if ( TryActiveSlot( itm ) )
-				{
-					break;
-				}
-				PIItem iitem_to_place = (PIItem)itm->m_pData;
-				if (!m_pActorInvOwner->inventory().SlotIsPersistent(iitem_to_place->BaseSlot()) && m_pActorInvOwner->inventory().ItemFromSlot(iitem_to_place->BaseSlot()) == iitem_to_place)
-				{
-					ToBag(itm, false);
-				}
-				else if ( !ToSlot( itm, false, iitem_to_place->BaseSlot() ) )
-				{
-					if ( !ToBelt( itm, false ) )
-					{
-						ToSlot( itm, true, iitem_to_place->BaseSlot() );
-					}
-				}
-				break;
-		}
-	case iActorBelt:
-		{
-			ToBag( itm, false );
-			break;
-		}
+		if (m_currMenuMode == mmTrade)
+			ToActorTrade			(itm, false);
+		else if (m_currMenuMode == mmDeadBodySearch)
+			ToDeadBodyBag			(itm, false);
+		else if (m_pActorInvOwner->inventory().CanPutInSlot(item, item->HandSlot()))
+			m_pActorInvOwner->inventory().ActivateItem(item);
+		break;
+	case iActorPocket:
+		if (m_currMenuMode == mmTrade)
+			ToActorTrade			(itm, false);
+		else if (m_currMenuMode == mmDeadBodySearch)
+			ToDeadBodyBag			(itm, false);
+		else if (m_pActorInvOwner->inventory().CanPutInSlot(item, item->HandSlot()))
+			m_pActorInvOwner->inventory().ActivateItem(item);
+		break;
 	case iActorTrade:
-		{
-			ToBag( itm, false );
-			break;
-		}
+		ToBag						(itm, false);
+		break;
 	case iPartnerTradeBag:
-		{
-			ToPartnerTrade( itm, false );
-			break;
-		}
+		ToPartnerTrade				(itm, false);
+		break;
 	case iPartnerTrade:
-		{
-			ToPartnerTradeBag( itm, false );
-			break;
-		}
+		ToPartnerTradeBag			(itm, false);
+		break;
+	case iTrashSlot:
 	case iDeadBodyBag:
-		{
-			ToBag( itm, false );
-			break;
-		}
-	case iQuickSlot:
-		{
-			ToQuickSlot(itm);
-		}break;
-
+		ToBag						(itm, false);
+		break;
 	}; //switch 
 
-	UpdateConditionProgressBars();
-	UpdateItemsPlace();
+	UpdateConditionProgressBars		();
+	UpdateItemsPlace				();
 
 	return true;
 }
@@ -418,21 +446,11 @@ bool CUIActorMenu::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 			OnPressUserKey();
 		}
 		return true;
-	}	
+	}
 
-	if ( is_binded(kUSE, dik) || is_binded(kINVENTORY, dik) )
+	if ((is_binded(kUSE, dik) || is_binded(kINVENTORY, dik)) && m_currMenuMode != mmInventory)
 	{
-		if ( WINDOW_KEY_PRESSED == keyboard_action )
-		{
-			g_btnHint->Discard();
-			HideDialog();
-		}
-		return true;
-	}	
-
-	if ( is_binded(kQUIT, dik) )
-	{
-		if ( WINDOW_KEY_PRESSED == keyboard_action )
+		if (WINDOW_KEY_PRESSED == keyboard_action)
 		{
 			g_btnHint->Discard();
 			HideDialog();
@@ -440,9 +458,17 @@ bool CUIActorMenu::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 		return true;
 	}
 
-	if( inherited::OnKeyboardAction(dik,keyboard_action) )return true;
+	if (is_binded(kINVENTORY, dik) || is_binded(kQUIT, dik))
+	{
+		if (WINDOW_KEY_PRESSED == keyboard_action)
+		{
+			g_btnHint->Discard();
+			HideDialog();
+		}
+		return true;
+	}
 
-	return false;
+	return inherited::OnKeyboardAction(dik, keyboard_action);
 }
 
 void CUIActorMenu::OnPressUserKey()

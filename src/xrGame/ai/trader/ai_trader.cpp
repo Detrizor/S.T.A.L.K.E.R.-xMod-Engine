@@ -37,16 +37,10 @@ CAI_Trader::~CAI_Trader()
 
 void CAI_Trader::Load(LPCSTR section)
 {
-	//	setEnabled						(FALSE);
 	inherited::Load					(section);
-
-	//fHealth							= pSettings->r_float	(section,"Health");
 	SetfHealth( pSettings->r_float	(section,"Health") );
-
-	float max_weight = pSettings->r_float	(section,"max_item_mass");
-	inventory().SetMaxWeight(max_weight*1000);
-	//	inventory().SetMaxRuck(1000000);
 	inventory().CalcTotalWeight();
+	inventory().CalcTotalVolume();
 }
 
 void CAI_Trader::reinit	()
@@ -374,15 +368,9 @@ DLL_Pure *CAI_Trader::_construct	()
 	return						(this);
 }
 
-bool CAI_Trader::AllowItemToTrade 	(CInventoryItem const * item, const SInvItemPlace& place) const
+bool CAI_Trader::AllowItemToTrade(const shared_str& section, const SInvItemPlace& place) const
 {
-	if (!g_Alive())
-		return					(true);
-
-	if (item->object().CLS_ID == CLSID_DEVICE_PDA)
-		return					(false);
-
-	return						(CInventoryOwner::AllowItemToTrade(item,place));
+	return						(!g_Alive()) ? true : (CInventoryOwner::AllowItemToTrade(section, place));
 }
 
 void CAI_Trader::dialog_sound_start(LPCSTR phrase)

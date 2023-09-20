@@ -15,6 +15,8 @@
 #include "CameraRecoil.h"
 #include "actor.h"
 
+#define ZOOM_DELTA pSettings->r_float("weapon_manager", "zoom_delta")
+
 class CEntity;
 class ENGINE_API CMotionDef;
 class CSE_ALifeItemWeapon;
@@ -37,6 +39,8 @@ public:
 
     // Generic
     virtual void			Load(LPCSTR section);
+
+			void			InitRotateTime();
 
     virtual BOOL			net_Spawn(CSE_Abstract* DC);
     virtual void			net_Destroy();
@@ -195,11 +199,11 @@ public:
     //для отоброажения иконок апгрейдов в интерфейсе
     int	GetScopeX()
     {
-        return pSettings->r_s32(m_scopes[m_cur_scope], "scope_x");
+		return pSettings->r_s32(m_scopes_sect[m_cur_scope], "scope_x");
     }
     int	GetScopeY()
     {
-        return pSettings->r_s32(m_scopes[m_cur_scope], "scope_y");
+		return pSettings->r_s32(m_scopes_sect[m_cur_scope], "scope_y");
     }
     int	GetSilencerX()
     {
@@ -224,7 +228,7 @@ public:
     }
     const shared_str GetScopeName() const
     {
-        return pSettings->r_string(m_scopes[m_cur_scope], "scope_name");
+        return m_scopes[m_cur_scope];
     }
     const shared_str& GetSilencerName() const
     {
@@ -244,6 +248,10 @@ public:
     {
         m_flagsAddOnState = st;
     }//dont use!!! for buy menu only!!!
+
+	float	GetBulletSpeed		()		{ return m_fStartBulletSpeed; }
+	float	GetRPM				()		{ return 60.f / fOneShotTime; }
+
 protected:
     //состояние подключенных аддонов
     u8 m_flagsAddOnState;
@@ -264,7 +272,10 @@ protected:
     int	m_iGrenadeLauncherX, m_iGrenadeLauncherY;
 
 protected:
+    float			m_fRTZoomFactor; //run-time zoom factor
+    CUIWindow*		m_UIScope;
 
+public:
     struct SZoomParams
     {
         bool			m_bZoomEnabled;			//разрешение режима приближения
@@ -275,24 +286,19 @@ protected:
         float			m_fCurrentZoomFactor;	//текущий фактор приближения
         float			m_fZoomRotateTime;		//время приближения
 
-        float			m_fIronSightZoomFactor;	//коэффициент увеличения прицеливания
         float			m_fScopeZoomFactor;		//коэффициент увеличения прицела
+        float			m_fScopeMinZoomFactor;
 
         float			m_fZoomRotationFactor;
 
         Fvector			m_ZoomDof;
         Fvector4		m_ReloadDof;
         Fvector4		m_ReloadEmptyDof; //Swartz: reload when empty mag. DOF
-        BOOL			m_bUseDynamicZoom;
         shared_str		m_sUseZoomPostprocess;
         shared_str		m_sUseBinocularVision;
         CBinocularsVision*		m_pVision;
         CNightVisionEffector*	m_pNight_vision;
     } m_zoom_params;
-
-    float			m_fRTZoomFactor; //run-time zoom factor
-    CUIWindow*		m_UIScope;
-public:
 
     IC bool					IsZoomEnabled()	const
     {
@@ -316,16 +322,14 @@ public:
 		return m_zoom_params.m_bHideCrosshairInZoom || ZoomTexture();
     }
 
-    IC float				GetZoomFactor() const
-    {
-        return m_zoom_params.m_fCurrentZoomFactor;
-    }
-    IC void					SetZoomFactor(float f)
-    {
-        m_zoom_params.m_fCurrentZoomFactor = f;
-    }
+    IC float				CurrentZoomFactor		() const		{ return m_zoom_params.m_fCurrentZoomFactor; }
+    IC void					SetCurrentZoom			(float f)		{ m_zoom_params.m_fCurrentZoomFactor = f; }
 
-    virtual	float			CurrentZoomFactor();
+	virtual	float			GetZoomFactor		();
+			void			SetZoomFactor		(float f);
+	virtual	float			GetMinZoomFactor	();
+			void			SetMinZoomFactor	(float f);
+
     //показывает, что оружие находится в соостоянии поворота для приближенного прицеливания
     bool			IsRotatingToZoom() const
     {
@@ -334,8 +338,9 @@ public:
 
     virtual	u8				GetCurrentHudOffsetIdx();
 
-    virtual float				Weight() const;
-    virtual	u32					Cost() const;
+	virtual float				Weight() const;
+	virtual float				Volume() const;
+			bool				CanTrade() const;
 public:
     virtual EHandDependence		HandDependence()	const
     {
@@ -548,12 +553,15 @@ public:
     {
         return iMagazineSize;
     }
-    int						GetSuitableAmmoTotal(bool use_item_to_spawn = false) const;
+    int						GetSuitableAmmoTotal	(bool use_item_to_spawn = false) const;
 
-    void					SetAmmoElapsed(int ammo_count);
+    void					SetAmmoElapsed			(int ammo_count);
 
-    virtual void			OnMagazineEmpty();
-    void			SpawnAmmo(u32 boxCurr = 0xffffffff,
+	u8						MagazineIndex			()			{ return iMagazineIndex; }
+	void					SetMagazineIndex		(u8 index)	{ iMagazineIndex = index; }
+
+    virtual void			OnMagazineEmpty			();
+    void					SpawnAmmo				(u32 boxCurr = 0xffffffff,
         LPCSTR ammoSect = NULL,
         u32 ParentID = 0xffffffff);
     bool			SwitchAmmoType(u32 flags);
@@ -589,6 +597,7 @@ public:
 protected:
     int						iAmmoElapsed;		// ammo in magazine, currently
     int						iMagazineSize;		// size (in bullets) of magazine
+	u8						iMagazineIndex;
 
     //для подсчета в GetSuitableAmmoTotal
     mutable int				m_iAmmoCurrentTotal;
@@ -598,27 +607,15 @@ protected:
     virtual bool			IsNecessaryItem(const shared_str& item_sect);
 
 public:
-    xr_vector<shared_str>	m_ammoTypes;
-    /*
-        struct SScopes
-        {
-        shared_str			m_sScopeName;
-        int					m_iScopeX;
-        int					m_iScopeY;
-        };
-        DEFINE_VECTOR(SScopes*, SCOPES_VECTOR, SCOPES_VECTOR_IT);
-        SCOPES_VECTOR			m_scopes;
-
-        u8						cur_scope;
-        */
+	xr_vector<shared_str>	m_ammoTypes;
+	xr_vector<shared_str>	m_magazineTypes;
 
     DEFINE_VECTOR(shared_str, SCOPES_VECTOR, SCOPES_VECTOR_IT);
     SCOPES_VECTOR			m_scopes;
-    u8						m_cur_scope;
+    SCOPES_VECTOR			m_scopes_sect;
+	u8						m_cur_scope;
 
-    CWeaponAmmo*			m_pCurrentAmmo;
     u8						m_ammoType;
-    //-	shared_str				m_ammoName; <== deleted
     bool					m_bHasTracers;
     u8						m_u8TracerColorID;
     u8						m_set_next_ammoType_on_reload;
@@ -634,6 +631,7 @@ public:
     };
 
     float					GetMagazineWeight(const decltype(m_magazine)& mag) const;
+	u8						m_magColors;
 
 protected:
     u32						m_ef_main_weapon_type;
@@ -647,8 +645,8 @@ public:
 	int						GetAmmoCount_forType(shared_str const& ammo_type) const;
 	virtual void			set_ef_main_weapon_type(u32 type){ m_ef_main_weapon_type = type; };
 	virtual void			set_ef_weapon_type(u32 type){ m_ef_weapon_type = type; };
-	virtual void			SetAmmoType(u8 type) { m_ammoType = type; };
-	u8						GetAmmoType() { return m_ammoType; };
+	virtual void			SetAmmoType(u8 type) { m_ammoType = type - 1; };
+	u8						GetAmmoType() { return m_ammoType + 1; };
 	//-Alundaio
 
 protected:
@@ -669,10 +667,13 @@ public:
     virtual BOOL			ParentIsActor();
 
 private:
-    virtual	bool			install_upgrade_ammo_class(LPCSTR section, bool test);
-    bool			install_upgrade_disp(LPCSTR section, bool test);
-    bool			install_upgrade_hit(LPCSTR section, bool test);
-    bool			install_upgrade_addon(LPCSTR section, bool test);
+    virtual	bool			install_upgrade_ammo_class		(LPCSTR section, bool test);
+    bool					install_upgrade_disp			(LPCSTR section, bool test);
+    bool					install_upgrade_hit				(LPCSTR section, bool test);
+    bool					install_upgrade_addon			(LPCSTR section, bool test);
+
+	bool					process_if_exists_deg2rad		(LPCSTR section, LPCSTR name, float& value, bool test);
+
 protected:
     virtual bool			install_upgrade_impl(LPCSTR section, bool test);
 

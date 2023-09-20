@@ -46,6 +46,8 @@ public:
 			int			CurrentID				()	{return m_itoken_id;}
 			void		disable_id				(int id);
 			void		enable_id				(int id);
+			void		ClearList				();
+
 protected:
 	virtual bool		OnMouseAction					(float x, float y, EUIMessages mouse_action);
 	virtual void		OnBtnClicked			();
@@ -53,7 +55,6 @@ protected:
 			void		OnListItemSelect		();
 	virtual void		Update					();
 	virtual void		Draw					();
-			void		ClearList				();
 
 			u32			GetSize					();
 

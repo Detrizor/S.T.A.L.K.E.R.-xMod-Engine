@@ -99,6 +99,7 @@ static	void	_BCL		BoneCallback			(CBoneInstance *B);
 	virtual bool			use_bolts				() const;
 	virtual	void			spawn_supplies			();
 
+	xr_vector<shared_str>	supplies_list;
 
 	virtual	bool			bfAssignSound			(CScriptEntityAction *tpEntityAction);
 
@@ -130,7 +131,7 @@ public:
 	virtual bool			unlimited_ammo			()	{return false;};
 	virtual bool			natural_weapon			() const {return false;}
 	virtual bool			natural_detector		() const {return false;}
-	virtual bool			AllowItemToTrade 		(CInventoryItem const * item, const SInvItemPlace& place) const;
+	virtual bool			AllowItemToTrade 		(const shared_str& section, const SInvItemPlace& place) const;
 
 			void			dialog_sound_start		(LPCSTR phrase);
 			void			dialog_sound_stop		();

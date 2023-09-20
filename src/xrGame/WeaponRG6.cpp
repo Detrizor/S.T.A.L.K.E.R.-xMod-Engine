@@ -136,16 +136,14 @@ void CWeaponRG6::FireStart ()
 	}
 }
 
-u8 CWeaponRG6::AddCartridge		(u8 cnt)
+bool CWeaponRG6::AddCartridge()
 {
-	u8 t = inheritedSG::AddCartridge(cnt);
-	u8 k = cnt-t;
-	shared_str fake_grenade_name = pSettings->r_string(m_ammoTypes[m_ammoType].c_str(), "fake_grenade_name");
-	while(k){
-		--k;
-		inheritedRL::SpawnRocket(*fake_grenade_name, this);
+	if (inheritedSG::AddCartridge())
+	{
+		inheritedRL::SpawnRocket	(pSettings->r_string(m_ammoTypes[m_ammoType].c_str(), "fake_grenade_name"), this);
+		return						true;
 	}
-	return k;
+	return							false;
 }
 
 void CWeaponRG6::OnEvent(NET_Packet& P, u16 type) 

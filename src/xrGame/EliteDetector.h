@@ -31,8 +31,22 @@ public:
 	virtual void 	OnH_B_Independent			(bool just_before_destroy);
 	virtual void 	shedule_Update				(u32 dt);
 	virtual LPCSTR	ui_xml_tag					() const {return "scientific";}
+
 protected:
 	virtual void	UpfateWork					();
 	CZoneList		m_zones;
+	
+    virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
+
+public:
+	bool			bZonesEnabled;
+	float			m_fAfDetectRadiusBase;
+	float			m_fAfVisRadiusBase;
+	float			m_fAfDetectRadiusFactor;
+	u8				m_iAfDetectRadiusPowersNum;
+	u8				m_iAfDetectRadiusCurPower;
+	
+    virtual bool	Action			(u16 cmd, u32 flags);
+	void			ChangeLevel		(bool increase);
 };
 

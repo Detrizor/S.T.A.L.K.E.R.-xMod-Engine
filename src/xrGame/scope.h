@@ -11,9 +11,19 @@
 class CScope : public CInventoryItemObject {
 private:
 	typedef CInventoryItemObject inherited;
+
+protected:
+	virtual bool	install_upgrade_impl(LPCSTR section, bool test);
+
 public:
-			CScope ();
-	virtual ~CScope();
+					CScope		();
+	virtual			~CScope		();
+	virtual void	Load		(LPCSTR section);
+
+	float			m_fScopeZoomFactor;
+	float			m_fScopeMinZoomFactor;
+	shared_str		m_bScopeAliveDetector;
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CScope)

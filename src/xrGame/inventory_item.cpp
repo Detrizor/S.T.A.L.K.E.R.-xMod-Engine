@@ -26,6 +26,9 @@
 #include "object_broker.h"
 #include "../xrEngine/igame_persistent.h"
 
+#include "ai/trader/ai_trader.h"
+#include "inventory.h"
+
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -43,7 +46,6 @@ net_updateInvData* CInventoryItem::NetSync()
 CInventoryItem::CInventoryItem()
 {
 	m_net_updateData = NULL;
-	m_flags.set(Fbelt, FALSE);
 	m_flags.set(Fruck, TRUE);
 	m_flags.set(FRuckDefault, TRUE);
 	m_pInventory = NULL;
@@ -54,6 +56,7 @@ CInventoryItem::CInventoryItem()
 	m_can_trade = TRUE;
 	m_flags.set(FCanTrade, m_can_trade);
 	m_flags.set(FUsingCondition, FALSE);
+	m_flags.set(FShowFullCondition, FALSE);
 	m_fCondition = 1.0f;
 
 	m_name = m_nameShort = NULL;
@@ -61,10 +64,16 @@ CInventoryItem::CInventoryItem()
 	m_ItemCurrPlace.value = 0;
 	m_ItemCurrPlace.type = eItemPlaceUndefined;
 	m_ItemCurrPlace.base_slot_id = NO_ACTIVE_SLOT;
+	m_ItemCurrPlace.hand_slot_id = NO_ACTIVE_SLOT;
 	m_ItemCurrPlace.slot_id = NO_ACTIVE_SLOT;
+
+	m_ItemCurrPlaceBackup.type = eItemPlaceUndefined;
 
 	m_Description = "";
 	m_section_id = 0;
+	m_main_class = 0;
+	m_subclass = 0;
+	m_division = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
 }
@@ -94,43 +103,71 @@ CInventoryItem::~CInventoryItem()
 
 void CInventoryItem::Load(LPCSTR section)
 {
-	CHitImmunity::LoadImmunities(pSettings->r_string(section, "immunities_sect"), pSettings);
+	CHitImmunity::LoadImmunities	(pSettings->r_string(section, "immunities_sect"), pSettings);
 
-	ISpatial*			self = smart_cast<ISpatial*> (this);
-	if (self)			self->spatial.type |= STYPE_VISIBLEFORAI;
+	ISpatial*						self = smart_cast<ISpatial*> (this);
+	if (self)						self->spatial.type |= STYPE_VISIBLEFORAI;
 
-	m_section_id._set(section);
-	m_name = CStringTable().translate(pSettings->r_string(section, "inv_name"));
-	m_nameShort = CStringTable().translate(pSettings->r_string(section, "inv_name_short"));
+	m_section_id._set				(section);
+	m_main_class._set				(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"));
+	m_subclass._set					(READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil"));
+	m_division._set					(READ_IF_EXISTS(pSettings, r_string, section, "division", "nil"));
+	m_name							= CStringTable().translate(pSettings->r_string(section, "inv_name"));
+	m_nameShort._set				(pSettings->line_exist(section, "inv_name_short") ? CStringTable().translate(pSettings->r_string(section, "inv_name_short")) : m_name);
+	m_Description._set				(pSettings->line_exist(section, "description") ? CStringTable().translate(pSettings->r_string(section, "description")) : "");
 
-	m_weight = pSettings->r_float(section, "inv_weight");
-	R_ASSERT(m_weight >= 0.f);
+	m_weight						= pSettings->r_float(section, "inv_weight");
+	R_ASSERT						(m_weight >= 0.f);
+	m_volume						= READ_IF_EXISTS(pSettings, r_float, section, "inv_volume", 0.f);
 
-	m_cost = pSettings->r_u32(section, "cost");
-	u32 sl = pSettings->r_u32(section, "slot");
-	m_ItemCurrPlace.base_slot_id = (sl == -1) ? 0 : (sl + 1);
+	LPCSTR sl						= pSettings->r_string(section, "slot");
+	m_ItemCurrPlace.base_slot_id	= pSettings->r_u16("slot_ids", sl);
+	sl								= READ_IF_EXISTS(pSettings, r_string, section, "hand_slot", "none");
+	m_ItemCurrPlace.hand_slot_id	= pSettings->r_u16("slot_ids", sl);
 
-	m_Description = CStringTable().translate(pSettings->r_string(section, "description"));
-
-	m_flags.set(Fbelt, READ_IF_EXISTS(pSettings, r_bool, section, "belt", FALSE));
-	m_can_trade = READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
-	m_flags.set(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
-	m_flags.set(FCanTrade, m_can_trade);
-	m_flags.set(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
-	m_flags.set(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
+	m_can_trade						= READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
+	m_flags.set						(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
+	m_flags.set						(FCanTrade, m_can_trade);
+	m_flags.set						(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
+	m_flags.set						(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
+	m_flags.set						(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
+	m_flags.set						(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
+	m_bPercentCondition				= !!READ_IF_EXISTS(pSettings, r_bool, section, "percent_condition", false);
 
-	m_highlight_equipped = !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
+	m_highlight_equipped			= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
+	m_icon_name						= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
 
-	if (BaseSlot() != NO_ACTIVE_SLOT || Belt())
+	if (BaseSlot() != NO_ACTIVE_SLOT || HandSlot() != NO_ACTIVE_SLOT)
 	{
-		m_flags.set(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
-		m_flags.set(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
-		m_fControlInertionFactor = pSettings->r_float(section, "control_inertion_factor");
+		m_flags.set					(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
+		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
+		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
 	}
-	m_icon_name = READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
+	
+	m_cost_factor					= READ_IF_EXISTS(pSettings, r_float, section, "cost_factor", 1.f);
+	if (pSettings->line_exist("costs", section))
+		m_cost						= pSettings->r_float("costs", section);
+	else if (pSettings->line_exist(section, "cost"))
+		m_cost						= pSettings->r_float(section, "cost");
+	else
+	{
+		if (FullClass() == "ammo.box")
+		{
+			LPCSTR ammo_section		= pSettings->r_string(section, "ammo_section");
+			float uses				= pSettings->r_float(section, "max_uses");
+			m_cost					= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost", 0.f) * uses;
+			m_cost_factor			= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost_factor", 1.f);
+		}
+		else
+			m_cost					= 0.f;
+	}
+}
 
+float  CInventoryItem::GetConditionToWork() const
+{
+	float condition		= 0.2f + m_fCondition;
+	return				(condition < 1.f) ? condition : 1.f;
 }
 
 void  CInventoryItem::ChangeCondition(float fDeltaCondition)
@@ -138,7 +175,6 @@ void  CInventoryItem::ChangeCondition(float fDeltaCondition)
 	m_fCondition += fDeltaCondition;
 	clamp(m_fCondition, 0.f, 1.f);
 }
-
 
 void	CInventoryItem::Hit(SHit* pHDS)
 {
@@ -357,6 +393,7 @@ void CInventoryItem::save(NET_Packet &packet)
 {
 	packet.w_u16(m_ItemCurrPlace.value);
 	packet.w_float(m_fCondition);
+
 	//--	save_data				(m_upgrades, packet);
 
 	if (object().H_Parent()) {
@@ -1257,14 +1294,10 @@ ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
 		return 0;
 }
 
-bool	CInventoryItem::CanTrade() const
+bool CInventoryItem::CanTrade() const
 {
-	bool res = true;
-#pragma todo("Dima to Andy : why CInventoryItem::CanTrade can be called for the item, which doesn't have owner?")
-	if (m_pInventory)
-		res = inventory_owner().AllowItemToTrade(this, m_ItemCurrPlace);
-
-	return (res && m_flags.test(FCanTrade) && !IsQuestItem());
+	bool res	= inventory_owner().AllowItemToTrade(m_section_id, m_ItemCurrPlace);
+	return		(res && m_flags.test(FCanTrade) && !IsQuestItem());
 }
 
 Frect CInventoryItem::GetKillMsgRect() const
@@ -1331,4 +1364,43 @@ void CInventoryItem::SetDropManual(BOOL val)
 bool CInventoryItem::has_network_synchronization() const
 {
 	return false;
+}
+
+bool CInventoryItem::CanStack() const
+{
+	return (m_flags.test(FCanStack) > 0);
+}
+
+shared_str CInventoryItem::FullClass(bool with_division)
+{
+	shared_str			result;
+	LPCSTR main_class	= m_main_class.c_str();
+	LPCSTR subclass		= m_subclass.c_str();
+	LPCSTR division		= m_division.c_str();
+	result.printf		((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
+	return				result;
+}
+
+shared_str FullClass(LPCSTR section, bool with_division)
+{
+	shared_str				result;
+	LPCSTR main_class		= READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil");
+	LPCSTR subclass			= READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
+	LPCSTR division			= READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
+	result.printf			((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
+	return					result;
+}
+
+bool CInventoryItem::InHands() const
+{
+	CObject* parent = object().H_Parent();
+	if (!parent)
+		return false;
+	CInventoryOwner* io = smart_cast<CInventoryOwner*>(parent);
+	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
+}
+
+float CInventoryItem::Cost() const
+{
+	return m_cost * m_cost_factor;
 }

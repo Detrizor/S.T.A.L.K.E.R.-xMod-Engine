@@ -55,16 +55,17 @@ protected:
 
     virtual void	UpdateSounds();
 
-    bool			TryReload();
-
 protected:
-    virtual void	ReloadMagazine();
-    void	ApplySilencerKoeffs();
-    void	ResetSilencerKoeffs();
+    virtual void	ReloadMagazine		();
+	u8				FindAmmoClass		(LPCSTR section, bool set = false);
+	u8				FindMagazineClass	(LPCSTR section, bool set = false);
+    void			ApplySilencerKoeffs	();
+    void			ResetSilencerKoeffs	();
 
     virtual void	state_Fire(float dt);
     virtual void	state_MagEmpty(float dt);
     virtual void	state_Misfire(float dt);
+
 public:
     CWeaponMagazined(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN);
     virtual			~CWeaponMagazined();
@@ -80,6 +81,7 @@ public:
     virtual void	FireStart();
     virtual void	FireEnd();
     virtual void	Reload();
+	virtual void	StartReload();
 
     virtual	void	UpdateCL();
     virtual void	net_Destroy();
@@ -96,11 +98,21 @@ public:
 
     virtual void	InitAddons();
 
-    virtual bool	Action(u16 cmd, u32 flags);
-    bool			IsAmmoAvailable();
-    virtual void	UnloadMagazine(bool spawn_ammo = true);
+    virtual bool	Action			(u16 cmd, u32 flags);
+    bool			IsAmmoAvailable	();
+	virtual void	Discharge		(bool spawn_ammo = true);
+			void	UnloadMagazine	();
+	virtual bool	LoadMagazine	(CEatableItem* mag);
+	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
+
+			int		Chamber			()		{ return int(m_bHasChamber && (MagazineElapsed() > 0)); }
+			LPCSTR	GetMagazine		(bool with_chamber = true);
+			void	SetMagazine		(LPCSTR data, bool with_chamber = true);
 
     virtual bool	GetBriefInfo(II_BriefInfo& info);
+
+	virtual	xr_vector<CCartridge>&		Magazine();
+			u32							MagazineElapsed();
 
 public:
     virtual bool	SwitchMode();
@@ -149,7 +161,12 @@ protected:
 
     //переменная блокирует использование
     //только разных типов патронов
-    bool m_bLockType;
+	bool			m_bLockType;
+	CWeaponAmmo*	m_pCurrentAmmo;
+
+	u16				m_toReloadID;
+	bool			m_bHasChamber;
+	PIItem			GetToReload()	{ return (m_toReloadID != u16(-1)) ? m_pInventory->get_object_by_id(m_toReloadID) : NULL; }
 
 public:
     virtual void	OnZoomIn();

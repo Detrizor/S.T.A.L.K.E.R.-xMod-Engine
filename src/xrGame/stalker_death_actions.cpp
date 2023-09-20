@@ -69,9 +69,11 @@ void CStalkerActionDead::initialize		()
 	object().inventory().Action			(kWPN_FIRE,CMD_START);
 
 	u16 active_slot						= object().inventory().GetActiveSlot();
-	if (active_slot == INV_SLOT_3) {
+	if (active_slot == PRIMARY_SLOT)
+	{
 		CInventoryItem*					item = object().inventory().ItemFromSlot(active_slot);
-		if (item) {
+		if (item)
+		{
 			CWeaponMagazined*			weapon = smart_cast<CWeaponMagazined*>(item);
 			VERIFY						(weapon);
 			weapon->SetQueueSize		(weapon->GetAmmoElapsed());

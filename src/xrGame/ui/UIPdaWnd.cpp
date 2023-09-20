@@ -166,6 +166,16 @@ void CUIPdaWnd::Update()
 	m_clock->TextItemControl().SetText(InventoryUtilities::GetGameTimeAsString(InventoryUtilities::etpTimeToMinutes).c_str());
 
 	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(pUILogsWnd,&CUILogsWnd::PerformWork));
+
+	CActor* actor = smart_cast<CActor*>(Level().CurrentEntity());
+	if (actor)
+	{
+		PIItem active_item = actor->inventory().ActiveItem();
+		if (!(active_item && READ_IF_EXISTS(pSettings, r_bool, active_item->m_section_id, "pda_trigger", false) && active_item->GetCondition() > 0.f))
+			HideDialog();
+	}
+	else
+		HideDialog();
 }
 
 void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
@@ -337,7 +347,7 @@ bool CUIPdaWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 {
 	if (WINDOW_KEY_PRESSED == keyboard_action && IsShown())
 	{
-		if (is_binded(kACTIVE_JOBS, dik))
+		if (is_binded(kUSE, dik))
 		{
 			HideDialog();
 			return true;

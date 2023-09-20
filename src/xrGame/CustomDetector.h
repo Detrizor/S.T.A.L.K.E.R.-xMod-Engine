@@ -147,10 +147,13 @@ public:
 	void			ToggleDetector		(bool bFastMode);
 	void			HideDetector		(bool bFastMode);
 	void			ShowDetector		(bool bFastMode);
-	float			m_fAfDetectRadius;
 	virtual bool	CheckCompatibility	(CHudItem* itm);
 
 	virtual u32		ef_detector_type	() const	{return 1;};
+
+	float			m_fAfDetectRadius;
+	float			m_fAfVisRadius;
+
 protected:
 			bool	CheckCompatibilityInt		(CHudItem* itm, u16* slot_to_activate);
 			void 	TurnDetectorInternal		(bool b);
@@ -159,9 +162,10 @@ protected:
 	virtual void	UpfateWork					();
 	virtual void 	UpdateAf					()				{};
 	virtual void 	CreateUI					()				{};
+	
+    virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
 
 	bool			m_bWorking;
-	float			m_fAfVisRadius;
 	float			m_fDecayRate; //Alundaio
 
 	CAfList			m_artefacts;

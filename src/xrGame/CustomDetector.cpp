@@ -30,7 +30,7 @@ bool CCustomDetector::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate
 
 	CInventoryItem& iitm			= itm->item();
 	u32 slot						= iitm.BaseSlot();
-	bool bres = (slot==INV_SLOT_2 || slot==KNIFE_SLOT || slot==BOLT_SLOT);
+	bool bres = (slot == BOLT_SLOT || slot == KNIFE_SLOT || slot == PISTOL_SLOT);
 	if(!bres && slot_to_activate)
 	{
 		*slot_to_activate	= NO_ACTIVE_SLOT;
@@ -40,11 +40,8 @@ bool CCustomDetector::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate
 		if(m_pInventory->ItemFromSlot(KNIFE_SLOT))
 			*slot_to_activate = KNIFE_SLOT;
 
-		if(m_pInventory->ItemFromSlot(INV_SLOT_3) && m_pInventory->ItemFromSlot(INV_SLOT_3)->BaseSlot()!=INV_SLOT_3)
-			*slot_to_activate = INV_SLOT_3;
-
-		if(m_pInventory->ItemFromSlot(INV_SLOT_2) && m_pInventory->ItemFromSlot(INV_SLOT_2)->BaseSlot()!=INV_SLOT_3)
-			*slot_to_activate = INV_SLOT_2;
+		if (m_pInventory->ItemFromSlot(PISTOL_SLOT))
+			*slot_to_activate = PISTOL_SLOT;
 
 		if(*slot_to_activate != NO_ACTIVE_SLOT)
 			bres = true;
@@ -73,7 +70,7 @@ bool  CCustomDetector::CheckCompatibility(CHudItem* itm)
 
 	if(!CheckCompatibilityInt(itm, NULL))
 	{
-		HideDetector	(true);
+		//HideDetector	(true);
 		return			false;
 	}
 	return true;
@@ -371,4 +368,14 @@ bool CAfList::feel_touch_contact	(CObject* O)
 			res = false;
 	}
 	return						res;
+}
+
+bool CCustomDetector::install_upgrade_impl(LPCSTR section, bool test)
+{
+	bool result = inherited::install_upgrade_impl(section, test);
+
+	result		|= process_if_exists(section,	"af_radius",		m_fAfDetectRadius,	test);
+	result		|= process_if_exists(section,	"af_vis_radius",	m_fAfVisRadius,		test);
+
+	return result;
 }

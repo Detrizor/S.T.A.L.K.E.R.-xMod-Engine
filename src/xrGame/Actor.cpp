@@ -91,7 +91,7 @@ static float IReceived = 0;
 static float ICoincidenced = 0;
 extern float cammera_into_collision_shift;
 
-string32		ACTOR_DEFS::g_quick_use_slots[4] = {NULL, NULL, NULL, NULL};
+string32		ACTOR_DEFS::g_quick_use_slots[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 //skeleton
 
 
@@ -176,14 +176,6 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
     m_holder = NULL;
     m_holderID = u16(-1);
 
-
-#ifdef DEBUG
-    Device.seqRender.Add	(this,REG_PRIORITY_LOW);
-#endif
-
-    //разрешить использование пояса в inventory
-    inventory().SetBeltUseful(true);
-
     m_pPersonWeLookingAt = NULL;
     m_pVehicleWeLookingAt = NULL;
     m_pObjectWeLookingAt = NULL;
@@ -231,6 +223,14 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 
 	// Alex ADD: for smooth crouch fix
 	CurrentHeight = 0.f;
+
+	m_fSpeedScale = 1.f;
+	m_fSprintBlock = false;
+	m_fAccelBlock = false;
+
+	m_state_last_tg = 0;
+	m_state_toggle_tg = 0;
+	m_state_toggle_delay = pSettings->r_u32("actor", "state_toggle_delay");
 }
 
 
@@ -393,7 +393,7 @@ void CActor::Load(LPCSTR section)
     float AirControlParam = pSettings->r_float(section, "air_control_param");
     character_physics_support()->movement()->SetAirControlParam(AirControlParam);
 
-    m_fPickupInfoRadius = pSettings->r_float(section, "pickup_info_radius");
+	m_fVicinityRadius = pSettings->r_float(section, "vicinity_radius");
 
 //Alundaio
 #ifdef ACTOR_FEEL_GRENADE
@@ -494,10 +494,6 @@ struct playing_pred
 
 void	CActor::Hit(SHit* pHDS)
 {
-    bool b_initiated = pHDS->aim_bullet; // physics strike by poltergeist
-
-    pHDS->aim_bullet = false;
-
     SHit& HDS = *pHDS;
     if (HDS.hit_type < ALife::eHitTypeBurn || HDS.hit_type >= ALife::eHitTypeMax)
     {
@@ -571,30 +567,25 @@ void	CActor::Hit(SHit* pHDS)
         }
     }
     if (!g_dedicated_server && !m_disabled_hitmarks)
-    {
-        bool b_fireWound = (pHDS->hit_type == ALife::eHitTypeFireWound || pHDS->hit_type == ALife::eHitTypeWound_2);
-        b_initiated = b_initiated && (pHDS->hit_type == ALife::eHitTypeStrike);
-
-        if (b_fireWound || b_initiated)
+		if (pHDS->hit_type == ALife::eHitTypeFireWound || pHDS->hit_type == ALife::eHitTypeWound_2 || pHDS->hit_type == ALife::eHitTypeStrike)
             HitMark(HDS.damage(), HDS.dir, HDS.who, HDS.bone(), HDS.p_in_bone_space, HDS.impulse, HDS.hit_type);
-    }
 
 	if (GodMode())
 	{
-		HDS.power = 0.0f;
+		HDS.main_damage = 0.f;
+		HDS.pierce_damage = 0.f;
 		inherited::Hit(&HDS);
 		return;
 	}
 	else
 	{
-		float hit_power = HitArtefactsOnBelt(HDS.damage(), HDS.hit_type);
-		HDS.power = hit_power;
-		HDS.add_wound = true;
+		HitArtefacts(HDS);
 		if (g_Alive())
 		{
 			CScriptHit tLuaHit;
 
-			tLuaHit.m_fPower = HDS.power;
+			tLuaHit.m_fMainDamage = HDS.main_damage;
+			tLuaHit.m_fPierceDamage = HDS.pierce_damage;
 			tLuaHit.m_fImpulse = HDS.impulse;
 			tLuaHit.m_tDirection = HDS.direction();
 			tLuaHit.m_tHitType = HDS.hit_type;
@@ -606,13 +597,6 @@ void	CActor::Hit(SHit* pHDS)
 				if ( !funct(this->lua_game_object(), &tLuaHit, HDS.boneID) )
 					return;
 			}
-
-			HDS.power = tLuaHit.m_fPower;
-			HDS.impulse = tLuaHit.m_fImpulse;
-			HDS.dir = tLuaHit.m_tDirection;
-			HDS.hit_type = (ALife::EHitType)(tLuaHit.m_tHitType);
-			//HDS.who = smart_cast<CObject*>(tLuaHit.m_tpDraftsman->object());
-			//HDS.whoID = tLuaHit.m_tpDraftsman->ID();
 			
 			/* AVO: send script callback*/
 			callback(GameObject::eHit)(
@@ -625,22 +609,6 @@ void	CActor::Hit(SHit* pHDS)
 		}
 		inherited::Hit(&HDS);
 	}
-
-	/* AVO: rewritten above and added hit callback*/
-	/*float hit_power = HitArtefactsOnBelt(HDS.damage(), HDS.hit_type);
-
-	if (GodMode())
-	{
-	HDS.power = 0.0f;
-	inherited::Hit(&HDS);
-	return;
-	}
-	else
-	{
-	HDS.power = hit_power;
-	HDS.add_wound = true;
-	inherited::Hit(&HDS);
-	}*/
 }
 
 void CActor::HitMark(float P,
@@ -732,7 +700,7 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
         IKinematics *pK = smart_cast<IKinematics*>(pV);
         VERIFY(tpKinematics);
 #pragma todo("Dima to Dima : forward-back bone impulse direction has been determined incorrectly!")
-        MotionID motion_ID = m_anims->m_normal.m_damage[iFloor(pK->LL_GetBoneInstance(element).get_param(1) + (angle_difference(r_model_yaw + r_model_yaw_delta, yaw) <= PI_DIV_2 ? 0 : 1))];
+        MotionID motion_ID = m_anims->m_normal.m_damage[iFloor(pK->LL_GetBoneInstance(element).get_param(3) + (angle_difference(r_model_yaw + r_model_yaw_delta, yaw) <= PI_DIV_2 ? 0 : 1))];
         float power_factor = perc / 100.f; clamp(power_factor, 0.f, 1.f);
         VERIFY(motion_ID.valid());
         tpKinematics->PlayFX(motion_ID, power_factor);
@@ -763,25 +731,18 @@ void CActor::Die(CObject* who)
 						grenade->DropGrenade();
 					else
 						item_in_slot->SetDropManual(TRUE);
-                };
+                }
                 continue;
             }
             else
             {
                 CCustomOutfit *pOutfit = smart_cast<CCustomOutfit *> (item_in_slot);
                 if (pOutfit) continue;
-            };
+            }
             if (item_in_slot)
                 inventory().Ruck(item_in_slot);
-        };
-
-
-        ///!!! чистка пояса
-        TIItemContainer &l_blist = inventory().m_belt;
-        while (!l_blist.empty())
-            inventory().Ruck(l_blist.front());
-
-    };
+        }
+    }
 
     if (!g_dedicated_server)
     {
@@ -883,7 +844,6 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
             VERIFY(character_physics_support()->movement());
             ICollisionDamageInfo* di = character_physics_support()->movement()->CollisionDamageInfo();
             VERIFY(di);
-            bool b_hit_initiated = di->GetAndResetInitiated();
             Fvector hdir; di->HitDir(hdir);
             SetHitInfo(this, NULL, 0, Fvector().set(0, 0, 0), hdir);
             //				Hit	(m_PhysicMovementControl->gcontact_HealthLost,hdir,di->DamageInitiator(),m_PhysicMovementControl->ContactBone(),di->HitPos(),0.f,ALife::eHitTypeStrike);//s16(6 + 2*::Random.randI(0,2))
@@ -891,15 +851,12 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
             {
 
                 SHit HDS = SHit(character_physics_support()->movement()->gcontact_HealthLost,
-                    //.								0.0f,
                     hdir,
                     di->DamageInitiator(),
                     character_physics_support()->movement()->ContactBone(),
                     di->HitPos(),
                     0.f,
-                    di->HitType(),
-                    0.0f,
-                    b_hit_initiated);
+                    di->HitType());
                 //				Hit(&HDS);
 
                 NET_Packet	l_P;
@@ -914,8 +871,10 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
     }
 }
 
-float g_fov = 55.0f;
-float g_scope_fov = 75.0f;
+float g_fov				= 55.0f;
+float g_scope_fov		= 75.0f;
+float aim_fov			= pSettings->r_float("weapon_manager", "aim_fov");
+double aim_fov_tan		= tan(aim_fov * (0.5 * PI / 180));
 
 float CActor::currentFOV()
 {
@@ -924,14 +883,14 @@ float CActor::currentFOV()
 
 	if (eacFirstEye == cam_active)
 	{
-		CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
+		CWeapon* pWeapon			= smart_cast<CWeapon*>(inventory().ActiveItem());
 		if (pWeapon && pWeapon->IsZoomed())
 		{
-			if (!pWeapon->ZoomTexture())
-				return atan(tan(g_fov * (0.5 * PI / 180)) / pWeapon->GetZoomFactor()) / (0.5 * PI / 180); //Alun: For iron sights, we use camera fov
-
-			if (!pWeapon->IsRotatingToZoom())
-				return atan(tan(g_scope_fov * (0.5 * PI / 180)) / pWeapon->GetZoomFactor()) / (0.5 * PI / 180); //Alun: This assumes scope has a fake FOV so that no matter camera FOV the scope FOV is exactly the same
+			float zoom_factor		= pWeapon->CurrentZoomFactor();
+			if (zoom_factor < 1.f)
+				return				(zoom_factor == 0.5f) ? sqrt(g_fov * aim_fov) : g_fov;
+			if (!pWeapon->ZoomTexture() || !pWeapon->IsRotatingToZoom())
+				return				float(atan(aim_fov_tan / zoom_factor) / (0.5 * PI / 180));
 		}
 	}
 	return g_fov;
@@ -987,6 +946,7 @@ void CActor::UpdateCL()
 
     if (g_Alive())
 	{
+		VicinityUpdate();
         PickupModeUpdate();
 		PickupModeUpdate_COD();
 	}
@@ -1217,16 +1177,18 @@ void CActor::shedule_Update(u32 DT)
             f_DropPower = 0.f;
         }
         if (!Level().IsDemoPlay())
-        {
-            mstate_wishful &= ~mcAccel;
+		{
+			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
+			{
+				mstate_wishful &= ~mcSprint;
+				mstate_wishful &= ~mcCrouchLow;
+			}
             mstate_wishful &= ~mcLStrafe;
             mstate_wishful &= ~mcRStrafe;
             mstate_wishful &= ~mcLLookout;
             mstate_wishful &= ~mcRLookout;
             mstate_wishful &= ~mcFwd;
             mstate_wishful &= ~mcBack;
-            if (!psActorFlags.test(AF_CROUCH_TOGGLE))
-                mstate_wishful &= ~mcCrouch;
         }
     }
     else
@@ -1415,9 +1377,8 @@ void CActor::shedule_Update(u32 DT)
     //	UpdateSleep									();
 
     //для свойст артефактов, находящихся на поясе
-    UpdateArtefactsOnBeltAndOutfit();
+    UpdateArtefactsAndOutfit();
     m_pPhysics_support->in_shedule_Update(DT);
-    Check_for_AutoPickUp();
 };
 #include "debug_renderer.h"
 void CActor::renderable_Render	()
@@ -1622,10 +1583,10 @@ float CActor::Radius()const
     return R;
 }
 
-bool		CActor::use_bolts() const
+bool CActor::use_bolts() const
 {
-    return CInventoryOwner::use_bolts();
-};
+	return false;
+}
 
 int		g_iCorpseRemove = 1;
 
@@ -1671,7 +1632,7 @@ void CActor::OnItemDrop(CInventoryItem *inventory_item, bool just_before_destroy
         inventory_item->BaseSlot() == GRENADE_SLOT &&
         NULL == inventory().ItemFromSlot(GRENADE_SLOT))
     {
-        PIItem grenade = inventory().SameSlot(GRENADE_SLOT, inventory_item, true);
+        PIItem grenade = inventory().SameSlot(GRENADE_SLOT, inventory_item);
 
         if (grenade)
             inventory().Slot(GRENADE_SLOT, grenade, true, true);
@@ -1704,96 +1665,52 @@ void CActor::OnItemBelt(CInventoryItem *inventory_item, const SInvItemPlace& pre
 
 #define ARTEFACTS_UPDATE_TIME 0.100f
 
-void CActor::UpdateArtefactsOnBeltAndOutfit()
+void CActor::UpdateArtefactsAndOutfit()
 {
-    static float update_time = 0;
-
-    float f_update_time = 0;
-
+    static float update_time	= 0;
+    float f_update_time			= 0;
     if (update_time < ARTEFACTS_UPDATE_TIME)
     {
-        update_time += conditions().fdelta_time();
+        update_time				+= conditions().fdelta_time();
         return;
     }
     else
     {
-        f_update_time = update_time;
-        update_time = 0.0f;
-    }
-
-    for (TIItemContainer::iterator it = inventory().m_belt.begin();
-        inventory().m_belt.end() != it; ++it)
-    {
-        CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-        if (artefact)
-        {
-			float art_cond = artefact->GetCondition();
-			conditions().ChangeBleeding((artefact->m_fBleedingRestoreSpeed*art_cond)  * f_update_time);
-			conditions().ChangeHealth((artefact->m_fHealthRestoreSpeed*art_cond)    * f_update_time);
-			conditions().ChangePower((artefact->m_fPowerRestoreSpeed*art_cond)     * f_update_time);
-			conditions().ChangeSatiety((artefact->m_fSatietyRestoreSpeed*art_cond)   * f_update_time);
-			if ((artefact->m_fRadiationRestoreSpeed*art_cond) > 0.0f)
-            {
-				float val = (artefact->m_fRadiationRestoreSpeed*art_cond) - conditions().GetBoostRadiationImmunity();
-                clamp(val, 0.0f, val);
-                conditions().ChangeRadiation(val * f_update_time);
-            }
-            else
-				conditions().ChangeRadiation((artefact->m_fRadiationRestoreSpeed*art_cond)	* f_update_time);
-        }
-    }
-    CCustomOutfit* outfit = GetOutfit();
-	CHelmet* pHelmet = smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT));
-
-	if (!outfit && !pHelmet)
-	{
-		CTorch* pTorch = smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
-		if (pTorch && pTorch->GetNightVisionStatus())
-		{
-			pTorch->SwitchNightVision(false);
-		}
+        f_update_time			= update_time;
+        update_time				= 0.0f;
 	}
-	else
-    {
-		conditions().ChangeBleeding(((outfit ? outfit->m_fBleedingRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fBleedingRestoreSpeed : 0.f))  * f_update_time);
-		conditions().ChangeHealth(((outfit ? outfit->m_fHealthRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fHealthRestoreSpeed : 0.f))    * f_update_time);
-		conditions().ChangePower(((outfit ? outfit->m_fPowerRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fPowerRestoreSpeed : 0.f))     * f_update_time);
-		conditions().ChangeSatiety(((outfit ? outfit->m_fSatietyRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fSatietyRestoreSpeed : 0.f))   * f_update_time);
-		conditions().ChangeRadiation(((outfit ? outfit->m_fRadiationRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fRadiationRestoreSpeed : 0.f)) * f_update_time);
-    }
+
+	CCustomOutfit* outfit		= GetOutfit();
+	CHelmet* helmet				= GetHelmet();
+	if (!outfit && !helmet)
+	{
+		CTorch* pTorch					= smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
+		if (pTorch && pTorch->GetNightVisionStatus())
+			pTorch->SwitchNightVision	(false);
+	}
 }
 
-float	CActor::HitArtefactsOnBelt(float hit_power, ALife::EHitType hit_type)
+void CActor::HitArtefacts(SHit& HDS)
 {
-    TIItemContainer::iterator it = inventory().m_belt.begin();
-    TIItemContainer::iterator ite = inventory().m_belt.end();
-    for (; it != ite; ++it)
+	for (TIItemContainer::iterator it = inventory().m_all.begin(), it_e = inventory().m_all.end(); it != it_e; ++it)
     {
-        CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-        if (artefact)
-        {
-            hit_power -= artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
-        }
+        CArtefact* artefact		= smart_cast<CArtefact*>(*it);
+		if (artefact && artefact->IsActivated())
+			HDS.main_damage		-= artefact->m_ArtefactHitImmunities.AffectHit(1.0f, HDS.hit_type);
     }
-    clamp(hit_power, 0.0f, flt_max);
-
-    return hit_power;
+	clamp						(HDS.main_damage, 0.0f, HDS.main_damage);
 }
 
-float CActor::GetProtection_ArtefactsOnBelt(ALife::EHitType hit_type)
+float CActor::GetProtectionArtefacts(ALife::EHitType hit_type)
 {
-    float sum = 0.0f;
-    TIItemContainer::iterator it = inventory().m_belt.begin();
-    TIItemContainer::iterator ite = inventory().m_belt.end();
-    for (; it != ite; ++it)
+    float sum					= 0.0f;
+	for (TIItemContainer::iterator it = inventory().m_all.begin(), it_e = inventory().m_all.end(); it != it_e; ++it)
     {
-        CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-        if (artefact)
-        {
-            sum += (artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type)*artefact->GetCondition());
-        }
+        CArtefact* artefact		= smart_cast<CArtefact*>(*it);
+		if (artefact && artefact->IsActivated())
+            sum					+= artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
     }
-    return sum;
+    return						sum;
 }
 
 void	CActor::SetZoomRndSeed(s32 Seed)
@@ -1946,137 +1863,6 @@ bool CActor::is_ai_obstacle() const
     return							(false);//true);
 }
 
-float CActor::GetRestoreSpeed(ALife::EConditionRestoreType const& type)
-{
-    float res = 0.0f;
-    switch (type)
-    {
-    case ALife::eHealthRestoreSpeed:
-    {
-                                       res = conditions().change_v().m_fV_HealthRestore;
-                                       res += conditions().V_SatietyHealth() * ((conditions().GetSatiety() > 0.0f) ? 1.0f : -1.0f);
-
-                                       TIItemContainer::iterator itb = inventory().m_belt.begin();
-                                       TIItemContainer::iterator ite = inventory().m_belt.end();
-                                       for (; itb != ite; ++itb)
-                                       {
-                                           CArtefact*	artefact = smart_cast<CArtefact*>(*itb);
-                                           if (artefact)
-                                           {
-											   res += (artefact->m_fHealthRestoreSpeed*artefact->GetCondition());
-                                           }
-                                       }
-                                       
-									   CCustomOutfit* outfit = GetOutfit();
-									   CHelmet* pHelmet = (CHelmet*)inventory().ItemFromSlot(HELMET_SLOT); 
-
-									   res += ((outfit ? outfit->m_fHealthRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fHealthRestoreSpeed : 0.f));
-
-                                       break;
-    }
-    case ALife::eRadiationRestoreSpeed:
-    {
-                                          TIItemContainer::iterator itb = inventory().m_belt.begin();
-                                          TIItemContainer::iterator ite = inventory().m_belt.end();
-                                          for (; itb != ite; ++itb)
-                                          {
-                                              CArtefact*	artefact = smart_cast<CArtefact*>(*itb);
-                                              if (artefact)
-                                              {
-												  res += (artefact->m_fRadiationRestoreSpeed*artefact->GetCondition());
-                                              }
-                                          }
-
-										  CCustomOutfit* outfit = GetOutfit();
-										  CHelmet* pHelmet = (CHelmet*)inventory().ItemFromSlot(HELMET_SLOT);
-
-										  res += ((outfit ? outfit->m_fRadiationRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fRadiationRestoreSpeed : 0.f));
-                                         
-                                          break;
-    }
-    case ALife::eSatietyRestoreSpeed:
-    {
-                                        res = conditions().V_Satiety();
-
-                                        TIItemContainer::iterator itb = inventory().m_belt.begin();
-                                        TIItemContainer::iterator ite = inventory().m_belt.end();
-                                        for (; itb != ite; ++itb)
-                                        {
-                                            CArtefact*	artefact = smart_cast<CArtefact*>(*itb);
-                                            if (artefact)
-                                            {
-												res += (artefact->m_fSatietyRestoreSpeed*artefact->GetCondition());
-                                            }
-                                        }
-
-										CCustomOutfit* outfit = GetOutfit();
-										CHelmet* pHelmet = (CHelmet*)inventory().ItemFromSlot(HELMET_SLOT);
-
-										res += ((outfit ? outfit->m_fSatietyRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fSatietyRestoreSpeed : 0.f));
-
-                                        break;
-    }
-    case ALife::ePowerRestoreSpeed:
-    {
-                                      res = conditions().GetSatietyPower();
-
-                                      TIItemContainer::iterator itb = inventory().m_belt.begin();
-                                      TIItemContainer::iterator ite = inventory().m_belt.end();
-                                      for (; itb != ite; ++itb)
-                                      {
-                                          CArtefact*	artefact = smart_cast<CArtefact*>(*itb);
-                                          if (artefact)
-                                          {
-											  res += (artefact->m_fPowerRestoreSpeed*artefact->GetCondition());
-                                          }
-                                      }
-
-									  CCustomOutfit* outfit = GetOutfit();
-									  CHelmet* pHelmet = (CHelmet*)inventory().ItemFromSlot(HELMET_SLOT);
-									  CBackpack* pBackpack = (CBackpack*)inventory().ItemFromSlot(BACKPACK_SLOT);
-									  
-									  if (!outfit && !pHelmet && !pBackpack)
-									  {
-										  res /= 0.5f;
-									  }
-									  else
-									  {
-										  res += outfit ? outfit->m_fPowerRestoreSpeed : 0.f;
-										  res += pHelmet ? pHelmet->m_fPowerRestoreSpeed : 0.f;
-										  res += pBackpack ? pBackpack->m_fPowerRestoreSpeed : 0.f;
-										  res /= (0.5f + (outfit ? outfit->m_fPowerLoss : EPS) + (pHelmet ? pHelmet->m_fPowerLoss : EPS) + (pBackpack ? pBackpack->m_fPowerLoss : EPS));
-									  }
-
-									break;
-    }
-    case ALife::eBleedingRestoreSpeed:
-    {
-                                         res = conditions().change_v().m_fV_WoundIncarnation;
-
-                                         TIItemContainer::iterator itb = inventory().m_belt.begin();
-                                         TIItemContainer::iterator ite = inventory().m_belt.end();
-                                         for (; itb != ite; ++itb)
-                                         {
-                                             CArtefact*	artefact = smart_cast<CArtefact*>(*itb);
-                                             if (artefact)
-                                             {
-												 res += (artefact->m_fBleedingRestoreSpeed*artefact->GetCondition());
-                                             }
-                                         }
-
-										 CCustomOutfit* outfit = GetOutfit();
-										 CHelmet* pHelmet = (CHelmet*)inventory().ItemFromSlot(HELMET_SLOT);
-
-										 res += ((outfit ? outfit->m_fBleedingRestoreSpeed : 0.f) + (pHelmet ? pHelmet->m_fBleedingRestoreSpeed : 0.f));
-
-                                         break;
-    }
-    }//switch
-
-    return res;
-}
-
-
 void CActor::On_SetEntity()
 {
     CCustomOutfit* pOutfit = GetOutfit();
@@ -2089,4 +1875,9 @@ void CActor::On_SetEntity()
 bool CActor::unlimited_ammo()
 {
     return !!psActorFlags.test(AF_UNLIMITEDAMMO);
+}
+
+void CActor::SetPower(float p)
+{
+	conditions().SetPower(p);
 }

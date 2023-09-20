@@ -2,13 +2,13 @@
 
 struct SHit
 {
-	SHit(float powerA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA,\
-		float impulseA, ALife::EHitType hit_typeA, float armor_piercingA/*=0.0f*/, bool AimBullet/*=false*/);
+	SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
+		float impulseA, ALife::EHitType hit_typeA, float pierce_damageA = 0.f, float pierce_damage_armorA = 0.f, ALife::EHitType pierce_hit_typeA = ALife::eHitTypeMax);
 
 	SHit										();	
 	bool				is_valide				()		const	;	
 	void				invalidate				()				;
-IC	float				damage					()		const	{VERIFY(is_valide());return power;}
+IC	float				damage					()		const	{VERIFY(is_valide());return main_damage + pierce_damage;}
 IC	const Fvector		&direction				()		const	{VERIFY(is_valide());return dir;}
 IC	const CObject		*initiator				()		const	{VERIFY(is_valide());return who;}
 IC			u16			bone					()		const	{VERIFY(is_valide());return boneID;}
@@ -27,7 +27,7 @@ IC	ALife::EHitType		type					()		const	{VERIFY(is_valide());return hit_type;}
 	u16					PACKET_TYPE;
 	u16					DestID;
 	
-	float				power;
+	float				main_damage;
 	Fvector				dir;
 	CObject				*who;
 	u16					whoID;
@@ -37,9 +37,9 @@ IC	ALife::EHitType		type					()		const	{VERIFY(is_valide());return hit_type;}
 	float				impulse;
 	
 	ALife::EHitType		hit_type;
-	float				armor_piercing;
-	bool				add_wound;
-	bool				aim_bullet;
+	float				pierce_damage;
+	float				pierce_damage_armor;
+	ALife::EHitType		pierce_hit_type;
 	//---------------------------------------------------
 	//GE_HIT_STATISTIC
 	u32					BulletID;

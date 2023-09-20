@@ -30,7 +30,8 @@ private:
 };//class priority_group
 
 
-typedef xr_vector<CInventorySlot> TISlotArr;
+typedef xr_vector<CInventorySlot>		TISlotArr;
+typedef xr_vector<TIItemContainer>		TIICArr;
 
 
 class CInventory
@@ -40,33 +41,43 @@ public:
 	virtual					~CInventory			();
 
 	float 					TotalWeight			() const;
+	float 					TotalVolume			() const;
 	float 					CalcTotalWeight		();
+	float 					CalcTotalVolume		();
 
 	void					Take				(CGameObject *pObj, bool bNotActivate, bool strict_placement);
 	//if just_before_destroy is true, then activate will be forced (because deactivate message will not deliver)
 	bool					DropItem			(CGameObject *pObj, bool just_before_destroy, bool dont_create_shell);
 	void					Clear				();
+	void					SendItemToDrop		(PIItem item);
 
 	u16 					m_last_slot;
-	IC u16					FirstSlot			() const {return KNIFE_SLOT;}
+	u8	 					m_pockets_count;
+	IC u16					FirstSlot			() const {return 1;}
 	IC u16					LastSlot			() const {return m_last_slot;} // not "end"
 	IC bool					SlotIsPersistent	(u16 slot_id) const {return m_slots[slot_id].m_bPersistent;}
 	bool					Slot				(u16 slot_id, PIItem pIItem, bool bNotActivate = false, bool strict_placement=false);	
-	bool					Belt				(PIItem pIItem, bool strict_placement=false);
+	bool					ToSlot				(u16 slot_id, PIItem pIItem);
 	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
+	bool					Pocket				(PIItem pIItem, u16 pocket_id, bool forced = false);
+	bool					ToRuck				(PIItem pIItem);
+	bool					ToPocket			(PIItem pIItem, u16 pocket_id);
 
 	bool 					InSlot				(const CInventoryItem* pIItem) const;
-	bool 					InBelt				(const CInventoryItem* pIItem) const;
 	bool 					InRuck				(const CInventoryItem* pIItem) const;
 
 	bool 					CanPutInSlot		(PIItem pIItem, u16 slot_id) const;
-	bool 					CanPutInBelt		(PIItem pIItem);
 	bool 					CanPutInRuck		(PIItem pIItem) const;
+	bool 					CanPutInPocket		(PIItem pIItem, u16 pocket_id) const;
+	bool					PocketPresent		(u16 pocket_id) const;
+	
+	bool					ProcessItem			(PIItem item);
+	void					EmptyPockets		();
 
 	bool					CanTakeItem			(CInventoryItem *inventory_item) const;
 
-
-	void					Activate			(u16 slot, /*EActivationReason reason=eGeneral, */bool bForce=false);
+	void					Activate			(u16 slot, bool bForce = false);
+	void					ActivateItem		(PIItem item, u16 return_place = 0, u16 return_slot = 0);
 	void					ActivateDeffered();
 	PIItem					GetNextActiveGrenade();
 	bool					ActivateNextGrenage();
@@ -77,23 +88,24 @@ public:
 	priority_group &		GetPriorityGroup			(u8 const priority_value, u16 slot);
 	void					InitPriorityGroupsForQSwitch();
 
-	PIItem					ActiveItem			()const					{return (m_iActiveSlot==NO_ACTIVE_SLOT)?NULL:ItemFromSlot(m_iActiveSlot);}
+	PIItem					ActiveItem			() const;
+	PIItem					LeftItem			() const			{ return ItemFromSlot(LEFT_HAND_SLOT); }
+	bool					InHands				(PIItem item)		{ return item == ActiveItem() || item == LeftItem(); }
 	PIItem					ItemFromSlot		(u16 slot) const;
 
 	bool					Action				(u16 cmd, u32 flags);
-	void					ActiveWeapon		(u16 slot);
 	void					Update				();
 	// »щет на по€се аналогичный IItem
-	PIItem					Same				(const PIItem pIItem, bool bSearchRuck) const;
+	PIItem					Same				(const PIItem pIItem) const;
 	// »щет на по€се IItem дл€ указанного слота
-	PIItem					SameSlot			(const u16 slot, PIItem pIItem, bool bSearchRuck) const;
+	PIItem					SameSlot			(const u16 slot, PIItem pIItem) const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (cName())
-	PIItem					Get					(LPCSTR name, bool bSearchRuck) const;
+	PIItem					Get					(LPCSTR name, int pocket_id = -1) const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (id)
-	PIItem					Get					(const u16  id,	 bool bSearchRuck) const;
+	PIItem					Get					(const u16  id) const;
 	// »щет на по€се или в рюкзаке IItem с указанным CLS_ID
-	PIItem					Get					(CLASS_ID cls_id,  bool bSearchRuck) const;
-	PIItem					GetAny				(LPCSTR name) const;//search both (ruck and belt)
+	PIItem					Get					(CLASS_ID cls_id) const;
+	PIItem					GetAny				(LPCSTR name) const;
 	PIItem					item				(CLASS_ID cls_id) const;
 	
 	// get all the items with the same section name
@@ -110,7 +122,7 @@ public:
 	bool					Eat					(PIItem pIItem);
 	bool					ClientEat			(PIItem pIItem);
 
-	IC u16					GetActiveSlot		() const			{return m_iActiveSlot;}
+	u16						GetActiveSlot		() const;
 	
 	void					SetPrevActiveSlot	(u16 ActiveSlot)	{m_iPrevActiveSlot = ActiveSlot;}
 	u16						GetPrevActiveSlot	() const			{return m_iPrevActiveSlot;}
@@ -120,8 +132,6 @@ public:
 
 	bool 					IsSlotsUseful		() const			{return m_bSlotsUseful;}	 
 	void 					SetSlotsUseful		(bool slots_useful) {m_bSlotsUseful = slots_useful;}
-	bool 					IsBeltUseful		() const			{return m_bBeltUseful;}
-	void 					SetBeltUseful		(bool belt_useful)	{m_bBeltUseful = belt_useful;}
 
 	void					SetSlotsBlocked		(u16 mask, bool bBlock);
 	
@@ -130,19 +140,14 @@ public:
 	bool					IsSlotBlocked(PIItem const iitem) const;
 
 	TIItemContainer			m_all;
-	TIItemContainer			m_ruck, m_belt;
+	TIItemContainer			m_ruck;
 	TIItemContainer			m_activ_last_items;
-
-protected:
 	TISlotArr				m_slots;
+	TIICArr					m_pockets;
+
 public:
 	//возвращает все кроме PDA в слоте и болта
-	void				AddAvailableItems			(TIItemContainer& items_container, bool for_trade, bool bOverride = false) const;
-
-	float				GetMaxWeight				() const				{return m_fMaxWeight;}
-	void				SetMaxWeight				(float weight)			{m_fMaxWeight = weight;}
-
-	u32					BeltWidth					() const;
+	void					AddAvailableItems		(TIItemContainer& items_container, bool for_trade, bool bOverride = false) const;
 
 	inline	CInventoryOwner*GetOwner				() const				{ return m_pOwner; }
 	
@@ -154,9 +159,22 @@ public:
 	void				InvalidateState				()							{ m_dwModifyFrame = Device.dwFrame; }
 	void				Items_SetCurrentEntityHud	(bool current_entity);
 	bool				isBeautifulForActiveSlot	(CInventoryItem *pIItem);
+
+	u16					m_iReturnPlace;
+	u16 				m_iReturnSlot;
+	u16					m_iNextActiveItemID;
+	u16					m_iNextLeftItemID;
+	
+	bool				m_bRuckAllowed;
+	u16					m_iToDropID;
+	int					m_iRuckVboxID;
+	TIItemContainer		m_ruck_vbox;
+	float				m_fRuckVboxCapacity;
+	PIItem				m_pContainer;
+
 protected:
-	void					UpdateDropTasks		();
-	void					UpdateDropItem		(PIItem pIItem);
+	void				UpdateDropTasks				();
+	void				UpdateDropItem				(PIItem pIItem);
 
 	// јктивный слот и слот который станет активным после смены
     //значени€ совпадают в обычном состо€нии (нет смены слотов)
@@ -166,15 +184,13 @@ protected:
 
 	CInventoryOwner*	m_pOwner;
 
-	//флаг, показывающий наличие по€са в инвенторе
-	bool				m_bBeltUseful;
 	//флаг, допускающий использование слотов
 	bool				m_bSlotsUseful;
+	bool				m_bBoltPickUp;
 
-	// максимальный вес инвентар€
-	float				m_fMaxWeight;
 	// текущий вес в инвентаре
 	float				m_fTotalWeight;
+	float				m_fTotalVolume;
 
 	//кадр на котором произошло последнее изменение в инвенторе
 	u32					m_dwModifyFrame;

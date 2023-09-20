@@ -11,6 +11,7 @@
 #include "character_info.h"
 #include "inventory_space.h"
 #include "script_export_space.h"
+#include "Inventory.h"
 
 class CSE_Abstract;
 class CInventory;
@@ -28,6 +29,7 @@ class CTradeParameters;
 class CPurchaseList;
 class CWeapon;
 class CCustomOutfit;
+class CHelmet;
 
 class CInventoryOwner : public CAttachmentOwner {							
 public:
@@ -54,11 +56,9 @@ public:
 	
 	//обновление
 	virtual void	UpdateInventoryOwner		(u32 deltaT);
-	virtual bool	CanPutInSlot				(PIItem item, u32 slot){return true;};
-
+	virtual bool	CanPutInSlot				(PIItem item, u32 slot);
 
 	CPda* GetPDA		() const;
-
 
 	// инвентарь
 	CInventory	*m_inventory;			
@@ -66,7 +66,7 @@ public:
 	////////////////////////////////////
 	//торговля и общение с персонажем
 
-	virtual bool	AllowItemToTrade 	(CInventoryItem const * item, const SInvItemPlace& place) const;
+	virtual bool	AllowItemToTrade 	(const shared_str& section, const SInvItemPlace& place) const;
 	virtual void	OnFollowerCmd		(int cmd)		{};//redefine for CAI_Stalkker
 			bool	bDisableBreakDialog;
 	//инициализация объекта торговли
@@ -101,8 +101,9 @@ public:
 	//игровое имя 
 	virtual LPCSTR	Name        () const;
 	LPCSTR				IconName		() const;
-	u32					get_money		() const				{return m_money;}
+	u32					get_money		() const								{return m_money;}
 	void				set_money		(u32 amount, bool bSendEvent);
+	void				GiveMoney		(int amount, bool bSendEvent = true)	{ set_money(m_money + amount, bSendEvent); }
 	bool				is_alive		();
 
 protected:
@@ -147,10 +148,15 @@ public:
 
 	//возвращает текуший разброс стрельбы (в радианах) с учетом движения
 	virtual float GetWeaponAccuracy			() const;
-	//максимальный переносимы вес
-	virtual float MaxCarryWeight			() const;
+	//вместимость инвентаря
+	virtual float InventoryCapacity			() const;
 
-	CCustomOutfit* GetOutfit				() const;
+	CCustomOutfit*	GetOutfit				() const;
+	CHelmet*		GetHelmet				() const;
+
+	CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count, float condition = 1.f, bool dont_reg = false);
+	CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
+	CSE_Abstract*	GiveAmmo				(LPCSTR section, u16 count = 1);
 
 	bool CanPlayShHdRldSounds				() const {return m_play_show_hide_reload_sounds;};
 	void SetPlayShHdRldSounds				(bool play) {m_play_show_hide_reload_sounds = play;};

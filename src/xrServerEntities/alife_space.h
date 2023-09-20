@@ -108,15 +108,6 @@ namespace ALife {
 		infl_max_count
 	};
 
-	enum EConditionRestoreType {
-		eHealthRestoreSpeed = u32(0),
-		eSatietyRestoreSpeed,
-		ePowerRestoreSpeed,
-		eBleedingRestoreSpeed,
-		eRadiationRestoreSpeed,
-		eRestoreTypeMax,
-	};
-
 	enum ETakeType {
 		eTakeTypeAll,
 		eTakeTypeMin,

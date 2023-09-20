@@ -270,17 +270,22 @@ void	CEntityAlive::Hit(SHit* pHDS)
 	//-------------------------------------------------------------------
 	if (HDS.hit_type == ALife::eHitTypeWound_2)
 		HDS.hit_type = ALife::eHitTypeWound;
+	if (HDS.hit_type == ALife::eHitTypeLightBurn)
+		HDS.hit_type = ALife::eHitTypeBurn;
 	//-------------------------------------------------------------------
-	CDamageManager::HitScale(HDS.boneID, conditions().hit_bone_scale(), conditions().wound_bone_scale(),pHDS->aim_bullet);
 
 	//изменить состояние, перед тем как родительский класс обработает хит
-	CWound* pWound = conditions().ConditionHit(&HDS);
-
-	if(pWound){
-		if(ALife::eHitTypeBurn == HDS.hit_type || ALife::eHitTypeLightBurn == HDS.hit_type)
-			StartFireParticles(pWound);
-		else if(ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
-			StartBloodDrops(pWound);
+	if (!smart_cast<CAI_Stalker*>(this))
+	{
+		CDamageManager::HitScale		(HDS.boneID, conditions().armor_damage_bone_scale(), conditions().pierce_damage_bone_scale());
+		CWound* pWound					= conditions().ConditionHit(&HDS);
+		if (pWound)
+		{
+			if (ALife::eHitTypeBurn == HDS.hit_type || ALife::eHitTypeLightBurn == HDS.hit_type)
+				StartFireParticles		(pWound);
+			else if (ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
+				StartBloodDrops			(pWound);
+		}
 	}
 
 	if (HDS.hit_type != ALife::eHitTypeTelepatic && HDS.hit_type != ALife::eHitTypeRadiation){

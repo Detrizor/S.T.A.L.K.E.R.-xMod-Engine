@@ -105,10 +105,6 @@ private:
 	const script_planner			*m_debug_planner;
 #endif
 
-	// ALife
-private:
-	SBoneProtections*				m_boneHitProtection;
-
 	// weapon dispersion
 private:
 	float							m_disp_walk_stand;
@@ -126,7 +122,6 @@ private:
 private:
 	float							m_fRankDisperison;
 	float							m_fRankVisibility;
-	float							m_fRankImmunity;
 
 	// best item/ammo selection members
 public:
@@ -253,9 +248,6 @@ public:
 	virtual const SRotation				Orientation				() const;
 	virtual	const MonsterSpace::SBoneRotation &head_orientation	() const;
 
-	//InventoryOwner stuff
-	virtual bool						CanPutInSlot			(PIItem item, u32 slot)		{return(slot!=OUTFIT_SLOT)&&(slot!=PDA_SLOT);};
-
 	//////////////////////////////////////////////////////////////////////////
 	// action/evaluators support functions
 	//////////////////////////////////////////////////////////////////////////
@@ -270,7 +262,6 @@ public:
 			bool						ready_to_detour			();
 			void						update_best_item_info	();
 			void						update_best_item_info_impl();
-			void						ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect);
 	virtual float						GetWeaponAccuracy		() const;
 	virtual bool						unlimited_ammo			();
 	virtual	void						spawn_supplies			();

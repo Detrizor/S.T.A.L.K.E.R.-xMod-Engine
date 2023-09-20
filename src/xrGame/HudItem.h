@@ -165,6 +165,8 @@ private:
 	CInventoryItem				*m_item;
 
 public:
+	shared_str					hud_section;
+
 	const shared_str&			HudSection				() const		{ return hud_sect;}
 	IC CPhysicItem&				object					() const		{ VERIFY(m_object); return(*m_object);}
 	IC CInventoryItem&			item					() const		{ VERIFY(m_item); return(*m_item);}

@@ -107,6 +107,7 @@ public:
     void HideActorMenu();
 	void UpdateActorMenu(); //Alundaio
 	CScriptGameObject* CurrentItemAtCell(); //Alundaio
+    bool PdaMenuShown();
     bool ShowPdaMenu();
     void HidePdaMenu();
     void ShowMessagesWindow();

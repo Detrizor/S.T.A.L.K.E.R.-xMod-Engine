@@ -43,10 +43,11 @@ CHudItem::~CHudItem()
 
 void CHudItem::Load(LPCSTR section)
 {
-    hud_sect = pSettings->r_string(section, "hud");
-    m_animation_slot = pSettings->r_u32(section, "animation_slot");
+    hud_sect			= pSettings->r_string(section, "hud");
+	hud_section			= section;
+    m_animation_slot	= pSettings->r_u32(section, "animation_slot");
 
-    m_sounds.LoadSound(section, "snd_bore", "sndBore", true);
+    m_sounds.LoadSound	(section, "snd_bore", "sndBore", true);
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
@@ -333,7 +334,7 @@ u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn)
     else
     {
         m_started_rnd_anim_idx = 0;
-        return g_player_hud->motion_length(motion_name, HudSection(), m_current_motion_def);
+        return g_player_hud->motion_length(motion_name, HudSection(), hud_section, m_current_motion_def);
     }
 }
 
@@ -412,7 +413,7 @@ bool CHudItem::HudAnimationExist(LPCSTR anim_name)
     }
     else // Third person
     {
-        if (g_player_hud->motion_length(anim_name, HudSection(), m_current_motion_def) > 100)
+		if (g_player_hud->motion_length(anim_name, HudSection(), hud_section, m_current_motion_def) > 100)
             return true;
 
     }

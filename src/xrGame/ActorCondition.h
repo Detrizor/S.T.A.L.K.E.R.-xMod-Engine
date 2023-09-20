@@ -49,23 +49,10 @@ public:
 
 	void 				BoostParameters				(const SBooster& B);
 	void 				DisableBoostParameters		(const SBooster& B);
-	IC void				BoostMaxWeight				(const float value);
 	IC void				BoostHpRestore				(const float value);
 	IC void				BoostPowerRestore			(const float value);
 	IC void				BoostRadiationRestore		(const float value);
 	IC void				BoostBleedingRestore		(const float value);
-	IC void				BoostBurnImmunity			(const float value);
-	IC void				BoostShockImmunity			(const float value);
-	IC void				BoostRadiationImmunity		(const float value);
-	IC void				BoostTelepaticImmunity		(const float value);
-	IC void				BoostChemicalBurnImmunity	(const float value);
-	IC void				BoostExplImmunity			(const float value);
-	IC void				BoostStrikeImmunity			(const float value);
-	IC void				BoostFireWoundImmunity		(const float value);
-	IC void				BoostWoundImmunity			(const float value);
-	IC void				BoostRadiationProtection	(const float value);
-	IC void				BoostTelepaticProtection	(const float value);
-	IC void				BoostChemicalBurnProtection	(const float value);
 	BOOSTER_MAP			GetCurBoosterInfluences		() {return m_booster_influences;};
 
 	// хромание при потере сил и здоровья
@@ -77,10 +64,10 @@ public:
 			void		PowerHit					(float power, bool apply_outfit);
 			float		GetPower					() const { return m_fPower; }
 
+			void		ConditionPowerDrain			(float power);
 			void		ConditionJump				(float weight);
 			void		ConditionWalk				(float weight, bool accel, bool sprint);
 			void		ConditionStand				(float weight);
-	IC		float		MaxWalkWeight				() const	{ return m_MaxWalkWeight; }
 			
 			float	xr_stdcall	GetAlcohol			()	{return m_fAlcohol;}
 			float	xr_stdcall	GetPsy				()	{return 1.0f-GetPsyHealth();}
@@ -118,7 +105,8 @@ public:
 	float	GetMaxPowerRestoreSpeed					() {return m_max_power_restore_speed;};
 	float	GetMaxWoundProtection					() {return m_max_wound_protection;};
 	float	GetMaxFireWoundProtection				() {return m_max_fire_wound_protection;};
-
+	
+	void					SetPower				(float p)			{m_fPower = p;}
 protected:
 	SMedicineInfluenceValues						m_curr_medicine_influence;
 	float m_fAlcohol;
@@ -142,8 +130,6 @@ protected:
 	float m_fAccelK;
 	float m_fSprintK;
 	
-public:
-	float	m_MaxWalkWeight;
 protected:
 	float	m_zone_max_power[ALife::infl_max_count];
 	float	m_zone_danger[ALife::infl_max_count];

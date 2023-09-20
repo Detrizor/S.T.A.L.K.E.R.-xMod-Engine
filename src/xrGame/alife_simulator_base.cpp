@@ -95,52 +95,55 @@ void CALifeSimulatorBase::reload			(LPCSTR section)
 	m_initialized				= true;
 }
 
-CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, bool registration)
+CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, bool registration, float condition)
 {
-	CSE_Abstract				*abstract = F_entity_Create(section);
-	R_ASSERT3					(abstract,"Cannot find item with section",section);
+	CSE_Abstract* abstract						= F_entity_Create(section);
+	R_ASSERT3									(abstract,"Cannot find item with section",section);
 
-	abstract->s_name			= section;
-//.	abstract->s_gameid			= u8(GAME_SINGLE);
-	abstract->s_RP				= 0xff;
-	abstract->ID				= server().PerformIDgen(0xffff);
-	abstract->ID_Parent			= parent_id;
-	abstract->ID_Phantom		= 0xffff;
-	abstract->o_Position		= position;
-	abstract->m_wVersion		= SPAWN_VERSION;
+	abstract->s_name							= section;
+	abstract->s_RP								= 0xff;
+	abstract->ID								= server().PerformIDgen(0xffff);
+	abstract->ID_Parent							= parent_id;
+	abstract->ID_Phantom						= 0xffff;
+	abstract->o_Position						= position;
+	abstract->m_wVersion						= SPAWN_VERSION;
 	
-	string256					s_name_replace;
-	xr_strcpy						(s_name_replace,*abstract->s_name);
+	string256									s_name_replace;
+	xr_strcpy									(s_name_replace,*abstract->s_name);
 	if (abstract->ID < 1000)
-		xr_strcat					(s_name_replace,"0");
+		xr_strcat								(s_name_replace,"0");
 	if (abstract->ID < 100)
-		xr_strcat					(s_name_replace,"0");
+		xr_strcat								(s_name_replace,"0");
 	if (abstract->ID < 10)
-		xr_strcat					(s_name_replace,"0");
-	string16					S1;
-	xr_strcat						(s_name_replace,itoa(abstract->ID,S1,10));
-	abstract->set_name_replace	(s_name_replace);
+		xr_strcat								(s_name_replace,"0");
+	string16									S1;
+	xr_strcat									(s_name_replace,itoa(abstract->ID,S1,10));
+	abstract->set_name_replace					(s_name_replace);
 
-	CSE_ALifeDynamicObject		*dynamic_object = smart_cast<CSE_ALifeDynamicObject*>(abstract);
-	VERIFY						(dynamic_object);
+	CSE_ALifeDynamicObject* dynamic_object		= smart_cast<CSE_ALifeDynamicObject*>(abstract);
+	VERIFY										(dynamic_object);
 
-	//оружие спавним с полным магазинои
-	CSE_ALifeItemWeapon* weapon = smart_cast<CSE_ALifeItemWeapon*>(dynamic_object);
-	if(weapon)
-		weapon->a_elapsed		= weapon->get_ammo_magsize();
+	//оружие спавним с полным магазином
+	CSE_ALifeItemWeapon* weapon					= smart_cast<CSE_ALifeItemWeapon*>(dynamic_object);
+	if (weapon)
+		weapon->a_elapsed						= (condition == 2.f) ? 0 : weapon->get_ammo_magsize();
+	clamp										(condition, 0.f, 1.f);
 
-	dynamic_object->m_tNodeID	= level_vertex_id;
-	dynamic_object->m_tGraphID	= game_vertex_id;
-	dynamic_object->m_tSpawnID	= u16(-1);
+	CSE_ALifeInventoryItem* item				= smart_cast<CSE_ALifeInventoryItem*>(abstract);
+	if (item)
+		item->m_fCondition						= condition;
+
+	dynamic_object->m_tNodeID					= level_vertex_id;
+	dynamic_object->m_tGraphID					= game_vertex_id;
+	dynamic_object->m_tSpawnID					= u16(-1);
 
 	if (registration)
-		register_object				(dynamic_object,true);
+		register_object							(dynamic_object, true);
 
-	dynamic_object->spawn_supplies	();
-	dynamic_object->on_spawn		();
+	dynamic_object->spawn_supplies				();
+	dynamic_object->on_spawn					();
 
-//	Msg							("LSS : SPAWN : [%s],[%s], level %s",*dynamic_object->s_name,dynamic_object->name_replace(),*ai().game_graph().header().level(ai().game_graph().vertex(dynamic_object->m_tGraphID)->level_id()).name());
-	return						(dynamic_object);
+	return										(dynamic_object);
 }
 
 CSE_Abstract *CALifeSimulatorBase::create(CSE_ALifeGroupAbstract *tpALifeGroupAbstract, CSE_ALifeDynamicObject *j)

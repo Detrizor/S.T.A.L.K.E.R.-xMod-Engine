@@ -582,7 +582,7 @@ void CLevel::IR_OnActivate()
             case kUP:
             case kDOWN:
             case kCROUCH:
-            case kACCEL:
+			case kSPRINT_TOGGLE:
             case kL_LOOKOUT:
             case kR_LOOKOUT:
             case kWPN_FIRE:

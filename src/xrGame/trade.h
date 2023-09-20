@@ -4,6 +4,7 @@ class CInventoryOwner;
 class CInventory;
 class CInventoryItem;
 class CEntity;
+class CUICellItem;
 
 class CTrade 
 {
@@ -51,13 +52,13 @@ public:
 
 	void					OnPerformTrade			(u32 money_get, u32 money_put);
 
-	void					TransferItem			(CInventoryItem* pItem, bool bBuying, bool bFree=false);
+	void					TransferItem			(CUICellItem* itm, bool bBuying, bool bFree=false);
 
 	CInventoryOwner*		GetPartner				();	
 	CTrade*					GetPartnerTrade			();
 	CInventory*				GetPartnerInventory		();
 
-	u32						GetItemPrice			(CInventoryItem* pItem, bool b_buying, bool b_free=false);
+	u32						GetItemPrice			(CUICellItem* itm, bool b_buying, bool b_free=false);
 
 	void					UpdateTrade				();
 

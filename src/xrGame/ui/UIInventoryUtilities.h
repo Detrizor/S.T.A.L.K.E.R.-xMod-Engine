@@ -5,7 +5,9 @@
 
 #include "ui_defs.h"
 
+class CUIStatic;
 class CUITextWnd;
+class CInventoryBox;
 
 //размеры сетки в текстуре инвентаря
 #define INV_GRID_WIDTH			50.0f
@@ -76,8 +78,12 @@ const shared_str GetTimeAndDateAsString(ALife::_TIME_ID time);
 const shared_str Get_GameTimeAndDate_AsString();
 
 LPCSTR GetTimePeriodAsString	(LPSTR _buff, u32 buff_sz, ALife::_TIME_ID _from, ALife::_TIME_ID _to);
-// Отобразить вес, который несет (*pInvOwner)
-void UpdateWeightStr(CUITextWnd &wnd, CUITextWnd &wnd_max, CInventoryOwner *pInvOwner);
+
+// Обновить метки веса и объёма
+void UpdateLabelsValues			(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryBox* pInventoryBox = NULL);
+
+// Выравнить координаты меток веса и объёма
+void AlighLabels				(CUIStatic* pWeightInfo, CUITextWnd* pWeight, CUIStatic* pVolumeInfo, CUITextWnd* pVolume);
 
 // Функции получения строки-идентификатора ранга и отношения по их числовому идентификатору
 LPCSTR	GetRankAsText				(CHARACTER_RANK_VALUE		rankID);

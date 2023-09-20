@@ -20,7 +20,8 @@ CRocketLauncher::~CRocketLauncher()
 }
 void  CRocketLauncher::Load	(LPCSTR section)
 {
-	m_fLaunchSpeed = pSettings->r_float(section, "launch_speed");
+	if (pSettings->line_exist(section, "launch_speed"))
+		m_fLaunchSpeed = pSettings->r_float(section, "launch_speed");
 }
 
 void CRocketLauncher::SpawnRocket(const shared_str& rocket_section, CGameObject* parent_rocket_launcher)

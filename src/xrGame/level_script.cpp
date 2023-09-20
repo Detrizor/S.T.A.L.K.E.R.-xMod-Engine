@@ -49,6 +49,16 @@ LPCSTR command_line	()
 {
 	return		(Core.Params);
 }
+
+bool Dbg()
+{
+	return Core.ParamFlags.test(Core.dbg);
+}
+bool DbgDev()
+{
+	return Core.ParamFlags.test(Core.dbgdev);
+}
+
 bool IsDynamicMusic()
 {
 	return !!psActorFlags.test(AF_DYNAMIC_MUSIC);
@@ -1000,6 +1010,8 @@ void CLevel::script_register(lua_State *L)
 	module(L)
 	[
 		def("command_line",						&command_line),
+		def("dbg",								&Dbg),
+		def("dbgdev",							&DbgDev),
 		def("IsGameTypeSingle",					&IsGameTypeSingle),
 		def("IsDynamicMusic",					&IsDynamicMusic),
 		def("render_get_dx_level",				&render_get_dx_level),

@@ -60,6 +60,7 @@ void CSE_ALifeTraderAbstract::script_register(lua_State *L)
 			.def("set_character_name", &set_character_name_script)
 			.def("rank",			&Rank)
 			.def("set_rank",		&SetRank)
+			.def("set_money",		&SetMoney)
 			.def("reputation",		&Reputation)
 			.def("character_icon", &icon_name_script)
 #endif // XRGAME_EXPORTS

@@ -57,6 +57,7 @@ struct attachable_hud_item
 	player_hud*						m_parent;
 	CHudItem*						m_parent_hud_item;
 	shared_str						m_sect_name;
+	shared_str						m_section_name;
 	IKinematics*					m_model;
 	u16								m_attach_place_idx;
 	hud_item_measures				m_measures;
@@ -69,7 +70,7 @@ struct attachable_hud_item
 			
 			attachable_hud_item		(player_hud* pparent):m_parent(pparent),m_upd_firedeps_frame(u32(-1)),m_parent_hud_item(NULL){}
 			~attachable_hud_item	();
-	void load						(const shared_str& sect_name);
+	void load						(const shared_str& sect_name, const shared_str& section);
 	void update						(bool bForce);
 	void update_hud_additional		(Fmatrix& trans);
 	void setup_firedeps				(firedeps& fd);
@@ -112,7 +113,7 @@ public:
 	u32				anim_play			(u16 part, const MotionID& M, BOOL bMixIn, const CMotionDef*& md, float speed);
 	const shared_str& section_name		() const {return m_sect_name;}
 
-	attachable_hud_item* create_hud_item(const shared_str& sect);
+	attachable_hud_item* create_hud_item(const shared_str& sect, const shared_str& section);
 
 	void			attach_item			(CHudItem* item);
 	bool			allow_activation	(CHudItem* item);
@@ -124,7 +125,7 @@ public:
 	void			calc_transform		(u16 attach_slot_idx, const Fmatrix& offset, Fmatrix& result);
 	void			tune				(Ivector values);
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
-	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const CMotionDef*& md);
+	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
 	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
 private:
 	void			update_inertion		(Fmatrix& trans);

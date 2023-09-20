@@ -148,7 +148,7 @@ void CStalkerActionSolveZonePuzzle::execute		()
 
 			static u32 m_time_to_strap = 0;
 			static u32 m_time_to_idle = 0;
-			if (!object().inventory().ActiveItem() || (object().inventory().GetActiveSlot() == INV_SLOT_2)) {
+			if (!object().inventory().ActiveItem() || (object().inventory().GetActiveSlot() == PISTOL_SLOT)) {
 				if (!m_time_to_strap)
 					m_time_to_strap					= Device.dwTimeGlobal + 10000;
 				if (Device.dwTimeGlobal >= m_time_to_strap) {
@@ -164,7 +164,7 @@ void CStalkerActionSolveZonePuzzle::execute		()
 						m_time_to_idle					= Device.dwTimeGlobal + 10000;
 					if (Device.dwTimeGlobal >= m_time_to_idle) {
 						m_time_to_strap					= 0;
-						object().CObjectHandler::set_goal	(eObjectActionIdle,object().inventory().ItemFromSlot(INV_SLOT_2));
+						object().CObjectHandler::set_goal	(eObjectActionIdle,object().inventory().ItemFromSlot(PISTOL_SLOT));
 					}
 				}
 			}

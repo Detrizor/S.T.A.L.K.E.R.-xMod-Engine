@@ -52,7 +52,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 	case GEG_PLAYER_ATTACH_HOLDER:
 	case GEG_PLAYER_DETACH_HOLDER:
 	case GEG_PLAYER_ITEM2SLOT:
-	case GEG_PLAYER_ITEM2BELT:
 	case GEG_PLAYER_ITEM2RUCK:
 	case GE_GRENADE_EXPLODE:
 		{

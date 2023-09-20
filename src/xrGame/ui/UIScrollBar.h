@@ -29,6 +29,7 @@ protected:
 	int				m_ScrollWorkArea;
 	bool			m_b_enabled;
 	bool			m_bIsHorizontal;
+	float			m_fParam;
 
 	int				m_mouse_state;
 

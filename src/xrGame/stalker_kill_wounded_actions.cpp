@@ -38,10 +38,10 @@ using namespace StalkerDecisionSpace;
 
 CInventoryItem *weapon_to_kill(const CAI_Stalker *object)
 {
-	if (!object->inventory().ItemFromSlot(INV_SLOT_2))
+	if (!object->inventory().ItemFromSlot(PISTOL_SLOT))
 		return			(object->best_weapon());
 
-	CWeaponMagazined	*temp = smart_cast<CWeaponMagazined*>(object->inventory().ItemFromSlot(INV_SLOT_2));
+	CWeaponMagazined	*temp = smart_cast<CWeaponMagazined*>(object->inventory().ItemFromSlot(PISTOL_SLOT));
 	if (!temp)
 		return			(object->best_weapon());
 
@@ -321,7 +321,7 @@ void CStalkerActionKillWounded::execute					()
 	HS.whoID				= object().ID();
 	HS.weaponID				= weapon_to_kill(&object())->object().ID();
 	HS.dir					= Fvector().set(0.f,0.f,1.f);
-	HS.power				= 1.f;
+	HS.main_damage			= 1000.f;
 	HS.boneID				= smart_cast<IKinematics*>((const_cast<CEntityAlive*>(enemy))->Visual())->LL_GetBoneRoot();
 	HS.p_in_bone_space		= Fvector().set(0.f,0.f,0.f);
 	HS.impulse				= 1.f;

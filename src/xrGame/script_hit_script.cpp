@@ -32,7 +32,8 @@ void CScriptHit::script_register(lua_State *L)
 				value("light_burn",				int(ALife::eHitTypeLightBurn)),
 				value("dummy",					int(ALife::eHitTypeMax))
 			]
-			.def_readwrite("power",				&CScriptHit::m_fPower)
+			.def_readwrite("main_damage",		&CScriptHit::m_fMainDamage)
+			.def_readwrite("pierce_damage",		&CScriptHit::m_fPierceDamage)
 			.def_readwrite("direction",			&CScriptHit::m_tDirection)
 			.def_readwrite("draftsman",			&CScriptHit::m_tpDraftsman)
 			.def_readwrite("impulse",			&CScriptHit::m_fImpulse)

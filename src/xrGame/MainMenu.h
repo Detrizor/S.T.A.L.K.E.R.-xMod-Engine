@@ -126,7 +126,6 @@ protected:
 	shared_str		m_player_name;
 	shared_str		m_cdkey;
 	
-	xr_vector<CUIMessageBoxEx*>	m_pMB_ErrDlgs;
 	bool			ReloadUI						();
 public:
 	u32				m_deactivated_frame;

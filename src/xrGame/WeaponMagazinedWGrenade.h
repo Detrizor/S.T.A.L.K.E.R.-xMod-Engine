@@ -33,7 +33,8 @@ public:
 	virtual bool	CanDetach				(const char* item_section_name);
 	virtual void	InitAddons				();
 	virtual bool	UseScopeTexture			();
-	virtual	float	CurrentZoomFactor		();
+	virtual	float	GetZoomFactor			();
+	virtual	float	GetMinZoomFactor		();
 	virtual	u8		GetCurrentHudOffsetIdx	();
 	virtual void	FireEnd					();
 			void	LaunchGrenade			();
@@ -45,6 +46,9 @@ public:
 	virtual void	OnShot			();
 	virtual void	OnEvent			(NET_Packet& P, u16 type);
 	virtual void	ReloadMagazine	();
+			bool	LoadGrenade		(CWeaponAmmo* grenade);
+	virtual bool	LoadMagazine	(CEatableItem* mag);
+	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
 
 	virtual bool	Action			(u16 cmd, u32 flags);
 
@@ -89,7 +93,10 @@ public:
 	bool					m_bGrenadeMode;
 
 	CCartridge				m_DefaultCartridge2;
-	u8						iAmmoElapsed2;
 
 	virtual void UpdateGrenadeVisibility(bool visibility);
+
+	virtual	xr_vector<CCartridge>&	Magazine();
+			u8						GetGrenade();
+			void					SetGrenade(u8 cnt);
 };

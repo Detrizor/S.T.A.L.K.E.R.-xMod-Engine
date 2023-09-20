@@ -4,26 +4,33 @@
 #include "UIDoubleProgressBar.h"
 #include "..\..\xrServerEntities\alife_space.h"
 
-class CCustomOutfit;
-class CHelmet;
 class CUIStatic;
 class CUIDoubleProgressBar;
 class CUIXml;
+class CUICellItem;
 
-class CUIOutfitImmunity : public CUIWindow
+enum EProtectionTypes {
+	eBurnProtection = 0,
+	eShockProtection,
+	eChemBurnProtection,
+	eRadiationProtection,
+	eTelepaticProtection,
+	eProtectionTypeMax
+};
+
+class CUIOutfitProtection : public CUIWindow
 {
 public:
-					CUIOutfitImmunity	();
-	virtual			~CUIOutfitImmunity	();
+					CUIOutfitProtection		();
+	virtual			~CUIOutfitProtection	();
 
-			void	InitFromXml			( CUIXml& xml_doc, LPCSTR base_str, u32 hit_type );
-			void	SetProgressValue	( float cur, float comp );
+			void	InitFromXml		(CUIXml& xml_doc, LPCSTR base_str, u32 hit_type);
+			void	SetValue		(float cur);
 
 protected:
-	CUIStatic				m_name; // texture + name
-	CUIDoubleProgressBar	m_progress;
-	CUITextWnd				m_value; // 100%
-	float					m_magnitude;
+	CUIStatic		m_name; // texture + name
+	CUITextWnd		m_value; // 100%
+	u8				m_levels;
 
 }; // class CUIOutfitImmunity
 
@@ -35,14 +42,13 @@ public:
 					CUIOutfitInfo		();
 	virtual			~CUIOutfitInfo		();
 
-			void 	InitFromXml			( CUIXml& xml_doc );
-			void 	UpdateInfo			( CCustomOutfit* cur_outfit, CCustomOutfit* slot_outfit = NULL );	
-			void 	UpdateInfo			( CHelmet* cur_helmet, CHelmet* slot_helmet = NULL );	
+			void 	InitFromXml			(CUIXml& xml_doc);
+			void 	UpdateInfoSuit		(CUICellItem* itm);	
+			void 	UpdateInfoHelmet	(CUICellItem* itm);	
 protected:
-	enum				{ max_count = ALife::eHitTypeMax-2 };
-	
-//	CUIStatic*			m_caption;
-	CUIStatic*			m_Prop_line;
-	CUIOutfitImmunity*	m_items[max_count];
+	CUIStatic*				m_Prop_line;
+	CUIOutfitProtection*	m_items[eProtectionTypeMax];
+	CUITextWnd*				m_textArmorClass;
+	CUITextWnd*				m_textArmorClassValue;
 
 }; // class CUIOutfitInfo

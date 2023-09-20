@@ -112,7 +112,8 @@ void CUIMpTradeWnd::UpdateMoneyIndicator()
 void CUIMpTradeWnd::SetMoneyChangeString(int diff)
 {
 	string128								buff;
-	xr_sprintf								(buff, "%+d RU", diff);
+	LPCSTR cur_str							= CStringTable().translate("st_currency").c_str();
+	xr_sprintf								(buff, "%+d %s", diff, cur_str);
 	m_static_money_change->SetText			(buff);
 	u32 clr									= (diff>0)?m_text_color_money_positive:m_text_color_money_negative;
 	m_static_money_change->SetTextColor		(clr);

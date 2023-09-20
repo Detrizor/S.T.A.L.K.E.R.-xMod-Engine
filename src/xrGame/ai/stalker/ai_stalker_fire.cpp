@@ -217,60 +217,9 @@ void CAI_Stalker::g_WeaponBones	(int &L, int &R1, int &R2)
 
 void CAI_Stalker::Hit(SHit* pHDS)
 {
-	//хит может меняться в зависимости от ранга (новички получают больше хита, чем ветераны)
-	SHit HDS = *pHDS;
-	HDS.add_wound = true;
-
-    //AVO: get bone names from IDs
-    //if (HDS.whoID == 0) // if shot by actor
-    //{
-    //    LPCSTR bone_name = smart_cast<IKinematics*>(this->Visual())->LL_BoneName_dbg(HDS.boneID);
-    //    Msg("Bone [%d]->[%s]", HDS.boneID, bone_name);
-    //}
-    //-AVO
-
-	float hit_power = HDS.power * m_fRankImmunity;
-
-	if (Core.ParamFlags.test(Core.dbgbullet))
-		Msg("CAI_Stalker::Hit hit_type=%d | hit_power(%f)*m_fRankImmunity(%f) = %f", (u32)HDS.hit_type, HDS.power, m_fRankImmunity,hit_power);
-
-	if(m_boneHitProtection && HDS.hit_type == ALife::eHitTypeFireWound)
-	{
-		float BoneArmor = m_boneHitProtection->getBoneArmor(HDS.bone());
-		float ap = HDS.armor_piercing;
-		if(!fis_zero(BoneArmor, EPS))
-		{
-			if(ap > BoneArmor)
-			{
-				float d_hit_power = (ap - BoneArmor) / ap;
-				if(d_hit_power < m_boneHitProtection->m_fHitFracNpc)
-					d_hit_power = m_boneHitProtection->m_fHitFracNpc;
-
-				hit_power *= d_hit_power;
-				VERIFY(hit_power>=0.0f);
-
-				if (Core.ParamFlags.test(Core.dbgbullet))
-					Msg("CAI_Stalker::Hit AP(%f) > BoneArmor(%f) [HitFracNpc=%f] modified hit_power=%f", ap, BoneArmor, m_boneHitProtection->m_fHitFracNpc,hit_power);
-			}
-			else
-			{
-				hit_power *= m_boneHitProtection->m_fHitFracNpc;
-				HDS.add_wound = false;
-
-				if (Core.ParamFlags.test(Core.dbgbullet))
-					Msg("CAI_Stalker::Hit AP(%f) < BoneArmor(%f) [HitFracNpc=%f] modified hit_power=%f", ap, BoneArmor, m_boneHitProtection->m_fHitFracNpc, hit_power);
-			}
-		}
-
-		if ( wounded() ) //уже лежит => добивание
-		{
-			hit_power = 1000.f;
-		}
-	}
-
-
-
-	HDS.power = hit_power;
+	CDamageManager::HitScale							(pHDS->boneID, conditions().armor_damage_bone_scale(), conditions().pierce_damage_bone_scale());
+	cast_entity_alive()->conditions().ConditionHit		(pHDS);
+	SHit HDS											= *pHDS;
 
 	if (g_Alive())
 	{
@@ -302,7 +251,7 @@ void CAI_Stalker::Hit(SHit* pHDS)
 				!wounded() &&
 				!already_critically_wounded)
 		{
-			bool					became_critically_wounded = update_critical_wounded(HDS.boneID,HDS.power);
+			bool					became_critically_wounded = update_critical_wounded(HDS.boneID,HDS.damage());
 			if	(
 				!became_critically_wounded &&
 				animation().script_animations().empty() &&
@@ -317,16 +266,15 @@ void CAI_Stalker::Hit(SHit* pHDS)
 				float					power_factor = m_power_fx_factor * HDS.damage() / 100.f;
 				clamp					(power_factor,0.f,1.f);
 
-				//IKinematicsAnimated		*tpKinematics = smart_cast<IKinematicsAnimated*>(Visual());
+#ifdef DEBUG
 				IKinematics *tpKinematics = smart_cast<IKinematics*>(Visual());
-	#ifdef DEBUG
 				tpKinematics->LL_GetBoneInstance	(HDS.bone());
 				if (HDS.bone() >= tpKinematics->LL_BoneCount()) {
 					Msg					("tpKinematics has no bone_id %d",HDS.bone());
 					HDS._dump			();
 				}
 	#endif
-//				int						fx_index = iFloor(tpKinematics->LL_GetBoneInstance(HDS.bone()).get_param(1) + (angle_difference(movement().m_body.current.yaw,-yaw) <= PI_DIV_2 ? 0 : 1));
+//				int						fx_index = iFloor(tpKinematics->LL_GetBoneInstance(HDS.bone()).get_param(4) + (angle_difference(movement().m_body.current.yaw,-yaw) <= PI_DIV_2 ? 0 : 1));
 //				if (fx_index != -1)
 //					animation().play_fx	(power_factor,fx_index);
 			}
@@ -346,7 +294,8 @@ void CAI_Stalker::Hit(SHit* pHDS)
 	{
 		CScriptHit tLuaHit;
 
-		tLuaHit.m_fPower = HDS.power;
+		tLuaHit.m_fMainDamage = HDS.main_damage;
+		tLuaHit.m_fPierceDamage = HDS.pierce_damage;
 		tLuaHit.m_fImpulse = HDS.impulse;
 		tLuaHit.m_tDirection = HDS.direction();
 		tLuaHit.m_tHitType = HDS.hit_type;
@@ -359,18 +308,9 @@ void CAI_Stalker::Hit(SHit* pHDS)
 				return;
 		}
 
-		HDS.power = tLuaHit.m_fPower;
-		HDS.impulse = tLuaHit.m_fImpulse;
-		HDS.dir = tLuaHit.m_tDirection;
-		HDS.hit_type = (ALife::EHitType)(tLuaHit.m_tHitType);
-		//HDS.who = smart_cast<CObject*>(tLuaHit.m_tpDraftsman->object());
-		//HDS.whoID = tLuaHit.m_tpDraftsman->ID();
-
 		float const damage_factor	= invulnerable() ? 0.f : 100.f;
 		memory().hit().add			( damage_factor*HDS.damage(), HDS.direction(), HDS.who, HDS.boneID );
 	}
-
-	//conditions().health()			= 1.f;
 
 	inherited::Hit					( &HDS );
 }

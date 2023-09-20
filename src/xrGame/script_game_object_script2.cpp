@@ -91,6 +91,7 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("cost",						&CScriptGameObject::Cost)
 		.def("condition",					&CScriptGameObject::GetCondition)
 		.def("set_condition",				&CScriptGameObject::SetCondition)
+		.def("change_condition",			&CScriptGameObject::ChangeCondition)
 		.def("death_time",					&CScriptGameObject::DeathTime)
 //		.def("armor",						&CScriptGameObject::Armor)
 		.def("max_health",					&CScriptGameObject::MaxHealth)
@@ -125,6 +126,7 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("object",						(CScriptGameObject *(CScriptGameObject::*)(LPCSTR))(&CScriptGameObject::GetObjectByName))
 		.def("object",						(CScriptGameObject *(CScriptGameObject::*)(int))(&CScriptGameObject::GetObjectByIndex))
 		.def("active_item",					&CScriptGameObject::GetActiveItem)
+		.def("left_item",					&CScriptGameObject::GetLeftItem)
 		
 		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<void> &))(&CScriptGameObject::SetCallback))
 		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<void> &, const luabind::object &))(&CScriptGameObject::SetCallback))
@@ -308,6 +310,11 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("active_detector",				&CScriptGameObject::active_detector)
 		.def("active_slot",					&CScriptGameObject::active_slot)
 		.def("activate_slot",				&CScriptGameObject::activate_slot)
+
+		.def("activate_item",				&CScriptGameObject::ActivateItem)
+		.def("ruck",						&CScriptGameObject::Ruck)
+		.def("slot",						&CScriptGameObject::Slot)
+		.def("pocket",						&CScriptGameObject::Pocket)
 
 #ifdef DEBUG
 		.def("debug_planner",				&CScriptGameObject::debug_planner)

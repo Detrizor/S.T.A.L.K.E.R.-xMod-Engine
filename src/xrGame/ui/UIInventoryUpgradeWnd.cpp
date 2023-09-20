@@ -225,7 +225,8 @@ bool CUIInventoryUpgradeWnd::install_item( CInventoryItem& inv_item, bool can_up
 {
 	m_scheme_wnd->DetachAll();
 	m_back->DetachAll();
-	m_btn_repair->Enable( (inv_item.GetCondition() < 0.99f) );
+	float condition = inv_item.GetCondition();
+	m_btn_repair->Enable(condition > 0.2f && condition < 0.8f && (inv_item.m_main_class == "weapon" || inv_item.m_main_class == "outfit"));
 
 	if ( !can_upgrade )
 	{

@@ -197,9 +197,9 @@ public:
 public:
 
     //свойства артефактов
-    virtual void		UpdateArtefactsOnBeltAndOutfit();
-            float		HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type);
-            float		GetProtection_ArtefactsOnBelt(ALife::EHitType hit_type);
+    virtual void		UpdateArtefactsAndOutfit	();
+            void		HitArtefacts				(SHit& HDS);
+            float		GetProtectionArtefacts		(ALife::EHitType hit_type);
 
 protected:
     //звук т€желого дыхани€
@@ -370,7 +370,7 @@ protected:
     shared_str				m_sInventoryItemUseAction;
     shared_str				m_sInventoryBoxUseAction;
     
-//	shared_str				m_quick_use_slots[4];
+//	shared_str				m_quick_use_slots[5];
     //режим подбирани€ предметов
     bool					m_bPickupMode;
 	bool					m_bInfoDraw;
@@ -381,9 +381,7 @@ protected:
     float					m_fFeelGrenadeTime; 	//врем€ гранаты (сек) после которого актер чувствует гранату
 #endif
 //-Alundaio
-    //рассто€ние подсветки предметов
-    float					m_fPickupInfoRadius;
-
+	void					VicinityUpdate		();
     void					PickupModeUpdate	();
     void					PickupInfoDraw		(CObject* object);
     void					PickupModeUpdate_COD ();
@@ -392,6 +390,9 @@ protected:
     // Motions (передвижени€ актрера)
     //////////////////////////////////////////////////////////////////////////
 public:
+	//рассто€ние подсветки предметов
+	float					m_fVicinityRadius;
+
     void					g_cl_CheckControls		(u32 mstate_wf, Fvector &vControlAccel, float &Jump, float dt);
     void					g_cl_ValidateMState		(float dt, u32 mstate_wf);
     void					g_cl_Orientate			(u32 mstate_rl, float dt);
@@ -425,6 +426,9 @@ protected:
     BOOL					m_bJumpKeyPressed;
 
 public:
+	float					m_fSpeedScale;
+	bool					m_fSprintBlock;
+	bool					m_fAccelBlock;
     float					m_fWalkAccel;
     float					m_fJumpSpeed;
     float					m_fRunFactor;
@@ -451,17 +455,15 @@ public:
     virtual	float			GetLookFactor			();
 
 public:
-    virtual void						g_WeaponBones		(int &L, int &R1, int &R2);
-    virtual void						g_fireParams		(const CHudItem* pHudItem, Fvector& P, Fvector& D);
-    virtual bool						g_stateFire			() {return ! ((mstate_wishful & mcLookout) && !IsGameTypeSingle() );}
+    virtual void						g_WeaponBones			(int &L, int &R1, int &R2);
+    virtual void						g_fireParams			(const CHudItem* pHudItem, Fvector& P, Fvector& D);
+    virtual bool						g_stateFire				() {return ! ((mstate_wishful & mcLookout) && !IsGameTypeSingle() );}
 
-    virtual BOOL						g_State				(SEntityState& state) const;
-    virtual	float						GetWeaponAccuracy	() const;
-            float						GetFireDispertion	() const {return m_fdisp_controller.GetCurrentDispertion();}
-            bool						IsZoomAimingMode	() const {return m_bZoomAimingMode;}
-    virtual float						MaxCarryWeight		() const;
-            float						MaxWalkWeight		() const;
-            float						get_additional_weight() const;
+    virtual BOOL						g_State					(SEntityState& state) const;
+    virtual	float						GetWeaponAccuracy		() const;
+            float						GetFireDispertion		() const {return m_fdisp_controller.GetCurrentDispertion();}
+            bool						IsZoomAimingMode		() const {return m_bZoomAimingMode;}
+	virtual	float						InventoryCapacity		() const;
 
 protected:
     CFireDispertionController			m_fdisp_controller;
@@ -634,6 +636,10 @@ private:
     CActorInputHandler		*m_input_external_handler;
     u32						m_time_lock_accel;
 
+	u32						m_state_last_tg;
+	u32						m_state_toggle_tg;
+	u32						m_state_toggle_delay;
+
     /////////////////////////////////////////
     // DEBUG INFO
 protected:
@@ -651,8 +657,6 @@ protected:
         Fvector							m_AutoPickUp_AABB;
         Fvector							m_AutoPickUp_AABB_Offset;
 
-        void							Check_for_AutoPickUp			();
-		void							SelectBestWeapon(CObject* O);
 public:
         void							SetWeaponHideState				(u16 State, bool bSet);
 private://IPhysicsShellHolder
@@ -673,6 +677,7 @@ public:
     virtual bool				natural_weapon				() const {return false;}
     virtual bool				natural_detector			() const {return false;}
     virtual bool				use_center_to_aim			() const;
+	void						SetPower					(float p);
 protected:
     u16							m_iLastHitterID;
     u16							m_iLastHittingWeaponID;
@@ -726,13 +731,13 @@ public:
     IC float					HitProbability					() {return m_hit_probability;}
     virtual	CVisualMemoryManager*visual_memory					() const;
 
-    virtual	BOOL				BonePassBullet					(int boneID);
     virtual	void				On_B_NotCurrentEntity			();
 
 private:
     collide::rq_results			RQR;
             BOOL				CanPickItem						(const CFrustum& frustum, const Fvector& from, CObject* item);
     xr_vector<ISpatial*>		ISpatialResult;
+    xr_vector<ISpatial*>		ISpatialResultVicinity;
 
 private:
     CLocationManager				*m_location_manager;
@@ -750,8 +755,6 @@ private:
 public:
     virtual bool				register_schedule				() const {return false;}
     virtual	bool				is_ai_obstacle					() const;
-    
-            float				GetRestoreSpeed					(ALife::EConditionRestoreType const& type);
 
 public:
     virtual void			On_SetEntity();

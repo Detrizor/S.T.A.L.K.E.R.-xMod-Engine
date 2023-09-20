@@ -557,28 +557,26 @@ CUICellContainer::~CUICellContainer()
 
 bool CUICellContainer::AddSimilar(CUICellItem* itm)
 {
-	if(!m_pParentDragDropList->IsGrouping())	return false;
+	if (!m_pParentDragDropList->IsGrouping())
+		return			false;
 
-	//Alundaio: Don't stack equipped items
-	PIItem	iitem = (PIItem)itm->m_pData;
-	if (iitem && iitem->m_pInventory)
+	PIItem iitem		= (PIItem)itm->m_pData;
+	if (iitem)
 	{
-		if (iitem->m_pInventory->ItemFromSlot(iitem->BaseSlot()) == iitem)
-			return false;
-
 		if (!iitem->CanStack())
-			return false;
+			return		false;
+		if (iitem->m_pInventory && iitem->m_pInventory->ItemFromSlot(iitem->BaseSlot()) == iitem)
+			return		false;
 	}
-	//-Alundaio
 
 	CUICellItem* i		= FindSimilar(itm);
 	if (i == NULL || i == itm || itm->ChildsCount() > 0)
-		return false;
+		return			false;
 
-	i->PushChild(itm);
-	itm->SetOwnerList(m_pParentDragDropList);
+	i->PushChild		(itm);
+	itm->SetOwnerList	(m_pParentDragDropList);
 
-	return true;
+	return				true;
 }
 
 CUICellItem* CUICellContainer::FindSimilar(CUICellItem* itm)
@@ -952,25 +950,17 @@ void CUICellContainer::Draw()
 			cpos.add( TopVisibleCell() );
 			CUICell& ui_cell = GetCellAt( cpos );
 			
-			u8 select_mode = 0;
-			if ( !ui_cell.Empty() )
+			u8 select_mode			= 0;
+			if (!ui_cell.Empty())
 			{
-				if ( ui_cell.m_item->m_cur_mark )
-				{
-					select_mode = 2;
-				}
-				else if ( ui_cell.m_item->m_selected )
-				{
-					select_mode = 1;
-				}
-				else if ( ui_cell.m_item->m_select_armament )
-				{
-					select_mode = 3;
-				}
+				if (ui_cell.m_item->m_cur_mark)
+					select_mode		= 2;
+				else if (ui_cell.m_item->m_selected)
+					select_mode		= 1;
+				else if (ui_cell.m_item->m_select_armament)
+					select_mode		= 3;
 				else if (ui_cell.m_item->m_select_equipped)
-				{
-						select_mode = 2;
-				}
+					select_mode		= 1;
 			}
 			
 			Fvector2			tp;

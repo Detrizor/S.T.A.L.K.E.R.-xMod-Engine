@@ -165,8 +165,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
         .def("drop_item_and_teleport",		&CScriptGameObject::DropItemAndTeleport)
         .def("transfer_item",				&CScriptGameObject::TransferItem)
         .def("transfer_money",				&CScriptGameObject::TransferMoney)
-        .def("give_money",					&CScriptGameObject::GiveMoney)
         .def("money",						&CScriptGameObject::Money)
+        .def("infinitive_money",			&CScriptGameObject::InfinitiveMoney)
+        .def("set_money",					&CScriptGameObject::SetMoney)
+        .def("give_money",					&CScriptGameObject::GiveMoney)
         .def("make_item_active",			&CScriptGameObject::MakeItemActive)
 
         .def("switch_to_trade",				&CScriptGameObject::SwitchToTrade)
@@ -244,18 +246,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
         .def("get_anomaly_power",			&CScriptGameObject::GetAnomalyPower)
         .def("set_anomaly_power",			&CScriptGameObject::SetAnomalyPower)
 
-        .def("get_artefact_health",			&CScriptGameObject::GetArtefactHealthRestoreSpeed)
-        .def("get_artefact_radiation",			&CScriptGameObject::GetArtefactRadiationRestoreSpeed)
-        .def("get_artefact_satiety",			&CScriptGameObject::GetArtefactSatietyRestoreSpeed)
-        .def("get_artefact_power",			&CScriptGameObject::GetArtefactPowerRestoreSpeed)
-        .def("get_artefact_bleeding",			&CScriptGameObject::GetArtefactBleedingRestoreSpeed)        
-
-        .def("set_artefact_health",			&CScriptGameObject::SetArtefactHealthRestoreSpeed)
-        .def("set_artefact_radiation",			&CScriptGameObject::SetArtefactRadiationRestoreSpeed)
-        .def("set_artefact_satiety",			&CScriptGameObject::SetArtefactSatietyRestoreSpeed)
-        .def("set_artefact_power",			&CScriptGameObject::SetArtefactPowerRestoreSpeed)
-        .def("set_artefact_bleeding",			&CScriptGameObject::SetArtefactBleedingRestoreSpeed)
-                                
         //HELICOPTER
         .def("get_helicopter",              &CScriptGameObject::get_helicopter)
         .def("get_car",						&CScriptGameObject::get_car)
@@ -311,7 +301,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
         .def("iterate_inventory_box",		&CScriptGameObject::IterateInventoryBox)
         .def("mark_item_dropped",			&CScriptGameObject::MarkItemDropped)
         .def("marked_dropped",				&CScriptGameObject::MarkedDropped)
-        .def("unload_magazine",				&CScriptGameObject::UnloadMagazine)
+        .def("discharge",					&CScriptGameObject::Discharge)
 
         .def("sight_params",				&CScriptGameObject::sight_params)
 
@@ -352,7 +342,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_attached_vehicle", &CScriptGameObject::GetAttachedVehicle)
 #endif
 #ifdef GAME_OBJECT_EXTENDED_EXPORTS
-		.def("reset_bone_protections", &CScriptGameObject::ResetBoneProtections)
 		.def("iterate_feel_touch", &CScriptGameObject::IterateFeelTouch)
 		.def("get_luminocity_hemi", &CScriptGameObject::GetLuminocityHemi)
 		.def("get_luminocity", &CScriptGameObject::GetLuminocity)
@@ -385,9 +374,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("switch_state", &CScriptGameObject::SwitchState)
 		.def("get_state", &CScriptGameObject::GetState)
 		// For EatableItem
-		.def("set_remaining_uses", &CScriptGameObject::SetRemainingUses)
-		.def("get_remaining_uses", &CScriptGameObject::GetRemainingUses)
 		.def("get_max_uses", &CScriptGameObject::GetMaxUses)
+		.def("get_remaining_uses", &CScriptGameObject::GetRemainingUses)
+		.def("set_remaining_uses", &CScriptGameObject::SetRemainingUses)
+		.def("change_remaining_uses", &CScriptGameObject::ChangeRemainingUses)
 		// Phantom
 		.def("phantom_set_enemy", &CScriptGameObject::PhantomSetEnemy)
 		// Actor
@@ -432,16 +422,8 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		//Alundaio: END
         //AVO: additional functions
 		.def("is_on_belt", &CScriptGameObject::IsOnBelt)
-		.def("item_on_belt",			&CScriptGameObject::ItemOnBelt) 
-		.def("belt_count",				&CScriptGameObject::BeltSize)  
-		.def("get_actor_max_weight",		&CScriptGameObject::GetActorMaxWeight)
-		.def("set_actor_max_weight",		&CScriptGameObject::SetActorMaxWeight)
-		.def("get_actor_max_walk_weight",	&CScriptGameObject::GetActorMaxWalkWeight)
-		.def("set_actor_max_walk_weight",	&CScriptGameObject::SetActorMaxWalkWeight)
-		.def("get_additional_max_weight",		&CScriptGameObject::GetAdditionalMaxWeight)
-		.def("set_additional_max_weight",		&CScriptGameObject::SetAdditionalMaxWeight)
-		.def("get_additional_max_walk_weight",	&CScriptGameObject::GetAdditionalMaxWalkWeight)
-		.def("set_additional_max_walk_weight",	&CScriptGameObject::SetAdditionalMaxWalkWeight)
+		.def("item_on_belt",			&CScriptGameObject::ItemOnBelt)
+		.def("belt_count",				&CScriptGameObject::BeltSize)
 		.def("get_total_weight",			&CScriptGameObject::GetTotalWeight)
 		.def("weight",						&CScriptGameObject::Weight)        
 
@@ -454,6 +436,57 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_actor_runback_coef",		&CScriptGameObject::GetActorRunBackCoef)
 		.def("set_actor_runback_coef",		&CScriptGameObject::SetActorRunBackCoef)    
         //end AVO
+
+		//xMod functions
+		.def("volume",						&CScriptGameObject::Volume)
+		.def("set_volume",					&CScriptGameObject::SetVolume)
+		.def("get_total_volume",			&CScriptGameObject::GetTotalVolume)
+		.def("custom_data",					&CScriptGameObject::CustomData)
+		.def("set_custom_data",				&CScriptGameObject::SetCustomData)
+		.def("append_custom_data",			&CScriptGameObject::AppendCustomData)
+		.def("get_magazine",				&CScriptGameObject::GetMagazine)
+		.def("set_magazine",				&CScriptGameObject::SetMagazine)
+		.def("get_grenade",					&CScriptGameObject::GetGrenade)
+		.def("set_grenade",					&CScriptGameObject::SetGrenade)
+		.def("magazine_index",				&CScriptGameObject::MagazineIndex)
+		.def("set_magazine_index",			&CScriptGameObject::SetMagazineIndex)
+		.def("load_magazine",				&CScriptGameObject::LoadMagazine)
+		.def("load_cartridge",				&CScriptGameObject::LoadCartridge)
+		.def("load_grenade",				&CScriptGameObject::LoadGrenade)
+		.def("set_health",					&CScriptGameObject::ActorSetHealth)
+		.def("set_power",					&CScriptGameObject::ActorSetPower)
+		.def("set_speed_scale",				&CScriptGameObject::ActorSetSpeedScale)
+		.def("set_sprint_block",			&CScriptGameObject::ActorSetSprintBlock)
+		.def("set_accel_block",				&CScriptGameObject::ActorSetAccelBlock)
+		.def("get_inventory_capacity",		&CScriptGameObject::GetInventoryCapacity)
+		.def("give_objects",				&CScriptGameObject::GiveObjects)
+		.def("give_objects",				&CScriptGameObject::GiveObjects1)
+		.def("give_objects",				&CScriptGameObject::GiveObjects2)
+		.def("give_object",					&CScriptGameObject::GiveObject)
+		.def("give_object",					&CScriptGameObject::GiveObject1)
+		.def("give_object",					&CScriptGameObject::GiveObject2)
+		.def("give_ammo",					&CScriptGameObject::GiveAmmo)
+		.def("give_ammo",					&CScriptGameObject::GiveAmmo1)
+		.def("main_class",					&CScriptGameObject::MainClass)
+		.def("subclass",					&CScriptGameObject::Subclass)
+		.def("division",					&CScriptGameObject::Division)
+		.def("full_class",					&CScriptGameObject::FullClass)
+		.def("in_hands",					&CScriptGameObject::InHands)
+		.def("get_capacity",				&CScriptGameObject::GetCapacity)
+		.def("set_capacity",				&CScriptGameObject::SetCapacity)
+		.def("get_protection",				&CScriptGameObject::GetProtection)
+		.def("get_armor_level",				&CScriptGameObject::GetArmorLevel)
+		.def("get_weight_dump",				&CScriptGameObject::GetWeightDump)
+		.def("get_recuperation_factor",		&CScriptGameObject::GetRecuperationFactor)
+		.def("get_drain_factor",			&CScriptGameObject::GetDrainFactor)
+		.def("get_power_loss",				&CScriptGameObject::GetPowerLoss)
+		.def("get_scope_zoom_factor",		&CScriptGameObject::GetScopeZoomFactor)
+		.def("set_scope_zoom_factor",		&CScriptGameObject::SetScopeZoomFactor)
+		.def("get_scope_min_zoom_factor",	&CScriptGameObject::GetScopeMinZoomFactor)
+		.def("set_scope_min_zoom_factor",	&CScriptGameObject::SetScopeMinZoomFactor)
+		.def("get_scope_alive_detector",	&CScriptGameObject::GetScopeAliveDetector)
+		.def("set_scope_alive_detector",	&CScriptGameObject::SetScopeAliveDetector)
+		.def("get_inertion",				&CScriptGameObject::GetInertion)
 #endif
 
 

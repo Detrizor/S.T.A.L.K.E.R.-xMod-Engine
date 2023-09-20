@@ -98,14 +98,10 @@ CScriptGameObject* CUIActorMenu::GetCurrentItemAsGameObject()
 void CUIActorMenu::TryRepairItem(CUIWindow* w, void* d)
 {
 	PIItem item = get_upgrade_item();
-	if ( !item )
-	{
+	if (!item)
 		return;
-	}
-	if ( item->GetCondition() > 0.99f )
-	{
+	if (item->GetCondition() >= 0.8f)
 		return;
-	}
 	LPCSTR item_name = item->m_section_id.c_str();
 
 	CEatableItem* EItm = smart_cast<CEatableItem*>(item);
@@ -155,7 +151,7 @@ void CUIActorMenu::RepairEffect_CurItem()
 	R_ASSERT( ai().script_engine().functor( "inventory_upgrades.effect_repair_item", funct ) );
 	funct( item_name, item->GetCondition() );
 
-	item->SetCondition( 1.0f );
+	item->SetCondition(0.8f);
 	UpdateConditionProgressBars();
 	SeparateUpgradeItem();
 	CUICellItem* itm = CurrentItem();
@@ -167,6 +163,10 @@ void CUIActorMenu::RepairEffect_CurItem()
 bool CUIActorMenu::CanUpgradeItem( PIItem item )
 {
 	VERIFY( item && m_pPartnerInvOwner );
+
+	if (item->GetCondition() <= 0.2f)
+		return false;
+
 	LPCSTR item_name = item->m_section_id.c_str();
 	LPCSTR partner = m_pPartnerInvOwner->CharacterInfo().Profile().c_str();
 		
@@ -195,9 +195,6 @@ void CUIActorMenu::HighlightSectionInSlot(LPCSTR section, u8 type, u16 slot_id)
 		case EDDListType::iActorBag:
 			slot_list = m_pInventoryBagList;
 			break;
-		case EDDListType::iActorBelt:
-			slot_list = m_pInventoryBeltList;
-			break;
 		case EDDListType::iActorSlot:
 			slot_list = GetSlotList(slot_id);
 			break;
@@ -212,9 +209,6 @@ void CUIActorMenu::HighlightSectionInSlot(LPCSTR section, u8 type, u16 slot_id)
 			break;
 		case EDDListType::iPartnerTradeBag:
 			slot_list = m_pTradePartnerBagList;
-			break;
-		case EDDListType::iQuickSlot:
-			slot_list = m_pQuickSlot;
 			break;
 		case EDDListType::iTrashSlot:
 			slot_list = m_pTrashList;
@@ -253,9 +247,6 @@ void CUIActorMenu::HighlightForEachInSlot(const luabind::functor<bool> &functor,
 	case EDDListType::iActorBag:
 		slot_list = m_pInventoryBagList;
 		break;
-	case EDDListType::iActorBelt:
-		slot_list = m_pInventoryBeltList;
-		break;
 	case EDDListType::iActorSlot:
 		slot_list = GetSlotList(slot_id);
 		break;
@@ -270,9 +261,6 @@ void CUIActorMenu::HighlightForEachInSlot(const luabind::functor<bool> &functor,
 		break;
 	case EDDListType::iPartnerTradeBag:
 		slot_list = m_pTradePartnerBagList;
-		break;
-	case EDDListType::iQuickSlot:
-		slot_list = m_pQuickSlot;
 		break;
 	case EDDListType::iTrashSlot:
 		slot_list = m_pTrashList;
@@ -308,14 +296,12 @@ void CUIActorMenu::script_register(lua_State *L)
 			.enum_("EDDListType")
 			[
 				value("iActorBag", int(EDDListType::iActorBag)),
-				value("iActorBelt", int(EDDListType::iActorBelt)),
 				value("iActorSlot", int(EDDListType::iActorSlot)),
 				value("iActorTrade", int(EDDListType::iActorTrade)),
 				value("iDeadBodyBag", int(EDDListType::iDeadBodyBag)),
 				value("iInvalid", int(EDDListType::iInvalid)),
 				value("iPartnerTrade", int(EDDListType::iPartnerTrade)),
 				value("iPartnerTradeBag", int(EDDListType::iPartnerTradeBag)),
-				value("iQuickSlot", int(EDDListType::iQuickSlot)),
 				value("iTrashSlot", int(EDDListType::iTrashSlot))
 			],
 
@@ -329,7 +315,6 @@ void CUIActorMenu::script_register(lua_State *L)
 				.def("ShowDialog", &CUIActorMenu::ShowDialog)
 				.def("HideDialog", &CUIActorMenu::HideDialog)
 				.def("ToSlot", &CUIActorMenu::ToSlotScript)
-				.def("ToBelt", &CUIActorMenu::ToBeltScript)
 				.def("SetMenuMode", &CUIActorMenu::SetMenuMode)
 				.def("GetMenuMode", &CUIActorMenu::GetMenuMode)
 				.def("GetPartner", &ActorMenuGetPartner_script)

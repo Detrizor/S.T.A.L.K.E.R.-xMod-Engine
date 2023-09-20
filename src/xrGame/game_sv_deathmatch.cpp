@@ -1163,7 +1163,8 @@ void	game_sv_Deathmatch::OnPlayerHitPlayer_Case	(game_PlayerState* ps_hitter, ga
 	//{
 		if (ps_hitted->testFlag(GAME_PLAYER_FLAG_INVINCIBLE))
 		{
-			pHitS->power = 0;
+			pHitS->main_damage = 0;
+			pHitS->pierce_damage = 0;
 			pHitS->impulse = 0;
 		}
 //	}	
@@ -1190,7 +1191,7 @@ void	game_sv_Deathmatch::OnPlayerHitPlayer		(u16 id_hitter, u16 id_hitted, NET_P
 	OnPlayerHitPlayer_Case(ps_hitter, ps_hitted, &HitS);
 
 	//---------------------------------------
-	if (HitS.power > 0)
+	if (HitS.damage() > 0)
 	{
 		ps_hitted->lasthitter = ps_hitter->GameID;
 		ps_hitted->lasthitweapon = HitS.weaponID;

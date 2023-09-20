@@ -43,6 +43,7 @@
 #include "grenade.h"
 #include "BottleItem.h"
 #include "WeaponMagazinedWGrenade.h"
+#include "ActorBackpack.h"
 
 class CWeapon;
 
@@ -400,6 +401,358 @@ void CScriptGameObject::SetHealthEx(float hp)
     obj->SetfHealth(hp);
 }
 //-AVO
+
+float CScriptGameObject::Volume() const
+{
+	CInventoryItem		*inventory_item = smart_cast<CInventoryItem*>(&object());
+	if (!inventory_item)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member Volume!");
+		return false;
+	}
+	return				(inventory_item->Volume());
+}
+
+void CScriptGameObject::SetVolume(float v)
+{
+	CInventoryItem		*inventory_item = smart_cast<CInventoryItem*>(&object());
+	if (!inventory_item)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CSciptEntity : cannot access class member SetVolume!");
+		return;
+	}
+	inventory_item->SetVolume(v);
+}
+
+LPCSTR CScriptGameObject::CustomData()
+{
+	PIItem iitem				= object().cast_inventory_item();
+	CEatableItem* eitem			= iitem->cast_eatable_item();
+	if (!eitem)
+		return					false;
+	return						*eitem->CustomData();
+}
+
+void CScriptGameObject::SetCustomData(LPCSTR data)
+{
+	PIItem iitem				= object().cast_inventory_item();
+	CEatableItem* eitem			= iitem->cast_eatable_item();
+	if (!eitem)
+		return;
+	eitem->CustomData()._set	(data);
+}
+
+void CScriptGameObject::AppendCustomData(u8 data)
+{
+	PIItem iitem				= object().cast_inventory_item();
+	CEatableItem* eitem			= iitem->cast_eatable_item();
+	if (!eitem)
+		return;
+	eitem->CustomData().printf	("%s%i", *eitem->CustomData(), data);
+}
+
+LPCSTR CScriptGameObject::GetMagazine()
+{
+	CWeaponMagazined* wpn		= smart_cast<CWeaponMagazined*>(&object());
+	if (!wpn)
+		return					false;
+	return						wpn->GetMagazine();
+}
+
+void CScriptGameObject::SetMagazine(LPCSTR data)
+{
+	CWeaponMagazined* wpn		= smart_cast<CWeaponMagazined*>(&object());
+	if (!wpn)
+		return;
+	wpn->SetMagazine			(data);
+}
+
+u8 CScriptGameObject::GetGrenade()
+{
+	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
+	if (!wpn)
+		return							0;
+	return								wpn->GetGrenade();
+}
+
+void CScriptGameObject::SetGrenade(u8 cnt)
+{
+	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
+	if (!wpn)
+		return;
+	wpn->SetGrenade						(cnt);
+}
+
+u8 CScriptGameObject::MagazineIndex()
+{
+	CWeapon* weapon = smart_cast<CWeapon*>(&object());
+	if (!weapon)
+		return false;
+	return weapon->MagazineIndex();
+}
+
+void CScriptGameObject::SetMagazineIndex(u8 index)
+{
+	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
+	if (!weapon)
+		return;
+	return weapon->SetMagazineIndex(index);
+}
+
+bool CScriptGameObject::LoadMagazine(CScriptGameObject* obj)
+{
+	CWeaponMagazined* wpn	= smart_cast<CWeaponMagazined*>(&object());
+	CEatableItem* mag		= smart_cast<CEatableItem*>(&obj->object());
+	if (!wpn || !mag)
+		return				false;
+
+	return					wpn->LoadMagazine(mag);
+}
+
+bool CScriptGameObject::LoadCartridge(CScriptGameObject* obj)
+{
+	CWeaponMagazined* wpn	= smart_cast<CWeaponMagazined*>(&object());
+	CWeaponAmmo* cartridge	= smart_cast<CWeaponAmmo*>(&obj->object());
+	if (!wpn || !cartridge)
+		return				false;
+
+	return					wpn->LoadCartridge(cartridge);
+}
+
+bool CScriptGameObject::LoadGrenade(CScriptGameObject* obj)
+{
+	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
+	CWeaponAmmo* grenade				= smart_cast<CWeaponAmmo*>(&obj->object());
+	if (!wpn || !grenade)
+		return							false;
+
+	return								wpn->LoadGrenade(grenade);
+}
+
+void CScriptGameObject::ActorSetHealth(float h)
+{
+	CActor* actor = smart_cast<CActor*>(&object());
+	if (!actor)
+		return;
+	actor->SetfHealth(h);
+}
+
+void CScriptGameObject::ActorSetPower(float p)
+{
+	CActor* actor = smart_cast<CActor*>(&object());
+	if (!actor)
+		return;
+	actor->SetPower(p);
+}
+
+void CScriptGameObject::ActorSetSpeedScale(float speed_scale)
+{
+	CActor* actor = smart_cast<CActor*>(&object());
+	if (!actor)
+		return;
+	actor->m_fSpeedScale = speed_scale;
+}
+
+void CScriptGameObject::ActorSetSprintBlock(bool block)
+{
+	CActor* actor = smart_cast<CActor*>(&object());
+	if (!actor)
+		return;
+	actor->m_fSprintBlock = block;
+}
+
+void CScriptGameObject::ActorSetAccelBlock(bool block)
+{
+	CActor* actor = smart_cast<CActor*>(&object());
+	if (!actor)
+		return;
+	actor->m_fAccelBlock = block;
+}
+
+LPCSTR CScriptGameObject::MainClass()
+{
+	PIItem item = smart_cast<PIItem>(&object());
+	return (item) ? item->m_main_class.c_str() : NULL;
+}
+
+LPCSTR CScriptGameObject::Subclass()
+{
+	PIItem item = smart_cast<PIItem>(&object());
+	return (item) ? item->m_subclass.c_str() : NULL;
+}
+
+LPCSTR CScriptGameObject::Division()
+{
+	PIItem item = smart_cast<PIItem>(&object());
+	return (item) ? item->m_division.c_str() : NULL;
+}
+
+LPCSTR CScriptGameObject::FullClass(bool with_division)
+{
+	PIItem item = smart_cast<PIItem>(&object());
+	return (item) ? *item->FullClass(with_division) : NULL;
+}
+
+bool CScriptGameObject::InHands()
+{
+	PIItem item = smart_cast<PIItem>(&object());
+	return (item) ? item->InHands() : false;
+}
+
+float CScriptGameObject::GetCapacity()
+{
+	CBackpack* backpack		= smart_cast<CBackpack*>(&object());
+	if (backpack)
+		return				backpack->GetCapacity();
+	CInventoryBox* box		= smart_cast<CInventoryBox*>(&object());
+	if (box)
+		return				box->GetCapacity();
+	return					0.f;
+}
+
+void CScriptGameObject::SetCapacity(float v)
+{
+	CBackpack* backpack				= smart_cast<CBackpack*>(&object());
+	if (backpack)
+		backpack->SetCapacity		(v);
+	CInventoryBox* box				= smart_cast<CInventoryBox*>(&object());
+	if (box)
+		box->SetCapacity			(v);
+}
+
+float CScriptGameObject::GetProtection(u8 type)
+{
+	CCustomOutfit*	outfit					= smart_cast<CCustomOutfit*>(&object());
+	CHelmet*		helmet					= smart_cast<CHelmet*>(&object());
+	if (!outfit && !helmet)
+	{
+		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member GetProtection!");
+		return								0.f;
+	}
+	ALife::EHitType hit_type				= (ALife::EHitType)type;
+	return									(outfit) ? outfit->GetHitTypeProtection(hit_type) : helmet->GetHitTypeProtection(hit_type);
+}
+
+float CScriptGameObject::GetArmorLevel()
+{
+	CCustomOutfit*	outfit		= smart_cast<CCustomOutfit*>(&object());
+	CHelmet*		helmet		= smart_cast<CHelmet*>(&object());
+	if (!outfit && !helmet)
+		return					0.f;
+
+	return (outfit) ? outfit->m_fArmorLevel : helmet->m_fArmorLevel;
+}
+
+float CScriptGameObject::GetWeightDump()
+{
+	CCustomOutfit*	outfit		= smart_cast<CCustomOutfit*>(&object());
+	CArtefact*	art				= smart_cast<CArtefact*>(&object());
+	if (!outfit && !art)
+		return					0.f;
+
+	return (outfit) ? outfit->m_fWeightDump : art->m_fWeightDump;
+}
+
+float CScriptGameObject::GetRecuperationFactor()
+{
+	CCustomOutfit*	outfit		= smart_cast<CCustomOutfit*>(&object());
+	CHelmet*		helmet		= smart_cast<CHelmet*>(&object());
+	if (!outfit && !helmet)
+		return					0.f;
+
+	return (outfit) ? outfit->m_fRecuperationFactor : helmet->m_fRecuperationFactor;
+}
+
+float CScriptGameObject::GetDrainFactor()
+{
+	CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(&object());
+	if (!outfit)
+		return					0.f;
+
+	return outfit->m_fDrainFactor;
+}
+
+float CScriptGameObject::GetPowerLoss()
+{
+	CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(&object());
+	if (!outfit)
+		return					0.f;
+
+	return outfit->m_fPowerLoss;
+}
+
+float CScriptGameObject::GetScopeZoomFactor()
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return			0.f;
+
+	return (weapon) ? weapon->m_zoom_params.m_fScopeZoomFactor : scope->m_fScopeZoomFactor;
+}
+
+void CScriptGameObject::SetScopeZoomFactor(float f)
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return;
+
+	if (weapon)
+		weapon->SetZoomFactor			(f);
+	else
+		scope->m_fScopeZoomFactor		= f;
+}
+
+float CScriptGameObject::GetScopeMinZoomFactor()
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return			1.f;
+
+	return (weapon) ? weapon->m_zoom_params.m_fScopeMinZoomFactor : scope->m_fScopeMinZoomFactor;
+}
+
+void CScriptGameObject::SetScopeMinZoomFactor(float f)
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return;
+	
+	if (weapon)
+		weapon->SetMinZoomFactor			(f);
+	else
+		scope->m_fScopeMinZoomFactor		= f;
+}
+
+LPCSTR CScriptGameObject::GetScopeAliveDetector()
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return			"";
+
+	return (weapon) ? *weapon->m_zoom_params.m_sUseBinocularVision : *scope->m_bScopeAliveDetector;
+}
+
+void CScriptGameObject::SetScopeAliveDetector(LPCSTR p)
+{
+	CWeapon* weapon		= smart_cast<CWeapon*>(&object());
+	CScope* scope		= smart_cast<CScope*>(&object());
+	if (!weapon && !scope)
+		return;
+	
+	shared_str& var		= (weapon) ? weapon->m_zoom_params.m_sUseBinocularVision : scope->m_bScopeAliveDetector;
+	var._set			(p);
+}
+
+float CScriptGameObject::GetInertion()
+{
+	PIItem item		= smart_cast<PIItem>(&object());
+	return			(item) ? item->GetControlInertionFactor() : 0.f;
+}
 
 #define SPECIFIC_CAST(A,B)\
 B* A ()\

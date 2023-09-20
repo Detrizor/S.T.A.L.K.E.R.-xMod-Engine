@@ -37,19 +37,7 @@ public:
 	virtual BOOL					renderable_ShadowReceive		()		{ return TRUE;	}
 	virtual void					create_physic_shell				();
 
-	virtual CArtefact*				cast_artefact					()		{return this;}
-
-				float	GetHealthPower						()					{return m_fHealthRestoreSpeed;}
-				float	GetRadiationPower						()					{return m_fRadiationRestoreSpeed;}
-				float	GetSatietyPower						()					{return m_fSatietyRestoreSpeed;}
-				float	GetPowerPower						()					{return m_fPowerRestoreSpeed;}
-				float	GetBleedingPower						()					{return m_fBleedingRestoreSpeed;} 
-          
-				void	SetHealthPower						(float value)					{m_fHealthRestoreSpeed = value;}
-				void	SetRadiationPower						(float value)					{m_fRadiationRestoreSpeed = value;}
-				void	SetSatietyPower						(float value)					{m_fSatietyRestoreSpeed = value;}
-				void	SetPowerPower						(float value)					{m_fPowerRestoreSpeed = value;}
-				void	SetBleedingPower						(float value)					{m_fBleedingRestoreSpeed = value;}                                  
+	virtual CArtefact*				cast_artefact					()		{return this;}                         
 
 protected:
 	virtual void					UpdateCLChild					()		{};
@@ -66,7 +54,7 @@ protected:
 	float							m_fTrailLightRange;
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
-	float							m_additional_weight;
+	float							m_fArmor;
 
 	virtual void					UpdateLights					();
 public:
@@ -76,6 +64,8 @@ public:
 	void							FollowByPath					(LPCSTR path_name, int start_idx, Fvector magic_force);
 	bool							CanBeInvisible					();
 	void							SwitchVisibility				(bool);
+	float							GetArmor						()				{ return m_fArmor; };
+	bool							IsActivated						();
 
 	void							SwitchAfParticles				(bool bOn);
 	virtual void					StartLights();
@@ -83,14 +73,10 @@ public:
 
 	virtual void					PhDataUpdate					(float step);
 	virtual void					PhTune							(float step)	{};
-
-	float							AdditionalInventoryWeight		() const {return m_additional_weight;}
+	
 	bool							m_bCanSpawnZone;
-	float							m_fHealthRestoreSpeed;
 	float 							m_fRadiationRestoreSpeed;
-	float 							m_fSatietyRestoreSpeed;
-	float							m_fPowerRestoreSpeed;
-	float							m_fBleedingRestoreSpeed;
+	float							m_fWeightDump;
 	CHitImmunity 					m_ArtefactHitImmunities;
 public:
 	enum EAFHudStates {

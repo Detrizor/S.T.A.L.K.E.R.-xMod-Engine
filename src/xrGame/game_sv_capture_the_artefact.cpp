@@ -1489,7 +1489,7 @@ void	game_sv_CaptureTheArtefact::OnPlayerHitPlayer		(u16 id_hitter, u16 id_hitte
 	OnPlayerHitPlayer_Case(ps_hitter, ps_hitted, &HitS);
 
 	//---------------------------------------
-	if (HitS.power > 0)
+	if (HitS.damage() > 0)
 	{
 		ps_hitted->lasthitter = ps_hitter->GameID;
 		ps_hitted->lasthitweapon = HitS.weaponID;
@@ -1510,13 +1510,15 @@ void game_sv_CaptureTheArtefact::OnPlayerHitPlayer_Case(
 		{
 			if (ps_hitter->team == ps_hitted->team && ps_hitter != ps_hitted)
 			{
-				pHitS->power *= GetFriendlyFire();
+				pHitS->main_damage *= GetFriendlyFire();
+				pHitS->pierce_damage *= GetFriendlyFire();
 				pHitS->impulse *= (GetFriendlyFire()>1.0f) ? GetFriendlyFire() : 1.0f;
 			}
 		}
 		if (ps_hitted->testFlag(GAME_PLAYER_FLAG_INVINCIBLE))
 		{
-			pHitS->power = 0;
+			pHitS->main_damage = 0;
+			pHitS->pierce_damage = 0;
 			pHitS->impulse = 0;
 		}
 //	}

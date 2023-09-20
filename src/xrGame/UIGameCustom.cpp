@@ -161,9 +161,8 @@ bool CUIGameCustom::ShowActorMenu()
     {
         ActorMenu->HideDialog();
     }
-    else
+	else if (!PdaMenu->IsShown())
     {
-        HidePdaMenu();
         auto actor = smart_cast<CInventoryOwner*>(Level().CurrentViewEntity());
         VERIFY(actor);
         ActorMenu->SetActor(actor);
@@ -218,6 +217,11 @@ void CUIGameCustom::ShowMessagesWindow()
 {
     if (!m_pMessagesWnd->IsShown())
         m_pMessagesWnd->Show(true);
+}
+
+bool CUIGameCustom::PdaMenuShown()
+{
+	return PdaMenu->IsShown();
 }
 
 bool CUIGameCustom::ShowPdaMenu()

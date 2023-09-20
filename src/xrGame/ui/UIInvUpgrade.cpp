@@ -302,6 +302,7 @@ void UIUpgrade::update_item( CInventoryItem* inv_item )
 	switch( res )
 	{
 	case inventory::upgrade::result_ok:
+	case inventory::upgrade::result_e_group:
 		m_item->SetTextureColor(color_rgba(255,255,255,255));
 		m_state = STATE_ENABLED;
 		m_state_lock = false;
@@ -318,11 +319,6 @@ void UIUpgrade::update_item( CInventoryItem* inv_item )
 	case inventory::upgrade::result_e_parents:
 		m_state = STATE_DISABLED_PARENT;
 		m_state_lock = false;
-		break;
-	case inventory::upgrade::result_e_group:
-		m_item->SetTextureColor(color_rgba(255,255,255,255));
-		m_state = STATE_DISABLED_GROUP;
-		m_state_lock = true;
 		break;
 	case inventory::upgrade::result_e_precondition_money:
 		m_state = STATE_DISABLED_PREC_MONEY;
@@ -359,9 +355,9 @@ CUIUpgradePoint::~CUIUpgradePoint()
 
 void CUIUpgradePoint::load_from_xml(CUIXml& ui_xml, int i_cell)
 {
-	float point_x = ui_xml.ReadAttribFlt("cell", i_cell, "point_x", 0.0f);
-	float point_y = ui_xml.ReadAttribFlt("cell", i_cell, "point_y", 0.0f);
-	SetWndPos(Fvector2().set(point_x*(UI().is_widescreen()?0.8f:1.0f), point_y));
+	//float point_x = ui_xml.ReadAttribFlt("cell", i_cell, "point_x", 0.0f);
+	//float point_y = ui_xml.ReadAttribFlt("cell", i_cell, "point_y", 0.0f);
+	SetWndPos(Fvector2().set(0.f, 0.f));
 	SetWndSize(Fvector2().set(UI().is_widescreen()?11.0f:14.0f, 14.0f));
 	SetStretchTexture(true);
 	Show(false);

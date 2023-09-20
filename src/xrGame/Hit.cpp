@@ -6,10 +6,10 @@
 #include "xrMessages.h"
 #include "Level.h"
 #include "../xrphysics/mathutils.h"
-SHit::SHit(float powerA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA,\
-		   float impulseA, ALife::EHitType hit_typeA, float armor_piercingA, bool AimBullet)
+SHit::SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
+	float impulseA, ALife::EHitType hit_typeA, float pierce_damageA, float pierce_damage_armorA, ALife::EHitType pierce_hit_typeA)
 {
-		power					= powerA								;
+		main_damage				= main_damageA							;
 		dir						.set(dirA)								;
 		who						= whoA									;
 		if (whoA)
@@ -21,12 +21,12 @@ SHit::SHit(float powerA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_i
 		impulse					= impulseA								;
 
 		hit_type				= hit_typeA								;
-		armor_piercing			= armor_piercingA						;
+		pierce_damage			= pierce_damageA						;
+		pierce_damage_armor		= pierce_damage_armorA					;
+		pierce_hit_type			= pierce_hit_typeA						;
 		PACKET_TYPE				= 0										;
 		BulletID				= 0										;
 		SenderID				= 0										;
-		aim_bullet				= AimBullet								;
-		add_wound				= true									;
 }
 
 SHit::SHit()
@@ -36,27 +36,27 @@ SHit::SHit()
 
 void SHit::invalidate()
 {
-	Time					= 0;
-	PACKET_TYPE				= 0;
-	DestID					= 0;
+	Time					= 0											;
+	PACKET_TYPE				= 0											;
+	DestID					= 0											;
 
-	power					=-phInfinity								;
+	main_damage				=-phInfinity								;
 	dir						.set(-phInfinity,-phInfinity,-phInfinity)	;
-	who						=NULL									;
-	whoID					= 0;
-	weaponID				= 0;
+	who						=NULL										;
+	whoID					= 0											;
+	weaponID				= 0											;
 
-	boneID					=BI_NONE								;
-	p_in_bone_space		.set(-phInfinity,-phInfinity,-phInfinity)	;
+	boneID					=BI_NONE									;
+	p_in_bone_space		.set(-phInfinity,-phInfinity,-phInfinity)		;
 
 	impulse					=-phInfinity								;
-	hit_type				=ALife::eHitTypeMax						;
+	hit_type				=ALife::eHitTypeMax							;
 
-	armor_piercing			= 0.0f;	
-	BulletID				= 0;
-	SenderID				= 0;
-	aim_bullet				= false									;
-	add_wound				= false									;
+	pierce_damage			= 0.f										;
+	pierce_damage_armor		= 0.f										;
+	pierce_hit_type			= ALife::eHitTypeMax						;
+	BulletID				= 0											;
+	SenderID				= 0											;
 }
 
 bool SHit::is_valide() const
@@ -87,17 +87,17 @@ void SHit::Read_Packet_Cont		(NET_Packet	Packet)
 	Packet.r_u16			(whoID);
 	Packet.r_u16			(weaponID);
 	Packet.r_dir			(dir);
-	Packet.r_float			(power);
+	Packet.r_float			(main_damage);
 	Packet.r_u16			(boneID);
 	Packet.r_vec3			(p_in_bone_space);
 	Packet.r_float			(impulse);
-	aim_bullet				= Packet.r_u16()!=0;
 
 	hit_type				= (ALife::EHitType)Packet.r_u16();	//hit type
 
 	if (hit_type == ALife::eHitTypeFireWound)
 	{
-		Packet.r_float	(armor_piercing);
+		Packet.r_float		(pierce_damage);
+		Packet.r_float		(pierce_damage_armor);
 	}
 	if (PACKET_TYPE == GE_HIT_STATISTIC)
 	{
@@ -111,15 +111,15 @@ void SHit::Write_Packet_Cont		(NET_Packet	&Packet)
 	Packet.w_u16		(whoID);
 	Packet.w_u16		(weaponID);
 	Packet.w_dir		(dir);
-	Packet.w_float		(power);
+	Packet.w_float		(main_damage);
 	Packet.w_u16		(boneID);
 	Packet.w_vec3		(p_in_bone_space);
 	Packet.w_float		(impulse);
-	Packet.w_u16		(aim_bullet!=0);
 	Packet.w_u16		(u16(hit_type&0xffff));	
 	if (hit_type == ALife::eHitTypeFireWound)
 	{
-		Packet.w_float	(armor_piercing);
+		Packet.w_float	(pierce_damage);
+		Packet.w_float	(pierce_damage_armor);
 	}
 	if (PACKET_TYPE == GE_HIT_STATISTIC)
 	{
@@ -149,7 +149,7 @@ void SHit::_dump()
 	Log("element=",boneID);
 	Log("p_in_bone_space=",p_in_bone_space);
 	Log("hit_type=",(int)hit_type);
-	Log("armor_piercing=",armor_piercing);
+	Log("armor_factor=",armor_factor);
 	Msg("SHit::_dump()---end");
 }
 #endif
