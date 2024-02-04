@@ -10,7 +10,7 @@
     <xrLibDir>$(xrLibRootDir)$(Configuration)\</xrLibDir>
     <xrIntDir>$(SolutionDir)..\_build\intermediate\$(Configuration)\</xrIntDir>
     <xrSdkDir>$(SolutionDir)..\sdk\</xrSdkDir>
-    <xrGameDir>$(SolutionDir)..\_build\</xrGameDir>
+    <xrGameDir>Q:\S.T.A.L.K.E.R\xMod\</xrGameDir>
     <xrGameBinDir>$(xrGameDir)bin\</xrGameBinDir>
     <xr3rdPartyDir>$(SolutionDir)3rd party\</xr3rdPartyDir>
     <dxSdkDir>$(xrSdkDir)include\dxsdk\</dxSdkDir>

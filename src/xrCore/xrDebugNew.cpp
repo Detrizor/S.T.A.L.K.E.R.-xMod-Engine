@@ -5,7 +5,7 @@
 #include "os_clipboard.h"
 
 #include <sal.h>
-#include <dxerr.h>
+//--xd wtf #include <dxerr.h>
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -325,7 +325,7 @@ LPCSTR xrDebug::error2string(long code)
 #ifdef _M_AMD64
 #else
 	WCHAR err_result[1024];
-    DXGetErrorDescription(code,err_result,sizeof(err_result));
+    //--xd wtf DXGetErrorDescription(code,err_result,sizeof(err_result));
 	wcstombs(result, err_result, sizeof(err_result));
 #endif
     if (0 == result)
@@ -877,8 +877,6 @@ void xrDebug::_initialize (const bool& dedicated)
 }
 #else
 typedef int(__cdecl* _PNH)(size_t);
-_CRTIMP int __cdecl _set_new_mode(int);
-_CRTIMP _PNH __cdecl _set_new_handler(_PNH);
 
 #ifdef LEGACY_CODE
 #ifndef USE_BUG_TRAP
