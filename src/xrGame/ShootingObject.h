@@ -176,7 +176,4 @@ protected:
 
 	//объект партиклов огня
 	CParticlesObject*		m_pFlameParticles;
-
-public:
-	virtual void				DumpActiveParams		(shared_str const & section_name, CInifile & dst_ini) const;
 };

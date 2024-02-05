@@ -3591,7 +3591,6 @@
     <ClCompile Include="moving_objects_dynamic.cpp" />
     <ClCompile Include="moving_objects_dynamic_collision.cpp" />
     <ClCompile Include="moving_objects_static.cpp" />
-    <ClCompile Include="mpactor_dump_impl.cpp" />
     <ClCompile Include="MPPlayersBag.cpp" />
     <ClCompile Include="mp_config_sections.cpp" />
     <ClCompile Include="Needles.cpp" />
@@ -3984,7 +3983,6 @@
     <ClCompile Include="seniority_hierarchy_holder.cpp" />
     <ClCompile Include="server_entity_wrapper.cpp" />
     <ClCompile Include="ShootingObject.cpp" />
-    <ClCompile Include="shootingObject_dump_impl.cpp" />
     <ClCompile Include="sight_action.cpp" />
     <ClCompile Include="sight_manager.cpp" />
     <ClCompile Include="sight_manager_target.cpp" />
@@ -4669,8 +4667,6 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="weapon_ammo_dump_impl.cpp" />
-    <ClCompile Include="weapon_dump_impl.cpp" />
     <ClCompile Include="Wound.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />

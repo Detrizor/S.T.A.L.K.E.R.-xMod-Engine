@@ -9528,18 +9528,6 @@
     <ClCompile Include="MPPlayersBag.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\MPPlayersBag</Filter>
     </ClCompile>
-    <ClCompile Include="mpactor_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="shootingObject_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="weapon_ammo_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="weapon_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
     <ClCompile Include="searchlight.cpp">
       <Filter>Core\Client\Objects\searchlight</Filter>
     </ClCompile>

@@ -91,29 +91,6 @@ mp_active_params::~mp_active_params()
 
 char const * active_params_section	= "active_params_section";
 
-/*void mp_active_params::dump	(IAnticheatDumpable const * dumpable_obj, LPCSTR sect_name_key, CInifile & dest_dumper)
-{
-	LPCSTR		obj_sect_name = "";
-	if (dumpable_obj)
-	{
-		shared_str const tmp_obj_section = dumpable_obj->GetAnticheatSectionName();
-		if (tmp_obj_section.size())
-		{
-			STRCONCAT(obj_sect_name,
-				"ap_",
-				tmp_obj_section.c_str());
-		}
-	}
-	dest_dumper.w_string(active_params_section, sect_name_key, obj_sect_name);
-	if (dest_dumper.section_exist(obj_sect_name))
-		return;
-
-	if (dumpable_obj)
-	{
-		dumpable_obj->DumpActiveParams(obj_sect_name, dest_dumper);
-	}
-}*/
-
 void mp_active_params::load_to	(LPCSTR sect_name, CInifile & dest_dumper)
 {
 	if (!pSettings->section_exist(sect_name))
@@ -131,4 +108,3 @@ void mp_active_params::load_to	(LPCSTR sect_name, CInifile & dest_dumper)
 
 
 } //namespace mp_anticheat
-

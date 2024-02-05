@@ -48,7 +48,6 @@ public:
 
 	float	m_fCondition;
 
-	virtual void				DumpActiveParams		(shared_str const & section_name, CInifile & dst_ini) const;
 	virtual shared_str const 	GetAnticheatSectionName	() const { return m_ammoSect; };
 };
 

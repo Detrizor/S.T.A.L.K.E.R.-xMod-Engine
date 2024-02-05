@@ -107,11 +107,6 @@ void mp_active_params::dump	(IAnticheatDumpable const * dumpable_obj, LPCSTR sec
 	dest_dumper.w_string(active_params_section, sect_name_key, obj_sect_name);
 	if (dest_dumper.section_exist(obj_sect_name))
 		return;
-
-	if (dumpable_obj)
-	{
-		dumpable_obj->DumpActiveParams(obj_sect_name, dest_dumper);
-	}
 }
 
 void mp_active_params::load_to	(LPCSTR sect_name, CInifile & dest_dumper)
@@ -131,4 +126,3 @@ void mp_active_params::load_to	(LPCSTR sect_name, CInifile & dest_dumper)
 
 
 } //namespace mp_anticheat
-
