@@ -1446,7 +1446,7 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI(*m_hud, Actor()->CameraAxisDeviation(SightPosition(), get_LastFDD(), 1.f));
+	GetActiveScope()->RenderUI(*m_hud);
 }
 
 void CWeaponMagazined::UpdateSecondVP() const
@@ -1616,15 +1616,15 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
 }
 
-extern float aim_fov_tan;
 void CWeaponMagazined::UpdateShadersData()
 {
 	CScope* scope						= GetActiveScope();
-	if (!scope || scope->Type() != eCollimator)
+	if (!scope)
 		return;
 
 	Fvector2 offset						= Actor()->CameraAxisDeviation(SightPosition(), get_LastFDD(), scope->Zeroing());
-	float h								= 2.f * aim_fov_tan * scope->Zeroing();
+	float fov_tan						= tanf(g_pGamePersistent->m_pGShaderConstants->hud_params.w * (.5f * PI / 180.f));
+	float h								= 2.f * fov_tan * scope->Zeroing();
 	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
 	offset.x							/= w;
 	offset.y							/= h;

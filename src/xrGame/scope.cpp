@@ -115,7 +115,7 @@ bool CScope::HasLense() const
 	return								Type() == eOptics && !fIsZero(m_fLenseRadius);
 }
 
-void CScope::RenderUI(CWeaponHud CR$ hud, Fvector2 axis_deviation)
+void CScope::RenderUI(CWeaponHud CR$ hud)
 {
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
@@ -126,16 +126,18 @@ void CScope::RenderUI(CWeaponHud CR$ hud, Fvector2 axis_deviation)
 		m_pVision->Draw					();
 	}
 
-	float reticle_scale					= GetReticleScale(hud);
+	float scale							= g_pGamePersistent->m_pGShaderConstants->hud_params.z;
+	Fvector2 pos						= { -g_pGamePersistent->m_pGShaderConstants->hud_params.x * Device.dwWidth, -g_pGamePersistent->m_pGShaderConstants->hud_params.y * Device.dwHeight };
 	if (m_pUIReticle)
 	{
-		m_pUIReticle->SetScale			(reticle_scale);
+		m_pUIReticle->SetScale			(scale);
+		m_pUIReticle->SetWndPos			(pos);
 		m_pUIReticle->Draw				();
 	}
 
-	float scale							= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
-	pUILenseCircle->SetScale			(reticle_scale * scale);
-	pUILenseCircle->SetWndPos			(axis_deviation.mul(lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
+	scale								*= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
+	pUILenseCircle->SetScale			(scale);
+	pUILenseCircle->SetWndPos			(pos.mul(-lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
 	pUILenseCircle->Draw				();
 
 	Frect crect							= pUILenseCircle->GetWndRect();

@@ -1105,8 +1105,8 @@ void CActor::UpdateCL()
 				pWM->UpdateSecondVP		();
 
 				// Apply Weapon Data in Shaders
-				pWM->UpdateShadersData	();
 				g_pGamePersistent->m_pGShaderConstants->hud_params.w = currentFOV(true);
+				pWM->UpdateShadersData	();
 			}
         }
     }

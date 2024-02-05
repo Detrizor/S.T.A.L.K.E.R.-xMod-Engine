@@ -80,5 +80,5 @@ public:
 	void								ZoomChange								(int val)		{ m_Magnificaion.Shift(val); }
 	void								ZeroingChange							(int val)		{ m_Zeroing.Shift(val); }
 
-	void								RenderUI								(CWeaponHud CR$ hud, Fvector2 axis_deviation);
+	void								RenderUI								(CWeaponHud CR$ hud);
 };
