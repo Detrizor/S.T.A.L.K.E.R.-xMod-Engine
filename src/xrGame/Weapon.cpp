@@ -229,111 +229,6 @@ void CWeapon::Load(LPCSTR section)
 	////////////////////////////////////////////////////
 	// дисперсия стрельбы
 
-	//подбрасывание камеры во время отдачи
-	u8 rm = READ_IF_EXISTS(pSettings, r_u8, section, "cam_return", 1);
-	cam_recoil.ReturnMode = (rm == 1);
-
-	rm = READ_IF_EXISTS(pSettings, r_u8, section, "cam_return_stop", 0);
-	cam_recoil.StopReturn = (rm == 1);
-
-	float temp_f = 0.0f;
-	temp_f = pSettings->r_float(section, "cam_relax_speed");
-	cam_recoil.RelaxSpeed = _abs(deg2rad(temp_f));
-	//VERIFY(!fis_zero(cam_recoil.RelaxSpeed));
-	if (fis_zero(cam_recoil.RelaxSpeed))
-	{
-		cam_recoil.RelaxSpeed = EPS_L;
-	}
-
-	cam_recoil.RelaxSpeed_AI = cam_recoil.RelaxSpeed;
-	if (pSettings->line_exist(section, "cam_relax_speed_ai"))
-	{
-		temp_f = pSettings->r_float(section, "cam_relax_speed_ai");
-		cam_recoil.RelaxSpeed_AI = _abs(deg2rad(temp_f));
-		VERIFY(!fis_zero(cam_recoil.RelaxSpeed_AI));
-		if (fis_zero(cam_recoil.RelaxSpeed_AI))
-		{
-			cam_recoil.RelaxSpeed_AI = EPS_L;
-		}
-	}
-	temp_f = pSettings->r_float(section, "cam_max_angle");
-	cam_recoil.MaxAngleVert = _abs(deg2rad(temp_f));
-	//VERIFY(!fis_zero(cam_recoil.MaxAngleVert));
-	if (fis_zero(cam_recoil.MaxAngleVert))
-	{
-		cam_recoil.MaxAngleVert = EPS;
-	}
-
-	temp_f = pSettings->r_float(section, "cam_max_angle_horz");
-	cam_recoil.MaxAngleHorz = _abs(deg2rad(temp_f));
-	//VERIFY(!fis_zero(cam_recoil.MaxAngleHorz));
-	if (fis_zero(cam_recoil.MaxAngleHorz))
-	{
-		cam_recoil.MaxAngleHorz = EPS;
-	}
-
-	temp_f = pSettings->r_float(section, "cam_step_angle_horz");
-	cam_recoil.StepAngleHorz = deg2rad(temp_f);
-
-	cam_recoil.DispersionFrac = _abs(READ_IF_EXISTS(pSettings, r_float, section, "cam_dispersion_frac", 0.7f));
-
-	//подбрасывание камеры во время отдачи в режиме zoom ==> ironsight or scope
-	//zoom_cam_recoil.Clone( cam_recoil ); ==== нельзя !!!!!!!!!!
-	zoom_cam_recoil.RelaxSpeed = cam_recoil.RelaxSpeed;
-	zoom_cam_recoil.RelaxSpeed_AI = cam_recoil.RelaxSpeed_AI;
-	zoom_cam_recoil.DispersionFrac = cam_recoil.DispersionFrac;
-	zoom_cam_recoil.MaxAngleVert = cam_recoil.MaxAngleVert;
-	zoom_cam_recoil.MaxAngleHorz = cam_recoil.MaxAngleHorz;
-	zoom_cam_recoil.StepAngleHorz = cam_recoil.StepAngleHorz;
-
-	zoom_cam_recoil.ReturnMode = cam_recoil.ReturnMode;
-	zoom_cam_recoil.StopReturn = cam_recoil.StopReturn;
-
-	if (pSettings->line_exist(section, "zoom_cam_relax_speed"))
-	{
-		zoom_cam_recoil.RelaxSpeed = _abs(deg2rad(pSettings->r_float(section, "zoom_cam_relax_speed")));
-		VERIFY(!fis_zero(zoom_cam_recoil.RelaxSpeed));
-		if (fis_zero(zoom_cam_recoil.RelaxSpeed))
-		{
-			zoom_cam_recoil.RelaxSpeed = EPS_L;
-		}
-	}
-	if (pSettings->line_exist(section, "zoom_cam_relax_speed_ai"))
-	{
-		zoom_cam_recoil.RelaxSpeed_AI = _abs(deg2rad(pSettings->r_float(section, "zoom_cam_relax_speed_ai")));
-		VERIFY(!fis_zero(zoom_cam_recoil.RelaxSpeed_AI));
-		if (fis_zero(zoom_cam_recoil.RelaxSpeed_AI))
-		{
-			zoom_cam_recoil.RelaxSpeed_AI = EPS_L;
-		}
-	}
-	if (pSettings->line_exist(section, "zoom_cam_max_angle"))
-	{
-		zoom_cam_recoil.MaxAngleVert = _abs(deg2rad(pSettings->r_float(section, "zoom_cam_max_angle")));
-		VERIFY(!fis_zero(zoom_cam_recoil.MaxAngleVert));
-		if (fis_zero(zoom_cam_recoil.MaxAngleVert))
-		{
-			zoom_cam_recoil.MaxAngleVert = EPS;
-		}
-	}
-	if (pSettings->line_exist(section, "zoom_cam_max_angle_horz"))
-	{
-		zoom_cam_recoil.MaxAngleHorz = _abs(deg2rad(pSettings->r_float(section, "zoom_cam_max_angle_horz")));
-		VERIFY(!fis_zero(zoom_cam_recoil.MaxAngleHorz));
-		if (fis_zero(zoom_cam_recoil.MaxAngleHorz))
-		{
-			zoom_cam_recoil.MaxAngleHorz = EPS;
-		}
-	}
-	if (pSettings->line_exist(section, "zoom_cam_step_angle_horz"))
-	{
-		zoom_cam_recoil.StepAngleHorz = deg2rad(pSettings->r_float(section, "zoom_cam_step_angle_horz"));
-	}
-	if (pSettings->line_exist(section, "zoom_cam_dispersion_frac"))
-	{
-		zoom_cam_recoil.DispersionFrac = _abs(pSettings->r_float(section, "zoom_cam_dispersion_frac"));
-	}
-
 	m_pdm.m_fPDM_disp_base			= pSettings->r_float(section, "PDM_disp_base");
 	m_pdm.m_fPDM_disp_vel_factor	= pSettings->r_float(section, "PDM_disp_vel_factor");
 
@@ -414,31 +309,6 @@ void CWeapon::Load(LPCSTR section)
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
 	m_bArmedMode = !m_bArmedRelaxedSwitch;
 }
-
-void CWeapon::LoadFireParams(LPCSTR section)
-{
-	cam_recoil.Dispersion = deg2rad(pSettings->r_float(section, "cam_dispersion"));
-	cam_recoil.DispersionInc = 0.0f;
-
-	if (pSettings->line_exist(section, "cam_dispersion_inc"))
-	{
-		cam_recoil.DispersionInc = deg2rad(pSettings->r_float(section, "cam_dispersion_inc"));
-	}
-
-	zoom_cam_recoil.Dispersion = cam_recoil.Dispersion;
-	zoom_cam_recoil.DispersionInc = cam_recoil.DispersionInc;
-
-	if (pSettings->line_exist(section, "zoom_cam_dispersion"))
-	{
-		zoom_cam_recoil.Dispersion = deg2rad(pSettings->r_float(section, "zoom_cam_dispersion"));
-	}
-	if (pSettings->line_exist(section, "zoom_cam_dispersion_inc"))
-	{
-		zoom_cam_recoil.DispersionInc = deg2rad(pSettings->r_float(section, "zoom_cam_dispersion_inc"));
-	}
-
-	CShootingObject::LoadFireParams(section);
-};
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 {
@@ -1417,4 +1287,17 @@ float CWeapon::GetControlInertionFactor C$()
 float CWeapon::CurrentZoomFactor C$(bool for_svp)
 {
 	return								(float)(!!ADS());
+}
+
+void CWeapon::updateCamRecoil()
+{
+	float recoil					= deg2rad(m_last_shot_bullet_impulse / GetControlInertionFactor());
+
+	cam_recoil.StepAngleVert		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_factor");
+	cam_recoil.StepAngleVertInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_inc_factor");
+	cam_recoil.MaxAngleVert			= recoil * pSettings->r_float("weapon_manager", "max_angle_vert_factor");
+
+	cam_recoil.StepAngleHorz		= recoil * pSettings->r_float("weapon_manager", "step_angle_horz_factor");
+	cam_recoil.StepAngleHorzInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_horz_inc_factor");
+	cam_recoil.MaxAngleHorz			= recoil * pSettings->r_float("weapon_manager", "max_angle_horz_factor");
 }

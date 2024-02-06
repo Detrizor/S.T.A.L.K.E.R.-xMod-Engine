@@ -251,8 +251,7 @@ protected:
 	{
 		if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal();
 	};
-
-	virtual void			LoadFireParams(LPCSTR section);
+	
 public:
 	IC		const Fvector&	get_LastFP()
 	{
@@ -339,8 +338,7 @@ public:
 	virtual	float			GetConditionToShow() const;
 
 public:
-	CameraRecoil			cam_recoil;			// simple mode (walk, run)
-	CameraRecoil			zoom_cam_recoil;	// using zoom =(ironsight or scope)
+	CameraRecoil			cam_recoil;
 
 protected:
 	//фактор увеличения дисперсии при максимальной изношености
@@ -523,6 +521,7 @@ public:
 //xMod added
 private:
 	int									m_iADS;
+	float								m_last_shot_bullet_impulse = 0.f;
 
 	void							V$	PrepareCartridgeToShoot					()		{}
 
@@ -542,5 +541,6 @@ public:
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
-	float								RecoilModifier						C$	()		{ return m_recoil_modifier; }
+
+	void								updateCamRecoil							();
 };

@@ -15,9 +15,9 @@ CWeaponShotEffector::CWeaponShotEffector()
 //	m_first_shot_pos = 0.0f;
 }
 
-void CWeaponShotEffector::Initialize(CameraRecoil CR$ cam_recoil, float recoil_modifier)
+void CWeaponShotEffector::Initialize(CameraRecoil CR$ cam_recoil)
 {
-	m_cam_recoil.Clone(cam_recoil, recoil_modifier);
+	m_cam_recoil = &cam_recoil;
 	Reset();
 }
 
@@ -42,6 +42,7 @@ void CWeaponShotEffector::Reset()
 void CWeaponShotEffector::Shot( CWeapon* weapon )
 {
 	R_ASSERT( weapon );
+	weapon->updateCamRecoil();
 	m_shot_numer = weapon->ShotsFired() - 1;
 	if ( m_shot_numer <= 0 )
 	{
@@ -50,33 +51,21 @@ void CWeaponShotEffector::Shot( CWeapon* weapon )
 	}
 	m_single_shot = (weapon->GetCurrentFireMode() == 1);
 
-	float angle = m_cam_recoil.Dispersion    * weapon->m_silencer_koef.cam_dispersion;
-	angle      += m_cam_recoil.DispersionInc * weapon->m_silencer_koef.cam_disper_inc * (float)m_shot_numer;
+	float angle = m_cam_recoil->StepAngleVert;
+	angle      += m_cam_recoil->StepAngleVertInc * (float)m_shot_numer;
+	m_angle_vert += angle;
 
-	m_angle_vert += angle * m_cam_recoil.DispersionFrac;
-
-	clamp(m_angle_vert, -m_cam_recoil.MaxAngleVert, m_cam_recoil.MaxAngleVert);
-	if (fis_zero(m_angle_vert - m_cam_recoil.MaxAngleVert))
-	{
+	clamp(m_angle_vert, -m_cam_recoil->MaxAngleVert, m_cam_recoil->MaxAngleVert);
+	if (fis_zero(m_angle_vert - m_cam_recoil->MaxAngleVert))
 		m_angle_vert *= m_Random.randF(0.96f, 1.04f);
-	}
 
-	float vert = abs(m_angle_vert);
-	if (vert > abs(m_angle_horz))
-	{
-		static float fSub = 0.25f;
-		static float fAlt = 1.0f;
+	angle = m_cam_recoil->StepAngleHorz;
+	angle += m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer;
+	m_angle_horz += angle * m_Random.randF(-1.f, 1.f);
 
-		float val = (vert * 4 / m_cam_recoil.MaxAngleVert) * m_cam_recoil.StepAngleHorz;
-		clamp(val, -m_cam_recoil.StepAngleHorz, m_cam_recoil.StepAngleHorz);
-		m_angle_horz -= fAlt * val;
-
-		clamp(m_angle_horz, -m_cam_recoil.MaxAngleHorz, m_cam_recoil.MaxAngleHorz);
-
-		fAlt += fSub;
-		if (fAlt >= 1.0f || fAlt <= -0.5f)
-			fSub = -fSub;
-	}
+	clamp(m_angle_horz, -m_cam_recoil->MaxAngleHorz, m_cam_recoil->MaxAngleHorz);
+	if (fis_zero(m_angle_horz - m_cam_recoil->MaxAngleHorz))
+		m_angle_horz *= m_Random.randF(0.96f, 1.04f);
 
 	m_first_shot = true;
 	m_actived = true;
@@ -85,70 +74,28 @@ void CWeaponShotEffector::Shot( CWeapon* weapon )
 
 void CWeaponShotEffector::Shot2( float angle )
 {
-	m_angle_vert += angle * m_cam_recoil.DispersionFrac;
+	m_angle_vert += angle;
 
-	clamp( m_angle_vert, -m_cam_recoil.MaxAngleVert, m_cam_recoil.MaxAngleVert );
-	if ( fis_zero(m_angle_vert - m_cam_recoil.MaxAngleVert) )
+	clamp( m_angle_vert, -m_cam_recoil->MaxAngleVert, m_cam_recoil->MaxAngleVert );
+	if ( fis_zero(m_angle_vert - m_cam_recoil->MaxAngleVert) )
 	{
 		m_angle_vert *= m_Random.randF( 0.96f, 1.04f );
 	}
 	
 	if (m_Random.randF(0.f,1.f) < 0.5f)
-		m_angle_horz -= m_cam_recoil.StepAngleHorz;
+		m_angle_horz -= m_cam_recoil->StepAngleHorz;
 
-	clamp( m_angle_horz, -m_cam_recoil.MaxAngleHorz, m_cam_recoil.MaxAngleHorz );
+	clamp( m_angle_horz, -m_cam_recoil->MaxAngleHorz, m_cam_recoil->MaxAngleHorz );
 
 	m_first_shot	= true;
 	m_actived		= true;
 	m_shot_end		= false;
 }
 
-void CWeaponShotEffector::Relax()
-{
-	float time_to_relax    = _abs(m_angle_vert) / m_cam_recoil.RelaxSpeed;
-	float relax_speed_horz = ( fis_zero(time_to_relax) )? 0.0f : _abs(m_angle_horz) / time_to_relax;
-
-	float dt = Device.fTimeDelta;
-
-	if ( m_angle_horz >= 0.0f ) // h
-	{
-		m_angle_horz -= relax_speed_horz * dt;
-	}
-	else
-	{
-		m_angle_horz += relax_speed_horz * dt;
-	}
-
-	if ( m_angle_vert >= 0.0f ) // v
-	{
-		m_angle_vert -= m_cam_recoil.RelaxSpeed * dt;
-		if ( m_angle_vert < 0.0f )			
-		{	
-			m_angle_vert = 0.0f; 
-			m_actived	= false;	
-		}
-	}
-	else
-	{
-		m_angle_vert += m_cam_recoil.RelaxSpeed * dt;
-		if ( m_angle_vert > 0.0f )			
-		{	
-			m_angle_vert = 0.0f; 
-			m_actived    = false;	
-		}
-	}
-}
-
 void CWeaponShotEffector::Update()
 {
-	if (m_actived)
-	{
-		if (m_shot_end && !m_single_shot)
-			m_actived = false;
-
-		if (m_cam_recoil.ReturnMode)
-			Relax();
-	}
+	if (m_actived && m_shot_end && !m_single_shot)
+		m_actived = false;
 
 	m_delta_vert = m_angle_vert - m_prev_angle_vert;
 	m_delta_horz = m_angle_horz - m_prev_angle_horz;
@@ -187,29 +134,16 @@ void CWeaponShotEffector::ChangeHP( float* pitch, float* yaw )
 {
 	*pitch -= m_delta_vert; // y = pitch = p = vert
 	*yaw   -= m_delta_horz; // x = yaw   = h = horz
-
-//	if ( m_first_shot )
-//	{
-//		m_first_shot_pos = *pitch;
-//		m_first_shot = false;
-//	}
-
-//	if ( m_cam_recoil.ReturnMode && m_cam_recoil.StopReturn && (*pitch > m_first_shot_pos + 0.1f) )
-//	{
-//		m_actived = false;
-//	}
-//	Msg( "[%d]  pitch = %.4f   yaw = %.4f    fs=%d    a=%d  fr=%d", m_shot_numer, *pitch, *yaw, m_first_shot, m_actived, Device.dwFrame );
-
 }
 
 //-----------------------------------------------------------------------------
 // Camera shot effector
 //-----------------------------------------------------------------------------
 
-CCameraShotEffector::CCameraShotEffector(CameraRecoil CR$ cam_recoil, float recoil_modifier)
+CCameraShotEffector::CCameraShotEffector(CameraRecoil CR$ cam_recoil)
  : CEffectorCam(eCEShot,100000.0f)
 {
-	CWeaponShotEffector::Initialize(cam_recoil, recoil_modifier);
+	CWeaponShotEffector::Initialize(cam_recoil);
 	m_pActor		= NULL;
 }
 

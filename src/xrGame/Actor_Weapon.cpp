@@ -135,13 +135,11 @@ void	CActor::HitSector(CObject* who, CObject* weapon)
 
 void CActor::on_weapon_shot_start		(CWeapon *weapon)
 {
-	CameraRecoil CR$ camera_recoil = ( IsZoomAimingMode() )? weapon->zoom_cam_recoil : weapon->cam_recoil;
-		
 	CCameraShotEffector* effector = smart_cast<CCameraShotEffector*>(Cameras().GetCamEffector(eCEShot));
 	if (!effector)
-		effector = (CCameraShotEffector*)Cameras().AddCamEffector(xr_new<CCameraShotEffector>(camera_recoil, weapon->RecoilModifier()));
+		effector = (CCameraShotEffector*)Cameras().AddCamEffector(xr_new<CCameraShotEffector>(weapon->cam_recoil));
 	else if (effector->m_WeaponID != weapon->ID())
-		effector->Initialize(camera_recoil, weapon->RecoilModifier());
+		effector->Initialize(weapon->cam_recoil);
 	
 	effector->m_WeaponID = weapon->ID();
 	R_ASSERT(effector);

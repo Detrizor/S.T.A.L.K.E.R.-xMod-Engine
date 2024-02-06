@@ -75,47 +75,7 @@ bool CWeapon::install_upgrade_disp( LPCSTR section, bool test )
 	bool result		= process_if_exists(section,	"fire_dispersion_condition_factor",		fireDispersionConditionFactor,		test);
 	result			|= process_if_exists(section,	"fire_distance",						fireDistance,						test);
 
-	u8 rm						= (cam_recoil.ReturnMode) ? 1 : 0;
-	result						|= process_if_exists(section, "cam_return", rm, test);
-	cam_recoil.ReturnMode		= (rm == 1);
-
-	rm							= (cam_recoil.StopReturn) ? 1 : 0;
-	result						|= process_if_exists(section, "cam_return_stop", rm, test);
-	cam_recoil.StopReturn		= (rm == 1);
-
 	result		|= process_if_exists_deg2rad(section,	"fire_dispersion_base",			fireDispersionBase,					test);
-
-	result		|= process_if_exists_deg2rad(section,	"cam_relax_speed",				cam_recoil.RelaxSpeed,				test);
-	result		|= process_if_exists_deg2rad(section,	"cam_relax_speed_ai",			cam_recoil.RelaxSpeed_AI,			test);
-	result		|= process_if_exists_deg2rad(section,	"cam_dispersion",				cam_recoil.Dispersion,				test);
-	result		|= process_if_exists_deg2rad(section,	"cam_dispersion_inc",			cam_recoil.DispersionInc,			test);
-
-	result		|= process_if_exists		(section,	"cam_dispersion_frac",			cam_recoil.DispersionFrac,			test);
-
-	result		|= process_if_exists_deg2rad(section,	"cam_max_angle",				cam_recoil.MaxAngleVert,			test);
-	result		|= process_if_exists_deg2rad(section,	"cam_max_angle_horz",			cam_recoil.MaxAngleHorz,			test);
-	result		|= process_if_exists_deg2rad(section,	"cam_step_angle_horz",			cam_recoil.StepAngleHorz,			test);
-
-	VERIFY		(!fis_zero(cam_recoil.RelaxSpeed));
-	VERIFY		(!fis_zero(cam_recoil.RelaxSpeed_AI));
-	VERIFY		(!fis_zero(cam_recoil.MaxAngleVert));
-	VERIFY		(!fis_zero(cam_recoil.MaxAngleHorz));
-
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_relax_speed",			zoom_cam_recoil.RelaxSpeed,			test);
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_relax_speed_ai",		zoom_cam_recoil.RelaxSpeed_AI,		test);
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_dispersion",			zoom_cam_recoil.Dispersion,			test);
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_dispersion_inc",		zoom_cam_recoil.DispersionInc,		test);
-
-	result		|= process_if_exists		(section,	"zoom_cam_dispersion_frac",		zoom_cam_recoil.DispersionFrac,		test);
-
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_max_angle",			zoom_cam_recoil.MaxAngleVert,		test);
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_max_angle_horz",		zoom_cam_recoil.MaxAngleHorz,		test);
-	result		|= process_if_exists_deg2rad(section,	"zoom_cam_step_angle_horz",		zoom_cam_recoil.StepAngleHorz,		test);
-
-	VERIFY		(!fis_zero(zoom_cam_recoil.RelaxSpeed));
-	VERIFY		(!fis_zero(zoom_cam_recoil.RelaxSpeed_AI));
-	VERIFY		(!fis_zero(zoom_cam_recoil.MaxAngleVert));
-	VERIFY		(!fis_zero(zoom_cam_recoil.MaxAngleHorz));
 
 	result		|= process_if_exists		(section,	"PDM_disp_base",				m_pdm.m_fPDM_disp_base,				test);
 	result		|= process_if_exists		(section,	"PDM_disp_vel_factor",			m_pdm.m_fPDM_disp_vel_factor,		test);

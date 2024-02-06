@@ -84,16 +84,12 @@ public:
 	{
 		float	bullet_speed;
 		float	fire_dispersion;
-		float	cam_dispersion;
-		float	cam_disper_inc;
 
 		SilencerKoeffs() { Reset(); }
 		IC void Reset()
 		{
 			bullet_speed = 1.0f;
 			fire_dispersion = 1.0f;
-			cam_dispersion = 1.0f;
-			cam_disper_inc = 1.0f;
 		}
 	} m_silencer_koef;
 

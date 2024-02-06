@@ -14,7 +14,7 @@ class CWeapon;
 class CWeaponShotEffector
 {
 protected:
-	CameraRecoil	m_cam_recoil;
+	CameraRecoil CP$ m_cam_recoil;
 	
 	float			m_angle_vert;
 	float			m_angle_horz;
@@ -41,7 +41,7 @@ public:
 				CWeaponShotEffector	();
 	virtual		~CWeaponShotEffector(){};
 
-		void	Initialize			(CameraRecoil CR$ cam_recoil, float recoil_modifier = 1.f);
+		void	Initialize			(CameraRecoil CR$ cam_recoil);
 		void	Reset				();
 
 	IC	bool	IsActive			(){return m_actived;}
@@ -58,18 +58,15 @@ public:
 		void	GetDeltaAngle		(Fvector& angle);
 		void	GetLastDelta		(Fvector& delta_angle);
 		void	ChangeHP			(float* pitch, float* yaw);
-
-protected:
-		void	Relax				();
 };
 
 class CCameraShotEffector : public CWeaponShotEffector, public CEffectorCam
 {
 protected:
 	CActor*			m_pActor;
+
 public:
-//-					CCameraShotEffector	(float max_angle, float relax_speed, float max_angle_horz, float step_angle_horz, float angle_frac);
-					CCameraShotEffector	(CameraRecoil CR$ cam_recoil, float recoil_modifier = 1.f);
+					CCameraShotEffector	(CameraRecoil CR$ cam_recoil);
 	virtual			~CCameraShotEffector();
 	
 	virtual BOOL	ProcessCam			(SCamEffectorInfo& info);

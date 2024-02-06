@@ -677,12 +677,12 @@ void CWeaponMagazined::state_Fire(float dt)
 
             ++m_iShotNum;
 
-            OnShot();
-
             if (m_iShotNum > m_iBaseDispersionedBulletsCount)
                 FireTrace(p, d);
             else
                 FireTrace(m_vStartPos, m_vStartDir);
+
+			OnShot();
         }
 
         if (m_iShotNum == m_iQueueSize)
@@ -946,8 +946,6 @@ void CWeaponMagazined::LoadSilencerKoeffs(LPCSTR sect)
 {
     m_silencer_koef.bullet_speed = pSettings->r_float(sect, "bullet_speed_k");
 	m_silencer_koef.fire_dispersion = pSettings->r_float(sect, "fire_dispersion_base_k");
-	m_silencer_koef.cam_dispersion = pSettings->r_float(sect, "cam_dispersion_k");
-	m_silencer_koef.cam_disper_inc = pSettings->r_float(sect, "cam_dispersion_inc_k");
 }
 
 void CWeaponMagazined::ResetSilencerKoeffs()

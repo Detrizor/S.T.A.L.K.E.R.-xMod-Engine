@@ -5,58 +5,26 @@
 //	Description : Camera Recoil struct
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef CAMERA_RECOIL_H_INCLUDED
-#define CAMERA_RECOIL_H_INCLUDED
+#pragma once
 
 //מעהאקא ןנט סענוכüבו 
 struct CameraRecoil
 {
-	float		RelaxSpeed;
-	float		RelaxSpeed_AI;
-	float		Dispersion;
-	float		DispersionInc;
-	float		DispersionFrac;
+	float		StepAngleVert;
+	float		StepAngleVertInc;
 	float		MaxAngleVert;
-	float		MaxAngleHorz;
+
 	float		StepAngleHorz;
-	bool		ReturnMode;
-	bool		StopReturn;
+	float		StepAngleHorzInc;
+	float		MaxAngleHorz;
 
 	CameraRecoil():
-		MaxAngleVert	( EPS   ),
-		RelaxSpeed		( EPS_L ),
-		RelaxSpeed_AI	( EPS_L ),
-		Dispersion		( EPS   ),
-		DispersionInc	( 0.0f  ),
-		DispersionFrac	( 1.0f  ),
-		MaxAngleHorz	( EPS   ),
-		StepAngleHorz	( 0.0f  ),
-		ReturnMode		( false ),
-		StopReturn		( false )
-	{};
-
-	CameraRecoil( const CameraRecoil& clone )		{	Clone( clone );	}
-
-	IC void Clone(CameraRecoil CR$ clone, float recoil_modifier = 1.f)
-	{
-		// *this = clone;
-		RelaxSpeed		= clone.RelaxSpeed;
-		RelaxSpeed_AI	= clone.RelaxSpeed_AI;
-		Dispersion		= clone.Dispersion * recoil_modifier;
-		DispersionInc	= clone.DispersionInc * recoil_modifier;
-		DispersionFrac	= clone.DispersionFrac;
-		MaxAngleVert	= clone.MaxAngleVert;
-		MaxAngleHorz	= clone.MaxAngleHorz;
-		StepAngleHorz	= clone.StepAngleHorz * recoil_modifier;
-
-		ReturnMode		= clone.ReturnMode;
-		StopReturn		= clone.StopReturn;
+		StepAngleVert		(0.f),
+		StepAngleVertInc	(0.f),
+		MaxAngleVert		(EPS),
 		
-		VERIFY( !fis_zero(RelaxSpeed)    );
-		VERIFY( !fis_zero(RelaxSpeed_AI) );
-		VERIFY( !fis_zero(MaxAngleVert)  );
-		VERIFY( !fis_zero(MaxAngleHorz)  );
-	}
-}; //struct CameraRecoil
-
-#endif // CAMERA_RECOIL_H_INCLUDED
+		StepAngleHorz		(0.f),
+		StepAngleHorzInc	(0.f),
+		MaxAngleHorz		(EPS)
+	{};
+};

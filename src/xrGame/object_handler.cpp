@@ -95,12 +95,7 @@ void CObjectHandler::OnItemTake		(CInventoryItem *inventory_item)
 
 	CWeapon						*weapon = smart_cast<CWeapon*>(inventory_item);
 	if (weapon)
-	{
-		CameraRecoil cam_recoil_copy;
-		cam_recoil_copy.Clone( weapon->cam_recoil );
-		cam_recoil_copy.RelaxSpeed = cam_recoil_copy.RelaxSpeed_AI;
-		planner().object().weapon_shot_effector().Initialize( cam_recoil_copy );
-	}
+		planner().object().weapon_shot_effector().Initialize(weapon->cam_recoil);
 }
 
 void CObjectHandler::OnItemDrop		(CInventoryItem *inventory_item, bool just_before_destroy)
