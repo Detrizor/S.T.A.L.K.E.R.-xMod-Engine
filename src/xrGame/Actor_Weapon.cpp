@@ -27,21 +27,25 @@ float CActor::GetWeaponAccuracy() const
 	CWeapon* W					= smart_cast<CWeapon*>(inventory().ActiveItem());
 	if (W)
 	{
+		float coeff				= 1.f;
 		if (W->ADS())
 			dispersion			= m_fDispADS;
 		else if (W->IsZoomed())
 			dispersion			= m_fDispAim;
 		else
-			dispersion			*= W->Get_PDM_Base();
+			coeff				= W->Get_PDM_Base();
 
 		CEntity::SEntityState	state;
 		if (g_State(state))
 		{
-			dispersion			*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
-			dispersion			*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			coeff				*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			coeff				*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
 			if (state.bCrouch)
-				dispersion		*= m_fDispCrouchFactor;
+				coeff			*= m_fDispCrouchFactor;
 		}
+		dispersion				*= coeff;
+
+		W->updateCamRecoil		(coeff);
 	}
 
 	return						dispersion;

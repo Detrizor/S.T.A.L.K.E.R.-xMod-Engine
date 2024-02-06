@@ -1298,10 +1298,11 @@ float CWeapon::CurrentZoomFactor C$(bool for_svp)
 	return								(float)(!!ADS());
 }
 
-void CWeapon::updateCamRecoil()
+void CWeapon::updateCamRecoil(float coeff)
 {
-	float recoil					= deg2rad(m_last_shot_bullet_impulse / GetControlInertionFactor());
+	float recoil					= coeff * m_last_shot_bullet_impulse / GetControlInertionFactor();
 	recoil							*= m_fStockRecoilModifier * m_fLayoutRecoilModifier * m_fMechanicRecoilModifier * m_fGripRecoilModifier;
+	recoil							= deg2rad(recoil);
 
 	cam_recoil.StepAngleVert		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_factor");
 	cam_recoil.StepAngleVertInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_inc_factor");

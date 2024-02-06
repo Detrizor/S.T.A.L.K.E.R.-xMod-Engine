@@ -42,7 +42,6 @@ void CWeaponShotEffector::Reset()
 void CWeaponShotEffector::Shot( CWeapon* weapon )
 {
 	R_ASSERT( weapon );
-	weapon->updateCamRecoil();
 	m_shot_numer = weapon->ShotsFired() - 1;
 	if ( m_shot_numer <= 0 )
 	{

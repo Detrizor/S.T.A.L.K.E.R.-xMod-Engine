@@ -478,11 +478,6 @@ public:
 	virtual BOOL			ParentIsActor();
 
 private:
-	virtual	bool			install_upgrade_ammo_class		(LPCSTR section, bool test);
-	bool					install_upgrade_disp			(LPCSTR section, bool test);
-	bool					install_upgrade_hit				(LPCSTR section, bool test);
-	bool					install_upgrade_addon			(LPCSTR section, bool test);
-
 	bool					process_if_exists_deg2rad		(LPCSTR section, LPCSTR name, float& value, bool test);
 
 protected:
@@ -548,5 +543,5 @@ public:
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 
-	void								updateCamRecoil							();
+	void								updateCamRecoil							(float coeff);
 };

@@ -38,19 +38,8 @@ bool CWeapon::process_if_exists_deg2rad(LPCSTR section, LPCSTR name, float& valu
 
 bool CWeapon::install_upgrade_impl( LPCSTR section, bool test )
 {
-	//inherited::install_upgrade( section );
-	bool result = inherited::install_upgrade_impl(section, test);
-	
-	result |= install_upgrade_ammo_class( section, test );
-	result |= install_upgrade_disp      ( section, test );
-	result |= install_upgrade_hit       ( section, test );
-	result |= install_upgrade_addon     ( section, test );
-	return result;
-}
+	bool result							= inherited::install_upgrade_impl(section, test);
 
-bool CWeapon::install_upgrade_ammo_class( LPCSTR section, bool test )
-{
-	bool result							= process_if_exists(section, "ammo_mag_size", iMagazineSize, test);
 	LPCSTR								str;
 	bool result2						= process_if_exists(section, "ammo_class", str, test);
 	if (result2 && !test)
@@ -67,14 +56,6 @@ bool CWeapon::install_upgrade_ammo_class( LPCSTR section, bool test )
 	}
 	result								|= result2;
 
-	return result;
-}
-
-bool CWeapon::install_upgrade_disp( LPCSTR section, bool test )
-{
-	bool result		= process_if_exists(section,	"fire_dispersion_condition_factor",		fireDispersionConditionFactor,		test);
-	result			|= process_if_exists(section,	"fire_distance",						fireDistance,						test);
-
 	result		|= process_if_exists_deg2rad(section,	"fire_dispersion_base",			fireDispersionBase,					test);
 
 	result		|= process_if_exists		(section,	"PDM_disp_base",				m_pdm.m_fPDM_disp_base,				test);
@@ -82,40 +63,6 @@ bool CWeapon::install_upgrade_disp( LPCSTR section, bool test )
 
 	result		|= process_if_exists		(section,	"condition_shot_dec",			conditionDecreasePerShot,			test);
 	result		|= process_if_exists		(section,	"condition_queue_shot_dec",		conditionDecreasePerQueueShot,		test);
-	result		|= process_if_exists		(section,	"misfire_start_condition",		misfireStartCondition,				test);
-	result		|= process_if_exists		(section,	"misfire_end_condition",		misfireEndCondition,				test);
-	result		|= process_if_exists		(section,	"misfire_start_prob",			misfireStartProbability,			test);
-	result		|= process_if_exists		(section,	"misfire_end_prob",				misfireEndProbability,				test);
 
-	BOOL value							= m_zoom_params.m_bZoomEnabled;
-	bool result2						= process_if_exists(section, "zoom_enabled", value, test);
-	if (result2 && !test)
-		m_zoom_params.m_bZoomEnabled	= !!value;
-	result								|= result2;
-
-	return result;
-}
-
-bool CWeapon::install_upgrade_hit( LPCSTR section, bool test )
-{
-	bool result = process_if_exists(section, "bullet_speed", m_fStartBulletSpeed, test);
-
-	float rpm			= 60.0f / fOneShotTime;
-	bool result2		= process_if_exists(section, "rpm", rpm, test);
-	if (result2 && !test)
-	{
-		VERIFY			(rpm > 0.0f);
-		fOneShotTime	= 60.0f / rpm;
-	}
-	result				|= result2;
-
-	return result;
-}
-
-
-bool CWeapon::install_upgrade_addon( LPCSTR section, bool test )
-{
-	bool result									= false;
-	//--xd на будущее, можно сделать апгрейд слотов аддонов
-	return result;
+	return		result;
 }
