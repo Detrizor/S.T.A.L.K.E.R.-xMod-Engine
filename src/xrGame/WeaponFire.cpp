@@ -98,7 +98,7 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 	if(m_bLightShotEnabled) 
 		Light_Start			();
 	
-	m_last_shot_bullet_impulse = m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass;
+	m_last_shot_bullet_impulse = m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
 
 	// Ammo
 	ConsumeShotCartridge	();

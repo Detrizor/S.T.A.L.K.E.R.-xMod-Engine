@@ -51,25 +51,17 @@ void CWeaponShotEffector::Shot( CWeapon* weapon )
 	}
 	m_single_shot = (weapon->GetCurrentFireMode() == 1);
 
-	float angle = m_cam_recoil->StepAngleVert;
-	angle      += m_cam_recoil->StepAngleVertInc * (float)m_shot_numer;
-	m_angle_vert += angle;
+	float angle		= m_cam_recoil->StepAngleVert;
+	angle			+= min(m_cam_recoil->StepAngleVertInc * (float)m_shot_numer, m_cam_recoil->MaxAngleVert);
+	m_angle_vert	+= angle;
 
-	clamp(m_angle_vert, -m_cam_recoil->MaxAngleVert, m_cam_recoil->MaxAngleVert);
-	if (fis_zero(m_angle_vert - m_cam_recoil->MaxAngleVert))
-		m_angle_vert *= m_Random.randF(0.96f, 1.04f);
+	angle			= (m_shot_numer) ? m_cam_recoil->StepAngleHorz : 0.f;
+	angle			+= min(m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer, m_cam_recoil->MaxAngleHorz);
+	m_angle_horz	+= angle * m_Random.randF(-1.f, 1.f);
 
-	angle = m_cam_recoil->StepAngleHorz;
-	angle += m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer;
-	m_angle_horz += angle * m_Random.randF(-1.f, 1.f);
-
-	clamp(m_angle_horz, -m_cam_recoil->MaxAngleHorz, m_cam_recoil->MaxAngleHorz);
-	if (fis_zero(m_angle_horz - m_cam_recoil->MaxAngleHorz))
-		m_angle_horz *= m_Random.randF(0.96f, 1.04f);
-
-	m_first_shot = true;
-	m_actived = true;
-	m_shot_end = false;
+	m_first_shot	= true;
+	m_actived		= true;
+	m_shot_end		= false;
 }
 
 void CWeaponShotEffector::Shot2( float angle )

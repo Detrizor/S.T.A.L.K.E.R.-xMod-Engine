@@ -1548,8 +1548,8 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				PlayAnimIdle			();
 			}
 
-			float b						= READ_IF_EXISTS(pSettings, r_float, slot->addon->Section(), "recoil_modifier", 1.f);
-			m_recoil_modifier			*= (param) ? b : 1.f/b;
+			if (pSettings->line_exist(slot->addon->Section(), "grip_recoil_modifier"))
+				m_fGripRecoilModifier	= readRecoilModifier((param) ? *slot->addon->Section() : *m_section_id, "grip_recoil_modifier");
 
 			break;
 		}

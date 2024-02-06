@@ -529,7 +529,13 @@ protected:
 	bool								m_bArmedMode;
 	bool								m_bHasAltAim;
 	bool								m_bArmedRelaxedSwitch;
-	float								m_recoil_modifier;
+
+	float								m_fGripRecoilModifier = 1.f;
+	float								m_fStockRecoilModifier = 1.f;
+	float								m_fLayoutRecoilModifier = 1.f;
+	float								m_fMechanicRecoilModifier = 1.f;
+
+	float								readRecoilModifier					C$	(LPCSTR section, LPCSTR line);
 
 	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
 	

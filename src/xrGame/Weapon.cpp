@@ -72,7 +72,6 @@ CWeapon::CWeapon()
 	m_bArmedMode = false;
 	m_bHasAltAim = true;
 	m_bArmedRelaxedSwitch = true;
-	m_recoil_modifier = 1.f;
 }
 
 CWeapon::~CWeapon()
@@ -308,6 +307,11 @@ void CWeapon::Load(LPCSTR section)
 	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_bool, section, "has_alt_aim", TRUE);
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
 	m_bArmedMode = !m_bArmedRelaxedSwitch;
+
+	m_fGripRecoilModifier = readRecoilModifier(section, "grip_recoil_modifier");
+	m_fStockRecoilModifier = readRecoilModifier(section, "stock_recoil_modifier");
+	m_fLayoutRecoilModifier = readRecoilModifier(section, "layout_recoil_modifier");
+	m_fMechanicRecoilModifier = readRecoilModifier(section, "mechanic_recoil_modifier");
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -1214,6 +1218,11 @@ void CWeapon::ZoomDec()
 		SwitchArmedMode					();
 }
 
+float CWeapon::readRecoilModifier(LPCSTR section, LPCSTR line) const
+{
+	return pSettings->r_float("recoil_modifiers", pSettings->r_string(section, line));
+}
+
 void CWeapon::SetADS(int mode)
 {
 	if (mode == -1 && !HasAltAim())
@@ -1292,6 +1301,7 @@ float CWeapon::CurrentZoomFactor C$(bool for_svp)
 void CWeapon::updateCamRecoil()
 {
 	float recoil					= deg2rad(m_last_shot_bullet_impulse / GetControlInertionFactor());
+	recoil							*= m_fStockRecoilModifier * m_fLayoutRecoilModifier * m_fMechanicRecoilModifier * m_fGripRecoilModifier;
 
 	cam_recoil.StepAngleVert		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_factor");
 	cam_recoil.StepAngleVertInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_inc_factor");
