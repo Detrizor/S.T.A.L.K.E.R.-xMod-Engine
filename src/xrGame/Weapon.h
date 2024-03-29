@@ -517,6 +517,7 @@ public:
 private:
 	int									m_iADS;
 	float								m_last_shot_bullet_impulse = 0.f;
+	Fvector2							m_last_recoil = vZero2;
 
 	void							V$	PrepareCartridgeToShoot					()		{}
 
@@ -538,10 +539,12 @@ protected:
 	void							V$	ConsumeShotCartridge					();
 
 public:
+	void								setLastRecoil							(float x, float y) { m_last_recoil.x = x; m_last_recoil.y = y; }
+
 	void								SwitchArmedMode							();
+	void								updateCamRecoil							(float coeff);
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
-
-	void								updateCamRecoil							(float coeff);
+	Fvector2 CR$						getLastRecoil						C$	()		{ return m_last_recoil; }
 };

@@ -50,17 +50,20 @@ void CWeaponShotEffector::Shot( CWeapon* weapon )
 	}
 	m_single_shot = (weapon->GetCurrentFireMode() == 1);
 
-	float angle		= m_cam_recoil->StepAngleVert;
-	angle			+= min(m_cam_recoil->StepAngleVertInc * (float)m_shot_numer, m_cam_recoil->MaxAngleVert);
-	m_angle_vert	+= angle;
+	float vangle	= m_cam_recoil->StepAngleVert;
+	vangle			+= min(m_cam_recoil->StepAngleVertInc * (float)m_shot_numer, m_cam_recoil->MaxAngleVert);
+	m_angle_vert	+= vangle;
 
-	angle			= (m_shot_numer) ? m_cam_recoil->StepAngleHorz : 0.f;
-	angle			+= min(m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer, m_cam_recoil->MaxAngleHorz);
-	m_angle_horz	+= angle * m_Random.randF(-1.f, 1.f);
+	float hangle	= (m_shot_numer) ? m_cam_recoil->StepAngleHorz : 0.f;
+	hangle			+= min(m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer, m_cam_recoil->MaxAngleHorz);
+	hangle			*= m_Random.randF(-1.f, 1.f);
+	m_angle_horz	+= hangle;
 
 	m_first_shot	= true;
 	m_actived		= true;
 	m_shot_end		= false;
+
+	weapon->setLastRecoil(vangle, hangle);
 }
 
 void CWeaponShotEffector::Shot2( float angle )

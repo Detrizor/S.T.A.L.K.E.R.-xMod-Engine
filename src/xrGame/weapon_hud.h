@@ -19,12 +19,9 @@ enum EHandsOffset
 
 struct SShootingParams
 {
-	bool								bShootShake;
 	Fvector4							m_shot_max_offset_LRUD;
-	Fvector4							m_shot_max_offset_LRUD_aim;
-	Fvector2							m_shot_offset_BACKW;
+	float								m_shot_offset_BACKW;
 	float								m_ret_speed;
-	float								m_ret_speed_aim;
 	float								m_min_LRUD_power;
 };
 
@@ -58,6 +55,7 @@ private:
 	bool								m_scope_alt_aim_via_iron_sights;
 	bool								m_scope_own_alt_aim;
 	bool								m_going_to_fire;
+	Fvector2							m_recoil[2] = { vZero2, vZero2 };
 
 	void								CalcAimOffset							();
 
@@ -75,6 +73,7 @@ public:
 	void								ProcessScope							(SAddonSlot* slot, bool attach);
 	void								ProcessGL								(SAddonSlot* slot, bool attach);
 	void								SwitchGL								();
+	void								playAnimShoot							();
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();

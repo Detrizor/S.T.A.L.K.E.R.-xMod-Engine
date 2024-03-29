@@ -1018,11 +1018,14 @@ void CWeaponMagazined::PlayAnimIdle()
 
 void CWeaponMagazined::PlayAnimShoot()
 {
-    VERIFY(GetState() == eFire);
-	if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
-		PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
-	else
-		PlayHUDMotion("anm_shots", FALSE, this, GetState());
+	VERIFY(GetState() == eFire);
+
+	m_hud->playAnimShoot();
+
+	//if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
+	//	PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
+	//else
+	//	PlayHUDMotion("anm_shots", FALSE, this, GetState());
 }
 
 void CWeaponMagazined::OnZoomIn()
