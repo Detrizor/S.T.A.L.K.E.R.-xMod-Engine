@@ -638,14 +638,14 @@ bool CHudItem::TryPlayAnimIdle()
 		CActor* pActor = smart_cast<CActor*>(object().H_Parent());
 		if (pActor && pActor->AnyMove())
 		{
-			CWeapon* pWpn = smart_cast<CWeapon*>(this);
-			if (pWpn && !pWpn->ArmedMode() && pWpn->HandSlot() == BOTH_HANDS_SLOT)
-				return false;
-
 			CEntity::SEntityState st;
 			pActor->g_State(st);
 			if (st.bSprint)
 			{
+				CWeapon* pWpn = smart_cast<CWeapon*>(this);
+				if (pWpn && !pWpn->ArmedMode() && pWpn->HandSlot() == BOTH_HANDS_SLOT)
+					return false;
+
 				PlayAnimIdleSprint();
 				return true;
 			}

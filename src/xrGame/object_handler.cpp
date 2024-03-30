@@ -95,7 +95,7 @@ void CObjectHandler::OnItemTake		(CInventoryItem *inventory_item)
 
 	CWeapon						*weapon = smart_cast<CWeapon*>(inventory_item);
 	if (weapon)
-		planner().object().weapon_shot_effector().Initialize(weapon->cam_recoil);
+		planner().object().weapon_shot_effector().Initialize();
 }
 
 void CObjectHandler::OnItemDrop		(CInventoryItem *inventory_item, bool just_before_destroy)

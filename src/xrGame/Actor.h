@@ -51,7 +51,6 @@ class  CActorCondition;
 class SndShockEffector;
 class CActorFollowerMngr;
 
-struct CameraRecoil;
 class CCameraShotEffector;
 class CActorInputHandler;
 
@@ -464,7 +463,7 @@ public:
     virtual bool						g_stateFire				() {return ! ((mstate_wishful & mcLookout) && !IsGameTypeSingle() );}
 
     virtual BOOL						g_State					(SEntityState& state) const;
-    virtual	float						GetWeaponAccuracy		() const;
+    virtual	float						getWeaponDispersion		() const;
             float						GetFireDispertion		() const {return m_fdisp_controller.GetCurrentDispertion();}
             bool						IsZoomAimingMode		() const {return m_bZoomAimingMode;}
             bool						IsZoomADSMode			() const {return m_bZoomADSMode;}
@@ -800,9 +799,16 @@ public:
 			float			fFPCamPitchMagnitude;
 DECLARE_SCRIPT_REGISTER_FUNCTION
 
+private:
+    float mutable						m_fWeaponAccuracy = 1.f;
+
 public:
-	void								VicinityUpdate							();
-	Fvector2							CameraAxisDeviation					C$	(Fvector CR$ pos, Fvector CR$ dir, float distance);
+    void								VicinityUpdate							();
+
+    float								getWeaponAccuracy					C$	()		{ return m_fWeaponAccuracy; }
+
+    Fvector2							CameraAxisDeviation					C$	(Fvector CR$ pos, Fvector CR$ dir, float distance);
+
 };
 add_to_type_list(CActor)
 #undef script_type_list

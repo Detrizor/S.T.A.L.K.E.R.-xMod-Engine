@@ -7,15 +7,12 @@
 #include "CameraEffector.h"
 #include "../xrEngine/cameramanager.h"
 #include "Actor.h"
-#include "CameraRecoil.h"
 
 class CWeapon;
 
 class CWeaponShotEffector
 {
 protected:
-	CameraRecoil CP$ m_cam_recoil;
-	
 	float			m_angle_vert;
 	float			m_angle_horz;
 	
@@ -41,7 +38,7 @@ public:
 				CWeaponShotEffector	();
 	virtual		~CWeaponShotEffector(){};
 
-		void	Initialize			(CameraRecoil CR$ cam_recoil);
+		void	Initialize			();
 		void	Reset				();
 
 	IC	bool	IsActive			(){return m_actived;}
@@ -52,7 +49,7 @@ public:
 	
 		void	SetRndSeed			(s32 Seed);
 
-		void	Shot				(CWeapon* weapon);
+		void	Shot				(CWeapon* weapon, float accuracy);
 		void	Shot2				(float angle);
 
 		void	GetDeltaAngle		(Fvector& angle);
@@ -66,7 +63,7 @@ protected:
 	CActor*			m_pActor;
 
 public:
-					CCameraShotEffector	(CameraRecoil CR$ cam_recoil);
+					CCameraShotEffector	();
 	virtual			~CCameraShotEffector();
 	
 	virtual BOOL	ProcessCam			(SCamEffectorInfo& info);

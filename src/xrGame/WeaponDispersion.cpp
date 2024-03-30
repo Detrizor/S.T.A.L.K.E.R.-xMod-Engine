@@ -11,7 +11,6 @@
 
 #include "actoreffector.h"
 #include "effectorshot.h"
-#include "EffectorShotX.h"
 
 //возвращает 1, если оружие в отличном состоянии и >1 если повреждено
 float CWeapon::GetConditionDispersionFactor() const
@@ -39,8 +38,7 @@ float CWeapon::GetFireDispersion	(float cartridge_k, bool for_crosshair)
 	if (H_Parent())
 	{
 		const CInventoryOwner* pOwner	= smart_cast<const CInventoryOwner*>(H_Parent());
-		float parent_disp				= pOwner->GetWeaponAccuracy();
-		fire_disp						+= parent_disp;
+		fire_disp						+= pOwner->getWeaponDispersion();
 	}
 
 	return fire_disp;

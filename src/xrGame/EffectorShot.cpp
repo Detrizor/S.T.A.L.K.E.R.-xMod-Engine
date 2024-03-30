@@ -12,12 +12,10 @@
 CWeaponShotEffector::CWeaponShotEffector()
 {
 	Reset();
-//	m_first_shot_pos = 0.0f;
 }
 
-void CWeaponShotEffector::Initialize(CameraRecoil CR$ cam_recoil)
+void CWeaponShotEffector::Initialize()
 {
-	m_cam_recoil = &cam_recoil;
 	Reset();
 }
 
@@ -39,7 +37,10 @@ void CWeaponShotEffector::Reset()
 	m_shot_end		= true;
 }
 
-void CWeaponShotEffector::Shot( CWeapon* weapon )
+#define s_recoil_angle_per_impulse pSettings->r_float("weapon_manager", "recoil_angle_per_impulse")
+#define s_recoil_horz_angle_coeff pSettings->r_float("weapon_manager", "recoil_horz_angle_coeff")
+
+void CWeaponShotEffector::Shot(CWeapon* weapon, float accuracy)
 {
 	R_ASSERT( weapon );
 	m_shot_numer = weapon->ShotsFired() - 1;
@@ -50,36 +51,25 @@ void CWeaponShotEffector::Shot( CWeapon* weapon )
 	}
 	m_single_shot = (weapon->GetCurrentFireMode() == 1);
 
-	float vangle	= m_cam_recoil->StepAngleVert;
-	vangle			+= min(m_cam_recoil->StepAngleVertInc * (float)m_shot_numer, m_cam_recoil->MaxAngleVert);
-	m_angle_vert	+= vangle;
+	float coeff		= s_recoil_angle_per_impulse * accuracy / weapon->GetControlInertionFactor();
 
-	float hangle	= (m_shot_numer) ? m_cam_recoil->StepAngleHorz : 0.f;
-	hangle			+= min(m_cam_recoil->StepAngleHorzInc * (float)m_shot_numer, m_cam_recoil->MaxAngleHorz);
-	hangle			*= m_Random.randF(-1.f, 1.f);
-	m_angle_horz	+= hangle;
+	float vangle	= weapon->getLastRecoilImpulseMagnitude();
+	m_angle_vert	+= vangle * coeff;
+
+	float hangle	= (m_first_shot) ? weapon->getLastRecoilImpulseMagnitude() : 0.f;
+	hangle			*= s_recoil_horz_angle_coeff * m_Random.randF(-1.f, 1.f);
+	m_angle_horz	+= hangle * coeff;
 
 	m_first_shot	= true;
 	m_actived		= true;
 	m_shot_end		= false;
 
-	weapon->setLastRecoil(vangle, hangle);
+	weapon->setLastRecoilImpulse(vangle, hangle);
 }
 
 void CWeaponShotEffector::Shot2( float angle )
 {
 	m_angle_vert += angle;
-
-	clamp( m_angle_vert, -m_cam_recoil->MaxAngleVert, m_cam_recoil->MaxAngleVert );
-	if ( fis_zero(m_angle_vert - m_cam_recoil->MaxAngleVert) )
-	{
-		m_angle_vert *= m_Random.randF( 0.96f, 1.04f );
-	}
-	
-	if (m_Random.randF(0.f,1.f) < 0.5f)
-		m_angle_horz -= m_cam_recoil->StepAngleHorz;
-
-	clamp( m_angle_horz, -m_cam_recoil->MaxAngleHorz, m_cam_recoil->MaxAngleHorz );
 
 	m_first_shot	= true;
 	m_actived		= true;
@@ -134,10 +124,9 @@ void CWeaponShotEffector::ChangeHP( float* pitch, float* yaw )
 // Camera shot effector
 //-----------------------------------------------------------------------------
 
-CCameraShotEffector::CCameraShotEffector(CameraRecoil CR$ cam_recoil)
- : CEffectorCam(eCEShot,100000.0f)
+CCameraShotEffector::CCameraShotEffector() : CEffectorCam(eCEShot,100000.0f)
 {
-	CWeaponShotEffector::Initialize(cam_recoil);
+	CWeaponShotEffector::Initialize();
 	m_pActor		= NULL;
 }
 

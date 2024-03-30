@@ -21,31 +21,29 @@ static const float VEL_MAX		= 10.f;
 static const float VEL_A_MAX	= 10.f;
 
 //возвращает текуший разброс стрельбы (в радианах)с учетом движения
-float CActor::GetWeaponAccuracy() const
+float CActor::getWeaponDispersion() const
 {
 	float dispersion			= m_fDispBase;
 	CWeapon* W					= smart_cast<CWeapon*>(inventory().ActiveItem());
 	if (W)
 	{
-		float coeff				= 1.f;
+		m_fWeaponAccuracy		= 1.f;
 		if (W->ADS())
 			dispersion			= m_fDispADS;
 		else if (W->IsZoomed())
 			dispersion			= m_fDispAim;
 		else
-			coeff				= W->Get_PDM_Base();
+			m_fWeaponAccuracy	= W->Get_PDM_Base();
 
 		CEntity::SEntityState	state;
 		if (g_State(state))
 		{
-			coeff				*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
-			coeff				*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			m_fWeaponAccuracy	*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			m_fWeaponAccuracy	*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
 			if (state.bCrouch)
-				coeff			*= m_fDispCrouchFactor;
+				m_fWeaponAccuracy *= m_fDispCrouchFactor;
 		}
-		dispersion				*= coeff;
-
-		W->updateCamRecoil		(coeff);
+		dispersion				*= m_fWeaponAccuracy;
 	}
 
 	return						dispersion;
@@ -141,16 +139,16 @@ void CActor::on_weapon_shot_start		(CWeapon *weapon)
 {
 	CCameraShotEffector* effector = smart_cast<CCameraShotEffector*>(Cameras().GetCamEffector(eCEShot));
 	if (!effector)
-		effector = (CCameraShotEffector*)Cameras().AddCamEffector(xr_new<CCameraShotEffector>(weapon->cam_recoil));
+		effector = (CCameraShotEffector*)Cameras().AddCamEffector(xr_new<CCameraShotEffector>());
 	else if (effector->m_WeaponID != weapon->ID())
-		effector->Initialize(weapon->cam_recoil);
+		effector->Initialize();
 	
 	effector->m_WeaponID = weapon->ID();
 	R_ASSERT(effector);
 
 	effector->SetRndSeed	(GetShotRndSeed());
 	effector->SetActor		(this);
-	effector->Shot			(weapon);
+	effector->Shot			(weapon, m_fWeaponAccuracy);
 }
 
 void CActor::on_weapon_shot_update		()

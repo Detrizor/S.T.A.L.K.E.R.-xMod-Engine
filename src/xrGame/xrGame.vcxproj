@@ -1373,7 +1373,6 @@
     <ClInclude Include="CameraEffector.h" />
     <ClInclude Include="CameraFirstEye.h" />
     <ClInclude Include="cameralook.h" />
-    <ClInclude Include="CameraRecoil.h" />
     <ClInclude Include="CaptureBoneCallback.h" />
     <ClInclude Include="Car.h" />
     <ClInclude Include="CarDamageParticles.h" />
@@ -1473,7 +1472,6 @@
     <ClInclude Include="EffectorBobbing.h" />
     <ClInclude Include="EffectorFall.h" />
     <ClInclude Include="EffectorShot.h" />
-    <ClInclude Include="EffectorShotX.h" />
     <ClInclude Include="EffectorZoomInertion.h" />
     <ClInclude Include="ef_base.h" />
     <ClInclude Include="ef_pattern.h" />
@@ -3189,7 +3187,6 @@
     <ClCompile Include="EffectorBobbing.cpp" />
     <ClCompile Include="EffectorFall.cpp" />
     <ClCompile Include="EffectorShot.cpp" />
-    <ClCompile Include="EffectorShotX.cpp" />
     <ClCompile Include="EffectorZoomInertion.cpp" />
     <ClCompile Include="ef_pattern.cpp" />
     <ClCompile Include="ef_primary.cpp" />

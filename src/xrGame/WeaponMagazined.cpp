@@ -1020,7 +1020,7 @@ void CWeaponMagazined::PlayAnimShoot()
 {
 	VERIFY(GetState() == eFire);
 
-	m_hud->playAnimShoot();
+	m_hud->playAnimShoot(m_last_recoil_impulse);
 
 	//if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
 	//	PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());

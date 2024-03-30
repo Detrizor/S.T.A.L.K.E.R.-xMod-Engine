@@ -70,38 +70,21 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 //	Msg("Deterioration = %f", Deterioration);
 	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
 
-	
-	float fire_disp = 0.f;
-	CActor* tmp_actor = NULL;
-	if (fsimilar(fire_disp, 0.f))
-	{
-		//CActor* tmp_actor = smart_cast<CActor*>(Level().CurrentControlEntity());
-		if (H_Parent() && (H_Parent() == tmp_actor))
-		{
-			fire_disp = tmp_actor->GetFireDispertion();
-		} else
-		{
-			fire_disp = GetFireDispersion(true);
-		}
-	}
-	
-
 	bool SendHit = SendHitAllowed(H_Parent());
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
-	for(int i = 0; i < l_cartridge.param_s.buckShot; ++i) 
-	{
-		FireBullet(P, D, fire_disp, l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
-	}
+	for(int i = 0; i < l_cartridge.param_s.buckShot; ++i)
+		FireBullet(P, D, GetFireDispersion(true), l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
 
 	StartShotParticles		();
 	
 	if(m_bLightShotEnabled) 
 		Light_Start			();
-	
-	m_last_shot_bullet_impulse = m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
 
 	// Ammo
 	ConsumeShotCartridge	();
+
+	m_last_recoil_impulse_magnitude = m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
+	m_last_recoil_impulse_magnitude *= m_fStockRecoilModifier * m_fLayoutRecoilModifier * m_fMechanicRecoilModifier * m_fGripRecoilModifier;
 }
 
 void CWeapon::StopShooting()

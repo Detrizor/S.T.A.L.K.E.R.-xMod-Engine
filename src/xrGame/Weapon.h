@@ -12,7 +12,6 @@
 #include "game_cl_single.h"
 #include "first_bullet_controller.h"
 
-#include "CameraRecoil.h"
 #include "actor.h"
 
 class CEntity;
@@ -337,9 +336,6 @@ public:
 	float					GetConditionMisfireProbability() const;
 	virtual	float			GetConditionToShow() const;
 
-public:
-	CameraRecoil			cam_recoil;
-
 protected:
 	//фактор увеличения дисперсии при максимальной изношености
 	//(на сколько процентов увеличится дисперсия)
@@ -475,7 +471,6 @@ public:
 	bool					show_crosshair();
 	bool					show_indicators();
 	virtual BOOL			ParentMayHaveAimBullet();
-	virtual BOOL			ParentIsActor();
 
 private:
 	bool					process_if_exists_deg2rad		(LPCSTR section, LPCSTR name, float& value, bool test);
@@ -516,8 +511,6 @@ public:
 //xMod added
 private:
 	int									m_iADS;
-	float								m_last_shot_bullet_impulse = 0.f;
-	Fvector2							m_last_recoil = vZero2;
 
 	void							V$	PrepareCartridgeToShoot					()		{}
 
@@ -531,7 +524,11 @@ protected:
 	float								m_fLayoutRecoilModifier = 1.f;
 	float								m_fMechanicRecoilModifier = 1.f;
 
+	Fvector2							m_last_recoil_impulse = vZero2;
+	float								m_last_recoil_impulse_magnitude = 0.f;
+
 	float								readRecoilModifier					C$	(LPCSTR section, LPCSTR line);
+	CActor*								ParentIsActor							();
 
 	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
 	
@@ -539,12 +536,11 @@ protected:
 	void							V$	ConsumeShotCartridge					();
 
 public:
-	void								setLastRecoil							(float x, float y) { m_last_recoil.x = x; m_last_recoil.y = y; }
+	void								setLastRecoilImpulse					(float x, float y) { m_last_recoil_impulse.x = x; m_last_recoil_impulse.y = y; }
 
 	void								SwitchArmedMode							();
-	void								updateCamRecoil							(float coeff);
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
-	Fvector2 CR$						getLastRecoil						C$	()		{ return m_last_recoil; }
+	float	 							getLastRecoilImpulseMagnitude		C$	()		{ return m_last_recoil_impulse_magnitude; }
 };

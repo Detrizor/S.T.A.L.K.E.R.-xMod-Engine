@@ -1113,17 +1113,17 @@ BOOL CWeapon::ParentMayHaveAimBullet()
 	return EA->cast_actor() != 0;
 }
 
-BOOL CWeapon::ParentIsActor()
+CActor* CWeapon::ParentIsActor()
 {
 	CObject* O = H_Parent();
 	if (!O)
-		return FALSE;
+		return NULL;
 
 	CEntityAlive* EA = smart_cast<CEntityAlive*>(O);
 	if (!EA)
-		return FALSE;
+		return NULL;
 
-	return EA->cast_actor() != 0;
+	return EA->cast_actor();
 }
 
 extern u32 hud_adj_mode;
@@ -1286,7 +1286,7 @@ float CWeapon::GetControlInertionFactor C$()
 	inertion							+= Weight() * .1f;
 	if (IsZoomed());
 	else if (ArmedMode())
-		inertion						*= .5f;
+		inertion						*= .2f;
 	else
 		inertion						*= .1f;
 
@@ -1296,19 +1296,4 @@ float CWeapon::GetControlInertionFactor C$()
 float CWeapon::CurrentZoomFactor C$(bool for_svp)
 {
 	return								(float)(!!ADS());
-}
-
-void CWeapon::updateCamRecoil(float coeff)
-{
-	float recoil					= coeff * m_last_shot_bullet_impulse / GetControlInertionFactor();
-	recoil							*= m_fStockRecoilModifier * m_fLayoutRecoilModifier * m_fMechanicRecoilModifier * m_fGripRecoilModifier;
-	recoil							= deg2rad(recoil);
-
-	cam_recoil.StepAngleVert		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_factor");
-	cam_recoil.StepAngleVertInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_vert_inc_factor");
-	cam_recoil.MaxAngleVert			= recoil * pSettings->r_float("weapon_manager", "max_angle_vert_factor");
-
-	cam_recoil.StepAngleHorz		= recoil * pSettings->r_float("weapon_manager", "step_angle_horz_factor");
-	cam_recoil.StepAngleHorzInc		= recoil * pSettings->r_float("weapon_manager", "step_angle_horz_inc_factor");
-	cam_recoil.MaxAngleHorz			= recoil * pSettings->r_float("weapon_manager", "max_angle_horz_factor");
 }

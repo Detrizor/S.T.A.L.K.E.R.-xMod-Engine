@@ -117,3 +117,5 @@ template <class T>
 BOOL _valid(const _vector2<T>& v) { return _valid((T)v.x) && _valid((T)v.y); }
 
 constexpr Fvector2 vZero2 = { 0.f, 0.f };
+constexpr Fvector2 vUp2 = { 0.f, 1.f };
+constexpr Fvector2 vRight2 = { 1.f, 0.f };

@@ -68,7 +68,7 @@ BIND_FUNCTION10(&object(), CScriptGameObject::getEnabled, CGameObject, getEnable
 BIND_FUNCTION10(&object(), CScriptGameObject::story_id, CGameObject, story_id, ALife::_STORY_ID, ALife::_STORY_ID(-1));
 BIND_FUNCTION10(&object(), CScriptGameObject::DeathTime, CEntity, GetLevelDeathTime, u32, 0);
 BIND_FUNCTION10(&object(), CScriptGameObject::MaxHealth, CEntity, GetMaxHealth, float, -1);
-BIND_FUNCTION10(&object(), CScriptGameObject::Accuracy, CInventoryOwner, GetWeaponAccuracy, float, -1);
+BIND_FUNCTION10(&object(), CScriptGameObject::Accuracy, CInventoryOwner, getWeaponDispersion, float, -1);
 BIND_FUNCTION10(&object(), CScriptGameObject::Team, CEntity, g_Team, int, -1);
 BIND_FUNCTION10(&object(), CScriptGameObject::Squad, CEntity, g_Squad, int, -1);
 BIND_FUNCTION10(&object(), CScriptGameObject::Group, CEntity, g_Group, int, -1);

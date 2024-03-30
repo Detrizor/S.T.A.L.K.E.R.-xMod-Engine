@@ -45,7 +45,6 @@ private:
 	Fvector								m_root_offset;
 	Fvector								m_root_offset_gl;
 	Fvector								m_barrel_offset;
-	SShootingParams						m_shooting_params;
 	SafemodeAnm							m_safemode_anm[2];
 	Fmatrix								m_shoot_shake_mat;
 	Fvector								m_cur_offs;
@@ -55,7 +54,8 @@ private:
 	bool								m_scope_alt_aim_via_iron_sights;
 	bool								m_scope_own_alt_aim;
 	bool								m_going_to_fire;
-	Fvector2							m_recoil[2] = { vZero2, vZero2 };
+	Fvector2							m_recoil_impulse = vZero2;
+	Fvector2							m_recoil_angle = vZero2;
 
 	void								CalcAimOffset							();
 
@@ -73,7 +73,7 @@ public:
 	void								ProcessScope							(SAddonSlot* slot, bool attach);
 	void								ProcessGL								(SAddonSlot* slot, bool attach);
 	void								SwitchGL								();
-	void								playAnimShoot							();
+	void								playAnimShoot							(Fvector2 impulse);
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();

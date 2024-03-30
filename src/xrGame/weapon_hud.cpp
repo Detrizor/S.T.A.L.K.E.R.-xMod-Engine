@@ -81,12 +81,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 
 	CalcAimOffset						();
 
-	// Загрузка параметров смещения при стрельбе
-	m_shooting_params.m_shot_max_offset_LRUD	= pSettings->r_fvector4(O.HudSection(), "shooting_max_LRUD");
-	m_shooting_params.m_shot_offset_BACKW		= pSettings->r_float(O.HudSection(), "shooting_backward_offset");
-	m_shooting_params.m_ret_speed				= pSettings->r_float(O.HudSection(), "shooting_ret_speed");
-	m_shooting_params.m_min_LRUD_power			= pSettings->r_float(O.HudSection(), "shooting_min_LRUD_power");
-
 	//--#SM+# End--
 
 	m_scope_alt_aim_via_iron_sights		= pSettings->r_bool(O.HudSection(), "scope_alt_aim_via_iron_sights");
@@ -165,10 +159,10 @@ void CWeaponHud::SwitchGL()
 	CalcAimOffset						();
 }
 
-void CWeaponHud::playAnimShoot()
+#define s_recoil_impulse_frac pSettings->r_float("tst", "recoil_impulse_frac")
+void CWeaponHud::playAnimShoot(Fvector2 impulse)
 {
-	m_recoil[0] = O.getLastRecoil();
-	m_recoil[0].mul(pSettings->r_float("tst", "aboba"));
+	m_recoil_impulse.add(impulse.mul(s_recoil_impulse_frac));
 }
 
 bool CWeaponHud::IsRotatingToZoom C$()
@@ -227,6 +221,8 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 	return eArmed;
 }
 
+#define s_stopping_power_per_angle pSettings->r_float("tst", "stopping_power_per_angle")
+#define s_relax_impulse_magnitude pSettings->r_float("tst", "relax_impulse_magnitude")
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
 	//============= Подготавливаем общие переменные =============//
@@ -281,23 +277,45 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_going_to_fire = false;
 		}
 
-		if (!fIsZero(m_recoil[0].magnitude()))
+		bool impulse = !fIsZero(m_recoil_impulse.magnitude());
+		if (impulse || !fIsZero(m_recoil_angle.magnitude()))
 		{
-			m_recoil[1].add(Fvector2(m_recoil[0]).mul(fAvgTimeDelta * pSettings->r_float("tst", "aboba2")));
-			if (fMoreOrEqual(m_recoil[1].magnitude(), m_recoil[0].magnitude()))
+			auto update_recoil_angle = [this](Fvector2 CR$ impulse)
 			{
-				m_recoil[1] = m_recoil[0];
-				m_recoil[0] = vZero2;
+				Fvector2 shift = Fvector2(impulse);
+				shift.mul(fAvgTimeDelta);
+				shift.div(O.GetControlInertionFactor());
+				m_recoil_angle.add(shift);
+			};
+
+			float accuracy = O.H_Parent()->Cast<CActor*>()->getWeaponAccuracy();		//--xd not optimal
+			if (impulse)
+			{
+				Fvector2 stopping_power = Fvector2(m_recoil_angle).mul(-s_stopping_power_per_angle);
+				stopping_power.div(accuracy);
+				stopping_power.mul(fAvgTimeDelta);
+				m_recoil_impulse.add(stopping_power);
+				if (fMore(m_recoil_impulse.dot(vRight2), 0.f))
+					update_recoil_angle(m_recoil_impulse);
+				else
+					m_recoil_impulse = vZero2;
+			}
+			else
+			{
+				Fvector2 relax_impulse = Fvector2(m_recoil_angle).normalize();
+				relax_impulse.mul(-s_relax_impulse_magnitude);
+				relax_impulse.div(accuracy);
+				update_recoil_angle(relax_impulse);
+				if (m_recoil_angle.dot(vRight2) <= 0.f)
+					m_recoil_angle = vZero2;
 			}
 		}
-		else if (!fIsZero(m_recoil[1].magnitude()))
-			m_recoil[1].mul(1.f - fAvgTimeDelta * pSettings->r_float("tst", "aboba3"));
 
-		if (fIsZero(m_recoil[1].magnitude()))
+		if (fIsZero(m_recoil_angle.magnitude()))
 			ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
 		else
 		{
-			Fvector tmp[2] = { Fvector(m_hud_offset[0]).sub(m_barrel_offset), { -m_recoil[1].x, -m_recoil[0].y, 0.f}};
+			Fvector tmp[2] = { Fvector(m_hud_offset[0]).sub(m_barrel_offset), { -m_recoil_angle.x, -m_recoil_angle.y, 0.f}};
 			ApplyPivot(tmp, m_barrel_offset);
 			ApplyOffset(trans, tmp[0], tmp[1]);
 			ApplyOffset(trans, vZero, m_hud_offset[1]);
@@ -309,66 +327,6 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_fRotationFactor -= factor;
 
 		clamp(m_fRotationFactor, 0.f, 1.f);
-	}
-
-	//============= Сдвиг оружия при стрельбе =============//
-	{
-		// Плавное затухание сдвига от стрельбы (основное, но без линейной никогда не опустит до полного 0.0f)
-		m_fLR_ShootingFactor *= clampr(1.f - fAvgTimeDelta * m_shooting_params.m_ret_speed, 0.0f, 1.0f);
-		m_fUD_ShootingFactor *= clampr(1.f - fAvgTimeDelta * m_shooting_params.m_ret_speed, 0.0f, 1.0f);
-		m_fBACKW_ShootingFactor *= clampr(1.f - fAvgTimeDelta * m_shooting_params.m_ret_speed, 0.0f, 1.0f);
-
-		// Минимальное линейное затухание сдвига от стрельбы при покое (горизонталь)
-		{
-			float fRetSpeedMod = m_shooting_params.m_ret_speed * 0.125f;
-			if (m_fLR_ShootingFactor < 0.0f)
-			{
-				m_fLR_ShootingFactor += fAvgTimeDelta * fRetSpeedMod;
-				clamp(m_fLR_ShootingFactor, -1.0f, 0.0f);
-			}
-			else
-			{
-				m_fLR_ShootingFactor -= fAvgTimeDelta * fRetSpeedMod;
-				clamp(m_fLR_ShootingFactor, 0.0f, 1.0f);
-			}
-		}
-
-		// Минимальное линейное затухание сдвига от стрельбы при покое (вертикаль)
-		{
-			float fRetSpeedMod = m_shooting_params.m_ret_speed * 0.125f;
-			if (m_fUD_ShootingFactor < 0.0f)
-			{
-				m_fUD_ShootingFactor += fAvgTimeDelta * fRetSpeedMod;
-				clamp(m_fUD_ShootingFactor, -1.0f, 0.0f);
-			}
-			else
-			{
-				m_fUD_ShootingFactor -= fAvgTimeDelta * fRetSpeedMod;
-				clamp(m_fUD_ShootingFactor, 0.0f, 1.0f);
-			}
-		}
-
-		// Минимальное линейное затухание сдвига от стрельбы при покое (вперёд\назад)
-		{
-			float fRetSpeedMod = m_shooting_params.m_ret_speed * 0.125f;
-			m_fBACKW_ShootingFactor -= fAvgTimeDelta * fRetSpeedMod;
-			clamp(m_fBACKW_ShootingFactor, 0.0f, 1.0f);
-		}
-
-		// Применяем сдвиг от стрельбы к худу
-		{
-			float fLR_lim = (m_fLR_ShootingFactor < 0.0f ? m_shooting_params.m_shot_max_offset_LRUD.x : m_shooting_params.m_shot_max_offset_LRUD.y);
-			float fUD_lim = (m_fUD_ShootingFactor < 0.0f ? m_shooting_params.m_shot_max_offset_LRUD.z : m_shooting_params.m_shot_max_offset_LRUD.w);
-
-			Fvector cur_offs = {
-				fLR_lim * m_fLR_ShootingFactor,
-				fUD_lim * -1.f * m_fUD_ShootingFactor,
-				-1.f * m_shooting_params.m_shot_offset_BACKW * m_fBACKW_ShootingFactor
-			};
-
-			//m_shoot_shake_mat.translate_over(cur_offs);
-			//trans.mulB_43(m_shoot_shake_mat);
-		}
 	}
 
 	//======== Проверяем доступность инерции и стрейфа ========//

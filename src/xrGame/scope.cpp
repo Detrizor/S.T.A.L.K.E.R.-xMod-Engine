@@ -137,7 +137,7 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 
 	scale								*= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	pUILenseCircle->SetScale			(scale);
-	pUILenseCircle->SetWndPos			(pos.mul(-lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
+	pUILenseCircle->SetWndPos			(pos.mul(lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
 	pUILenseCircle->Draw				();
 
 	Frect crect							= pUILenseCircle->GetWndRect();

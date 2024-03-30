@@ -71,37 +71,42 @@ static u32	 const FIRE_MAKE_SENSE_INTERVAL	= 10000;
 
 static float const min_throw_distance		= 10.f;
 
-float CAI_Stalker::GetWeaponAccuracy	() const
+float CAI_Stalker::getWeaponDispersion	() const
 {
-	float				base = PI/180.f;
-	
-	//влияние ранга на меткость
-	base				*= m_fRankDisperison;
-
-	if (!movement().path_completed()) {
-		if (movement().movement_type() == eMovementTypeWalk)
-			if (movement().body_state() == eBodyStateStand)
-				return		(base*m_disp_walk_stand);
-			else
-				return		(base*m_disp_walk_crouch);
-		else
-			if (movement().movement_type() == eMovementTypeRun)
-				if (movement().body_state() == eBodyStateStand)
-					return	(base*m_disp_run_stand);
+	auto get_accuracy = [this]()
+		{
+			if (!movement().path_completed())
+				if (movement().movement_type() == eMovementTypeWalk)
+					if (movement().body_state() == eBodyStateStand)
+						return		m_disp_walk_stand;
+					else
+						return		m_disp_walk_crouch;
 				else
-					return	(base*m_disp_run_crouch);
-	}
-	
-	if (movement().body_state() == eBodyStateStand)
-		if (zoom_state())
-			return			(base*m_disp_stand_stand);
-		else
-			return			(base*m_disp_stand_stand_zoom);
-	else
-		if (zoom_state())
-			return			(base*m_disp_stand_crouch);
-		else
-			return			(base*m_disp_stand_crouch_zoom);
+					if (movement().movement_type() == eMovementTypeRun)
+						if (movement().body_state() == eBodyStateStand)
+							return	m_disp_run_stand;
+						else
+							return	m_disp_run_crouch;
+
+			if (movement().body_state() == eBodyStateStand)
+				if (zoom_state())
+					return			m_disp_stand_stand;
+				else
+					return			m_disp_stand_stand_zoom;
+			else
+				if (zoom_state())
+					return			m_disp_stand_crouch;
+				else
+					return			m_disp_stand_crouch_zoom;
+		};
+
+	float base = PI / 180.f;
+	m_weapon_accuracy = get_accuracy();
+
+	//влияние ранга на меткость
+	m_weapon_accuracy *= m_fRankDisperison;
+
+	return base * m_weapon_accuracy;
 }
 
 void CAI_Stalker::g_fireParams(const CHudItem* pHudItem, Fvector& P, Fvector& D)
@@ -814,7 +819,7 @@ bool CAI_Stalker::fire_make_sense		()
 void CAI_Stalker::on_weapon_shot_start		(CWeapon *weapon)
 {
 	weapon_shot_effector().SetRndSeed	(m_weapon_shot_random_seed);
-	weapon_shot_effector().Shot			(weapon);
+	weapon_shot_effector().Shot			(weapon, m_weapon_accuracy);
 }
 
 void CAI_Stalker::on_weapon_shot_update		()

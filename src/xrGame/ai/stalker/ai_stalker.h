@@ -262,7 +262,7 @@ public:
 			bool						ready_to_detour			();
 			void						update_best_item_info	();
 			void						update_best_item_info_impl();
-	virtual float						GetWeaponAccuracy		() const;
+	virtual float						getWeaponDispersion		() const;
 	virtual bool						unlimited_ammo			();
 	virtual	void						spawn_supplies			();
 	IC		CAgentManager				&agent_manager			() const;
@@ -831,6 +831,9 @@ private:
 
 public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	float mutable						m_weapon_accuracy = 1.f;
 };
 add_to_type_list(CAI_Stalker)
 #undef script_type_list

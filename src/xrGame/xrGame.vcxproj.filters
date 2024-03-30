@@ -5307,9 +5307,6 @@
     <ClInclude Include="EffectorShot.h">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClInclude>
-    <ClInclude Include="EffectorShotX.h">
-      <Filter>Core\Client\Effectors\Weapon</Filter>
-    </ClInclude>
     <ClInclude Include="EffectorZoomInertion.h">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClInclude>
@@ -5723,9 +5720,6 @@
     </ClInclude>
     <ClInclude Include="physic_item_inline.h">
       <Filter>Core\Client\Objects\inventory\PhysicItem</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraRecoil.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
     </ClInclude>
     <ClInclude Include="first_bullet_controller.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
@@ -8848,9 +8842,6 @@
       <Filter>Core\Client\Effectors\Postprocess</Filter>
     </ClCompile>
     <ClCompile Include="EffectorShot.cpp">
-      <Filter>Core\Client\Effectors\Weapon</Filter>
-    </ClCompile>
-    <ClCompile Include="EffectorShotX.cpp">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClCompile>
     <ClCompile Include="EffectorZoomInertion.cpp">

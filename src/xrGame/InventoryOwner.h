@@ -148,7 +148,7 @@ public:
 	CInventory		 &inventory()		{VERIFY (m_inventory); return(*m_inventory);}
 
 	//возвращает текуший разброс стрельбы (в радианах) с учетом движения
-	virtual float GetWeaponAccuracy			() const;
+	virtual float getWeaponDispersion			() const;
 	//вместимость инвентаря
 	virtual float InventoryCapacity			() const;
 
