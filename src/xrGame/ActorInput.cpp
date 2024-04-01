@@ -613,22 +613,11 @@ void	CActor::OnPrevWeaponSlot()
 	}
 };
 
-float	CActor::GetLookFactor()
+float CActor::GetLookFactor()
 {
 	if (m_input_external_handler) 
 		return m_input_external_handler->mouse_scale_factor();
-
-	
-	float factor	= 1.f;
-
-	PIItem pItem	= inventory().ActiveItem();
-
-	if (pItem)
-		factor *= pItem->GetControlInertionFactor();
-
-	VERIFY(!fis_zero(factor));
-
-	return factor;
+	return 1.f;
 }
 
 void CActor::set_input_external_handler(CActorInputHandler *handler) 
