@@ -420,10 +420,11 @@ void CActor::update_camera (CCameraShotEffector* effector)
 			pACam->pitch -= PI_MUL_2;
 	}
 
-	effector->ChangeHP( &(pACam->pitch), &(pACam->yaw) );
+	effector->ChangeHP(pACam->pitch, pACam->yaw, pACam->roll);
 
 	if (pACam->bClampYaw)	clamp(pACam->yaw,pACam->lim_yaw[0],pACam->lim_yaw[1]);
 	if (pACam->bClampPitch)	clamp(pACam->pitch,pACam->lim_pitch[0],pACam->lim_pitch[1]);
+	if (pACam->bClampRoll)	clamp(pACam->roll, pACam->lim_roll[0], pACam->lim_roll[1]);
 
 	if (effector && !effector->IsActive())
 	{

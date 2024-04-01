@@ -212,8 +212,11 @@ private:
 	mutable bool						m_hit_bone_surface_areas_actual;
 
 public:
-			float			GetProtection			(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const;
-			float			GetBoneArmor			(u16 bone_id)					const;
+	float							V$	getAccuracy							C$	()		{ return 1.f; }
+
+	float								GetProtection						C$	(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type);
+	float								GetBoneArmor						C$	(u16 bone_id);
+
 };
 
 #include "entity_alive_inline.h"

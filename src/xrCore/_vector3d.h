@@ -595,3 +595,4 @@ IC BOOL exact_normalize(Fvector3& a) { return exact_normalize(&a.x); }
 #pragma warning(pop)
 
 constexpr Fvector vZero = { 0.f, 0.f, 0.f };
+constexpr Fvector vOne = { 1.f, 1.f, 1.f };

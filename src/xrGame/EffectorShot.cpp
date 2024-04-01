@@ -23,48 +23,33 @@ void CWeaponShotEffector::Reset()
 {
 	m_angle_vert	= 0.0f;
 	m_angle_horz	= 0.0f;
-
-	m_prev_angle_vert = 0.0f;
-	m_prev_angle_horz = 0.0f;
+	m_angle_roll	= 0.0f;
 
 	m_delta_vert	= 0.0f;
 	m_delta_horz	= 0.0f;
+	m_delta_roll	= 0.0f;
 
 	m_LastSeed		= 0;
-	m_single_shot	= false;
 	m_first_shot	= false;
 	m_actived		= false;
 	m_shot_end		= true;
 }
 
-#define s_recoil_angle_per_impulse pSettings->r_float("weapon_manager", "recoil_angle_per_impulse")
-#define s_recoil_horz_angle_coeff pSettings->r_float("weapon_manager", "recoil_horz_angle_coeff")
-
-void CWeaponShotEffector::Shot(CWeapon* weapon, float accuracy)
+void CWeaponShotEffector::Shot(CWeapon* weapon)
 {
 	R_ASSERT( weapon );
 	m_shot_numer = weapon->ShotsFired() - 1;
-	if ( m_shot_numer <= 0 )
+	if (m_shot_numer <= 0)
 	{
 		m_shot_numer = 0;
 		Reset();
 	}
-	m_single_shot = (weapon->GetCurrentFireMode() == 1);
-
-	float coeff		= s_recoil_angle_per_impulse * accuracy / weapon->GetControlInertionFactor();
-
-	float vangle	= weapon->getLastRecoilImpulseMagnitude();
-	m_angle_vert	+= vangle * coeff;
-
-	float hangle	= (m_first_shot) ? weapon->getLastRecoilImpulseMagnitude() : 0.f;
-	hangle			*= s_recoil_horz_angle_coeff * m_Random.randF(-1.f, 1.f);
-	m_angle_horz	+= hangle * coeff;
 
 	m_first_shot	= true;
 	m_actived		= true;
 	m_shot_end		= false;
 
-	weapon->setLastRecoilImpulse(vangle, hangle);
+	m_weapon		= weapon;
 }
 
 void CWeaponShotEffector::Shot2( float angle )
@@ -76,32 +61,35 @@ void CWeaponShotEffector::Shot2( float angle )
 	m_shot_end		= false;
 }
 
+#define s_recoil_cam_angle_per_shift pSettings->r_float("weapon_manager", "recoil_cam_angle_per_shift")
+#define s_recoil_cam_angle_per_shift_relaxing pSettings->r_float("weapon_manager", "recoil_cam_angle_per_shift_relaxing")
 void CWeaponShotEffector::Update()
 {
-	if (m_actived && m_shot_end && !m_single_shot)
+	if (m_actived && m_shot_end && fIsZero(m_weapon->getRecoilShiftDelta().magnitude()))
 		m_actived = false;
 
-	m_delta_vert = m_angle_vert - m_prev_angle_vert;
-	m_delta_horz = m_angle_horz - m_prev_angle_horz;
+	float coeff = (m_weapon->isRecoilShiftRelaxing()) ? s_recoil_cam_angle_per_shift_relaxing : s_recoil_cam_angle_per_shift;
+	m_delta_vert = m_weapon->getRecoilShiftDelta().y * coeff;
+	m_delta_horz = m_weapon->getRecoilShiftDelta().x * coeff;
+	//--xd problematic m_delta_roll = m_weapon->getRecoilShiftDelta().z * coeff;
 	
-	m_prev_angle_vert = m_angle_vert; 
-	m_prev_angle_horz = m_angle_horz;
-
-//	Msg( " <<[%d]  v=%.4f  dv=%.4f   a=%d s=%d  fr=%d", m_shot_numer, m_angle_vert, m_delta_vert, m_actived, m_first_shot, Device.dwFrame );
+	m_angle_vert += m_delta_vert;
+	m_angle_horz += m_delta_horz;
+	m_angle_roll += m_delta_roll;
 }
 
 void CWeaponShotEffector::GetDeltaAngle		(Fvector& angle)
 {
 	angle.x			= -m_angle_vert;
 	angle.y			= -m_angle_horz;
-	angle.z			= 0.0f;
+	angle.z			= -m_angle_roll;
 }
 
 void CWeaponShotEffector::GetLastDelta		(Fvector& delta_angle)
 {
 	delta_angle.x	= -m_delta_vert;
 	delta_angle.y	= -m_delta_horz;
-	delta_angle.z	= 0.0f;
+	delta_angle.z	= -m_delta_roll;
 }
 
 void CWeaponShotEffector::SetRndSeed	(s32 Seed)
@@ -114,10 +102,11 @@ void CWeaponShotEffector::SetRndSeed	(s32 Seed)
 	}
 }
 
-void CWeaponShotEffector::ChangeHP( float* pitch, float* yaw )
+void CWeaponShotEffector::ChangeHP(float& pitch, float& yaw, float& roll)
 {
-	*pitch -= m_delta_vert; // y = pitch = p = vert
-	*yaw   -= m_delta_horz; // x = yaw   = h = horz
+	pitch	-= m_delta_vert;
+	yaw		-= m_delta_horz;
+	roll	-= m_delta_roll;
 }
 
 //-----------------------------------------------------------------------------

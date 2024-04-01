@@ -308,10 +308,13 @@ void CWeapon::Load(LPCSTR section)
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
 	m_bArmedMode = !m_bArmedRelaxedSwitch;
 
-	m_fGripRecoilModifier = readRecoilModifier(section, "grip_recoil_modifier");
-	m_fStockRecoilModifier = readRecoilModifier(section, "stock_recoil_modifier");
-	m_fLayoutRecoilModifier = readRecoilModifier(section, "layout_recoil_modifier");
-	m_fMechanicRecoilModifier = readRecoilModifier(section, "mechanic_recoil_modifier");
+	m_grip_accuracy_modifier		= readAccuracyModifier(section, "grip");
+	m_stock_accuracy_modifier		= readAccuracyModifier(section, "stock");
+	m_layout_accuracy_modifier		= readAccuracyModifier(section, "layout");
+
+	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
+	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
+	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -612,6 +615,8 @@ void CWeapon::UpdateCL()
 			}
 		}
 	}
+
+	updateRecoil();
 }
 
 void CWeapon::renderable_Render()
@@ -1218,9 +1223,14 @@ void CWeapon::ZoomDec()
 		SwitchArmedMode					();
 }
 
-float CWeapon::readRecoilModifier(LPCSTR section, LPCSTR line) const
+float CWeapon::readAccuracyModifier(LPCSTR section, LPCSTR line) const
 {
-	return pSettings->r_float("recoil_modifiers", pSettings->r_string(section, line));
+	return pSettings->r_float("accuracy_modifiers", pSettings->r_string(section, line));
+}
+
+Fvector CWeapon::readRecoilPattern(LPCSTR section, LPCSTR line) const
+{
+	return pSettings->r_fvector3("recoil_patterns", pSettings->r_string(section, line));
 }
 
 void CWeapon::SetADS(int mode)
@@ -1280,20 +1290,115 @@ bool CWeapon::NeedBlendAnm()
 	return inherited::NeedBlendAnm();
 }
 
+//--xd remove static
+#define s_inertion_ads_factor pSettings->r_float("weapon_manager", "inertion_ads_factor")
+#define s_inertion_aim_factor pSettings->r_float("weapon_manager", "inertion_aim_factor")
+#define s_inertion_armed_factor pSettings->r_float("weapon_manager", "inertion_armed_factor")
+#define s_inertion_relaxed_factor pSettings->r_float("weapon_manager", "inertion_relaxed_factor")
 float CWeapon::GetControlInertionFactor C$()
 {
-	float inertion						= inherited::GetControlInertionFactor() - 1.f;
-	inertion							+= Weight() * .1f;
-	if (IsZoomed());
-	else if (ArmedMode())
-		inertion						*= .2f;
-	else
-		inertion						*= .1f;
+	float inertion			= inherited::GetControlInertionFactor() - 1.f;
 
-	return								sqrt(1.f + inertion);
+	if (ADS())
+		inertion			*= s_inertion_ads_factor;
+	else if (IsZoomed())
+		inertion			*= s_inertion_aim_factor;
+	else if (ArmedMode())
+		inertion			*= s_inertion_armed_factor;
+	else
+		inertion			*= s_inertion_relaxed_factor;
+
+	return					(1.f + inertion);
 }
 
 float CWeapon::CurrentZoomFactor C$(bool for_svp)
 {
-	return								(float)(!!ADS());
+	return (float)(!!ADS());
+}
+
+#define s_recoil_kick_weight pSettings->r_float("weapon_manager", "recoil_kick_weight")
+#define s_recoil_tremble_weight pSettings->r_float("weapon_manager", "recoil_tremble_weight")
+#define s_recoil_roll_weight pSettings->r_float("weapon_manager", "recoil_roll_weight")
+
+#define s_recoil_tremble_mean_change_chance pSettings->r_float("weapon_manager", "recoil_tremble_mean_change_chance")
+#define s_recoil_tremble_dispersion pSettings->r_float("weapon_manager", "recoil_tremble_dispersion")
+#define s_recoil_kick_dispersion pSettings->r_float("weapon_manager", "recoil_kick_dispersion")
+#define s_recoil_roll_dispersion pSettings->r_float("weapon_manager", "recoil_roll_dispersion")
+void CWeapon::appendRecoil(float impulse_magnitude)
+{
+	Fvector pattern				= vZero;
+	pattern.add					(m_stock_recoil_pattern);
+	pattern.add					(m_layout_recoil_pattern);
+	pattern.add					(m_mechanic_recoil_pattern);
+
+	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
+		m_recoil_tremble_mean	= Random.randFs(1.f);
+
+	float tremble				= pattern.y * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
+	float kick					= pattern.x * Random.randFs(s_recoil_kick_dispersion, 1.f);
+	float roll					= pattern.z * Random.randFs(s_recoil_roll_dispersion);
+	Fvector shot_impulse		= {
+		tremble * s_recoil_tremble_weight,
+		kick * s_recoil_kick_weight,
+		roll * s_recoil_roll_weight
+	};
+
+	shot_impulse.mul			(sqrt(impulse_magnitude));
+	m_recoil_impulse.add		(shot_impulse);
+}
+
+#define s_recoil_stopping_power_per_shift pSettings->r_float("weapon_manager", "recoil_stopping_power_per_shift")
+#define s_recoil_relax_impulse_magnitude pSettings->r_float("weapon_manager", "recoil_relax_impulse_magnitude")
+void CWeapon::updateRecoil()
+{
+	static float fAvgTimeDelta = Device.fTimeDelta;
+	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
+
+	bool impulse = !fIsZero(m_recoil_impulse.magnitude());
+	if (impulse || !fIsZero(m_recoil_shift.magnitude()))
+	{
+		auto update_recoil_shift = [this](Fvector CR$ impulse)
+			{
+				m_recoil_shift_delta = impulse;
+				m_recoil_shift_delta.mul(fAvgTimeDelta);
+				m_recoil_shift_delta.div(GetControlInertionFactor());
+				m_recoil_shift.add(m_recoil_shift_delta);
+			};
+
+		CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
+		float accuracy = (ea) ? ea->getAccuracy() : 1.f;
+		accuracy *= m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_layout_accuracy_modifier;
+
+		if (impulse)
+		{
+			update_recoil_shift(m_recoil_impulse);
+
+			Fvector stopping_power = m_recoil_impulse;
+			stopping_power.normalize();
+			stopping_power.mul(m_recoil_shift.magnitude());
+			stopping_power.mul(-s_recoil_stopping_power_per_shift);
+			stopping_power.mul(accuracy);
+			stopping_power.mul(fAvgTimeDelta);
+			m_recoil_impulse.add(stopping_power);
+			if (fMoreOrEqual(m_recoil_impulse.dotproduct(stopping_power), 0.f))
+				m_recoil_impulse = vZero;
+		}
+		else
+		{
+			Fvector relax_impulse = m_recoil_shift;
+			relax_impulse.normalize();
+			relax_impulse.mul(-s_recoil_relax_impulse_magnitude);
+			relax_impulse.mul(accuracy);
+			update_recoil_shift(relax_impulse);
+			if (fMoreOrEqual(m_recoil_shift.dotproduct(relax_impulse), 0.f))
+				m_recoil_shift = vZero;
+		}
+	}
+	else
+		m_recoil_shift_delta = vZero;
+}
+
+bool CWeapon::isRecoilShiftRelaxing() const
+{
+	return fIsZero(m_recoil_impulse.magnitude());
 }

@@ -509,38 +509,44 @@ public:
 	float								GetControlInertionFactor			CO$	();
 
 //xMod added
-private:
-	int									m_iADS;
-
-	void							V$	PrepareCartridgeToShoot					()		{}
-
 protected:
+	int									m_iADS;
 	bool								m_bArmedMode;
 	bool								m_bHasAltAim;
 	bool								m_bArmedRelaxedSwitch;
 
-	float								m_fGripRecoilModifier = 1.f;
-	float								m_fStockRecoilModifier = 1.f;
-	float								m_fLayoutRecoilModifier = 1.f;
-	float								m_fMechanicRecoilModifier = 1.f;
+	float								m_grip_accuracy_modifier = 1.f;
+	float								m_stock_accuracy_modifier = 1.f;
+	float								m_layout_accuracy_modifier = 1.f;
 
-	Fvector2							m_last_recoil_impulse = vZero2;
-	float								m_last_recoil_impulse_magnitude = 0.f;
+	Fvector								m_stock_recoil_pattern = vOne;
+	Fvector								m_layout_recoil_pattern = vOne;
+	Fvector								m_mechanic_recoil_pattern = vOne;
 
-	float								readRecoilModifier					C$	(LPCSTR section, LPCSTR line);
+	float								m_recoil_tremble_mean = 0.f;
+	Fvector								m_recoil_impulse = vZero;
+	Fvector								m_recoil_shift = vZero;
+	Fvector								m_recoil_shift_delta = vZero;
+
+	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
+	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
+	void								appendRecoil							(float impulse_magnitude);
+	void								updateRecoil							();
 	CActor*								ParentIsActor							();
-
-	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
 	
+	void							V$	PrepareCartridgeToShoot					()		{}
+	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
+
 	void							V$	SetADS									(int mode);
 	void							V$	ConsumeShotCartridge					();
 
 public:
-	void								setLastRecoilImpulse					(float x, float y) { m_last_recoil_impulse.x = x; m_last_recoil_impulse.y = y; }
-
 	void								SwitchArmedMode							();
+
+	Fvector CR$ 						getRecoilShift						C$	()		{ return m_recoil_shift; }
+	Fvector CR$							getRecoilShiftDelta					C$	()		{ return m_recoil_shift_delta; }
+	bool								isRecoilShiftRelaxing				C$	();
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
-	float	 							getLastRecoilImpulseMagnitude		C$	()		{ return m_last_recoil_impulse_magnitude; }
 };

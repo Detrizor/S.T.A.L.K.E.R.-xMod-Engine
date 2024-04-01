@@ -222,8 +222,7 @@ public:
 
 	virtual	bool				IsSprintAllowed				() const		{return !!m_flags.test(FAllowSprint);} ;
 
-	virtual	float				GetControlInertionFactor	() const		{return m_fControlInertionFactor;};
-
+	virtual	float				GetControlInertionFactor	() const;
 
 	virtual void				UpdateXForm	();
 			

@@ -104,9 +104,9 @@ float CAI_Stalker::getWeaponDispersion	() const
 	m_weapon_accuracy = get_accuracy();
 
 	//влияние ранга на меткость
-	m_weapon_accuracy *= m_fRankDisperison;
+	m_weapon_accuracy = 1.f / (m_weapon_accuracy * m_fRankDisperison);
 
-	return base * m_weapon_accuracy;
+	return base / m_weapon_accuracy;
 }
 
 void CAI_Stalker::g_fireParams(const CHudItem* pHudItem, Fvector& P, Fvector& D)
@@ -819,7 +819,7 @@ bool CAI_Stalker::fire_make_sense		()
 void CAI_Stalker::on_weapon_shot_start		(CWeapon *weapon)
 {
 	weapon_shot_effector().SetRndSeed	(m_weapon_shot_random_seed);
-	weapon_shot_effector().Shot			(weapon, m_weapon_accuracy);
+	weapon_shot_effector().Shot			(weapon);
 }
 
 void CAI_Stalker::on_weapon_shot_update		()

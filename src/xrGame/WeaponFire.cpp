@@ -83,8 +83,7 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 	// Ammo
 	ConsumeShotCartridge	();
 
-	m_last_recoil_impulse_magnitude = m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
-	m_last_recoil_impulse_magnitude *= m_fStockRecoilModifier * m_fLayoutRecoilModifier * m_fMechanicRecoilModifier * m_fGripRecoilModifier;
+	appendRecoil			(m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot);
 }
 
 void CWeapon::StopShooting()

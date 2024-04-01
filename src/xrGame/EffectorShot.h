@@ -15,12 +15,11 @@ class CWeaponShotEffector
 protected:
 	float			m_angle_vert;
 	float			m_angle_horz;
-	
-	float			m_prev_angle_vert;
-	float			m_prev_angle_horz;
+	float			m_angle_roll;
 
 	float			m_delta_vert;
 	float			m_delta_horz;
+	float			m_delta_roll;
 
 	int				m_shot_numer;
 	bool			m_shot_end;
@@ -28,7 +27,6 @@ protected:
 //	float			m_first_shot_pos;
 	
 	bool			m_actived;
-	bool			m_single_shot;
 
 private:
 	CRandom			m_Random;
@@ -49,12 +47,15 @@ public:
 	
 		void	SetRndSeed			(s32 Seed);
 
-		void	Shot				(CWeapon* weapon, float accuracy);
+		void	Shot				(CWeapon* weapon);
 		void	Shot2				(float angle);
 
 		void	GetDeltaAngle		(Fvector& angle);
 		void	GetLastDelta		(Fvector& delta_angle);
-		void	ChangeHP			(float* pitch, float* yaw);
+		void	ChangeHP			(float& pitch, float& yaw, float& roll);
+
+private:
+	CWeapon* m_weapon = NULL;
 };
 
 class CCameraShotEffector : public CWeaponShotEffector, public CEffectorCam

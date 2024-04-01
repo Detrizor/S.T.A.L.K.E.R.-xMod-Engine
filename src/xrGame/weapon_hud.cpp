@@ -159,12 +159,6 @@ void CWeaponHud::SwitchGL()
 	CalcAimOffset						();
 }
 
-#define s_recoil_impulse_frac pSettings->r_float("tst", "recoil_impulse_frac")
-void CWeaponHud::playAnimShoot(Fvector2 impulse)
-{
-	m_recoil_impulse.add(impulse.mul(s_recoil_impulse_frac));
-}
-
 bool CWeaponHud::IsRotatingToZoom C$()
 {
 	EHandsOffset idx = GetCurrentHudOffsetIdx();
@@ -221,8 +215,8 @@ EHandsOffset CWeaponHud::GetCurrentHudOffsetIdx() const
 	return eArmed;
 }
 
-#define s_stopping_power_per_angle pSettings->r_float("tst", "stopping_power_per_angle")
-#define s_relax_impulse_magnitude pSettings->r_float("tst", "relax_impulse_magnitude")
+#define s_recoil_hud_angle_per_shift pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift")
+#define s_recoil_hud_roll_per_shift pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift")
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
 	//============= Подготавливаем общие переменные =============//
@@ -277,45 +271,17 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_going_to_fire = false;
 		}
 
-		bool impulse = !fIsZero(m_recoil_impulse.magnitude());
-		if (impulse || !fIsZero(m_recoil_angle.magnitude()))
-		{
-			auto update_recoil_angle = [this](Fvector2 CR$ impulse)
-			{
-				Fvector2 shift = Fvector2(impulse);
-				shift.mul(fAvgTimeDelta);
-				shift.div(O.GetControlInertionFactor());
-				m_recoil_angle.add(shift);
-			};
-
-			float accuracy = O.H_Parent()->Cast<CActor*>()->getWeaponAccuracy();		//--xd not optimal
-			if (impulse)
-			{
-				Fvector2 stopping_power = Fvector2(m_recoil_angle).mul(-s_stopping_power_per_angle);
-				stopping_power.div(accuracy);
-				stopping_power.mul(fAvgTimeDelta);
-				m_recoil_impulse.add(stopping_power);
-				if (fMore(m_recoil_impulse.dot(vRight2), 0.f))
-					update_recoil_angle(m_recoil_impulse);
-				else
-					m_recoil_impulse = vZero2;
-			}
-			else
-			{
-				Fvector2 relax_impulse = Fvector2(m_recoil_angle).normalize();
-				relax_impulse.mul(-s_relax_impulse_magnitude);
-				relax_impulse.div(accuracy);
-				update_recoil_angle(relax_impulse);
-				if (m_recoil_angle.dot(vRight2) <= 0.f)
-					m_recoil_angle = vZero2;
-			}
-		}
-
-		if (fIsZero(m_recoil_angle.magnitude()))
+		if (fIsZero(O.getRecoilShift().magnitude()))
 			ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
 		else
 		{
-			Fvector tmp[2] = { Fvector(m_hud_offset[0]).sub(m_barrel_offset), { -m_recoil_angle.x, -m_recoil_angle.y, 0.f}};
+			Fvector tmp[2] = {};
+			tmp[0] = Fvector(m_hud_offset[0]).sub(m_barrel_offset);
+			tmp[1] = {
+				-O.getRecoilShift().y * s_recoil_hud_angle_per_shift,
+				O.getRecoilShift().x * s_recoil_hud_angle_per_shift,
+				O.getRecoilShift().z * s_recoil_hud_roll_per_shift
+			};
 			ApplyPivot(tmp, m_barrel_offset);
 			ApplyOffset(trans, tmp[0], tmp[1]);
 			ApplyOffset(trans, vZero, m_hud_offset[1]);

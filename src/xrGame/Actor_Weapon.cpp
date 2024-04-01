@@ -27,23 +27,24 @@ float CActor::getWeaponDispersion() const
 	CWeapon* W					= smart_cast<CWeapon*>(inventory().ActiveItem());
 	if (W)
 	{
-		m_fWeaponAccuracy		= 1.f;
+		m_weapon_accuracy		= 1.f;
 		if (W->ADS())
 			dispersion			= m_fDispADS;
 		else if (W->IsZoomed())
 			dispersion			= m_fDispAim;
 		else
-			m_fWeaponAccuracy	= W->Get_PDM_Base();
+			m_weapon_accuracy	= W->Get_PDM_Base();
 
 		CEntity::SEntityState	state;
 		if (g_State(state))
 		{
-			m_fWeaponAccuracy	*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
-			m_fWeaponAccuracy	*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			m_weapon_accuracy	*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
+			m_weapon_accuracy	*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
 			if (state.bCrouch)
-				m_fWeaponAccuracy *= m_fDispCrouchFactor;
+				m_weapon_accuracy *= m_fDispCrouchFactor;
 		}
-		dispersion				*= m_fWeaponAccuracy;
+		dispersion				*= m_weapon_accuracy;
+		m_weapon_accuracy		= 1.f / m_weapon_accuracy;
 	}
 
 	return						dispersion;
@@ -148,7 +149,7 @@ void CActor::on_weapon_shot_start		(CWeapon *weapon)
 
 	effector->SetRndSeed	(GetShotRndSeed());
 	effector->SetActor		(this);
-	effector->Shot			(weapon, m_fWeaponAccuracy);
+	effector->Shot			(weapon);
 }
 
 void CActor::on_weapon_shot_update		()

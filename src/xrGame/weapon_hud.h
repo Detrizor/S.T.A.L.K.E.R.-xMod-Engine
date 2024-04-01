@@ -54,8 +54,6 @@ private:
 	bool								m_scope_alt_aim_via_iron_sights;
 	bool								m_scope_own_alt_aim;
 	bool								m_going_to_fire;
-	Fvector2							m_recoil_impulse = vZero2;
-	Fvector2							m_recoil_angle = vZero2;
 
 	void								CalcAimOffset							();
 
@@ -73,7 +71,6 @@ public:
 	void								ProcessScope							(SAddonSlot* slot, bool attach);
 	void								ProcessGL								(SAddonSlot* slot, bool attach);
 	void								SwitchGL								();
-	void								playAnimShoot							(Fvector2 impulse);
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();

@@ -1020,8 +1020,6 @@ void CWeaponMagazined::PlayAnimShoot()
 {
 	VERIFY(GetState() == eFire);
 
-	m_hud->playAnimShoot(m_last_recoil_impulse);
-
 	//if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
 	//	PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
 	//else
@@ -1552,7 +1550,7 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 			}
 
 			if (pSettings->line_exist(slot->addon->Section(), "grip_recoil_modifier"))
-				m_fGripRecoilModifier	= readRecoilModifier((param) ? *slot->addon->Section() : *m_section_id, "grip_recoil_modifier");
+				m_grip_accuracy_modifier = readAccuracyModifier((param) ? *slot->addon->Section() : *m_section_id, "grip_recoil_modifier");
 
 			break;
 		}

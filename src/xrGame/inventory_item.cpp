@@ -1100,6 +1100,13 @@ void CInventoryItem::activate_physic_shell()
 	object().CPhysicsShellHolder::activate_physic_shell();
 }
 
+//--xd remove static
+#define s_inertion_baseline_weight pSettings->r_float("weapon_manager", "inertion_baseline_weight")
+float CInventoryItem::GetControlInertionFactor() const
+{
+	return sqrt(m_fControlInertionFactor * (Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight);
+}
+
 void CInventoryItem::UpdateXForm()
 {
 	if (0 == object().H_Parent())	return;

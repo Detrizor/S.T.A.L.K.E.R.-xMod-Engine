@@ -800,12 +800,12 @@ public:
 DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-    float mutable						m_fWeaponAccuracy = 1.f;
+    float mutable						m_weapon_accuracy = 1.f;
 
 public:
     void								VicinityUpdate							();
 
-    float								getWeaponAccuracy					C$	()		{ return m_fWeaponAccuracy; }
+    float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
 
     Fvector2							CameraAxisDeviation					C$	(Fvector CR$ pos, Fvector CR$ dir, float distance);
 
