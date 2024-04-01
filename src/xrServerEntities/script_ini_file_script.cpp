@@ -16,6 +16,8 @@ CScriptIniFile *get_system_ini()
 	return	((CScriptIniFile*)pSettings);
 }
 
+extern void cleanStaticVariables();
+extern void loadStaticVariables();
 //Alundaio: The extended ability to reload system ini after application launch
 #ifdef INI_FILE_EXTENDED_EXPORTS
 CScriptIniFile *reload_system_ini()
@@ -24,6 +26,8 @@ CScriptIniFile *reload_system_ini()
 	string_path fname;
 	FS.update_path(fname, "$game_config$", "system.ltx");
 	pSettings = xr_new<CInifile>(fname);
+	cleanStaticVariables();
+	loadStaticVariables();
 	return	((CScriptIniFile*)pSettings);
 }
 

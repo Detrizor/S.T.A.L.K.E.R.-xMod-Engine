@@ -83,9 +83,6 @@
 using namespace luabind;
 //-Alundaio
 
-#include "weapon_hud.h"
-#include "items_library.h"
-
 const u32		patch_frames = 50;
 const float		respawn_delay = 1.f;
 const float		respawn_auto = 7.f;
@@ -107,36 +104,8 @@ static Fvector	vFootExt;
 Flags32			psActorFlags = {AF_GODMODE_RT | AF_AUTOPICKUP | AF_RUN_BACKWARD | AF_IMPORTANT_SAVE | AF_USE_TRACERS};
 int				psActorSleepTime = 1;
 
-extern ENGINE_API float		psAIM_FOV;
-float						aim_fov_tan;
-float g_fov					= 75.f;
-
-HitImmunity::HitTypeSVec CEntityCondition::HitTypeHeadPart;
-HitImmunity::HitTypeSVec CEntityCondition::HitTypeGlobalScale;
-
-float CEntityCondition::m_fMeleeOnPierceDamageMultiplier;
-float CEntityCondition::m_fMeleeOnPierceArmorDamageFactor;
-
-SPowerDependency CEntityCondition::ArmorDamageResistance;
-SPowerDependency CEntityCondition::StrikeDamageThreshold;
-SPowerDependency CEntityCondition::StrikeDamageResistance;
-SPowerDependency CEntityCondition::ExplDamageResistance;
-
-SPowerDependency CEntityCondition::AnomalyDamageThreshold;
-SPowerDependency CEntityCondition::AnomalyDamageResistance;
-SPowerDependency CEntityCondition::ProtectionDamageResistance;
-
-SPowerDependency CWeaponHud::HandlingToRotationTime;
-
-Fvector CScope::lense_circle_scale;
-Fvector2 CScope::lense_circle_offset;
-
-float CFireDispertionController::crosshair_inertion;
-
-extern CUIStatic*			pUILenseCircle;
-extern CUIStatic*			pUILenseBlackFill;
-extern CUIStatic*			pUILenseGlass;
-extern void createStatic	(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment al = aCenter);
+extern void loadStaticVariables();
+extern void cleanStaticVariables();
 
 CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 {
@@ -293,11 +262,7 @@ CActor::~CActor()
     xr_delete(m_vehicle_anims);
 #endif
 	//-Alundaio
-	xr_delete(g_items_library);
-
-	xr_delete(pUILenseCircle);
-	xr_delete(pUILenseBlackFill);
-	xr_delete(pUILenseGlass);
+    cleanStaticVariables();
 }
 
 void CActor::reinit()
@@ -517,56 +482,7 @@ void CActor::Load(LPCSTR section)
 	// Alex ADD: for smooth crouch fix
 	CurrentHeight = CameraHeight();
 
-	CEntityCondition::HitTypeHeadPart.resize						(ALife::eHitTypeMax);
-	for (int i = 0; i < ALife::eHitTypeMax; i++)
-		CEntityCondition::HitTypeHeadPart[i] = 0.f;
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeBurn]			= pSettings->r_float("hit_type_head_part", "burn");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeShock]			= pSettings->r_float("hit_type_head_part", "shock");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeRadiation]		= pSettings->r_float("hit_type_head_part", "radiation");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_head_part", "chemical_burn");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeTelepatic]		= pSettings->r_float("hit_type_head_part", "telepatic");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeLightBurn]		= CEntityCondition::HitTypeHeadPart[ALife::eHitTypeBurn];
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion]		= pSettings->r_float("hit_type_head_part", "explosion");
-	
-	CEntityCondition::HitTypeGlobalScale.resize							(ALife::eHitTypeMax);
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeBurn]			= pSettings->r_float("hit_type_global_scale", "burn");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeShock]			= pSettings->r_float("hit_type_global_scale", "shock");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_global_scale", "chemical_burn");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeRadiation]		= pSettings->r_float("hit_type_global_scale", "radiation");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeTelepatic]		= pSettings->r_float("hit_type_global_scale", "telepatic");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeWound]			= pSettings->r_float("hit_type_global_scale", "wound");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeFireWound]		= pSettings->r_float("hit_type_global_scale", "fire_wound");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeStrike]			= pSettings->r_float("hit_type_global_scale", "strike");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeExplosion]		= pSettings->r_float("hit_type_global_scale", "explosion");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeWound_2]		= pSettings->r_float("hit_type_global_scale", "wound_2");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeLightBurn]		= pSettings->r_float("hit_type_global_scale", "light_burn");
-	
-	CEntityCondition::m_fMeleeOnPierceDamageMultiplier		= pSettings->r_float("damage_manager", "melee_on_pierce_damage_multiplier");
-	CEntityCondition::m_fMeleeOnPierceArmorDamageFactor		= pSettings->r_float("damage_manager", "melee_on_pierce_armor_damage_factor");
-
-	CEntityCondition::StrikeDamageThreshold.Load		("damage_manager", "strike_damage_threshold");
-	CEntityCondition::StrikeDamageResistance.Load		("damage_manager", "strike_damage_resistance");
-	CEntityCondition::ExplDamageResistance.Load			("damage_manager", "expl_damage_resistance");
-	CEntityCondition::ArmorDamageResistance.Load		("damage_manager", "armor_damage_resistance");
-	
-	CEntityCondition::AnomalyDamageThreshold.Load		("damage_manager", "anomaly_damage_threshold");
-	CEntityCondition::AnomalyDamageResistance.Load		("damage_manager", "anomaly_damage_resistance");
-	CEntityCondition::ProtectionDamageResistance.Load	("damage_manager", "protection_damage_resistance");
-
-	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
-	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
-
-	CScope::lense_circle_scale			= pSettings->r_fvector3("weapon_manager", "lense_circle_scale");
-	CScope::lense_circle_offset			= pSettings->r_fvector2("weapon_manager", "lense_circle_offset");
-
-	psAIM_FOV		= pSettings->r_float("weapon_manager", "aim_fov");
-	aim_fov_tan		= tanf(psAIM_FOV * (0.5f * PI / 180.f));
-
-	g_items_library = xr_new<CItemsLibrary>();
-
-	createStatic(pUILenseCircle, "wpn\\lense\\circle", 4.f);
-	createStatic(pUILenseBlackFill, "wpn\\lense\\black_fill", .125f, aLeftTop);
-	createStatic(pUILenseGlass, "wpn\\lense\\glass");
+    loadStaticVariables();
 }
 
 void CActor::PHHit(SHit &H)
@@ -960,6 +876,8 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
     }
 }
 
+extern ENGINE_API float psAIM_FOV;
+extern float aim_fov_tan;
 float CActor::currentFOV(bool for_svp)
 {
     if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
