@@ -741,7 +741,7 @@ void CWeaponMagazined::OnShot()
     AddShotEffector();
 
     // Animation
-    PlayAnimShoot();
+    //PlayAnimShoot();
 
     // Shell Drop
     Fvector vel;
@@ -1020,10 +1020,10 @@ void CWeaponMagazined::PlayAnimShoot()
 {
 	VERIFY(GetState() == eFire);
 
-	//if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
-	//	PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
-	//else
-	//	PlayHUDMotion("anm_shots", FALSE, this, GetState());
+	if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
+		PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
+	else
+		PlayHUDMotion("anm_shots", FALSE, this, GetState());
 }
 
 void CWeaponMagazined::OnZoomIn()

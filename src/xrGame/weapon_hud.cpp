@@ -271,16 +271,16 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_going_to_fire = false;
 		}
 
-		if (fIsZero(O.getRecoilShift().magnitude()))
+		if (fIsZero(O.getRecoilHudShift().magnitude()))
 			ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
 		else
 		{
 			Fvector tmp[2] = {};
 			tmp[0] = Fvector(m_hud_offset[0]).sub(m_barrel_offset);
 			tmp[1] = {
-				-O.getRecoilShift().y * s_recoil_hud_angle_per_shift,
-				O.getRecoilShift().x * s_recoil_hud_angle_per_shift,
-				O.getRecoilShift().z * s_recoil_hud_roll_per_shift
+				-O.getRecoilHudShift().y * s_recoil_hud_angle_per_shift,
+				O.getRecoilHudShift().x * s_recoil_hud_angle_per_shift,
+				O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
 			};
 			ApplyPivot(tmp, m_barrel_offset);
 			ApplyOffset(trans, tmp[0], tmp[1]);

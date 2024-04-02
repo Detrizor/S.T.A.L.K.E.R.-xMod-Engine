@@ -83,6 +83,8 @@ private:
 
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
+	void								shoot_grenade							();
+
 protected:
 	bool								AltHandsAttachRotation				CO$	();
 

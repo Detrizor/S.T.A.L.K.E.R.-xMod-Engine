@@ -61,16 +61,14 @@ void CWeaponShotEffector::Shot2( float angle )
 	m_shot_end		= false;
 }
 
-#define s_recoil_cam_angle_per_shift pSettings->r_float("weapon_manager", "recoil_cam_angle_per_shift")
-#define s_recoil_cam_angle_per_shift_relaxing pSettings->r_float("weapon_manager", "recoil_cam_angle_per_shift_relaxing")
+#define s_recoil_cam_angle_per_delta pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta")
 void CWeaponShotEffector::Update()
 {
-	if (m_actived && m_shot_end && fIsZero(m_weapon->getRecoilShiftDelta().magnitude()))
+	if (m_actived && m_weapon->isCamRecoilRelaxed())
 		m_actived = false;
 
-	float coeff = (m_weapon->isRecoilShiftRelaxing()) ? s_recoil_cam_angle_per_shift_relaxing : s_recoil_cam_angle_per_shift;
-	m_delta_vert = m_weapon->getRecoilShiftDelta().y * coeff;
-	m_delta_horz = m_weapon->getRecoilShiftDelta().x * coeff;
+	m_delta_vert = m_weapon->getRecoilCamDelta().y * s_recoil_cam_angle_per_delta;
+	m_delta_horz = m_weapon->getRecoilCamDelta().x * s_recoil_cam_angle_per_delta;
 	//--xd problematic m_delta_roll = m_weapon->getRecoilShiftDelta().z * coeff;
 	
 	m_angle_vert += m_delta_vert;

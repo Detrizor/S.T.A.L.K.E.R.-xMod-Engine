@@ -137,12 +137,7 @@ void CWeaponMagazinedWGrenade::switch2_Reload()
 void CWeaponMagazinedWGrenade::OnShot()
 {
     if (m_bGrenadeMode)
-    {
-        PlayAnimShoot();
-        PlaySound("sndShotG", get_LastFP2());
-        AddShotEffector();
-        StartFlameParticles2();
-    }
+        shoot_grenade();
     else
         inherited::OnShot();
 }
@@ -275,10 +270,7 @@ void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
 		u16								id;
 		P.r_u16							(id);
 		CRocketLauncher::DetachRocket	(id, true);
-		PlayAnimShoot					();
-		PlaySound						("sndShotG", get_LastFP2());
-		AddShotEffector					();
-		StartFlameParticles2			();
+        shoot_grenade                   ();
 	}
 }
 
@@ -632,6 +624,14 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 			inventory_owner().Discharge	(this, true);
 		PerformSwitchGL					();
 	}
+}
+
+void CWeaponMagazinedWGrenade::shoot_grenade()
+{
+    //PlayAnimShoot();
+    PlaySound("sndShotG", get_LastFP2());
+    AddShotEffector();
+    StartFlameParticles2();
 }
 
 float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param)

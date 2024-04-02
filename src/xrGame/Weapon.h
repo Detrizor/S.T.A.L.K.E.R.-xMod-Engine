@@ -524,9 +524,11 @@ protected:
 	Fvector								m_mechanic_recoil_pattern = vOne;
 
 	float								m_recoil_tremble_mean = 0.f;
-	Fvector								m_recoil_impulse = vZero;
-	Fvector								m_recoil_shift = vZero;
-	Fvector								m_recoil_shift_delta = vZero;
+	Fvector								m_recoil_hud_impulse = vZero;
+	Fvector								m_recoil_hud_shift = vZero;
+	Fvector								m_recoil_cam_impulse = vZero;
+	Fvector								m_recoil_cam_delta = vZero;
+	Fvector								m_recoil_cam_last_impulse = vZero;
 
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
@@ -543,10 +545,11 @@ protected:
 public:
 	void								SwitchArmedMode							();
 
-	Fvector CR$ 						getRecoilShift						C$	()		{ return m_recoil_shift; }
-	Fvector CR$							getRecoilShiftDelta					C$	()		{ return m_recoil_shift_delta; }
-	bool								isRecoilShiftRelaxing				C$	();
+	Fvector CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
+	Fvector CR$							getRecoilCamDelta					C$	()		{ return m_recoil_cam_delta; }
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
+	
+	bool								isCamRecoilRelaxed					C$	();
 };
