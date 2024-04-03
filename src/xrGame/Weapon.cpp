@@ -812,6 +812,8 @@ void CWeapon::Reload()
 
 void CWeapon::OnZoomIn()
 {
+	if (!ArmedMode())
+		SwitchArmedMode();
 	m_zoom_params.m_bIsZoomModeNow = true;
 	g_player_hud->updateMovementLayerState();
 }

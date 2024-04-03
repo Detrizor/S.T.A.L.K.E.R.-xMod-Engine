@@ -918,18 +918,6 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 			return true;
 		}
 		break;
-
-	case kWPN_ZOOM_INC:
-	case kWPN_ZOOM_DEC:
-		if (flags&CMD_START)
-		{
-			if (cmd == kWPN_ZOOM_INC)
-				ZoomInc();
-			else
-				ZoomDec();
-			return true;
-		}
-		break;
 	}
 	return false;
 }
@@ -1388,15 +1376,11 @@ CScope* CWeaponMagazined::GetActiveScope() const
 
 void CWeaponMagazined::ZoomInc()
 {
-	if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
-	{
-		CScope* scope = GetActiveScope();
-		if (scope)
-			scope->ZoomChange(1);
-	}
+	CScope* scope = GetActiveScope();
+	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
+		scope->ZoomChange(1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
 	{
-		CScope* scope = GetActiveScope();
 		if (scope)
 			scope->ZeroingChange(1);
 		else
@@ -1408,15 +1392,11 @@ void CWeaponMagazined::ZoomInc()
 
 void CWeaponMagazined::ZoomDec()
 {
-	if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
-	{
-		CScope* scope = GetActiveScope();
-		if (scope)
-			scope->ZoomChange(-1);
-	}
+	CScope* scope = GetActiveScope();
+	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
+		scope->ZoomChange(-1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
 	{
-		CScope* scope = GetActiveScope();
 		if (scope)
 			scope->ZeroingChange(-1);
 		else
