@@ -435,31 +435,24 @@ void CCameraManager::UpdatePPEffectors()
 
 void CCameraManager::ApplyDevice(float _viewport_near)
 {
-    // Device params
-    Device.mView.build_camera_dir(m_cam_info.p, m_cam_info.d, m_cam_info.n);
+    bool svp = Device.m_SecondViewport.IsSVPFrame();
+    Fvector CR$ cam_pos = (svp) ? Device.m_SecondViewport.getCamPosition() : m_cam_info.p;
+    float fov = (svp) ? g_pGamePersistent->m_pGShaderConstants->hud_params.w : m_cam_info.fFov;
 
-    Device.vCameraPosition.set(m_cam_info.p);
+    // Device params
+    Device.mView.build_camera_dir(cam_pos, m_cam_info.d, m_cam_info.n);
+
+    Device.vCameraPosition.set(cam_pos);
     Device.vCameraDirection.set(m_cam_info.d);
     Device.vCameraTop.set(m_cam_info.n);
     Device.vCameraRight.set(m_cam_info.r);
 
     // projection
-    Device.fFOV = m_cam_info.fFov;
-	Device.fHUDFOV = fmaxf(m_cam_info.fFov, psAIM_FOV);
+    Device.fFOV = fov;
+	Device.fHUDFOV = fov;
 	Device.fASPECT = m_cam_info.fAspect;
 
-	//--#SM+# Begin-- +SecondVP+
-	// Ia?an÷eouâaai FOV äëy âoî?îaî âü?iî?oa [Recalculate scene FOV for SecondVP frame]
-	if (Device.m_SecondViewport.IsSVPFrame())
-	{
-		// Äëy âoî?îaî âü?iî?oa FOV âunoaâëyai çäanü
-		Device.fFOV = g_pGamePersistent->m_pGShaderConstants->hud_params.w;
-
-		// I?aäói?aaäaai ÷oî iu eçiaíeëe íano?îéee eaia?u
-		Device.m_SecondViewport.isCamReady = true;
-	}
-	else
-		Device.m_SecondViewport.isCamReady = false;
+	Device.m_SecondViewport.isCamReady = svp;
 
 	Device.mProject.build_projection(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
 	//--#SM+# End--

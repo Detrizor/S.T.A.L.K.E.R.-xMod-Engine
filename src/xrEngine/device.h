@@ -119,6 +119,7 @@ public:
 		bool isActive; // Oeaa aeoeaaoee ?aiaa?a ai aoi?ie au?ii?o
 		u8 frameDelay;  // Ia eaeii eaa?a n iiiaioa i?ioeiai ?aiaa?a ai aoi?ie au?ii?o iu ia?i?i iiaue
 		//(ia ii?ao auou iaiuoa 2 - ea?aue aoi?ie eaa?, ?ai aieuoa oai aieaa ieceee FPS ai aoi?ii au?ii?oa)
+        Fvector m_cam_position;
 
 	public:
 		bool isCamReady; // Oeaa aioiaiinoe eaia?u (FOV, iiceoey, e o.i) e ?aiaa?o aoi?iai au?ii?oa
@@ -126,6 +127,8 @@ public:
 		IC bool IsSVPActive() { return isActive; }
 		void SetSVPActive(bool bState);
 		bool    IsSVPFrame();
+        void setCamPosition(Fvector CR$ pos) { m_cam_position = pos; }
+        Fvector CR$ getCamPosition() { return m_cam_position; }
 
 		IC u8 GetSVPFrameDelay() { return frameDelay; }
 		void  SetSVPFrameDelay(u8 iDelay)

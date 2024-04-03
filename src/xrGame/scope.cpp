@@ -38,6 +38,7 @@ CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 		case eOptics:
 			m_Magnificaion.Load			(pSettings->r_string(section, "magnification"));
 			m_fLenseRadius				= pSettings->r_float(section, "lense_radius");
+			m_outer_lense_offset		= pSettings->r_fvector3(section, "outer_lense_offset");
 			m_Reticle					= pSettings->r_string(section, "reticle");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
@@ -135,9 +136,9 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 		m_pUIReticle->Draw				();
 	}
 
-	scale								*= exp(pow(GetCurrentMagnification(), lense_circle_scale.z) * (lense_circle_scale.x + lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
+	scale								*= exp(pow(GetCurrentMagnification(), s_lense_circle_scale.z) * (s_lense_circle_scale.x + s_lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	pUILenseCircle->SetScale			(scale);
-	pUILenseCircle->SetWndPos			(pos.mul(lense_circle_offset.x * pow(GetCurrentMagnification(), lense_circle_offset.y)));
+	pUILenseCircle->SetWndPos			(pos.mul(s_lense_circle_offset.x * pow(GetCurrentMagnification(), s_lense_circle_offset.y)));
 	pUILenseCircle->Draw				();
 
 	Frect crect							= pUILenseCircle->GetWndRect();

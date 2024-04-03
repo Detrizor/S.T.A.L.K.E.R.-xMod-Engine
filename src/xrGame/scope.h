@@ -56,14 +56,16 @@ private:
 	CBinocularsVision*					m_pVision;
 	CNightVisionEffector*				m_pNight_vision;
 	SRangeNum<u16>						m_Zeroing;
+	Fvector								m_outer_lense_offset = vZero;
 	
 	void								InitVisors								();
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	static	Fvector						lense_circle_scale;
-	static	Fvector2					lense_circle_offset;
+	static	Fvector						s_lense_circle_scale;
+	static	Fvector2					s_lense_circle_offset;
+	static	float						s_lense_camera_safe_distance;
 
 	shared_str							sight_bone_name;
 	Fvector								sight_offset;
@@ -72,6 +74,7 @@ public:
 	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
+	Fvector CR$							getOuterLenseOffset					C$	()		{ return m_outer_lense_offset; }
 
 	float								GetReticleScale						C$	(CWeaponHud CR$ hud);
 	void								modify_holder_params				C$	(float &range, float &fov);

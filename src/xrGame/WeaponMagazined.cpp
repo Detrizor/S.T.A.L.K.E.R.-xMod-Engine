@@ -1408,7 +1408,10 @@ void CWeaponMagazined::ZoomDec()
 
 bool CWeaponMagazined::need_renderable()
 {
-	return !render_item_ui_query();
+	CScope* scope = GetActiveScope();
+	if (!scope || scope->Type() != eOptics || scope->HasLense())
+		return true;
+	return !IsRotatingToZoom();
 }
 
 bool CWeaponMagazined::render_item_ui_query()
@@ -1515,6 +1518,8 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				scope->sight_offset		= slot->model_offset[0];
 				scope->sight_offset.add	(slot->bone_offset[0]);
 				scope->sight_offset.sub	(slot->addon->HudOffset()[0]);
+				scope->sight_offset.add	(scope->getOuterLenseOffset());
+				scope->sight_offset.z	+= scope->s_lense_camera_safe_distance;
 			}
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
@@ -1601,7 +1606,9 @@ void CWeaponMagazined::UpdateShadersData()
 	if (!scope)
 		return;
 
-	Fvector2 offset						= Actor()->CameraAxisDeviation(SightPosition(), get_LastFDD(), scope->Zeroing());
+	Fvector sight_position				= SightPosition();
+	Device.m_SecondViewport.setCamPosition(sight_position);
+	Fvector2 offset						= Actor()->CameraAxisDeviation(sight_position, get_LastFDD(), scope->Zeroing());
 	float fov_tan						= tanf(g_pGamePersistent->m_pGShaderConstants->hud_params.w * (.5f * PI / 180.f));
 	float h								= 2.f * fov_tan * scope->Zeroing();
 	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
