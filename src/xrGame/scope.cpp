@@ -161,6 +161,7 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 }
 
 extern float aim_fov_tan;
+extern ENGINE_API float psSVPImageSizeK;
 float CScope::GetReticleScale(CWeaponHud CR$ hud) const
 {
 	switch (Type())
@@ -169,7 +170,7 @@ float CScope::GetReticleScale(CWeaponHud CR$ hud) const
 			if (HasLense())
 			{
 				float lense_fov_tan = GetLenseRadius() / abs(hud.LenseOffset() - hud.HudOffset()[0].z);
-				return lense_fov_tan / aim_fov_tan;
+				return psSVPImageSizeK * lense_fov_tan / aim_fov_tan;
 			}
 			break;
 		case eCollimator:

@@ -29,6 +29,8 @@ void	free_render_mode_list		()			{}
 
 CHW			HW;
 
+extern ENGINE_API float psSVPImageSizeK;
+
 //	DX10: Don't neeed this?
 /*
 #ifdef DEBUG
@@ -47,6 +49,8 @@ CHW::CHW() :
 {
 	Device.seqAppActivate.Add(this);
 	Device.seqAppDeactivate.Add(this);
+
+	storedVP = (ViewPort)0;
 }
 
 CHW::~CHW()
@@ -428,6 +432,22 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 #endif
 }
 
+void CHW::SwitchVP(ViewPort vp)
+{
+	if (storedVP == vp && pBaseRT)
+		return;
+
+	storedVP = vp;
+
+	auto it = viewPortsRTZB.find(vp);
+
+	if (it == viewPortsRTZB.end())
+		it = viewPortsRTZB.find(MAIN_VIEWPORT);
+
+	pBaseRT = it->second.baseRT;
+	pBaseZB = it->second.baseZB;
+}
+
 void CHW::DestroyDevice()
 {
 	//	Destroy state managers
@@ -437,15 +457,19 @@ void CHW::DestroyDevice()
 	BSManager.ClearStateArray();
 	SSManager.ClearStateArray();
 
-	_SHOW_REF				("refCount:pBaseZB",pBaseZB);
-	_RELEASE				(pBaseZB);
+	//_SHOW_REF				("refCount:pBaseZB",pBaseZB);
+	//_RELEASE				(pBaseZB);
 
-	_SHOW_REF				("refCount:pBaseRT",pBaseRT);
-	_RELEASE				(pBaseRT);
-//#ifdef DEBUG
-//	_SHOW_REF				("refCount:dwDebugSB",dwDebugSB);
-//	_RELEASE				(dwDebugSB);
-//#endif
+	for (auto it = viewPortsRTZB.begin(); it != viewPortsRTZB.end(); ++it)
+	{
+		_SHOW_REF("refCount:pBaseZB", it->second.baseZB);
+		_SHOW_REF("refCount:pBaseRT", it->second.baseRT);
+		_RELEASE(it->second.baseZB);
+		_RELEASE(it->second.baseRT);
+	}
+
+	//_SHOW_REF				("refCount:pBaseRT",pBaseRT);
+	//_RELEASE				(pBaseRT);
 
 	//	Must switch to windowed mode to release swap chain
 	if (!m_ChainDesc.Windowed) m_pSwapChain->SetFullscreenState( FALSE, NULL);
@@ -501,10 +525,21 @@ void CHW::Reset (HWND hwnd)
 #ifdef DEBUG
 	//	_RELEASE			(dwDebugSB);
 #endif
-	_SHOW_REF				("refCount:pBaseZB",pBaseZB);
-	_SHOW_REF				("refCount:pBaseRT",pBaseRT);
 
-	_RELEASE(pBaseZB);
+	for (auto it = viewPortsRTZB.begin(); it != viewPortsRTZB.end(); ++it)
+	{
+		_SHOW_REF("refCount:pBaseZB", it->second.baseZB);
+		_SHOW_REF("refCount:pBaseRT", it->second.baseRT);
+		_RELEASE(it->second.baseZB);
+		_RELEASE(it->second.baseRT);
+	}
+
+	//_SHOW_REF				("refCount:pBaseZB",pBaseZB);
+	//_SHOW_REF				("refCount:pBaseRT",pBaseRT);
+
+	//_RELEASE(pBaseZB);
+	//_RELEASE(pBaseRT);
+
 	_RELEASE(pBaseRT);
 
 	CHK_DX(m_pSwapChain->ResizeBuffers(
@@ -992,23 +1027,54 @@ void fill_vid_mode_list(CHW* _hw)
 
 void CHW::UpdateViews()
 {
-	DXGI_SWAP_CHAIN_DESC &sd = m_ChainDesc;
+	DXGI_SWAP_CHAIN_DESC& sd = m_ChainDesc;
 	HRESULT R;
+
+	// Set up svp image size
+	Device.m_SecondViewport.screenWidth = u32((sd.BufferDesc.Width / 32) * psSVPImageSizeK) * 32;
+	Device.m_SecondViewport.screenHeight = u32((sd.BufferDesc.Height / 32) * psSVPImageSizeK) * 32;
 
 	// Create a render target view
 	//R_CHK	(pDevice->GetRenderTarget			(0,&pBaseRT));
-	ID3DTexture2D *pBuffer;
-	R = m_pSwapChain->GetBuffer( 0, __uuidof( ID3DTexture2D ), (LPVOID*)&pBuffer );
+	//ID3DTexture2D *pBuffer;
+	//R = m_pSwapChain->GetBuffer( 0, __uuidof( ID3DTexture2D ), (LPVOID*)&pBuffer );
+	//R_CHK(R);
+
+	viewPortsRTZB.insert(std::make_pair(MAIN_VIEWPORT, HWViewPortRTZB()));
+	viewPortsRTZB.insert(std::make_pair(SECONDARY_WEAPON_SCOPE, HWViewPortRTZB()));
+
+	ID3DTexture2D* temp1;
+	ID3DTexture2D* temp2;
+
+	R = m_pSwapChain->GetBuffer(0, __uuidof(ID3DTexture2D), reinterpret_cast<void**>(&temp1));
+	R_CHK2(R, "!Erroneous buffer result");
+
+	D3D_TEXTURE2D_DESC desc;
+	temp1->GetDesc(&desc);
+	desc.Width = Device.m_SecondViewport.screenWidth;
+	desc.Height = Device.m_SecondViewport.screenHeight;
+
+	R = pDevice->CreateTexture2D(&desc, NULL, &temp2);
 	R_CHK(R);
 
-	R = pDevice->CreateRenderTargetView( pBuffer, NULL, &pBaseRT);
-	pBuffer->Release();
+	R = pDevice->CreateRenderTargetView(temp1, NULL, &viewPortsRTZB.at(MAIN_VIEWPORT).baseRT);
 	R_CHK(R);
+
+	R = pDevice->CreateRenderTargetView(temp2, NULL, &viewPortsRTZB.at(SECONDARY_WEAPON_SCOPE).baseRT);
+	R_CHK(R);
+
+	temp1->Release();
+	temp2->Release();
+
+	//R = pDevice->CreateRenderTargetView( pBuffer, NULL, &pBaseRT);
+	//pBuffer->Release();
+	//R_CHK(R);
 
 	//	Create Depth/stencil buffer
 	//	HACK: DX10: hard depth buffer format
 	//R_CHK	(pDevice->GetDepthStencilSurface	(&pBaseZB));
-	ID3DTexture2D* pDepthStencil = NULL;
+	//ID3DTexture2D* pDepthStencil = NULL;
+	ID3DTexture2D* depth_stencil = NULL;
 	D3D_TEXTURE2D_DESC descDepth;
 	descDepth.Width = sd.BufferDesc.Width;
 	descDepth.Height = sd.BufferDesc.Height;
@@ -1021,15 +1087,33 @@ void CHW::UpdateViews()
 	descDepth.BindFlags = D3D_BIND_DEPTH_STENCIL;
 	descDepth.CPUAccessFlags = 0;
 	descDepth.MiscFlags = 0;
-	R = pDevice->CreateTexture2D( &descDepth,       // Texture desc
-		NULL,                  // Initial data
-		&pDepthStencil ); // [out] Texture
+	//R = pDevice->CreateTexture2D( &descDepth,NULL,&pDepthStencil );
+	R = pDevice->CreateTexture2D(&descDepth, NULL, &depth_stencil);
 	R_CHK(R);
 
 	//	Create Depth/stencil view
-	R = pDevice->CreateDepthStencilView( pDepthStencil, NULL, &pBaseZB );
+	R = pDevice->CreateDepthStencilView(depth_stencil, NULL, &viewPortsRTZB.at(MAIN_VIEWPORT).baseZB);
+	R_CHK(R);
+	//R = pDevice->CreateDepthStencilView( pDepthStencil, NULL, &pBaseZB );
+	//R_CHK(R);
+
+	//pDepthStencil->Release();
+
+	depth_stencil->Release();
+
+	descDepth.Width = Device.m_SecondViewport.screenWidth;
+	descDepth.Height = Device.m_SecondViewport.screenHeight;
+
+	R = pDevice->CreateTexture2D(&descDepth, NULL, &depth_stencil);
 	R_CHK(R);
 
-	pDepthStencil->Release();
+	R = pDevice->CreateDepthStencilView(depth_stencil, NULL, &viewPortsRTZB.at(SECONDARY_WEAPON_SCOPE).baseZB);
+	R_CHK(R);
+
+	depth_stencil->Release();
+
+	// first init
+	pBaseRT = viewPortsRTZB.at(MAIN_VIEWPORT).baseRT;
+	pBaseZB = viewPortsRTZB.at(MAIN_VIEWPORT).baseZB;
 }
 #endif

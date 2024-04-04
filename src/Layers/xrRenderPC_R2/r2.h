@@ -303,13 +303,14 @@ public:
     virtual void					ScreenshotAsyncEnd			(CMemoryWriter& memory_writer);
     virtual void	_BCL			OnFrame						();
 
+	// [FFT++]
+	void AfterWorldRender() override;  //--#SM+#-- +SecondVP+ Вызывается после рендера мира и UI
+
     // Render mode
     virtual void					rmNear						();
     virtual void					rmFar						();
     virtual void					rmNormal					();
     virtual u32 active_phase() {return phase;}; //Swartz: actor shadow
-
-	void RenderToTarget				() override;
 
     // Constructor/destructor/loader
     CRender							();

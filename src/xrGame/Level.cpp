@@ -695,15 +695,14 @@ void CLevel::OnRender()
     inherited::OnRender();
     if (!game)
         return;
+
     Game().OnRender();
     //Device.Statistic->TEST1.Begin();
     BulletManager().Render();
     //Device.Statistic->TEST1.End();
+    HUD().RenderUI();
 
-	HUD().RenderUI();
-
-	if (Device.m_SecondViewport.IsSVPFrame())
-		Render->RenderToTarget();
+    ::Render->AfterWorldRender(); //--#SM+#-- +SecondVP+
 
 #ifdef DEBUG
     draw_wnds_rects();
@@ -805,6 +804,13 @@ void CLevel::OnRender()
         }
     }
 #endif
+}
+
+void CLevel::ApplyCamera()
+{
+    inherited::ApplyCamera();
+    if (lastApplyCameraVPNear > -1.f)
+        lastApplyCamera(lastApplyCameraVPNear);
 }
 
 void CLevel::OnEvent(EVENT E, u64 P1, u64 /**P2/**/)

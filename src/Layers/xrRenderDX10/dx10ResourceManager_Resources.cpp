@@ -451,12 +451,12 @@ void				CResourceManager::_DeleteConstantTable	(const R_constant_table* C)
 
 //--------------------------------------------------------------------------------------------------------------
 #ifdef USE_DX11
-CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 SampleCount, bool useUAV )
+CRT*	CResourceManager::_CreateRT(LPCSTR Name, xr_vector<RtCreationParams>& vp_params, D3DFORMAT f, u32 SampleCount, bool useUAV)
 #else
-CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 SampleCount )
+CRT* CResourceManager::_CreateRT(LPCSTR Name, xr_vector<RtCreationParams>& vp_params, D3DFORMAT f, u32 SampleCount)
 #endif
 {
-	R_ASSERT(Name && Name[0] && w && h);
+	R_ASSERT(Name && Name[0]);
 
 	// ***** first pass - search already created RT
 	LPSTR N = LPSTR(Name);
@@ -466,15 +466,16 @@ CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 S
 	{
 		CRT *RT					=	xr_new<CRT>();
 		RT->dwFlags				|=	xr_resource_flagged::RF_REGISTERED;
-		m_rtargets.insert		(mk_pair(RT->set_name(Name),RT));
+		m_rtargets.insert		(std::make_pair(RT->set_name(Name),RT));
 #ifdef USE_DX11
-		if (Device.b_is_Ready)	RT->create	(Name,w,h,f, SampleCount, useUAV );
+		if (Device.b_is_Ready)	RT->create(Name, vp_params, f, SampleCount, useUAV);
 #else
-		if (Device.b_is_Ready)	RT->create	(Name,w,h,f, SampleCount );
+		if (Device.b_is_Ready)	RT->create(Name, vp_params ,f, SampleCount);
 #endif
 		return					RT;
 	}
 }
+
 void	CResourceManager::_DeleteRT		(const CRT* RT)
 {
 	if (0==(RT->dwFlags&xr_resource_flagged::RF_REGISTERED))	return;

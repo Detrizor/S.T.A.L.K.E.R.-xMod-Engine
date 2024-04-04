@@ -18,10 +18,13 @@
 
 extern ENGINE_API float VIEWPORT_NEAR;
 
+enum ViewPort;
+
 #define DEVICE_RESET_PRECACHE_FRAME_COUNT 10
 
 #include "../Include/xrRender/FactoryPtr.h"
 #include "../Include/xrRender/RenderDeviceRender.h"
+#include "../xrCore/Threading/Event.hpp"
 
 #ifdef INGAME_EDITOR
 # include "../Include/editor/interfaces.hpp"
@@ -85,7 +88,6 @@ protected:
     u32 Timer_MM_Delta;
     CTimer_paused Timer;
     CTimer_paused TimerGlobal;
-
 public:
 
     // Registrators
@@ -96,6 +98,16 @@ public:
     CRegistrator <pureAppEnd > seqAppEnd;
     CRegistrator <pureFrame > seqFrame;
     CRegistrator <pureScreenResolutionChanged> seqResolutionChanged;
+
+    // returns the aproximate, adjusted by camera fov, distance 
+    IC float GetDistFromCamera(const Fvector& from_position) const
+    {
+        float distance = vCameraPosition.distance_to(from_position);
+        float fov_K = 67.f / fFOV;
+        float adjusted_distane = distance / fov_K;
+
+        return adjusted_distane;
+    }
 
     HWND m_hWnd;
     // CStats* Statistic;
@@ -109,35 +121,31 @@ class ENGINE_API CRenderDeviceBase :
 public:
 };
 
+class ENGINE_API CSecondVPParams //--#SM+#-- +SecondVP+
+{
+	bool isActive = false; // Флаг активации рендера во второй вьюпорт
+
+    float m_fov = 0.f;
+    Fvector m_position = vZero;
+
+public:
+    u32 screenWidth;
+    u32 screenHeight;
+
+	IC bool IsSVPActive() const { return isActive; }
+	IC void SetSVPActive(bool bState);
+
+    float getFov() const { return m_fov; }
+    void setFov(float fov) { m_fov = fov; }
+
+    Fvector CR$ getPosition() const { return m_position; }
+    void setPosition(Fvector CR$ pos) { m_position = pos; }
+};
+
 #pragma pack(pop)
 // refs
 class ENGINE_API CRenderDevice : public CRenderDeviceBase
 {
-public:
-	class ENGINE_API CSecondVPParams //--#SM+#-- +SecondVP+
-	{
-		bool isActive; // Oeaa aeoeaaoee ?aiaa?a ai aoi?ie au?ii?o
-		u8 frameDelay;  // Ia eaeii eaa?a n iiiaioa i?ioeiai ?aiaa?a ai aoi?ie au?ii?o iu ia?i?i iiaue
-		//(ia ii?ao auou iaiuoa 2 - ea?aue aoi?ie eaa?, ?ai aieuoa oai aieaa ieceee FPS ai aoi?ii au?ii?oa)
-        Fvector m_cam_position;
-
-	public:
-		bool isCamReady; // Oeaa aioiaiinoe eaia?u (FOV, iiceoey, e o.i) e ?aiaa?o aoi?iai au?ii?oa
-
-		IC bool IsSVPActive() { return isActive; }
-		void SetSVPActive(bool bState);
-		bool    IsSVPFrame();
-        void setCamPosition(Fvector CR$ pos) { m_cam_position = pos; }
-        Fvector CR$ getCamPosition() { return m_cam_position; }
-
-		IC u8 GetSVPFrameDelay() { return frameDelay; }
-		void  SetSVPFrameDelay(u8 iDelay)
-		{
-			frameDelay = iDelay;
-			clamp<u8>(frameDelay, 2, u8(-1));
-		}
-	};
-
 private:
     // Main objects used for creating and rendering the 3D scene
     u32 m_dwWindowStyle;
@@ -193,44 +201,19 @@ public:
     void DumpResourcesMemoryUsage() { m_pRender->ResourcesDumpMemoryUsage(); }
 public:
     // Registrators
-    //CRegistrator <pureRender > seqRender;
-    // CRegistrator <pureAppActivate > seqAppActivate;
-    // CRegistrator <pureAppDeactivate > seqAppDeactivate;
-    // CRegistrator <pureAppStart > seqAppStart;
-    // CRegistrator <pureAppEnd > seqAppEnd;
-    //CRegistrator <pureFrame > seqFrame;
     CRegistrator <pureFrame > seqFrameMT;
     CRegistrator <pureDeviceReset > seqDeviceReset;
     xr_vector <fastdelegate::FastDelegate0<> > seqParallel;
+	CSecondVPParams m_SecondViewport;	//--#SM+#-- +SecondVP+
 
     // Dependent classes
-    //CResourceManager* Resources;
 
     CStats* Statistic;
 
-    // Engine flow-control
-    //float fTimeDelta;
-    //float fTimeGlobal;
-    //u32 dwTimeDelta;
-    //u32 dwTimeGlobal;
-    //u32 dwTimeContinual;
+    Fmatrix mInvFullTransform;
 
-    // Cameras & projection
-    //Fvector vCameraPosition;
-    //Fvector vCameraDirection;
-    //Fvector vCameraTop;
-    //Fvector vCameraRight;
-
-    //Fmatrix mView;
-    //Fmatrix mProject;
-    //Fmatrix mFullTransform;
-
-	Fmatrix mInvFullTransform;
-
-	CSecondVPParams m_SecondViewport;	//--#SM+#-- +SecondVP+
-
-    //float fFOV;
-    //float fASPECT;
+	bool m_bMakeLevelMap = false;
+	Fbox curr_lm_fbox;
 
     CRenderDevice()
         :
@@ -251,16 +234,15 @@ public:
         b_is_Active = FALSE;
         b_is_Ready = FALSE;
         Timer.Start();
-		m_bNearer = FALSE;
-
-		m_SecondViewport.SetSVPActive(false);
-		m_SecondViewport.SetSVPFrameDelay(2);
-		m_SecondViewport.isCamReady = false;
+        m_bNearer = FALSE;
     };
 
     void Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason);
     BOOL Paused();
 
+private:
+        static void SecondaryThreadProc(void* context);
+public:
     // Scene control
     void PreCache(u32 amount, bool b_draw_loadscreen, bool b_wait_user_input);
     BOOL Begin();
@@ -270,6 +252,12 @@ public:
 
     void overdrawBegin();
     void overdrawEnd();
+
+	//Frustum
+	//IC Fmatrix GetShrinkedFullTransform_saved() const { return secVPTransShrinked; };
+
+	//void SetShrinkedFullTransform_saved(const Fmatrix& m) { secVPTransShrinked = m; };
+
 
     // Mode control
     void DumpFlags();
@@ -300,9 +288,9 @@ public:
         return (Timer.time_factor());
     }
 
-    // Multi-threading
-    xrCriticalSection mt_csEnter;
-    xrCriticalSection mt_csLeave;
+private:
+    Event syncProcessFrame, syncFrameDone, syncThreadExit;
+public:
     volatile BOOL mt_bMustExit;
 
     ICF void remove_from_seq_parallel(const fastdelegate::FastDelegate0<>& delegate)
@@ -372,5 +360,7 @@ public:
     bool b_need_user_input;
 };
 extern ENGINE_API CLoadScreenRenderer load_screen_renderer;
+
+extern ENGINE_API float fps_limit;
 
 #endif

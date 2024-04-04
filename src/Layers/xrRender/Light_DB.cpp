@@ -186,11 +186,12 @@ void			CLight_DB::add_light		(light* L)
 #if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
 void			CLight_DB::add_light		(light* L)
 {
-	if (Device.dwFrame==L->frame_render)	return;
-	L->frame_render							=	Device.dwFrame		;
-	if (RImplementation.o.noshadows)		L->flags.bShadow		= FALSE;
+	if (Device.dwFrame == L->frame_render && L->vp_render == RImplementation.currentViewPort)	return;
+	L->frame_render = Device.dwFrame;
+	L->vp_render = RImplementation.currentViewPort;
+	if (RImplementation.o.noshadows)		L->flags.bShadow = FALSE;
 	if (L->flags.bStatic && !ps_r2_ls_flags.test(R2FLAG_R1LIGHTS))	return;
-	L->_export								(package);
+	L->Export(package[RImplementation.getVP()]);
 }
 #endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
 
@@ -202,7 +203,7 @@ void			CLight_DB::Update			()
 		light*	_sun_original		= (light*) sun_original._get();
 		light*	_sun_adapted		= (light*) sun_adapted._get();
 		CEnvDescriptor&	E			= *g_pGamePersistent->Environment().CurrentEnv;
-		//VERIFY						(_valid(E.sun_dir));
+		VERIFY						(_valid(E.sun_dir));
 #ifdef DEBUG
 		if(E.sun_dir.y>=0)
 		{
@@ -222,7 +223,7 @@ void			CLight_DB::Update			()
 		}
 #endif
 
-		//VERIFY2						(E.sun_dir.y<0,"Invalid sun direction settings in evironment-config");
+		VERIFY2						(E.sun_dir.y<0,"Invalid sun direction settings in evironment-config");
 		Fvector						OD,OP,AD,AP;
 		OD.set						(E.sun_dir).normalize			();
 		OP.mad						(Device.vCameraPosition,OD,-500.f);
@@ -252,5 +253,5 @@ void			CLight_DB::Update			()
 	}
 
 	// Clear selection
-	package.clear	();
+	package[RImplementation.getVP()].clear	();
 }

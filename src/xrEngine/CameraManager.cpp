@@ -16,6 +16,8 @@
 #include "gamefont.h"
 #include "render.h"
 
+#include <DirectXMath.h>
+
 float psCamInert = 0.f;
 float psCamSlideInert = 0.25f;
 
@@ -435,34 +437,59 @@ void CCameraManager::UpdatePPEffectors()
 
 void CCameraManager::ApplyDevice(float _viewport_near)
 {
-    bool svp = Device.m_SecondViewport.IsSVPFrame();
-    Fvector CR$ cam_pos = (svp) ? Device.m_SecondViewport.getCamPosition() : m_cam_info.p;
-    float fov = (svp) ? g_pGamePersistent->m_pGShaderConstants->hud_params.w : m_cam_info.fFov;
-
-    // Device params
-    Device.mView.build_camera_dir(cam_pos, m_cam_info.d, m_cam_info.n);
-
-    Device.vCameraPosition.set(cam_pos);
-    Device.vCameraDirection.set(m_cam_info.d);
-    Device.vCameraTop.set(m_cam_info.n);
-    Device.vCameraRight.set(m_cam_info.r);
-
-    // projection
-    Device.fFOV = fov;
-	Device.fHUDFOV = fov;
-	Device.fASPECT = m_cam_info.fAspect;
-
-	Device.m_SecondViewport.isCamReady = svp;
-
-	Device.mProject.build_projection(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
-	//--#SM+# End--
-
-	ApplyPP();
+    g_pGameLevel->lastApplyCamera = fastdelegate::FastDelegate1<float>(this, &CCameraManager::ApplyDeviceInternal);
+    g_pGameLevel->lastApplyCameraVPNear = _viewport_near;
 }
 
-void CCameraManager::ApplyPP()
+void CCameraManager::ApplyDeviceInternal(float _viewport_near)
 {
-    if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.m_SecondViewport.IsSVPFrame())
+    bool second_viewport = (Render->currentViewPort == SECONDARY_WEAPON_SCOPE);
+
+    // Device params
+    if (Device.m_bMakeLevelMap)
+    {
+        // build camera matrix
+        Fbox bb = Device.curr_lm_fbox;
+        bb.getcenter(Device.vCameraPosition);
+
+        Device.vCameraDirection.set(0.f, -1.f, 0.f);
+        Device.vCameraTop.set(0.f, 0.f, 1.f);
+        Device.vCameraRight.set(1.f, 0.f, 0.f);
+        Device.mView.build_camera_dir(Device.vCameraPosition, Device.vCameraDirection, Device.vCameraTop);
+
+        bb.xform(Device.mView);
+        // build project matrix
+        Device.mProject.build_projection_ortho(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.min.z, bb.max.z);
+    }
+    else
+    {
+        Fvector CR$ pos = (second_viewport) ? Device.m_SecondViewport.getPosition() : m_cam_info.p;
+        float fov = (second_viewport) ? Device.m_SecondViewport.getFov() : m_cam_info.fFov;
+
+        Device.mView.build_camera_dir(pos, m_cam_info.d, m_cam_info.n);
+
+        Device.vCameraPosition.set(pos);
+        Device.vCameraDirection.set(m_cam_info.d);
+        Device.vCameraTop.set(m_cam_info.n);
+        Device.vCameraRight.set(m_cam_info.r);
+
+        // projection
+        Device.fFOV = fov;
+        Device.fHUDFOV = fov;
+        Device.fASPECT = m_cam_info.fAspect;
+        float aspect = m_cam_info.fAspect;
+
+        Device.mProject.build_projection(deg2rad(Device.fFOV), aspect, _viewport_near, m_cam_info.fFar);
+    }
+
+    if (Render->currentViewPort == MAIN_VIEWPORT)
+    {
+        Device.mFullTransform.mul(Device.mProject, Device.mView);
+        Device.m_pRender->SetCacheXform(Device.mView, Device.mProject);
+        Device.mInvFullTransform = *(Fmatrix*)&DirectX::XMMatrixInverse(0, *(DirectX::XMMATRIX*)&Device.mFullTransform);
+    }
+
+    if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || second_viewport)
         ResetPP();
     else
     {

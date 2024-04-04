@@ -190,6 +190,8 @@ void CRender::Render		()
 	g_r						= 1;
 	VERIFY					(0==mapDistort.size());
 
+	Target->needClearAccumulator = true;
+
 	bool	_menu_pp		= g_pGamePersistent?g_pGamePersistent->OnRenderPPUI_query():false;
 	if (_menu_pp)			{
 		render_menu			()	;
@@ -309,7 +311,7 @@ void CRender::Render		()
 	{
 		// perform tests
 		u32	count			= 0;
-		light_Package&	LP	= Lights.package;
+		light_Package&	LP	= Lights.package[RImplementation.getVP()];
 
 		// stats
 		stats.l_shadowed	= LP.v_shadowed.size();
@@ -465,10 +467,15 @@ void CRender::render_forward				()
 	RImplementation.o.distortion				= FALSE;				// disable distorion
 }
 
-void CRender::RenderToTarget()
+// После рендера мира и пост-эффектов --#SM+#-- +SecondVP+
+void CRender::AfterWorldRender()
 {
-	IDirect3DSurface9* pBackBuffer = nullptr;
-	HW.pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-	D3DXLoadSurfaceFromSurface(Target->rt_secondVP->pRT, 0, 0, pBackBuffer, 0, 0, D3DX_DEFAULT, 0);
-	pBackBuffer->Release();
+	if (currentViewPort == SECONDARY_WEAPON_SCOPE)
+	{
+		// Делает копию бэкбуфера (текущего экрана) в рендер-таргет второго вьюпорта
+		IDirect3DSurface9* pBackBuffer = NULL;
+		HW.pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer); // Получаем ссылку на бэкбуфер
+		D3DXLoadSurfaceFromSurface(Target->rt_secondVP->pRT, 0, 0, pBackBuffer, 0, 0, D3DX_DEFAULT, 0);
+		pBackBuffer->Release(); // Корректно очищаем ссылку на бэкбуфер (иначе игра зависнет в опциях)
+	}
 }

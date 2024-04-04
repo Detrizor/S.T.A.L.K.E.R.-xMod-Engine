@@ -25,11 +25,13 @@ public:
 	Fvector			direction	;
 	Fvector			right		;
 	float			range		;
+	float			virtual_size;
 	float			cone		;
 	Fcolor			color		;
 
 	vis_data		hom			;
 	u32				frame_render;
+	u8              vp_render   ;
 
 	float			m_volumetric_quality;
 	float			m_volumetric_intensity;
@@ -115,7 +117,7 @@ public:
 	virtual void	set_rotation			(const Fvector& D, const Fvector& R);
 	virtual void	set_cone				(float angle);
 	virtual void	set_range				(float R);
-	virtual void	set_virtual_size		(float R)						{};
+	virtual void	set_virtual_size		(float R)						{ virtual_size = R;			}
 	virtual void	set_color				(const Fcolor& C)				{ color.set(C);				}
 	virtual void	set_color				(float r, float g, float b)		{ color.set(r,g,b,1);		}
 	virtual void	set_texture				(LPCSTR name);
@@ -132,8 +134,9 @@ public:
 	void			gi_generate				();
 	void			xform_calc				();
 	void			vis_prepare				();
+	void            vis_legal_check			();
 	void			vis_update				();
-	void			_export 				(light_Package& dest);
+	void			Export 					(light_Package& dest);
 	void			set_attenuation_params	(float a0, float a1, float a2, float fo);
 #endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
 

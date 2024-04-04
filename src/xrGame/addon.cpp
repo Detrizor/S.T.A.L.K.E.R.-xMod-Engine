@@ -47,6 +47,9 @@ void CAddon::LoadHudOffset()
 
 void CAddon::Render(Fmatrix* pos)
 {
+	CScope* scope						= Cast<CScope*>();
+	if (scope && scope->Type() == eOptics && ::Render->currentViewPort == SECONDARY_WEAPON_SCOPE)		//--xd bad conditioning, will be fixed while fixing general scopes cycling problem
+		return;
 	::Render->set_Transform				(pos);
 	::Render->add_Visual				(Visual());
 }

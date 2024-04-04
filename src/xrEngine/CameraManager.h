@@ -145,7 +145,7 @@ public:
     void UpdateFromCamera(const CCameraBase* C);
 
 	void ApplyDevice(float _viewport_near);
-	void ApplyPP();
+    void xr_stdcall ApplyDeviceInternal(float _viewport_near);
     static void ResetPP();
 
     CCameraManager(bool bApplyOnUpdate);

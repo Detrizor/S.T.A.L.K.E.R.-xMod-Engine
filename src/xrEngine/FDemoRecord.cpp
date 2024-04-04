@@ -27,21 +27,27 @@ void setup_lm_screenshot_matrices()
 {
     psHUD_Flags.assign(0);
 
-    // build camera matrix
-    Fbox bb = curr_lm_fbox;
-    bb.getcenter(Device.vCameraPosition);
+    //   // build camera matrix
+    //   Fbox bb = curr_lm_fbox;
+    //   bb.getcenter(Device.vCameraPosition);
 
-    Device.vCameraDirection.set(0.f, -1.f, 0.f);
-    Device.vCameraTop.set(0.f, 0.f, 1.f);
-    Device.vCameraRight.set(1.f, 0.f, 0.f);
-    Device.mView.build_camera_dir(Device.vCameraPosition, Device.vCameraDirection, Device.vCameraTop);
+    //   Device.vCameraDirection.set(0.f, -1.f, EPS_S);
+    //   Device.vCameraTop.set(0.f, 0.f, 1.f);
+    //   Device.vCameraRight.set(1.f, 0.f, 0.f);
+    //   Device.mView.build_camera_dir(Device.vCameraPosition, Device.vCameraDirection, Device.vCameraTop);
 
-    bb.xform(Device.mView);
-    // build project matrix
-    Device.mProject.build_projection_ortho(bb.max.x - bb.min.x,
-        bb.max.y - bb.min.y,
-        bb.min.z,
-        bb.max.z);
+    //   bb.xform(Device.mView);
+    //   // build project matrix
+    //   Device.mProject.build_projection_ortho(bb.max.x-bb.min.x,bb.max.y-bb.min.y,bb.min.z,bb.max.z);
+       //Device.mFullTransform.mul(Device.mProject, Device.mView);
+       //D3DXMatrixInverse((D3DXMATRIX*)&Device.mInvFullTransform, 0, (D3DXMATRIX*)&Device.mFullTransform);
+
+       //if (g_pGameLevel)
+       //	g_pGameLevel->ApplyCamera();
+
+       //Device.m_pRender->SetCacheXform(Device.mView, Device.mProject);
+    Device.m_bMakeLevelMap = true;
+    Device.curr_lm_fbox = curr_lm_fbox;
 }
 
 Fbox get_level_screenshot_bound()
@@ -227,6 +233,7 @@ void CDemoRecord::MakeLevelMapProcess()
                 curr_lm_fbox = get_level_screenshot_bound();
                 GetLM_BBox(curr_lm_fbox, m_iLMScreenshotFragment);
                 m_Stage -= 20;
+                Device.curr_lm_fbox = curr_lm_fbox;
             }
         }
 
@@ -240,6 +247,7 @@ void CDemoRecord::MakeLevelMapProcess()
             psDeviceFlags = s_dev_flags;
             if (bDevReset) Device.Reset();
             m_bMakeLevelMap = FALSE;
+            Device.m_bMakeLevelMap = FALSE;
             m_iLMScreenshotFragment = -1;
         }
     }

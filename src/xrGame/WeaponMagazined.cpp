@@ -71,9 +71,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_ReloadHalfPoint			= 0.f;
 	m_ReloadEmptyHalfPoint		= 0.f;
 	m_ReloadPartialPoint		= 0.f;
-
-	m_dwSightCalculationFrame	= 0;
-	m_SightPosition				= vZero;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -1421,7 +1418,7 @@ bool CWeaponMagazined::render_item_ui_query()
 		return false;
 
 	if (scope->HasLense())
-		return Device.m_SecondViewport.IsSVPFrame();
+		return (::Render->currentViewPort == SECONDARY_WEAPON_SCOPE);
 
 	return !IsRotatingToZoom();
 }
@@ -1431,19 +1428,13 @@ void CWeaponMagazined::render_item_ui()
 	GetActiveScope()->RenderUI(*m_hud);
 }
 
-void CWeaponMagazined::UpdateSecondVP() const
+float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 {
 	CScope* scope = GetActiveScope();
-	Device.m_SecondViewport.SetSVPActive(scope && scope->HasLense());
-}
-
-float CWeaponMagazined::CurrentZoomFactor(bool for_svp) const
-{
-	CScope* scope = GetActiveScope();
-	if (scope && scope->Type() == eOptics && (!scope->HasLense() && !IsRotatingToZoom() || for_svp))
+	if (scope && scope->Type() == eOptics && (!scope->HasLense() && !IsRotatingToZoom() || !for_actor))
 		return scope->GetCurrentMagnification();
 	else
-		return inherited::CurrentZoomFactor(for_svp);
+		return inherited::CurrentZoomFactor(for_actor);
 }
 
 void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
@@ -1513,13 +1504,6 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 				}
 
 				m_hud->ProcessScope		(slot, !!param);
-
-				scope->sight_bone_name	= slot->bone_name;
-				scope->sight_offset		= slot->model_offset[0];
-				scope->sight_offset.add	(slot->bone_offset[0]);
-				scope->sight_offset.sub	(slot->addon->HudOffset()[0]);
-				scope->sight_offset.add	(scope->getOuterLenseOffset());
-				scope->sight_offset.z	+= scope->s_lense_camera_safe_distance;
 			}
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
@@ -1600,16 +1584,22 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
 }
 
-void CWeaponMagazined::UpdateShadersData()
+extern float aim_fov_tan;
+void CWeaponMagazined::UpdateShadersDataAndSVP()
 {
 	CScope* scope						= GetActiveScope();
+	Device.m_SecondViewport.SetSVPActive(scope && scope->HasLense());
 	if (!scope)
 		return;
 
-	Fvector sight_position				= SightPosition();
-	Device.m_SecondViewport.setCamPosition(sight_position);
+	Fmatrix								camera;
+	Actor()->Cameras().camera_Matrix	(camera);
+	Fvector sight_position				= scope->getOuterLenseOffset();
+	camera.transform_tiny				(sight_position);
+
 	Fvector2 offset						= Actor()->CameraAxisDeviation(sight_position, get_LastFDD(), scope->Zeroing());
-	float fov_tan						= tanf(g_pGamePersistent->m_pGShaderConstants->hud_params.w * (.5f * PI / 180.f));
+	float zoom_factor					= CurrentZoomFactor(false);
+	float fov_tan						= aim_fov_tan / zoom_factor;
 	float h								= 2.f * fov_tan * scope->Zeroing();
 	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
 	offset.x							/= w;
@@ -1617,26 +1607,13 @@ void CWeaponMagazined::UpdateShadersData()
 	g_pGamePersistent->m_pGShaderConstants->hud_params.x = offset.x;
 	g_pGamePersistent->m_pGShaderConstants->hud_params.y = offset.y;
 	g_pGamePersistent->m_pGShaderConstants->hud_params.z = scope->GetReticleScale(*m_hud);
-}
 
-Fvector CR$ CWeaponMagazined::SightPosition()
-{
-	if (m_dwSightCalculationFrame != Device.dwFrame)
+	if (scope->HasLense())
 	{
-		CScope* scope					= GetActiveScope();
-		if (scope)
-		{
-			attachable_hud_item* hi		= HudItemData();
-			u16 bone_id					= hi->m_model->LL_BoneID(scope->sight_bone_name);
-			Fmatrix CR$ fire_mat		= hi->m_model->LL_GetTransform(bone_id);
-			fire_mat.transform_tiny		(m_SightPosition, scope->sight_offset);
-			hi->m_item_transform.transform_tiny(m_SightPosition);
-		}
-		else
-			m_SightPosition				= Actor()->Cameras().Position();
-		m_dwSightCalculationFrame		= Device.dwFrame;
+		float fov						= atanf(fov_tan) / (.5f * PI / 180.f);
+		Device.m_SecondViewport.setFov	(fov);
+		Device.m_SecondViewport.setPosition(sight_position);
 	}
-	return								m_SightPosition;
 }
 
 u16 CWeaponMagazined::Zeroing C$()

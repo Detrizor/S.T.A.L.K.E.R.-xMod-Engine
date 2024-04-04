@@ -878,7 +878,7 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 
 extern ENGINE_API float psAIM_FOV;
 extern float aim_fov_tan;
-float CActor::currentFOV(bool for_svp)
+float CActor::currentFOV()
 {
     if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
         return g_fov;
@@ -886,9 +886,9 @@ float CActor::currentFOV(bool for_svp)
 	if (eacFirstEye == cam_active)
 	{
 		CWeapon* pWeapon		= smart_cast<CWeapon*>(inventory().ActiveItem());
-		if (pWeapon && pWeapon->IsZoomed())
+		if (pWeapon)
 		{
-			float zoom_factor	= pWeapon->CurrentZoomFactor(for_svp);
+			float zoom_factor	= pWeapon->CurrentZoomFactor(true);
 			if (fMore(zoom_factor, 0.f))
 				return			(fMore(zoom_factor, 1.f)) ? atanf(aim_fov_tan / zoom_factor) / (.5f * PI / 180.f) : psAIM_FOV;
 		}
@@ -957,15 +957,17 @@ void CActor::UpdateCL()
 
     SetZoomAimingMode(false);
 	SetZoomADSMode(false);
-    CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
 
     cam_Update(float(Device.dwTimeDelta) / 1000.0f, currentFOV());
 
-    if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID())
+    bool current_entity = Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID();
+    if (current_entity)
     {
         psHUD_Flags.set(HUD_CROSSHAIR_RT2, true);
         psHUD_Flags.set(HUD_DRAW_RT, true);
     }
+
+    CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
     if (pWeapon)
     {
 		if (pWeapon->IsZoomed())
@@ -997,10 +999,12 @@ void CActor::UpdateCL()
 			}
 		}
 
-        if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID())
+        if (current_entity)
         {
 			m_fdisp_controller.SetDispertion(pWeapon->GetFireDispersion(false, true));
-			if (!Device.m_SecondViewport.IsSVPFrame())
+
+            //--#SM+#-- +SecondVP+ Чтобы перекрестие не скакало из за смены FOV (Sin!) [fix for crosshair shaking while SecondVP]
+			if (!Device.m_SecondViewport.IsSVPActive())
 				HUD().SetCrosshairDisp(m_fdisp_controller.GetCurrentDispertion(), 0.02f);
 
 #ifdef DEBUG
@@ -1016,39 +1020,19 @@ void CActor::UpdateCL()
             psHUD_Flags.set(HUD_WEAPON_RT, TRUE);
 			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
 
-			CWeaponMagazined* pWM		= smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
-			if (pWM)
-			{
-				// Update SecondVP with Weapon Data
-				pWM->UpdateSecondVP		();
-
-				// Apply Weapon Data in Shaders
-				g_pGamePersistent->m_pGShaderConstants->hud_params.w = currentFOV(true);
-				pWM->UpdateShadersData	();
-			}
         }
     }
-    else
+    else if (current_entity)
     {
-        if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID())
-        {
-            HUD().SetCrosshairDisp(0.f);
-			HUD().ShowCrosshair(false);
-
-			// Clearing Weapons Information in Shaders
-			g_pGamePersistent->m_pGShaderConstants->hud_params.set(0.f, 0.f, 0.f, 0.f);
-			g_pGamePersistent->m_pGShaderConstants->m_blender_mode.set(0.f, 0.f, 0.f, 0.f);
-
-			// Turn off SecondVP
-			Device.m_SecondViewport.SetSVPActive(false);
+        HUD().SetCrosshairDisp(0.f);
+		HUD().ShowCrosshair(false);
 			
-			//Alun: Switch back to third-person if was forced
-			if (bLook_cam_fp_zoom && cam_active == eacFirstEye)
-			{
-				cam_Set(eacLookAt);
-				bLook_cam_fp_zoom = false;
-			}
-        }
+		//Alun: Switch back to third-person if was forced
+		if (bLook_cam_fp_zoom && cam_active == eacFirstEye)
+		{
+			cam_Set(eacLookAt);
+			bLook_cam_fp_zoom = false;
+		}
     }
 
     UpdateDefferedMessages();
@@ -1080,6 +1064,16 @@ void CActor::UpdateCL()
 
     if (IsFocused())
         g_player_hud->update(trans);
+
+    CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*>(pWeapon);
+    if (pWM && current_entity)
+        pWM->UpdateShadersDataAndSVP();
+    else
+    {
+        Device.m_SecondViewport.SetSVPActive(false);
+        g_pGamePersistent->m_pGShaderConstants->hud_params.set(0.f, 0.f, 0.f, 0.f);
+        g_pGamePersistent->m_pGShaderConstants->m_blender_mode.set(0.f, 0.f, 0.f, 0.f);
+    }
 
     m_bPickupMode = false;
 	m_bInfoDraw = false;

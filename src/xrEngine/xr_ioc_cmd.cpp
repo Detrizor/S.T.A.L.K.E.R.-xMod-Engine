@@ -694,6 +694,10 @@ public:
 ENGINE_API float VIEWPORT_NEAR = .2f;
 ENGINE_API float VIEWPORT_NEAR_HUD = .005f;
 
+ENGINE_API float psSVPImageSizeK = .5f;
+
+ENGINE_API float fps_limit = 500.f;
+
 //extern int psSkeletonUpdate;
 extern int rsDIB_Size;
 extern int psNET_ClientUpdate;
@@ -706,6 +710,8 @@ extern Flags32 psEnvFlags;
 //extern float r__dtex_range;
 
 extern int g_ErrorLineCount;
+
+ENGINE_API BOOL debugSecondVP = FALSE;
 
 ENGINE_API int ps_r__Supersample = 1;
 
@@ -720,6 +726,9 @@ void CCC_Register()
     CMD1(CCC_Disconnect, "disconnect");
     CMD1(CCC_SaveCFG, "cfg_save");
     CMD1(CCC_LoadCFG, "cfg_load");
+
+    //New
+    CMD4(CCC_Float, "svp_image_size_k", &psSVPImageSizeK, 0.1f, 2.f);
 
 #ifdef DEBUG
     CMD1(CCC_MotionsStat, "stat_motions");
@@ -765,6 +774,9 @@ void CCC_Register()
     // CMD3(CCC_Mask, "rs_disable_objects_as_crows",&psDeviceFlags, rsDisableObjectsAsCrows );
     CMD3(CCC_Mask, "rs_fullscreen", &psDeviceFlags, rsFullscreen);
     CMD3(CCC_Mask, "rs_refresh_60hz", &psDeviceFlags, rsRefresh60hz);
+    CMD4(CCC_Float, "fps_limit", &fps_limit, 0.f, 500.f);
+    CMD3(CCC_Mask, "rs_stats", &psDeviceFlags, rsStatistic);
+    CMD3(CCC_Mask, "rs_fps", &psDeviceFlags, rsFPS);
     CMD3(CCC_Mask, "rs_stats", &psDeviceFlags, rsStatistic);
     CMD4(CCC_Float, "rs_vis_distance", &psVisDistance, 0.4f, 1.5f);
 
@@ -839,6 +851,8 @@ void CCC_Register()
 #ifdef DEBUG
     CMD1(CCC_DumpOpenFiles, "dump_open_files");
 #endif
+
+    CMD4(CCC_Integer, "rs_debug_second_vp", &debugSecondVP, FALSE, TRUE);
 
     CMD1(CCC_ExclusiveMode, "input_exclusive_mode");
 

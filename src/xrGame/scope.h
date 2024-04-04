@@ -65,10 +65,6 @@ private:
 public:
 	static	Fvector						s_lense_circle_scale;
 	static	Fvector2					s_lense_circle_offset;
-	static	float						s_lense_camera_safe_distance;
-
-	shared_str							sight_bone_name;
-	Fvector								sight_offset;
 
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }

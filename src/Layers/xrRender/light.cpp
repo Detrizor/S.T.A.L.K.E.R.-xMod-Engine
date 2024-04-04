@@ -17,6 +17,7 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	direction.set	(0,-1,0);
 	right.set		(0,0,0);
 	range			= 8.f;
+	virtual_size	= 0.1f;
 	cone			= deg2rad(60.f);
 	color.set		(1,1,1,1);
 
@@ -26,7 +27,7 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	m_volumetric_distance	= 1;
 
 	frame_render	= 0;
-
+	vp_render = 0;
 #if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= NULL;
@@ -287,7 +288,7 @@ void	light::xform_calc			()
 static	Fvector cmNorm[6]	= {{0.f,1.f,0.f}, {0.f,1.f,0.f}, {0.f,0.f,-1.f},{0.f,0.f,1.f}, {0.f,1.f,0.f}, {0.f,1.f,0.f}};
 static	Fvector cmDir[6]	= {{1.f,0.f,0.f}, {-1.f,0.f,0.f},{0.f,1.f,0.f}, {0.f,-1.f,0.f},{0.f,0.f,1.f}, {0.f,0.f,-1.f}};
 
-void	light::_export		(light_Package& package)
+void	light::Export		(light_Package& package)
 {
 	if (flags.bShadow)			{
 		switch (flags.type)	{
@@ -305,6 +306,7 @@ void	light::_export		(light_Package& package)
 						L->set_rotation		(cmDir[f],	R);
 						L->set_cone			(PI_DIV_2);
 						L->set_range		(range);
+						L->set_virtual_size(virtual_size);
 						L->set_color		(color);
 						L->spatial.sector	= spatial.sector;	//. dangerous?
 						L->s_spot			= s_spot	;

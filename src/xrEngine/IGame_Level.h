@@ -67,6 +67,8 @@ public:
     BOOL bReady;
 
     CInifile* pLevel;
+	fastdelegate::FastDelegate1<float>		lastApplyCamera;
+	float									lastApplyCameraVPNear;
 public: // deferred sound events
     struct _esound_delegate
     {
@@ -96,6 +98,8 @@ public:
 
     virtual void _BCL OnFrame(void);
     virtual void OnRender(void);
+
+    virtual void ApplyCamera() {};
 
     virtual shared_str OpenDemoFile(const char* demo_file_name) = 0;
     virtual void net_StartPlayDemo() = 0;

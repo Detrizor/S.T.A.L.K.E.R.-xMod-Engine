@@ -1313,7 +1313,7 @@ float CWeapon::GetControlInertionFactor C$()
 	return					(1.f + inertion);
 }
 
-float CWeapon::CurrentZoomFactor C$(bool for_svp)
+float CWeapon::CurrentZoomFactor C$(bool for_actor)
 {
 	return (float)(!!ADS());
 }

@@ -304,6 +304,11 @@ static class cl_screen_res : public R_constant_setup
 	}
 }	binder_screen_res;
 
+static class cl_spv_screen_res : public R_constant_setup //--#SM+#--
+{
+	virtual void setup(R_constant* C) { RCache.set_c(C, (float)Device.m_SecondViewport.screenWidth, (float)Device.m_SecondViewport.screenHeight, 0, 0); }
+} binder_spv_screen_res;
+
 static class cl_hud_params : public R_constant_setup //--#SM+#--
 {
 	virtual void setup(R_constant* C)
@@ -387,6 +392,7 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("m_hud_params",	&binder_hud_params);	//--#SM+#--
 	r_Constant				("m_script_params",	&binder_script_params); //--#SM+#--
 	r_Constant				("m_blender_mode",	&binder_blend_mode);	//--#SM+#--
+	r_Constant				("svp_screen_res",  &binder_spv_screen_res);
 
 	// detail
 	//if (bDetail	&& detail_scaler)

@@ -116,6 +116,86 @@ void					CTexture::surface_set	(ID3DBaseTexture* surf )
 	}	
 }
 
+void CTexture::SurfaceSetRT(ID3DBaseTexture* surf, ID3DShaderResourceView* sh_res_view)
+{
+	pSurface = surf;
+	m_pSRView = sh_res_view;
+}
+
+ID3DShaderResourceView* CTexture::CreateShaderRes(ID3DBaseTexture* surf)
+{
+	pSurface = surf;
+
+	desc_update();
+
+	if (surf)
+	{
+		//desc_update();
+
+		ID3DShaderResourceView* sh_res_view = nullptr;
+
+		D3D_RESOURCE_DIMENSION	type;
+		//pSurface->GetType(&type);
+		surf->GetType(&type);
+		if (D3D_RESOURCE_DIMENSION_TEXTURE2D == type )
+		{
+			D3D_SHADER_RESOURCE_VIEW_DESC	ViewDesc;
+
+			if (desc.MiscFlags&D3D_RESOURCE_MISC_TEXTURECUBE)
+			{
+				ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+				ViewDesc.TextureCube.MostDetailedMip = 0;
+				ViewDesc.TextureCube.MipLevels = desc.MipLevels;
+			}
+			else
+			{
+            if(desc.SampleDesc.Count <= 1 )
+            {
+			      ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+				   ViewDesc.Texture2D.MostDetailedMip = 0;
+   			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
+            }
+            else
+            {
+			      ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+               ViewDesc.Texture2D.MostDetailedMip = 0;
+   			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
+            }
+			}			
+
+			ViewDesc.Format = DXGI_FORMAT_UNKNOWN;
+
+			switch(desc.Format)
+			{
+			case DXGI_FORMAT_R24G8_TYPELESS:
+				ViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			case DXGI_FORMAT_R32_TYPELESS:
+				ViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+				break;
+			}
+
+			if ((desc.SampleDesc.Count <= 1) || (ViewDesc.Format != DXGI_FORMAT_R24_UNORM_X8_TYPELESS))
+			{
+				R_CHK(HW.pDevice->CreateShaderResourceView(surf, &ViewDesc, &sh_res_view));
+				R_ASSERT(sh_res_view);
+			}
+		}
+		else
+			R_CHK(HW.pDevice->CreateShaderResourceView(surf, nullptr, &sh_res_view));
+
+		return sh_res_view;
+	}	
+
+	return nullptr;
+}
+
+void CTexture::surface_null()
+{
+	pSurface = nullptr;
+	m_pSRView = nullptr;
+}
+
 ID3DBaseTexture*	CTexture::surface_get	()
 {
 	if (flags.bLoadedAsStaging)

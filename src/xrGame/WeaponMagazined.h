@@ -219,10 +219,6 @@ protected:
 #endif
 	//-Alundaio
 
-//xMod ported
-public:
-	void								UpdateSecondVP						C$	();
-
 //xMod altered
 public:
 	bool								IsRotatingToZoom					C$	();
@@ -247,8 +243,6 @@ private:
 	float								m_ReloadHalfPoint;
 	float								m_ReloadEmptyHalfPoint;
 	float								m_ReloadPartialPoint;
-	Fvector								m_SightPosition;
-	u16									m_dwSightCalculationFrame;
 	SRangeNum<u16>						m_IronSightsZeroing;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
@@ -256,7 +250,6 @@ private:
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
-	Fvector CR$							SightPosition							();
 	void								InitRotateTime							();
 
 	CScope*								GetActiveScope						C$	();
@@ -280,7 +273,7 @@ public:
 	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }
 
 	bool								Discharge								(CCartridge& destination);
-	void								UpdateShadersData						();
+	void								UpdateShadersDataAndSVP					();
 	void								UpdateHudBonesVisibility				();
 
 	bool								ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
@@ -289,7 +282,7 @@ public:
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
 
-	float								CurrentZoomFactor					CO$	(bool for_svp);
+	float								CurrentZoomFactor					CO$	(bool for_actor);
 	Fvector								FireDirection						CO$	();
 
 	void								OnTaken								O$	();

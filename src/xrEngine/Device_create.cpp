@@ -10,6 +10,7 @@
 //#include "securom_api.h"
 
 extern XRCDB_API BOOL* cdb_bDebug;
+extern ENGINE_API float psSVPImageSizeK;
 
 void SetupGPU(IRenderDeviceRender* pRender)
 {
@@ -197,6 +198,18 @@ PROTECT_API void CRenderDevice::Create()
 #endif // #ifdef INGAME_EDITOR
         true
     );
+
+    if (psDeviceFlags.test(rsR3) || psDeviceFlags.test(rsR4))
+    {
+        
+        m_SecondViewport.screenWidth = u32((dwWidth / 32) * psSVPImageSizeK) * 32;
+        m_SecondViewport.screenHeight = u32((dwHeight / 32) * psSVPImageSizeK) * 32;
+    }
+    else
+    {
+        m_SecondViewport.screenWidth = dwWidth;
+        m_SecondViewport.screenHeight = dwHeight;
+    }
 
     string_path fname;
     FS.update_path(fname, "$game_data$", "shaders.xr");
