@@ -264,10 +264,6 @@ public:
 	{
 		UpdateFireDependencies(); return m_current_firedeps.vLastFD;
 	}
-	IC		const Fvector&	get_LastFDD()
-	{
-		UpdateFireDependencies(); return m_current_firedeps.vLastFDD;
-	}
 	IC		const Fvector&	get_LastSP()
 	{
 		UpdateFireDependencies(); return m_current_firedeps.vLastSP;
@@ -298,7 +294,7 @@ protected:
 	u8						FindAmmoClass			(LPCSTR section, bool set = false);
 
 	//трассирование полета пули
-	virtual	void			FireTrace(const Fvector& P, const Fvector& D);
+	virtual	void			FireTrace();
 	virtual float			GetWeaponDeterioration();
 
 	virtual void			FireStart()
@@ -532,9 +528,8 @@ protected:
 
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
-	void								appendRecoil							(float impulse_magnitude);
-	void								updateRecoil							();
 	CActor*								ParentIsActor							();
+	void								appendRecoil							(float impulse_magnitude);
 	
 	void							V$	PrepareCartridgeToShoot					()		{}
 	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
@@ -542,7 +537,12 @@ protected:
 	void							V$	SetADS									(int mode);
 	void							V$	ConsumeShotCartridge					();
 
+	//with zeroing
+	Fvector							V$	getFullFireDirection					()		{ return get_LastFD(); }
+
 public:
+	Fvector CR$							get_LastFPLocal							() { UpdateFireDependencies(); return m_current_firedeps.vLastFPLocal; }
+
 	void								SwitchArmedMode							();
 
 	Fvector CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }

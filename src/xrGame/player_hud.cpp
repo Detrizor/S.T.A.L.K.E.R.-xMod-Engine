@@ -145,34 +145,28 @@ void attachable_hud_item::update(bool bForce)
 	}
 }
 
-void attachable_hud_item::update_hud_additional(Fmatrix& trans)
-{
-	if (m_parent_hud_item)
-		m_parent_hud_item->UpdateHudAdditional(trans);
-}
-
 void attachable_hud_item::setup_firedeps(firedeps& fd)
 {
-	update							(false);
-	// fire point&direction
-	if(m_measures.m_prop_flags.test(hud_item_measures::e_fire_point))
+	update												(false);
+	if (m_measures.m_prop_flags.test(hud_item_measures::e_fire_point))
 	{
 		Fmatrix& fire_mat								= m_model->LL_GetTransform(m_measures.m_fire_bone);
-		fire_mat.transform_tiny							(fd.vLastFP, m_measures.m_fire_point_offset);
+		fire_mat.transform_tiny							(fd.vLastFPLocal, m_measures.m_fire_point_offset);
+		fd.vLastFP.set									(fd.vLastFPLocal);
 		m_item_transform.transform_tiny					(fd.vLastFP);
 		
-		fd.vLastFD.set									(m_parent_hud_item->FireDirection());
+		fd.vLastFD.set									(vForward);
 		m_item_transform.transform_dir					(fd.vLastFD);
-		VERIFY(_valid(fd.vLastFD));
-		fd.vLastFDD.set									(m_parent_hud_item->FireDirectionDefault());
-		m_item_transform.transform_dir					(fd.vLastFDD);
 
 		fd.m_FireParticlesXForm.identity				();
 		fd.m_FireParticlesXForm.k.set					(fd.vLastFD);
-		Fvector::generate_orthonormal_basis_normalized	(	fd.m_FireParticlesXForm.k,
-															fd.m_FireParticlesXForm.j, 
-															fd.m_FireParticlesXForm.i);
-		VERIFY(_valid(fd.m_FireParticlesXForm));
+		Fvector::generate_orthonormal_basis_normalized	(fd.m_FireParticlesXForm.k,
+														fd.m_FireParticlesXForm.j, 
+														fd.m_FireParticlesXForm.i);
+
+		VERIFY											(_valid(fd.vLastFP));
+		VERIFY											(_valid(fd.vLastFD));
+		VERIFY											(_valid(fd.m_FireParticlesXForm));
 	}
 
 	if(m_measures.m_prop_flags.test(hud_item_measures::e_fire_point2))
@@ -597,24 +591,16 @@ const Fvector& player_hud::attach_pos() const
 void player_hud::update(const Fmatrix& cam_trans)
 {
 	Fmatrix trans = cam_trans;
-	Fmatrix trans_b = cam_trans;
+	Fmatrix trans_2 = cam_trans;
 
 	Fvector m1pos = attach_pos();
 	Fvector m1rot = attach_rot();
-
-	Fmatrix trans_2 = trans;
 
 	if (m_attached_items[0])
 		m_attached_items[0]->m_parent_hud_item->UpdateHudAdditional(trans);
 		
 	if (m_attached_items[1])
-	{
 		m_attached_items[1]->m_parent_hud_item->UpdateHudAdditional(trans_2);
-
-		CWeaponMagazined CPC wep = smart_cast<CWeaponMagazined CP$>(Actor()->inventory().ActiveItem());
-		if (wep && wep->IsZoomed())
-			trans_2.mulB_43(wep->Hud().shoot_shake_mat());
-	}
 	else
 		trans_2 = trans;
 
@@ -707,16 +693,8 @@ void player_hud::update(const Fmatrix& cam_trans)
 
 		anm->anm->Update(Device.fTimeDelta);
 
-		if (anm->blend_amount[0] == anm->blend_amount[1])
-		{
-			Fmatrix blend = anm->XFORM(0);
-			m_transform.mulB_43(blend);
-		}
-		else
-		{
-			if (anm->blend_amount[0] > 0.f)
-				m_transform.mulB_43(anm->XFORM(0));
-		}
+		if ((anm->blend_amount[0] == anm->blend_amount[1]) || (anm->blend_amount[0] > 0.f))
+			m_transform.mulB_43(anm->XFORM(0));
 	}
 
 	if (m_attached_items[0])
@@ -746,15 +724,6 @@ u32 player_hud::anim_play(u16 part, const MotionID& M, BOOL bMixIn, const CMotio
 	m_model->dcast_PKinematics()->CalculateBones_Invalidate	();
 
 	return				motion_length(M, md, speed);
-}
-
-void player_hud::update_additional	(Fmatrix& trans)
-{
-	if(m_attached_items[0])
-		m_attached_items[0]->update_hud_additional(trans);
-
-	if(m_attached_items[1])
-		m_attached_items[1]->update_hud_additional(trans);
 }
 
 attachable_hud_item* player_hud::create_hud_item(LPCSTR hud_section, LPCSTR object_section)

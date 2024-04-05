@@ -46,7 +46,4 @@ public:
 	virtual	void	Init				(CWeaponMagazined*	pWeapon);
 
 	virtual CEffectorZoomInertion*		cast_effector_zoom_inertion	()	{return this;}
-
-public:
-	Fvector CR$	CurPoint C$ () { return m_vCurrentPoint; }
 };

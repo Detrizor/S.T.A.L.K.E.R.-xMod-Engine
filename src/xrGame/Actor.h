@@ -806,9 +806,6 @@ public:
     void								VicinityUpdate							();
 
     float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
-
-    Fvector2							CameraAxisDeviation					C$	(Fvector CR$ pos, Fvector CR$ dir, float distance);
-
 };
 add_to_type_list(CActor)
 #undef script_type_list

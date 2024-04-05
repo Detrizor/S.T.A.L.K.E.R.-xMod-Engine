@@ -52,7 +52,7 @@ float CWeapon::GetWeaponDeterioration	()
 	return conditionDecreasePerShot;
 };
 
-void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
+void CWeapon::FireTrace		()
 {
 	PrepareCartridgeToShoot		();
 	CCartridge& l_cartridge		= m_magazine.back();
@@ -70,10 +70,12 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 //	Msg("Deterioration = %f", Deterioration);
 	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
 
+	Fvector p = get_LastFP();
+	Fvector d = getFullFireDirection();
 	bool SendHit = SendHitAllowed(H_Parent());
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
-	for(int i = 0; i < l_cartridge.param_s.buckShot; ++i)
-		FireBullet(P, D, GetFireDispersion(true), l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
+	for (int i = 0; i < l_cartridge.param_s.buckShot; ++i)
+		FireBullet(p, d, GetFireDispersion(true), l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
 
 	StartShotParticles		();
 	
@@ -117,4 +119,42 @@ void CWeapon::StopFlameParticles2	()
 void CWeapon::UpdateFlameParticles2	()
 {
 	if (m_pFlameParticles2)			CShootingObject::UpdateParticles (m_pFlameParticles2, get_LastFP2());
+}
+
+#define s_recoil_kick_weight pSettings->r_float("weapon_manager", "recoil_kick_weight")
+#define s_recoil_tremble_weight pSettings->r_float("weapon_manager", "recoil_tremble_weight")
+#define s_recoil_roll_weight pSettings->r_float("weapon_manager", "recoil_roll_weight")
+
+#define s_recoil_tremble_mean_change_chance pSettings->r_float("weapon_manager", "recoil_tremble_mean_change_chance")
+#define s_recoil_tremble_dispersion pSettings->r_float("weapon_manager", "recoil_tremble_dispersion")
+#define s_recoil_kick_dispersion pSettings->r_float("weapon_manager", "recoil_kick_dispersion")
+#define s_recoil_roll_dispersion pSettings->r_float("weapon_manager", "recoil_roll_dispersion")
+void CWeapon::appendRecoil(float impulse_magnitude)
+{
+	Fvector pattern				= vZero;
+	pattern.add					(m_stock_recoil_pattern);
+	pattern.add					(m_layout_recoil_pattern);
+	pattern.add					(m_mechanic_recoil_pattern);
+
+	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
+		m_recoil_tremble_mean	= Random.randFs(1.f);
+
+	float tremble				= pattern.y * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
+	float kick					= pattern.x * Random.randFs(s_recoil_kick_dispersion, 1.f);
+	float roll					= pattern.z * Random.randFs(s_recoil_roll_dispersion);
+	Fvector shot_impulse		= {
+		tremble * s_recoil_tremble_weight,
+		kick * s_recoil_kick_weight,
+		roll * s_recoil_roll_weight
+	};
+
+	shot_impulse.mul			(sqrt(impulse_magnitude));
+	m_recoil_hud_impulse.add	(shot_impulse);
+	m_recoil_cam_impulse.add	(shot_impulse);
+	m_recoil_cam_last_impulse	= shot_impulse;
+}
+
+bool CWeapon::isCamRecoilRelaxed() const
+{
+	return (m_recoil_cam_last_impulse == vZero) && (m_recoil_cam_impulse == vZero);
 }

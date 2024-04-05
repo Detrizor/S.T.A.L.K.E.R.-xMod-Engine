@@ -596,6 +596,9 @@ void CWeaponMagazined::UpdateCL()
 	}
 
 	UpdateSounds();
+
+	if (!bWorking || m_iShotNum > m_iBaseDispersionedBulletsCount)
+		updateRecoil();
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -643,15 +646,6 @@ void CWeaponMagazined::state_Fire(float dt)
 			return;
 		}
 
-		Fvector p = get_LastFP();
-		Fvector d = get_LastFD();
-
-		if (m_iShotNum == 0)
-		{
-			m_vStartPos = p;
-			m_vStartDir = d;
-		}
-
 		while (iAmmoElapsed && fShotTimeCounter < 0 && (IsWorking() || m_bFireSingleShot) && (m_iQueueSize < 0 || m_iShotNum < m_iQueueSize))
 		{
 			if (CheckForMisfire())
@@ -673,12 +667,7 @@ void CWeaponMagazined::state_Fire(float dt)
 			//Alundaio: END
 
 			++m_iShotNum;
-
-			if (m_iShotNum > m_iBaseDispersionedBulletsCount)
-				FireTrace(p, d);
-			else
-				FireTrace(m_vStartPos, m_vStartDir);
-
+			FireTrace();
 			OnShot();
 		}
 
@@ -1585,35 +1574,42 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 }
 
 extern float aim_fov_tan;
-void CWeaponMagazined::UpdateShadersDataAndSVP()
+void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
 	CScope* scope						= GetActiveScope();
 	Device.m_SecondViewport.SetSVPActive(scope && scope->HasLense());
 	if (!scope)
 		return;
 
-	Fmatrix								camera;
-	Actor()->Cameras().camera_Matrix	(camera);
-	Fvector sight_position				= scope->getOuterLenseOffset();
-	camera.transform_tiny				(sight_position);
-
-	Fvector2 offset						= Actor()->CameraAxisDeviation(sight_position, get_LastFDD(), scope->Zeroing());
-	float zoom_factor					= CurrentZoomFactor(false);
-	float fov_tan						= aim_fov_tan / zoom_factor;
-	float h								= 2.f * fov_tan * scope->Zeroing();
-	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
-	offset.x							/= w;
-	offset.y							/= h;
-	g_pGamePersistent->m_pGShaderConstants->hud_params.x = offset.x;
-	g_pGamePersistent->m_pGShaderConstants->hud_params.y = offset.y;
-	g_pGamePersistent->m_pGShaderConstants->hud_params.z = scope->GetReticleScale(*m_hud);
-
+	float fov_tan						= aim_fov_tan / CurrentZoomFactor(false);
 	if (scope->HasLense())
 	{
-		float fov						= atanf(fov_tan) / (.5f * PI / 180.f);
-		Device.m_SecondViewport.setFov	(fov);
+		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
+		Fvector sight_position			= scope->getOuterLenseOffset();
+		Fmatrix							m;
+		camera.camera_Matrix			(m);
+		m.transform_tiny				(sight_position);
 		Device.m_SecondViewport.setPosition(sight_position);
 	}
+	
+	Fvector cam_dir						= camera.Direction();
+	float cam_dir_yaw					= atan2f(cam_dir.x, cam_dir.z);
+	float cam_dir_pitch					= asinf(cam_dir.y);
+	
+	Fvector fire_dir					= get_LastFD();
+	float fire_dir_yaw					= atan2f(fire_dir.x, fire_dir.z);
+	float fire_dir_pitch				= asinf(fire_dir.y);
+	
+	float distance						= scope->Zeroing();
+	float x_derivation					= distance * tanf(fire_dir_yaw - cam_dir_yaw);
+	float y_derivation					= distance * tanf(fire_dir_pitch - cam_dir_pitch);
+
+	float h								= 2.f * fov_tan * distance;
+	float w								= h * UI_BASE_WIDTH / UI_BASE_HEIGHT;
+	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
+	hud_params.x						= x_derivation / w;
+	hud_params.y						= y_derivation / h;
+	hud_params.z						= scope->GetReticleScale(*m_hud);
 }
 
 u16 CWeaponMagazined::Zeroing C$()
@@ -1622,23 +1618,109 @@ u16 CWeaponMagazined::Zeroing C$()
 	return								(active_scope) ? active_scope->Zeroing() : m_IronSightsZeroing.current;
 }
 
-Fvector CWeaponMagazined::FireDirection() const
+Fvector CWeaponMagazined::getFullFireDirection()
 {
-	CCartridge							cartridge;
-	if (m_magazine.size())
-		cartridge						= m_magazine.back();
-	else if (m_pMagazine)
-		m_pMagazine->GetCartridge		(cartridge, false);
-	else
-		return							inherited::FireDirection();
+	auto hi								= HudItemData();
+	if (!hi)
+		return							get_LastFD();
 
-	Fvector								res[2];
-	float ar_correction					= Level().BulletManager().CalcZeroingCorrection(cartridge.param_s.fAirResistZeroingCorrection, Zeroing());
-	TransferenceAndThrowVelToThrowDir(m_hud->BarrelSightOffset().mad(inherited::FireDirection(), Zeroing()),
-		m_fStartBulletSpeed * m_silencer_koef.bullet_speed * cartridge.param_s.kBulletSpeed * ar_correction,
-		Level().BulletManager().GravityConst(),
-		res);
+	float distance						= Zeroing();
+	Fvector transference				= m_hud->getMuzzleSightOffset().mad(vForward, distance);
+	CCartridge cartridge				= m_magazine.back();
+	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(cartridge.param_s.fAirResistZeroingCorrection, distance);
+	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * cartridge.param_s.kBulletSpeed * air_resistance_correction;
 
-	res[0].normalize					();
-	return								res[0];
+	Fvector								result[2];
+	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
+	hi->m_item_transform.transform_dir	(result[0]);
+	result[0].normalize					();
+	return								result[0];
+}
+
+#define s_recoil_hud_stopping_power_per_shift pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift")
+#define s_recoil_hud_relax_impulse_magnitude pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_magnitude")
+#define s_recoil_cam_stopping_power_per_impulse pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse")
+#define s_recoil_cam_relax_impulse_ratio pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio")
+void CWeaponMagazined::updateRecoil()
+{
+	bool hud_impulse = !fIsZero(m_recoil_hud_impulse.magnitude());
+	bool hud_shift = !fIsZero(m_recoil_hud_shift.magnitude());
+	bool cam_impulse = !fIsZero(m_recoil_cam_impulse.magnitude());
+	if (!hud_impulse && !hud_shift && !cam_impulse)
+		return;
+
+	static float fAvgTimeDelta = Device.fTimeDelta;
+	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
+	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
+	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
+	accuracy *= m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_layout_accuracy_modifier;
+	float cif = GetControlInertionFactor();
+
+	if (hud_impulse || hud_shift)
+	{
+		auto update_hud_recoil_shift = [this, cif](Fvector CR$ impulse)
+			{
+				Fvector delta = impulse;
+				delta.mul(fAvgTimeDelta);
+				delta.div(cif);
+				m_recoil_hud_shift.add(delta);
+			};
+
+		if (hud_impulse)
+		{
+			update_hud_recoil_shift(m_recoil_hud_impulse);
+
+			Fvector stopping_power = m_recoil_hud_impulse;
+			stopping_power.normalize();
+			stopping_power.mul(m_recoil_hud_shift.magnitude());
+			stopping_power.mul(-s_recoil_hud_stopping_power_per_shift);
+			stopping_power.mul(accuracy);
+			stopping_power.mul(fAvgTimeDelta);
+			m_recoil_hud_impulse.add(stopping_power);
+			if (fMoreOrEqual(m_recoil_hud_impulse.dotproduct(stopping_power), 0.f))
+				m_recoil_hud_impulse = vZero;
+		}
+		else
+		{
+			Fvector relax_impulse = m_recoil_hud_shift;
+			relax_impulse.normalize();
+			relax_impulse.mul(-s_recoil_hud_relax_impulse_magnitude);
+			relax_impulse.mul(accuracy);
+			update_hud_recoil_shift(relax_impulse);
+			if (fMoreOrEqual(m_recoil_hud_shift.dotproduct(relax_impulse), 0.f))
+				m_recoil_hud_shift = vZero;
+		}
+	}
+
+	if (cam_impulse)
+	{
+		auto update_cam_recoil_delta = [this, cif](Fvector CR$ impulse)
+			{
+				m_recoil_cam_delta = impulse;
+				m_recoil_cam_delta.mul(fAvgTimeDelta);
+				m_recoil_cam_delta.div(cif);
+			};
+
+		if (cam_impulse)
+		{
+			update_cam_recoil_delta(m_recoil_cam_impulse);
+
+			Fvector stopping_power = m_recoil_cam_impulse;
+			stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
+			stopping_power.mul(accuracy);
+			stopping_power.mul(fAvgTimeDelta);
+			m_recoil_cam_impulse.add(stopping_power);
+			if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
+			{
+				if (m_recoil_cam_last_impulse.magnitude())
+				{
+					m_recoil_cam_impulse = m_recoil_cam_last_impulse;
+					m_recoil_cam_impulse.mul(-s_recoil_cam_relax_impulse_ratio);
+					m_recoil_cam_last_impulse = vZero;
+				}
+				else
+					m_recoil_cam_impulse = vZero;
+			}
+		}
+	}
 }

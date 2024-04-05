@@ -46,7 +46,6 @@ private:
 	Fvector								m_root_offset_gl;
 	Fvector								m_barrel_offset;
 	SafemodeAnm							m_safemode_anm[2];
-	Fmatrix								m_shoot_shake_mat;
 	Fvector								m_cur_offs;
 	u8									m_scope;
 	bool								m_alt_scope;
@@ -54,13 +53,13 @@ private:
 	bool								m_scope_alt_aim_via_iron_sights;
 	bool								m_scope_own_alt_aim;
 	bool								m_going_to_fire;
+	Fvector								m_scope_sight_point_offset;
 
 	void								CalcAimOffset							();
 
 public:
 	SPowerDependency				S$	HandlingToRotationTime;
 
-	Fmatrix CR$							shoot_shake_mat						C$	()				{ return m_shoot_shake_mat; }
 	Fvector CPC							HandsOffset							C$	(int idx)		{ return m_hands_offset[idx]; }
 	Fvector CPC							HudOffset							C$	()				{ return m_hud_offset; }
 	float								LenseOffset							C$	()				{ return m_lense_offset; }
@@ -74,5 +73,5 @@ public:
 
 	EHandsOffset						GetCurrentHudOffsetIdx				C$	();
 	bool								IsRotatingToZoom					C$	();
-	Fvector								BarrelSightOffset					C$	();
+	Fvector								getMuzzleSightOffset				C$	();
 };

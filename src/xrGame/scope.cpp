@@ -126,9 +126,10 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 		m_pVision->Update				();
 		m_pVision->Draw					();
 	}
-
-	float scale							= g_pGamePersistent->m_pGShaderConstants->hud_params.z;
-	Fvector2 pos						= { -g_pGamePersistent->m_pGShaderConstants->hud_params.x * Device.dwWidth, -g_pGamePersistent->m_pGShaderConstants->hud_params.y * Device.dwHeight };
+	
+	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
+	float scale							= hud_params.z;
+	Fvector2 pos						= { hud_params.x * Device.dwWidth, -hud_params.y * Device.dwHeight };
 	if (m_pUIReticle)
 	{
 		m_pUIReticle->SetScale			(scale);

@@ -43,7 +43,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_fLR_ShootingFactor				= 0.f;
 	m_fUD_ShootingFactor				= 0.f;
 	m_fBACKW_ShootingFactor				= 0.f;
-	m_shoot_shake_mat.identity			();
 	m_lense_offset						= 0.f;
 	m_scope								= 0;
 	m_alt_scope							= false;
@@ -98,10 +97,11 @@ void CWeaponHud::CalcAimOffset()
 
 void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 {
+	CScope* scope						= slot->addon->cast<CScope*>();
 	if (slot->alt_scope)
 		m_alt_scope						= attach;
 	else
-		m_scope							= (attach) ? slot->addon->cast<CScope*>()->Type() : 0;
+		m_scope							= (attach) ? scope->Type() : 0;
 	if (!attach)
 		return;
 
@@ -137,6 +137,8 @@ void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 		CalcAimOffset					();
 	}
 	m_hands_offset[eScopeAlt][0].z		= m_hands_offset[eIS][0].z;
+
+	m_scope_sight_point_offset			= scope->getOuterLenseOffset();
 }
 
 void CWeaponHud::ProcessGL(SAddonSlot* slot, bool attach)
@@ -628,7 +630,10 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-Fvector CWeaponHud::BarrelSightOffset C$()
+Fvector CWeaponHud::getMuzzleSightOffset() const
 {
-	return								Fvector(m_barrel_offset).sub(m_hands_offset[GetCurrentHudOffsetIdx()][0]);
+	auto idx							= GetCurrentHudOffsetIdx();
+	Fvector sight_position				= m_hands_offset[idx][0];
+	sight_position.add					(m_scope_sight_point_offset);
+	return								sight_position.sub(O.get_LastFPLocal());
 }

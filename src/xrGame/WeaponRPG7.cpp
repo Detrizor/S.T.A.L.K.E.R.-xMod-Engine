@@ -27,9 +27,9 @@ bool CWeaponRPG7::AllowBore()
 	return inherited::AllowBore() && 0!=iAmmoElapsed;
 }
 
-void CWeaponRPG7::FireTrace(const Fvector& P, const Fvector& D)
+void CWeaponRPG7::FireTrace()
 {
-	inherited::FireTrace	(P, D);
+	inherited::FireTrace	();
 	UpdateMissileVisibility	();
 }
 

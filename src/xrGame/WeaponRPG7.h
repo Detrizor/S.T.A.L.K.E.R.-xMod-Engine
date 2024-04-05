@@ -20,7 +20,7 @@ public:
 	virtual void ReloadMagazine	();
 	virtual void Load			(LPCSTR section);
 	virtual void switch2_Fire	();
-	virtual	void FireTrace		(const Fvector& P, const Fvector& D);
+			void FireTrace		() override;
 	virtual void on_a_hud_attach();
 
 	virtual void FireStart		();

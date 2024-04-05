@@ -203,8 +203,6 @@ bool CWeaponMagazinedWGrenade::Action(u16 cmd, u32 flags)
 		{
 			if (iAmmoElapsed)
 				LaunchGrenade();
-			else
-				Reload();
 
 			if (GetState() == eIdle)
 				OnEmptyClick();
@@ -278,94 +276,84 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 {
 	if (!getRocketCount())	return;
 	R_ASSERT(m_bGrenadeMode);
+
+	Fvector						p1, d;
+	p1.set(get_LastFP2());
+	d.set(get_LastFD());
+	CEntity*					E = smart_cast<CEntity*>(H_Parent());
+
+	if (E)
 	{
-		Fvector						p1, d;
-		p1.set(get_LastFP2());
-		d.set(get_LastFDD());
-		CEntity*					E = smart_cast<CEntity*>(H_Parent());
-
-		if (E)
+		CInventoryOwner* io = smart_cast<CInventoryOwner*>(H_Parent());
+		if (NULL == io->inventory().ActiveItem())
 		{
-			CInventoryOwner* io = smart_cast<CInventoryOwner*>(H_Parent());
-			if (NULL == io->inventory().ActiveItem())
-			{
-				Log("current_state", GetState());
-				Log("next_state", GetNextState());
-				Log("item_sect", cNameSect().c_str());
-				Log("H_Parent", H_Parent()->cNameSect().c_str());
-			}
-			E->g_fireParams(this, p1, d);
+			Log("current_state", GetState());
+			Log("next_state", GetNextState());
+			Log("item_sect", cNameSect().c_str());
+			Log("H_Parent", H_Parent()->cNameSect().c_str());
 		}
-		p1.set(get_LastFP2());
-
-		Fmatrix							launch_matrix;
-		launch_matrix.identity();
-		launch_matrix.k.set(d);
-		Fvector::generate_orthonormal_basis(launch_matrix.k,
-			launch_matrix.j,
-			launch_matrix.i);
-
-		launch_matrix.c.set(p1);
-
-		if (ADS())
-		{
-			H_Parent()->setEnabled(FALSE);
-			setEnabled(FALSE);
-
-			collide::rq_result			RQ;
-			BOOL HasPick = Level().ObjectSpace.RayPick(p1, d, 300.0f, collide::rqtStatic, RQ, this);
-
-			setEnabled(TRUE);
-			H_Parent()->setEnabled(TRUE);
-
-			if (HasPick)
-			{
-				Fvector					Transference;
-				Transference.mul(d, RQ.range);
-				Fvector					res[2];
-#ifdef		DEBUG
-				//.				DBG_OpenCashedDraw();
-				//.				DBG_DrawLine(p1,Fvector().add(p1,d),D3DCOLOR_XRGB(255,0,0));
-#endif
-				u8 canfire0 = TransferenceAndThrowVelToThrowDir(Transference,
-					CRocketLauncher::m_fLaunchSpeed,
-					EffectiveGravity(),
-					res);
-#ifdef DEBUG
-				//.				if(canfire0>0)DBG_DrawLine(p1,Fvector().add(p1,res[0]),D3DCOLOR_XRGB(0,255,0));
-				//.				if(canfire0>1)DBG_DrawLine(p1,Fvector().add(p1,res[1]),D3DCOLOR_XRGB(0,0,255));
-				//.				DBG_ClosedCashedDraw(30000);
-#endif
-
-				if (canfire0 != 0)
-				{
-					d = res[0];
-				};
-			}
-		};
-
-		d.normalize();
-		d.mul(CRocketLauncher::m_fLaunchSpeed);
-		VERIFY2(_valid(launch_matrix), "CWeaponMagazinedWGrenade::SwitchState. Invalid launch_matrix!");
-		CRocketLauncher::LaunchRocket(launch_matrix, d, zero_vel);
-
-		CExplosiveRocket* pGrenade = smart_cast<CExplosiveRocket*>(getCurrentRocket());
-		VERIFY(pGrenade);
-		pGrenade->SetInitiator(H_Parent()->ID());
-
-		if (Local() && OnServer())
-		{
-			VERIFY(m_magazine.size());
-			m_magazine.pop_back();
-			--iAmmoElapsed;
-			VERIFY((u32) iAmmoElapsed == m_magazine.size());
-
-			NET_Packet					P;
-			u_EventGen(P, GE_LAUNCH_ROCKET, ID());
-			P.w_u16(getCurrentRocket()->ID());
-			u_EventSend(P);
-		};
+		E->g_fireParams(this, p1, d);
 	}
+	p1.set(get_LastFP2());
+
+	Fmatrix							launch_matrix;
+	launch_matrix.identity();
+	launch_matrix.k.set(d);
+	Fvector::generate_orthonormal_basis(launch_matrix.k,
+		launch_matrix.j,
+		launch_matrix.i);
+
+	launch_matrix.c.set(p1);
+
+	if (ADS())
+	{
+		H_Parent()->setEnabled(FALSE);
+		setEnabled(FALSE);
+
+		collide::rq_result			RQ;
+		BOOL HasPick = Level().ObjectSpace.RayPick(p1, d, 300.0f, collide::rqtStatic, RQ, this);
+
+		setEnabled(TRUE);
+		H_Parent()->setEnabled(TRUE);
+
+		if (HasPick)
+		{
+			Fvector					Transference;
+			Transference.mul(d, RQ.range);
+			Fvector					res[2];
+			u8 canfire0 = TransferenceAndThrowVelToThrowDir(Transference,
+				CRocketLauncher::m_fLaunchSpeed,
+				EffectiveGravity(),
+				res);
+
+			if (canfire0 != 0)
+			{
+				d = res[0];
+			};
+		}
+	};
+
+	d.normalize();
+	d.mul(CRocketLauncher::m_fLaunchSpeed);
+	VERIFY2(_valid(launch_matrix), "CWeaponMagazinedWGrenade::SwitchState. Invalid launch_matrix!");
+	CRocketLauncher::LaunchRocket(launch_matrix, d, zero_vel);
+
+	CExplosiveRocket* pGrenade = smart_cast<CExplosiveRocket*>(getCurrentRocket());
+	VERIFY(pGrenade);
+	pGrenade->SetInitiator(H_Parent()->ID());
+
+	if (Local() && OnServer())
+	{
+		VERIFY(m_magazine.size());
+		m_magazine.pop_back();
+		--iAmmoElapsed;
+		VERIFY((u32) iAmmoElapsed == m_magazine.size());
+
+		NET_Packet					P;
+		u_EventGen(P, GE_LAUNCH_ROCKET, ID());
+		P.w_u16(getCurrentRocket()->ID());
+		u_EventSend(P);
+	};
 }
 
 void CWeaponMagazinedWGrenade::FireEnd()
@@ -689,9 +677,4 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 bool CWeaponMagazinedWGrenade::AltHandsAttachRotation() const
 {
 	return m_bGrenadeMode;// && ADS();
-}
-
-Fvector CWeaponMagazinedWGrenade::FireDirection C$()
-{
-	return (m_bGrenadeMode) ? FireDirectionDefault() : inherited::FireDirection();
 }

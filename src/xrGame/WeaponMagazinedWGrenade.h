@@ -90,7 +90,6 @@ protected:
 
 	BOOL								Chamber								CO$	();
 	bool								HasAltAim							CO$	();
-	Fvector								FireDirection						CO$	();
 
 	void								SetADS								O$	(int mode);
 	void								OnMotionHalf						O$	();

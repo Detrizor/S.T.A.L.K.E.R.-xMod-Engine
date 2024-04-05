@@ -220,7 +220,6 @@ struct attachable_hud_item
 			~attachable_hud_item	();
 	void load						(LPCSTR hud_section, LPCSTR object_section);
 	void update						(bool bForce);
-	void update_hud_additional		(Fmatrix& trans);
 	void setup_firedeps				(firedeps& fd);
 	void render						();	
 	void render_item_ui				();
@@ -272,9 +271,6 @@ public:
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
 	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
 	bool			inertion_allowed	();
-
-private:
-	void			update_additional	(Fmatrix& trans);
 
 private:
 	const Fvector&	attach_rot			() const;
