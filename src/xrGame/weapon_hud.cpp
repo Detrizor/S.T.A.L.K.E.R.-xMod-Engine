@@ -273,22 +273,6 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 			m_going_to_fire = false;
 		}
 
-		if (fIsZero(O.getRecoilHudShift().magnitude()))
-			ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
-		else
-		{
-			Fvector tmp[2] = {};
-			tmp[0] = Fvector(m_hud_offset[0]).sub(m_barrel_offset);
-			tmp[1] = {
-				-O.getRecoilHudShift().y * s_recoil_hud_angle_per_shift,
-				O.getRecoilHudShift().x * s_recoil_hud_angle_per_shift,
-				O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
-			};
-			ApplyPivot(tmp, m_barrel_offset);
-			ApplyOffset(trans, tmp[0], tmp[1]);
-			ApplyOffset(trans, vZero, m_hud_offset[1]);
-		}
-
 		if (O.IsZoomed())
 			m_fRotationFactor += factor;
 		else
@@ -532,6 +516,22 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 
 	Fvector cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
 	ApplyOffset(trans, cur_offs, vZero);
+
+	if (fIsZero(O.getRecoilHudShift().magnitude()))
+		ApplyOffset(trans, m_hud_offset[0], m_hud_offset[1]);
+	else
+	{
+		Fvector tmp[2] = {};
+		tmp[0] = Fvector(m_hud_offset[0]).sub(m_barrel_offset);
+		tmp[1] = {
+			-O.getRecoilHudShift().y * s_recoil_hud_angle_per_shift,
+			O.getRecoilHudShift().x * s_recoil_hud_angle_per_shift,
+			O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
+		};
+		ApplyPivot(tmp, m_barrel_offset);
+		ApplyOffset(trans, tmp[0], tmp[1]);
+		ApplyOffset(trans, vZero, m_hud_offset[1]);
+	}
 }
 
 extern BOOL								g_hud_adjusment_mode;

@@ -1626,13 +1626,13 @@ Fvector CWeaponMagazined::getFullFireDirection()
 
 	float distance						= Zeroing();
 	Fvector transference				= m_hud->getMuzzleSightOffset().mad(vForward, distance);
+	hi->m_item_transform.transform_dir	(transference);
 	CCartridge cartridge				= m_magazine.back();
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(cartridge.param_s.fAirResistZeroingCorrection, distance);
 	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * cartridge.param_s.kBulletSpeed * air_resistance_correction;
 
 	Fvector								result[2];
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
-	hi->m_item_transform.transform_dir	(result[0]);
 	result[0].normalize					();
 	return								result[0];
 }
