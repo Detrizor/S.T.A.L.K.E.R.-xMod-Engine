@@ -257,7 +257,7 @@ private:
 	u8									m_anchor;
 	u8									m_alignment;
 	shared_str							m_offsetTag;
-	shared_str							m_offset;
+	shared_str							m_offset_wnd_name;
 	bool								m_background_draw;
 
 public:
@@ -269,9 +269,9 @@ public:
 			void			CopyAlignment			(const CUIWindow& from)					{ m_alignment = from.m_alignment; m_anchor = from.m_anchor; }
 			
 			void			SetOffsetTag			(LPCSTR val)							{ m_offsetTag = val; }
-			void			SetOffset				(LPCSTR val)							{ m_offset = val; }
-			void			CopyOffsetFrom			(CUIWindow& src)						{ m_offset = src.m_offset; }
-			CUIWindow*		GetOffset				()								const;
+			void			SetOffset				(LPCSTR val)							{ m_offset_wnd_name = val; }
+			void			CopyOffsetFrom			(CUIWindow& src)						{ m_offset_wnd_name = src.m_offset_wnd_name; }
+			CUIWindow*		GetOffsetWnd			()								const;
 	
 			void			GetWndRect				(Frect& res)					const;
 			Frect			GetWndRect				()								const	{ Frect r; GetWndRect(r); return r; }

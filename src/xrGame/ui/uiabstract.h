@@ -18,7 +18,9 @@ enum EScaling
 {
 	sAbsolute,
 	sScreenHeight,
-	sScreenWidth
+	sScreenWidth,
+	sScreenHeightLayout,
+	sScreenWidthLayout
 };
 
 class ITextureOwner
@@ -55,12 +57,12 @@ public:
 			void			MoveWndDelta			(float dx, float dy)					{MoveWndDelta(Fvector2().set(dx, dy));}
 			void			MoveWndDelta			(const Fvector2& d)						{Fvector2 pos = GetWndPos(); pos.add(d); SetWndPos(pos);}
 
-			Fvector2		GetWndPos				()								const	{Fvector2 pos; pos.set(GetX(), GetY()); return pos;}
-			float			GetX					()								const	{float x = m_wndPos.x; x *= m_scale * GetScale(m_pos_scaling.x); if (m_clamp) clamp(x, 0.f, UI_BASE_WIDTH); return x;}
-			float			GetY					()								const	{float y = m_wndPos.y; y *= m_scale * GetScale(m_pos_scaling.y); if (m_clamp) clamp(y, 0.f, UI_BASE_HEIGHT); return y;}
-			Fvector2		GetWndSize				()								const	{Fvector2 size; size.set(GetWidth(), GetHeight()); return size;}
-			float			GetWidth				()								const	{float width = m_wndSize.x; width *= m_scale * GetScale(m_size_scaling.x); if (m_clamp) clamp(width, 0.f, UI_BASE_WIDTH); return width;}
-			float			GetHeight				()								const	{float height = m_wndSize.y; height *= m_scale * GetScale(m_size_scaling.y); if (m_clamp) clamp(height, 0.f, UI_BASE_HEIGHT); return height;}
+			Fvector2		GetWndPos				()								const	{ return { GetX(), GetY() }; }
+			float			GetX					()								const	{ float x = m_wndPos.x * GetScale(m_pos_scaling.x); if (m_clamp) clamp(x, 0.f, UI_BASE_WIDTH); return x; }
+			float			GetY					()								const	{ float y = m_wndPos.y * GetScale(m_pos_scaling.y); if (m_clamp) clamp(y, 0.f, UI_BASE_HEIGHT); return y; }
+			Fvector2		GetWndSize				()								const	{ return { GetWidth(), GetHeight() }; }
+			float			GetWidth				()								const	{ float width = m_wndSize.x * m_scale * GetScale(m_size_scaling.x); if (m_clamp) clamp(width, 0.f, UI_BASE_WIDTH); return width; }
+			float			GetHeight				()								const	{ float height = m_wndSize.y * m_scale * GetScale(m_size_scaling.y); if (m_clamp) clamp(height, 0.f, UI_BASE_HEIGHT); return height; }
 
 	IC		void			SetVisible				(bool vis)								{m_bShowMe = vis;}
 	IC		bool			GetVisible				()								const	{return m_bShowMe;}

@@ -115,7 +115,7 @@ m_bCustomDraw(false),
 m_alignment(aLeftTop),
 m_anchor(aLeftTop),
 m_offsetTag(""),
-m_offset(""),
+m_offset_wnd_name(""),
 m_background_draw(false)
 {
 	Show					(true);
@@ -647,15 +647,15 @@ bool fit_in_rect(CUIWindow* w, Frect const& vis_rect, float border, float dx16po
 	return true;
 }
 
-CUIWindow* CUIWindow::GetOffset() const
+CUIWindow* CUIWindow::GetOffsetWnd() const
 {
-	if (m_offset.size())
+	if (m_offset_wnd_name.size())
 	{
 		if (GetParent())
 		{
 			for (WINDOW_LIST::const_iterator it = GetParent()->m_ChildWndList.begin(), it_e = GetParent()->m_ChildWndList.end(); it != it_e; ++it)
 			{
-				if ((*it)->m_offsetTag == m_offset)
+				if ((*it)->m_offsetTag == m_offset_wnd_name)
 					return	*it;
 			}
 		}
@@ -673,12 +673,12 @@ void CUIWindow::GetWndRect(Frect& res) const
 	Fvector2 pos			= GetWndPos();
 	Fvector2 size			= GetWndSize();
 	
-	CUIWindow* offset		= GetOffset();
-	float tmp				= offset ? offset->GetWidth() : 0.f;
+	CUIWindow* offset_wnd	= GetOffsetWnd();
+	float tmp				= (offset_wnd) ? offset_wnd->GetWidth() : 0.f;
 	if (fIsZero(tmp))
 		tmp					= UI_BASE_WIDTH;
 	pos.x					+= float(m_alignment % 3) * tmp / 2.f;
-	tmp						= offset ? offset->GetHeight() : 0.f;
+	tmp						= (offset_wnd) ? offset_wnd->GetHeight() : 0.f;
 	if (fIsZero(tmp))
 		tmp					= UI_BASE_HEIGHT;
 	pos.y					+= float(m_alignment / 3) * tmp / 2.f;
@@ -686,8 +686,8 @@ void CUIWindow::GetWndRect(Frect& res) const
 	pos.x					-= float(m_anchor % 3) * size.x / 2.f;
 	pos.y					-= float(m_anchor / 3) * size.y / 2.f;
 
-	if (m_offset.size())
-		pos.add				(offset->GetWndRect().lt);
+	if (m_offset_wnd_name.size())
+		pos.add				(offset_wnd->GetWndRect().lt);
 
 	res.lt					= pos;
 	res.rb.set				(res.lt);

@@ -1201,8 +1201,8 @@ bool CUIXmlInit::ReadParamWithScaling(CUIXml& xml_doc, const LPCSTR path, const 
 bool CUIXmlInit::ReadParamWithScaling(CUIXml& xml_doc, const LPCSTR path, const int index, const LPCSTR param, float& dest_value, EScaling& dest_scaling)
 {
 	if (ReadParamWithScaling(xml_doc, path, index, param, "%s", dest_value, dest_scaling, sAbsolute));
-	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_h", dest_value, dest_scaling, sScreenHeight));
-	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_w", dest_value, dest_scaling, sScreenWidth));
+	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_h", dest_value, dest_scaling, sScreenHeightLayout));
+	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_w", dest_value, dest_scaling, sScreenWidthLayout));
 	else return false;
 	return true;
 }

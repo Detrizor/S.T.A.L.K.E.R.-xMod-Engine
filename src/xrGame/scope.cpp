@@ -16,10 +16,9 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 {
 	dest								= xr_new<CUIStatic>();
 	dest->InitTextureEx					(texture);
-	Frect								rect;
-	rect.set							(0.f, 0.f, mult * 1024.f, mult * 1024.f);
-	dest->SetTextureRect				(rect);
-	dest->SetWndSize					(Fvector2().set(mult * UI_BASE_HEIGHT, mult * UI_BASE_HEIGHT));
+	dest->SetTextureRect				({ 0.f, 0.f, mult * 1024.f, mult * 1024.f });
+	dest->SetPosSize					(2, mult, sScreenHeight);
+	dest->SetPosSize					(3, mult, sScreenHeight);
 	dest->SetAlignment					(al);
 	dest->SetAnchor						(al);
 	dest->SetStretchTexture				(true);
@@ -129,7 +128,7 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	float scale							= hud_params.z;
-	Fvector2 pos						= { hud_params.x * Device.dwWidth, -hud_params.y * Device.dwHeight };
+	Fvector2 pos						= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
 	if (m_pUIReticle)
 	{
 		m_pUIReticle->SetScale			(scale);

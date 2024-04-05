@@ -280,6 +280,10 @@ float ui_core::GetScale(EScaling scaling) const
 		return						m_height_scale / GetScaleFactor();
 	case sScreenWidth:
 		return						m_width_scale / GetScaleFactor();
+	case sScreenHeightLayout:
+		return						m_height_scale_layout / GetScaleFactor();
+	case sScreenWidthLayout:
+		return						m_width_scale_layout / GetScaleFactor();
 	default:
 		FATAL						(shared_str().printf("incorrect scaling [%d]", scaling).c_str());
 		return						false;
@@ -293,6 +297,8 @@ float ui_core::GetScaleFactor() const
 
 void ui_core::SetCurScale(const Fvector2& res)
 {
-	m_height_scale					= res.y / m_layout_unit;
-	m_width_scale					= res.x / m_layout_unit;
+	m_height_scale					= res.y;
+	m_width_scale					= res.x;
+	m_height_scale_layout			= res.y / m_layout_unit;
+	m_width_scale_layout			= res.x / m_layout_unit;
 }
