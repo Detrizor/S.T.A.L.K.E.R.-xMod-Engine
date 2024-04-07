@@ -50,6 +50,12 @@ private:
 	const CAddon*						m_addon;
 	const eScopeType					m_Type;
 	const Fvector						m_sight_offset;
+	
+	CUIStatic*							m_pUIReticle							= NULL;
+	CBinocularsVision*					m_pVision								= NULL;
+	CNightVisionEffector*				m_pNight_vision							= NULL;
+	Fvector								m_camera_lense_offset					= vZero;
+	Fvector								m_hud_offset[2]							= { vZero, vZero };
 
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
@@ -61,11 +67,6 @@ private:
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
 	
-	CUIStatic*							m_pUIReticle							= NULL;
-	CBinocularsVision*					m_pVision								= NULL;
-	CNightVisionEffector*				m_pNight_vision							= NULL;
-	Fvector								m_camera_lense_offset					= vZero;
-	
 	void								init_visors								();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
@@ -74,8 +75,9 @@ public:
 	static float						s_lense_circle_scale_offset_power;
 	static float						s_lense_circle_position_derivation_factor;
 
-	void								ZoomChange								(int val)		{ m_Magnificaion.Shift(val); }
-	void								ZeroingChange							(int val)		{ m_Zeroing.Shift(val); }
+	void								ZoomChange								(int val)			{ m_Magnificaion.Shift(val); }
+	void								ZeroingChange							(int val)			{ m_Zeroing.Shift(val); }
+	void								setHudOffset							(Fvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
@@ -87,6 +89,7 @@ public:
 	Fvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
 	Fvector CR$							getSightOffset						C$	()		{ return m_sight_offset; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
+	Fvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

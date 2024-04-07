@@ -86,7 +86,7 @@ private:
 	void								shoot_grenade							();
 
 protected:
-	bool								AltHandsAttachRotation				CO$	();
+	bool								AltHandsAttach						CO$	();
 
 	BOOL								Chamber								CO$	();
 	bool								HasAltAim							CO$	();

@@ -60,10 +60,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_Chamber					= FALSE;
 	m_pNextMagazine				= NULL;
 	m_pCartridgeToReload		= NULL;
-	m_bIronSightsLowered		= false;
 
-	m_pScope					= NULL;
-	m_pAltScope					= NULL;
 	m_pSilencer					= NULL;
 	m_pMagazine					= NULL;
 	m_pMagazineSlot				= NULL;
@@ -154,8 +151,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_Chamber = pSettings->r_bool(section, "has_chamber");
 
-	m_hud = xr_new<CWeaponHud>(this);
-	InitRotateTime();
+	m_hud								= xr_new<CWeaponHud>(this);
+	InitRotateTime						();
 
 	CAddonOwner* ao						= cast<CAddonOwner*>();
 	if (ao)
@@ -172,7 +169,10 @@ void CWeaponMagazined::Load(LPCSTR section)
 	
 	shared_str integrated_addon			= READ_IF_EXISTS(pSettings, r_string, section, "scope", "");
 	if (integrated_addon.size())
-		m_pScope						= xr_new<CScope>(this, integrated_addon);
+	{
+		CScope* scope					= xr_new<CScope>(this, integrated_addon);
+		process_scope					(scope, true);
+	}
 
 	integrated_addon					= READ_IF_EXISTS(pSettings, r_string, section, "silencer", "");
 	if (integrated_addon.size())
@@ -1146,9 +1146,9 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
 	VERIFY(m_pInventory);
 	string32	int_str;
 
-	CScope* scope						= GetActiveScope();
-	if (!scope && !ADS())
-		scope							= m_pScope;
+	CScope* scope						= getActiveScope();
+	if (!scope)
+		scope							= m_cur_scope;
 	info.cur_ammo.printf				("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
 	if (scope && scope->Type() == eOptics)
 	{
@@ -1316,8 +1316,8 @@ void CWeaponMagazined::UpdateBonesVisibility()
 	R_ASSERT							(pWeaponVisual);
 
 	pWeaponVisual->CalculateBones_Invalidate();
-	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights, !m_bIronSightsLowered);
-	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights_lowered, m_bIronSightsLowered);
+	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights, !m_iron_sights_blockers);
+	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights_lowered, !!m_iron_sights_blockers);
 	pWeaponVisual->CalculateBones_Invalidate();
 	pWeaponVisual->CalculateBones		(TRUE);
 
@@ -1331,38 +1331,42 @@ void CWeaponMagazined::OnMotionHalf()
 		if (m_pMagazine)
 			m_pMagazine->Transfer		(parent_id());
 
-		if (m_pNextMagazine)
-			m_pMagazineSlot->loading_addon = m_pNextMagazine->cast<CAddon*>();
+		//if (m_pNextMagazine)
+			//m_pMagazineSlot->setLoadingAddon(m_pNextMagazine->cast<CAddon*>());
 	}
 }
 
 void CWeaponMagazined::OnHiddenItem()
 {
-	if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
-		m_pMagazineSlot->loading_addon	= NULL;
+	//if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
+		//m_pMagazineSlot->setLoadingAddon(NULL);
 	inherited::OnHiddenItem				();
 }
 
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 {
-	if (m_pScope && m_pScope->Type() == eOptics)
-		m_pScope->modify_holder_params(range, fov);
-	else
-		inherited::modify_holder_params(range, fov);
+	for (auto s : m_attached_scopes)
+	{
+		if (s->Type() == eOptics)
+		{
+			s->modify_holder_params		(range, fov);
+			return;
+		}
+	}
 }
 
-CScope* CWeaponMagazined::GetActiveScope() const
+CScope* CWeaponMagazined::getActiveScope() const
 {
 	if (ADS() == 1)
-		return m_pScope;
+		return m_cur_scope;
 	else if (ADS() == -1)
-		return m_pAltScope;
+		return m_alt_scope;
 	return NULL;
 }
 
 void CWeaponMagazined::ZoomInc()
 {
-	CScope* scope = GetActiveScope();
+	CScope* scope = getActiveScope();
 	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
 		scope->ZoomChange(1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
@@ -1372,13 +1376,15 @@ void CWeaponMagazined::ZoomInc()
 		else
 			m_IronSightsZeroing.Shift(1);
 	}
+	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+		cycle_scope((ADS() == 1) ? m_cur_scope : m_alt_scope, true);
 	else
 		inherited::ZoomInc();
 }
 
 void CWeaponMagazined::ZoomDec()
 {
-	CScope* scope = GetActiveScope();
+	CScope* scope = getActiveScope();
 	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
 		scope->ZoomChange(-1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
@@ -1388,13 +1394,15 @@ void CWeaponMagazined::ZoomDec()
 		else
 			m_IronSightsZeroing.Shift(-1);
 	}
+	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+		cycle_scope((ADS() == 1) ? m_cur_scope : m_alt_scope, false);
 	else
 		inherited::ZoomDec();
 }
 
 bool CWeaponMagazined::need_renderable()
 {
-	CScope* scope = GetActiveScope();
+	CScope* scope = getActiveScope();
 	if (!scope || scope->Type() != eOptics || scope->isPiP())
 		return true;
 	return !IsRotatingToZoom();
@@ -1402,7 +1410,7 @@ bool CWeaponMagazined::need_renderable()
 
 bool CWeaponMagazined::render_item_ui_query()
 {
-	CScope* scope = GetActiveScope();
+	CScope* scope = getActiveScope();
 	if (!scope || scope->Type() != eOptics)
 		return false;
 
@@ -1414,12 +1422,12 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	GetActiveScope()->RenderUI();
+	getActiveScope()->RenderUI();
 }
 
 float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 {
-	CScope* scope = GetActiveScope();
+	CScope* scope = getActiveScope();
 	if (scope && scope->Type() == eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
 		return scope->GetCurrentMagnification();
 	else
@@ -1444,8 +1452,8 @@ void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 		else if (m_pMagazine)
 			LoadCartridgeFromMagazine	(!Chamber());
 
-		if (m_pMagazineSlot)
-			m_pMagazineSlot->loading_addon = NULL;
+		//if (m_pMagazineSlot)
+			//m_pMagazineSlot->setLoadingAddon(NULL);
 	}
 	else
 	{ 
@@ -1468,7 +1476,67 @@ void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 	UpdateSndShot						();
 }
 
-float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
+void CWeaponMagazined::process_scope(CScope* scope, bool attach, SAddonSlot CPC slot)
+{
+	if (attach)
+	{
+		m_attached_scopes.push_back		(scope);
+		m_hud->ProcessScope				(scope, slot);
+		//CAddon* addon					= scope->cast<CAddon*>();
+		//if (addon && addon->m_ItemCurrPlace.type == -1)
+		//	m_cur_scope					= scope;
+		//else if (addon && addon->m_ItemCurrPlace.type == -2)
+		//	m_alt_scope					= scope;
+		//else
+		{
+			if (!m_cur_scope)
+			{
+				m_cur_scope				= scope;
+				//if (addon) addon->m_ItemCurrPlace.type = -1;
+			}
+			else if (!m_alt_scope)
+			{
+				m_alt_scope				= scope;
+				//if (addon) addon->m_ItemCurrPlace.type = -2;
+			}
+		}
+	}
+	else
+	{
+		if (m_cur_scope == scope)
+			cycle_scope					(m_cur_scope);
+		else if (m_alt_scope == scope)
+			cycle_scope					(m_alt_scope);
+		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
+	}
+}
+
+void CWeaponMagazined::cycle_scope(CScope*& scope, bool up)
+{
+	if (m_attached_scopes.empty())
+		return;
+
+	if (scope == NULL)
+		scope							= (up) ? m_attached_scopes[0] : m_attached_scopes.back();
+	else
+	{
+		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
+		{
+			if (m_attached_scopes[i] == scope)
+			{
+				if (up)
+					scope				= (i + 1 < e) ? m_attached_scopes[i + 1] : NULL;
+				else
+					scope				= (i - 1 >= 0) ? m_attached_scopes[i - 1] : NULL;
+				break;
+			}
+		}
+	}
+
+	//scope->cast<CInventoryItem*>()->m_ItemCurrPlace.type = (scope == m_cur_scope) ? -1 : -2;
+}
+
+float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -1482,18 +1550,7 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 
 			CScope* scope				= slot->addon->cast<CScope*>();
 			if (scope)
-			{
-				((slot->alt_scope) ? m_pAltScope : m_pScope) = (param) ? scope : NULL;
-
-				if (slot->lower_iron_sights)
-				{
-					m_bIronSightsLowered = !!param;
-					UpdateBonesVisibility();
-					SetInvIconType		((u8)param);
-				}
-
-				m_hud->ProcessScope		(slot, !!param);
-			}
+				process_scope			(scope, !!param, slot);
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
 			if (sil)
@@ -1509,6 +1566,13 @@ float CWeaponMagazined::Aboba o$(EEventTypes type, void* data, int param)
 
 			if (pSettings->line_exist(slot->addon->Section(), "grip_recoil_modifier"))
 				m_grip_accuracy_modifier = readAccuracyModifier((param) ? *slot->addon->Section() : *m_section_id, "grip_recoil_modifier");
+			
+			if (slot->blocking_iron_sights)
+			{
+				m_iron_sights_blockers	+= (param) ? 1 : -1;
+				UpdateBonesVisibility	();
+				SetInvIconType			((u8)param);
+			}
 
 			break;
 		}
@@ -1569,14 +1633,14 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	if (!hi)
 		return;
 
-	hi->set_bone_visible				(wpn_iron_sights, !m_bIronSightsLowered, TRUE);
-	hi->set_bone_visible				(wpn_iron_sights_lowered, m_bIronSightsLowered, TRUE);
+	hi->set_bone_visible				(wpn_iron_sights, !m_iron_sights_blockers, TRUE);
+	hi->set_bone_visible				(wpn_iron_sights_lowered, !!m_iron_sights_blockers, TRUE);
 }
 
 extern float aim_fov_tan;
 void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
-	CScope* scope						= GetActiveScope();
+	CScope* scope						= getActiveScope();
 	Device.m_SecondViewport.SetSVPActive(scope && scope->isPiP());
 	if (!scope || (scope->Type() == eOptics && !scope->isPiP()))
 		return;
@@ -1616,7 +1680,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 
 u16 CWeaponMagazined::Zeroing C$()
 {
-	CScope* active_scope				= GetActiveScope();
+	CScope* active_scope				= getActiveScope();
 	return								(active_scope) ? active_scope->Zeroing() : m_IronSightsZeroing.current;
 }
 

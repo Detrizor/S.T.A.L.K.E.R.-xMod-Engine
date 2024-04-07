@@ -622,7 +622,7 @@ void CWeaponMagazinedWGrenade::shoot_grenade()
 	StartFlameParticles2();
 }
 
-float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param)
+float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -645,7 +645,7 @@ float CWeaponMagazinedWGrenade::Aboba o$(EEventTypes type, void* data, int param
 			if (gl)
 			{
 				ProcessGL				(gl, !!param);
-				m_hud->ProcessGL		(slot, !!param);
+				m_hud->ProcessGL		(slot, gl, !!param);
 			}
 			break;
 		}
@@ -674,7 +674,7 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 	inherited::SetADS(mode);
 }
 
-bool CWeaponMagazinedWGrenade::AltHandsAttachRotation() const
+bool CWeaponMagazinedWGrenade::AltHandsAttach() const
 {
 	return m_bGrenadeMode;// && ADS();
 }

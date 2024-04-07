@@ -8,6 +8,7 @@
 #include "string_table.h"
 #include "scope.h"
 #include "../xrEngine/CameraManager.h"
+#include "WeaponMagazined.h"
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
@@ -278,11 +279,8 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	tmp.printf							("magazine_%d", idx);
 	magazine							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
-	tmp.printf							("lower_ironsights_%d", idx);
-	lower_iron_sights					= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
-
-	tmp.printf							("alt_scope_%d", idx);
-	alt_scope							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
+	tmp.printf							("blocking_ironsights_%d", idx);
+	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("overlaping_slot_%d", idx);
 	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
@@ -304,9 +302,8 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 	icon_offset.add						(root_slot->icon_offset);
 	icon_offset.sub						(root_slot->addon->IconOffset());
 	magazine							= false;
-	lower_iron_sights					= false;
-	alt_scope							= slot->alt_scope;
-	overlaping_slot						= slot->overlaping_slot;
+	blocking_iron_sights				= root_slot->blocking_iron_sights;
+	overlaping_slot						= root_slot->overlaping_slot;
 
 	addon								= slot->addon;
 	loading_addon						= NULL;
@@ -337,11 +334,20 @@ void SAddonSlot::updateAddonHudTransform(IRenderVisual* model, Fmatrix CR$ paren
 
 void SAddonSlot::RenderHud()
 {
-	if (addon)
-		addon->RenderHud				();
-
 	if (loading_addon)
 		loading_addon->RenderHud		();
+
+	if (addon)
+	{
+		CScope* scope					= addon->Cast<CScope*>();
+		if (scope && scope->Type() == eOptics && ::Render->currentViewPort == SECONDARY_WEAPON_SCOPE)
+		{
+			CWeaponMagazined* wpn		= parent_ao->cast<CWeaponMagazined*>();
+			if (wpn && wpn->getActiveScope() == scope)
+				return;
+		}
+		addon->RenderHud				();
+	}
 }
 
 void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ paren_trans)

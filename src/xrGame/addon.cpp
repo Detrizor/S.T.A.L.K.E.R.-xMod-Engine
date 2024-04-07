@@ -34,9 +34,6 @@ void CAddon::Load(LPCSTR section)
 
 void CAddon::RenderHud()
 {
-	CScope* scope						= Cast<CScope*>();
-	if (scope && scope->Type() == eOptics && ::Render->currentViewPort == SECONDARY_WEAPON_SCOPE)		//--xd bad conditioning, will be fixed while fixing general scopes cycling problem
-		return;
 	::Render->set_Transform				(&m_hud_transform);
 	::Render->add_Visual				(Visual());
 }

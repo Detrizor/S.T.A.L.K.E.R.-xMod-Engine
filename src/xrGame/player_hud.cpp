@@ -211,9 +211,12 @@ void attachable_hud_item::render_item_ui()
 	m_parent_hud_item->render_item_3d_ui();
 }
 
-Fvector CR$ attachable_hud_item::hands_attach_rot()
+
+//hands bind position
+
+const Fvector* attachable_hud_item::hands_attach() const
 {
-	return m_measures.m_hands_attach[(m_parent_hud_item->AltHandsAttachRotation()) ? 2 : 1];
+	return ((m_parent_hud_item->AltHandsAttach()) ? m_measures.m_hands_attach_alt : m_measures.m_hands_attach);
 }
 
 void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
@@ -222,9 +225,11 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point2") == pSettings->line_exist(hud_section, "fire_bone2"), hud_section);
 	R_ASSERT2(pSettings->line_exist(hud_section, "shell_point") == pSettings->line_exist(hud_section, "shell_bone"), hud_section);
 
-	m_hands_attach[0] = pSettings->r_fvector3(hud_section, "hands_position");
+	m_hands_attach[0] = pSettings->r_fvector3(hud_section, "root_offset");
 	m_hands_attach[1] = pSettings->r_fvector3(hud_section, "hands_orientation");
-	m_hands_attach[2] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "hands_orientation_alt", m_hands_attach[1]);
+	
+	m_hands_attach_alt[0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "root_offset_alt", m_hands_attach[0]);
+	m_hands_attach_alt[1] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "hands_orientation_alt", m_hands_attach[1]);
 
 	m_item_attach[0] = pSettings->r_fvector3(hud_section, "item_position");
 	m_item_attach[1] = pSettings->r_fvector3(hud_section, "item_orientation");
@@ -568,24 +573,22 @@ u32 player_hud::motion_length(const MotionID& M, const CMotionDef*& md, float sp
 }
 const Fvector& player_hud::attach_rot() const
 {
-	if(m_attached_items[0])
-		return m_attached_items[0]->hands_attach_rot();
+	if (m_attached_items[0])
+		return m_attached_items[0]->hands_attach()[1];
+	else if (m_attached_items[1])
+		return m_attached_items[1]->hands_attach()[1];
 	else
-	if(m_attached_items[1])
-		return m_attached_items[1]->hands_attach_rot();
-	else
-		return Fvector().set(0,0,0);
+		return vZero;
 }
 
 const Fvector& player_hud::attach_pos() const
 {
-	if(m_attached_items[0])
-		return m_attached_items[0]->hands_attach_pos();
+	if (m_attached_items[0])
+		return m_attached_items[0]->hands_attach()[0];
+	else if(m_attached_items[1])
+		return m_attached_items[1]->hands_attach()[0];
 	else
-	if(m_attached_items[1])
-		return m_attached_items[1]->hands_attach_pos();
-	else
-		return Fvector().set(0,0,0);
+		return vZero;
 }
 
 void player_hud::update(const Fmatrix& cam_trans)

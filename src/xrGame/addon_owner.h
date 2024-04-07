@@ -20,8 +20,7 @@ struct SAddonSlot
 	Fvector								model_offset[2];
 	Fvector								bone_offset[2];
 	Fvector2							icon_offset;
-	BOOL								lower_iron_sights;
-	BOOL								alt_scope;
+	BOOL								blocking_iron_sights;
 	BOOL								magazine;
 	u16									overlaping_slot;
 

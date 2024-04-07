@@ -233,10 +233,12 @@ public:
 
 //xMod added
 private:
+	CScope*								m_cur_scope								= NULL;
+	CScope*								m_alt_scope								= NULL;
+	xr_vector<CScope*>					m_attached_scopes						= {};
+	u8									m_iron_sights_blockers					= 0;
+
 	BOOL								m_Chamber;
-	bool								m_bIronSightsLowered;
-	CScope*								m_pScope;
-	CScope*								m_pAltScope;
 	CSilencer*							m_pSilencer;
 	SAddonSlot*							m_pMagazineSlot;
 	float								m_ReloadHalfPoint;
@@ -249,9 +251,9 @@ private:
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
+	void								process_scope							(CScope* scope, bool attach, SAddonSlot CPC slot = NULL);
+	void								cycle_scope								(CScope*& scope, bool up = true);
 	void								InitRotateTime							();
-
-	CScope*								GetActiveScope						C$	();
 
 	void								PrepareCartridgeToShoot				O$	();
 	void								OnHiddenItem						O$	();
@@ -271,22 +273,24 @@ protected:
 	BOOL							V$	Chamber								C$	()		{ return m_Chamber; }
 
 public:
-	CWeaponHud CR$						Hud									C$	()		{ return *m_hud; }
-
 	bool								Discharge								(CCartridge& destination);
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								UpdateHudBonesVisibility				();
 
-	bool								ScopeAttached						C$	()		{ return m_pScope || m_pAltScope; }
+	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
 	SAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
+
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
+	CScope*								getActiveScope						C$	();
 
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 
 	void								OnTaken								O$	();
+	void								OnMotionHalf						O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
-	void							V$	OnMotionHalf							();
+
+	friend class CWeaponHud;
 };

@@ -179,7 +179,8 @@ struct hud_item_measures
 	u16								m_shell_bone;
 	Fvector							m_shell_point_offset;
 
-	Fvector							m_hands_attach[3];//pos,rot,alt_rot
+	Fvector							m_hands_attach[2];//pos,rot
+	Fvector							m_hands_attach_alt[2];//pos,rot
 
 	void load						(LPCSTR hud_section, IKinematics* K);
 
@@ -229,8 +230,7 @@ struct attachable_hud_item
 	void debug_draw_firedeps		();
 
 	//hands bind position
-	const Fvector&					hands_attach_pos() { return m_measures.m_hands_attach[0]; };
-	const Fvector&					hands_attach_rot();
+	const Fvector*					hands_attach() const;
 
 //props
 	u32								m_upd_firedeps_frame;
