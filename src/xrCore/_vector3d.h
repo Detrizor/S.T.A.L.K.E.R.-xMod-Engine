@@ -461,7 +461,7 @@ public:
 		}
 	}
 
-	IC SelfRef rotate(float angle, int axis)
+	SelfRef rotate(float angle, int axis)
 	{
 		T* dx, *dy;
 		switch (axis)
@@ -487,7 +487,7 @@ public:
 		return *this;
 	}
 
-	IC SelfRef rotate(float angle_x, float angle_y, float angle_z)
+	SelfRef rotate(float angle_x, float angle_y, float angle_z)
 	{
 		rotate(angle_x, 0);
 		rotate(angle_y, 1);
@@ -495,17 +495,22 @@ public:
 		return *this;
 	}
 
-	IC SelfRef rotate(const SelfRef angle_vec)
+	SelfRef rotate(const SelfRef angle_vec)
 	{
 		rotate(angle_vec.x, angle_vec.y, angle_vec.z);
 		return *this;
 	}
 
-	IC Self rotate_(const SelfRef angle_vec) const
+	Self rotate_(const SelfRef angle_vec) const
 	{
 		Self res = *this;
 		res.rotate(angle_vec.x, angle_vec.y, angle_vec.z);
 		return res;
+	}
+
+	void pivot(Self* offset) const
+	{
+		offset[0].add(rotate_(offset[1]));
 	}
 };
 

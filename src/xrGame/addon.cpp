@@ -4,18 +4,17 @@
 #include "scope.h"
 #include "silencer.h"
 #include "GrenadeLauncher.h"
+#include "addon_owner.h"
 
 CAddon::CAddon()
 {
-	m_SlotType							= 0;
-	m_IconOffset						= vZero2;
-	m_hud_offset[0]						= vZero;
-	m_hud_offset[1]						= vZero;
+	m_local_transform.identity			();
 }
 
 void CAddon::Load(LPCSTR section)
 {
 	inherited::Load						(section);
+
 	m_SlotType							= pSettings->r_string(section, "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
 	m_MotionsSuffix						= pSettings->r_string(section, "motions_suffix");
@@ -25,31 +24,49 @@ void CAddon::Load(LPCSTR section)
 		if (addon_type == "magazine")
 			AddModule<CMagazine>		();
 		else if (addon_type == "scope")
-		{
 			AddModule<CScope>			(cNameSect());
-			LoadHudOffset				();
-		}
 		else if (addon_type == "silencer")
 			AddModule<CSilencer>		(cNameSect());
 		else if (addon_type == "grenade_launcher")
-		{
 			AddModule<CGrenadeLauncher>	(cNameSect());
-			LoadHudOffset				();
-		}
 	}
 }
 
-void CAddon::LoadHudOffset()
-{
-	m_hud_offset[0].sub					(pSettings->r_fvector3(m_section_id, "hud_offset_pos"));
-	m_hud_offset[1].sub					(pSettings->r_fvector3(m_section_id, "hud_offset_rot"));
-}
-
-void CAddon::Render(Fmatrix* pos)
+void CAddon::RenderHud()
 {
 	CScope* scope						= Cast<CScope*>();
 	if (scope && scope->Type() == eOptics && ::Render->currentViewPort == SECONDARY_WEAPON_SCOPE)		//--xd bad conditioning, will be fixed while fixing general scopes cycling problem
 		return;
-	::Render->set_Transform				(pos);
+	::Render->set_Transform				(&m_hud_transform);
 	::Render->add_Visual				(Visual());
+}
+
+void CAddon::RenderWorld(Fmatrix CR$ parent_trans)
+{
+	Fmatrix								trans;
+	trans.mul							(parent_trans, m_local_transform);
+	::Render->set_Transform				(&trans);
+	::Render->add_Visual				(Visual());
+}
+
+void CAddon::updateLocalTransform(Fmatrix CPC parent_trans)
+{
+	if (parent_trans)
+		m_local_transform				= *parent_trans;
+	else
+		m_local_transform.identity		();
+	CAddonOwner* ao						= Cast<CAddonOwner*>();
+	if (ao)
+	{
+		for (auto s : ao->AddonSlots())
+		{
+			if (s->addon && !s->forwarded_slot)
+				s->updateAddonLocalTransform();
+		}
+	}
+}
+
+void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
+{
+	m_hud_transform.mul					(parent_trans, m_local_transform);
 }

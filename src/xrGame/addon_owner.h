@@ -10,6 +10,7 @@ typedef xr_vector<SAddonSlot*> VSlots;
 struct SAddonSlot
 {
 	CAddonOwner PC$						parent_ao;
+	CAddon CPC							parent_addon;
 	SAddonSlot PC$						forwarded_slot;
 
 	u16									idx;
@@ -26,14 +27,21 @@ struct SAddonSlot
 
 	CAddon*								addon;
 	CAddon*								loading_addon;
-	Fmatrix								render_pos;
+	Fmatrix								transform;
 
 										SAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 										SAddonSlot								(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent);
+										
+	void								append_bone_trans					C$	(Fmatrix& trans, IRenderVisual* model, Fmatrix CPC parent_trans);
+	
+	void								registerAddon							(CAddon* _addon);
+	void								updateAddonLocalTransform				();
+	void								unregisterAddon							();
 
-	void								UpdateRenderPos							(IRenderVisual* model, Fmatrix parent);
+	void								updateAddonHudTransform					(IRenderVisual* model, Fmatrix CR$ parent_trans);
+
 	void								RenderHud								();
-	void								RenderWorld								(IRenderVisual* model, Fmatrix parent);
+	void								RenderWorld								(IRenderVisual* model, Fmatrix CR$ paren_trans);
 
 	bool								Compatible							C$	(CAddon CPC _addon);
 	bool								CanTake								C$	(CAddon CPC _addon);

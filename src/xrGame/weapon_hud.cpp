@@ -128,7 +128,7 @@ void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 			m_scope_own_alt_aim			= false;
 	}
 
-	m_hands_offset[idx][0].add			(slot->addon->HudOffset()[0]);
+	//m_hands_offset[idx][0].add			(slot->addon->HudOffset()[0]);
 
 	if (idx == eScope)
 	{
@@ -148,9 +148,9 @@ void CWeaponHud::ProcessGL(SAddonSlot* slot, bool attach)
 	Fvector tmp							= m_root_offset_gl;
 	tmp.sub								(slot->model_offset[0]);
 
-	m_hands_offset[eGL][0]				= slot->addon->HudOffset()[0];
-	m_hands_offset[eGL][1]				= slot->addon->HudOffset()[1];
-	ApplyPivot							(m_hands_offset[eGL], tmp);
+	//m_hands_offset[eGL][0]				= slot->addon->HudOffset()[0];
+	//m_hands_offset[eGL][1]				= slot->addon->HudOffset()[1];
+	//ApplyPivot							(m_hands_offset[eGL], tmp);
 
 	m_hands_offset[eGL][0].z			= m_hands_offset[eIS][0].z;
 }

@@ -6,6 +6,8 @@
 #include "player_hud.h"
 #include "HudItem.h"
 #include "string_table.h"
+#include "scope.h"
+#include "../xrEngine/CameraManager.h"
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
@@ -104,9 +106,10 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 			break;
 		case eUpdateSlotsTransform:
 		{
-			attachable_hud_item* hi		= smart_cast<CHudItem*>(&O)->HudItemData();
+			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
+			auto model					= hi->m_model->dcast_RenderVisual();
 			for (auto s : m_Slots)
-				s->UpdateRenderPos		(hi->m_model->dcast_RenderVisual(), hi->m_item_transform);
+				s->updateAddonHudTransform(model, hi->m_item_transform);
 			break;
 		}
 	}
@@ -122,7 +125,7 @@ CAddonOwner* CAddonOwner::ParentAO() const
 void CAddonOwner::RegisterAddon(CAddon PC$ addon, SAddonSlot PC$ slot, bool attach)
 {
 	if (attach)
-		slot->addon						= addon;
+		slot->registerAddon				(addon);
 
 	CAddonOwner* parent_ao				= ParentAO();
 	CAddonOwner* ao						= addon->cast<CAddonOwner*>();
@@ -144,7 +147,7 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, SAddonSlot PC$ slot, bool atta
 		O.Aboba							(eOnAddon, (void*)slot, attach);
 
 	if (!attach)
-		slot->addon						= NULL;
+		slot->unregisterAddon			();
 
 	if (ao)
 	{
@@ -231,7 +234,10 @@ int CAddonOwner::DetachAddon(CAddon CPC addon)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : parent_ao(parent), forwarded_slot(NULL)
+SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
+	parent_ao(parent),
+	parent_addon(parent->cast<CAddon*>()),
+	forwarded_slot(NULL)
 {
 	idx									= _idx;
 	shared_str							tmp;
@@ -258,6 +264,13 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : paren
 	bone_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
 	bone_offset[0].mul					(-1.f);
 	bone_offset[0].rotate				(bone_offset[1]);
+	
+	if (parent_addon)
+		append_bone_trans				(transform, parent_addon->Visual(), NULL);
+	else
+		transform.identity				();
+	transform.applyOffset				(bone_offset);
+	transform.applyOffset				(model_offset);
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
@@ -275,23 +288,18 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) : paren
 	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
 
 	addon = loading_addon				= NULL;
-	render_pos.identity					();
 }
 
-extern void ApplyPivot(Fvector* offset, Fvector CR$ pivot);
-extern void ApplyOffset(Fmatrix& trans, Fvector CR$ position, Fvector CR$ rotation);
-
-SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent) : parent_ao(parent), forwarded_slot(slot)
+SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent):
+	parent_ao(parent),
+	parent_addon(parent->cast<CAddon*>()),
+	forwarded_slot(slot)
 {
 	name.printf							("%s - %s", *CStringTable().translate(root_slot->addon->NameShort()), *CStringTable().translate(slot->name));
 	type								= slot->type;
 	bone_name							= root_slot->bone_name;
-	model_offset[0]						= root_slot->model_offset[0];
 	model_offset[1]						= root_slot->model_offset[1];
-	ApplyPivot							(model_offset, slot->model_offset[0]);
 	model_offset[1].add					(slot->model_offset[1]);
-	bone_offset[0]						= root_slot->bone_offset[0];
-	bone_offset[1]						= root_slot->bone_offset[1];
 	icon_offset							= slot->icon_offset;
 	icon_offset.add						(root_slot->icon_offset);
 	icon_offset.sub						(root_slot->addon->IconOffset());
@@ -302,39 +310,74 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 
 	addon								= slot->addon;
 	loading_addon						= NULL;
-	render_pos.identity					();
 }
 
-void SAddonSlot::UpdateRenderPos(IRenderVisual* model, Fmatrix parent)
+void SAddonSlot::append_bone_trans(Fmatrix& trans, IRenderVisual* model, Fmatrix CPC parent_trans) const
 {
 	u16 bone_id							= model->dcast_PKinematics()->LL_BoneID(bone_name);
 	Fmatrix bone_trans					= model->dcast_PKinematics()->LL_GetTransform(bone_id);
+	if (parent_trans)
+		trans.mul						(*parent_trans, bone_trans);
+	else
+		trans							= bone_trans;
+}
 
-	render_pos.identity					();
-	render_pos.mul						(parent, bone_trans);
+void SAddonSlot::updateAddonHudTransform(IRenderVisual* model, Fmatrix CR$ parent_trans)
+{
+	if (!addon)
+		return;
 
-	ApplyOffset							(render_pos, bone_offset[0], bone_offset[1]);
-	ApplyOffset							(render_pos, model_offset[0], model_offset[1]);
+	Fmatrix								trans;
+	append_bone_trans					(trans, model, &parent_trans);
+	addon->updateHudTransform			(trans);
+	CScope* scope						= addon->cast<CScope*>();
+	//if (scope)
+	//	scope->updateCameraLenseOffset	();
 }
 
 void SAddonSlot::RenderHud()
 {
 	if (addon)
-		addon->Render					(&render_pos);
+		addon->RenderHud				();
 
 	if (loading_addon)
-		loading_addon->Render			(&render_pos);
+		loading_addon->RenderHud		();
 }
 
-void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix parent)
+void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ paren_trans)
 {
-	if (addon)
+	if (!addon)
+		return;
+	
+	Fmatrix								trans;
+	append_bone_trans					(trans, model, &paren_trans);
+	addon->RenderWorld					(trans);
+}
+
+void SAddonSlot::registerAddon(CAddon* _addon)
+{
+	addon								= _addon;
+	if (!forwarded_slot)
+		updateAddonLocalTransform		();
+}
+
+void SAddonSlot::updateAddonLocalTransform()
+{
+	if (parent_addon)
 	{
-		Fmatrix backup					= render_pos;
-		UpdateRenderPos					(model, parent);
-		addon->Render					(&render_pos);
-		render_pos						= backup;
+		Fmatrix							trans;
+		trans.mul						(parent_addon->getLocalTransform(), transform);
+		addon->updateLocalTransform		(&trans);
 	}
+	else
+		addon->updateLocalTransform		(&transform);
+}
+
+void SAddonSlot::unregisterAddon()
+{
+	if (!forwarded_slot)
+		addon->updateLocalTransform		(NULL);
+	addon								= NULL;
 }
 
 bool SAddonSlot::Compatible(CAddon CPC _addon) const
