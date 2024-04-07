@@ -331,8 +331,8 @@ void SAddonSlot::updateAddonHudTransform(IRenderVisual* model, Fmatrix CR$ paren
 	append_bone_trans					(trans, model, &parent_trans);
 	addon->updateHudTransform			(trans);
 	CScope* scope						= addon->cast<CScope*>();
-	//if (scope)
-	//	scope->updateCameraLenseOffset	();
+	if (scope)
+		scope->updateCameraLenseOffset	();
 }
 
 void SAddonSlot::RenderHud()

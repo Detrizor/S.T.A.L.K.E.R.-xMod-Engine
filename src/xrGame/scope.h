@@ -12,6 +12,7 @@ class CUIStatic;
 class CBinocularsVision;
 class CNightVisionEffector;
 class CWeaponHud;
+class CAddon;
 
 struct hud_item_measures;
 
@@ -46,38 +47,48 @@ public:
 										~CScope									();
 
 private:
-	eScopeType							m_Type;
+	const CAddon*						m_addon;
+	const eScopeType					m_Type;
+	const Fvector						m_sight_offset;
+
+	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
+
+	float								m_lense_radius;
+	Fvector								m_objective_offset;
+	float								m_eye_relief;
 	shared_str							m_Reticle;
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
-	float								m_fLenseRadius;
-	CUIStatic*							m_pUIReticle;
-	CBinocularsVision*					m_pVision;
-	CNightVisionEffector*				m_pNight_vision;
-	SRangeNum<u16>						m_Zeroing;
-	Fvector								m_outer_lense_offset = vZero;
 	
-	void								InitVisors								();
-
+	CUIStatic*							m_pUIReticle							= NULL;
+	CBinocularsVision*					m_pVision								= NULL;
+	CNightVisionEffector*				m_pNight_vision							= NULL;
+	Fvector								m_camera_lense_offset					= vZero;
+	
+	void								init_visors								();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	static	Fvector						s_lense_circle_scale;
-	static	Fvector2					s_lense_circle_offset;
-
-	eScopeType							Type								C$	()		{ return m_Type; }
-	float								GetLenseRadius						C$	()		{ return m_fLenseRadius; }
-	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
-	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
-	Fvector CR$							getOuterLenseOffset					C$	()		{ return m_outer_lense_offset; }
-
-	float								GetReticleScale						C$	(CWeaponHud CR$ hud);
-	void								modify_holder_params				C$	(float &range, float &fov);
-	bool								HasLense							C$	();
+	static float						s_magnification_eye_relief_shrink;
+	static float						s_lense_circle_scale_offset_power;
+	static float						s_lense_circle_position_derivation_factor;
 
 	void								ZoomChange								(int val)		{ m_Magnificaion.Shift(val); }
 	void								ZeroingChange							(int val)		{ m_Zeroing.Shift(val); }
 
-	void								RenderUI								(CWeaponHud CR$ hud);
+	void								RenderUI								();
+	void								updateCameraLenseOffset					();
+	float								getLenseFov								();
+
+	eScopeType							Type								C$	()		{ return m_Type; }
+	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
+	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
+	Fvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
+	Fvector CR$							getSightOffset						C$	()		{ return m_sight_offset; }
+	float								getEyeRelief						C$	()		{ return m_eye_relief; }
+
+	float								GetReticleScale						C$	();
+	void								modify_holder_params				C$	(float &range, float &fov);
+	bool								isPiP								C$	();
 };

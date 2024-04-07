@@ -138,7 +138,7 @@ void CWeaponHud::ProcessScope(SAddonSlot* slot, bool attach)
 	}
 	m_hands_offset[eScopeAlt][0].z		= m_hands_offset[eIS][0].z;
 
-	m_scope_sight_point_offset			= scope->getOuterLenseOffset();
+	//m_scope_sight_point_offset			= scope->getOuterLenseOffset();
 }
 
 void CWeaponHud::ProcessGL(SAddonSlot* slot, bool attach)

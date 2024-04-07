@@ -7,6 +7,8 @@
 #include "Torch.h"
 #include "Actor.h"
 #include "weapon_hud.h"
+#include "addon.h"
+#include "ActorEffector.h"
 
 CUIStatic* pUILenseCircle				= NULL;
 CUIStatic* pUILenseBlackFill			= NULL;
@@ -24,24 +26,23 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 	dest->SetStretchTexture				(true);
 }
 
-CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj)
+CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
+m_addon(obj->Cast<CAddon*>()),
+m_Type((eScopeType)pSettings->r_u8(section, "type")),
+m_sight_offset(pSettings->r_fvector3(section, "sight_offset"))
 {
-	m_pUIReticle						= NULL;
-	m_pVision							= NULL;
-	m_pNight_vision						= NULL;
-
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
-	m_Type								= (eScopeType)pSettings->r_u8(section, "type");
 	switch (m_Type)
 	{
 		case eOptics:
 			m_Magnificaion.Load			(pSettings->r_string(section, "magnification"));
-			m_fLenseRadius				= pSettings->r_float(section, "lense_radius");
-			m_outer_lense_offset		= pSettings->r_fvector3(section, "outer_lense_offset");
+			m_lense_radius				= pSettings->r_float(section, "lense_radius");
+			m_objective_offset			= pSettings->r_fvector3(section, "objective_offset");
+			m_eye_relief				= pSettings->r_float(section, "eye_relief");
 			m_Reticle					= pSettings->r_string(section, "reticle");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
-			InitVisors					();
+			init_visors					();
 			break;
 		case eCollimator:
 			m_Magnificaion.Load			(pSettings->r_string(section, "reticle_scale"));
@@ -73,7 +74,7 @@ float CScope::aboba o$(EEventTypes type, void* data, int param)
 				result					|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
 				result					|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
 				if (result)
-					InitVisors			();
+					init_visors			();
 			}
 			return						(result) ? 1.f : flt_max;
 		}
@@ -82,7 +83,7 @@ float CScope::aboba o$(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CScope::InitVisors()
+void CScope::init_visors()
 {
 	xr_delete							(m_pUIReticle);
 	if (m_Reticle.size())
@@ -110,12 +111,13 @@ void CScope::modify_holder_params C$(float &range, float &fov)
 	}
 }
 
-bool CScope::HasLense() const
+bool CScope::isPiP() const
 {
-	return								Type() == eOptics && !fIsZero(m_fLenseRadius);
+	return								Type() == eOptics && !fIsZero(m_lense_radius);
 }
 
-void CScope::RenderUI(CWeaponHud CR$ hud)
+extern ENGINE_API float psSVPImageSizeK;
+void CScope::RenderUI()
 {
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
@@ -127,18 +129,23 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 	}
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	float scale							= hud_params.z;
 	Fvector2 pos						= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
 	if (m_pUIReticle)
 	{
-		m_pUIReticle->SetScale			(scale);
 		m_pUIReticle->SetWndPos			(pos);
 		m_pUIReticle->Draw				();
 	}
+	
+	float magnification					= 0.f;
+	if (m_Magnificaion.dynamic)
+		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
+	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
+	float offset						= m_camera_lense_offset.magnitude() / cur_eye_relief;
+	float scale							= pow(offset, s_lense_circle_scale_offset_power);
+	pos.mul								(s_lense_circle_position_derivation_factor);
 
-	scale								*= exp(pow(GetCurrentMagnification(), s_lense_circle_scale.z) * (s_lense_circle_scale.x + s_lense_circle_scale.y * (hud.HudOffset()[0].z - hud.HandsOffset(eScope)[0].z)));
 	pUILenseCircle->SetScale			(scale);
-	pUILenseCircle->SetWndPos			(pos.mul(s_lense_circle_offset.x * pow(GetCurrentMagnification(), s_lense_circle_offset.y)));
+	pUILenseCircle->SetWndPos			(pos);
 	pUILenseCircle->Draw				();
 
 	Frect crect							= pUILenseCircle->GetWndRect();
@@ -151,7 +158,7 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 	pUILenseBlackFill->SetWndRect		(Frect().set(0.f, crect.top, crect.left, UI_BASE_HEIGHT));
 	pUILenseBlackFill->Draw				();
 
-	if (!HasLense())
+	if (!isPiP())
 	{
 		pUILenseGlass->Draw				();
 		pUILenseCircle->SetScale		(1.f);
@@ -160,23 +167,20 @@ void CScope::RenderUI(CWeaponHud CR$ hud)
 	}
 }
 
-extern float aim_fov_tan;
-extern ENGINE_API float psSVPImageSizeK;
-float CScope::GetReticleScale(CWeaponHud CR$ hud) const
+void CScope::updateCameraLenseOffset()
 {
-	switch (Type())
-	{
-		case eOptics:
-			if (HasLense())
-			{
-				float lense_fov_tan = GetLenseRadius() / abs(hud.LenseOffset() - hud.HudOffset()[0].z);
-				return psSVPImageSizeK * lense_fov_tan / aim_fov_tan;
-			}
-			break;
-		case eCollimator:
-			return m_Magnificaion.current;
-			break;
-	}
+	m_camera_lense_offset				= m_sight_offset;
+	Fmatrix CR$ transform				= (m_addon) ? m_addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_item_transform;
+	transform.transform_tiny			(m_camera_lense_offset);
+	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
+}
 
-	return 1.f;
+float CScope::getLenseFov()
+{
+	return								m_lense_radius / m_camera_lense_offset.magnitude();
+}
+
+float CScope::GetReticleScale() const
+{
+	return (Type() == eCollimator) ? m_Magnificaion.current : 1.f;
 }

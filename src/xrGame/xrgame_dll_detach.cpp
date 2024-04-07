@@ -162,8 +162,9 @@ SPowerDependency CWeaponHud::HandlingToRotationTime;
 float CFireDispertionController::crosshair_inertion;
 
 
-Fvector CScope::s_lense_circle_scale;
-Fvector2 CScope::s_lense_circle_offset;
+float CScope::s_magnification_eye_relief_shrink;
+float CScope::s_lense_circle_scale_offset_power;
+float CScope::s_lense_circle_position_derivation_factor;
 
 extern CUIStatic*			pUILenseCircle;
 extern CUIStatic*			pUILenseBlackFill;
@@ -211,8 +212,9 @@ void loadStaticVariables()
 	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
 	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
 
-	CScope::s_lense_circle_scale			= pSettings->r_fvector3("weapon_manager", "lense_circle_scale");
-	CScope::s_lense_circle_offset			= pSettings->r_fvector2("weapon_manager", "lense_circle_offset");
+	CScope::s_magnification_eye_relief_shrink			= pSettings->r_float("weapon_manager", "magnification_eye_relief_shrink");
+	CScope::s_lense_circle_scale_offset_power			= pSettings->r_float("weapon_manager", "lense_circle_scale_offset_power");
+	CScope::s_lense_circle_position_derivation_factor	= pSettings->r_float("weapon_manager", "lense_circle_position_derivation_factor");
 
 	psAIM_FOV		= pSettings->r_float("weapon_manager", "aim_fov");
 	aim_fov_tan		= tanf(psAIM_FOV * (0.5f * PI / 180.f));
