@@ -183,6 +183,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_ReloadPartialPoint				= READ_IF_EXISTS(pSettings, r_float, hud_sect, "reload_partial_point", .75f);
 
 	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
+
+	m_lower_iron_sights_on_block		= !!READ_IF_EXISTS(pSettings, r_bool, section, "lower_iron_sights_on_block", FALSE);
 }
 
 void CWeaponMagazined::FireStart()
@@ -1564,14 +1566,15 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 				PlayAnimIdle			();
 			}
 
-			if (pSettings->line_exist(slot->addon->Section(), "grip_recoil_modifier"))
-				m_grip_accuracy_modifier = readAccuracyModifier((param) ? *slot->addon->Section() : *m_section_id, "grip_recoil_modifier");
+			if (pSettings->line_exist(slot->addon->Section(), "grip"))
+				m_grip_accuracy_modifier = readAccuracyModifier((param) ? *slot->addon->Section() : *m_section_id, "grip");
 			
 			if (slot->blocking_iron_sights)
 			{
 				m_iron_sights_blockers	+= (param) ? 1 : -1;
 				UpdateBonesVisibility	();
-				SetInvIconType			((u8)param);
+				if (m_lower_iron_sights_on_block)
+					SetInvIconType		(!!m_iron_sights_blockers);
 			}
 
 			break;

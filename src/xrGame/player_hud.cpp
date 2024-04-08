@@ -225,7 +225,7 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point2") == pSettings->line_exist(hud_section, "fire_bone2"), hud_section);
 	R_ASSERT2(pSettings->line_exist(hud_section, "shell_point") == pSettings->line_exist(hud_section, "shell_bone"), hud_section);
 
-	m_hands_attach[0] = pSettings->r_fvector3(hud_section, "root_offset");
+	m_hands_attach[0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "root_offset", pSettings->r_fvector3(hud_section, "hands_position"));
 	m_hands_attach[1] = pSettings->r_fvector3(hud_section, "hands_orientation");
 	
 	m_hands_attach_alt[0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "root_offset_alt", m_hands_attach[0]);

@@ -148,7 +148,7 @@ void CWeapon::appendRecoil(float impulse_magnitude)
 		roll * s_recoil_roll_weight
 	};
 
-	shot_impulse.mul			(sqrt(impulse_magnitude));
+	shot_impulse.mul			(impulse_magnitude);
 	m_recoil_hud_impulse.add	(shot_impulse);
 	m_recoil_cam_impulse.add	(shot_impulse);
 	m_recoil_cam_last_impulse	= shot_impulse;

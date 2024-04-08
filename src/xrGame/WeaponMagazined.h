@@ -245,6 +245,7 @@ private:
 	float								m_ReloadEmptyHalfPoint;
 	float								m_ReloadPartialPoint;
 	SRangeNum<u16>						m_IronSightsZeroing;
+	bool								m_lower_iron_sights_on_block;
 
 	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
 	void								UpdateSndShot							();
