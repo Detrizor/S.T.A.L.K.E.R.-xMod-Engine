@@ -100,8 +100,6 @@ sPoly2D* C2DFrustum::ClipPoly	(sPoly2D& S, sPoly2D& D) const
 
 void ui_core::OnDeviceReset()
 {
-	m_device_res.set				(float(Device.dwWidth), float(Device.dwHeight));
-	SetCurScale						(m_device_res);
 	m_2DFrustum.CreateFromRect		(Frect().set(
 									0.0f,
 									0.0f,
@@ -228,22 +226,17 @@ ui_core::~ui_core()
 void ui_core::pp_start()
 {
 	m_bPostprocess					= true;
-
-	m_pp_res.set					(float(::Render->getTarget()->get_width()), float(::Render->getTarget()->get_height()));
 	m_2DFrustumPP.CreateFromRect	(Frect().set(
 									0.0f,
 									0.0f,
 									float(::Render->getTarget()->get_width()),
 									float(::Render->getTarget()->get_height())
 									));
-
-	SetCurScale						(m_pp_res);
 }
 
 void ui_core::pp_stop()
 {
 	m_bPostprocess					= false;
-	SetCurScale						(m_device_res);
 }
 
 void ui_core::RenderFont()
@@ -277,13 +270,13 @@ float ui_core::GetScale(EScaling scaling) const
 	case sAbsolute:
 		return						1.f;
 	case sScreenHeight:
-		return						m_height_scale / GetScaleFactor();
+		return						float(Device.dwHeight) / GetScaleFactor();
 	case sScreenWidth:
-		return						m_width_scale / GetScaleFactor();
+		return						float(Device.dwWidth) / GetScaleFactor();
 	case sScreenHeightLayout:
-		return						m_height_scale_layout / GetScaleFactor();
+		return						float(Device.dwHeight) / (m_layout_unit * GetScaleFactor());
 	case sScreenWidthLayout:
-		return						m_width_scale_layout / GetScaleFactor();
+		return						float(Device.dwWidth) / (m_layout_unit * GetScaleFactor());
 	default:
 		FATAL						(shared_str().printf("incorrect scaling [%d]", scaling).c_str());
 		return						false;
@@ -293,12 +286,4 @@ float ui_core::GetScale(EScaling scaling) const
 float ui_core::GetScaleFactor() const
 {
 	return							psUI_SCALE * m_layout_factor;
-}
-
-void ui_core::SetCurScale(const Fvector2& res)
-{
-	m_height_scale					= res.y;
-	m_width_scale					= res.x;
-	m_height_scale_layout			= res.y / m_layout_unit;
-	m_width_scale_layout			= res.x / m_layout_unit;
 }

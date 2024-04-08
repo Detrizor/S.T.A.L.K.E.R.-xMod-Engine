@@ -465,6 +465,7 @@ void CCameraManager::ApplyDeviceInternal(float _viewport_near)
     {
         Fvector CR$ pos = (second_viewport) ? Device.m_SecondViewport.getPosition() : m_cam_info.p;
         float fov = (second_viewport) ? Device.m_SecondViewport.getFov() : m_cam_info.fFov;
+        float aspect = (second_viewport) ? (float)Device.m_SecondViewport.screenWidth / (float)Device.m_SecondViewport.screenHeight : m_cam_info.fAspect;
 
         Device.mView.build_camera_dir(pos, m_cam_info.d, m_cam_info.n);
 
@@ -476,8 +477,7 @@ void CCameraManager::ApplyDeviceInternal(float _viewport_near)
         // projection
         Device.fFOV = fov;
         Device.fHUDFOV = fov;
-        Device.fASPECT = m_cam_info.fAspect;
-        float aspect = m_cam_info.fAspect;
+        Device.fASPECT = aspect;
 
         Device.mProject.build_projection(deg2rad(Device.fFOV), aspect, _viewport_near, m_cam_info.fFar);
     }

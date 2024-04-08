@@ -1031,7 +1031,7 @@ void CHW::UpdateViews()
 	HRESULT R;
 
 	// Set up svp image size
-	Device.m_SecondViewport.screenWidth = u32((sd.BufferDesc.Width / 32) * psSVPImageSizeK) * 32;
+	Device.m_SecondViewport.screenWidth = u32((sd.BufferDesc.Height / 32) * psSVPImageSizeK) * 32;
 	Device.m_SecondViewport.screenHeight = u32((sd.BufferDesc.Height / 32) * psSVPImageSizeK) * 32;
 
 	// Create a render target view

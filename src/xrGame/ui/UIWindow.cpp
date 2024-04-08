@@ -166,8 +166,11 @@ CUIWindow::~CUIWindow()
 #endif
 }
 
+bool force_draw_ui_on_svp = false;
 void CUIWindow::Draw()
 {
+	if (::Render->currentViewPort == SECONDARY_WEAPON_SCOPE && !force_draw_ui_on_svp)
+		return;
 	for (auto I : m_ChildWndList)
 	{
 		if (I->IsShown() && !I->GetCustomDraw() && !I->BackgroundDraw())

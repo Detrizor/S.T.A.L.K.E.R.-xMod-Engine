@@ -85,17 +85,9 @@ public:
 	IUIRender::ePointType		m_currentPointType;
 
 private:
-			Fvector2		m_device_res;
-			Fvector2		m_pp_res;
-			float			m_height_scale;
-			float			m_height_scale_layout;
-			float			m_width_scale;
-			float			m_width_scale_layout;
 			float			m_layout_unit;
 			float			m_layout_factor;
 			float			m_text_scale_factor;
-
-			void			SetCurScale				(const Fvector2& res);
 
 public:
 	float								GetTextScaleFactor					C$	()		{ return m_text_scale_factor; }

@@ -72,8 +72,11 @@ private:
 
 public:
 	static float						s_magnification_eye_relief_shrink;
+	static float						s_lense_circle_scale_default;
 	static float						s_lense_circle_scale_offset_power;
 	static float						s_lense_circle_position_derivation_factor;
+	static float						s_lense_vignette_a;
+	static float						s_lense_vignette_b;
 
 	void								ZoomChange								(int val)			{ m_Magnificaion.Shift(val); }
 	void								ZeroingChange							(int val)			{ m_Zeroing.Shift(val); }
@@ -81,7 +84,7 @@ public:
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
-	float								getLenseFov								();
+	float								getLenseFovTan							();
 
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }

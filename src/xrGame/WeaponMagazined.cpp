@@ -1646,18 +1646,25 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 		return;
 
 	float								fov_tan;
+	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (scope->Type() == eOptics)
 	{
-		fov_tan							= scope->getLenseFov() / CurrentZoomFactor(false);
+		float lense_fov_tan				= scope->getLenseFovTan();
+		hud_params.w					= CurrentZoomFactor(false);
+		fov_tan							= lense_fov_tan / hud_params.w;
 		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
 		Fvector sight_position			= scope->getObjectiveOffset();
 		Fmatrix							m;
 		camera.camera_Matrix			(m);
 		m.transform_tiny				(sight_position);
 		Device.m_SecondViewport.setPosition(sight_position);
+		hud_params.z					= lense_fov_tan / aim_fov_tan;
 	}
 	else
+	{
 		fov_tan							= aim_fov_tan;
+		hud_params.z					= scope->GetReticleScale();
+	}
 	
 	Fvector cam_dir						= camera.Direction();
 	float cam_dir_yaw					= atan2f(cam_dir.x, cam_dir.z);
@@ -1672,10 +1679,8 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	float y_derivation					= distance * tanf(fire_dir_pitch - cam_dir_pitch);
 
 	float h								= 2.f * fov_tan * distance;
-	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	hud_params.x						= x_derivation / h;
 	hud_params.y						= y_derivation / h;
-	hud_params.z						= scope->GetReticleScale();
 }
 
 u16 CWeaponMagazined::Zeroing C$()

@@ -299,8 +299,6 @@ void CHUDManager::SetGrenadeMarkType(LPCSTR tex_name)
 // ------------------------------------------------------------------------------------
 
 #include "ui\UIMainInGameWnd.h"
-extern CUIStatic*	pUILenseCircle;
-extern CUIStatic*	pUILenseGlass;
 
 void CHUDManager::Load()
 {
@@ -317,9 +315,6 @@ void CHUDManager::Load()
 void CHUDManager::OnScreenResolutionChanged()
 {
     pUIGame->HideShownDialogs();
-
-	xr_delete(pUILenseCircle);
-	xr_delete(pUILenseGlass);
 
     pUIGame->UnLoad();
     pUIGame->Load();

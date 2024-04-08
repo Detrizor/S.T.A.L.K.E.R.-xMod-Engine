@@ -629,21 +629,12 @@ CRenderTarget::CRenderTarget		()
 	// HBAO
 	if (RImplementation.o.ssao_opt_data)
 	{
-		u32		w = 0;
-		u32		h = 0;
+		u32	h = Device.dwHeight;
 		if (RImplementation.o.ssao_half_data)
-		{
-			w = Device.dwWidth / 2;
-			h = Device.dwHeight / 2;
-		}
-		else
-		{
-			w = Device.dwWidth;
-			h = Device.dwHeight;
-		}
+			h /= 2;
 
 		D3DFORMAT	fmt = HW.Caps.id_vendor==0x10DE?D3DFMT_R32F:D3DFMT_R16F;
-		rt_half_depth.create		(r2_RT_half_depth, RtCreationParams(w, h, MAIN_VIEWPORT), RtCreationParams(u32(w * psSVPImageSizeK), u32(h * psSVPImageSizeK), SECONDARY_WEAPON_SCOPE), fmt);
+		rt_half_depth.create		(r2_RT_half_depth, RtCreationParams(h, h, MAIN_VIEWPORT), RtCreationParams(u32(h * psSVPImageSizeK), u32(h * psSVPImageSizeK), SECONDARY_WEAPON_SCOPE), fmt);
 
 		s_ssao.create				(b_ssao, "r2\\ssao");
 	}

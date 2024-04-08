@@ -11,6 +11,7 @@
 #include "ActorEffector.h"
 
 CUIStatic* pUILenseCircle				= NULL;
+CUIStatic* pUILenseVignette				= NULL;
 CUIStatic* pUILenseBlackFill			= NULL;
 CUIStatic* pUILenseGlass				= NULL;
 
@@ -19,8 +20,8 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 	dest								= xr_new<CUIStatic>();
 	dest->InitTextureEx					(texture);
 	dest->SetTextureRect				({ 0.f, 0.f, mult * 1024.f, mult * 1024.f });
-	dest->SetPosSize					(2, mult, sScreenHeight);
-	dest->SetPosSize					(3, mult, sScreenHeight);
+	dest->SetPosSize					(2, 1.f, sScreenHeight);
+	dest->SetPosSize					(3, 1.f, sScreenHeight);
 	dest->SetAlignment					(al);
 	dest->SetAnchor						(al);
 	dest->SetStretchTexture				(true);
@@ -116,9 +117,11 @@ bool CScope::isPiP() const
 	return								Type() == eOptics && !fIsZero(m_lense_radius);
 }
 
-extern ENGINE_API float psSVPImageSizeK;
+extern bool force_draw_ui_on_svp;
 void CScope::RenderUI()
 {
+	force_draw_ui_on_svp				= true;
+
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
 
@@ -129,34 +132,54 @@ void CScope::RenderUI()
 	}
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	Fvector2 pos						= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
+	Fvector2 derivation					= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
+
+	float w2							= UI_BASE_WIDTH * .5f;
+	float h2							= UI_BASE_HEIGHT * .5f;
+	if (derivation.x > -w2 && derivation.x < w2 && derivation.y > -h2 && derivation.y < h2)
+	{
+		float magnification				= 0.f;
+		if (m_Magnificaion.dynamic)
+			magnification				= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
+		float cur_eye_relief			= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
+		float offset					= m_camera_lense_offset.magnitude() / cur_eye_relief;
+
+		float scale						= s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
+		Fvector2 pos					= derivation;
+		pos.mul							(s_lense_circle_position_derivation_factor);
+		pUILenseCircle->SetScale		(scale);
+		pUILenseCircle->SetWndPos		(pos);
+		pUILenseCircle->Draw			();
+
+		if (offset > 1.f)
+		{
+			scale						= s_lense_vignette_a / (offset + s_lense_vignette_b);
+			pUILenseVignette->SetScale	(max(scale, 1.f));
+			pUILenseVignette->Draw		();
+		}
+
+		Frect crect						= pUILenseCircle->GetWndRect();
+		pUILenseBlackFill->SetWndRect	(Frect().set(0.f, 0.f, crect.right, crect.top));
+		pUILenseBlackFill->Draw			();
+		pUILenseBlackFill->SetWndRect	(Frect().set(crect.right, 0.f, UI_BASE_WIDTH, crect.bottom));
+		pUILenseBlackFill->Draw			();
+		pUILenseBlackFill->SetWndRect	(Frect().set(crect.left, crect.bottom, UI_BASE_WIDTH, UI_BASE_HEIGHT));
+		pUILenseBlackFill->Draw			();
+		pUILenseBlackFill->SetWndRect	(Frect().set(0.f, crect.top, crect.left, UI_BASE_HEIGHT));
+		pUILenseBlackFill->Draw			();
+	}
+	else
+	{
+		pUILenseBlackFill->SetWndRect	({ 0.f, 0.f, UI_BASE_WIDTH, UI_BASE_HEIGHT });
+		pUILenseBlackFill->Draw			();
+	}
+	
 	if (m_pUIReticle)
 	{
-		m_pUIReticle->SetWndPos			(pos);
+		m_pUIReticle->SetWndPos			(derivation);
 		m_pUIReticle->Draw				();
 	}
 	
-	float magnification					= 0.f;
-	if (m_Magnificaion.dynamic)
-		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
-	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
-	float offset						= m_camera_lense_offset.magnitude() / cur_eye_relief;
-	float scale							= pow(offset, s_lense_circle_scale_offset_power);
-	pos.mul								(s_lense_circle_position_derivation_factor);
-
-	pUILenseCircle->SetScale			(scale);
-	pUILenseCircle->SetWndPos			(pos);
-	pUILenseCircle->Draw				();
-
-	Frect crect							= pUILenseCircle->GetWndRect();
-	pUILenseBlackFill->SetWndRect		(Frect().set(0.f, 0.f, crect.right, crect.top));
-	pUILenseBlackFill->Draw				();
-	pUILenseBlackFill->SetWndRect		(Frect().set(crect.right, 0.f, UI_BASE_WIDTH, crect.bottom));
-	pUILenseBlackFill->Draw				();
-	pUILenseBlackFill->SetWndRect		(Frect().set(crect.left, crect.bottom, UI_BASE_WIDTH, UI_BASE_HEIGHT));
-	pUILenseBlackFill->Draw				();
-	pUILenseBlackFill->SetWndRect		(Frect().set(0.f, crect.top, crect.left, UI_BASE_HEIGHT));
-	pUILenseBlackFill->Draw				();
 
 	if (!isPiP())
 	{
@@ -165,6 +188,8 @@ void CScope::RenderUI()
 		pUILenseCircle->SetWndPos		(Fvector2().set(0.f, 0.f));
 		pUILenseCircle->Draw			();
 	}
+
+	force_draw_ui_on_svp				= false;
 }
 
 void CScope::updateCameraLenseOffset()
@@ -175,7 +200,7 @@ void CScope::updateCameraLenseOffset()
 	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
 }
 
-float CScope::getLenseFov()
+float CScope::getLenseFovTan()
 {
 	return								m_lense_radius / m_camera_lense_offset.magnitude();
 }

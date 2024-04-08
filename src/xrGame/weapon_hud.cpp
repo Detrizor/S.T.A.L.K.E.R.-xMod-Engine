@@ -71,8 +71,8 @@ void CWeaponHud::ProcessScope(CScope* scope, SAddonSlot CPC slot)
 
 	offset[0].sub						(scope->getSightOffset());
 	if (scope->Type() == eOptics)
-		offset[0].z						+= scope->getEyeRelief();
-	else
+		offset[0].z += scope->getEyeRelief();
+	if (offset[0].z < m_hud_offset[eIS][0].z)
 		offset[0].z						= m_hud_offset[eIS][0].z;
 	scope->setHudOffset					(offset);
 }
@@ -569,7 +569,7 @@ Fvector CWeaponHud::getMuzzleSightOffset() const
 	Fvector sight_position				= vZero;
 	sight_position.sub					(get_target_hud_offset()[0]);
 	CScope* scope						= O.getActiveScope();
-	if (scope)
+	if (scope && scope->Type() == eOptics)
 		sight_position.add				(scope->getObjectiveOffset());
 	return								sight_position.sub(O.get_LastFPLocal());
 }
