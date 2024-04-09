@@ -165,12 +165,12 @@ struct script_layer
 	}
 };
 
+struct attachable_hud_item;
+
 struct hud_item_measures
 {
 	enum{e_fire_point=(1<<0), e_fire_point2=(1<<1), e_shell_point=(1<<2)};
 	Flags8							m_prop_flags;
-
-	Fvector							m_item_attach[2];//pos,rot
 
 	u16								m_fire_bone;
 	Fvector							m_fire_point_offset;
@@ -182,7 +182,7 @@ struct hud_item_measures
 	Fvector							m_hands_attach[2];//pos,rot
 	Fvector							m_hands_attach_alt[2];//pos,rot
 
-	void load						(LPCSTR hud_section, IKinematics* K);
+	void load						(LPCSTR hud_section, IKinematics* K, attachable_hud_item* hi);
 
 	Fvector							m_strafe_offset[4][2]; // pos,rot,data1,data2/ normal,aim-GL	 --#SM+#--
 
@@ -209,10 +209,12 @@ struct attachable_hud_item
 	shared_str						m_object_section;
 	IKinematics*					m_model;
 	u16								m_attach_place_idx;
+	u8								m_auto_attach;
 	hud_item_measures				m_measures;
 
 	//runtime positioning
 	Fmatrix							m_attach_offset;
+	Fmatrix							m_attach_offset_full;
 	Fmatrix							m_item_transform;
 
 	player_hud_motion_container		m_hand_motions;
@@ -277,8 +279,6 @@ private:
 	const Fvector&	attach_pos			() const;
 
 	shared_str							m_sect_name;
-
-	Fmatrix								m_attach_offset;
 
 	Fmatrix								m_transform;
 	IKinematicsAnimated*				m_model;
