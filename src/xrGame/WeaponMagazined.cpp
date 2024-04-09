@@ -599,7 +599,7 @@ void CWeaponMagazined::UpdateCL()
 
 	UpdateSounds();
 
-	if (!bWorking || m_iShotNum > m_iBaseDispersionedBulletsCount)
+	if (GetCurrentFireMode() == -1 || m_iShotNum > m_iBaseDispersionedBulletsCount || !bWorking)
 		updateRecoil();
 }
 
