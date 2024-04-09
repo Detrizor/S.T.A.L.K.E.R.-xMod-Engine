@@ -1478,12 +1478,12 @@ void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 	UpdateSndShot						();
 }
 
-void CWeaponMagazined::process_scope(CScope* scope, bool attach, SAddonSlot CPC slot)
+void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 {
+	m_hud->ProcessScope					(scope, attach);
 	if (attach)
 	{
 		m_attached_scopes.push_back		(scope);
-		m_hud->ProcessScope				(scope, slot);
 		//CAddon* addon					= scope->cast<CAddon*>();
 		//if (addon && addon->m_ItemCurrPlace.type == -1)
 		//	m_cur_scope					= scope;
@@ -1552,7 +1552,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 
 			CScope* scope				= slot->addon->cast<CScope*>();
 			if (scope)
-				process_scope			(scope, !!param, slot);
+				process_scope			(scope, !!param);
 
 			CSilencer* sil				= slot->addon->cast<CSilencer*>();
 			if (sil)

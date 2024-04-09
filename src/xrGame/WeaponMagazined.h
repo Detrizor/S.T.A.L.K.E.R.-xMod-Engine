@@ -252,7 +252,7 @@ private:
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
-	void								process_scope							(CScope* scope, bool attach, SAddonSlot CPC slot = NULL);
+	void								process_scope							(CScope* scope, bool attach);
 	void								cycle_scope								(CScope*& scope, bool up = true);
 	void								InitRotateTime							();
 

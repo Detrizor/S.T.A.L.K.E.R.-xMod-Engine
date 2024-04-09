@@ -31,13 +31,13 @@ struct SAddonSlot
 										SAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 										SAddonSlot								(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent);
 										
-	void								append_bone_trans					C$	(Fmatrix& trans, IRenderVisual* model, Fmatrix CPC parent_trans);
+	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans);
 	
 	void								registerAddon							(CAddon* _addon);
 	void								updateAddonLocalTransform				();
 	void								unregisterAddon							();
 
-	void								updateAddonHudTransform					(IRenderVisual* model, Fmatrix CR$ parent_trans);
+	void								updateAddonHudTransform					(IKinematics* model, Fmatrix CR$ parent_trans);
 
 	void								RenderHud								();
 	void								RenderWorld								(IRenderVisual* model, Fmatrix CR$ paren_trans);

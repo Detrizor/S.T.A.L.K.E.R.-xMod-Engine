@@ -52,20 +52,20 @@ void CWeaponHud::calc_aim_offset()
 	m_hud_offset[eAim][1].lerp			(m_hud_offset[eArmed][1], m_hud_offset[idx][1], aim_factor);
 }
 
-void CWeaponHud::ProcessScope(CScope* scope, SAddonSlot CPC slot)
+void CWeaponHud::process_scope_impl(CScope* scope)
 {
 	Fvector offset[2]					= { vZero, vZero };
-	if (slot)
+	CAddon* addon						= scope->cast<CAddon*>();
+	if (addon)
 	{
-		auto model						= O.Visual()->dcast_PKinematics();
-		u16 bone_id						= model->LL_BoneID(slot->bone_name);
+		auto model						= O.HudItemData()->m_model;
+		u16 bone_id						= model->LL_BoneID(addon->getRootBone());
 		Fmatrix trans					= model->LL_GetTransform(bone_id);
-		trans.mulB_43					(slot->addon->getLocalTransform());
-		Fvector slot_position			= vZero;
-		trans.transform_tiny			(slot_position);
-		
-		offset[0].sub					(slot_position);
-		offset[1].sub					(slot->model_offset[1]);
+		trans.mulB_43					(addon->getLocalTransform());
+
+		trans.transform_tiny			(offset[0]);
+		offset[0].mul					(-1.f);
+		trans.getHPB					(offset[1].y, offset[1].x, offset[1].z);
 		offset[0].rotate				(offset[1]);
 	}
 
@@ -75,6 +75,23 @@ void CWeaponHud::ProcessScope(CScope* scope, SAddonSlot CPC slot)
 	if (offset[0].z < m_hud_offset[eIS][0].z)
 		offset[0].z						= m_hud_offset[eIS][0].z;
 	scope->setHudOffset					(offset);
+}
+
+void CWeaponHud::ProcessScope(CScope* scope, bool attach)
+{
+	if (attach)
+	{
+		if (O.HudItemData())
+			process_scope_impl			(scope);
+		else
+			m_scopes_to_process.push_back(scope);
+	}
+	else
+	{
+		auto it							= ::std::find(m_scopes_to_process.begin(), m_scopes_to_process.end(), scope);
+		if (it != m_scopes_to_process.end())
+			m_scopes_to_process.erase	(it);
+	}
 }
 
 void CWeaponHud::ProcessGL(SAddonSlot* slot, CGrenadeLauncher* gl, bool attach)
@@ -164,6 +181,13 @@ Fvector CP$ CWeaponHud::get_target_hud_offset() const
 #define s_recoil_hud_roll_per_shift pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift")
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
+	if (!m_scopes_to_process.empty())
+	{
+		for (auto scope : m_scopes_to_process)
+			process_scope_impl(scope);
+		m_scopes_to_process.clear();
+	}
+
 	//============= Подготавливаем общие переменные =============//
 	static float fAvgTimeDelta = Device.fTimeDelta;
 	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);

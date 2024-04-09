@@ -108,9 +108,8 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 		case eUpdateSlotsTransform:
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
-			auto model					= hi->m_model->dcast_RenderVisual();
 			for (auto s : m_Slots)
-				s->updateAddonHudTransform(model, hi->m_item_transform);
+				s->updateAddonHudTransform(hi->m_model, hi->m_item_transform);
 			break;
 		}
 	}
@@ -267,7 +266,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	bone_offset[0].rotate				(bone_offset[1]);
 	
 	if (parent_addon)
-		append_bone_trans				(transform, parent_addon->Visual(), NULL);
+		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL);
 	else
 		transform.identity				();
 	transform.applyOffset				(bone_offset);
@@ -296,8 +295,6 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 	name.printf							("%s - %s", *CStringTable().translate(root_slot->addon->NameShort()), *CStringTable().translate(slot->name));
 	type								= slot->type;
 	bone_name							= root_slot->bone_name;
-	model_offset[1]						= root_slot->model_offset[1];
-	model_offset[1].add					(slot->model_offset[1]);
 	icon_offset							= slot->icon_offset;
 	icon_offset.add						(root_slot->icon_offset);
 	icon_offset.sub						(root_slot->addon->IconOffset());
@@ -309,17 +306,17 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 	loading_addon						= NULL;
 }
 
-void SAddonSlot::append_bone_trans(Fmatrix& trans, IRenderVisual* model, Fmatrix CPC parent_trans) const
+void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans) const
 {
-	u16 bone_id							= model->dcast_PKinematics()->LL_BoneID(bone_name);
-	Fmatrix bone_trans					= model->dcast_PKinematics()->LL_GetTransform(bone_id);
+	u16 bone_id							= model->LL_BoneID(bone_name);
+	Fmatrix bone_trans					= model->LL_GetTransform(bone_id);
 	if (parent_trans)
 		trans.mul						(*parent_trans, bone_trans);
 	else
 		trans							= bone_trans;
 }
 
-void SAddonSlot::updateAddonHudTransform(IRenderVisual* model, Fmatrix CR$ parent_trans)
+void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
 {
 	if (!addon)
 		return;
@@ -328,7 +325,7 @@ void SAddonSlot::updateAddonHudTransform(IRenderVisual* model, Fmatrix CR$ paren
 	append_bone_trans					(trans, model, &parent_trans);
 	addon->updateHudTransform			(trans);
 	CScope* scope						= addon->cast<CScope*>();
-	if (scope)
+	if (scope && scope->Type() == eOptics)
 		scope->updateCameraLenseOffset	();
 }
 
@@ -356,7 +353,7 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ paren_trans)
 		return;
 	
 	Fmatrix								trans;
-	append_bone_trans					(trans, model, &paren_trans);
+	append_bone_trans					(trans, model->dcast_PKinematics(), &paren_trans);
 	addon->RenderWorld					(trans);
 }
 
@@ -374,9 +371,13 @@ void SAddonSlot::updateAddonLocalTransform()
 		Fmatrix							trans;
 		trans.mul						(parent_addon->getLocalTransform(), transform);
 		addon->updateLocalTransform		(&trans);
+		addon->setRootBone				(parent_addon->getRootBone());
 	}
 	else
+	{
 		addon->updateLocalTransform		(&transform);
+		addon->setRootBone				(bone_name);
+	}
 }
 
 void SAddonSlot::unregisterAddon()
