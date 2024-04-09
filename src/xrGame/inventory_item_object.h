@@ -58,7 +58,6 @@ protected:
 
 public:
 	void								renderable_Render					O$	()		{ core::renderable_Render(); }
-	void								on_renderable_Render				O$	()		{ wrap::renderable_Render(); core::on_renderable_Render(); }
 	bool								ActivateItem						O$	()		{ return core::ActivateItem(); }
 	void								DeactivateItem						O$	()		{ core::DeactivateItem(); }
 	u32									ef_weapon_type						CO$	()		{ return 0; }
