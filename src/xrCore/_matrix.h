@@ -784,21 +784,10 @@ public:
 
 	SelfRef applyOffset(const Tvector& position, const Tvector& rotation)
 	{
-		Fmatrix							trans;
-		trans.identity					();
-		trans.rotateX					(rotation.x);
-
-		Fmatrix							trans1;
-		trans1.identity					();
-		trans1.rotateY					(rotation.y);
-		trans.mulA_43					(trans1);
-
-		trans1.identity					();
-		trans1.rotateZ					(rotation.z);
-		trans.mulA_43					(trans1);
-
-		trans.translate_over			(position);
-		mulB_43							(trans);
+		Fmatrix							offset;
+		offset.setHPB					(-rotation.y, -rotation.x, -rotation.z);
+		offset.translate_over			(position);
+		mulB_43							(offset);
 		return							*this;
 	}
 
