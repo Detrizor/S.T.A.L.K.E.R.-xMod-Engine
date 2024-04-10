@@ -79,11 +79,17 @@ public:
 			void					SetGrenade(u8 cnt);
 
 private:
-	CGrenadeLauncher CP$				m_pLauncher;
+	CGrenadeLauncher CP$				m_pLauncher								= NULL;
+	Fvector								m_muzzle_position_gl					= vZero;
+	shared_str							m_flame_particles_gl_name				= 0;
+	CParticlesObject*					m_flame_particles_gl					= NULL;
 
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
 	void								shoot_grenade							();
+	void								start_flame_particles_gl				();
+	void								stop_flame_particles_gl					();
+	void								update_flame_particles_gl				();
 
 protected:
 	bool								AltHandsAttach						CO$	();
@@ -94,4 +100,5 @@ protected:
 	void								SetADS								O$	(int mode);
 	void								OnMotionHalf						O$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
+	void								UpdateCL							O$	();
 };

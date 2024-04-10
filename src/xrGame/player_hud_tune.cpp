@@ -138,7 +138,7 @@ void attachable_hud_item::tune(Ivector values)
 			Fmatrix							ancor_m;
 			m_parent->calc_transform		(m_attach_place_idx, Fidentity, ancor_m);
 
-			calc_cam_diff_pos				(m_item_transform, diff, d);
+			calc_cam_diff_pos				(m_transform, diff, d);
 			m_measures.m_item_attach[1].add	(d);
 		}
 

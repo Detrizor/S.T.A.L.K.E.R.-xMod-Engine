@@ -23,23 +23,27 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eIS][1]				= vZero;
 	m_hud_offset[eIS][1].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_rot"));
 
-	m_barrel_offset						= vZero;
-	m_barrel_offset.sub					(pSettings->r_fvector3(O.HudSection(), "barrel_position"));
+	m_grip_offset						= vZero;
+	m_grip_offset.sub					(O.m_grip_offset);
 
 	m_hud_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
 	m_hud_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
-	m_barrel_offset.pivot				(m_hud_offset[eRelaxed]);
+	m_grip_offset.pivot					(m_hud_offset[eRelaxed]);
 
 	m_hud_offset[eArmed][0]				= pSettings->r_fvector3(O.HudSection(), "armed_pos");
 	m_hud_offset[eArmed][1]				= pSettings->r_fvector3(O.HudSection(), "armed_rot");
-	m_barrel_offset.pivot				(m_hud_offset[eArmed]);
+	m_grip_offset.pivot					(m_hud_offset[eArmed]);
 
 	m_hud_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hud_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
-	m_barrel_offset.pivot				(m_hud_offset[eAlt]);
+
+	Fvector barrel_offset				= vZero;
+	barrel_offset.sub					(O.m_muzzle_position);
+	barrel_offset.z						= O.m_grip_offset.z;
+	barrel_offset.pivot					(m_hud_offset[eAlt]);
 	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.HudSection(), "alt_aim_height");
 
-	m_hud_offset[eIS][0].z				= m_barrel_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+	m_hud_offset[eIS][0].z				= m_grip_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
 	m_hud_offset[eAlt][0].z				= m_hud_offset[eIS][0].z;
 
 	calc_aim_offset						();
@@ -59,8 +63,7 @@ void CWeaponHud::process_scope_impl(CScope* scope)
 	if (addon)
 	{
 		auto model						= O.HudItemData()->m_model;
-		u16 bone_id						= model->LL_BoneID(addon->getRootBone());
-		Fmatrix trans					= model->LL_GetTransform(bone_id);
+		Fmatrix trans					= model->LL_GetTransform(addon->getRootBoneID());
 		trans.mulB_43					(addon->getLocalTransform());
 
 		trans.transform_tiny			(offset[0]);
@@ -71,8 +74,12 @@ void CWeaponHud::process_scope_impl(CScope* scope)
 
 	offset[0].sub						(scope->getSightOffset());
 	if (scope->Type() == eOptics)
-		offset[0].z += scope->getEyeRelief();
-	if (offset[0].z < m_hud_offset[eIS][0].z)
+	{
+		offset[0].z						+= scope->getEyeRelief();
+		if (offset[0].z < m_grip_offset.z)
+			offset[0].z					= m_grip_offset.z;
+	}
+	else if (offset[0].z < m_hud_offset[eIS][0].z)
 		offset[0].z						= m_hud_offset[eIS][0].z;
 	scope->setHudOffset					(offset);
 }
@@ -478,13 +485,13 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	else
 	{
 		Fvector tmp[2] = {};
-		tmp[0] = Fvector(m_current_hud_offset[0]).sub(m_barrel_offset);
+		tmp[0] = Fvector(m_current_hud_offset[0]).sub(m_grip_offset);
 		tmp[1] = {
 			-O.getRecoilHudShift().y * s_recoil_hud_angle_per_shift,
 			O.getRecoilHudShift().x * s_recoil_hud_angle_per_shift,
 			O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
 		};
-		m_barrel_offset.pivot(tmp);
+		m_grip_offset.pivot(tmp);
 		trans.applyOffset(tmp);
 		trans.applyOffset(vZero, m_current_hud_offset[1]);
 	}
@@ -595,5 +602,5 @@ Fvector CWeaponHud::getMuzzleSightOffset() const
 	CScope* scope						= O.getActiveScope();
 	if (scope && scope->Type() == eOptics)
 		sight_position.add				(scope->getObjectiveOffset());
-	return								sight_position.sub(O.get_LastFPLocal());
+	return								sight_position.sub(O.m_muzzle_position);
 }

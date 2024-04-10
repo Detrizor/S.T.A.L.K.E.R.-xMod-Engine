@@ -194,9 +194,8 @@ void CScope::RenderUI()
 
 void CScope::updateCameraLenseOffset()
 {
-	m_camera_lense_offset				= m_sight_offset;
-	Fmatrix CR$ transform				= (m_addon) ? m_addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_item_transform;
-	transform.transform_tiny			(m_camera_lense_offset);
+	Fmatrix CR$ transform				= (m_addon) ? m_addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	transform.transform_tiny			(m_camera_lense_offset, m_sight_offset);
 	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
 }
 

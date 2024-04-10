@@ -181,7 +181,7 @@ void CUIArtefactDetectorElite::Draw()
 
 void CUIArtefactDetectorElite::GetUILocatorMatrix(Fmatrix& _m)
 {
-	Fmatrix	trans					= m_parent->HudItemData()->m_item_transform;
+	Fmatrix	trans					= m_parent->HudItemData()->m_transform;
 	u16 bid							= m_parent->HudItemData()->m_model->LL_BoneID("cover");
 	Fmatrix cover_bone				= m_parent->HudItemData()->m_model->LL_GetTransform(bid);
 	_m.mul							(trans, cover_bone);

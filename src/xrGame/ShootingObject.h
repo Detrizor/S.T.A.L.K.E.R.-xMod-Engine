@@ -156,8 +156,6 @@ protected:
 
 	//партиклы гильз
 			void			OnShellDrop			(const Fvector& play_pos, const Fvector& parent_vel);
-public:
-	Fvector					vLoadedShellPoint;
 
 protected:
 	//для выстрела 1м и 2м видом стрельбы

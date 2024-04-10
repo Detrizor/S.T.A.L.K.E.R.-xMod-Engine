@@ -135,7 +135,7 @@ void attachable_hud_item::set_bone_visible(const shared_str& bone_name, BOOL bVi
 void attachable_hud_item::update(bool bForce)
 {
 	if (!bForce && m_upd_firedeps_frame == Device.dwFrame) return;
-	m_parent->calc_transform		(m_attach_place_idx, m_attach_offset, m_item_transform);
+	m_parent->calc_transform		(m_attach_place_idx, m_attach_offset, m_transform);
 	m_parent_hud_item->UpdateSlotsTransform();
 	m_upd_firedeps_frame			= Device.dwFrame;
 }
@@ -146,40 +146,28 @@ void attachable_hud_item::setup_firedeps(firedeps& fd)
 	if (m_measures.m_prop_flags.test(hud_item_measures::e_fire_point))
 	{
 		Fmatrix& fire_mat								= m_model->LL_GetTransform(m_measures.m_fire_bone);
-		fire_mat.transform_tiny							(fd.vLastFPLocal, m_measures.m_fire_point_offset);
-		fd.vLastFP.set									(fd.vLastFPLocal);
-		m_item_transform.transform_tiny					(fd.vLastFP);
+		fire_mat.transform_tiny							(fd.vLastFP, m_measures.m_fire_point_offset);
+		m_transform.transform_tiny						(fd.vLastFP);
 		
-		fd.vLastFD.set									(vForward);
-		m_item_transform.transform_dir					(fd.vLastFD);
+		Fvector fire_dir								= vForward;
+		m_transform.transform_dir						(fire_dir);
 
 		fd.m_FireParticlesXForm.identity				();
-		fd.m_FireParticlesXForm.k.set					(fd.vLastFD);
+		fd.m_FireParticlesXForm.k.set					(fire_dir);
 		Fvector::generate_orthonormal_basis_normalized	(fd.m_FireParticlesXForm.k,
 														fd.m_FireParticlesXForm.j, 
 														fd.m_FireParticlesXForm.i);
 
 		VERIFY											(_valid(fd.vLastFP));
-		VERIFY											(_valid(fd.vLastFD));
 		VERIFY											(_valid(fd.m_FireParticlesXForm));
 	}
 
-	if(m_measures.m_prop_flags.test(hud_item_measures::e_fire_point2))
+	if (m_measures.m_prop_flags.test(hud_item_measures::e_fire_point2))
 	{
 		Fmatrix& fire_mat			= m_model->LL_GetTransform(m_measures.m_fire_bone2);
 		fire_mat.transform_tiny		(fd.vLastFP2,m_measures.m_fire_point2_offset);
-		m_item_transform.transform_tiny	(fd.vLastFP2);
+		m_transform.transform_tiny	(fd.vLastFP2);
 		VERIFY(_valid(fd.vLastFP2));
-		VERIFY(_valid(fd.vLastFP2));
-	}
-
-	if(m_measures.m_prop_flags.test(hud_item_measures::e_shell_point))
-	{
-		Fmatrix& fire_mat			= m_model->LL_GetTransform(m_measures.m_shell_bone);
-		fire_mat.transform_tiny		(fd.vLastSP,m_measures.m_shell_point_offset);
-		m_item_transform.transform_tiny	(fd.vLastSP);
-		VERIFY(_valid(fd.vLastSP));
-		VERIFY(_valid(fd.vLastSP));
 	}
 }
 
@@ -190,7 +178,7 @@ bool  attachable_hud_item::need_renderable()
 
 void attachable_hud_item::render()
 {
-	::Render->set_Transform		(&m_item_transform);
+	::Render->set_Transform		(&m_transform);
 	::Render->add_Visual		(m_model->dcast_RenderVisual());
 	debug_draw_firedeps			();
 	m_parent_hud_item->render_hud_mode();
@@ -252,16 +240,6 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K, attachable_hud_
 	}
 	else
 		m_fire_point2_offset.set(0, 0, 0);
-
-	m_prop_flags.set(e_shell_point, pSettings->line_exist(hud_section, "shell_bone"));
-	if (m_prop_flags.test(e_shell_point))
-	{
-		bone_name = pSettings->r_string(hud_section, "shell_bone");
-		m_shell_bone = K->LL_BoneID(bone_name);
-		m_shell_point_offset = pSettings->r_fvector3(hud_section, "shell_point");
-	}
-	else
-		m_shell_point_offset.set(0, 0, 0);
 
 	// Настройки стрейфа (боковая ходьба)
 	Fvector vDefStrafeValue;

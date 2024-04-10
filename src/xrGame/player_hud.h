@@ -176,8 +176,6 @@ struct hud_item_measures
 	Fvector							m_fire_point_offset;
 	u16								m_fire_bone2;
 	Fvector							m_fire_point2_offset;
-	u16								m_shell_bone;
-	Fvector							m_shell_point_offset;
 
 	Fvector							m_hands_attach[2];//pos,rot
 	Fvector							m_hands_attach_alt[2];//pos,rot
@@ -215,7 +213,7 @@ struct attachable_hud_item
 	//runtime positioning
 	Fmatrix							m_attach_offset;
 	Fmatrix							m_attach_offset_full;
-	Fmatrix							m_item_transform;
+	Fmatrix							m_transform;
 
 	player_hud_motion_container		m_hand_motions;
 			

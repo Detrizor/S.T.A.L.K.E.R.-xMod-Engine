@@ -16,7 +16,8 @@ struct SAddonSlot
 	u16									idx;
 	shared_str							name;
 	shared_str							type;
-	shared_str							bone_name;
+	u16									bone_id;
+	bool								muzzle_pos;
 	Fvector								model_offset[2];
 	Fvector								bone_offset[2];
 	Fvector2							icon_offset;

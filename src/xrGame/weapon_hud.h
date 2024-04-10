@@ -40,7 +40,7 @@ private:
 	Fvector								m_current_hud_offset[2]					= { vZero, vZero };
 	xr_vector<CScope*>					m_scopes_to_process						= {};
 
-	Fvector								m_barrel_offset;
+	Fvector								m_grip_offset;
 	Fvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;
 

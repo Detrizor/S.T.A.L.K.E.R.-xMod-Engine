@@ -6,11 +6,6 @@
 #include "GrenadeLauncher.h"
 #include "addon_owner.h"
 
-CAddon::CAddon()
-{
-	m_local_transform.identity			();
-}
-
 void CAddon::Load(LPCSTR section)
 {
 	inherited::Load						(section);
@@ -32,17 +27,16 @@ void CAddon::Load(LPCSTR section)
 	}
 }
 
-void CAddon::RenderHud()
+void CAddon::RenderHud() const
 {
-	::Render->set_Transform				(&m_hud_transform);
+	::Render->set_Transform				(m_hud_transform);
 	::Render->add_Visual				(Visual());
 }
 
-void CAddon::RenderWorld(Fmatrix CR$ parent_trans)
+void CAddon::RenderWorld(Fmatrix trans) const
 {
-	Fmatrix								trans;
-	trans.mul							(parent_trans, m_local_transform);
-	::Render->set_Transform				(&trans);
+	trans.mulB_43						(m_local_transform);
+	::Render->set_Transform				(trans);
 	::Render->add_Visual				(Visual());
 }
 

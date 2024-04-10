@@ -144,7 +144,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
         PlayAnimBore();
         if (HudItemData())
         {
-            Fvector P = HudItemData()->m_item_transform.c;
+            Fvector P = HudItemData()->m_transform.c;
             m_sounds.PlaySound("sndBore", P, object().H_Root(), !!GetHUDmode(), false, m_started_rnd_anim_idx);
         }
 
@@ -500,7 +500,7 @@ void CHudItem::OnH_B_Independent(bool just_before_destroy)
     /*
     if(HudItemData() && !just_before_destroy)
     {
-    object().XFORM().set( HudItemData()->m_item_transform );
+    object().XFORM().set( HudItemData()->m_transform );
     }
 
     if (HudItemData())
@@ -618,7 +618,7 @@ BOOL CHudItem::GetHUDmode()
     if (object().H_Parent())
     {
         CActor* A = smart_cast<CActor*>(object().H_Parent());
-        return (A && A->HUDview() && HudItemData() && HudItemData());
+        return (A && A->HUDview() && HudItemData());
     }
     else
         return FALSE;

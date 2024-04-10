@@ -238,7 +238,8 @@ public:
 
     // Main
     IC void set_Frustum(CFrustum* O) { VERIFY(O); View = O; }
-    virtual void set_Transform(Fmatrix* M) = 0;
+    virtual void set_Transform(Fmatrix CP$ M) = 0;
+    virtual void set_Transform(Fmatrix CR$ M) = 0;
     virtual void set_HUD(BOOL V) = 0;
     virtual BOOL get_HUD() = 0;
     virtual void set_Invisible(BOOL V) = 0;

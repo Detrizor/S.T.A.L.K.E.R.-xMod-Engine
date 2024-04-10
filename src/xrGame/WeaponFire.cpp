@@ -107,20 +107,6 @@ void CWeapon::FireEnd()
 	StopShotEffector();
 }
 
-
-void CWeapon::StartFlameParticles2	()
-{
-	CShootingObject::StartParticles (m_pFlameParticles2, *m_sFlameParticles2, get_LastFP2());
-}
-void CWeapon::StopFlameParticles2	()
-{
-	CShootingObject::StopParticles (m_pFlameParticles2);
-}
-void CWeapon::UpdateFlameParticles2	()
-{
-	if (m_pFlameParticles2)			CShootingObject::UpdateParticles (m_pFlameParticles2, get_LastFP2());
-}
-
 #define s_recoil_kick_weight pSettings->r_float("weapon_manager", "recoil_kick_weight")
 #define s_recoil_tremble_weight pSettings->r_float("weapon_manager", "recoil_tremble_weight")
 #define s_recoil_roll_weight pSettings->r_float("weapon_manager", "recoil_roll_weight")

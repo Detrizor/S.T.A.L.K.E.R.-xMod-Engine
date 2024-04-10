@@ -8,7 +8,6 @@
 #include "inventory_item_object.h"
 #include "Actor_Flags.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
-#include "firedeps.h"
 #include "game_cl_single.h"
 #include "first_bullet_controller.h"
 
@@ -234,13 +233,11 @@ protected:
 	EHandDependence			eHandDependence;
 	bool					m_bIsSingleHanded;
 
-public:
-	//загружаемые параметры
-	Fvector					vLoadedFirePoint;
-	Fvector					vLoadedFirePoint2;
-
 private:
-	firedeps				m_current_firedeps;
+	Fvector					vLastFP = vZero;
+	Fvector					vLastFD = vZero;
+	Fvector					vLastSP = vZero;
+	Fmatrix					m_FireParticlesXForm = Fidentity;
 
 protected:
 	virtual void			UpdateFireDependencies_internal();
@@ -248,38 +245,30 @@ protected:
 	virtual void			UpdateXForm();
 	IC		void			UpdateFireDependencies()
 	{
-		if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal();
+		if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal(); dwFP_Frame = Device.dwFrame;
 	};
 	
 public:
 	IC		const Fvector&	get_LastFP()
 	{
-		UpdateFireDependencies(); return m_current_firedeps.vLastFP;
-	}
-	IC		const Fvector&	get_LastFP2()
-	{
-		UpdateFireDependencies(); return m_current_firedeps.vLastFP2;
+		UpdateFireDependencies(); return vLastFP;
 	}
 	IC		const Fvector&	get_LastFD()
 	{
-		UpdateFireDependencies(); return m_current_firedeps.vLastFD;
+		UpdateFireDependencies(); return vLastFD;
 	}
 	IC		const Fvector&	get_LastSP()
 	{
-		UpdateFireDependencies(); return m_current_firedeps.vLastSP;
+		UpdateFireDependencies(); return vLastSP;
 	}
 
 	virtual const Fvector&	get_CurrentFirePoint()
 	{
 		return get_LastFP();
 	}
-	virtual const Fvector&	get_CurrentFirePoint2()
-	{
-		return get_LastFP2();
-	}
 	virtual const Fmatrix&	get_ParticlesXFORM()
 	{
-		UpdateFireDependencies(); return m_current_firedeps.m_FireParticlesXForm;
+		UpdateFireDependencies(); return m_FireParticlesXForm;
 	}
 	virtual void			ForceUpdateFireParticles();
 	virtual void			debug_draw_firedeps();
@@ -375,16 +364,6 @@ protected:
 	//оружия
 	//float					m_fMinRadius;
 	//float					m_fMaxRadius;
-
-protected:
-	//для второго ствола
-	void			StartFlameParticles2();
-	void			StopFlameParticles2();
-	void			UpdateFlameParticles2();
-protected:
-	shared_str				m_sFlameParticles2;
-	//объект партиклов для стрельбы из 2-го ствола
-	CParticlesObject*		m_pFlameParticles2;
 
 protected:
 	int						GetAmmoCount(u8 ammo_type) const;
@@ -506,25 +485,30 @@ public:
 
 //xMod added
 protected:
-	int									m_iADS;
-	bool								m_bArmedMode;
-	bool								m_bHasAltAim;
-	bool								m_bArmedRelaxedSwitch;
+	int									m_iADS									= 0;
+	bool								m_bArmedMode							= false;
+	bool								m_bHasAltAim							= true;
+	bool								m_bArmedRelaxedSwitch					= true;
 
-	float								m_grip_accuracy_modifier = 1.f;
-	float								m_stock_accuracy_modifier = 1.f;
-	float								m_layout_accuracy_modifier = 1.f;
+	float								m_grip_accuracy_modifier				= 1.f;
+	float								m_stock_accuracy_modifier				= 1.f;
+	float								m_layout_accuracy_modifier				= 1.f;
 
-	Fvector								m_stock_recoil_pattern = vOne;
-	Fvector								m_layout_recoil_pattern = vOne;
-	Fvector								m_mechanic_recoil_pattern = vOne;
+	Fvector								m_stock_recoil_pattern					= vOne;
+	Fvector								m_layout_recoil_pattern					= vOne;
+	Fvector								m_mechanic_recoil_pattern				= vOne;
 
-	float								m_recoil_tremble_mean = 0.f;
-	Fvector								m_recoil_hud_impulse = vZero;
-	Fvector								m_recoil_hud_shift = vZero;
-	Fvector								m_recoil_cam_impulse = vZero;
-	Fvector								m_recoil_cam_delta = vZero;
-	Fvector								m_recoil_cam_last_impulse = vZero;
+	float								m_recoil_tremble_mean					= 0.f;
+	Fvector								m_recoil_hud_impulse					= vZero;
+	Fvector								m_recoil_hud_shift						= vZero;
+	Fvector								m_recoil_cam_impulse					= vZero;
+	Fvector								m_recoil_cam_delta						= vZero;
+	Fvector								m_recoil_cam_last_impulse				= vZero;
+
+	Fvector								m_grip_offset							= vZero;
+	Fvector								m_muzzle_position						= vZero;
+	Fvector								m_shell_point							= vZero;
+	u16									m_shell_bone							= 0;
 
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
@@ -541,8 +525,6 @@ protected:
 	Fvector							V$	getFullFireDirection					()		{ return get_LastFD(); }
 
 public:
-	Fvector CR$							get_LastFPLocal							() { UpdateFireDependencies(); return m_current_firedeps.vLastFPLocal; }
-
 	void								SwitchArmedMode							();
 
 	Fvector CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
@@ -550,6 +532,7 @@ public:
 
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
+	Fvector CR$							getMuzzlePosition					C$	()		{ return m_muzzle_position; }
 	
 	bool								isCamRecoilRelaxed					C$	();
 };

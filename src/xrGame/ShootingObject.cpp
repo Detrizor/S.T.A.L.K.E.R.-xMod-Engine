@@ -210,10 +210,7 @@ void CShootingObject::UpdateParticles (CParticlesObject*& pParticles,
 void CShootingObject::LoadShellParticles(LPCSTR section)
 {
 	if (pSettings->line_exist(section, "shell_particles"))
-	{
 		m_sShellParticles = pSettings->r_string(section, "shell_particles");
-		vLoadedShellPoint = pSettings->r_fvector3(section, "shell_point");
-	}
 }
 
 void CShootingObject::LoadFlameParticles(LPCSTR section)

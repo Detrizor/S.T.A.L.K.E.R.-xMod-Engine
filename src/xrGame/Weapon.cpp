@@ -53,9 +53,6 @@ CWeapon::CWeapon()
 
 	eHandDependence = hdNone;
 
-	m_pFlameParticles2 = NULL;
-	m_sFlameParticles2 = NULL;
-
 	m_fCurrentCartirdgeDisp = 1.f;
 
 	m_strap_bone0 = 0;
@@ -67,11 +64,6 @@ CWeapon::CWeapon()
 	m_ef_weapon_type = u32(-1);
 	m_set_next_ammoType_on_reload = undefined_ammo_type;
 	m_activation_speed_is_overriden = false;
-
-	m_iADS = 0;
-	m_bArmedMode = false;
-	m_bHasAltAim = true;
-	m_bArmedRelaxedSwitch = true;
 }
 
 CWeapon::~CWeapon()
@@ -150,36 +142,43 @@ void CWeapon::UpdateXForm()
 
 void CWeapon::UpdateFireDependencies_internal()
 {
-	if (Device.dwFrame != dwFP_Frame)
+	UpdateXForm							();
+
+	if (GetHUDmode())
 	{
-		dwFP_Frame = Device.dwFrame;
+		auto hi							= HudItemData();
+		hi->update						(false);
 
-		UpdateXForm();
+		hi->m_transform.transform_tiny	(vLastFP, m_muzzle_position);
+		hi->m_transform.transform_dir	(vLastFD, vForward);
 
-		if (GetHUDmode())
-		{
-			HudItemData()->setup_firedeps(m_current_firedeps);
-			VERIFY(_valid(m_current_firedeps.m_FireParticlesXForm));
-		}
-		else
-		{
-			// 3rd person or no parent
-			Fmatrix& parent = XFORM();
-			Fvector& fp = vLoadedFirePoint;
-			Fvector& fp2 = vLoadedFirePoint2;
-			Fvector& sp = vLoadedShellPoint;
+		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(m_shell_bone);
+		fire_mat.transform_tiny			(vLastSP, m_shell_point);
+		hi->m_transform.transform_tiny	(vLastSP);
 
-			parent.transform_tiny(m_current_firedeps.vLastFP, fp);
-			parent.transform_tiny(m_current_firedeps.vLastFP2, fp2);
-			parent.transform_tiny(m_current_firedeps.vLastSP, sp);
-
-			m_current_firedeps.vLastFD.set(0.f, 0.f, 1.f);
-			parent.transform_dir(m_current_firedeps.vLastFD);
-
-			m_current_firedeps.m_FireParticlesXForm.set(parent);
-			VERIFY(_valid(m_current_firedeps.m_FireParticlesXForm));
-		}
+		m_FireParticlesXForm.identity	();
+		m_FireParticlesXForm.k.set		(vLastFD);
+		Fvector::generate_orthonormal_basis_normalized	(m_FireParticlesXForm.k,
+														m_FireParticlesXForm.j, 
+														m_FireParticlesXForm.i);
 	}
+	else
+	{
+		// 3rd person or no parent
+		XFORM().transform_tiny			(vLastFP, m_muzzle_position);
+		XFORM().transform_dir			(vLastFD, vForward);
+
+		Fmatrix CR$ fire_mat			= Visual()->dcast_PKinematics()->LL_GetTransform(m_shell_bone);
+		fire_mat.transform_tiny			(vLastSP, m_shell_point);
+		XFORM().transform_tiny			(vLastSP);
+
+		m_FireParticlesXForm.set		(XFORM());
+	}
+
+	VERIFY								(_valid(vLastFP));
+	VERIFY								(_valid(vLastFD));
+	VERIFY								(_valid(vLastSP));
+	VERIFY								(_valid(m_FireParticlesXForm));
 }
 
 void CWeapon::ForceUpdateFireParticles()
@@ -197,7 +196,7 @@ void CWeapon::ForceUpdateFireParticles()
 		_pxf.j.crossproduct(_pxf.k, _pxf.i);
 		_pxf.c = XFORM().c;
 
-		m_current_firedeps.m_FireParticlesXForm.set(_pxf);
+		m_FireParticlesXForm.set(_pxf);
 	}
 }
 
@@ -205,9 +204,6 @@ void CWeapon::Load(LPCSTR section)
 {
 	inherited::Load(section);
 	CShootingObject::Load(section);
-
-	if (pSettings->line_exist(section, "flame_particles_2"))
-		m_sFlameParticles2 = pSettings->r_string(section, "flame_particles_2");
 
 	// load ammo classes
 	m_ammoTypes.clear();
@@ -243,13 +239,6 @@ void CWeapon::Load(LPCSTR section)
 	misfireEndProbability = pSettings->r_float(section, "misfire_end_prob");
 	conditionDecreasePerShot = pSettings->r_float(section, "condition_shot_dec");
 	conditionDecreasePerQueueShot = READ_IF_EXISTS(pSettings, r_float, section, "condition_queue_shot_dec", conditionDecreasePerShot);
-
-	vLoadedFirePoint = pSettings->r_fvector3(section, "fire_point");
-
-	if (pSettings->line_exist(section, "fire_point2"))
-		vLoadedFirePoint2 = pSettings->r_fvector3(section, "fire_point2");
-	else
-		vLoadedFirePoint2 = vLoadedFirePoint;
 
 	// hands
 	eHandDependence = EHandDependence(pSettings->r_s32(section, "hand_dependence"));
@@ -315,6 +304,11 @@ void CWeapon::Load(LPCSTR section)
 	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
+
+	m_grip_offset						= pSettings->r_fvector3(section, "grip_offset");
+	m_muzzle_position					= pSettings->r_fvector3(section, "muzzle_position");
+	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
+	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -377,7 +371,6 @@ void CWeapon::net_Destroy()
 
 	//удалить объекты партиклов
 	StopFlameParticles();
-	StopFlameParticles2();
 	StopLight();
 	Light_Destroy();
 
@@ -595,7 +588,6 @@ void CWeapon::UpdateCL()
 
 	//нарисовать партиклы
 	UpdateFlameParticles();
-	UpdateFlameParticles2();
 
 	if ((GetNextState() == GetState()) && H_Parent() == Level().CurrentEntity())
 	{
@@ -880,15 +872,7 @@ void CWeapon::reload(LPCSTR section)
 	else
 		m_can_be_strapped = false;
 
-	{
-		Fvector				pos, ypr;
-		pos = pSettings->r_fvector3(section, "position");
-		ypr = pSettings->r_fvector3(section, "orientation");
-		ypr.mul(PI / 180.f);
-
-		m_Offset.setHPB(ypr.x, ypr.y, ypr.z);
-		m_Offset.translate_over(pos);
-	}
+	m_Offset.translate_over(m_grip_offset);
 
 	m_StrapOffset = m_Offset;
 	if (pSettings->line_exist(section, "strap_position") && pSettings->line_exist(section, "strap_orientation"))

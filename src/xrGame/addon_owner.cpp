@@ -109,7 +109,7 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
 			for (auto s : m_Slots)
-				s->updateAddonHudTransform(hi->m_model, hi->m_item_transform);
+				s->updateAddonHudTransform(hi->m_model, hi->m_transform);
 			break;
 		}
 	}
@@ -249,7 +249,12 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	type								= pSettings->r_string(section, *tmp);
 
 	tmp.printf							("attach_bone_%d", idx);
-	bone_name							= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "wpn_body");
+	auto obj							= parent->cast<CObject*>();
+	shared_str bone_name				= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "wpn_body");
+	bone_id								= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
+	
+	tmp.printf							("muzzle_pos_%d", idx);
+	muzzle_pos							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
@@ -264,13 +269,6 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	bone_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
 	bone_offset[0].mul					(-1.f);
 	bone_offset[0].rotate				(bone_offset[1]);
-	
-	if (parent_addon)
-		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL);
-	else
-		transform.identity				();
-	transform.applyOffset				(bone_offset);
-	transform.applyOffset				(model_offset);
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
@@ -294,7 +292,7 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 {
 	name.printf							("%s - %s", *CStringTable().translate(root_slot->addon->NameShort()), *CStringTable().translate(slot->name));
 	type								= slot->type;
-	bone_name							= root_slot->bone_name;
+	bone_id								= root_slot->bone_id;
 	icon_offset							= slot->icon_offset;
 	icon_offset.add						(root_slot->icon_offset);
 	icon_offset.sub						(root_slot->addon->IconOffset());
@@ -308,12 +306,9 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 
 void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans) const
 {
-	u16 bone_id							= model->LL_BoneID(bone_name);
-	Fmatrix bone_trans					= model->LL_GetTransform(bone_id);
+	trans								= model->LL_GetTransform(bone_id);
 	if (parent_trans)
-		trans.mul						(*parent_trans, bone_trans);
-	else
-		trans							= bone_trans;
+		trans.mulA_43					(*parent_trans);
 }
 
 void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
@@ -367,16 +362,29 @@ void SAddonSlot::registerAddon(CAddon* _addon)
 void SAddonSlot::updateAddonLocalTransform()
 {
 	if (parent_addon)
+		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL);
+	else
+		transform.identity				();
+	transform.applyOffset				(bone_offset);
+	if (muzzle_pos)
+	{
+		auto wpn						= parent_ao->cast<CWeapon*>();
+		if (wpn)
+			model_offset[0]				= wpn->getMuzzlePosition();
+	}
+	transform.applyOffset				(model_offset);
+
+	if (parent_addon)
 	{
 		Fmatrix							trans;
 		trans.mul						(parent_addon->getLocalTransform(), transform);
 		addon->updateLocalTransform		(&trans);
-		addon->setRootBone				(parent_addon->getRootBone());
+		addon->setRootBoneID			(parent_addon->getRootBoneID());
 	}
 	else
 	{
 		addon->updateLocalTransform		(&transform);
-		addon->setRootBone				(bone_name);
+		addon->setRootBoneID			(bone_id);
 	}
 }
 

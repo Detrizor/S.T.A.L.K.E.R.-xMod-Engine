@@ -75,14 +75,9 @@ void weapon::compute_bone	(u32 const bone_id)
 
 	Fmatrix const& mL		= m_local_bones[weapon_bone_id1];
 	Fmatrix const& mR		= m_local_bones[weapon_bone_id0];
-
-	Fvector					pos,ypr;
-	pos						= pSettings->r_fvector3( m_weapon.cNameSect(),"position" );
-	ypr						= pSettings->r_fvector3( m_weapon.cNameSect(),"orientation" );
-	ypr.mul					(PI/180.f);
-
+	
 	Fmatrix					offset;
-	offset.setHPB			(ypr.x,ypr.y,ypr.z);
+	Fvector pos				= pSettings->r_fvector3(m_weapon.cNameSect(),"grip_offset");
 	offset.translate_over	(pos);
 
 	Fmatrix					mRes;
@@ -103,7 +98,7 @@ void weapon::compute_bone	(u32 const bone_id)
 	mRes.set				(R,N,D,mR.c);
 	mRes.mulA_43			(m_start_transform);
 
-	Fvector					vLoadedFirePoint = pSettings->r_fvector3( m_weapon.cNameSect(), "fire_point" );
+	Fvector					vLoadedFirePoint = pSettings->r_fvector3(m_weapon.cNameSect(), "muzzle_position");
 	Fmatrix					transform;
 	transform.mul			(mRes, offset);
 	

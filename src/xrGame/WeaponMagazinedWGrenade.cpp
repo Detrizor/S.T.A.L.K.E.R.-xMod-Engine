@@ -28,8 +28,6 @@ CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(ESoundTypes eSoundType) : CWe
 	m_bGrenadeMode = false;
 	iMagazineSize2 = 0;
 	m_fLaunchSpeed = 0.f;
-	m_sFlameParticles2 = NULL;
-	m_pLauncher = NULL;
 }
 
 CWeaponMagazinedWGrenade::~CWeaponMagazinedWGrenade()
@@ -64,11 +62,17 @@ void CWeaponMagazinedWGrenade::Load(LPCSTR section)
 	shared_str integrated_gl			= READ_IF_EXISTS(pSettings, r_string, section, "grenade_launcher", "");
 	if (integrated_gl.size())
 		ProcessGL						(xr_new<CGrenadeLauncher>(this, integrated_gl), true);
+
+	if (pSettings->line_exist(section, "flame_particles_gl"))
+		m_flame_particles_gl_name = pSettings->r_string(section, "flame_particles_gl");
+	else if (pSettings->line_exist(section, "flame_particles"))
+		m_flame_particles_gl_name = pSettings->r_string(section, "flame_particles");
 }
 
 void CWeaponMagazinedWGrenade::net_Destroy()
 {
 	inherited::net_Destroy();
+	stop_flame_particles_gl();
 }
 
 BOOL CWeaponMagazinedWGrenade::net_Spawn(CSE_Abstract* DC)
@@ -126,7 +130,7 @@ void CWeaponMagazinedWGrenade::switch2_Reload()
 	VERIFY(GetState() == eReload);
 	if (m_bGrenadeMode)
 	{
-		PlaySound("sndReloadG", get_LastFP2());
+		PlaySound("sndReloadG", m_muzzle_position_gl);
 		PlayHUDMotion("anm_reload", FALSE, this, GetState());
 		SetPending(TRUE);
 	}
@@ -278,7 +282,7 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 	R_ASSERT(m_bGrenadeMode);
 
 	Fvector						p1, d;
-	p1.set(get_LastFP2());
+	p1.set(m_muzzle_position_gl);
 	d.set(get_LastFD());
 	CEntity*					E = smart_cast<CEntity*>(H_Parent());
 
@@ -294,7 +298,7 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 		}
 		E->g_fireParams(this, p1, d);
 	}
-	p1.set(get_LastFP2());
+	p1.set(m_muzzle_position_gl);
 
 	Fmatrix							launch_matrix;
 	launch_matrix.identity();
@@ -602,7 +606,7 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 	if (attach)
 	{
 		m_fLaunchSpeed					= gl->GetGrenadeVel();
-		m_sFlameParticles2				= gl->FlameParticles();
+		m_flame_particles_gl_name		= gl->FlameParticles();
 	}
 	else
 	{
@@ -617,9 +621,9 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 void CWeaponMagazinedWGrenade::shoot_grenade()
 {
 	//PlayAnimShoot();		--xd tmp until animations fix
-	PlaySound("sndShotG", get_LastFP2());
+	PlaySound("sndShotG", m_muzzle_position_gl);
 	AddShotEffector();
-	StartFlameParticles2();
+	start_flame_particles_gl();
 }
 
 float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
@@ -677,4 +681,24 @@ void CWeaponMagazinedWGrenade::SetADS(int mode)
 bool CWeaponMagazinedWGrenade::AltHandsAttach() const
 {
 	return m_bGrenadeMode;// && ADS();
+}
+
+void CWeaponMagazinedWGrenade::start_flame_particles_gl()
+{
+	CShootingObject::StartParticles(m_flame_particles_gl, *m_flame_particles_gl_name, m_muzzle_position_gl);
+}
+void CWeaponMagazinedWGrenade::stop_flame_particles_gl()
+{
+	CShootingObject::StopParticles (m_flame_particles_gl);
+}
+void CWeaponMagazinedWGrenade::update_flame_particles_gl()
+{
+	if (m_flame_particles_gl)
+		CShootingObject::UpdateParticles(m_flame_particles_gl, m_muzzle_position_gl);
+}
+
+void CWeaponMagazinedWGrenade::UpdateCL()
+{
+	inherited::UpdateCL();
+	update_flame_particles_gl();
 }

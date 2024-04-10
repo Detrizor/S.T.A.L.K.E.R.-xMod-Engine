@@ -131,7 +131,7 @@ void CUIArtefactDetectorAdv::update()
 	
 	Fvector							dest;
 	Fmatrix							Mi;
-	Mi.invert						(itm->m_item_transform);
+	Mi.invert						(itm->m_transform);
 	Mi.transform_dir				(dest, m_target_dir);
 
 	float dest_y_rot				= -dest.getH();
