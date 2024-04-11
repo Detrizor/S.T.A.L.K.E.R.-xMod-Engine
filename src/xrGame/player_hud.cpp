@@ -304,23 +304,24 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 	m_measures.load				(hud_section, m_model, this);
 }
 
-u32 attachable_hud_item::anim_play(const shared_str& anm_name_b, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)
+u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)
 {
-	R_ASSERT				(strstr(anm_name_b.c_str(),"anm_")==anm_name_b.c_str());
-	string256				anim_name_r;
-	bool is_16x9			= UI().is_widescreen();
-	xr_sprintf				(anim_name_r,"%s%s",anm_name_b.c_str(),((m_attach_place_idx==1)&&is_16x9)?"_16x9":"");
+	R_ASSERT				(strstr(anim_name.c_str(),"anm_")== anim_name.c_str());
 
-	player_hud_motion* anm	= m_hand_motions.find_motion(anim_name_r);
-	R_ASSERT2				(anm, make_string("model [%s] has no motion alias defined [%s]", m_hud_section.c_str(), anim_name_r).c_str());
-	R_ASSERT2				(anm->m_animations.size(), make_string("model [%s] has no motion defined in motion_alias [%s]", pSettings->r_string(m_object_section, "visual"), anim_name_r).c_str());
+	player_hud_motion* anm	= m_hand_motions.find_motion(anim_name);
+	R_ASSERT2				(anm, make_string("model [%s] has no motion alias defined [%s]", m_hud_section.c_str(), anim_name).c_str());
+	R_ASSERT2				(anm->m_animations.size(), make_string("model [%s] has no motion defined in motion_alias [%s]", pSettings->r_string(m_object_section, "visual"), anim_name).c_str());
 	
 	float speed = anm->m_anim_speed;
 
 	rnd_idx					= (u8)Random.randI(anm->m_animations.size()) ;
 	const motion_descr& M	= anm->m_animations[ rnd_idx ];
 
-	u32 ret					= g_player_hud->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed);
+	u32						ret;
+	if (strstr(*anim_name, "anm_shots"))
+		ret					= g_player_hud->motion_length(M.mid, md, speed);
+	else
+		ret					= g_player_hud->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed);
 	
 	if(m_model->dcast_PKinematicsAnimated())
 	{
@@ -706,7 +707,6 @@ void player_hud::update(const Fmatrix& cam_trans)
 
 u32 player_hud::anim_play(u16 part, const MotionID& M, BOOL bMixIn, const CMotionDef*& md, float speed)
 {
-
 	u16 part_id							= u16(-1);
 	if(attached_item(0) && attached_item(1))
 		part_id = m_model->partitions().part_id((part==0)?"right_hand":"left_hand");

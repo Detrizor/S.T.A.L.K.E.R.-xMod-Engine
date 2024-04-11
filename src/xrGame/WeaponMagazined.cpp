@@ -728,7 +728,7 @@ void CWeaponMagazined::OnShot()
 	AddShotEffector();
 
 	// Animation
-	//PlayAnimShoot();		--xd tmp until animations fix
+	PlayAnimShoot();
 
 	// Shell Drop
 	Fvector vel;

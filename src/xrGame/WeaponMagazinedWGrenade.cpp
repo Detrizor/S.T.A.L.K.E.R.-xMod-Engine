@@ -620,7 +620,7 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 
 void CWeaponMagazinedWGrenade::shoot_grenade()
 {
-	//PlayAnimShoot();		--xd tmp until animations fix
+	PlayAnimShoot();
 	PlaySound("sndShotG", m_muzzle_position_gl);
 	AddShotEffector();
 	start_flame_particles_gl();
