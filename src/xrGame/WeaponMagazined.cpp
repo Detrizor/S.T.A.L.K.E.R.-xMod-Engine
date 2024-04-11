@@ -160,10 +160,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 		for (auto s : ao->AddonSlots())
 		{
 			if (s->magazine)
-			{
 				m_pMagazineSlot			= s;
-				break;
-			}
+			if (s->muzzle)
+				s->model_offset.translate_over(getMuzzlePosition());
 		}
 	}
 	
@@ -1333,15 +1332,15 @@ void CWeaponMagazined::OnMotionHalf()
 		if (m_pMagazine)
 			m_pMagazine->Transfer		(parent_id());
 
-		//if (m_pNextMagazine)
-			//m_pMagazineSlot->setLoadingAddon(m_pNextMagazine->cast<CAddon*>());
+		if (m_pNextMagazine)
+			m_pMagazineSlot->registerLoadingAddon(m_pNextMagazine->cast<CAddon*>());
 	}
 }
 
 void CWeaponMagazined::OnHiddenItem()
 {
-	//if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
-		//m_pMagazineSlot->setLoadingAddon(NULL);
+	if (m_pMagazineSlot && m_pMagazineSlot->addon)
+		m_pMagazineSlot->unregisterLoadingAddon();
 	inherited::OnHiddenItem				();
 }
 
@@ -1454,8 +1453,8 @@ void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 		else if (m_pMagazine)
 			LoadCartridgeFromMagazine	(!Chamber());
 
-		//if (m_pMagazineSlot)
-			//m_pMagazineSlot->setLoadingAddon(NULL);
+		if (m_pMagazineSlot)
+			m_pMagazineSlot->unregisterLoadingAddon();
 	}
 	else
 	{ 

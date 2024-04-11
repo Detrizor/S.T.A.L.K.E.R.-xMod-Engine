@@ -785,7 +785,7 @@ public:
 	SelfRef applyOffset(const Tvector& position, const Tvector& rotation)
 	{
 		Fmatrix							offset;
-		offset.setHPB					(-rotation.y, -rotation.x, -rotation.z);
+		offset.setXYZi					(rotation);
 		offset.translate_over			(position);
 		mulB_43							(offset);
 		return							*this;
@@ -794,6 +794,26 @@ public:
 	SelfRef applyOffset(Tvector const* offset)
 	{
 		return							applyOffset(offset[0], offset[1]);
+	}
+	
+	SelfRef setHPBDeg(Tvector v)
+	{
+		v.mul							(deg2rad(1.f));
+		return							setHPB(v.x, v.y, v.z);
+	}
+	
+	SelfRef setXYZiDeg(Tvector v)
+	{
+		v.mul							(deg2rad(1.f));
+		return							setXYZi(v);
+	}
+
+	void getOffset(Tvector* dest) const
+	{
+		dest[0]							= c;
+		getXYZi							(dest[1]);
+		dest[0].mul						(-1.f);
+		dest[1].mul						(-1.f);
 	}
 };
 

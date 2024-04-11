@@ -25,6 +25,10 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 
 	m_grip_offset						= vZero;
 	m_grip_offset.sub					(O.m_grip_offset);
+	
+	Fvector barrel_offset				= vZero;
+	barrel_offset.sub					(O.m_muzzle_position);
+	barrel_offset.z						= O.m_grip_offset.z;
 
 	m_hud_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
 	m_hud_offset[eRelaxed][1]			= pSettings->r_fvector3(O.HudSection(), "relaxed_rot");
@@ -36,13 +40,9 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 
 	m_hud_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hud_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
-
-	Fvector barrel_offset				= vZero;
-	barrel_offset.sub					(O.m_muzzle_position);
-	barrel_offset.z						= O.m_grip_offset.z;
 	barrel_offset.pivot					(m_hud_offset[eAlt]);
-	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.HudSection(), "alt_aim_height");
 
+	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.HudSection(), "alt_aim_height");
 	m_hud_offset[eIS][0].z				= m_grip_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
 	m_hud_offset[eAlt][0].z				= m_hud_offset[eIS][0].z;
 
@@ -103,15 +103,14 @@ void CWeaponHud::ProcessScope(CScope* scope, bool attach)
 
 void CWeaponHud::ProcessGL(SAddonSlot* slot, CGrenadeLauncher* gl, bool attach)
 {
-	Fvector tmp							= vZero;
-	tmp.sub								(slot->model_offset[0]);
-
-	m_hud_offset[eGL][0] = m_hud_offset[eGL][1] = vZero;
-	m_hud_offset[eGL][0].sub			(gl->getSightOffset()[0]);
-	m_hud_offset[eGL][1].sub			(gl->getSightOffset()[1]);
-	tmp.pivot							(m_hud_offset[eGL]);
-
-	m_hud_offset[eGL][0].z			= m_hud_offset[eIS][0].z;
+	Fmatrix								trans;
+	if (auto addon = gl->cast<CAddon*>())
+		trans							= addon->getLocalTransform();
+	else
+		trans							= Fidentity;
+	trans.applyOffset					(gl->getSightOffset());
+	trans.getOffset						(m_hud_offset[eGL]);
+	m_hud_offset[eGL][0].z				= m_grip_offset.z;
 }
 
 void CWeaponHud::SwitchGL()

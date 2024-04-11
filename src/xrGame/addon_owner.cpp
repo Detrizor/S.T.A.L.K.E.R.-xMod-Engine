@@ -252,37 +252,60 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	auto obj							= parent->cast<CObject*>();
 	shared_str bone_name				= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "wpn_body");
 	bone_id								= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
-	
-	tmp.printf							("muzzle_pos_%d", idx);
-	muzzle_pos							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
-
-	tmp.printf							("model_offset_pos_%d", idx);
-	model_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
 
 	tmp.printf							("model_offset_rot_%d", idx);
-	model_offset[1]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
-
+	model_offset.setHPBDeg				(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	tmp.printf							("model_offset_pos_%d", idx);
+	model_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	
 	tmp.printf							("bone_offset_rot_%d", idx);
-	bone_offset[1]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
-
+	bone_offset.setXYZiDeg				(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
 	tmp.printf							("bone_offset_pos_%d", idx);
-	bone_offset[0]						= READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero);
-	bone_offset[0].mul					(-1.f);
-	bone_offset[0].rotate				(bone_offset[1]);
+	bone_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
-
-	tmp.printf							("magazine_%d", idx);
-	magazine							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
 	tmp.printf							("overlaping_slot_%d", idx);
 	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
+	
+	tmp.printf							("muzzle_%d", idx);
+	muzzle								= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
-	addon = loading_addon				= NULL;
+	tmp.printf							("magazine_%d", idx);
+	magazine							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
+	if (magazine)
+	{
+		tmp.printf						("loading_attach_bone_%d", idx);
+		if (pSettings->line_exist(section, *tmp))
+		{
+			bone_name					= pSettings->r_string(section, *tmp);
+			loading_bone_id				= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
+		}
+		else
+			loading_bone_id				= bone_id;
+		
+		loading_model_offset			= model_offset;
+		tmp.printf						("loading_model_offset_rot_%d", idx);
+		if (pSettings->line_exist(section, *tmp))
+			loading_model_offset.setHPBDeg(pSettings->r_fvector3(section, *tmp));
+		tmp.printf						("loading_model_offset_pos_%d", idx);
+		if (pSettings->line_exist(section, *tmp))
+			loading_model_offset.translate_over(pSettings->r_fvector3(section, *tmp));
+
+		loading_bone_offset				= bone_offset;
+		tmp.printf						("loading_bone_offset_rot_%d", idx);
+		if (pSettings->line_exist(section, *tmp))
+			loading_bone_offset.setXYZiDeg(pSettings->r_fvector3(section, *tmp));
+		tmp.printf						("loading_bone_offset_pos_%d", idx);
+		if (pSettings->line_exist(section, *tmp))
+			loading_bone_offset.translate_over(pSettings->r_fvector3(section, *tmp));
+		loading_bone_offset.invert		();
+	}
+	bone_offset.invert					();
 }
 
 SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent):
@@ -301,30 +324,37 @@ SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwne
 	overlaping_slot						= root_slot->overlaping_slot;
 
 	addon								= slot->addon;
-	loading_addon						= NULL;
 }
 
-void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans) const
+void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans, u16 bone) const
 {
-	trans								= model->LL_GetTransform(bone_id);
+	trans								= model->LL_GetTransform(bone);
 	if (parent_trans)
 		trans.mulA_43					(*parent_trans);
 }
 
 void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
 {
-	if (!addon)
-		return;
+	auto update_impl = [this, model, parent_trans](CAddon* addon_, u16 bone_id_)
+	{
+		Fmatrix							trans;
+		append_bone_trans				(trans, model, &parent_trans, bone_id_);
+		addon_->updateHudTransform		(trans);
+	};
 
-	Fmatrix								trans;
-	append_bone_trans					(trans, model, &parent_trans);
-	addon->updateHudTransform			(trans);
-	CScope* scope						= addon->cast<CScope*>();
-	if (scope && scope->Type() == eOptics)
-		scope->updateCameraLenseOffset	();
+	if (addon)
+	{
+		update_impl						(addon, bone_id);
+		CScope* scope					= addon->cast<CScope*>();
+		if (scope && scope->Type() == eOptics)
+			scope->updateCameraLenseOffset();
+	}
+
+	if (loading_addon)
+		update_impl						(loading_addon, loading_bone_id);
 }
 
-void SAddonSlot::RenderHud()
+void SAddonSlot::RenderHud() const
 {
 	if (loading_addon)
 		loading_addon->RenderHud		();
@@ -342,37 +372,47 @@ void SAddonSlot::RenderHud()
 	}
 }
 
-void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ paren_trans)
+void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
 {
-	if (!addon)
-		return;
-	
-	Fmatrix								trans;
-	append_bone_trans					(trans, model->dcast_PKinematics(), &paren_trans);
-	addon->RenderWorld					(trans);
+	auto render_impl = [this, model, parent_trans](CAddon* addon_, u16 bone_id_)
+	{
+		Fmatrix							trans;
+		append_bone_trans				(trans, model->dcast_PKinematics(), &parent_trans, bone_id_);
+		addon_->RenderWorld				(trans);
+	};
+
+	if (addon)
+		render_impl						(addon, bone_id);
+	if (loading_addon)
+		render_impl						(loading_addon, loading_bone_id);
 }
 
-void SAddonSlot::registerAddon(CAddon* _addon)
+void SAddonSlot::registerAddon(CAddon* addon_)
 {
-	addon								= _addon;
+	addon								= addon_;
 	if (!forwarded_slot)
 		updateAddonLocalTransform		();
+}
+
+void SAddonSlot::registerLoadingAddon(CAddon* addon_)
+{
+	loading_addon						= addon_;
+	loading_transform.identity			();
+	loading_transform.mulB_43			(loading_bone_offset);
+	loading_transform.mulB_43			(loading_model_offset);
+
+	loading_addon->updateLocalTransform	(&loading_transform);
+	loading_addon->setRootBoneID		(loading_bone_id);
 }
 
 void SAddonSlot::updateAddonLocalTransform()
 {
 	if (parent_addon)
-		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL);
+		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL, bone_id);
 	else
 		transform.identity				();
-	transform.applyOffset				(bone_offset);
-	if (muzzle_pos)
-	{
-		auto wpn						= parent_ao->cast<CWeapon*>();
-		if (wpn)
-			model_offset[0]				= wpn->getMuzzlePosition();
-	}
-	transform.applyOffset				(model_offset);
+	transform.mulB_43					(bone_offset);
+	transform.mulB_43					(model_offset);
 
 	if (parent_addon)
 	{
@@ -393,6 +433,11 @@ void SAddonSlot::unregisterAddon()
 	if (!forwarded_slot)
 		addon->updateLocalTransform		(NULL);
 	addon								= NULL;
+}
+
+void SAddonSlot::unregisterLoadingAddon()
+{
+	loading_addon						= NULL;
 }
 
 bool SAddonSlot::Compatible(CAddon CPC _addon) const
