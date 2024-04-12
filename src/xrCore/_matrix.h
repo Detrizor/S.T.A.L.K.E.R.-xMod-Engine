@@ -755,6 +755,7 @@ public:
 		_44_ = 1;
 		return *this;
 	}
+	IC SelfRef setHPBv(Tvector const& xyz) { return setHPB(xyz.x, xyz.y, xyz.z); }
 	IC SelfRef setXYZ(T x, T y, T z) { return setHPB(y, x, z); }
 	IC SelfRef setXYZ(Tvector const& xyz) { return setHPB(xyz.y, xyz.x, xyz.z); }
 	IC SelfRef setXYZi(T x, T y, T z) { return setHPB(-y, -x, -z); }
@@ -785,7 +786,7 @@ public:
 	SelfRef applyOffset(const Tvector& position, const Tvector& rotation)
 	{
 		Fmatrix							offset;
-		offset.setXYZi					(rotation);
+		offset.setHPBv					(rotation);
 		offset.translate_over			(position);
 		mulB_43							(offset);
 		return							*this;
@@ -795,25 +796,12 @@ public:
 	{
 		return							applyOffset(offset[0], offset[1]);
 	}
-	
-	SelfRef setHPBDeg(Tvector v)
-	{
-		v.mul							(deg2rad(1.f));
-		return							setHPB(v.x, v.y, v.z);
-	}
-	
-	SelfRef setXYZiDeg(Tvector v)
-	{
-		v.mul							(deg2rad(1.f));
-		return							setXYZi(v);
-	}
 
 	void getOffset(Tvector* dest) const
 	{
-		dest[0]							= c;
-		getXYZi							(dest[1]);
-		dest[0].mul						(-1.f);
-		dest[1].mul						(-1.f);
+		Self itrans						= Self().invert(*this);
+		dest[0]							= itrans.c;
+		itrans.getHPB					(dest[1]);
 	}
 };
 

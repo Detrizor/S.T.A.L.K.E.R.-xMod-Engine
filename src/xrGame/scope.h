@@ -49,7 +49,7 @@ public:
 private:
 	const CAddon*						m_addon;
 	const eScopeType					m_Type;
-	const Fvector						m_sight_offset;
+	const Fvector						m_sight_position;
 	
 	CUIStatic*							m_pUIReticle							= NULL;
 	CBinocularsVision*					m_pVision								= NULL;
@@ -90,7 +90,7 @@ public:
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
 	Fvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
-	Fvector CR$							getSightOffset						C$	()		{ return m_sight_offset; }
+	Fvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Fvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 

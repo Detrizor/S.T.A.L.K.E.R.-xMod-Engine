@@ -489,23 +489,20 @@ public:
 
 	SelfRef rotate(float angle_x, float angle_y, float angle_z)
 	{
-		rotate(angle_x, 0);
-		rotate(angle_y, 1);
-		rotate(angle_z, 2);
+		rotate(-angle_x, 1);
+		rotate(-angle_y, 0);
+		rotate(-angle_z, 2);
 		return *this;
 	}
 
 	SelfRef rotate(const SelfRef angle_vec)
 	{
-		rotate(angle_vec.x, angle_vec.y, angle_vec.z);
-		return *this;
+		return rotate(angle_vec.x, angle_vec.y, angle_vec.z);
 	}
 
 	Self rotate_(const SelfRef angle_vec) const
 	{
-		Self res = *this;
-		res.rotate(angle_vec.x, angle_vec.y, angle_vec.z);
-		return res;
+		return Self(*this).rotate(angle_vec);
 	}
 
 	void pivot(Self* offset) const

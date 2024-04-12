@@ -30,7 +30,7 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_addon(obj->Cast<CAddon*>()),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
-m_sight_offset(pSettings->r_fvector3(section, "sight_offset"))
+m_sight_position(pSettings->r_fvector3(section, "sight_position"))
 {
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
@@ -195,7 +195,7 @@ void CScope::RenderUI()
 void CScope::updateCameraLenseOffset()
 {
 	Fmatrix CR$ transform				= (m_addon) ? m_addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
-	transform.transform_tiny			(m_camera_lense_offset, m_sight_offset);
+	transform.transform_tiny			(m_camera_lense_offset, m_sight_position);
 	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
 }
 

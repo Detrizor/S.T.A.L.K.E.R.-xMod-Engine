@@ -128,6 +128,7 @@ public:
     Fvector2 r_fvector2(const shared_str& S, LPCSTR L)const { return r_fvector2(*S, L); }
     Fvector3 r_fvector3(LPCSTR S, LPCSTR L)const;
     Fvector3 r_fvector3(const shared_str& S, LPCSTR L)const { return r_fvector3(*S, L); }
+    Fvector3 r_fvector3d2r(const shared_str& S, LPCSTR L)const { return r_fvector3(*S, L).mul(deg2rad(1.f)); }
     Fvector4 r_fvector4(LPCSTR S, LPCSTR L)const;
     Fvector4 r_fvector4(const shared_str& S, LPCSTR L)const { return r_fvector4(*S, L); }
     BOOL r_bool(LPCSTR S, LPCSTR L)const;

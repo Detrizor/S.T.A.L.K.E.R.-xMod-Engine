@@ -568,37 +568,41 @@ const Fvector& player_hud::attach_pos() const
 		return vZero;
 }
 
-void player_hud::update(const Fmatrix& cam_trans)
+void player_hud::update(Fmatrix cam_trans)
 {
-	Fmatrix trans = cam_trans;
-
 	for (int i = 0; i < 2; i++)
 		if (m_attached_items[i])
 			update_bones(m_attached_items[i]->m_model);
 
 	if (m_attached_items[0])
-		m_attached_items[0]->m_parent_hud_item->UpdateHudAdditional(trans);
+		m_attached_items[0]->m_parent_hud_item->UpdateHudAdditional(cam_trans);
 	else if (m_attached_items[1])
-		m_attached_items[1]->m_parent_hud_item->UpdateHudAdditional(trans);
+		m_attached_items[1]->m_parent_hud_item->UpdateHudAdditional(cam_trans);
 
 	auto pi = m_attached_items[0];
 	if (pi && pi->m_auto_attach)
 	{
 		if (pi->m_auto_attach == 1)
 		{
-			pi->m_parent_hud_item->PlayHUDMotion("anm_idle_aim", FALSE, NULL, 0);
-			update_bones(m_model->dcast_PKinematics());
+			auto calc_attach_offset_full = [this, pi](LPCSTR anm, Fmatrix& dest)
+			{
+				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, NULL, 0);
+				update_bones(m_model->dcast_PKinematics());
+				Fmatrix CR$ bone_trans = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
+				dest.mul(bone_trans, pi->m_attach_offset);
+				dest.invert();
+			};
 
-			Fmatrix CR$ bone_trans = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
-			pi->m_attach_offset_full.mul(bone_trans, pi->m_attach_offset);
-			pi->m_attach_offset_full.invert();
+			calc_attach_offset_full("anm_idle_aim", pi->m_attach_offset_full[0]);
+			if (pi->m_parent_hud_item->HudAnimationExist("anm_idle_g_aim"))
+				calc_attach_offset_full("anm_idle_g_aim", pi->m_attach_offset_full[1]);
 
 			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
 			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);
 
 			pi->m_auto_attach = 2;
 		}
-		m_transform.mul(trans, pi->m_attach_offset_full);
+		m_transform.mul(cam_trans, pi->m_attach_offset_full[pi->m_parent_hud_item->AltHandsAttach()]);
 	}
 	else
 	{
@@ -610,7 +614,7 @@ void player_hud::update(const Fmatrix& cam_trans)
 		attach_offset.setHPB(m1rot.x, m1rot.y, m1rot.z);
 		attach_offset.translate_over(m1pos);
 
-		m_transform.mul(trans, attach_offset);
+		m_transform.mul(cam_trans, attach_offset);
 	}
 	
 	update_bones(m_model->dcast_PKinematics());

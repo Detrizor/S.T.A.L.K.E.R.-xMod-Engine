@@ -254,12 +254,12 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	bone_id								= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
 
 	tmp.printf							("model_offset_rot_%d", idx);
-	model_offset.setHPBDeg				(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	model_offset.setHPBv				(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
 	
 	tmp.printf							("bone_offset_rot_%d", idx);
-	bone_offset.setXYZiDeg				(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	bone_offset.setXYZi					(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
 	tmp.printf							("bone_offset_pos_%d", idx);
 	bone_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
 
@@ -291,7 +291,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 		loading_model_offset			= model_offset;
 		tmp.printf						("loading_model_offset_rot_%d", idx);
 		if (pSettings->line_exist(section, *tmp))
-			loading_model_offset.setHPBDeg(pSettings->r_fvector3(section, *tmp));
+			loading_model_offset.setHPBv(pSettings->r_fvector3d2r(section, *tmp));
 		tmp.printf						("loading_model_offset_pos_%d", idx);
 		if (pSettings->line_exist(section, *tmp))
 			loading_model_offset.translate_over(pSettings->r_fvector3(section, *tmp));
@@ -299,7 +299,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 		loading_bone_offset				= bone_offset;
 		tmp.printf						("loading_bone_offset_rot_%d", idx);
 		if (pSettings->line_exist(section, *tmp))
-			loading_bone_offset.setXYZiDeg(pSettings->r_fvector3(section, *tmp));
+			loading_bone_offset.setXYZi	(pSettings->r_fvector3d2r(section, *tmp));
 		tmp.printf						("loading_bone_offset_pos_%d", idx);
 		if (pSettings->line_exist(section, *tmp))
 			loading_bone_offset.translate_over(pSettings->r_fvector3(section, *tmp));

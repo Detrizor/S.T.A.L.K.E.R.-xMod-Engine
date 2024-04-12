@@ -212,7 +212,7 @@ struct attachable_hud_item
 
 	//runtime positioning
 	Fmatrix							m_attach_offset;
-	Fmatrix							m_attach_offset_full;
+	Fmatrix							m_attach_offset_full[2];
 	Fmatrix							m_transform;
 
 	player_hud_motion_container		m_hand_motions;
@@ -245,7 +245,7 @@ public:
 					~player_hud			();
 	void			load				(const shared_str& model_name);
 	void			load_default		(){load("actor_hud_05");};
-	void			update				(const Fmatrix& trans);
+	void			update				(Fmatrix trans);
 	void			render_hud			();	
 	void			render_item_ui		();
 	bool			render_item_ui_query();

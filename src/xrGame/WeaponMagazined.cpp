@@ -162,7 +162,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 			if (s->magazine)
 				m_pMagazineSlot			= s;
 			if (s->muzzle)
-				s->model_offset.translate_over(getMuzzlePosition());
+				s->model_offset.translate_over(m_muzzle_point);
 		}
 	}
 	

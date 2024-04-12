@@ -605,6 +605,7 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 
 	if (attach)
 	{
+		m_hud->ProcessGL				(gl);
 		m_fLaunchSpeed					= gl->GetGrenadeVel();
 		m_flame_particles_gl_name		= gl->FlameParticles();
 	}
@@ -647,10 +648,7 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 			SAddonSlot* slot			= (SAddonSlot*)data;
 			CGrenadeLauncher* gl		= slot->addon->cast<CGrenadeLauncher*>();
 			if (gl)
-			{
 				ProcessGL				(gl, !!param);
-				m_hud->ProcessGL		(slot, gl, !!param);
-			}
 			break;
 		}
 

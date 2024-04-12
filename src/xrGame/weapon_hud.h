@@ -40,7 +40,6 @@ private:
 	Fvector								m_current_hud_offset[2]					= { vZero, vZero };
 	xr_vector<CScope*>					m_scopes_to_process						= {};
 
-	Fvector								m_grip_offset;
 	Fvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;
 
@@ -57,7 +56,7 @@ public:
 	void								UpdateHudAdditional						(Fmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessScope							(CScope* scope, bool attach);
-	void								ProcessGL								(SAddonSlot* slot, CGrenadeLauncher* gl, bool attach);
+	void								ProcessGL								(CGrenadeLauncher* gl);
 	void								SwitchGL								();
 
 	bool								IsRotatingToZoom					C$	();

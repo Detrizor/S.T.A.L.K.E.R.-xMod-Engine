@@ -149,7 +149,7 @@ void CWeapon::UpdateFireDependencies_internal()
 		auto hi							= HudItemData();
 		hi->update						(false);
 
-		hi->m_transform.transform_tiny	(vLastFP, m_muzzle_position);
+		hi->m_transform.transform_tiny	(vLastFP, m_muzzle_point);
 		hi->m_transform.transform_dir	(vLastFD, vForward);
 
 		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(m_shell_bone);
@@ -165,7 +165,7 @@ void CWeapon::UpdateFireDependencies_internal()
 	else
 	{
 		// 3rd person or no parent
-		XFORM().transform_tiny			(vLastFP, m_muzzle_position);
+		XFORM().transform_tiny			(vLastFP, m_muzzle_point);
 		XFORM().transform_dir			(vLastFD, vForward);
 
 		Fmatrix CR$ fire_mat			= Visual()->dcast_PKinematics()->LL_GetTransform(m_shell_bone);
@@ -305,8 +305,8 @@ void CWeapon::Load(LPCSTR section)
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 
-	m_grip_offset						= pSettings->r_fvector3(section, "grip_offset");
-	m_muzzle_position					= pSettings->r_fvector3(section, "muzzle_position");
+	m_grip_offset						= pSettings->r_fvector3(section, "grip_point"); m_grip_offset.mul(-1.f);
+	m_muzzle_point						= pSettings->r_fvector3(section, "muzzle_point");
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
 }
