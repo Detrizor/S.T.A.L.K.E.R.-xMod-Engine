@@ -6,7 +6,6 @@
 #include "player_hud.h"
 #include "HudItem.h"
 #include "string_table.h"
-#include "scope.h"
 #include "../xrEngine/CameraManager.h"
 #include "WeaponMagazined.h"
 
@@ -343,12 +342,7 @@ void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_
 	};
 
 	if (addon)
-	{
 		update_impl						(addon, bone_id);
-		CScope* scope					= addon->cast<CScope*>();
-		if (scope && scope->Type() == eOptics)
-			scope->updateCameraLenseOffset();
-	}
 
 	if (loading_addon)
 		update_impl						(loading_addon, loading_bone_id);
@@ -360,16 +354,7 @@ void SAddonSlot::RenderHud() const
 		loading_addon->RenderHud		();
 
 	if (addon)
-	{
-		CScope* scope					= addon->Cast<CScope*>();
-		if (scope && scope->Type() == eOptics && ::Render->currentViewPort == SECONDARY_WEAPON_SCOPE)
-		{
-			CWeaponMagazined* wpn		= parent_ao->cast<CWeaponMagazined*>();
-			if (wpn && wpn->getActiveScope() == scope)
-				return;
-		}
 		addon->RenderHud				();
-	}
 }
 
 void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const

@@ -1599,6 +1599,15 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		case eUpdateHudBonesVisibility:
 			UpdateHudBonesVisibility	();
 			break;
+
+		case eUpdateSlotsTransform:
+		{
+			float res					= inherited::Aboba(type, data, param);
+			if (auto scope = getActiveScope())
+				if (scope->Type() == eOptics)
+					scope->updateCameraLenseOffset();
+			return						res;
+		}
 	}
 
 	return								inherited::Aboba(type, data, param);
@@ -1656,14 +1665,22 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	{
 		float lense_fov_tan				= scope->getLenseFovTan();
 		hud_params.w					= CurrentZoomFactor(false);
+		hud_params.z					= lense_fov_tan / aim_fov_tan;
 		fov_tan							= lense_fov_tan / hud_params.w;
 		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
-		Fvector sight_position			= scope->getObjectiveOffset();
-		Fmatrix							m;
-		camera.camera_Matrix			(m);
-		m.transform_tiny				(sight_position);
-		Device.m_SecondViewport.setPosition(sight_position);
-		hud_params.z					= lense_fov_tan / aim_fov_tan;
+		
+		Fvector pos						= scope->getSightPosition();
+		pos.add							(scope->getObjectiveOffset());
+		pos.z							+= EPS_L;
+
+		Fmatrix CP$						trans;
+		if (auto addon = scope->cast<CAddon*>())
+			trans						= &addon->getHudTransform();
+		else
+			trans						= &HudItemData()->m_transform;
+		trans->transform_tiny			(pos);
+
+		Device.m_SecondViewport.setPosition(pos);
 	}
 	else
 	{
