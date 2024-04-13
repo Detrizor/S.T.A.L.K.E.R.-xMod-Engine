@@ -11,7 +11,9 @@ public:
 
 private:
 	shared_str							m_section;
+	float								m_muzzle_point_shift;
 
 public:
 	shared_str CR$						Section								C$	()		{ return m_section; }
+	Fvector								getMuzzlePoint						C$	();
 };

@@ -506,6 +506,7 @@ protected:
 	Fvector								m_recoil_cam_last_impulse				= vZero;
 
 	Fvector								m_grip_offset							= vZero;
+	Fvector								m_loaded_muzzle_point					= vZero;
 	Fvector								m_muzzle_point							= vZero;
 	Fvector								m_shell_point							= vZero;
 	u16									m_shell_bone							= 0;

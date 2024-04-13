@@ -162,7 +162,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 			if (s->magazine)
 				m_pMagazineSlot			= s;
 			if (s->muzzle)
-				s->model_offset.translate_over(m_muzzle_point);
+				s->model_offset.translate_add(m_loaded_muzzle_point);
 		}
 	}
 	
@@ -1467,14 +1467,17 @@ void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 {
 	m_pSilencer							= (attach) ? sil : NULL;
 
-	LPCSTR sect_to_load					= *((attach) ? sil->Section() : cNameSect());
-	LoadLights							(sect_to_load);
-	LoadFlameParticles					(sect_to_load);
+	shared_str CR$ sect_to_load			= ((attach) ? sil->Section() : cNameSect());
+	LoadLights							(*sect_to_load);
+	LoadFlameParticles					(*sect_to_load);
 	if (attach)
-		LoadSilencerKoeffs				(sect_to_load);
+		LoadSilencerKoeffs				(*sect_to_load);
 	else
 		ResetSilencerKoeffs				();
 	UpdateSndShot						();
+
+	if (sil->cast<CAddon*>())
+		m_muzzle_point					= (attach) ? sil->getMuzzlePoint() : m_loaded_muzzle_point;
 }
 
 void CWeaponMagazined::process_scope(CScope* scope, bool attach)
