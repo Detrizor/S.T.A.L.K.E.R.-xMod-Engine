@@ -973,12 +973,7 @@ void CWeaponMagazined::PlayAnimReload()
 
 void CWeaponMagazined::PlayAnimAim()
 {
-	shared_str ms;
-	ms.printf("anm_idle_%s_aim", *m_MotionsSuffix);
-	if (HudAnimationExist(*ms))
-		PlayHUDMotion(ms, TRUE, NULL, GetState());
-	else
-		PlayHUDMotion("anm_idle_aim", TRUE, NULL, GetState());
+	PlayHUDMotion("anm_idle_aim", TRUE, NULL, GetState());
 }
 
 void CWeaponMagazined::PlayAnimIdle()
@@ -1308,8 +1303,8 @@ void UpdateBoneVisibility(IKinematics* pVisual, const shared_str& bone_name, boo
 	}
 }
 
-shared_str wpn_iron_sights = "wpn_iron_sights";
-shared_str wpn_iron_sights_lowered = "wpn_iron_sights_lowered";
+shared_str iron_sights_bone = "iron_sights";
+shared_str iron_sights_lowered_bone = "iron_sights_lowered";
 
 void CWeaponMagazined::UpdateBonesVisibility()
 {
@@ -1317,8 +1312,8 @@ void CWeaponMagazined::UpdateBonesVisibility()
 	R_ASSERT							(pWeaponVisual);
 
 	pWeaponVisual->CalculateBones_Invalidate();
-	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights, !m_iron_sights_blockers);
-	UpdateBoneVisibility				(pWeaponVisual, wpn_iron_sights_lowered, !!m_iron_sights_blockers);
+	UpdateBoneVisibility				(pWeaponVisual, iron_sights_bone, !m_iron_sights_blockers);
+	UpdateBoneVisibility				(pWeaponVisual, iron_sights_lowered_bone, !!m_iron_sights_blockers);
 	pWeaponVisual->CalculateBones_Invalidate();
 	pWeaponVisual->CalculateBones		(TRUE);
 
@@ -1647,8 +1642,8 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	if (!hi)
 		return;
 
-	hi->set_bone_visible				(wpn_iron_sights, !m_iron_sights_blockers, TRUE);
-	hi->set_bone_visible				(wpn_iron_sights_lowered, !!m_iron_sights_blockers, TRUE);
+	hi->set_bone_visible				(iron_sights_bone, !m_iron_sights_blockers, TRUE);
+	hi->set_bone_visible				(iron_sights_lowered_bone, !!m_iron_sights_blockers, TRUE);
 }
 
 extern float aim_fov_tan;

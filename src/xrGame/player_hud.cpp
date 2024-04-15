@@ -594,8 +594,8 @@ void player_hud::update(Fmatrix cam_trans)
 			};
 
 			calc_attach_offset_full("anm_idle_aim", pi->m_attach_offset_full[0]);
-			if (pi->m_parent_hud_item->HudAnimationExist("anm_idle_g_aim"))
-				calc_attach_offset_full("anm_idle_g_aim", pi->m_attach_offset_full[1]);
+			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))
+				calc_attach_offset_full("anm_g_idle_aim", pi->m_attach_offset_full[1]);
 
 			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
 			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);

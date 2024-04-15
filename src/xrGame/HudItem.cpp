@@ -33,8 +33,6 @@ CHudItem::CHudItem()
 	m_fLR_MovingFactor = 0.f;
 	m_fLR_InertiaFactor = 0.f;
 	m_fUD_InertiaFactor = 0.f;
-
-	m_MotionsSuffix = 0;
 }
 
 DLL_Pure *CHudItem::_construct()
@@ -545,7 +543,7 @@ u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 
 	shared_str							m;
 	if (m_MotionsSuffix.size())
 	{
-		m.printf						("%s_%s", *M, *m_MotionsSuffix);
+		m.printf						("anm_%s_%s", *m_MotionsSuffix, (*M+4));
 		if (!HudAnimationExist(*m))
 			m							= M;
 	}

@@ -193,7 +193,7 @@ private:
 	float								m_ForceStopPosition;
 
 protected:
-	shared_str							m_MotionsSuffix;
+	shared_str							m_MotionsSuffix							= 0;
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр

@@ -81,7 +81,7 @@ BOOL motions_value::load(LPCSTR N, IReader* data, vecBones* bones)
     bool bRes = true;
     // Load definitions
 
-	int size = bones->size() - int(find_bone_id(bones, "wpn_iron_sights") != BI_NONE) - int(find_bone_id(bones, "wpn_iron_sights_lowered") != BI_NONE);
+	int size = bones->size() - int(find_bone_id(bones, "iron_sights") != BI_NONE) - int(find_bone_id(bones, "iron_sights_lowered") != BI_NONE);
 	U16Vec rm_bones(size, BI_NONE);
     IReader* MP = data->open_chunk(OGF_S_SMPARAMS);
 
