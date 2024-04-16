@@ -61,7 +61,6 @@ public:
 
 private:
 	VSlots								m_Slots;
-	SAddonSlot*							m_NextAddonSlot;
 	
 	void								LoadAddonSlots							(LPCSTR section);
 	int									TransferAddon							(CAddon CPC addon, bool attach);
@@ -73,8 +72,8 @@ public:
 
 	CAddonOwner*						ParentAO							C$	();
 
-	int									AttachAddon								(CAddon CPC addon, SAddonSlot* slot = NULL);
-	int									DetachAddon								(CAddon CPC addon);
+	int									AttachAddon								(CAddon* addon, SAddonSlot* slot = NULL);
+	int									DetachAddon								(CAddon* addon);
 	void								RegisterAddon							(CAddon PC$ addon, SAddonSlot PC$ slot, bool attach);
 
 	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);

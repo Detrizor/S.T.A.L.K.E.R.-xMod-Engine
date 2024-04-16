@@ -56,6 +56,7 @@ private:
 	CNightVisionEffector*				m_pNight_vision							= NULL;
 	Fvector								m_camera_lense_offset					= vZero;
 	Fvector								m_hud_offset[2]							= { vZero, vZero };
+	s8									m_selection								= -1;
 
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
@@ -81,6 +82,9 @@ public:
 	void								ZoomChange								(int val)			{ m_Magnificaion.Shift(val); }
 	void								ZeroingChange							(int val)			{ m_Zeroing.Shift(val); }
 	void								setHudOffset							(Fvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
+	void								setMagnificaiton						(float val)			{ m_Magnificaion.current = val; }
+	void								setZeroing								(u16 val)			{ m_Zeroing.current = val; }
+	void								setSelection							(s8 val)			{ m_selection = val; }
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
@@ -93,6 +97,7 @@ public:
 	Fvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Fvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
+	u8									getSelection						C$	()		{ return m_selection; }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

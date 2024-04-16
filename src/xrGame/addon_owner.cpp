@@ -11,7 +11,6 @@
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
-	m_NextAddonSlot						= NULL;
 	m_Slots.clear						();
 	LoadAddonSlots						(pSettings->r_string(O.cNameSect(), "slots"));
 }
@@ -54,40 +53,27 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 				s->RenderWorld			(O.Visual(), O.XFORM());
 			break;
 		case eOnChild:
-		{
-			CAddon* addon				= cast<CAddon*>((CObject*)data);
-			if (!addon)
-				break;
-
-			SAddonSlot* slot			= NULL;
-			if (param)
+			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				if (m_NextAddonSlot)
-				{
-					addon->m_ItemCurrPlace.value = m_NextAddonSlot->idx;
-					slot				= m_NextAddonSlot;
-					m_NextAddonSlot		= NULL;
-				}
+				SAddonSlot* slot		= NULL;
+				if (param)
+					slot				= m_Slots[(int)addon->getSlot()];
 				else
-					slot				= m_Slots[addon->m_ItemCurrPlace.value];
-			}
-			else
-			{
-				for (auto s : m_Slots)
 				{
-					if (s->addon == addon)
+					for (auto s : m_Slots)
 					{
-						slot			= s;
-						break;
+						if (s->addon == addon)
+						{
+							slot		= s;
+							break;
+						}
 					}
 				}
+
+				if (slot)
+					RegisterAddon		(addon, slot, !!param);
 			}
-
-			if (slot)
-				RegisterAddon			(addon, slot, !!param);
-
 			break;
-		}
 		case eWeight:
 		case eVolume:
 		case eCost:
@@ -198,7 +184,7 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, SAddonSlot PC$ slot, bool atta
 	}
 }
 
-int CAddonOwner::AttachAddon(CAddon CPC addon, SAddonSlot* slot)
+int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 {
 	if (!addon)
 		return							0;
@@ -219,15 +205,16 @@ int CAddonOwner::AttachAddon(CAddon CPC addon, SAddonSlot* slot)
 	{
 		if (slot->parent_ao != this)
 			return						slot->parent_ao->AttachAddon(addon, slot->forwarded_slot);
-		m_NextAddonSlot					= slot;
+		addon->setSlot					((float)slot->idx);
 		return							TransferAddon(addon, true);
 	}
 
 	return								0;
 }
 
-int CAddonOwner::DetachAddon(CAddon CPC addon)
+int CAddonOwner::DetachAddon(CAddon* addon)
 {
+	addon->setSlot						(-1.f);
 	return TransferAddon				(addon, false);
 }
 

@@ -1481,22 +1481,21 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 	if (attach)
 	{
 		m_attached_scopes.push_back		(scope);
-		//CAddon* addon					= scope->cast<CAddon*>();
-		//if (addon && addon->m_ItemCurrPlace.type == -1)
-		//	m_cur_scope					= scope;
-		//else if (addon && addon->m_ItemCurrPlace.type == -2)
-		//	m_alt_scope					= scope;
-		//else
+		if (scope->getSelection() == 0)
+			m_cur_scope					= scope;
+		else if (scope->getSelection() == 1)
+			m_alt_scope					= scope;
+		else
 		{
 			if (!m_cur_scope)
 			{
 				m_cur_scope				= scope;
-				//if (addon) addon->m_ItemCurrPlace.type = -1;
+				scope->setSelection		(0);
 			}
 			else if (!m_alt_scope)
 			{
 				m_alt_scope				= scope;
-				//if (addon) addon->m_ItemCurrPlace.type = -2;
+				scope->setSelection		(1);
 			}
 		}
 	}
@@ -1515,10 +1514,9 @@ void CWeaponMagazined::cycle_scope(CScope*& scope, bool up)
 	if (m_attached_scopes.empty())
 		return;
 
-	if (scope == NULL)
-		scope							= (up) ? m_attached_scopes[0] : m_attached_scopes.back();
-	else
+	if (scope)
 	{
+		scope->setSelection				(-1);
 		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
 		{
 			if (m_attached_scopes[i] == scope)
@@ -1531,8 +1529,11 @@ void CWeaponMagazined::cycle_scope(CScope*& scope, bool up)
 			}
 		}
 	}
+	else
+		scope							= (up) ? m_attached_scopes[0] : m_attached_scopes.back();
 
-	//scope->cast<CInventoryItem*>()->m_ItemCurrPlace.type = (scope == m_cur_scope) ? -1 : -2;
+	if (scope)
+		scope->setSelection				((scope == m_cur_scope) ? 0 : 1);
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)

@@ -16,9 +16,11 @@ private:
 	u16									m_root_bone_id							= 0;
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
+	float								m_slot									= -1.f;
 
 public:
 	void								setRootBoneID							(u16 bone)		{ m_root_bone_id = bone; }
+	void								setSlot									(float val)		{ m_slot = val; }
 
 	void								updateLocalTransform					(Fmatrix CPC parent_trans);
 	void								updateHudTransform						(Fmatrix CR$ parent_trans);
@@ -29,6 +31,7 @@ public:
 	Fmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Fmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
+	float								getSlot								C$	()		{ return m_slot; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix trans);
