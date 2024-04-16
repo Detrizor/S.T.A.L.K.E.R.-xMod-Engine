@@ -380,33 +380,40 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 	addon_index							= 0;
 	addon_icon							= NULL;
 	icon_offset							= { 0.f, 0.f };
-	forwarded							= !!slot.forwarded_slot;
 }
 
-CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
+void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
 {
-	m_slots.clear						();
-
-	for (auto S : itm->AddonSlots())
+	for (auto S : ao->AddonSlots())
 	{
 		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*S);
 		m_slots.push_back				(s);
 
-		if (S->addon)
+		for (auto addon : S->addons)
 		{
-			s->addon_name				= S->addon->Section();
-			s->addon_type				= S->addon->GetInvIconType();
-			s->addon_index				= S->addon->GetInvIconIndex();
-			s->icon_offset				= S->icon_offset;
-			s->icon_offset.sub			(S->addon->IconOffset());
+			s->addon_name				= addon->Section();
+			s->addon_type				= addon->GetInvIconType();
+			s->addon_index				= addon->GetInvIconIndex();
+			s->icon_offset				= forwarded_offset;
+			s->icon_offset.add			(S->icon_offset);
+			s->icon_offset.sub			(addon->IconOffset());
 			s->addon_icon				= xr_new<CUIStatic>();
 			s->addon_icon->SetAutoDelete(true);
 			AttachChild					(s->addon_icon);
 			s->addon_icon->SetTextureColor(GetTextureColor());
 			if (S->magazine)
 				s->addon_icon->SetBackgroundDraw(true);
+
+			if (auto addon_ao = addon->Cast<CAddonOwner*>())
+				process_ao				(addon_ao, s->icon_offset);
 		}
 	}
+}
+
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
+{
+	m_slots.clear						();
+	process_ao							(itm, vZero2);
 
 	float icon_scale					= pSettings->r_float(itm->O.cNameSect(), "icon_scale");
 	Frect res_rect						= GetTextureRect();

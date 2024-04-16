@@ -584,7 +584,7 @@ void CUIActorMenu::ActivatePropertiesBox()
 	if (m_currMenuMode == mmInventory || m_currMenuMode == mmDeadBodySearch)
 	{
 		PropertiesBoxForSlots(item, b_show);
-		PropertiesBoxForWeapon(cell_item, item, b_show);
+		PropertiesBoxForAddonOwner(item, b_show);
 		PropertiesBoxForAddon(item, b_show);
 		PropertiesBoxForUsing(item, b_show);
 		PropertiesBoxForPlaying(item, b_show);
@@ -634,52 +634,59 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 	}
 }
 
-shared_str attach_to	= "st_attach_to";
-shared_str dettach		= "st_detach";
+shared_str attach_to					= "st_attach_to";
+shared_str detach						= "st_detach";
 
-void CUIActorMenu::PropertiesBoxForWeapon(CUICellItem* cell_item, PIItem item, bool& b_show)
+static void process_ao_for_detach(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool& b_show, LPCSTR upslot_str)
 {
-	if (!item->InHands())
-		return;
-
-	//отсоединение аддонов от вещи
-	CAddonOwner* ao = item->cast<CAddonOwner*>();
-	if (!ao)
-		return;
-
-	for (const auto slot : ao->AddonSlots())
+	shared_str							detach_str;
+	for (auto s : ao->AddonSlots())
 	{
-		if (slot->addon)
+		for (auto a : s->addons)
 		{
-			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(dettach), slot->addon->NameShort(), *slot->name);
-			m_UIPropertiesBox->AddItem	(title, (void*)slot->addon, INVENTORY_DETACH_ADDON);
-			b_show = true;
+			detach_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->NameShort(), upslot_str, *s->name);
+			pb->AddItem					(*detach_str, (void*)a, INVENTORY_DETACH_ADDON);
+			b_show						= true;
+
+			if (auto addon_ao = a->Cast<CAddonOwner*>())
+				process_ao_for_detach	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->NameShort()));
+		}
+	}
+}
+
+void CUIActorMenu::PropertiesBoxForAddonOwner(PIItem item, bool& b_show)
+{
+	if (item->InHands())
+		if (auto ao = item->cast<CAddonOwner*>())
+			process_ao_for_detach		(ao, m_UIPropertiesBox, b_show, "");
+}
+
+static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
+{
+	shared_str							attach_str;
+	for (auto s : ao->AddonSlots())
+	{
+		if (s->CanTake(addon))
+		{
+			attach_str.printf			("%s %s", str, *s->name);
+			pb->AddItem					(*attach_str, (void*)s, INVENTORY_ATTACH_ADDON);
+			b_show						= true;
+		}
+		
+		for (auto a : s->addons)
+		{
+			if (auto addon_ao = a->Cast<CAddonOwner*>())
+				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->NameShort()));
 		}
 	}
 }
 
 void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 {
-	PIItem active_item					= m_pActorInv->ActiveItem();
-	if (!active_item)
-		return;
-	CAddonOwner* ao						= active_item->cast<CAddonOwner*>();
-	if (!ao)
-		return;
-
-	CAddon* addon						= item->cast<CAddon*>();
-	if (!addon)
-		return;
-
-	for (const auto slot : ao->AddonSlots())
-	{
-		if (slot->CanTake(addon))
-		{
-			LPCSTR title				= *shared_str().printf("%s %s (%s)", *CStringTable().translate(attach_to), active_item->NameShort(), *slot->name);
-			m_UIPropertiesBox->AddItem	(title, (void*)slot, INVENTORY_ATTACH_ADDON);
-			b_show						= true;
-		}
-	}
+	if (auto addon = item->cast<CAddon*>())
+		if (auto active_item = m_pActorInv->ActiveItem())
+			if (auto ao = active_item->cast<CAddonOwner*>())
+				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show, *shared_str().printf("%s %s -", *CStringTable().translate(attach_to), active_item->NameShort()));
 }
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
@@ -820,17 +827,13 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ATTACH_ADDON:
 	{
-		CAddonOwner* ao					= m_pActorInv->ActiveItem()->cast<CAddonOwner*>();
-		SAddonSlot* slot				= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		AttachAddon						(ao, item->cast<CAddon*>(), slot);
+		auto slot						= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
+		AttachAddon						(slot->parent_ao, item->cast<CAddon*>(), slot);
 		break;
 	}
 	case INVENTORY_DETACH_ADDON:
-	{
-		CAddonOwner* ao					= item->cast<CAddonOwner*>();
-		DetachAddon						(ao, (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
+		detach_addon					((CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
 		break;
-	}
 	case INVENTORY_REPAIR:
 		TryRepairItem					(this, 0);
 		break;
@@ -888,9 +891,9 @@ bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot)
 	return								!!res;
 }
 
-void CUIActorMenu::DetachAddon(CAddonOwner* ao, CAddon* addon)
+void CUIActorMenu::detach_addon(CAddon* addon)
 {
-	if (ao->DetachAddon(addon) == 2)
+	if (addon->getOwner()->DetachAddon(addon) == 2)
 	{
 		PlaySnd							(eDetachAddon);
 		HideDialog						();

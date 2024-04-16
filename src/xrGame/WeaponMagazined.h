@@ -233,8 +233,7 @@ public:
 
 //xMod added
 private:
-	CScope*								m_cur_scope								= NULL;
-	CScope*								m_alt_scope								= NULL;
+	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
 
@@ -253,7 +252,7 @@ private:
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
 	void								process_scope							(CScope* scope, bool attach);
-	void								cycle_scope								(CScope*& scope, bool up = true);
+	void								cycle_scope								(int idx, bool up = true);
 	void								InitRotateTime							();
 
 	void								PrepareCartridgeToShoot				O$	();
@@ -292,6 +291,7 @@ public:
 	void								OnMotionHalf						O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
+	void							V$	process_addon							(CAddon* addon, bool attach);
 
 	friend class CWeaponHud;
 };

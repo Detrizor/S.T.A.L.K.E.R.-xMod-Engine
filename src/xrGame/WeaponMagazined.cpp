@@ -1144,7 +1144,9 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
 
 	CScope* scope						= getActiveScope();
 	if (!scope)
-		scope							= m_cur_scope;
+		scope							= m_selected_scopes[0];
+	if (!scope)
+		scope							= m_selected_scopes[1];
 	info.cur_ammo.printf				("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
 	if (scope && scope->Type() == eOptics)
 	{
@@ -1280,7 +1282,7 @@ bool CWeaponMagazined::CanTrade() const
 	{
 		for (auto slot : ao->AddonSlots())
 		{
-			if (slot->addon)
+			if (!slot->addons.empty())
 				return false;
 		}
 	}
@@ -1328,14 +1330,14 @@ void CWeaponMagazined::OnMotionHalf()
 			m_pMagazine->Transfer		(parent_id());
 
 		if (m_pNextMagazine)
-			m_pMagazineSlot->registerLoadingAddon(m_pNextMagazine->cast<CAddon*>());
+			m_pMagazineSlot->attachLoadingAddon(m_pNextMagazine->cast<CAddon*>());
 	}
 }
 
 void CWeaponMagazined::OnHiddenItem()
 {
-	if (m_pMagazineSlot && m_pMagazineSlot->addon)
-		m_pMagazineSlot->unregisterLoadingAddon();
+	if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
+		m_pMagazineSlot->detachLoadingAddon();
 	inherited::OnHiddenItem				();
 }
 
@@ -1354,9 +1356,9 @@ void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 CScope* CWeaponMagazined::getActiveScope() const
 {
 	if (ADS() == 1)
-		return m_cur_scope;
+		return m_selected_scopes[0];
 	else if (ADS() == -1)
-		return m_alt_scope;
+		return m_selected_scopes[1];
 	return NULL;
 }
 
@@ -1372,8 +1374,8 @@ void CWeaponMagazined::ZoomInc()
 		else
 			m_IronSightsZeroing.Shift(1);
 	}
-	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
-		cycle_scope((ADS() == 1) ? m_cur_scope : m_alt_scope, true);
+	else if (ADS() && pInput->iGetAsyncKeyState(DIK_LCONTROL))
+		cycle_scope(int(ADS() == -1), true);
 	else
 		inherited::ZoomInc();
 }
@@ -1390,8 +1392,8 @@ void CWeaponMagazined::ZoomDec()
 		else
 			m_IronSightsZeroing.Shift(-1);
 	}
-	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
-		cycle_scope((ADS() == 1) ? m_cur_scope : m_alt_scope, false);
+	else if (ADS() && pInput->iGetAsyncKeyState(DIK_LCONTROL))
+		cycle_scope(int(ADS() == -1), false);
 	else
 		inherited::ZoomDec();
 }
@@ -1449,7 +1451,7 @@ void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 			LoadCartridgeFromMagazine	(!Chamber());
 
 		if (m_pMagazineSlot)
-			m_pMagazineSlot->unregisterLoadingAddon();
+			m_pMagazineSlot->detachLoadingAddon();
 	}
 	else
 	{ 
@@ -1481,59 +1483,123 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 	if (attach)
 	{
 		m_attached_scopes.push_back		(scope);
-		if (scope->getSelection() == 0)
-			m_cur_scope					= scope;
-		else if (scope->getSelection() == 1)
-			m_alt_scope					= scope;
-		else
+		if (scope->getSelection() == -1)
 		{
-			if (!m_cur_scope)
+			for (int i = 0; i < 2; i++)
 			{
-				m_cur_scope				= scope;
-				scope->setSelection		(0);
-			}
-			else if (!m_alt_scope)
-			{
-				m_alt_scope				= scope;
-				scope->setSelection		(1);
+				if (!m_selected_scopes[i])
+				{
+					m_selected_scopes[i] = scope;
+					scope->setSelection	(i);
+					break;
+				}
 			}
 		}
+		else
+			m_selected_scopes[scope->getSelection()] = scope;
 	}
 	else
 	{
-		if (m_cur_scope == scope)
-			cycle_scope					(m_cur_scope);
-		else if (m_alt_scope == scope)
-			cycle_scope					(m_alt_scope);
+		if (m_selected_scopes[0] == scope)
+			cycle_scope					(0);
+		else if (m_selected_scopes[1] == scope)
+			cycle_scope					(1);
 		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
 	}
 }
 
-void CWeaponMagazined::cycle_scope(CScope*& scope, bool up)
+void CWeaponMagazined::cycle_scope(int idx, bool up)
 {
 	if (m_attached_scopes.empty())
 		return;
 
-	if (scope)
+	CScope* cur_scope					= m_selected_scopes[idx];
+	if (cur_scope)
 	{
-		scope->setSelection				(-1);
+		cur_scope->setSelection			(-1);
 		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
 		{
-			if (m_attached_scopes[i] == scope)
+			if (m_attached_scopes[i] == cur_scope)
 			{
 				if (up)
-					scope				= (i + 1 < e) ? m_attached_scopes[i + 1] : NULL;
+				{
+					int next			= i + 1;
+					if ((next < e) && (m_attached_scopes[next] == m_selected_scopes[!idx]))
+						next++;
+					m_selected_scopes[idx] = (next < e) ? m_attached_scopes[next] : NULL;
+				}
 				else
-					scope				= (i - 1 >= 0) ? m_attached_scopes[i - 1] : NULL;
+				{
+					int next			= i - 1;
+					if ((next >= 0) && m_attached_scopes[next] == m_selected_scopes[!idx])
+						next--;
+					m_selected_scopes[idx] = (next >= 0) ? m_attached_scopes[next] : NULL;
+				}
 				break;
 			}
 		}
 	}
 	else
-		scope							= (up) ? m_attached_scopes[0] : m_attached_scopes.back();
+	{
+		if (m_attached_scopes.size() == 1 && m_attached_scopes[0] == m_selected_scopes[!idx])
+			return;
 
-	if (scope)
-		scope->setSelection				((scope == m_cur_scope) ? 0 : 1);
+		int								next;
+		if (up)
+		{
+			next						= 0;
+			if (m_attached_scopes[next] == m_selected_scopes[!idx])
+				next++;
+		}
+		else
+		{
+			next						= m_attached_scopes.size() - 1;
+			if (m_attached_scopes[next] == m_selected_scopes[!idx])
+				next--;
+		}
+
+		m_selected_scopes[idx]			= m_attached_scopes[next];
+	}
+
+	if (m_selected_scopes[idx])
+		m_selected_scopes[idx]->setSelection(idx);
+}
+
+void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
+{
+	if (auto mag = addon->cast<CMagazine*>())
+		ProcessMagazine			(mag, attach);
+
+	if (auto scope = addon->cast<CScope*>())
+		process_scope			(scope, attach);
+
+	if (auto sil = addon->cast<CSilencer*>())
+		ProcessSilencer			(sil, attach);
+
+	InitRotateTime				();
+
+	if (addon->MotionSuffix().size())
+	{
+		m_MotionsSuffix			= (attach) ? addon->MotionSuffix() : 0;
+		PlayAnimIdle			();
+	}
+
+	if (pSettings->line_exist(addon->Section(), "grip"))
+		m_grip_accuracy_modifier = readAccuracyModifier((attach) ? *addon->Section() : *m_section_id, "grip");
+			
+	auto slot					= addon->getOwner()->AddonSlots()[(int)addon->getSlot()];
+	if (slot->blocking_iron_sights)
+	{
+		m_iron_sights_blockers	+= (attach) ? 1 : -1;
+		UpdateBonesVisibility	();
+		if (m_lower_iron_sights_on_block)
+			SetInvIconType		(!!m_iron_sights_blockers);
+	}
+
+	if (auto addon_ao = addon->Cast<CAddonOwner*>())
+		for (auto s : addon_ao->AddonSlots())
+			for (auto a : s->addons)
+				process_addon	(a, attach);
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
@@ -1542,39 +1608,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 		case eOnAddon:
 		{
-			SAddonSlot* slot			= (SAddonSlot*)data;
-
-			CMagazine* mag				= slot->addon->cast<CMagazine*>();
-			if (mag)
-				ProcessMagazine			(mag, !!param);
-
-			CScope* scope				= slot->addon->cast<CScope*>();
-			if (scope)
-				process_scope			(scope, !!param);
-
-			CSilencer* sil				= slot->addon->cast<CSilencer*>();
-			if (sil)
-				ProcessSilencer			(sil, !!param);
-
-			InitRotateTime				();
-
-			if (slot->addon->MotionSuffix().size())
-			{
-				m_MotionsSuffix			= (param) ? slot->addon->MotionSuffix() : 0;
-				PlayAnimIdle			();
-			}
-
-			if (pSettings->line_exist(slot->addon->Section(), "grip"))
-				m_grip_accuracy_modifier = readAccuracyModifier((param) ? *slot->addon->Section() : *m_section_id, "grip");
-			
-			if (slot->blocking_iron_sights)
-			{
-				m_iron_sights_blockers	+= (param) ? 1 : -1;
-				UpdateBonesVisibility	();
-				if (m_lower_iron_sights_on_block)
-					SetInvIconType		(!!m_iron_sights_blockers);
-			}
-
+			process_addon				((CAddon*)data, !!param);
 			break;
 		}
 

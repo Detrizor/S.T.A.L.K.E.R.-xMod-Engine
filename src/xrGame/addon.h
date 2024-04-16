@@ -1,6 +1,8 @@
 #pragma once
 #include "inventory_item_object.h"
 
+class CAddonOwner;
+
 class CAddon : public CInventoryItemObject
 {
 private:
@@ -17,10 +19,12 @@ private:
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
 	float								m_slot									= -1.f;
+	CAddonOwner*						m_owner									= NULL;
 
 public:
-	void								setRootBoneID							(u16 bone)		{ m_root_bone_id = bone; }
-	void								setSlot									(float val)		{ m_slot = val; }
+	void								setRootBoneID							(u16 bone)				{ m_root_bone_id = bone; }
+	void								setSlot									(float val)				{ m_slot = val; }
+	void								setOwner								(CAddonOwner* ao)		{ m_owner = ao; }
 
 	void								updateLocalTransform					(Fmatrix CPC parent_trans);
 	void								updateHudTransform						(Fmatrix CR$ parent_trans);
@@ -32,7 +36,8 @@ public:
 	Fmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
 	float								getSlot								C$	()		{ return m_slot; }
+	CAddonOwner*						getOwner							C$	()		{ return m_owner; }
 
 	void								RenderHud							C$	();
-	void								RenderWorld							C$	(Fmatrix trans);
+	void								RenderWorld							C$	(Fmatrix CR$ trans);
 };

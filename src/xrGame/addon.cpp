@@ -31,13 +31,22 @@ void CAddon::RenderHud() const
 {
 	::Render->set_Transform				(m_hud_transform);
 	::Render->add_Visual				(Visual());
+
+	if (auto ao = Cast<CAddonOwner CP$>())
+		for (auto s : ao->AddonSlots())
+			for (auto a : s->addons)
+				a->RenderHud			();
 }
 
-void CAddon::RenderWorld(Fmatrix trans) const
+void CAddon::RenderWorld(Fmatrix CR$ trans) const
 {
-	trans.mulB_43						(m_local_transform);
-	::Render->set_Transform				(trans);
+	::Render->set_Transform				(Fmatrix().mul(trans, m_local_transform));
 	::Render->add_Visual				(Visual());
+	
+	if (auto ao = Cast<CAddonOwner CP$>())
+		for (auto s : ao->AddonSlots())
+			for (auto a : s->addons)
+				a->RenderWorld			(trans);
 }
 
 void CAddon::updateLocalTransform(Fmatrix CPC parent_trans)
@@ -46,18 +55,19 @@ void CAddon::updateLocalTransform(Fmatrix CPC parent_trans)
 		m_local_transform				= *parent_trans;
 	else
 		m_local_transform.identity		();
-	CAddonOwner* ao						= Cast<CAddonOwner*>();
-	if (ao)
-	{
+
+	if (auto ao = Cast<CAddonOwner*>())
 		for (auto s : ao->AddonSlots())
-		{
-			if (s->addon && !s->forwarded_slot)
-				s->updateAddonLocalTransform();
-		}
-	}
+			for (auto a : s->addons)
+				s->updateAddonLocalTransform(a);
 }
 
 void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
 {
 	m_hud_transform.mul					(parent_trans, m_local_transform);
+	
+	if (auto ao = Cast<CAddonOwner*>())
+		for (auto s : ao->AddonSlots())
+			for (auto a : s->addons)
+				a->updateHudTransform	(parent_trans);
 }

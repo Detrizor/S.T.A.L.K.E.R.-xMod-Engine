@@ -323,9 +323,7 @@ void CInventoryItem::pre_install_upgrade()
 	if (ao)
 	{
 		for (auto slot : ao->AddonSlots())
-		{
-			if (slot->addon)
-				ao->DetachAddon			(slot->addon);
-		}
+			for (auto addon : slot->addons)
+				ao->DetachAddon			(addon);
 	}
 }

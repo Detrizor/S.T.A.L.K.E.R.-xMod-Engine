@@ -142,7 +142,7 @@ EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 		case 2:
 			return						eGL;
 		case -1:
-			return						(O.m_cur_scope && !O.m_iron_sights_blockers) ? eIS : eAlt;
+			return						(O.m_selected_scopes[0] && !O.m_iron_sights_blockers) ? eIS : eAlt;
 		}
 	}
 

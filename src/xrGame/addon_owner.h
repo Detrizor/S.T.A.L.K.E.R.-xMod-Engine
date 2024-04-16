@@ -11,16 +11,17 @@ struct SAddonSlot
 {
 	CAddonOwner PC$						parent_ao;
 	CAddon CPC							parent_addon;
-	SAddonSlot PC$						forwarded_slot;
 	
 	Fmatrix								transform								= Fidentity;
 	Fmatrix								loading_transform						= Fidentity;
-	CAddon*								addon									= NULL;
+	xr_vector<CAddon*>					addons									= {};
 	CAddon*								loading_addon							= NULL;
 
 	u16									idx;
 	shared_str							name;
 	shared_str							type;
+	float								length;
+	u8									steps;
 	u16									bone_id;
 	Fmatrix								model_offset;
 	Fmatrix								bone_offset;
@@ -35,17 +36,18 @@ struct SAddonSlot
 	Fmatrix								loading_bone_offset;
 
 										SAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
-										SAddonSlot								(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent);
 										
 	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans, u16 bone);
 	
-	void								registerAddon							(CAddon* addon_);
-	void								registerLoadingAddon					(CAddon* addon_);
-	void								updateAddonLocalTransform				();
-	void								unregisterAddon							();
-	void								unregisterLoadingAddon					();
+	void								attachAddon								(CAddon* addon);
+	void								attachLoadingAddon						(CAddon* addon);
+	void								updateAddonLocalTransform				(CAddon* addon);
+	void								detachAddon								(CAddon* addon);
+	void								detachLoadingAddon						();
 
-	void								updateAddonHudTransform					(IKinematics* model, Fmatrix CR$ parent_trans);
+	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
+	
+	bool								hasAddon							C$	(CAddon CPC _addon)		{ return (::std::find(addons.begin(), addons.end(), _addon) != addons.end()); }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(IRenderVisual* model, Fmatrix CR$ parent_trans);
@@ -70,11 +72,11 @@ private:
 public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
 
-	CAddonOwner*						ParentAO							C$	();
+	CAddonOwner*						getParentAO							C$	();
 
 	int									AttachAddon								(CAddon* addon, SAddonSlot* slot = NULL);
 	int									DetachAddon								(CAddon* addon);
-	void								RegisterAddon							(CAddon PC$ addon, SAddonSlot PC$ slot, bool attach);
+	void								RegisterAddon							(CAddon PC$ addon, bool attach);
 
 	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
 };

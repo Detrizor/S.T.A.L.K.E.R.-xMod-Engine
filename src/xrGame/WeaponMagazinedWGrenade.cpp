@@ -643,14 +643,6 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 			}
 			break;
 		}
-		case eOnAddon:
-		{
-			SAddonSlot* slot			= (SAddonSlot*)data;
-			CGrenadeLauncher* gl		= slot->addon->cast<CGrenadeLauncher*>();
-			if (gl)
-				ProcessGL				(gl, !!param);
-			break;
-		}
 
 		case eWeight:
 			return						inherited::Aboba(type, data, param) + GetMagazineWeight(m_magazine2);
@@ -699,4 +691,12 @@ void CWeaponMagazinedWGrenade::UpdateCL()
 {
 	inherited::UpdateCL();
 	update_flame_particles_gl();
+}
+
+void CWeaponMagazinedWGrenade::process_addon(CAddon* addon, bool attach)
+{
+	CGrenadeLauncher* gl				= addon->cast<CGrenadeLauncher*>();
+	if (gl)
+		ProcessGL						(gl, attach);
+	inherited::process_addon			(addon, attach);
 }

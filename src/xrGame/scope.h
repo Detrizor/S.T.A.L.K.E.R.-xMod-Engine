@@ -97,7 +97,7 @@ public:
 	Fvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Fvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
-	u8									getSelection						C$	()		{ return m_selection; }
+	s8									getSelection						C$	()		{ return m_selection; }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

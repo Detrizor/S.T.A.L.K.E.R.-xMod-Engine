@@ -67,7 +67,6 @@ private:
 		u8								addon_index;
 		CUIStatic*						addon_icon;
 		Fvector2						icon_offset;
-		bool							forwarded;
 
 		SUIAddonSlot					(SAddonSlot CR$ slot);
 	};
@@ -82,6 +81,7 @@ public:
 private:
 	VUISlots							m_slots;
 
+	void								process_ao								(CAddonOwner* ao, Fvector2 CR$ forwarded_offset);
 	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);
 
 public:

@@ -98,14 +98,23 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
 
+	auto ao								= item->cast<CAddonOwner*>();
 	CUIAddonOwnerCellItem* uiao			= smart_cast<CUIAddonOwnerCellItem*>(itm);
-	if (uiao && uiao->Slots().size())
+	if (ao && ao->AddonSlots().size())
+	{
+		str								= "";
+		for (auto slot : ao->AddonSlots())
+		{
+			if (str.size())
+				str.printf				("%s, ", *str);
+			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));
+		}
+	}
+	else if (uiao && uiao->Slots().size())
 	{
 		str								= "";
 		for (auto slot : uiao->Slots())
 		{
-			if (slot->forwarded)
-				continue;
 			if (str.size())
 				str.printf				("%s, ", *str);
 			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));

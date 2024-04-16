@@ -38,13 +38,22 @@ int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
 	float res							= O.Aboba(eTransferAddon, (void*)addon, (int)attach);
 	if (res == flt_max)
 	{
-		addon->Transfer					((attach) ? O.ID() : ((O.H_Parent()) ? O.H_Parent()->ID() : u16_max));
+		if (attach)
+			addon->Transfer				(O.ID());
+		else
+		{
+			auto parent					= O.H_Parent();
+			if (parent)
+				while (parent->H_Parent())
+					parent				= parent->H_Parent();
+			addon->Transfer				((parent && parent->Cast<CInventoryOwner*>()) ? parent->ID() : u16_max);
+		}
 		return							2;
 	}
 	return								(int)res;
 }
 
-float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
+float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -55,23 +64,12 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				SAddonSlot* slot		= NULL;
+				SAddonSlot* slot		= m_Slots[(int)addon->getSlot()];
 				if (param)
-					slot				= m_Slots[(int)addon->getSlot()];
-				else
-				{
-					for (auto s : m_Slots)
-					{
-						if (s->addon == addon)
-						{
-							slot		= s;
-							break;
-						}
-					}
-				}
-
-				if (slot)
-					RegisterAddon		(addon, slot, !!param);
+					slot->attachAddon	(addon);
+				RegisterAddon			(addon, !!param);
+				if (!param)
+					slot->detachAddon	(addon);
 			}
 			break;
 		case eWeight:
@@ -79,11 +77,9 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 		case eCost:
 		{
 			float res					= 0.f;
-			for (auto s : m_Slots)
-			{
-				if (s->addon)
-					res					+= s->addon->Aboba(type);
-			}
+			for (auto slot : m_Slots)
+				for (auto addon : slot->addons)
+					res					+= addon->Aboba(type);
 			return						res;
 		}
 		case eRenderHudMode:
@@ -94,7 +90,7 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
 			for (auto s : m_Slots)
-				s->updateAddonHudTransform(hi->m_model, hi->m_transform);
+				s->updateAddonsHudTransform(hi->m_model, hi->m_transform);
 			break;
 		}
 	}
@@ -102,93 +98,21 @@ float CAddonOwner::aboba o$(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-CAddonOwner* CAddonOwner::ParentAO() const
+CAddonOwner* CAddonOwner::getParentAO() const
 {
 	return								(O.H_Parent()) ? O.H_Parent()->Cast<CAddonOwner*>() : NULL;
 }
 
-void CAddonOwner::RegisterAddon(CAddon PC$ addon, SAddonSlot PC$ slot, bool attach)
+void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 {
-	if (attach)
-		slot->registerAddon				(addon);
-
-	CAddonOwner* parent_ao				= ParentAO();
-	CAddonOwner* ao						= addon->cast<CAddonOwner*>();
-	if (parent_ao)
-	{
-		if (!ao)
-		{
-			for (auto s : parent_ao->AddonSlots())
-			{
-				if (s->forwarded_slot == slot)
-				{
-					parent_ao->RegisterAddon(addon, s, attach);
-					break;
-				}
-			}
-		}
-	}
+	if (auto parent_ao = getParentAO())
+		parent_ao->RegisterAddon		(addon, attach);
 	else
-		O.Aboba							(eOnAddon, (void*)slot, attach);
-
-	if (!attach)
-		slot->unregisterAddon			();
-
-	if (ao)
-	{
-		if (attach)
-		{
-			for (auto s : ao->AddonSlots())
-			{
-				SAddonSlot* forward_slot = xr_new<SAddonSlot>(s, slot, ao);
-				m_Slots.push_back		(forward_slot);
-				if (s->addon && !s->addon->cast<CAddonOwner*>())
-					RegisterAddon		(s->addon, forward_slot, attach);
-			}
-		}
-		else
-		{
-			bool						found;
-			do
-			{
-				found					= false;		//--xd not optimal, was hurrying, better redo sometimes
-				for (VSlots::iterator I = m_Slots.begin(), E = m_Slots.end(); I != E; I++)
-				{
-					if ((*I)->parent_ao == ao)
-					{
-						if ((*I)->addon && !(*I)->addon->cast<CAddonOwner*>())
-							RegisterAddon((*I)->addon, *I, attach);
-						xr_delete		(*I);
-						m_Slots.erase	(I);
-						found			= true;
-						break;
-					}
-				}
-			}
-			while (found);
-		}
-
-		if (parent_ao)
-		{
-			CAddon* self_addon			= cast<CAddon*>();
-			for (auto s : parent_ao->AddonSlots())
-			{
-				if (s->addon == self_addon)
-				{
-					parent_ao->RegisterAddon(self_addon, s, false);
-					parent_ao->RegisterAddon(self_addon, s, true);
-					break;
-				}
-			}
-		}
-	}
+		O.Aboba							(eOnAddon, (void*)addon, attach);
 }
 
 int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 {
-	if (!addon)
-		return							0;
-
 	if (!slot)
 	{
 		for (auto s : m_Slots)
@@ -203,8 +127,6 @@ int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 
 	if (slot)
 	{
-		if (slot->parent_ao != this)
-			return						slot->parent_ao->AttachAddon(addon, slot->forwarded_slot);
 		addon->setSlot					((float)slot->idx);
 		return							TransferAddon(addon, true);
 	}
@@ -214,7 +136,6 @@ int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 
 int CAddonOwner::DetachAddon(CAddon* addon)
 {
-	addon->setSlot						(-1.f);
 	return TransferAddon				(addon, false);
 }
 
@@ -222,8 +143,7 @@ int CAddonOwner::DetachAddon(CAddon* addon)
 
 SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	parent_ao(parent),
-	parent_addon(parent->cast<CAddon*>()),
-	forwarded_slot(NULL)
+	parent_addon(parent->cast<CAddon*>())
 {
 	idx									= _idx;
 	shared_str							tmp;
@@ -233,6 +153,12 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 
 	tmp.printf							("type_%d", idx);
 	type								= pSettings->r_string(section, *tmp);
+
+	tmp.printf							("length_%d", idx);
+	length								= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
+
+	tmp.printf							("steps_%d", idx);
+	steps								= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
 
 	tmp.printf							("attach_bone_%d", idx);
 	auto obj							= parent->cast<CObject*>();
@@ -294,24 +220,6 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	bone_offset.invert					();
 }
 
-SAddonSlot::SAddonSlot(SAddonSlot PC$ slot, SAddonSlot CPC root_slot, CAddonOwner PC$ parent):
-	parent_ao(parent),
-	parent_addon(parent->cast<CAddon*>()),
-	forwarded_slot(slot)
-{
-	name.printf							("%s - %s", *CStringTable().translate(root_slot->addon->NameShort()), *CStringTable().translate(slot->name));
-	type								= slot->type;
-	bone_id								= root_slot->bone_id;
-	icon_offset							= slot->icon_offset;
-	icon_offset.add						(root_slot->icon_offset);
-	icon_offset.sub						(root_slot->addon->IconOffset());
-	magazine							= false;
-	blocking_iron_sights				= root_slot->blocking_iron_sights;
-	overlaping_slot						= root_slot->overlaping_slot;
-
-	addon								= slot->addon;
-}
-
 void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans, u16 bone) const
 {
 	trans								= model->LL_GetTransform(bone);
@@ -319,16 +227,16 @@ void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, Fmatrix C
 		trans.mulA_43					(*parent_trans);
 }
 
-void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
+void SAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
 {
-	auto update_impl = [this, model, parent_trans](CAddon* addon_, u16 bone_id_)
+	auto update_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
 	{
 		Fmatrix							trans;
 		append_bone_trans				(trans, model, &parent_trans, bone_id_);
-		addon_->updateHudTransform		(trans);
+		addon->updateHudTransform		(trans);
 	};
 
-	if (addon)
+	for (auto addon : addons)
 		update_impl						(addon, bone_id);
 
 	if (loading_addon)
@@ -337,38 +245,38 @@ void SAddonSlot::updateAddonHudTransform(IKinematics* model, Fmatrix CR$ parent_
 
 void SAddonSlot::RenderHud() const
 {
+	for (auto addon : addons)
+		addon->RenderHud				();
+	
 	if (loading_addon)
 		loading_addon->RenderHud		();
-
-	if (addon)
-		addon->RenderHud				();
 }
 
 void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
 {
-	auto render_impl = [this, model, parent_trans](CAddon* addon_, u16 bone_id_)
+	auto render_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
 	{
 		Fmatrix							trans;
 		append_bone_trans				(trans, model->dcast_PKinematics(), &parent_trans, bone_id_);
-		addon_->RenderWorld				(trans);
+		addon->RenderWorld				(trans);
 	};
 
-	if (addon)
+	for (auto addon : addons)
 		render_impl						(addon, bone_id);
 	if (loading_addon)
 		render_impl						(loading_addon, loading_bone_id);
 }
 
-void SAddonSlot::registerAddon(CAddon* addon_)
+void SAddonSlot::attachAddon(CAddon* addon)
 {
-	addon								= addon_;
-	if (!forwarded_slot)
-		updateAddonLocalTransform		();
+	addons.push_back					(addon);
+	addon->setOwner						(parent_ao);
+	updateAddonLocalTransform			(addon);
 }
 
-void SAddonSlot::registerLoadingAddon(CAddon* addon_)
+void SAddonSlot::attachLoadingAddon(CAddon* addon)
 {
-	loading_addon						= addon_;
+	loading_addon						= addon;
 	loading_transform.identity			();
 	loading_transform.mulB_43			(loading_bone_offset);
 	loading_transform.mulB_43			(loading_model_offset);
@@ -377,7 +285,7 @@ void SAddonSlot::registerLoadingAddon(CAddon* addon_)
 	loading_addon->setRootBoneID		(loading_bone_id);
 }
 
-void SAddonSlot::updateAddonLocalTransform()
+void SAddonSlot::updateAddonLocalTransform(CAddon* addon)
 {
 	if (parent_addon)
 		append_bone_trans				(transform, parent_addon->Visual()->dcast_PKinematics(), NULL, bone_id);
@@ -400,14 +308,17 @@ void SAddonSlot::updateAddonLocalTransform()
 	}
 }
 
-void SAddonSlot::unregisterAddon()
+void SAddonSlot::detachAddon(CAddon* addon)
 {
-	if (!forwarded_slot)
-		addon->updateLocalTransform		(NULL);
-	addon								= NULL;
+	addon->updateLocalTransform			(NULL);
+	addon->setOwner						(NULL);
+	addon->setSlot						(-1.f);
+	auto I								= ::std::find(addons.begin(), addons.end(), addon);
+	if (I != addons.end())
+		addons.erase					(I);
 }
 
-void SAddonSlot::unregisterLoadingAddon()
+void SAddonSlot::detachLoadingAddon()
 {
 	loading_addon						= NULL;
 }
@@ -423,7 +334,7 @@ bool SAddonSlot::Compatible(CAddon CPC _addon) const
 			return						false;
 	}
 
-	if (overlaping_slot != u16_max && parent_ao->AddonSlots()[overlaping_slot]->addon)
+	if (overlaping_slot != u16_max && parent_ao->AddonSlots()[overlaping_slot]->addons.size())
 		return							false;
 
 	return								true;
@@ -431,5 +342,5 @@ bool SAddonSlot::Compatible(CAddon CPC _addon) const
 
 bool SAddonSlot::CanTake(CAddon CPC _addon) const
 {
-	return								Compatible(_addon) && (!addon || magazine);
+	return								Compatible(_addon) && (addons.empty() || magazine);
 }

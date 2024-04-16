@@ -91,7 +91,6 @@ private:
 	void								stop_flame_particles_gl					();
 	void								update_flame_particles_gl				();
 
-protected:
 	bool								AltHandsAttach						CO$	();
 
 	BOOL								Chamber								CO$	();
@@ -101,4 +100,5 @@ protected:
 	void								OnMotionHalf						O$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								UpdateCL							O$	();
+	void								process_addon						O$	(CAddon* addon, bool attach);
 };
