@@ -179,7 +179,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
-	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
+	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
 
 	tmp.printf							("overlapping_slot_%d", idx);
 	overlaping_slot						= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);

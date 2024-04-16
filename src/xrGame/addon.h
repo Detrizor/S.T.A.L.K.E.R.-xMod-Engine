@@ -12,14 +12,16 @@ public:
 	void								Load								O$	(LPCSTR section);
 
 private:
-	shared_str							m_SlotType								= 0;
-	Fvector2							m_IconOffset							= vZero2;
-	shared_str							m_MotionsSuffix							= 0;
 	u16									m_root_bone_id							= 0;
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
 	float								m_slot									= -1.f;
 	CAddonOwner*						m_owner									= NULL;
+	
+	shared_str							m_SlotType;
+	Fvector2							m_IconOffset;
+	bool								m_low_profile;
+	shared_str							m_MotionsSuffix;
 
 public:
 	void								setRootBoneID							(u16 bone)				{ m_root_bone_id = bone; }
@@ -37,6 +39,7 @@ public:
 	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
 	float								getSlot								C$	()		{ return m_slot; }
 	CAddonOwner*						getOwner							C$	()		{ return m_owner; }
+	bool								isLowProfile						C$	()		{ return m_low_profile; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ trans);

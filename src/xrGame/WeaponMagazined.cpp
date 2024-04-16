@@ -1588,7 +1588,7 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		m_grip_accuracy_modifier = readAccuracyModifier((attach) ? *addon->Section() : *m_section_id, "grip");
 			
 	auto slot					= addon->getOwner()->AddonSlots()[(int)addon->getSlot()];
-	if (slot->blocking_iron_sights)
+	if (slot->blocking_iron_sights == 2 || (slot->blocking_iron_sights == 1 && !addon->isLowProfile()))
 	{
 		m_iron_sights_blockers	+= (attach) ? 1 : -1;
 		UpdateBonesVisibility	();

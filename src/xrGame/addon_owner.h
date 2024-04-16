@@ -26,7 +26,7 @@ struct SAddonSlot
 	Fmatrix								model_offset;
 	Fmatrix								bone_offset;
 	Fvector2							icon_offset;
-	BOOL								blocking_iron_sights;
+	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
 	u16									overlaping_slot;
 	bool								muzzle;
 
