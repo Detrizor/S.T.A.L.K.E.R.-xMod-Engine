@@ -24,6 +24,7 @@ private:
 	Fvector2							m_IconOffset;
 	bool								m_low_profile;
 	shared_str							m_MotionsSuffix;
+	bool								m_front_positioning;
 
 public:
 	void								setRootBoneID							(u16 bone)			{ m_root_bone_id = bone; }
@@ -44,6 +45,7 @@ public:
 	int									getSlotIdx							C$	()		{ return m_slot_idx; }
 	int									getPos								C$	()		{ return m_pos; }
 	bool								isLowProfile						C$	()		{ return m_low_profile; }
+	bool								isFrontPositioning					C$	()		{ return m_front_positioning; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ trans);

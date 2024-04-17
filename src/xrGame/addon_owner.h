@@ -67,6 +67,8 @@ private:
 	
 	void								LoadAddonSlots							(LPCSTR section);
 	int									TransferAddon							(CAddon CPC addon, bool attach);
+	
+	SAddonSlot*							find_available_slot					C$	(CAddon* addon);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	

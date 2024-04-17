@@ -6,17 +6,6 @@ class CScope;
 struct SAddonSlot;
 enum eScopeType;
 
-enum EHandsOffset
-{
-	eRelaxed,
-	eArmed,
-	eAim,
-	eIS,
-	eAlt,
-	eGL,
-	eTotal
-};
-
 struct SShootingParams
 {
 	Fvector4							m_shot_max_offset_LRUD;
@@ -27,6 +16,17 @@ struct SShootingParams
 
 class CWeaponHud
 {
+	enum EHandsOffset
+	{
+		eRelaxed,
+		eArmed,
+		eAim,
+		eIS,
+		eAlt,
+		eGL,
+		eTotal
+	};
+
 private:
 	CWeaponMagazined&					O;
 

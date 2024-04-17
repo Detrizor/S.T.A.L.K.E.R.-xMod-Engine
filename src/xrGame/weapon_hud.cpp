@@ -129,7 +129,7 @@ void CWeaponHud::InitRotateTime(float cif)
 	m_fRotateTime						= HandlingToRotationTime.Calc(cif - 1.f);
 }
 
-EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
+CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 {
 	if (O.IsZoomed())
 	{

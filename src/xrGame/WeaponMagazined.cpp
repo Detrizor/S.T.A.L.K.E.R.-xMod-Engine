@@ -1487,7 +1487,7 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 		{
 			for (int i = 0; i < 2; i++)
 			{
-				if (!m_selected_scopes[i])
+				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == eIS && scope->Type() != eIS)
 				{
 					m_selected_scopes[i] = scope;
 					scope->setSelection	(i);

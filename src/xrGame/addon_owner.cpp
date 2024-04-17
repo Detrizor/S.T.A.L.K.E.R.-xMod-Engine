@@ -64,12 +64,19 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				SAddonSlot* slot		= m_Slots[(int)addon->getSlotIdx()];
-				if (param)
-					slot->attachAddon	(addon);
-				RegisterAddon			(addon, !!param);
-				if (!param)
-					slot->detachAddon	(addon);
+				auto slot				= (addon->getSlotIdx() != -1) ? m_Slots[addon->getSlotIdx()] : NULL;
+				if (!slot && param)
+					slot				= find_available_slot(addon);
+				if (slot)
+				{
+					if (param)
+						slot->attachAddon(addon);
+					RegisterAddon		(addon, !!param);
+					if (!param)
+						slot->detachAddon(addon);
+				}
+				else if (param)
+					Transfer			(addon->ID());
 			}
 			break;
 		case eWeight:
@@ -111,19 +118,20 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 		O.Aboba							(eOnAddon, (void*)addon, attach);
 }
 
+SAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
+{
+	for (auto s : m_Slots)
+	{
+		if (s->CanTake(addon))
+			return						s;
+	}
+	return								NULL;
+}
+
 int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 {
 	if (!slot)
-	{
-		for (auto s : m_Slots)
-		{
-			if (s->CanTake(addon))
-			{
-				slot					= s;
-				break;
-			}
-		}
-	}
+		slot							= find_available_slot(addon);
 
 	if (slot)
 	{
@@ -178,9 +186,9 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
 	
-	tmp.printf							("icon_pos_length_%d", idx);
-	icon_pos_step						= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-	icon_pos_step						/= (float)steps + .5f;
+	tmp.printf							("icon_length_%d", idx);
+	float icon_length					= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
+	icon_pos_step						= icon_length / (float(steps) + .5f);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
@@ -271,30 +279,48 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) con
 
 void SAddonSlot::attachAddon(CAddon* addon)
 {
-	auto next							= addons.begin();
-	if (addon->getPos() == -1)
+	auto I								= addons.begin();
+	if (CAddon* next = (addons.empty()) ? NULL : *I)
 	{
-		int pos							= 0;
-		int len							= addon->getLength(this);
-		while (next != addons.end())
+		if (addon->getPos() == -1)
 		{
-			if (pos + len <= (*next)->getPos())
-				break;
-			pos							= (*next)->getPos() + (*next)->getLength();
-			next++;
+			int pos						= 0;
+			int len						= addon->getLength(this);
+			if (addon->isFrontPositioning())
+			{
+				pos						= steps - len;
+				next					= *--addons.end();
+			}
+			while (next)
+			{
+				if (addon->isFrontPositioning())
+				{
+					if (pos >= next->getPos() + next->getLength())
+						break;
+					pos					= next->getPos() - len;
+					next				= (I == addons.begin()) ? NULL : *--I;
+				}
+				else
+				{
+					if (pos + len <= next->getPos())
+						break;
+					pos					= next->getPos() + next->getLength();
+					next				= (++I == addons.end()) ? NULL : *I;
+				}
+			}
+			addon->setPos				(pos);
 		}
-		addon->setPos					(pos);
-	}
-	else
-	{
-		while (next != addons.end())
+		else
 		{
-			if (addon->getPos() < (*next)->getPos())
-				break;
-			next++;
+			while (I != addons.end())
+			{
+				if (addon->getPos() < next->getPos())
+					break;
+				next					= (++I == addons.end()) ? NULL : *I;
+			}
 		}
 	}
-	addons.insert						(next, addon);
+	addons.insert						(I, addon);
 	addon->setSlot						(this);
 	updateAddonLocalTransform			(addon);
 }

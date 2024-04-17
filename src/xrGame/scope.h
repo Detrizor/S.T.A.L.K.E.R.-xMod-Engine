@@ -5,7 +5,8 @@
 enum eScopeType
 {
 	eOptics = 1,
-	eCollimator
+	eCollimator,
+	eIS
 };
 
 class CUIStatic;
