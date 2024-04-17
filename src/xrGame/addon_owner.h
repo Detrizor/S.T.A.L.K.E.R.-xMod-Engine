@@ -19,12 +19,13 @@ struct SAddonSlot
 	u16									idx;
 	shared_str							name;
 	shared_str							type;
-	float								length;
-	float								steps;
+	int									steps;
+	float								step;
 	u16									bone_id;
 	Fmatrix								model_offset;
 	Fmatrix								bone_offset;
 	Fvector2							icon_offset;
+	float								icon_pos_step;
 	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
 	u16									overlaping_slot;
 	bool								muzzle;
@@ -44,6 +45,7 @@ struct SAddonSlot
 	void								detachLoadingAddon						();
 
 	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
+	void								shiftAddon								(CAddon* addon, int shift);
 	
 	bool								hasAddon							C$	(CAddon CPC _addon)		{ return (::std::find(addons.begin(), addons.end(), _addon) != addons.end()); }
 
@@ -51,7 +53,6 @@ struct SAddonSlot
 	void								RenderWorld							C$	(IRenderVisual* model, Fmatrix CR$ parent_trans);
 	bool								Compatible							C$	(CAddon CPC addon);
 	bool								CanTake								C$	(CAddon CPC addon);
-	void								shiftAddon							C$	(CAddon* addon, int shift);
 	void								updateAddonLocalTransform			C$	(CAddon* addon);
 };
 

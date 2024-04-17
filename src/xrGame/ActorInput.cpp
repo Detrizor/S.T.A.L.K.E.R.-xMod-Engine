@@ -66,13 +66,10 @@ bool TryCustomUse(PIItem item)
 		}
 	}
 
-	PIItem active_item					= Actor()->inventory().ActiveItem();
-	if (active_item)
-	{
-		CAddonOwner* ao					= active_item->cast<CAddonOwner*>();
-		if (ao)
-			return						CurrentGameUI()->GetActorMenu().AttachAddon(ao, item->cast<CAddon*>());
-	}
+	if (auto active_item = Actor()->inventory().ActiveItem())
+		if (auto ao = active_item->cast<CAddonOwner*>())
+			if (auto addon = item->cast<CAddon*>())
+				return					CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon);
 
 	return false;
 }

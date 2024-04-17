@@ -70,3 +70,8 @@ void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
 			for (auto a : s->addons)
 				a->updateHudTransform	(parent_trans);
 }
+
+int CAddon::getLength(SAddonSlot CPC slot) const
+{
+	return								(int)ceil(m_length / ((slot) ? slot : m_slot)->step);
+}

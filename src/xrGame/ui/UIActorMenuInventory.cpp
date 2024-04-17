@@ -648,14 +648,20 @@ static void process_ao_for_action(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool
 		{
 			b_show						= true;
 
-			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->NameShort(), upslot_str, *s->name);
-			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_FORWARDS);
+			if (s->steps > 1)
+			{
+				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->NameShort(), upslot_str, *s->name);
+				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_FORWARDS);
+			}
 
 			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->NameShort(), upslot_str, *s->name);
 			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_DETACH);
 
-			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->NameShort(), upslot_str, *s->name);
-			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_BACKWARDS);
+			if (s->steps > 1)
+			{
+				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->NameShort(), upslot_str, *s->name);
+				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_BACKWARDS);
+			}
 
 			if (auto addon_ao = a->Cast<CAddonOwner*>())
 				process_ao_for_action	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->NameShort()));
@@ -773,6 +779,7 @@ void CUIActorMenu::PropertiesBoxForDonate(PIItem item, bool& b_show)
 }
 //-Alundaio
 
+#include "../../../xrEngine/xr_input.h"
 void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 {
 	PIItem			item		= CurrentIItem();
@@ -844,9 +851,14 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_ADDON_SHIFT_BACKWARDS:
 	{
 		auto addon						= (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		auto slot						= addon->getOwner()->AddonSlots()[(int)addon->getSlot()];
 		int shift						= (m_UIPropertiesBox->GetClickedItem()->GetTAG() == INVENTORY_ADDON_SHIFT_FORWARDS) ? 1 : -1;
-		slot->shiftAddon				(addon, shift);
+		if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
+			shift						*= 50;
+		if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+			shift						*= 10;
+		if (pInput->iGetAsyncKeyState(DIK_LALT))
+			shift						*= 5;
+		addon->getSlot()->shiftAddon	(addon, shift);
 		HideDialog						();
 		break;
 	}
@@ -912,7 +924,7 @@ bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot)
 
 void CUIActorMenu::detach_addon(CAddon* addon)
 {
-	if (addon->getOwner()->DetachAddon(addon) == 2)
+	if (addon->getSlot()->parent_ao->DetachAddon(addon) == 2)
 	{
 		PlaySnd							(eDetachAddon);
 		HideDialog						();

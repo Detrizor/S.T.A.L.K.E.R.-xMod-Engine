@@ -379,24 +379,25 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 	addon_type							= 0;
 	addon_index							= 0;
 	addon_icon							= NULL;
-	icon_offset							= { 0.f, 0.f };
+	icon_offset							= vZero2;
+	icon_pos_step						= slot.icon_pos_step;
 }
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
 {
 	for (auto S : ao->AddonSlots())
 	{
-		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*S);
-		m_slots.push_back				(s);
-
 		for (auto addon : S->addons)
 		{
+			SUIAddonSlot* s				= xr_new<SUIAddonSlot>(*S);
+			m_slots.push_back			(s);
 			s->addon_name				= addon->Section();
 			s->addon_type				= addon->GetInvIconType();
 			s->addon_index				= addon->GetInvIconIndex();
 			s->icon_offset				= forwarded_offset;
 			s->icon_offset.add			(S->icon_offset);
 			s->icon_offset.sub			(addon->IconOffset());
+			s->icon_offset.x			-= s->icon_pos_step * float(addon->getPos());
 			s->addon_icon				= xr_new<CUIStatic>();
 			s->addon_icon->SetAutoDelete(true);
 			AttachChild					(s->addon_icon);

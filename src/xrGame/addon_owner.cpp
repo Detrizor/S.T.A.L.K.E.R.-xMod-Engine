@@ -64,7 +64,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				SAddonSlot* slot		= m_Slots[(int)addon->getSlot()];
+				SAddonSlot* slot		= m_Slots[(int)addon->getSlotIdx()];
 				if (param)
 					slot->attachAddon	(addon);
 				RegisterAddon			(addon, !!param);
@@ -127,7 +127,7 @@ int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
 
 	if (slot)
 	{
-		addon->setSlot					((float)slot->idx);
+		addon->setSlotIdx				(slot->idx);
 		return							TransferAddon(addon, true);
 	}
 
@@ -155,10 +155,10 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	type								= pSettings->r_string(section, *tmp);
 
 	tmp.printf							("length_%d", idx);
-	length								= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-
+	float length						= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
 	tmp.printf							("steps_%d", idx);
-	steps								= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
+	steps								= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 1);
+	step								= length / (float(steps) + .5f);
 
 	tmp.printf							("attach_bone_%d", idx);
 	auto obj							= parent->cast<CObject*>();
@@ -177,6 +177,10 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
+	
+	tmp.printf							("icon_pos_length_%d", idx);
+	icon_pos_step						= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
+	icon_pos_step						/= (float)steps + .5f;
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
@@ -267,23 +271,32 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) con
 
 void SAddonSlot::attachAddon(CAddon* addon)
 {
-	addon->setOwner						(parent_ao);
-	updateAddonLocalTransform			(addon);
-	float pos							= 0.f;
-
-	for (auto I = addons.begin(), E = addons.end(); I != E; I++)
+	auto next							= addons.begin();
+	if (addon->getPos() == -1)
 	{
-		float a_pos						= (*I)->getPos() * length;
-		if (fMoreOrEqual(a_pos - pos, addon->getLength()))
+		int pos							= 0;
+		int len							= addon->getLength(this);
+		while (next != addons.end())
 		{
-			addons.insert				(I, addon);
-			addon->setPos				(pos / length);
-			return;
+			if (pos + len <= (*next)->getPos())
+				break;
+			pos							= (*next)->getPos() + (*next)->getLength();
+			next++;
 		}
-		pos								= a_pos + (*I)->getLength();
+		addon->setPos					(pos);
 	}
-	addons.push_back					(addon);
-	addon->setPos						(pos / length);
+	else
+	{
+		while (next != addons.end())
+		{
+			if (addon->getPos() < (*next)->getPos())
+				break;
+			next++;
+		}
+	}
+	addons.insert						(next, addon);
+	addon->setSlot						(this);
+	updateAddonLocalTransform			(addon);
 }
 
 void SAddonSlot::attachLoadingAddon(CAddon* addon)
@@ -301,7 +314,7 @@ void SAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 {
 	Fmatrix								transform;
 	transform.mul						(bone_offset, model_offset);
-	transform.c.z						+= addon->getPos() * length;
+	transform.c.z						+= float(addon->getPos()) * step;
 	if (parent_addon)
 	{
 		addon->updateLocalTransform		(Fmatrix().mul(parent_addon->getLocalTransform(), transform));
@@ -316,8 +329,9 @@ void SAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 
 void SAddonSlot::detachAddon(CAddon* addon)
 {
-	addon->setOwner						(NULL);
-	addon->setSlot						(-1.f);
+	addon->setSlot						(NULL);
+	addon->setSlotIdx					(-1);
+	addon->setPos						(-1);
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
 }
 
@@ -350,41 +364,92 @@ bool SAddonSlot::CanTake(CAddon CPC addon) const
 	if (magazine)
 		return							true;
 
-	float pos							= 0.f;
+	int pos								= 0;
+	int len								= addon->getLength(this);
 	for (auto a : addons)
 	{
-		float a_pos						= a->getPos() * length;
-		if (fMoreOrEqual(a_pos - pos, addon->getLength()))
+		if (pos + len <= a->getPos())
 			return						true;
-		pos								= a_pos + a->getLength();
+		pos								= a->getPos() + a->getLength();
 	}
 	
-	return								(fMoreOrEqual(length - pos, addon->getLength()));
+	return								(pos + len <= steps);
 }
 
-void SAddonSlot::shiftAddon(CAddon* addon, int shift) const
+void SAddonSlot::shiftAddon(CAddon* addon, int shift)
 {
-	auto I								= ::std::find(addons.begin(), addons.end(), addon);
-	float abs_shift						= float(shift) * (length / (steps + .5f));
-	bool								pass;
+	auto A								= ::std::find(addons.begin(), addons.end(), addon);
+	auto I								= A;
+	int pos								= addon->getPos();
+	int len								= addon->getLength();
+	int prev_pos						= pos;
 	if (shift > 0)
 	{
 		I++;
-		float lim_pos					= (I == addons.end()) ? length : (*I)->getPos() * length;
-		float pos						= addon->getPos() * length + addon->getLength() + abs_shift;
-		pass							= fMoreOrEqual(lim_pos, pos);
+		while (shift--)
+		{
+			int npos					= pos + 1;
+			int lim_pos					= (I == addons.end()) ? steps : (*I)->getPos();
+			if (npos + len <= lim_pos)
+				pos						= npos;
+			else while (I != addons.end())
+			{
+				npos					= (*I)->getPos() + (*I)->getLength();
+				I++;
+				lim_pos					= (I == addons.end()) ? steps : (*I)->getPos();
+				if (npos + len <= lim_pos)
+				{
+					pos					= npos;
+					addons.erase		(A);
+					A					= addons.insert(I, addon);
+					break;
+				}
+			}
+			if (prev_pos == pos)
+				break;
+			else
+				prev_pos				= pos;
+		}
 	}
 	else
 	{
-		I--;
-		float lim_pos					= (I == addons.begin()) ? 0.f : (*I)->getPos() * length + (*I)->getLength();
-		float pos						= addon->getPos() * length + abs_shift;
-		pass							= fMoreOrEqual(pos, lim_pos);
+		bool begin						= (I == addons.begin());
+		if (!begin)
+			I--;
+		while (shift++)
+		{
+			int npos					= pos - 1;
+			int lim_pos					= (begin) ? 0 : (*I)->getPos() + (*I)->getLength();
+			if (npos >= lim_pos)
+				pos						= npos;
+			else while (!begin)
+			{
+				npos					= (*I)->getPos() - len;
+				begin					= (I == addons.begin());
+				if (!begin)
+					I--;
+				lim_pos					= (begin) ? 0 : (*I)->getPos() + (*I)->getLength();
+				if (npos >= lim_pos)
+				{
+					pos					= npos;
+					addons.erase		(A);
+					A					= addons.insert((begin) ? I : ++I, addon);
+					I					= A;
+					if (!begin)
+						I--;
+					break;
+				}
+			}
+			if (prev_pos == pos)
+				break;
+			else
+				prev_pos				= pos;
+		}
 	}
 
-	if (pass)
+	if (pos != addon->getPos())
 	{
-		addon->setPos					((addon->getPos() * length + abs_shift) / length);
+		addon->setPos					(pos);
 		updateAddonLocalTransform		(addon);
 	}
 }

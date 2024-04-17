@@ -979,8 +979,10 @@ public:
 	bool								Aiming								C$	();
 
 //addon
-	float								getAddonSlot						C$	();
-	void								setAddonSlot							(float val);
+	int									getAddonSlotIdx						C$	();
+	void								setAddonSlotIdx							(int val);
+	int									getAddonPos							C$	();
+	void								setAddonPos								(int val);
 
 //scope
 	float								getScopeMagnification				C$	();

@@ -1,7 +1,7 @@
 #pragma once
 #include "inventory_item_object.h"
 
-class CAddonOwner;
+struct SAddonSlot;
 
 class CAddon : public CInventoryItemObject
 {
@@ -15,8 +15,9 @@ private:
 	u16									m_root_bone_id							= 0;
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
-	float								m_slot									= -1.f;
-	CAddonOwner*						m_owner									= NULL;
+	SAddonSlot*							m_slot									= NULL;
+	int									m_slot_idx								= -1;
+	int									m_pos									= -1;
 
 	float								m_length;
 	shared_str							m_SlotType;
@@ -25,10 +26,10 @@ private:
 	shared_str							m_MotionsSuffix;
 
 public:
-	void								setRootBoneID							(u16 bone)				{ m_root_bone_id = bone; }
-	void								setSlot									(float val)				{ m_slot = val; }
-	void								setPos									(float val)				{ m_slot = floor(m_slot) + val; }
-	void								setOwner								(CAddonOwner* ao)		{ m_owner = ao; }
+	void								setRootBoneID							(u16 bone)			{ m_root_bone_id = bone; }
+	void								setSlot									(SAddonSlot* s)		{ m_slot = s; }
+	void								setSlotIdx								(int v)				{ m_slot_idx = v; }
+	void								setPos									(int v)				{ m_pos = v; }
 
 	void								updateLocalTransform					(Fmatrix CR$ parent_trans);
 	void								updateHudTransform						(Fmatrix CR$ parent_trans);
@@ -39,12 +40,12 @@ public:
 	Fmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Fmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
-	float								getSlot								C$	()		{ return m_slot; }
-	float								getPos								C$	()		{ return m_slot - floor(m_slot); }
-	CAddonOwner*						getOwner							C$	()		{ return m_owner; }
+	SAddonSlot*							getSlot								C$	()		{ return m_slot; }
+	int									getSlotIdx							C$	()		{ return m_slot_idx; }
+	int									getPos								C$	()		{ return m_pos; }
 	bool								isLowProfile						C$	()		{ return m_low_profile; }
-	float								getLength							C$	()		{ return m_length; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ trans);
+	int									getLength							C$	(SAddonSlot CPC slot = NULL);
 };

@@ -798,17 +798,28 @@ bool CScriptGameObject::Aiming C$()
 	return								(actor) ? actor->IsZoomAimingMode() : false;
 }
 
-float CScriptGameObject::getAddonSlot() const
+int CScriptGameObject::getAddonSlotIdx() const
 {
 	auto addon							= object().Cast<CAddon*>();
-	return								(addon) ? addon->getSlot() : 0.f;
+	return								(addon) ? addon->getSlotIdx() : -1;
 }
 
-void CScriptGameObject::setAddonSlot(float val)
+void CScriptGameObject::setAddonSlotIdx(int val)
+{
+	if (auto addon = object().Cast<CAddon*>())
+		addon->setSlotIdx				(val);
+}
+
+int CScriptGameObject::getAddonPos() const
 {
 	auto addon							= object().Cast<CAddon*>();
-	if (addon)
-		addon->setSlot					(val);
+	return								(addon) ? addon->getPos() : -1;
+}
+
+void CScriptGameObject::setAddonPos(int val)
+{
+	if (auto addon = object().Cast<CAddon*>())
+		addon->setPos					(val);
 }
 
 float CScriptGameObject::getScopeMagnification() const
