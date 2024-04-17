@@ -10,6 +10,7 @@ void CAddon::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 
+	m_length							= pSettings->r_float(section, "length");
 	m_SlotType							= pSettings->r_string(section, "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
 	m_low_profile						= pSettings->r_bool(section, "low_profile");
@@ -50,12 +51,9 @@ void CAddon::RenderWorld(Fmatrix CR$ trans) const
 				a->RenderWorld			(trans);
 }
 
-void CAddon::updateLocalTransform(Fmatrix CPC parent_trans)
+void CAddon::updateLocalTransform(Fmatrix CR$ parent_trans)
 {
-	if (parent_trans)
-		m_local_transform				= *parent_trans;
-	else
-		m_local_transform.identity		();
+	m_local_transform					= parent_trans;
 
 	if (auto ao = Cast<CAddonOwner*>())
 		for (auto s : ao->AddonSlots())

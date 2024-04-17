@@ -12,16 +12,15 @@ struct SAddonSlot
 	CAddonOwner PC$						parent_ao;
 	CAddon CPC							parent_addon;
 	
-	Fmatrix								transform								= Fidentity;
 	Fmatrix								loading_transform						= Fidentity;
-	xr_vector<CAddon*>					addons									= {};
+	xr_list<CAddon*>					addons									= {};
 	CAddon*								loading_addon							= NULL;
 
 	u16									idx;
 	shared_str							name;
 	shared_str							type;
 	float								length;
-	u8									steps;
+	float								steps;
 	u16									bone_id;
 	Fmatrix								model_offset;
 	Fmatrix								bone_offset;
@@ -37,11 +36,10 @@ struct SAddonSlot
 
 										SAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 										
-	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, Fmatrix CPC parent_trans, u16 bone);
+	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans);
 	
 	void								attachAddon								(CAddon* addon);
 	void								attachLoadingAddon						(CAddon* addon);
-	void								updateAddonLocalTransform				(CAddon* addon);
 	void								detachAddon								(CAddon* addon);
 	void								detachLoadingAddon						();
 
@@ -51,8 +49,10 @@ struct SAddonSlot
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(IRenderVisual* model, Fmatrix CR$ parent_trans);
-	bool								Compatible							C$	(CAddon CPC _addon);
-	bool								CanTake								C$	(CAddon CPC _addon);
+	bool								Compatible							C$	(CAddon CPC addon);
+	bool								CanTake								C$	(CAddon CPC addon);
+	void								shiftAddon							C$	(CAddon* addon, int shift);
+	void								updateAddonLocalTransform			C$	(CAddon* addon);
 };
 
 class CAddonOwner : public CModule

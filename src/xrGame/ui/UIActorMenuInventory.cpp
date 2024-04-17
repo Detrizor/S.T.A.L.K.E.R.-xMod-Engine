@@ -636,20 +636,29 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 
 shared_str attach_to					= "st_attach_to";
 shared_str detach						= "st_detach";
+shared_str shift_fwd					= "st_shift_forwards";
+shared_str shift_bwd					= "st_shift_backwards";
 
-static void process_ao_for_detach(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool& b_show, LPCSTR upslot_str)
+static void process_ao_for_action(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool& b_show, LPCSTR upslot_str)
 {
-	shared_str							detach_str;
+	shared_str							action_str;
 	for (auto s : ao->AddonSlots())
 	{
 		for (auto a : s->addons)
 		{
-			detach_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->NameShort(), upslot_str, *s->name);
-			pb->AddItem					(*detach_str, (void*)a, INVENTORY_DETACH_ADDON);
 			b_show						= true;
 
+			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->NameShort(), upslot_str, *s->name);
+			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_FORWARDS);
+
+			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->NameShort(), upslot_str, *s->name);
+			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_DETACH);
+
+			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->NameShort(), upslot_str, *s->name);
+			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_BACKWARDS);
+
 			if (auto addon_ao = a->Cast<CAddonOwner*>())
-				process_ao_for_detach	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->NameShort()));
+				process_ao_for_action	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->NameShort()));
 		}
 	}
 }
@@ -658,7 +667,7 @@ void CUIActorMenu::PropertiesBoxForAddonOwner(PIItem item, bool& b_show)
 {
 	if (item->InHands())
 		if (auto ao = item->cast<CAddonOwner*>())
-			process_ao_for_detach		(ao, m_UIPropertiesBox, b_show, "");
+			process_ao_for_action		(ao, m_UIPropertiesBox, b_show, "");
 }
 
 static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
@@ -669,7 +678,7 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		if (s->CanTake(addon))
 		{
 			attach_str.printf			("%s %s", str, *s->name);
-			pb->AddItem					(*attach_str, (void*)s, INVENTORY_ATTACH_ADDON);
+			pb->AddItem					(*attach_str, (void*)s, INVENTORY_ADDON_ATTACH);
 			b_show						= true;
 		}
 		
@@ -825,13 +834,23 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		else
 			item->Transfer				();
 		}break;
-	case INVENTORY_ATTACH_ADDON:
+	case INVENTORY_ADDON_ATTACH:
 	{
 		auto slot						= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
 		AttachAddon						(slot->parent_ao, item->cast<CAddon*>(), slot);
 		break;
 	}
-	case INVENTORY_DETACH_ADDON:
+	case INVENTORY_ADDON_SHIFT_FORWARDS:
+	case INVENTORY_ADDON_SHIFT_BACKWARDS:
+	{
+		auto addon						= (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData();
+		auto slot						= addon->getOwner()->AddonSlots()[(int)addon->getSlot()];
+		int shift						= (m_UIPropertiesBox->GetClickedItem()->GetTAG() == INVENTORY_ADDON_SHIFT_FORWARDS) ? 1 : -1;
+		slot->shiftAddon				(addon, shift);
+		HideDialog						();
+		break;
+	}
+	case INVENTORY_ADDON_DETACH:
 		detach_addon					((CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
 		break;
 	case INVENTORY_REPAIR:
