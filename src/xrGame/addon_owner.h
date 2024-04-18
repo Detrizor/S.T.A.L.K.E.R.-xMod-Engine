@@ -13,15 +13,15 @@ public:
 										CAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 
 private:
-	CAddon CPC							parent_addon;
+	CAddon CPC							m_parent_addon;
 
-	float								step;
-	u16									bone_id;
-	Fmatrix								bone_offset;
-	u16									overlaping_slot;
-	u16									loading_bone_id;
-	Fmatrix								loading_model_offset;
-	Fmatrix								loading_bone_offset;
+	float								m_step;
+	u16									m_bone_id;
+	Fmatrix								m_bone_offset;
+	u16									m_overlaping_slot;
+	u16									m_loading_bone_id;
+	Fmatrix								m_loading_model_offset;
+	Fmatrix								m_loading_bone_offset;
 
 	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans);
 	int									get_spacing							C$	(CAddon CPC left, CAddon CPC right);
