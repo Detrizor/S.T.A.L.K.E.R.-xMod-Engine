@@ -3,7 +3,7 @@
 #include "../Weapon.h"
 
 class CAddonOwner;
-struct SAddonSlot;
+class CAddonSlot;
 
 struct SIconLayer
 {
@@ -67,9 +67,9 @@ private:
 		u8								addon_index;
 		CUIStatic*						addon_icon;
 		Fvector2						icon_offset;
-		float							icon_pos_step;
+		float							icon_step;
 
-		SUIAddonSlot					(SAddonSlot CR$ slot);
+		SUIAddonSlot					(CAddonSlot CR$ slot);
 	};
 
 	typedef xr_vector<SUIAddonSlot*>	VUISlots;

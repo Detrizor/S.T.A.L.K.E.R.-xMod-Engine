@@ -843,7 +843,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ADDON_ATTACH:
 	{
-		auto slot						= (SAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
+		auto slot						= (CAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
 		AttachAddon						(slot->parent_ao, item->cast<CAddon*>(), slot);
 		break;
 	}
@@ -910,7 +910,7 @@ void CUIActorMenu::RefreshCurrentItemCell()
 	}
 }
 
-bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot)
+bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, CAddonSlot* slot)
 {
 	int res								= ao->AttachAddon(addon, slot);
 	if (res == 2)

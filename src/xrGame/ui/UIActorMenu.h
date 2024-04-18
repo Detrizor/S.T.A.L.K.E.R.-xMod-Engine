@@ -361,7 +361,7 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 public:
-	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, SAddonSlot* slot = NULL);
+	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, CAddonSlot* slot = NULL);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

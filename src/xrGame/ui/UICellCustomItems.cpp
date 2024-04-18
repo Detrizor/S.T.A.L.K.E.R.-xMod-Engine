@@ -371,7 +371,7 @@ void CUIAmmoCellItem::UpdateItemText()
 	}
 }
 
-CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
+CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 {
 	name								= slot.name;
 	type								= slot.type;
@@ -380,7 +380,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(SAddonSlot CR$ slot)
 	addon_index							= 0;
 	addon_icon							= NULL;
 	icon_offset							= vZero2;
-	icon_pos_step						= slot.icon_pos_step;
+	icon_step						= slot.icon_step;
 }
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
@@ -397,7 +397,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 			s->icon_offset				= forwarded_offset;
 			s->icon_offset.add			(S->icon_offset);
 			s->icon_offset.sub			(addon->IconOffset());
-			s->icon_offset.x			-= s->icon_pos_step * float(addon->getPos());
+			s->icon_offset.x			-= s->icon_step * float(addon->getPos());
 			s->addon_icon				= xr_new<CUIStatic>();
 			s->addon_icon->SetAutoDelete(true);
 			AttachChild					(s->addon_icon);

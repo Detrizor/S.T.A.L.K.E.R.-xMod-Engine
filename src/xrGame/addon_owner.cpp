@@ -30,7 +30,7 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section, VSlots& slots, CAddonOwner PC$ 
 	shared_str							tmp;
 	u16 i								= 0;
 	while (pSettings->line_exist(section, tmp.printf("name_%d", i)))
-		slots.push_back					(xr_new<SAddonSlot>(section, i++, parent_ao));
+		slots.push_back					(xr_new<CAddonSlot>(section, i++, parent_ao));
 }
 
 int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
@@ -122,7 +122,7 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 		O.Aboba							(eOnAddon, (void*)addon, attach);
 }
 
-SAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
+CAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
 {
 	for (auto s : m_Slots)
 	{
@@ -132,7 +132,7 @@ SAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
 	return								NULL;
 }
 
-int CAddonOwner::AttachAddon(CAddon* addon, SAddonSlot* slot)
+int CAddonOwner::AttachAddon(CAddon* addon, CAddonSlot* slot)
 {
 	if (!slot)
 		slot							= find_available_slot(addon);
@@ -153,11 +153,11 @@ int CAddonOwner::DetachAddon(CAddon* addon)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
+CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
+	parent_addon(parent->cast<CAddon*>()),
 	parent_ao(parent),
-	parent_addon(parent->cast<CAddon*>())
+	idx(_idx)
 {
-	idx									= _idx;
 	shared_str							tmp;
 
 	tmp.printf							("name_%d", idx);
@@ -192,7 +192,7 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	
 	tmp.printf							("icon_length_%d", idx);
 	float icon_length					= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-	icon_pos_step						= icon_length / (float(steps) + .5f);
+	icon_step						= icon_length / (float(steps) + .5f);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
@@ -236,12 +236,12 @@ SAddonSlot::SAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	bone_offset.invert					();
 }
 
-void SAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans) const
+void CAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans) const
 {
 	trans.mul							(parent_trans, model->LL_GetTransform(bone));
 }
 
-void SAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
+void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
 {
 	auto update_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
 	{
@@ -257,7 +257,7 @@ void SAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent
 		update_impl						(loading_addon, loading_bone_id);
 }
 
-void SAddonSlot::RenderHud() const
+void CAddonSlot::RenderHud() const
 {
 	for (auto addon : addons)
 		addon->RenderHud				();
@@ -266,7 +266,7 @@ void SAddonSlot::RenderHud() const
 		loading_addon->RenderHud		();
 }
 
-void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
+void CAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
 {
 	auto render_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
 	{
@@ -281,67 +281,86 @@ void SAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) con
 		render_impl						(loading_addon, loading_bone_id);
 }
 
-void SAddonSlot::attachAddon(CAddon* addon)
+int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
+{
+	if (step == 0.f)
+		return							0;
+	if (!left)
+		return							0;
+	if (!right)
+		return							left->getLength(step);
+	if (left->isLowProfile() || right->isLowProfile())
+		return							left->getLength(step);
+	return								left->getLength(step, CAddon::ProfileFwd) + right->getLength(step, CAddon::ProfileBwd);
+}
+
+CAddon* CAddonSlot::get_next_addon(xr_list<CAddon*>::iterator& I) const
+{
+	return								(++I == addons.end()) ? NULL : *I;
+}
+
+CAddon* CAddonSlot::get_prev_addon(xr_list<CAddon*>::iterator& I) const
+{
+	return								(I == addons.begin()) ? NULL : *--I;
+}
+
+void CAddonSlot::attachAddon(CAddon* addon)
 {
 	addon->setSlot						(this);
-	auto I								= addons.begin();
-	CAddon* next						= (addons.empty()) ? NULL : *I;
+
 	if (addon->getPos() == -1)
 	{
-		int pos							= 0;
-		int len							= addon->getLength();
 		if (addon->isFrontPositioning())
 		{
-			pos							= steps - len;
-			next						= (addons.empty()) ? NULL : *--addons.end();
-		}
-		while (next)
-		{
-			if (addon->isFrontPositioning())
+			auto I						= addons.end();
+			int pos						= steps - get_spacing(addon, NULL);
+			while (auto prev = get_prev_addon(I))
 			{
-				if (pos >= next->getPos() + next->getLength())
+				if (pos >= prev->getPos() + get_spacing(prev, addon))
 				{
 					I++;
 					break;
 				}
-				pos						= next->getPos() - len;
-				next					= (I == addons.begin()) ? NULL : *--I;
+				pos						= prev->getPos() - get_spacing(addon, prev);
 			}
-			else
-			{
-				if (pos + len <= next->getPos())
-					break;
-				pos						= next->getPos() + next->getLength();
-				next					= (++I == addons.end()) ? NULL : *I;
-			}
+			addons.insert				(I, addon);
+			addon->setPos				(pos);
 		}
-		addon->setPos					(pos);
+		else
+		{
+			auto I						= --addons.begin();
+			int pos						= get_spacing(NULL, addon);
+			while (auto next = get_next_addon(I))
+			{
+				if (pos + get_spacing(addon, next) <= next->getPos())
+					break;
+				pos						= next->getPos() + get_spacing(next, addon);
+			}
+			addons.insert				(I, addon);
+			addon->setPos				(pos);
+		}
 	}
 	else
 	{
-		while (next)
-		{
+		auto I							= addons.begin();
+		while (auto next = get_next_addon(I))
 			if (addon->getPos() < next->getPos())
 				break;
-			next					= (++I == addons.end()) ? NULL : *I;
-		}
+		addons.insert					(I, addon);
 	}
-	addons.insert						(I, addon);
+
 	updateAddonLocalTransform			(addon);
 }
 
-void SAddonSlot::attachLoadingAddon(CAddon* addon)
+void CAddonSlot::attachLoadingAddon(CAddon* addon)
 {
 	loading_addon						= addon;
-	loading_transform.identity			();
-	loading_transform.mulB_43			(loading_bone_offset);
-	loading_transform.mulB_43			(loading_model_offset);
-
-	loading_addon->updateLocalTransform	(loading_transform);
+	Fmatrix trans						= Fmatrix().mul(loading_bone_offset, loading_model_offset);
+	loading_addon->updateLocalTransform	(trans);
 	loading_addon->setRootBoneID		(loading_bone_id);
 }
 
-void SAddonSlot::updateAddonLocalTransform(CAddon* addon) const
+void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 {
 	Fmatrix								transform;
 	transform.mul						(bone_offset, model_offset);
@@ -358,7 +377,7 @@ void SAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 	}
 }
 
-void SAddonSlot::detachAddon(CAddon* addon)
+void CAddonSlot::detachAddon(CAddon* addon)
 {
 	addon->setSlot						(NULL);
 	addon->setSlotIdx					(-1);
@@ -366,12 +385,12 @@ void SAddonSlot::detachAddon(CAddon* addon)
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
 }
 
-void SAddonSlot::detachLoadingAddon()
+void CAddonSlot::detachLoadingAddon()
 {
 	loading_addon						= NULL;
 }
 
-bool SAddonSlot::Compatible(CAddon CPC addon) const
+bool CAddonSlot::Compatible(CAddon CPC addon) const
 {
 	if (addon->SlotType() != type)
 	{
@@ -388,47 +407,45 @@ bool SAddonSlot::Compatible(CAddon CPC addon) const
 	return								true;
 }
 
-bool SAddonSlot::CanTake(CAddon CPC addon) const
+bool CAddonSlot::CanTake(CAddon CPC addon) const
 {
 	if (!Compatible(addon))
 		return							false;
 	if (magazine)
 		return							true;
 
-	int pos								= 0;
-	int len								= addon->getLength(this);
-	for (auto a : addons)
+	int pos								= get_spacing(NULL, addon);
+	for (auto next : addons)
 	{
-		if (pos + len <= a->getPos())
+		if (pos + get_spacing(addon, next) <= next->getPos())
 			return						true;
-		pos								= a->getPos() + a->getLength();
+		pos								= next->getPos() + get_spacing(next, addon);
 	}
 	
-	return								(pos + len <= steps);
+	return								(pos + get_spacing(addon, NULL) <= steps);
 }
 
-void SAddonSlot::shiftAddon(CAddon* addon, int shift)
+void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 {
 	auto A								= ::std::find(addons.begin(), addons.end(), addon);
 	auto I								= A;
 	int pos								= addon->getPos();
-	int len								= addon->getLength();
 	int prev_pos						= pos;
 	if (shift > 0)
 	{
-		I++;
+		auto next						= get_next_addon(I);
 		while (shift--)
 		{
 			int npos					= pos + 1;
-			int lim_pos					= (I == addons.end()) ? steps : (*I)->getPos();
-			if (npos + len <= lim_pos)
+			int lim_pos					= (next) ? next->getPos() : steps;
+			if (npos + get_spacing(addon, next) <= lim_pos)
 				pos						= npos;
-			else while (I != addons.end())
+			else while (next)
 			{
-				npos					= (*I)->getPos() + (*I)->getLength();
-				I++;
-				lim_pos					= (I == addons.end()) ? steps : (*I)->getPos();
-				if (npos + len <= lim_pos)
+				npos					= next->getPos() + get_spacing(next, addon);
+				next					= get_next_addon(I);
+				lim_pos					= (next) ? next->getPos() : steps;
+				if (npos + get_spacing(addon, next) <= lim_pos)
 				{
 					pos					= npos;
 					addons.erase		(A);
@@ -444,29 +461,25 @@ void SAddonSlot::shiftAddon(CAddon* addon, int shift)
 	}
 	else
 	{
-		bool begin						= (I == addons.begin());
-		if (!begin)
-			I--;
+		auto prev						= get_prev_addon(I);
 		while (shift++)
 		{
 			int npos					= pos - 1;
-			int lim_pos					= (begin) ? 0 : (*I)->getPos() + (*I)->getLength();
-			if (npos >= lim_pos)
+			int lim_pos					= (prev) ? prev->getPos(): 0;
+			if (npos >= lim_pos + get_spacing(prev, addon))
 				pos						= npos;
-			else while (!begin)
+			else while (prev)
 			{
-				npos					= (*I)->getPos() - len;
-				begin					= (I == addons.begin());
-				if (!begin)
-					I--;
-				lim_pos					= (begin) ? 0 : (*I)->getPos() + (*I)->getLength();
-				if (npos >= lim_pos)
+				npos					= prev->getPos() - get_spacing(addon, prev);
+				prev					= get_prev_addon(I);
+				lim_pos					= (prev) ? prev->getPos() : 0;
+				if (npos >= lim_pos + get_spacing(prev, addon))
 				{
 					pos					= npos;
 					addons.erase		(A);
-					A					= addons.insert((begin) ? I : ++I, addon);
+					A					= addons.insert((prev) ? ++I : I, addon);
 					I					= A;
-					if (!begin)
+					if (prev)
 						I--;
 					break;
 				}

@@ -3,7 +3,6 @@
 
 class CGrenadeLauncher;
 class CScope;
-struct SAddonSlot;
 enum eScopeType;
 
 struct SShootingParams

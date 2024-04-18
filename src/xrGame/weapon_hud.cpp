@@ -67,15 +67,7 @@ void CWeaponHud::process_scope_impl(CScope* scope)
 	
 	trans.applyOffset					(scope->getSightPosition(), vZero);
 	trans.getOffset						(offset);
-
-	if (scope->Type() == eOptics)
-	{
-		offset[0].z						+= scope->getEyeRelief();
-		if (offset[0].z < O.m_grip_offset.z)
-			offset[0].z					= O.m_grip_offset.z;
-	}
-	else if (offset[0].z < m_hud_offset[eIS][0].z)
-		offset[0].z						= m_hud_offset[eIS][0].z;
+	offset[0].z							= m_hud_offset[eIS][0].z;
 	scope->setHudOffset					(offset);
 }
 

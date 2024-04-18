@@ -10,7 +10,6 @@ void CAddon::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 
-	m_length							= pSettings->r_float(section, "length");
 	m_SlotType							= pSettings->r_string(section, "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
 	m_low_profile						= pSettings->r_bool(section, "low_profile");
@@ -28,6 +27,9 @@ void CAddon::Load(LPCSTR section)
 		else if (addon_type == "grenade_launcher")
 			AddModule<CGrenadeLauncher>	(cNameSect());
 	}
+	
+	m_mount_length						= pSettings->r_float(section, "mount_length");
+	m_profile_length					= pSettings->r_fvector2(section, "profile_length");
 }
 
 void CAddon::RenderHud() const
@@ -72,7 +74,14 @@ void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
 				a->updateHudTransform	(parent_trans);
 }
 
-int CAddon::getLength(SAddonSlot CPC slot) const
+int CAddon::getLength(float step, eLengthType type) const
 {
-	return								(int)ceil(m_length / ((slot) ? slot : m_slot)->step);
+	float								len;
+	switch (type)
+	{
+	case Mount: len						= m_mount_length; break;
+	case ProfileFwd: len				= m_profile_length.x; break;
+	case ProfileBwd: len				= m_profile_length.y; break;
+	}
+	return								(int)ceil(len / step);
 }

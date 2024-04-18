@@ -1,10 +1,18 @@
 #pragma once
 #include "inventory_item_object.h"
 
-struct SAddonSlot;
+class CAddonSlot;
 
 class CAddon : public CInventoryItemObject
 {
+public:
+	enum eLengthType
+	{
+		Mount,
+		ProfileFwd,
+		ProfileBwd
+	};
+
 private:
 	typedef CInventoryItemObject		inherited;
 
@@ -15,20 +23,22 @@ private:
 	u16									m_root_bone_id							= 0;
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
-	SAddonSlot*							m_slot									= NULL;
+	CAddonSlot*							m_slot									= NULL;
 	int									m_slot_idx								= -1;
 	int									m_pos									= -1;
 
-	float								m_length;
 	shared_str							m_SlotType;
 	Fvector2							m_IconOffset;
 	bool								m_low_profile;
 	shared_str							m_MotionsSuffix;
 	bool								m_front_positioning;
+	
+	float								m_mount_length;
+	Fvector2							m_profile_length;
 
 public:
 	void								setRootBoneID							(u16 bone)			{ m_root_bone_id = bone; }
-	void								setSlot									(SAddonSlot* s)		{ m_slot = s; }
+	void								setSlot									(CAddonSlot* s)		{ m_slot = s; }
 	void								setSlotIdx								(int v)				{ m_slot_idx = v; }
 	void								setPos									(int v)				{ m_pos = v; }
 
@@ -41,7 +51,7 @@ public:
 	Fmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Fmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
-	SAddonSlot*							getSlot								C$	()		{ return m_slot; }
+	CAddonSlot*							getSlot								C$	()		{ return m_slot; }
 	int									getSlotIdx							C$	()		{ return m_slot_idx; }
 	int									getPos								C$	()		{ return m_pos; }
 	bool								isLowProfile						C$	()		{ return m_low_profile; }
@@ -49,5 +59,5 @@ public:
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ trans);
-	int									getLength							C$	(SAddonSlot CPC slot = NULL);
+	int									getLength							C$	(float step, eLengthType type = Mount);
 };

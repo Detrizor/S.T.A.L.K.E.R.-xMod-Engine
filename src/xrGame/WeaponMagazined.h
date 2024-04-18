@@ -239,7 +239,7 @@ private:
 
 	BOOL								m_Chamber;
 	CSilencer*							m_pSilencer;
-	SAddonSlot*							m_pMagazineSlot;
+	CAddonSlot*							m_pMagazineSlot;
 	float								m_ReloadHalfPoint;
 	float								m_ReloadEmptyHalfPoint;
 	float								m_ReloadPartialPoint;
@@ -279,7 +279,7 @@ public:
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
-	SAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
+	CAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
