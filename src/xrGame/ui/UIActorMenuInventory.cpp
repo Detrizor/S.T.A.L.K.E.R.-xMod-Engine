@@ -365,67 +365,66 @@ void CUIActorMenu::InitInventoryContents()
 		InitPocket						(i);
 }
 
-extern bool TryCustomUse(PIItem item);
 bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative)
 {
-	PIItem item									= (PIItem)itm->m_pData;
-	if (slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || item->CurrSlot() == OUTFIT_SLOT || item->CurrSlot() == HELMET_SLOT)
-		return									false;
-
-	bool already								= item == m_pActorInv->ItemFromSlot(slot_id);
-	bool own									= item->parent_id() == m_pActorInvOwner->object_id();
-	if (m_pActorInv->CanPutInSlot(item, slot_id) || already)
+	PIItem item							= (PIItem)itm->m_pData;
+	if (slot_id == NO_ACTIVE_SLOT || slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || item->CurrSlot() == OUTFIT_SLOT || item->CurrSlot() == HELMET_SLOT)
+		return							false;
+	
+	PIItem item_in_slot					= m_pActorInv->ItemFromSlot(slot_id);
+	bool own							= (item->parent_id() == m_pActorInvOwner->object_id());
+	bool activated						= (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem());
+	if (m_pActorInv->CanPutInSlot(item, slot_id) || (item == item_in_slot))
 	{
-		if (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem())
-			m_pActorInv->ActivateItem			(item, eItemPlaceSlot, slot_id);
+		if (activated)
+			m_pActorInv->ActivateItem	(item, eItemPlaceSlot, slot_id);
 		else
 		{
 			if (slot_id == item->HandSlot())
 			{
-				m_pActorInv->ActivateItem		(item);
+				m_pActorInv->ActivateItem(item);
 				if (!own)
-					ToRuck						(item);
+					ToRuck				(item);
 			}
 			else
 			{
-				CUIDragDropListEx* old_owner	= itm->OwnerList();
-				CUIDragDropListEx* new_owner	= GetSlotList(slot_id);
-				CUICellItem* i					= old_owner->RemoveItem(itm, old_owner == new_owner);
-				new_owner->SetItem				(i);
+				auto old_owner			= itm->OwnerList();
+				auto new_owner			= GetSlotList(slot_id);
+				CUICellItem* i			= old_owner->RemoveItem(itm, old_owner == new_owner);
+				new_owner->SetItem		(i);
 
 				if (own)
-					m_pActorInv->Slot			(slot_id, item);
+					m_pActorInv->Slot	(slot_id, item);
 				else
-					SendEvent_PickUpItem		(item, eItemPlaceSlot, slot_id);
+					SendEvent_PickUpItem(item, eItemPlaceSlot, slot_id);
 			}
 		}
 
-		return									true;
+		return							true;
 	}
 	else if (assume_alternative)
 	{
 		if (slot_id == PRIMARY_SLOT)
 		{
 			if (m_pActorInv->CanPutInSlot(item, SECONDARY_SLOT))
-				return ToSlot					(itm, SECONDARY_SLOT);
+				return ToSlot			(itm, SECONDARY_SLOT);
 		}
 		else if (slot_id == SECONDARY_SLOT)
 		{
 			if (m_pActorInv->CanPutInSlot(item, PRIMARY_SLOT))
-				return ToSlot					(itm, PRIMARY_SLOT);
+				return ToSlot			(itm, PRIMARY_SLOT);
 		}
 	}
 
-	PIItem _item								= m_pActorInv->ItemFromSlot(slot_id);
-	if (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem())
-		m_pActorInv->ActivateItem				(_item, eItemPlaceSlot, slot_id);
-	else if (slot_id == item->HandSlot() && !TryCustomUse(item) && _item && _item->BaseSlot() && _item->BaseSlot() == item->BaseSlot())
-		m_pActorInv->ActivateItem				(item, item->CurrPlace(), item->CurrPlace() == eItemPlaceSlot ? item->CurrSlot() : item->CurrPocket());
+	if (activated)
+		m_pActorInv->ActivateItem		(item_in_slot, eItemPlaceSlot, slot_id);
+	else if (slot_id == item->HandSlot() && item_in_slot && (item_in_slot->BaseSlot() != NO_ACTIVE_SLOT) && (item_in_slot->BaseSlot() == item->BaseSlot()))
+		m_pActorInv->ActivateItem		(item, item->CurrPlace(), (item->CurrPlace() == eItemPlaceSlot) ? item->CurrSlot() : item->CurrPocket());
 	else
-		return									false;
+		return							false;
 	if (!own)
-		ToRuck									(item);
-	return										true;
+		ToRuck							(item);
+	return								true;
 }
 
 bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)

@@ -20,8 +20,9 @@ private:
 	Fmatrix								m_bone_offset;
 	u16									m_overlaping_slot;
 	u16									m_loading_bone_id;
-	Fmatrix								m_loading_model_offset;
-	Fmatrix								m_loading_bone_offset;
+	BOOL								m_has_loading_anim;
+
+	CAddon*								m_loading_addon							= NULL;
 
 	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans);
 	int									get_spacing							C$	(CAddon CPC left, CAddon CPC right);
@@ -39,19 +40,23 @@ public:
 	Fvector2							icon_offset;
 	float								icon_step;
 	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
-	BOOL								magazine;
 	bool								muzzle;
 
 	xr_list<CAddon*>					addons									= {};
-	CAddon*								loading_addon							= NULL;
 
 	void								attachAddon								(CAddon* addon);
-	void								attachLoadingAddon						(CAddon* addon);
 	void								detachAddon								(CAddon* addon);
-	void								detachLoadingAddon						();
+	void								shiftAddon								(CAddon* addon, int shift);
 
 	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
-	void								shiftAddon								(CAddon* addon, int shift);
+
+	void								startLoading							(CAddon* loading_addon);
+	void								onLoadingHalf							();
+	void								finishLoading							(bool interrupted = false);
+	
+	bool								hasLoadingAnim						C$	()		{ return m_has_loading_anim; }
+	bool								hasLoadingBone						C$	()		{ return m_loading_bone_id != m_bone_id; }
+	bool								isLoading							C$	()		{ return !!m_loading_addon; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(IRenderVisual* model, Fmatrix CR$ parent_trans);

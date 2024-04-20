@@ -1447,3 +1447,41 @@ float CInventoryItem::aboba o$(EEventTypes type, void* data, int param)
 
 	return								CModule::aboba(type, data, param);
 }
+
+#include "UI/UIActorMenu.h"
+#include "UIGameCustom.h"
+bool CInventoryItem::tryCustomUse()
+{
+	shared_str							functor_field;
+	LPCSTR functor_name					= NULL;
+	CGameObject* GO						= cast_game_object();
+
+	for (u8 i = 1; i <= 4; ++i)
+	{
+		functor_field.printf			("use%d_query_functor", i);
+		functor_name					= READ_IF_EXISTS(pSettings, r_string, Section(), functor_field.c_str(), false);
+		if (functor_name)
+		{
+			luabind::functor<bool>		funct;
+			ai().script_engine().functor(functor_name, funct);
+			if (funct(GO->lua_game_object(), i))
+			{
+				functor_field.printf	("use%d_action_functor", i);
+				functor_name			= READ_IF_EXISTS(pSettings, r_string, Section(), functor_field.c_str(), false);
+				if (functor_name)
+				{
+					ai().script_engine().functor(functor_name, funct);
+					funct				(GO->lua_game_object(), i);
+					return				true;
+				}
+			}
+		}
+	}
+
+	if (auto active_item = Actor()->inventory().ActiveItem())
+		if (auto ao = active_item->cast<CAddonOwner*>())
+			if (auto addon = cast<CAddon*>())
+				return					CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon);
+
+	return								false;
+}

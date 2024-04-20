@@ -593,12 +593,6 @@ int CWeaponMagazinedWGrenade::GetAmmoCount2(u8 ammo2_type) const
 	return GetAmmoCount_forType(m_ammoTypes2[ammo2_type]);
 }
 
-void CWeaponMagazinedWGrenade::OnMotionHalf()
-{
-	if (!m_bGrenadeMode)
-		inherited::OnMotionHalf();
-}
-
 void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 {
 	m_pLauncher							= (attach) ? gl : NULL;

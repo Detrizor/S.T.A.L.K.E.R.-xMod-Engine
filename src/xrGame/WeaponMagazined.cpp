@@ -58,7 +58,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_iPrefferedFireMode = -1;
 
 	m_Chamber					= FALSE;
-	m_pNextMagazine				= NULL;
 	m_pCartridgeToReload		= NULL;
 
 	m_pSilencer					= NULL;
@@ -159,7 +158,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	{
 		for (auto s : ao->AddonSlots())
 		{
-			if (s->magazine)
+			if (s->hasLoadingAnim())
 				m_pMagazineSlot			= s;
 			if (s->muzzle)
 				s->model_offset.translate_add(m_loaded_muzzle_point);
@@ -295,13 +294,12 @@ void CWeaponMagazined::Reload()
 	}
 }
 
-void CWeaponMagazined::StartReload(CObject* to_reload)
+void CWeaponMagazined::StartReload(CWeaponAmmo* to_reload)
 {
 	CWeapon::Reload						();
 	SetPending							(TRUE);
 	SwitchState							(eReload);
-	m_pNextMagazine						= cast<CMagazine*>(to_reload);
-	m_pCartridgeToReload				= cast<CWeaponAmmo*>(to_reload);
+	m_pCartridgeToReload = to_reload;
 }
 
 bool CWeaponMagazined::IsAmmoAvailable()
@@ -414,8 +412,8 @@ void CWeaponMagazined::ReloadMagazine()
 {
 	if (ParentIsActor())
 	{
-		if (m_pNextMagazine)
-			m_pNextMagazine->Transfer(ID());
+		if (m_pMagazineSlot)
+			m_pMagazineSlot->finishLoading();
 		else if (m_pCartridgeToReload)
 		{
 			FindAmmoClass				(*m_pCartridgeToReload->m_section_id, true);
@@ -826,7 +824,7 @@ void CWeaponMagazined::PlayReloadSound()
 		}
 		else
 		{
-			if (!iAmmoElapsed && !(m_pMagazine && !m_pNextMagazine) && m_sounds.FindSoundItem("sndReloadEmpty", false))
+			if (!iAmmoElapsed && !is_detaching() && m_sounds.FindSoundItem("sndReloadEmpty", false))
 				PlaySound				("sndReloadEmpty", get_LastFP());
 			else
 				PlaySound				("sndReload", get_LastFP());
@@ -953,20 +951,23 @@ void CWeaponMagazined::PlayAnimReload()
 	}
 	else
 	{
-		bool detach						= m_pMagazine && !m_pNextMagazine;
+		bool detach						= is_detaching();
 		if (HudAnimationExist("anm_reload_empty"))
 		{
-			if (iAmmoElapsed || detach)
-				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadHalfPoint, detach);
-			else
-				PlayHUDMotion			("anm_reload_empty", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach);
+			LPCSTR anm_name				= (iAmmoElapsed || detach) ? "anm_reload" : "anm_reload_empty";
+			float signal_point			= (iAmmoElapsed || detach) ? m_ReloadHalfPoint : m_ReloadEmptyHalfPoint;
+			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
+				signal_point			*= .5f;
+			float stop_point			= (detach) ? signal_point : 0.f;
+			PlayHUDMotion				(anm_name, TRUE, this, GetState(), signal_point, stop_point);
 		}
 		else
 		{
-			if (iAmmoElapsed)
-				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach, m_ReloadPartialPoint);
-			else
-				PlayHUDMotion			("anm_reload", TRUE, this, GetState(), m_ReloadEmptyHalfPoint, detach);
+			float signal_point			= m_ReloadEmptyHalfPoint;
+			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
+				signal_point			*= .5f;
+			float stop_point			= (detach) ? signal_point : ((iAmmoElapsed) ? m_ReloadPartialPoint : 0.f);
+			PlayHUDMotion				("anm_reload", TRUE, this, GetState(), signal_point, stop_point);
 		}
 	}
 }
@@ -1322,23 +1323,23 @@ void CWeaponMagazined::UpdateBonesVisibility()
 	UpdateHudBonesVisibility			();
 }
 
-void CWeaponMagazined::OnMotionHalf()
+void CWeaponMagazined::onMotionSignal()
 {
-	if (ParentIsActor() && GetState() == eReload && m_pMagazineSlot)
-	{
-		if (m_pMagazine)
-			m_pMagazine->Transfer		(parent_id());
-
-		if (m_pNextMagazine)
-			m_pMagazineSlot->attachLoadingAddon(m_pNextMagazine->cast<CAddon*>());
-	}
+	inherited::onMotionSignal			();
+	if (GetState() == eReload && m_pMagazineSlot)
+		m_pMagazineSlot->onLoadingHalf();
 }
 
 void CWeaponMagazined::OnHiddenItem()
 {
-	if (m_pMagazineSlot && m_pMagazineSlot->loading_addon)
-		m_pMagazineSlot->detachLoadingAddon();
+	if (m_pMagazineSlot && m_pMagazineSlot->isLoading())
+		m_pMagazineSlot->finishLoading(true);
 	inherited::OnHiddenItem				();
+}
+
+bool CWeaponMagazined::is_detaching() const
+{
+	return								(m_pMagazineSlot && !m_pMagazineSlot->isLoading());
 }
 
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
@@ -1449,9 +1450,6 @@ void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 			FindAmmoClass				(*m_magazine.back().m_ammoSect, true);
 		else if (m_pMagazine)
 			LoadCartridgeFromMagazine	(!Chamber());
-
-		if (m_pMagazineSlot)
-			m_pMagazineSlot->detachLoadingAddon();
 	}
 	else
 	{ 
@@ -1615,15 +1613,13 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 			return						inherited::Aboba(type, data, param) + GetMagazineWeight(m_magazine);
 
 		case eTransferAddon:
-		{
-			CMagazine* mag				= Cast<CMagazine*>((CAddon*)data);
-			if (mag)
+			if (auto mag = Cast<CMagazine*>((CAddon*)data))
 			{
-				StartReload				((param) ? mag->cast<CObject*>() : NULL);
+				StartReload				();
+				m_pMagazineSlot->startLoading((param) ? (CAddon*)data : NULL);
 				return					1.f;
 			}
 			break;
-		}
 
 		case eUpdateHudBonesVisibility:
 			UpdateHudBonesVisibility	();

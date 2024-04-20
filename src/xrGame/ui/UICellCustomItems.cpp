@@ -402,7 +402,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 			s->addon_icon->SetAutoDelete(true);
 			AttachChild					(s->addon_icon);
 			s->addon_icon->SetTextureColor(GetTextureColor());
-			if (S->magazine)
+			if (S->hasLoadingAnim())
 				s->addon_icon->SetBackgroundDraw(true);
 
 			if (auto addon_ao = addon->Cast<CAddonOwner*>())

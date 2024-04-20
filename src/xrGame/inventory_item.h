@@ -350,6 +350,8 @@ public:
 	virtual	void			OnTaken					()										{}
 
 public:
+	bool								tryCustomUse							();
+
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
@@ -364,7 +366,7 @@ public:
 
 	void								Transfer							C$	(u16 id = u16_max);
 	
-	float								aboba							O$	(EEventTypes type, void* data, int param);
+	float								aboba								O$	(EEventTypes type, void* data, int param);
 };
 
 #include "inventory_item_inline.h"

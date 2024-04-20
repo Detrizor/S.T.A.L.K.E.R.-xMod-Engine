@@ -88,7 +88,7 @@ public:
 	virtual void	FireStart();
 	virtual void	FireEnd();
 	virtual void	Reload();
-	virtual void	StartReload(CObject* to_reload = NULL);
+	virtual void	StartReload(CWeaponAmmo* to_reload = NULL);
 
 	virtual	void	UpdateCL();
 	virtual void	net_Destroy();
@@ -258,10 +258,11 @@ private:
 	void								PrepareCartridgeToShoot				O$	();
 	void								OnHiddenItem						O$	();
 
+	bool								is_detaching						C$	();
+
 protected:
 	CWeaponHud*							m_hud;
 	CMagazine*							m_pMagazine;
-	CMagazine*							m_pNextMagazine;
 	CWeaponAmmo*						m_pCartridgeToReload;
 
 	void								updateRecoil							();
@@ -288,7 +289,7 @@ public:
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 
 	void								OnTaken								O$	();
-	void								OnMotionHalf						O$	();
+	void								onMotionSignal						O$	();
 
 	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	process_addon							(CAddon* addon, bool attach);

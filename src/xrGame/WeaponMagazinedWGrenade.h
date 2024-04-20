@@ -97,7 +97,6 @@ private:
 	bool								HasAltAim							CO$	();
 
 	void								SetADS								O$	(int mode);
-	void								OnMotionHalf						O$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								UpdateCL							O$	();
 	void								process_addon						O$	(CAddon* addon, bool attach);

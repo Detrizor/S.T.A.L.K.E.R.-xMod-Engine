@@ -38,42 +38,6 @@
 
 extern u32 hud_adj_mode;
 
-bool TryCustomUse(PIItem item)
-{
-	shared_str							functor_field;
-	LPCSTR functor_name					= NULL;
-	CGameObject* GO						= item->cast_game_object();
-
-	for (u8 i = 1; i <= 4; ++i)
-	{
-		functor_field.printf			("use%d_query_functor", i);
-		functor_name					= READ_IF_EXISTS(pSettings, r_string, item->Section(), functor_field.c_str(), false);
-		if (functor_name)
-		{
-			luabind::functor<bool>		funct;
-			ai().script_engine().functor(functor_name, funct);
-			if (funct(GO->lua_game_object(), i))
-			{
-				functor_field.printf	("use%d_action_functor", i);
-				functor_name			= READ_IF_EXISTS(pSettings, r_string, item->Section(), functor_field.c_str(), false);
-				if (functor_name)
-				{
-					ai().script_engine().functor(functor_name, funct);
-					funct				(GO->lua_game_object(), i);
-					return				true;
-				}
-			}
-		}
-	}
-
-	if (auto active_item = Actor()->inventory().ActiveItem())
-		if (auto ao = active_item->cast<CAddonOwner*>())
-			if (auto addon = item->cast<CAddon*>())
-				return					CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon);
-
-	return false;
-}
-
 void CActor::IR_OnKeyboardPress(int cmd)
 {
 	if(hud_adj_mode && pInput->iGetAsyncKeyState(DIK_LSHIFT))	return;
@@ -92,12 +56,9 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		else if ((CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined))
 		{
 			PIItem active_item		= inventory().ActiveItem();
-			if (!active_item || !TryCustomUse(active_item))
-			{
-				PIItem left_item	= inventory().LeftItem();
-				if (left_item)
-					TryCustomUse	(left_item);
-			}
+			if (!active_item || !active_item->tryCustomUse())
+				if (auto left_item = inventory().LeftItem())
+					left_item->tryCustomUse();
 		}
 		//-----------------------------
 		if (OnServer())
@@ -230,7 +191,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 				else if (inventory().CanPutInSlot(tmp, tmp->HandSlot()))
 					inventory().ActivateItem	(tmp);
 				else
-					TryCustomUse				(tmp);
+					tmp->tryCustomUse			();
 				
 			}
 		}

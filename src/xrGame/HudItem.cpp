@@ -23,9 +23,6 @@ CHudItem::CHudItem()
     EnableHudInertion(TRUE);
     AllowHudInertion(TRUE);
     m_bStopAtEndAnimIsRunning = false;
-	m_fHalfPosition = .5f;
-	m_bStopAtHalf = false;
-	m_ForceStopPosition = flt_max;
     m_current_motion_def = NULL;
 	m_started_rnd_anim_idx = u8(-1);
 
@@ -451,18 +448,12 @@ void CHudItem::UpdateCL()
             }
 
             m_dwMotionCurrTm = Device.dwTimeGlobal;
+			float motion_time = float(m_dwMotionEndTm - m_dwMotionStartTm);
 
-			if (m_dwMotionCurrTm > (m_dwMotionStartTm + u32(m_fHalfPosition * float(m_dwMotionEndTm - m_dwMotionStartTm))))
-			{
-				OnMotionHalf();
-				if (m_bStopAtHalf)
-				{
-					m_dwMotionCurrTm = m_dwMotionEndTm + 1;
-					m_sounds.StopAllSounds();
-				}
-			}
+			if (m_signal_point && m_dwMotionCurrTm >= (m_dwMotionStartTm + u32(m_signal_point * motion_time)))
+				onMotionSignal();
 
-			if (m_ForceStopPosition != flt_max && m_dwMotionCurrTm > (m_dwMotionStartTm + u32(m_ForceStopPosition * float(m_dwMotionEndTm - m_dwMotionStartTm))))
+			if (m_stop_point && m_dwMotionCurrTm > (m_dwMotionStartTm + u32(m_stop_point * motion_time)))
 			{
 				m_dwMotionCurrTm = m_dwMotionEndTm + 1;
 				m_sounds.StopAllSounds();
@@ -538,7 +529,7 @@ void CHudItem::on_a_hud_attach()
     }
 }
 
-u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float half_position, bool stop_at_half, float force_stop_at)
+u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float signal_point, float stop_point)
 {
 	shared_str							m;
 	if (m_MotionsSuffix.size())
@@ -561,9 +552,8 @@ u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 
     if (anim_time > 0)
     {
         m_bStopAtEndAnimIsRunning = true;
-		m_fHalfPosition = half_position;
-		m_bStopAtHalf = stop_at_half;
-		m_ForceStopPosition = force_stop_at;
+		m_signal_point = signal_point;
+		m_stop_point = stop_point;
 		m_dwMotionStartTm = Device.dwTimeGlobal;
 		m_dwMotionCurrTm = m_dwMotionStartTm;
         m_dwMotionEndTm = m_dwMotionStartTm + anim_time;
@@ -605,9 +595,8 @@ void CHudItem::StopCurrentAnimWithoutCallback()
     m_dwMotionEndTm = 0;
     m_dwMotionCurrTm = 0;
     m_bStopAtEndAnimIsRunning = false;
-	m_fHalfPosition = .5f;
-	m_bStopAtHalf = false;
-	m_ForceStopPosition = flt_max;
+	m_signal_point = 0.f;
+	m_stop_point = 0.f;
     m_current_motion_def = NULL;
 }
 

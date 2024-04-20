@@ -97,7 +97,6 @@ void CUIActorMenu::OnDragItemOnPocket(CUIDragItem* di, bool b_receive)
 	}
 }
 
-extern bool TryCustomUse(PIItem item);
 bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 {
 	InfoCurItem							(NULL);
@@ -173,9 +172,9 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 		if (CanSetItemToList(item, new_owner, slot_to_place))
 		{
 			if (gear_equipped && slot_to_place == item->HandSlot() || gear && slot_to_place == item->BaseSlot())
-				TryCustomUse			(item);
-			else
-				ToSlot					(itm, slot_to_place);
+				item->tryCustomUse();
+			else if (!ToSlot(itm, slot_to_place) && (slot_to_place == item->HandSlot()))
+				item->tryCustomUse();
 		}
 		break;
 	case iActorPocket:
@@ -271,13 +270,13 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 	case iActorSlot:
 	{
 		u16 slot_id					= item->CurrSlot();
-		if ((slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || slot_id == BACKPACK_SLOT) && TryCustomUse(item));
+		if ((slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || slot_id == BACKPACK_SLOT) && item->tryCustomUse());
 		else if (m_currMenuMode == mmTrade && ToActorTrade(itm, false));
 		else if (m_currMenuMode == mmDeadBodySearch && ToDeadBodyBag(itm, false));
 		else if (slot_id == item->HandSlot() && ToSlot(itm, item->BaseSlot(), true));
 		else if (slot_id != item->HandSlot() && ToSlot(itm, item->HandSlot()));
 		else if (GetBag() && ToBag(itm, false));
-		else if (TryCustomUse(item));
+		else if (item->tryCustomUse());
 		else ToRuck(item);
 		break;
 	}
@@ -287,7 +286,7 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 		else if (ToSlot(itm, item->BaseSlot(), true));
 		else if (ToSlot(itm, item->HandSlot()));
 		else if (GetBag() && ToBag(itm, false));
-		else if (TryCustomUse(item));
+		else if (item->tryCustomUse());
 		else item->Transfer();
 		break;
 	case iActorBag:

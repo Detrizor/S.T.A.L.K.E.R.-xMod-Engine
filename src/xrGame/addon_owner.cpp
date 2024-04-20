@@ -65,22 +65,18 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
 				auto slot				= (addon->getSlotIdx() != -1) ? m_Slots[addon->getSlotIdx()] : NULL;
-				if (!slot && param)
+				if (!slot)
 				{
 					slot				= find_available_slot(addon);
-					if (slot)
-						addon->setSlotIdx(slot->idx);
+					addon->setSlotIdx	(slot->idx);
 				}
-				if (slot)
-				{
-					if (param)
-						slot->attachAddon(addon);
-					RegisterAddon		(addon, !!param);
-					if (!param)
-						slot->detachAddon(addon);
-				}
-				else if (param)
-					Transfer			(addon->ID());
+				R_ASSERT				(slot);
+				if (param)
+					slot->attachAddon	(addon);
+				if (!slot->hasLoadingAnim())
+					RegisterAddon		(addon, param);
+				if (!param)
+					slot->detachAddon	(addon);
 			}
 			break;
 		case eWeight:
@@ -172,10 +168,10 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	steps								= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 1);
 	m_step								= length / (float(steps) + .5f);
 
+	auto ki								= parent->cast<CObject*>()->Visual()->dcast_PKinematics();
 	tmp.printf							("attach_bone_%d", idx);
-	auto obj							= parent->cast<CObject*>();
 	shared_str bone_name				= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "wpn_body");
-	m_bone_id								= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
+	m_bone_id							= ki->LL_BoneID(bone_name);
 
 	tmp.printf							("model_offset_rot_%d", idx);
 	model_offset.setHPBv				(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
@@ -183,16 +179,17 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	model_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
 	
 	tmp.printf							("bone_offset_rot_%d", idx);
-	m_bone_offset.setXYZi					(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
+	m_bone_offset.setXYZi				(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
 	tmp.printf							("bone_offset_pos_%d", idx);
-	m_bone_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	m_bone_offset.translate_over		(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	m_bone_offset.invert				();
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
 	
 	tmp.printf							("icon_length_%d", idx);
 	float icon_length					= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-	icon_step						= icon_length / (float(steps) + .5f);
+	icon_step							= icon_length / (float(steps) + .5f);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
@@ -203,82 +200,22 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 	tmp.printf							("muzzle_%d", idx);
 	muzzle								= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
-	tmp.printf							("magazine_%d", idx);
-	magazine							= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
-	if (magazine)
-	{
-		tmp.printf						("loading_attach_bone_%d", idx);
-		if (pSettings->line_exist(section, *tmp))
-		{
-			bone_name					= pSettings->r_string(section, *tmp);
-			m_loading_bone_id				= obj->Visual()->dcast_PKinematics()->LL_BoneID(bone_name);
-		}
-		else
-			m_loading_bone_id				= m_bone_id;
-		
-		m_loading_model_offset			= model_offset;
-		tmp.printf						("loading_model_offset_rot_%d", idx);
-		if (pSettings->line_exist(section, *tmp))
-			m_loading_model_offset.setHPBv(pSettings->r_fvector3d2r(section, *tmp));
-		tmp.printf						("loading_model_offset_pos_%d", idx);
-		if (pSettings->line_exist(section, *tmp))
-			m_loading_model_offset.translate_over(pSettings->r_fvector3(section, *tmp));
+	tmp.printf							("has_loading_anim_%d", idx);
+	m_has_loading_anim					= READ_IF_EXISTS(pSettings, r_bool, section, *tmp, false);
 
-		m_loading_bone_offset				= m_bone_offset;
-		tmp.printf						("loading_bone_offset_rot_%d", idx);
-		if (pSettings->line_exist(section, *tmp))
-			m_loading_bone_offset.setXYZi	(pSettings->r_fvector3d2r(section, *tmp));
-		tmp.printf						("loading_bone_offset_pos_%d", idx);
-		if (pSettings->line_exist(section, *tmp))
-			m_loading_bone_offset.translate_over(pSettings->r_fvector3(section, *tmp));
-		m_loading_bone_offset.invert		();
+	tmp.printf							("loading_attach_bone_%d", idx);
+	if (pSettings->line_exist(section, *tmp))
+	{
+		bone_name						= pSettings->r_string(section, *tmp);
+		m_loading_bone_id				= ki->LL_BoneID(bone_name);
 	}
-	m_bone_offset.invert					();
+	else
+		m_loading_bone_id				= m_bone_id;
 }
 
 void CAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans) const
 {
 	trans.mul							(parent_trans, model->LL_GetTransform(bone));
-}
-
-void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
-{
-	auto update_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
-	{
-		Fmatrix							trans;
-		append_bone_trans				(trans, model, bone_id_, parent_trans);
-		addon->updateHudTransform		(trans);
-	};
-
-	for (auto addon : addons)
-		update_impl						(addon, m_bone_id);
-
-	if (loading_addon)
-		update_impl						(loading_addon, m_loading_bone_id);
-}
-
-void CAddonSlot::RenderHud() const
-{
-	for (auto addon : addons)
-		addon->RenderHud				();
-	
-	if (loading_addon)
-		loading_addon->RenderHud		();
-}
-
-void CAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
-{
-	auto render_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
-	{
-		Fmatrix							trans;
-		append_bone_trans				(trans, model->dcast_PKinematics(), bone_id_, parent_trans);
-		addon->RenderWorld				(trans);
-	};
-
-	for (auto addon : addons)
-		render_impl						(addon, m_bone_id);
-	if (loading_addon)
-		render_impl						(loading_addon, m_loading_bone_id);
 }
 
 int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
@@ -353,77 +290,12 @@ void CAddonSlot::attachAddon(CAddon* addon)
 	updateAddonLocalTransform			(addon);
 }
 
-void CAddonSlot::attachLoadingAddon(CAddon* addon)
-{
-	loading_addon						= addon;
-	Fmatrix trans						= Fmatrix().mul(m_loading_bone_offset, m_loading_model_offset);
-	loading_addon->updateLocalTransform	(trans);
-	loading_addon->setRootBoneID		(m_loading_bone_id);
-}
-
-void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
-{
-	Fmatrix								transform;
-	transform.mul						(m_bone_offset, model_offset);
-	transform.c.z						+= float(addon->getPos()) * m_step;
-	if (m_parent_addon)
-	{
-		addon->updateLocalTransform		(Fmatrix().mul(m_parent_addon->getLocalTransform(), transform));
-		addon->setRootBoneID			(m_parent_addon->getRootBoneID());
-	}
-	else
-	{
-		addon->updateLocalTransform		(transform);
-		addon->setRootBoneID			(m_bone_id);
-	}
-}
-
 void CAddonSlot::detachAddon(CAddon* addon)
 {
 	addon->setSlot						(NULL);
 	addon->setSlotIdx					(-1);
 	addon->setPos						(-1);
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
-}
-
-void CAddonSlot::detachLoadingAddon()
-{
-	loading_addon						= NULL;
-}
-
-bool CAddonSlot::Compatible(CAddon CPC addon) const
-{
-	if (addon->SlotType() != type)
-	{
-		if (!pSettings->line_exist("slot_exceptions", addon->SlotType()))
-			return						false;
-		
-		if (strcmp(pSettings->r_string("slot_exceptions", *addon->SlotType()), *type))
-			return						false;
-	}
-
-	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
-		return							false;
-
-	return								true;
-}
-
-bool CAddonSlot::CanTake(CAddon CPC addon) const
-{
-	if (!Compatible(addon))
-		return							false;
-	if (magazine)
-		return							true;
-
-	int pos								= get_spacing(NULL, addon);
-	for (auto next : addons)
-	{
-		if (pos + get_spacing(addon, next) <= next->getPos())
-			return						true;
-		pos								= next->getPos() + get_spacing(next, addon);
-	}
-	
-	return								(pos + get_spacing(addon, NULL) <= steps);
 }
 
 void CAddonSlot::shiftAddon(CAddon* addon, int shift)
@@ -496,5 +368,118 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 	{
 		addon->setPos					(pos);
 		updateAddonLocalTransform		(addon);
+	}
+}
+
+void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
+{
+	for (auto addon : addons)
+	{
+		Fmatrix							trans;
+		append_bone_trans				(trans, model, (addon == m_loading_addon) ? m_loading_bone_id : m_bone_id, parent_trans);
+		addon->updateHudTransform		(trans);
+	}
+}
+
+void CAddonSlot::startLoading(CAddon* loading_addon)
+{
+	for (auto a : addons)
+		parent_ao->RegisterAddon		(a, false);
+	if (hasLoadingBone() && loading_addon)
+		loading_addon->transfer			(parent_ao->O.ID());
+	m_loading_addon						= loading_addon;
+}
+
+void CAddonSlot::onLoadingHalf()
+{
+	for (auto a : addons)
+		if (a != m_loading_addon)
+			a->transfer					(parent_ao->O.H_Parent()->ID());
+	
+	if (m_loading_addon && !hasLoadingBone())
+		m_loading_addon->transfer		(parent_ao->O.ID());
+}
+
+void CAddonSlot::finishLoading(bool interrupted)
+{
+	if (interrupted)
+		for (auto a : addons)
+			a->transfer					(u16_max);
+	if (m_loading_addon)
+	{
+		if (!interrupted)
+			parent_ao->RegisterAddon	(m_loading_addon, true);
+		m_loading_addon					= NULL;
+	}
+}
+
+void CAddonSlot::RenderHud() const
+{
+	for (auto addon : addons)
+		addon->RenderHud				();
+}
+
+void CAddonSlot::RenderWorld(IRenderVisual* model, Fmatrix CR$ parent_trans) const
+{
+	auto render_impl = [this, model, parent_trans](CAddon* addon, u16 bone_id_)
+	{
+		Fmatrix							trans;
+		append_bone_trans				(trans, model->dcast_PKinematics(), bone_id_, parent_trans);
+		addon->RenderWorld				(trans);
+	};
+
+	for (auto addon : addons)
+		render_impl						(addon, m_bone_id);
+}
+
+bool CAddonSlot::Compatible(CAddon CPC addon) const
+{
+	if (addon->SlotType() != type)
+	{
+		if (!pSettings->line_exist("slot_exceptions", addon->SlotType()))
+			return						false;
+		
+		if (strcmp(pSettings->r_string("slot_exceptions", *addon->SlotType()), *type))
+			return						false;
+	}
+
+	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
+		return							false;
+
+	return								true;
+}
+
+bool CAddonSlot::CanTake(CAddon CPC addon) const
+{
+	if (!Compatible(addon))
+		return							false;
+	if (m_has_loading_anim)
+		return							true;
+
+	int pos								= get_spacing(NULL, addon);
+	for (auto next : addons)
+	{
+		if (pos + get_spacing(addon, next) <= next->getPos())
+			return						true;
+		pos								= next->getPos() + get_spacing(next, addon);
+	}
+	
+	return								(pos + get_spacing(addon, NULL) <= steps);
+}
+
+void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
+{
+	Fmatrix								transform;
+	transform.mul						(m_bone_offset, model_offset);
+	transform.c.z						+= float(addon->getPos()) * m_step;
+	if (m_parent_addon)
+	{
+		addon->updateLocalTransform		(Fmatrix().mul(m_parent_addon->getLocalTransform(), transform));
+		addon->setRootBoneID			(m_parent_addon->getRootBoneID());
+	}
+	else
+	{
+		addon->updateLocalTransform		(transform);
+		addon->setRootBoneID			(m_bone_id);
 	}
 }
