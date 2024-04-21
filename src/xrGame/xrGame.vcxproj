@@ -2361,10 +2361,8 @@
     <ClInclude Include="WeaponMagazinedWGrenade.h" />
     <ClInclude Include="WeaponPistol.h" />
     <ClInclude Include="WeaponPM.h" />
-    <ClInclude Include="WeaponRevolver.h" />
     <ClInclude Include="WeaponRG6.h" />
     <ClInclude Include="WeaponRPG7.h" />
-    <ClInclude Include="WeaponShotgun.h" />
     <ClInclude Include="WeaponStatMgun.h" />
     <ClInclude Include="HolderEntityObject.h" />
     <ClInclude Include="WeaponSVD.h" />
@@ -4565,6 +4563,10 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="WeaponAutomaticShotgun.cpp" />
+    <ClCompile Include="weaponautomaticshotgun_script.cpp">
+      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="WeaponBinoculars.cpp" />
     <ClCompile Include="WeaponBinocularsVision.cpp" />
     <ClCompile Include="WeaponBinoculars_script.cpp">
@@ -4619,7 +4621,6 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="WeaponRevolver.cpp" />
     <ClCompile Include="WeaponRG6.cpp" />
     <ClCompile Include="WeaponRG6_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -4627,11 +4628,6 @@
     </ClCompile>
     <ClCompile Include="WeaponRPG7.cpp" />
     <ClCompile Include="WeaponRPG7_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="WeaponShotgun.cpp" />
-    <ClCompile Include="weaponshotgun_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>

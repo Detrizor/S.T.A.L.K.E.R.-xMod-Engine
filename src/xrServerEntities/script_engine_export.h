@@ -130,7 +130,6 @@
 #	include "WeaponPM.h"
 #	include "WeaponRG6.h"
 #	include "WeaponRPG7.h"
-#	include "WeaponShotgun.h"
 #	include "WeaponSVD.h"
 #	include "WeaponSVU.h"
 #	include "WeaponUSP45.h"

@@ -88,7 +88,7 @@ public:
 	virtual void	FireStart();
 	virtual void	FireEnd();
 	virtual void	Reload();
-	virtual void	StartReload(CWeaponAmmo* to_reload = NULL);
+	virtual void	StartReload();
 
 	virtual	void	UpdateCL();
 	virtual void	net_Destroy();
@@ -237,7 +237,7 @@ private:
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
 
-	BOOL								m_Chamber;
+	int									m_Chamber;
 	CSilencer*							m_pSilencer;
 	CAddonSlot*							m_pMagazineSlot;
 	float								m_ReloadHalfPoint;
@@ -271,12 +271,14 @@ protected:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	();
 
-	BOOL							V$	Chamber								C$	()		{ return m_Chamber; }
+	int								V$	Chamber								C$	()		{ return m_Chamber; }
 
 public:
 	bool								Discharge								(CCartridge& destination);
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								UpdateHudBonesVisibility				();
+	void								loadChamber								(CWeaponAmmo* cartridges);
+	void								startReload								(CWeaponAmmo* cartridges);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
@@ -291,7 +293,6 @@ public:
 	void								OnTaken								O$	();
 	void								onMotionSignal						O$	();
 
-	bool							V$	LoadCartridge							(CWeaponAmmo* cartridges);
 	void							V$	process_addon							(CAddon* addon, bool attach);
 
 	friend class CWeaponHud;

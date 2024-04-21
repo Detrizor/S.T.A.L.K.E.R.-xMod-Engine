@@ -1,14 +1,14 @@
 #pragma once
 
 #include "rocketlauncher.h"
-#include "weaponShotgun.h"
+#include "WeaponAutomaticShotgun.h"
 #include "script_export_space.h"
 
 class CWeaponRG6 :  public CRocketLauncher,
-					public CWeaponShotgun
+					public CWeaponAutomaticShotgun
 {
-	typedef CRocketLauncher		inheritedRL;
-	typedef CWeaponShotgun		inheritedSG;
+	typedef CRocketLauncher				inheritedRL;
+	typedef CWeaponAutomaticShotgun		inheritedSG;
 	
 public:
 	virtual			~CWeaponRG6				();

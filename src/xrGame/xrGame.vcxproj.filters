@@ -1717,9 +1717,6 @@
     <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular">
       <UniqueIdentifier>{796515d9-0128-43e7-a50f-2240ea2ead68}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun">
-      <UniqueIdentifier>{56543b70-9f23-4592-8a9b-355ca9260866}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT">
       <UniqueIdentifier>{2bc95030-8551-4d1f-bbfa-97cfd87a0635}</UniqueIdentifier>
     </Filter>
@@ -5820,9 +5817,6 @@
     <ClInclude Include="WeaponBinocularsVision.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular</Filter>
     </ClInclude>
-    <ClInclude Include="WeaponShotgun.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
-    </ClInclude>
     <ClInclude Include="WeaponFORT.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT</Filter>
     </ClInclude>
@@ -7333,9 +7327,6 @@
       <Filter>UI\Multiplayer\Voting</Filter>
     </ClInclude>
     <ClInclude Include="WeaponCustomAuto.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClInclude>
-    <ClInclude Include="WeaponRevolver.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClInclude>
     <ClInclude Include="AmebaZone.h">
@@ -9363,12 +9354,6 @@
     <ClCompile Include="WeaponBinocularsVision.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponShotgun.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
-    </ClCompile>
-    <ClCompile Include="weaponshotgun_script.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
-    </ClCompile>
     <ClCompile Include="WeaponFORT.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT</Filter>
     </ClCompile>
@@ -10956,9 +10941,6 @@
     <ClCompile Include="WeaponCustomAuto.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponRevolver.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClCompile>
     <ClCompile Include="raypick.cpp">
       <Filter>Core\Common</Filter>
     </ClCompile>
@@ -11017,6 +10999,9 @@
     </ClCompile>
     <ClCompile Include="item_container.cpp" />
     <ClCompile Include="module.cpp" />
+    <ClCompile Include="weaponautomaticshotgun_script.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon AutomaticShotgun</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

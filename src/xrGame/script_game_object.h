@@ -910,7 +910,9 @@ public:
 	float				GetTotalVolume			() const;
 	u8					GetGrenade				() const;
 	void				SetGrenade				(u8 cnt);
-	void				LoadCartridge			(CScriptGameObject* obj);
+	void				startReload				(CScriptGameObject* obj);
+	void				loadChamber				(CScriptGameObject* obj);
+	void				loadCartridge			(CScriptGameObject* obj);
 	void				ActorSetHealth			(float h);
 	void				ActorSetPower			(float p);
 	void				ActorSetSpeedScale		(float p);

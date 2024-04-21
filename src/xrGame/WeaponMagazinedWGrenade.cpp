@@ -645,9 +645,9 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	return								inherited::Aboba(type, data, param);
 }
 
-BOOL CWeaponMagazinedWGrenade::Chamber C$()
+int CWeaponMagazinedWGrenade::Chamber C$()
 {
-	return (m_bGrenadeMode) ? FALSE : inherited::Chamber();
+	return (m_bGrenadeMode) ? 0 : inherited::Chamber();
 }
 
 bool CWeaponMagazinedWGrenade::HasAltAim C$()

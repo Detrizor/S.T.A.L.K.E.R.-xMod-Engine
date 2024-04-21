@@ -1,11 +1,11 @@
 #pragma once
 
-#include "weaponShotgun.h"
+#include "WeaponAutomaticShotgun.h"
 #include "script_export_space.h"
 
-class CWeaponBM16 :public CWeaponShotgun
+class CWeaponBM16 :public CWeaponAutomaticShotgun
 {
-	typedef CWeaponShotgun inherited;
+	typedef CWeaponAutomaticShotgun inherited;
 
 public:
 	virtual			~CWeaponBM16					();

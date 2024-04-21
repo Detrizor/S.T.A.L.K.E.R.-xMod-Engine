@@ -420,19 +420,25 @@ void CScriptGameObject::SetGrenade(u8 cnt)
 	wpn->SetGrenade						(cnt);
 }
 
-void CScriptGameObject::LoadCartridge(CScriptGameObject* obj)
+void CScriptGameObject::startReload(CScriptGameObject* obj)
 {
-	CWeaponAmmo* cartridge				= smart_cast<CWeaponAmmo*>(&obj->object());
-	if (!cartridge)
-		return;
+	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
+		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
+			wpn->startReload			(cartridge);
+}
 
-	CWeaponMagazined* wpn				= smart_cast<CWeaponMagazined*>(&object());
-	if (wpn)
-		wpn->LoadCartridge				(cartridge);
+void CScriptGameObject::loadChamber(CScriptGameObject* obj)
+{
+	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
+		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
+			wpn->loadChamber			(cartridge);
+}
 
-	CMagazine* mag						= object().Cast<CMagazine*>();
-	if (mag)
-		mag->LoadCartridge				(cartridge);
+void CScriptGameObject::loadCartridge(CScriptGameObject* obj)
+{
+	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
+		if (auto mag = object().Cast<CMagazine*>())
+			mag->LoadCartridge			(cartridge);
 }
 
 void CScriptGameObject::ActorSetHealth(float h)

@@ -57,7 +57,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_iCurFireMode = -1;
 	m_iPrefferedFireMode = -1;
 
-	m_Chamber					= FALSE;
 	m_pCartridgeToReload		= NULL;
 
 	m_pSilencer					= NULL;
@@ -148,7 +147,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	else
 		m_bHasDifferentFireModes = false;
 
-	m_Chamber = pSettings->r_bool(section, "has_chamber");
+	m_Chamber = pSettings->r_s32(section, "chamber");
 
 	m_hud								= xr_new<CWeaponHud>(this);
 	InitRotateTime						();
@@ -294,12 +293,11 @@ void CWeaponMagazined::Reload()
 	}
 }
 
-void CWeaponMagazined::StartReload(CWeaponAmmo* to_reload)
+void CWeaponMagazined::StartReload()
 {
 	CWeapon::Reload						();
 	SetPending							(TRUE);
 	SwitchState							(eReload);
-	m_pCartridgeToReload = to_reload;
 }
 
 bool CWeaponMagazined::IsAmmoAvailable()
@@ -378,34 +376,24 @@ void CWeaponMagazined::LoadCartridgeFromMagazine(bool set_ammo_type_only)
 
 void CWeaponMagazined::ConsumeShotCartridge()
 {
-	inherited::ConsumeShotCartridge();
+	inherited::ConsumeShotCartridge		();
 	if (m_magazine.empty())
-		LoadCartridgeFromMagazine(!Chamber());
+		LoadCartridgeFromMagazine		(!Chamber());
 }
 
-bool CWeaponMagazined::LoadCartridge(CWeaponAmmo* cartridges)
+void CWeaponMagazined::loadChamber(CWeaponAmmo* cartridges)
 {
-	if (FindAmmoClass(*cartridges->m_section_id))
-	{
-		if (Chamber())
-		{
-			if (!iAmmoElapsed)
-			{
-				CCartridge				l_cartridge;
-				cartridges->Get			(l_cartridge);
-				l_cartridge.m_LocalAmmoType = m_ammoType;
-				m_magazine.push_back	(l_cartridge);
-				++iAmmoElapsed;
-				return					true;
-			}
-		}
-		else if (iAmmoElapsed < iMagazineSize)
-		{
-			StartReload					(cartridges);
-			return						true;
-		}
-	}
-	return								false;
+	CCartridge							l_cartridge;
+	cartridges->Get						(l_cartridge);
+	l_cartridge.m_LocalAmmoType			= m_ammoType;
+	m_magazine.push_back				(l_cartridge);
+	++iAmmoElapsed;
+}
+
+void CWeaponMagazined::startReload(CWeaponAmmo* cartridges)
+{
+	m_pCartridgeToReload				= cartridges;
+	StartReload							();
 }
 
 void CWeaponMagazined::ReloadMagazine()
@@ -750,10 +738,10 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 {
 	switch (state)
 	{
-	case eReload:	ReloadMagazine();	SwitchState(eIdle);	break;	// End of reload animation
-	case eHiding:	SwitchState(eHidden);   break;	// End of Hide
-	case eShowing:	SwitchState(eIdle);		break;	// End of Show
-	case eIdle:		switch2_Idle();			break;  // Keep showing idle
+	case eReload:			ReloadMagazine();	SwitchState(eIdle);		break;	// End of reload animation
+	case eHiding:								SwitchState(eHidden);	break;	// End of Hide
+	case eShowing:								SwitchState(eIdle);		break;	// End of Show
+	case eIdle:									switch2_Idle();			break;  // Keep showing idle
 	}
 	inherited::OnAnimationEnd(state);
 }

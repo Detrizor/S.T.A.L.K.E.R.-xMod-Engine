@@ -93,7 +93,7 @@ private:
 
 	bool								AltHandsAttach						CO$	();
 
-	BOOL								Chamber								CO$	();
+	int									Chamber								CO$	();
 	bool								HasAltAim							CO$	();
 
 	void								SetADS								O$	(int mode);

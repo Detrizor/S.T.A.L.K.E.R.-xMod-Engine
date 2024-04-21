@@ -83,7 +83,6 @@
 #	include "weaponAMMO.h"
 #	include "weaponFORT.h"
 #	include "weaponBINOCULARS.h"
-#	include "weaponShotgun.h"
 #	include "weaponsvd.h"
 #	include "weaponsvu.h"
 #	include "weaponrpg7.h"
@@ -305,7 +304,6 @@ void CObjectFactory::register_classes	()
 	ADD(CWeaponPM				,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_PM				,"wpn_pm");
 	ADD(CWeaponFORT				,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_FORT			,"wpn_fort");
 	ADD(CWeaponBinoculars		,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_BINOCULAR		,"wpn_binocular");
-	ADD(CWeaponShotgun			,CSE_ALifeItemWeaponShotGun		,CLSID_OBJECT_W_SHOTGUN			,"wpn_shotgun");
 	ADD(CWeaponSVD				,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_SVD				,"wpn_svd");
 	ADD(CWeaponSVU				,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_SVU				,"wpn_svu");
 	ADD(CWeaponRPG7				,CSE_ALifeItemWeaponMagazined	,CLSID_OBJECT_W_RPG7			,"wpn_rpg7");
