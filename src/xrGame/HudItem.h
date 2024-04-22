@@ -113,8 +113,9 @@ public:
 	bool						TryPlayAnimIdle		();
 	virtual bool				MovingAnimAllowedNow ()				{return true;}
 
-	virtual void				PlayAnimIdleMoving	();
-	virtual void				PlayAnimIdleSprint	();
+	virtual void				PlayAnimIdleMoving			();
+	virtual void				PlayAnimIdleMovingCrouch	(); //AVO: new crouch idle animation
+	virtual void				PlayAnimIdleSprint			();
 
 	virtual void				UpdateCL			();
 	virtual void				renderable_Render	();
@@ -123,7 +124,7 @@ public:
 
 	virtual	void				UpdateXForm			()						= 0;
 
-	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float signal_point = 0.f, float stop_point = 0.f);
+	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state, float signal_point = 0.f, float stop_point = 0.f);
 	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
 	void						StopCurrentAnimWithoutCallback();
 
@@ -170,8 +171,7 @@ public:
 	virtual void				debug_draw_firedeps		() {};
 
 	virtual CHudItem*			cast_hud_item			()				{ return this; }
-    void PlayAnimCrouchIdleMoving(); //AVO: new crouch idle animation
-    bool HudAnimationExist(LPCSTR anim_name);
+	bool HudAnimationExist(LPCSTR anim_name);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
@@ -192,6 +192,8 @@ private:
 
 protected:
 	shared_str							m_MotionsSuffix							= 0;
+
+	bool							V$	is_empty							C$	()		{ return false; }
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр

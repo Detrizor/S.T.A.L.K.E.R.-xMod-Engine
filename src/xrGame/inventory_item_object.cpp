@@ -8,11 +8,11 @@ void CInventoryItemObject::OnStateSwitch o$(u32 S, u32 oldState)
 	switch (S)
 	{
 	case eShowing:
-		PlayHUDMotion("anm_show", FALSE, this, S);
+		PlayHUDMotion("anm_show", FALSE, S);
 		break;
 	case eHiding:
 		if (oldState != eHiding)
-			PlayHUDMotion("anm_hide", FALSE, this, S);
+			PlayHUDMotion("anm_hide", FALSE, S);
 		break;
 	case eIdle:
 		PlayAnimIdle();

@@ -126,14 +126,14 @@ void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
 	case eShowing:
 		g_player_hud->attach_item		(this);
 		m_sounds.PlaySound				("sndShow", Fvector().set(0,0,0), this, true, false);
-		PlayHUDMotion					(m_bFastAnimMode?"anm_show_fast":"anm_show", FALSE/*TRUE*/, this, GetState());
+		PlayHUDMotion					(m_bFastAnimMode?"anm_show_fast":"anm_show", FALSE/*TRUE*/, GetState());
 		SetPending						(TRUE);
 		break;
 	case eHiding:
 		if (oldState != eHiding)
 		{
 			m_sounds.PlaySound			("sndHide", Fvector().set(0, 0, 0), this, true, false);
-			PlayHUDMotion				(m_bFastAnimMode ? "anm_hide_fast" : "anm_hide", FALSE/*TRUE*/, this, GetState());
+			PlayHUDMotion				(m_bFastAnimMode ? "anm_hide_fast" : "anm_hide", FALSE/*TRUE*/, GetState());
 			SetPending					(TRUE);
 		}
 		break;

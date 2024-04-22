@@ -32,6 +32,7 @@ protected:
 
 	ESoundTypes		m_eSoundShow;
 	ESoundTypes		m_eSoundHide;
+	ESoundTypes		m_eSoundCloseSlide;
 	ESoundTypes		m_eSoundShot;
 	ESoundTypes		m_eSoundEmptyClick;
 	ESoundTypes		m_eSoundReload;
@@ -183,14 +184,11 @@ protected:
 	}
 
 	//виртуальные функции для проигрывания анимации HUD
+			void	PlayAnimIdle() override;
 	virtual void	PlayAnimShow();
 	virtual void	PlayAnimHide();
 	virtual void	PlayAnimReload();
-	virtual void	PlayAnimIdle();
 	virtual void	PlayAnimShoot();
-	virtual void	PlayReloadSound();
-	virtual void	PlayAnimAim();
-	virtual void	PlayAnimBore();
 
 	virtual	int		ShotsFired()
 	{
@@ -254,6 +252,7 @@ private:
 	
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
+	bool								is_empty 							CO$	();
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();
 

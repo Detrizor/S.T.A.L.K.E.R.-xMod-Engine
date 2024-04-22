@@ -19,11 +19,11 @@
 
 CHudItem::CHudItem()
 {
-    RenderHud(TRUE);
-    EnableHudInertion(TRUE);
-    AllowHudInertion(TRUE);
-    m_bStopAtEndAnimIsRunning = false;
-    m_current_motion_def = NULL;
+	RenderHud(TRUE);
+	EnableHudInertion(TRUE);
+	AllowHudInertion(TRUE);
+	m_bStopAtEndAnimIsRunning = false;
+	m_current_motion_def = NULL;
 	m_started_rnd_anim_idx = u8(-1);
 
 	m_fLR_CameraFactor = 0.f;
@@ -34,13 +34,13 @@ CHudItem::CHudItem()
 
 DLL_Pure *CHudItem::_construct()
 {
-    m_object = smart_cast<CPhysicItem*>(this);
-    VERIFY(m_object);
+	m_object = smart_cast<CPhysicItem*>(this);
+	VERIFY(m_object);
 
-    m_item = smart_cast<CInventoryItem*>(this);
-    VERIFY(m_item);
+	m_item = smart_cast<CInventoryItem*>(this);
+	VERIFY(m_item);
 
-    return				(m_object);
+	return				(m_object);
 }
 
 CHudItem::~CHudItem()
@@ -48,15 +48,15 @@ CHudItem::~CHudItem()
 
 void CHudItem::Load(LPCSTR section)
 {
-    hud_sect			= pSettings->r_string(section, "hud");
-    m_animation_slot	= pSettings->r_u32(section, "animation_slot");
+	hud_sect			= pSettings->r_string(section, "hud");
+	m_animation_slot	= pSettings->r_u32(section, "animation_slot");
 
-    m_sounds.LoadSound	(section, "snd_bore", "sndBore", true);
+	m_sounds.LoadSound	(section, "snd_bore", "sndBore", true);
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
 {
-    m_sounds.PlaySound(alias, position, object().H_Root(), !!GetHUDmode());
+	m_sounds.PlaySound(alias, position, object().H_Root(), !!GetHUDmode());
 }
 
 //Alundaio: Play at index
@@ -68,83 +68,83 @@ void CHudItem::PlaySound(LPCSTR alias, const Fvector& position, u8 index)
 
 void CHudItem::renderable_Render()
 {
-    UpdateXForm();
-    BOOL _hud_render = ::Render->get_HUD() && GetHUDmode();
+	UpdateXForm();
+	BOOL _hud_render = ::Render->get_HUD() && GetHUDmode();
 
-    if (_hud_render  && !IsHidden())
-    {
-    }
-    else
-    {
-        if (!object().H_Parent() || (!_hud_render && !IsHidden()))
-        {
-            on_renderable_Render();
-            debug_draw_firedeps();
-        }
-        else
-            if (object().H_Parent())
-            {
-                CInventoryOwner	*owner = smart_cast<CInventoryOwner*>(object().H_Parent());
-                VERIFY(owner);
-                CInventoryItem	*self = smart_cast<CInventoryItem*>(this);
-                if (owner->attached(self))
-                    on_renderable_Render();
-            }
-    }
+	if (_hud_render  && !IsHidden())
+	{
+	}
+	else
+	{
+		if (!object().H_Parent() || (!_hud_render && !IsHidden()))
+		{
+			on_renderable_Render();
+			debug_draw_firedeps();
+		}
+		else
+			if (object().H_Parent())
+			{
+				CInventoryOwner	*owner = smart_cast<CInventoryOwner*>(object().H_Parent());
+				VERIFY(owner);
+				CInventoryItem	*self = smart_cast<CInventoryItem*>(this);
+				if (owner->attached(self))
+					on_renderable_Render();
+			}
+	}
 }
 
 void CHudItem::SwitchState(u32 S)
 {
-    if (OnClient())
-        return;
+	if (OnClient())
+		return;
 
-    SetNextState(S);
+	SetNextState(S);
 
-    if (object().Local() && !object().getDestroy())
-    {
-        // !!! Just single entry for given state !!!
-        NET_Packet				P;
-        object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
-        P.w_u8(u8(S));
-        object().u_EventSend(P);
-    }
+	if (object().Local() && !object().getDestroy())
+	{
+		// !!! Just single entry for given state !!!
+		NET_Packet				P;
+		object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
+		P.w_u8(u8(S));
+		object().u_EventSend(P);
+	}
 }
 
 void CHudItem::OnEvent(NET_Packet& P, u16 type)
 {
-    switch (type)
-    {
-    case GE_WPN_STATE_CHANGE:
-    {
-        u8				S;
-        P.r_u8(S);		
-        OnStateSwitch(u32(S), GetState());
-    }
-    break;
-    }
+	switch (type)
+	{
+	case GE_WPN_STATE_CHANGE:
+	{
+		u8				S;
+		P.r_u8(S);		
+		OnStateSwitch(u32(S), GetState());
+	}
+	break;
+	}
 }
 
 void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 {
-    SetState(S);
+	SetState(S);
 
-    if (object().Remote())
-        SetNextState(S);
+	if (object().Remote())
+		SetNextState(S);
 
-    switch (S)
-    {
-    case eBore:
-        SetPending(FALSE);
+	switch (S)
+	{
+	case eBore:
+		SetPending(FALSE);
 
-        PlayAnimBore();
-        if (HudItemData())
-        {
-            Fvector P = HudItemData()->m_transform.c;
-            m_sounds.PlaySound("sndBore", P, object().H_Root(), !!GetHUDmode(), false, m_started_rnd_anim_idx);
-        }
+		PlayAnimBore();
+		if (HudItemData())
+		{
+			Fvector P = HudItemData()->m_transform.c;
+			m_sounds.PlaySound("sndBore", P, object().H_Root(), !!GetHUDmode(), false, m_started_rnd_anim_idx);
+		}
 
-        break;
-    }
+		break;
+	}
 
 	g_player_hud->updateMovementLayerState();
 }
@@ -156,48 +156,48 @@ void CHudItem::OnAnimationEnd(u32 state)
 	if (A)
 		A->callback(GameObject::eActorHudAnimationEnd)(smart_cast<CGameObject*>(this)->lua_game_object(),this->hud_sect.c_str(), this->m_current_motion.c_str(), state, this->animation_slot());
 
-    switch (state)
-    {
-    case eBore:
-    {
-        SwitchState(eIdle);
-    } break;
-    }
+	switch (state)
+	{
+	case eBore:
+	{
+		SwitchState(eIdle);
+	} break;
+	}
 }
 
 void CHudItem::PlayAnimBore()
 {
-    PlayHUDMotion("anm_bore", TRUE, this, GetState());
+	PlayHUDMotion("anm_bore", TRUE, GetState());
 }
 
 bool CHudItem::ActivateItem()
 {
-    OnActiveItem();
-    return			true;
+	OnActiveItem();
+	return			true;
 }
 
 void CHudItem::DeactivateItem()
 {
-    OnHiddenItem();
+	OnHiddenItem();
 }
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)
 {
-    SwitchState(eHidden);
+	SwitchState(eHidden);
 }
 
 void CHudItem::SendDeactivateItem()
 {
-    SendHiddenItem();
+	SendHiddenItem();
 }
 void CHudItem::SendHiddenItem()
 {
-    if (!object().getDestroy())
-    {
-        NET_Packet				P;
-        object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
-        P.w_u8(u8(eHiding));
-        object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-    }
+	if (!object().getDestroy())
+	{
+		NET_Packet				P;
+		object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
+		P.w_u8(u8(eHiding));
+		object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
+	}
 }
 
 void CHudItem::UpdateHudAdditional(Fmatrix& trans)
@@ -420,34 +420,34 @@ void CHudItem::UpdateHudAdditional(Fmatrix& trans)
 
 void CHudItem::UpdateCL()
 {
-    if (m_current_motion_def)
-    {
-        if (m_bStopAtEndAnimIsRunning)
-        {
-            const xr_vector<motion_marks>&	marks = m_current_motion_def->marks;
-            if (!marks.empty())
-            {
-                float motion_prev_time = ((float) m_dwMotionCurrTm - (float) m_dwMotionStartTm) / 1000.0f;
-                float motion_curr_time = ((float) Device.dwTimeGlobal - (float) m_dwMotionStartTm) / 1000.0f;
+	if (m_current_motion_def)
+	{
+		if (m_bStopAtEndAnimIsRunning)
+		{
+			const xr_vector<motion_marks>&	marks = m_current_motion_def->marks;
+			if (!marks.empty())
+			{
+				float motion_prev_time = ((float) m_dwMotionCurrTm - (float) m_dwMotionStartTm) / 1000.0f;
+				float motion_curr_time = ((float) Device.dwTimeGlobal - (float) m_dwMotionStartTm) / 1000.0f;
 
-                xr_vector<motion_marks>::const_iterator it = marks.begin();
-                xr_vector<motion_marks>::const_iterator it_e = marks.end();
-                for (; it != it_e; ++it)
-                {
-                    const motion_marks&	M = (*it);
-                    if (M.is_empty())
-                        continue;
+				xr_vector<motion_marks>::const_iterator it = marks.begin();
+				xr_vector<motion_marks>::const_iterator it_e = marks.end();
+				for (; it != it_e; ++it)
+				{
+					const motion_marks&	M = (*it);
+					if (M.is_empty())
+						continue;
 
-                    const motion_marks::interval* Iprev = M.pick_mark(motion_prev_time);
-                    const motion_marks::interval* Icurr = M.pick_mark(motion_curr_time);
-                    if (Iprev == NULL && Icurr != NULL /* || M.is_mark_between(motion_prev_time, motion_curr_time)*/)
-                    {
-                        OnMotionMark(m_startedMotionState, M);
-                    }
-                }
-            }
+					const motion_marks::interval* Iprev = M.pick_mark(motion_prev_time);
+					const motion_marks::interval* Icurr = M.pick_mark(motion_curr_time);
+					if (Iprev == NULL && Icurr != NULL /* || M.is_mark_between(motion_prev_time, motion_curr_time)*/)
+					{
+						OnMotionMark(m_startedMotionState, M);
+					}
+				}
+			}
 
-            m_dwMotionCurrTm = Device.dwTimeGlobal;
+			m_dwMotionCurrTm = Device.dwTimeGlobal;
 			float motion_time = float(m_dwMotionEndTm - m_dwMotionStartTm);
 
 			if (m_signal_point && m_dwMotionCurrTm >= (m_dwMotionStartTm + u32(m_signal_point * motion_time)))
@@ -468,8 +468,8 @@ void CHudItem::UpdateCL()
 				m_bStopAtEndAnimIsRunning = false;
 				OnAnimationEnd(m_startedMotionState);
 			}
-        }
-    }
+		}
+	}
 }
 
 void CHudItem::OnH_A_Chield()
@@ -477,145 +477,148 @@ void CHudItem::OnH_A_Chield()
 
 void CHudItem::OnH_B_Chield()
 {
-    StopCurrentAnimWithoutCallback();
+	StopCurrentAnimWithoutCallback();
 }
 
 void CHudItem::OnH_B_Independent(bool just_before_destroy)
 {
-    m_sounds.StopAllSounds();
-    UpdateXForm();
+	m_sounds.StopAllSounds();
+	UpdateXForm();
 
-    // next code was commented
-    /*
-    if(HudItemData() && !just_before_destroy)
-    {
-    object().XFORM().set( HudItemData()->m_transform );
-    }
+	// next code was commented
+	/*
+	if(HudItemData() && !just_before_destroy)
+	{
+	object().XFORM().set( HudItemData()->m_transform );
+	}
 
-    if (HudItemData())
-    {
-    g_player_hud->detach_item(this);
-    Msg("---Detaching hud item [%s][%d]", this->HudSection().c_str(), this->object().ID());
-    }*/
-    //SetHudItemData			(NULL);
+	if (HudItemData())
+	{
+	g_player_hud->detach_item(this);
+	Msg("---Detaching hud item [%s][%d]", this->HudSection().c_str(), this->object().ID());
+	}*/
+	//SetHudItemData			(NULL);
 }
 
 void CHudItem::OnH_A_Independent()
 {
-    if (HudItemData())
-        g_player_hud->detach_item(this);
-    StopCurrentAnimWithoutCallback();
+	if (HudItemData())
+		g_player_hud->detach_item(this);
+	StopCurrentAnimWithoutCallback();
 }
 
 void CHudItem::on_b_hud_detach()
 {
-    m_sounds.StopAllSounds();
+	m_sounds.StopAllSounds();
 }
 
 void CHudItem::on_a_hud_attach()
 {
-    if (m_current_motion_def)
-    {
-        PlayHUDMotion_noCB(m_current_motion, FALSE);
-#ifdef DEBUG
-        //		Msg("continue playing [%s][%d]",m_current_motion.c_str(), Device.dwFrame);
-#endif // #ifdef DEBUG
-    }
-    else
-    {
-#ifdef DEBUG
-        //		Msg("no active motion");
-#endif // #ifdef DEBUG
-    }
-}
-
-u32 CHudItem::PlayHUDMotion(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state, float signal_point, float stop_point)
-{
-	shared_str							m;
-	if (m_MotionsSuffix.size())
+	if (m_current_motion_def)
 	{
-		m.printf						("anm_%s_%s", *m_MotionsSuffix, (*M+4));
-		if (!HudAnimationExist(*m))
-			m							= M;
+		PlayHUDMotion_noCB(m_current_motion, FALSE);
+#ifdef DEBUG
+		//		Msg("continue playing [%s][%d]",m_current_motion.c_str(), Device.dwFrame);
+#endif // #ifdef DEBUG
 	}
 	else
-		m								= M;
-
-
-	if (HudItemData() && !HudAnimationExist(*m))
 	{
-		Msg("!Missing hud animation %s", *m);
+#ifdef DEBUG
+		//		Msg("no active motion");
+#endif // #ifdef DEBUG
+	}
+}
+
+u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state, float signal_point, float stop_point)
+{
+	shared_str							tmp;
+	if (m_MotionsSuffix.size())
+	{
+		tmp.printf						("anm_%s_%s", *m_MotionsSuffix, (*name + 4));
+		if (HudAnimationExist(*tmp))
+			name						= tmp;
+	}
+	if (is_empty())
+	{
+		tmp.printf						("%s_empty", *name);
+		if (HudAnimationExist(*tmp))
+			name						= tmp;
+	}
+
+	if (HudItemData() && !HudAnimationExist(*name))
+	{
+		Msg("!Missing hud animation %s", *name);
 		return 0;
 	}
 
-    u32 anim_time = PlayHUDMotion_noCB(m, bMixIn);
-    if (anim_time > 0)
-    {
-        m_bStopAtEndAnimIsRunning = true;
+	u32 anim_time = PlayHUDMotion_noCB(name, bMixIn);
+	if (anim_time > 0)
+	{
+		m_bStopAtEndAnimIsRunning = true;
 		m_signal_point = signal_point;
 		m_stop_point = stop_point;
 		m_dwMotionStartTm = Device.dwTimeGlobal;
 		m_dwMotionCurrTm = m_dwMotionStartTm;
-        m_dwMotionEndTm = m_dwMotionStartTm + anim_time;
-        m_startedMotionState = state;
-    }
-    else
-        m_bStopAtEndAnimIsRunning = false;
+		m_dwMotionEndTm = m_dwMotionStartTm + anim_time;
+		m_startedMotionState = state;
+	}
+	else
+		m_bStopAtEndAnimIsRunning = false;
 
-    return anim_time;
+	return anim_time;
 }
 
 u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn)
 {
-    m_current_motion = motion_name;
+	m_current_motion = motion_name;
 
-    if (bDebug && item().m_pInventory)
-    {
-        Msg("-[%s] as[%d] [%d]anim_play [%s][%d]",
-            HudItemData() ? "HUD" : "Simulating",
-            item().m_pInventory->GetActiveSlot(),
-            item().object_id(),
-            motion_name.c_str(),
-            Device.dwFrame);
-    }
-    if (HudItemData())
-    {
-        return HudItemData()->anim_play(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx);
-    }
-    else
-    {
-        m_started_rnd_anim_idx = 0;
+	if (bDebug && item().m_pInventory)
+	{
+		Msg("-[%s] as[%d] [%d]anim_play [%s][%d]",
+			HudItemData() ? "HUD" : "Simulating",
+			item().m_pInventory->GetActiveSlot(),
+			item().object_id(),
+			motion_name.c_str(),
+			Device.dwFrame);
+	}
+	if (HudItemData())
+	{
+		return HudItemData()->anim_play(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx);
+	}
+	else
+	{
+		m_started_rnd_anim_idx = 0;
 		return g_player_hud->motion_length(motion_name, HudSection(), m_object->cNameSect(), m_current_motion_def);
-    }
+	}
 }
 
 void CHudItem::StopCurrentAnimWithoutCallback()
 {
-    m_dwMotionStartTm = 0;
-    m_dwMotionEndTm = 0;
-    m_dwMotionCurrTm = 0;
-    m_bStopAtEndAnimIsRunning = false;
+	m_dwMotionStartTm = 0;
+	m_dwMotionEndTm = 0;
+	m_dwMotionCurrTm = 0;
+	m_bStopAtEndAnimIsRunning = false;
 	m_signal_point = 0.f;
 	m_stop_point = 0.f;
-    m_current_motion_def = NULL;
+	m_current_motion_def = NULL;
 }
 
 BOOL CHudItem::GetHUDmode()
 {
-    if (object().H_Parent())
-    {
-        CActor* A = smart_cast<CActor*>(object().H_Parent());
-        return (A && A->HUDview() && HudItemData());
-    }
-    else
-        return FALSE;
+	if (object().H_Parent())
+	{
+		CActor* A = smart_cast<CActor*>(object().H_Parent());
+		return (A && A->HUDview() && HudItemData());
+	}
+	else
+		return FALSE;
 }
 
 void CHudItem::PlayAnimIdle()
 {
-    if (TryPlayAnimIdle()) return;
+	if (TryPlayAnimIdle()) return;
 
-    PlayHUDMotion("anm_idle", TRUE, NULL, GetState());
+	PlayHUDMotion("anm_idle", TRUE, GetState());
 }
 
 bool CHudItem::TryPlayAnimIdle()
@@ -629,16 +632,16 @@ bool CHudItem::TryPlayAnimIdle()
 			pActor->g_State(st);
 			if (st.bSprint)
 			{
-				CWeapon* pWpn = smart_cast<CWeapon*>(this);
-				if (pWpn && !pWpn->ArmedMode() && pWpn->HandSlot() == BOTH_HANDS_SLOT)
-					return false;
+				if (auto wpn = object().Cast<CWeapon*>())
+					if (!wpn->ArmedMode() && wpn->HandSlot() == BOTH_HANDS_SLOT)
+						return false;
 
 				PlayAnimIdleSprint();
 				return true;
 			}
 			else if (st.bCrouch)
 			{
-				PlayAnimCrouchIdleMoving();
+				PlayAnimIdleMovingCrouch();
 				return true;
 			}
 			else
@@ -677,22 +680,21 @@ bool CHudItem::HudAnimationExist(LPCSTR anim_name)
 }
 //-AVO
 
-//AVO: new crouch idle animation
-void CHudItem::PlayAnimCrouchIdleMoving()
+void CHudItem::PlayAnimIdleMoving()
 {
-    if (HudAnimationExist("anm_idle_moving_crouch"))
-        PlayHUDMotion("anm_idle_moving_crouch", TRUE, NULL, GetState());
+	PlayHUDMotion("anm_idle_moving", TRUE, GetState());
+}
+
+//AVO: new crouch idle animation
+void CHudItem::PlayAnimIdleMovingCrouch()
+{
+	PlayHUDMotion((HudAnimationExist("anm_idle_moving_crouch")) ? "anm_idle_moving_crouch" : "anm_idle_moving", TRUE, GetState());
 }
 //-AVO
 
-void CHudItem::PlayAnimIdleMoving()
-{
-    PlayHUDMotion("anm_idle_moving", TRUE, NULL, GetState());
-}
-
 void CHudItem::PlayAnimIdleSprint()
 {
-    PlayHUDMotion("anm_idle_sprint", TRUE, NULL, GetState());
+	PlayHUDMotion("anm_idle_sprint", TRUE, GetState());
 }
 
 void CHudItem::OnMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
@@ -709,19 +711,19 @@ void CHudItem::OnMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
 
 attachable_hud_item* CHudItem::HudItemData() const
 {
-    attachable_hud_item* hi = NULL;
-    if (!g_player_hud)
-        return				hi;
+	attachable_hud_item* hi = NULL;
+	if (!g_player_hud)
+		return				hi;
 
-    hi = g_player_hud->attached_item(0);
-    if (hi && hi->m_parent_hud_item == this)
-        return hi;
+	hi = g_player_hud->attached_item(0);
+	if (hi && hi->m_parent_hud_item == this)
+		return hi;
 
-    hi = g_player_hud->attached_item(1);
-    if (hi && hi->m_parent_hud_item == this)
-        return hi;
+	hi = g_player_hud->attached_item(1);
+	if (hi && hi->m_parent_hud_item == this)
+		return hi;
 
-    return NULL;
+	return NULL;
 }
 
 void CHudItem::PlayBlendAnm(LPCSTR name, float speed, float power, bool stop_old)

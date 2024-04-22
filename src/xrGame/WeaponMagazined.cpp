@@ -36,6 +36,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 {
 	m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
 	m_eSoundHide = ESoundTypes(SOUND_TYPE_ITEM_HIDING | eSoundType);
+	m_eSoundCloseSlide = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
 	m_eSoundShot = ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING | eSoundType);
 	m_eSoundEmptyClick = ESoundTypes(SOUND_TYPE_WEAPON_EMPTY_CLICKING | eSoundType);
 	m_eSoundReload = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
@@ -105,6 +106,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	// Sounds
 	m_sounds.LoadSound(section, "snd_draw", "sndShow", true, m_eSoundShow);
 	m_sounds.LoadSound(section, "snd_holster", "sndHide", true, m_eSoundHide);
+	m_sounds.LoadSound(section, "snd_close_slide", "sndCloseSlide", true, m_eSoundCloseSlide);
 
 	shared_str tmp = "snd_shoot";
 	m_layered_sounds.LoadSound(section, *tmp, "sndShot", false, m_eSoundShot);
@@ -574,6 +576,7 @@ void CWeaponMagazined::UpdateSounds()
 	Fvector P = get_LastFP();
 	m_sounds.SetPosition("sndShow", P);
 	m_sounds.SetPosition("sndHide", P);
+	m_sounds.SetPosition("sndCloseSlide", P);
 	//. nah	m_sounds.SetPosition("sndShot", P);
 	m_sounds.SetPosition("sndReload", P);
 
@@ -581,8 +584,6 @@ void CWeaponMagazined::UpdateSounds()
 	if (m_sounds.FindSoundItem("sndReloadEmpty", false))
 		m_sounds.SetPosition("sndReloadEmpty", P);
 #endif //-NEW_SOUNDS
-
-	//. nah	m_sounds.SetPosition("sndEmptyClick", P);
 }
 
 void CWeaponMagazined::state_Fire(float dt)
@@ -759,46 +760,26 @@ void CWeaponMagazined::switch2_Empty()
 	OnZoomOut();
 }
 
-void CWeaponMagazined::PlayReloadSound()
-{
-	if (m_sounds_enabled)
-	{
-		if (bMisfire)
-		{
-			//TODO: make sure correct sound is loaded in CWeaponMagazined::Load(LPCSTR section)
-			if (m_sounds.FindSoundItem("sndReloadMisfire", false))
-				PlaySound				("sndReloadMisfire", get_LastFP());
-			else
-				PlaySound				("sndReload", get_LastFP());
-		}
-		else
-		{
-			if (m_chamber.empty() && !is_detaching() && m_sounds.FindSoundItem("sndReloadEmpty", false))
-				PlaySound				("sndReloadEmpty", get_LastFP());
-			else
-				PlaySound				("sndReload", get_LastFP());
-		}
-	}
-}
-
 void CWeaponMagazined::switch2_Reload()
 {
 	CWeapon::FireEnd();
 
-	PlayReloadSound();
-	PlayAnimReload();
 	SetPending(TRUE);
+	PlayAnimReload();
 }
 void CWeaponMagazined::switch2_Hiding()
 {
 	OnZoomOut();
 	CWeapon::FireEnd();
-
-	if (m_sounds_enabled)
-		PlaySound("sndHide", get_LastFP());
-
-	PlayAnimHide();
+	
 	SetPending(TRUE);
+	PlayAnimHide();
+	if (m_sounds_enabled)
+	{
+		PlaySound("sndHide", get_LastFP());
+		if (is_empty())
+			PlaySound("sndCloseSlide", get_LastFP());
+	}
 }
 
 void CWeaponMagazined::switch2_Hidden()
@@ -812,11 +793,10 @@ void CWeaponMagazined::switch2_Hidden()
 }
 void CWeaponMagazined::switch2_Showing()
 {
-	if (m_sounds_enabled)
-		PlaySound("sndShow", get_LastFP());
-
 	SetPending(TRUE);
 	PlayAnimShow();
+	if (m_sounds_enabled)
+		PlaySound("sndShow", get_LastFP());
 }
 
 bool CWeaponMagazined::Action(u16 cmd, u32 flags)
@@ -856,14 +836,6 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-void CWeaponMagazined::PlayAnimBore()
-{
-	if (m_chamber.empty() && HudAnimationExist("anm_bore_empty"))
-		PlayHUDMotion("anm_bore_empty", TRUE, this, GetState());
-	else
-		inherited::PlayAnimBore();
-}
-
 void CWeaponMagazined::LoadSilencerKoeffs(LPCSTR sect)
 {
 	m_silencer_koef.bullet_speed = pSettings->r_float(sect, "bullet_speed_k");
@@ -873,77 +845,6 @@ void CWeaponMagazined::LoadSilencerKoeffs(LPCSTR sect)
 void CWeaponMagazined::ResetSilencerKoeffs()
 {
 	m_silencer_koef.Reset();
-}
-
-void CWeaponMagazined::PlayAnimShow()
-{
-	VERIFY(GetState() == eShowing);
-	PlayHUDMotion("anm_show", FALSE, this, GetState());
-}
-
-void CWeaponMagazined::PlayAnimHide()
-{
-	VERIFY(GetState() == eHiding);
-	PlayHUDMotion("anm_hide", TRUE, this, GetState());
-}
-
-void CWeaponMagazined::PlayAnimReload()
-{
-	VERIFY								(GetState() == eReload);
-
-	if (bMisfire)
-	{
-		if (HudAnimationExist("anm_reload_misfire"))
-			PlayHUDMotion				("anm_reload_misfire", TRUE, this, GetState());
-		else
-			PlayHUDMotion				("anm_reload", TRUE, this, GetState());
-	}
-	else
-	{
-		bool detach						= is_detaching();
-		if (HudAnimationExist("anm_reload_empty"))
-		{
-			LPCSTR anm_name				= (m_chamber.size() || detach) ? "anm_reload" : "anm_reload_empty";
-			float signal_point			= (m_chamber.size() || detach) ? m_ReloadHalfPoint : m_ReloadEmptyHalfPoint;
-			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
-				signal_point			*= .5f;
-			float stop_point			= (detach) ? signal_point : 0.f;
-			PlayHUDMotion				(anm_name, TRUE, this, GetState(), signal_point, stop_point);
-		}
-		else
-		{
-			float signal_point			= m_ReloadEmptyHalfPoint;
-			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
-				signal_point			*= .5f;
-			float stop_point			= (detach) ? signal_point : ((m_chamber.size()) ? m_ReloadPartialPoint : 0.f);
-			PlayHUDMotion				("anm_reload", TRUE, this, GetState(), signal_point, stop_point);
-		}
-	}
-}
-
-void CWeaponMagazined::PlayAnimAim()
-{
-	PlayHUDMotion("anm_idle_aim", TRUE, NULL, GetState());
-}
-
-void CWeaponMagazined::PlayAnimIdle()
-{
-	if (GetState() != eIdle)
-		return;
-	if (ADS())
-		PlayAnimAim();
-	else
-		inherited::PlayAnimIdle();
-}
-
-void CWeaponMagazined::PlayAnimShoot()
-{
-	VERIFY(GetState() == eFire);
-
-	if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
-		PlayHUDMotion("anm_shots_aim", FALSE, this, GetState());
-	else
-		PlayHUDMotion("anm_shots", FALSE, this, GetState());
 }
 
 void CWeaponMagazined::OnZoomIn()
@@ -1294,6 +1195,11 @@ bool CWeaponMagazined::hasAmmoToShoot() const
 bool CWeaponMagazined::is_detaching() const
 {
 	return								(m_pMagazineSlot && !m_pMagazineSlot->isLoading());
+}
+
+bool CWeaponMagazined::is_empty() const
+{
+	return								(m_chamber.capacity() && m_chamber.empty());
 }
 
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)

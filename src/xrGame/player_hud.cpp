@@ -586,7 +586,7 @@ void player_hud::update(Fmatrix cam_trans)
 		{
 			auto calc_attach_offset_full = [this, pi](LPCSTR anm, Fmatrix& dest)
 			{
-				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, NULL, 0);
+				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, 0);
 				update_bones(m_model->dcast_PKinematics());
 				Fmatrix CR$ bone_trans = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
 				dest.mul(bone_trans, pi->m_attach_offset);

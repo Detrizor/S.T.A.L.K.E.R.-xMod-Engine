@@ -9258,9 +9258,6 @@
     <ClCompile Include="WeaponCustomPistol.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponPistol.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClCompile>
     <ClCompile Include="Grenade.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
     </ClCompile>
@@ -11001,6 +10998,9 @@
     <ClCompile Include="module.cpp" />
     <ClCompile Include="weaponautomaticshotgun_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon AutomaticShotgun</Filter>
+    </ClCompile>
+    <ClCompile Include="weapon_animations.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Automatic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

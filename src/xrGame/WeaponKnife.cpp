@@ -234,9 +234,9 @@ void CWeaponKnife::switch2_Attacking	(u32 state)
 	if(IsPending())	return;
 
 	if(state==eFire)
-		PlayHUDMotion("anm_attack",		FALSE, this, state);
+		PlayHUDMotion("anm_attack",		FALSE, state);
 	else //eFire2
-		PlayHUDMotion("anm_attack2",	FALSE, this, state);
+		PlayHUDMotion("anm_attack2",	FALSE, state);
 
 	SetPending			(TRUE);
 }
@@ -253,7 +253,7 @@ void CWeaponKnife::switch2_Hiding	()
 {
 	FireEnd					();
 	VERIFY(GetState()==eHiding);
-	PlayHUDMotion("anm_hide", TRUE, this, GetState());
+	PlayHUDMotion("anm_hide", TRUE, GetState());
 }
 
 void CWeaponKnife::switch2_Hidden()
@@ -266,7 +266,7 @@ void CWeaponKnife::switch2_Showing	()
 {
 	VERIFY(GetState() == eShowing);
 	if (ParentIsActor()) g_player_hud->attach_item(this);
-	PlayHUDMotion("anm_show", FALSE, this, GetState());
+	PlayHUDMotion("anm_show", FALSE, GetState());
 }
 
 void CWeaponKnife::FireStart()

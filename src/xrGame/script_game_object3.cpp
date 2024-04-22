@@ -1238,7 +1238,7 @@ u32 CScriptGameObject::PlayHudMotion(LPCSTR M, bool bMixIn, u32 state)
 		if (!Weapon->HudAnimationExist(M))
 			return 0;
 
-		return Weapon->PlayHUDMotion(M, bMixIn, Weapon, state);
+		return Weapon->PlayHUDMotion(M, bMixIn, state);
 	}
 
 	CHudItem* itm = object().cast_inventory_item()->cast_hud_item();
@@ -1248,7 +1248,7 @@ u32 CScriptGameObject::PlayHudMotion(LPCSTR M, bool bMixIn, u32 state)
 	if (!itm->HudAnimationExist(M))
 		return 0;
 
-	return itm->PlayHUDMotion(M, bMixIn, itm, state);
+	return itm->PlayHUDMotion(M, bMixIn, state);
 }
 
 void CScriptGameObject::SwitchState(u32 state)

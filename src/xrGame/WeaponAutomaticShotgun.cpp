@@ -114,21 +114,21 @@ void CWeaponAutomaticShotgun::OnStateSwitch	(u32 S, u32 oldState)
 void CWeaponAutomaticShotgun::switch2_StartReload()
 {
 	PlaySound						("sndOpen", get_LastFP());
-	PlayHUDMotion					("anm_open", FALSE, this, GetState());
+	PlayHUDMotion					("anm_open", FALSE, GetState());
 	SetPending						(TRUE);
 }
 
 void CWeaponAutomaticShotgun::switch2_AddCartgidge()
 {
 	PlaySound						("sndAddCartridge", get_LastFP());
-	PlayHUDMotion					("anm_add_cartridge", FALSE, this, GetState());
+	PlayHUDMotion					("anm_add_cartridge", FALSE, GetState());
 	SetPending						(TRUE);
 }
 
 void CWeaponAutomaticShotgun::switch2_EndReload()
 {
 	PlaySound						("sndClose", get_LastFP());
-	PlayHUDMotion					("anm_close", FALSE, this, GetState());
+	PlayHUDMotion					("anm_close", FALSE, GetState());
 	SetPending						(FALSE);
 }
 

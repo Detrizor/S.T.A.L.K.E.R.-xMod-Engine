@@ -106,7 +106,7 @@ void CWeaponMagazinedWGrenade::switch2_Reload()
 	if (m_bGrenadeMode)
 	{
 		PlaySound("sndReloadG", m_muzzle_position_gl);
-		PlayHUDMotion("anm_reload", FALSE, this, GetState());
+		PlayHUDMotion("anm_reload", FALSE, GetState());
 		SetPending(TRUE);
 	}
 	else
@@ -342,7 +342,7 @@ bool CWeaponMagazinedWGrenade::PlayAnimModeSwitch()
 {
 	if (HudAnimationExist("anm_switch"))
 	{
-		PlayHUDMotion("anm_switch", TRUE, this, eSwitch);
+		PlayHUDMotion("anm_switch", TRUE, eSwitch);
 		return true;
 	}
 	return false;

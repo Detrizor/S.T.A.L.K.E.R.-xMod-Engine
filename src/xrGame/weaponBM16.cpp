@@ -22,20 +22,15 @@ bool CWeaponBM16::SingleCartridgeReload()
 	}
 }
 
-void CWeaponBM16::PlayReloadSound()
-{
-	PlaySound((SingleCartridgeReload()) ? "sndReload1" : "sndReload", get_LastFP());
-}
-
 void CWeaponBM16::PlayAnimShoot()
 {
 	switch (m_chamber.size())
 	{
 	case 1:
-		PlayHUDMotion("anm_shot_1", FALSE, this, GetState());
+		PlayHUDMotion("anm_shot_1", FALSE, GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_shot_2", FALSE, this, GetState());
+		PlayHUDMotion("anm_shot_2", FALSE, GetState());
 		break;
 	}
 }
@@ -45,13 +40,13 @@ void CWeaponBM16::PlayAnimShow()
 	switch (m_chamber.size())
 	{
 	case 0:
-		PlayHUDMotion("anm_show_0", TRUE, this, GetState());
+		PlayHUDMotion("anm_show_0", TRUE, GetState());
 		break;
 	case 1:
-		PlayHUDMotion("anm_show_1", TRUE, this, GetState());
+		PlayHUDMotion("anm_show_1", TRUE, GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_show_2", TRUE, this, GetState());
+		PlayHUDMotion("anm_show_2", TRUE, GetState());
 		break;
 	}
 }
@@ -61,13 +56,13 @@ void CWeaponBM16::PlayAnimHide()
 	switch (m_chamber.size())
 	{
 	case 0:
-		PlayHUDMotion("anm_hide_0", TRUE, this, GetState());
+		PlayHUDMotion("anm_hide_0", TRUE, GetState());
 		break;
 	case 1:
-		PlayHUDMotion("anm_hide_1", TRUE, this, GetState());
+		PlayHUDMotion("anm_hide_1", TRUE, GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_hide_2", TRUE, this, GetState());
+		PlayHUDMotion("anm_hide_2", TRUE, GetState());
 		break;
 	}
 }
@@ -77,21 +72,22 @@ void CWeaponBM16::PlayAnimBore()
 	switch (m_chamber.size())
 	{
 	case 0:
-		PlayHUDMotion("anm_bore_0", TRUE, this, GetState());
+		PlayHUDMotion("anm_bore_0", TRUE, GetState());
 		break;
 	case 1:
-		PlayHUDMotion("anm_bore_1", TRUE, this, GetState());
+		PlayHUDMotion("anm_bore_1", TRUE, GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_bore_2", TRUE, this, GetState());
+		PlayHUDMotion("anm_bore_2", TRUE, GetState());
 		break;
 	}
 }
 
 void CWeaponBM16::PlayAnimReload()
 {
-	VERIFY(GetState() == eReload);
-	PlayHUDMotion((SingleCartridgeReload()) ? "anm_reload_1" : "anm_reload_2", TRUE, this, GetState());
+	bool single = SingleCartridgeReload();
+	PlayHUDMotion((single) ? "anm_reload_1" : "anm_reload_2", TRUE, GetState());
+	PlaySound((single) ? "sndReload1" : "sndReload", get_LastFP());
 }
 
 void  CWeaponBM16::PlayAnimIdleMoving()
@@ -99,13 +95,13 @@ void  CWeaponBM16::PlayAnimIdleMoving()
 	switch(m_chamber.size() )
 	{
 	case 0:
-		PlayHUDMotion("anm_idle_moving_0",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_moving_0",TRUE,GetState());
 		break;
 	case 1:
-		PlayHUDMotion("anm_idle_moving_1",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_moving_1",TRUE,GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_idle_moving_2",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_moving_2",TRUE,GetState());
 		break;
 	}
 }
@@ -115,13 +111,13 @@ void  CWeaponBM16::PlayAnimIdleSprint()
 	switch(m_chamber.size() )
 	{
 	case 0:
-		PlayHUDMotion("anm_idle_sprint_0",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_sprint_0",TRUE,GetState());
 		break;
 	case 1:
-		PlayHUDMotion("anm_idle_sprint_1",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_sprint_1",TRUE,GetState());
 		break;
 	case 2:
-		PlayHUDMotion("anm_idle_sprint_2",TRUE,this,GetState());
+		PlayHUDMotion("anm_idle_sprint_2",TRUE,GetState());
 		break;
 	}
 }
@@ -135,26 +131,26 @@ void CWeaponBM16::PlayAnimIdle()
 		switch (m_chamber.size())
 		{
 		case 0:{
-			PlayHUDMotion("anm_idle_aim_0", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_aim_0", TRUE, GetState());
 		}break;
 		case 1:{
-			PlayHUDMotion("anm_idle_aim_1", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_aim_1", TRUE, GetState());
 		}break;
 		case 2:{
-			PlayHUDMotion("anm_idle_aim_2", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_aim_2", TRUE, GetState());
 		}break;
 		};
 	}else{
 		switch (m_chamber.size())
 		{
 		case 0:{
-			PlayHUDMotion("anm_idle_0", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_0", TRUE, GetState());
 		}break;
 		case 1:{
-			PlayHUDMotion("anm_idle_1", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_1", TRUE, GetState());
 		}break;
 		case 2:{
-			PlayHUDMotion("anm_idle_2", TRUE, NULL, GetState());
+			PlayHUDMotion("anm_idle_2", TRUE, GetState());
 		}break;
 		};
 	}
