@@ -124,7 +124,7 @@ public:
 
 	virtual	void				UpdateXForm			()						= 0;
 
-	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state, float signal_point = 0.f, float stop_point = 0.f);
+	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state);
 	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
 	void						StopCurrentAnimWithoutCallback();
 
@@ -186,10 +186,6 @@ protected:
 public:
 	virtual	bool			NeedBlendAnm			();
 
-private:
-	float								m_signal_point						= 0.f;
-	float								m_stop_point							= 0.f;
-
 protected:
 	shared_str							m_MotionsSuffix							= 0;
 
@@ -200,7 +196,6 @@ public:
 	void								UpdateHudBonesVisibility				();
 
 	bool							V$	AltHandsAttach						C$	()		{ return false; }
-	void							V$	onMotionSignal							()		{ m_signal_point  = 0.f; }
 
 	friend class CWeaponHud;
 };

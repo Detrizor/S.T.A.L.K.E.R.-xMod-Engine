@@ -390,12 +390,15 @@ void CAddonSlot::startLoading(CAddon* loading_addon)
 	m_loading_addon						= loading_addon;
 }
 
-void CAddonSlot::onLoadingHalf()
+void CAddonSlot::loadingDetach()
 {
 	for (auto a : addons)
 		if (a != m_loading_addon)
 			a->transfer					(parent_ao->O.H_Parent()->ID());
-	
+}
+
+void CAddonSlot::loadingAttach()
+{
 	if (m_loading_addon && !hasLoadingBone())
 		m_loading_addon->transfer		(parent_ao->O.ID());
 }

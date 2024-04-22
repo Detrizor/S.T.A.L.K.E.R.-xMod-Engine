@@ -56,6 +56,12 @@ void CHudItem::Load(LPCSTR section)
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
 {
+	if (is_empty())
+	{
+		shared_str tmp = shared_str().printf("%sEmpty", alias);
+		if (m_sounds.FindSoundItem(*tmp, false))
+			alias = *tmp;
+	}
 	m_sounds.PlaySound(alias, position, object().H_Root(), !!GetHUDmode());
 }
 
@@ -133,6 +139,16 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 
 	switch (S)
 	{
+	case eShowing:
+		PlayHUDMotion("anm_show", FALSE, S);
+		break;
+	case eHiding:
+		if (oldState != eHiding)
+			PlayHUDMotion("anm_hide", FALSE, S);
+		break;
+	case eIdle:
+		PlayAnimIdle();
+		break;
 	case eBore:
 		SetPending(FALSE);
 
@@ -151,17 +167,20 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 
 void CHudItem::OnAnimationEnd(u32 state)
 {
-
 	CActor* A = smart_cast<CActor*>(object().H_Parent());
 	if (A)
 		A->callback(GameObject::eActorHudAnimationEnd)(smart_cast<CGameObject*>(this)->lua_game_object(),this->hud_sect.c_str(), this->m_current_motion.c_str(), state, this->animation_slot());
 
 	switch (state)
 	{
+	case eHiding:
+		SwitchState(eHidden);
+		break;
+	case eShowing:
+	case eIdle:
 	case eBore:
-	{
 		SwitchState(eIdle);
-	} break;
+		break;
 	}
 }
 
@@ -448,17 +467,6 @@ void CHudItem::UpdateCL()
 			}
 
 			m_dwMotionCurrTm = Device.dwTimeGlobal;
-			float motion_time = float(m_dwMotionEndTm - m_dwMotionStartTm);
-
-			if (m_signal_point && m_dwMotionCurrTm >= (m_dwMotionStartTm + u32(m_signal_point * motion_time)))
-				onMotionSignal();
-
-			if (m_stop_point && m_dwMotionCurrTm > (m_dwMotionStartTm + u32(m_stop_point * motion_time)))
-			{
-				m_dwMotionCurrTm = m_dwMotionEndTm + 1;
-				m_sounds.StopAllSounds();
-			}
-
 			if (m_dwMotionCurrTm > m_dwMotionEndTm)
 			{
 				m_current_motion_def = NULL;
@@ -529,7 +537,7 @@ void CHudItem::on_a_hud_attach()
 	}
 }
 
-u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state, float signal_point, float stop_point)
+u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 {
 	shared_str							tmp;
 	if (m_MotionsSuffix.size())
@@ -555,8 +563,6 @@ u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state, float signa
 	if (anim_time > 0)
 	{
 		m_bStopAtEndAnimIsRunning = true;
-		m_signal_point = signal_point;
-		m_stop_point = stop_point;
 		m_dwMotionStartTm = Device.dwTimeGlobal;
 		m_dwMotionCurrTm = m_dwMotionStartTm;
 		m_dwMotionEndTm = m_dwMotionStartTm + anim_time;
@@ -598,8 +604,6 @@ void CHudItem::StopCurrentAnimWithoutCallback()
 	m_dwMotionEndTm = 0;
 	m_dwMotionCurrTm = 0;
 	m_bStopAtEndAnimIsRunning = false;
-	m_signal_point = 0.f;
-	m_stop_point = 0.f;
 	m_current_motion_def = NULL;
 }
 

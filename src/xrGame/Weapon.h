@@ -116,6 +116,9 @@ public:
 		eSubstateReloadBegin = 0,
 		eSubstateReloadInProcess,
 		eSubstateReloadEnd,
+		eSubstateReloadDetach,
+		eSubstateReloadAttach,
+		eSubstateReloadBolt,
 	};
 	enum
 	{
@@ -274,7 +277,6 @@ protected:
 
 	virtual bool			MovingAnimAllowedNow();
 	virtual void			OnStateSwitch(u32 S, u32 oldState);
-	virtual void			OnAnimationEnd(u32 state);
 
 	//трассирование полета пули
 	virtual	void			FireTrace();

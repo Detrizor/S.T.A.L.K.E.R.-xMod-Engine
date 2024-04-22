@@ -1,41 +1,5 @@
 #include "pch_script.h"
 #include "inventory_item_object.h"
-
-void CInventoryItemObject::OnStateSwitch o$(u32 S, u32 oldState)
-{
-	CHudItem::OnStateSwitch(S, oldState);
-
-	switch (S)
-	{
-	case eShowing:
-		PlayHUDMotion("anm_show", FALSE, S);
-		break;
-	case eHiding:
-		if (oldState != eHiding)
-			PlayHUDMotion("anm_hide", FALSE, S);
-		break;
-	case eIdle:
-		PlayAnimIdle();
-		break;
-	}
-}
-
-void CInventoryItemObject::OnAnimationEnd o$(u32 state)
-{
-	switch (state)
-	{
-	case eHiding:
-		SwitchState(eHidden);
-		break;
-	case eShowing:
-	case eIdle:
-		SwitchState(eIdle);
-		break;
-	default:
-		CHudItem::OnAnimationEnd(state);
-	}
-}
-
 #include "Entity_alive.h"
 #include "inventoryOwner.h"
 #include "../Include/xrRender/Kinematics.h"

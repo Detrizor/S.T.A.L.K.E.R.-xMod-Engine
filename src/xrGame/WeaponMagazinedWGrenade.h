@@ -30,7 +30,6 @@ public:
 	
 	virtual void	OnStateSwitch	(u32 S, u32 oldState);
 	
-	virtual void	switch2_Reload	();
 	virtual void	state_Fire		(float dt);
 	virtual void	OnShot			();
 	virtual void	OnEvent			(NET_Packet& P, u16 type);
@@ -80,6 +79,7 @@ private:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								UpdateCL							O$	();
 	void								process_addon						O$	(CAddon* addon, bool attach);
+	void								PlayAnimReload						O$	();
 
 public:
 	void								SetGrenade								(u8 cnt);

@@ -35,11 +35,13 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 	if (inherited::Action			(cmd, flags))
 		return						true;
 
-	if (m_bTriStateReload && GetState() == eReload && cmd == kWPN_FIRE && flags&CMD_START && m_sub_state == eSubstateReloadInProcess) //остановить перезагрузку
-	{
-		m_sub_state					= eSubstateReloadEnd;
-		return						true;
-	}
+	if (cmd == kWPN_FIRE || cmd == kWPN_RELOAD)
+		if (flags&CMD_START && m_bTriStateReload && GetState() == eReload)
+			if (m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) //остановить перезагрузку
+			{
+				m_sub_state			= eSubstateReloadEnd;
+				return				true;
+			}
 	return							false;
 }
 

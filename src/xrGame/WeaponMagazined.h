@@ -32,17 +32,12 @@ protected:
 
 	ESoundTypes		m_eSoundShow;
 	ESoundTypes		m_eSoundHide;
-	ESoundTypes		m_eSoundCloseSlide;
-	ESoundTypes		m_eSoundShot;
+	ESoundTypes		m_eSoundBoltRelease;
 	ESoundTypes		m_eSoundEmptyClick;
+	ESoundTypes		m_eSoundSwitchMode;
+	ESoundTypes		m_eSoundShot;
 	ESoundTypes		m_eSoundReload;
-#ifdef NEW_SOUNDS //AVO: new sounds go here
-	ESoundTypes		m_eSoundReloadEmpty;
-	ESoundTypes		m_eSoundReloadMisfire;
-#endif //-NEW_SOUNDS
 	bool			m_sounds_enabled;
-	// General
-	//кадр момента пересчета UpdateSounds
 	u32				dwUpdateSounds_Frame;
 
 protected:
@@ -203,8 +198,6 @@ protected:
 		u16 parent_id,
 		u16 weapon_id,
 		bool send_hit);
-	//AVO: for custom added sounds check if sound exists
-	bool WeaponSoundExist(LPCSTR section, LPCSTR sound_name);
 
 	//Alundaio: LAYERED_SND_SHOOT
 #ifdef LAYERED_SND_SHOOT
@@ -231,12 +224,10 @@ private:
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
+	CSilencer*							m_pSilencer								= nullptr;
+	CMagazine*							m_magazine								= nullptr;
+	CAddonSlot*							m_magazine_slot							= nullptr;
 
-	CSilencer*							m_pSilencer;
-	CAddonSlot*							m_pMagazineSlot;
-	float								m_ReloadHalfPoint;
-	float								m_ReloadEmptyHalfPoint;
-	float								m_ReloadPartialPoint;
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
 
@@ -257,9 +248,8 @@ private:
 	void								OnHiddenItem						O$	();
 
 protected:
-	CWeaponHud*							m_hud;
-	CMagazine*							m_pMagazine;
-	CWeaponAmmo*						m_pCartridgeToReload;
+	CWeaponHud*							m_hud									= nullptr;
+	CWeaponAmmo*						m_pCartridgeToReload					= nullptr;
 
 	void								updateRecoil							();
 
@@ -274,7 +264,6 @@ public:
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
-	CAddonSlot CP$						MagazineSlot						C$	()		{ return m_pMagazineSlot; }
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
@@ -283,7 +272,6 @@ public:
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 
 	void								OnTaken								O$	();
-	void								onMotionSignal						O$	();
 
 	void							V$	process_addon							(CAddon* addon, bool attach);
 	bool							V$	Discharge								(CCartridge& destination);

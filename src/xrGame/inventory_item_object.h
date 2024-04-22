@@ -70,8 +70,6 @@ public:
 	}
 
 public:
-	void								OnStateSwitch						O$	(u32 S, u32 oldState);
-	void								OnAnimationEnd						O$	(u32 state);
 	void								UpdateXForm							O$	();
 	
 #ifdef DEBUG

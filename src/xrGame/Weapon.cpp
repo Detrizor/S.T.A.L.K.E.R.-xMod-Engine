@@ -1104,11 +1104,6 @@ void CWeapon::OnStateSwitch(u32 S, u32 oldState)
 	}
 }
 
-void CWeapon::OnAnimationEnd(u32 state)
-{
-	CHudItem::OnAnimationEnd(state);
-}
-
 void CWeapon::render_hud_mode()
 {
 	inherited::render_hud_mode();

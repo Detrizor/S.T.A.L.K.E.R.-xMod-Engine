@@ -100,17 +100,15 @@ void CWeaponMagazinedWGrenade::SetGrenade(u8 cnt)
 	m_grenade->Load						(*m_grenade_types[m_grenade_type]);
 }
 
-void CWeaponMagazinedWGrenade::switch2_Reload()
+void CWeaponMagazinedWGrenade::PlayAnimReload()
 {
-	VERIFY(GetState() == eReload);
 	if (m_bGrenadeMode)
 	{
 		PlaySound("sndReloadG", m_muzzle_position_gl);
 		PlayHUDMotion("anm_reload", FALSE, GetState());
-		SetPending(TRUE);
 	}
 	else
-		inherited::switch2_Reload();
+		inherited::PlayAnimReload();
 }
 
 void CWeaponMagazinedWGrenade::OnShot()

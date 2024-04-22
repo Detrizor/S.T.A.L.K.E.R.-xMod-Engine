@@ -51,7 +51,8 @@ public:
 	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
 
 	void								startLoading							(CAddon* loading_addon);
-	void								onLoadingHalf							();
+	void								loadingDetach							();
+	void								loadingAttach							();
 	void								finishLoading							(bool interrupted = false);
 	
 	bool								hasLoadingAnim						C$	()		{ return m_has_loading_anim; }
