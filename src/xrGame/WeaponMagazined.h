@@ -86,7 +86,6 @@ public:
 
 	virtual void	SetDefaults();
 	virtual void	FireStart();
-	virtual void	FireEnd();
 	virtual void	Reload();
 	virtual void	StartReload();
 
@@ -101,9 +100,6 @@ public:
 	bool			IsAmmoAvailable	();
 
 	virtual bool	GetBriefInfo(II_BriefInfo& info);
-
-	virtual	xr_vector<CCartridge>&		Magazine();
-			u32							MagazineElapsed();
 
 public:
 	virtual bool	SwitchMode();
@@ -221,6 +217,7 @@ protected:
 //xMod altered
 public:
 	bool								IsRotatingToZoom					C$	();
+	float								GetMagazineWeight					C$	();
 
 	void								modify_holder_params				CO$	(float& range, float& fov);
 
@@ -237,7 +234,6 @@ private:
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
 
-	int									m_Chamber;
 	CSilencer*							m_pSilencer;
 	CAddonSlot*							m_pMagazineSlot;
 	float								m_ReloadHalfPoint;
@@ -246,7 +242,8 @@ private:
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
 
-	void								LoadCartridgeFromMagazine				(bool set_ammo_type_only = false);
+	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
+	void								reload_chamber							();
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
@@ -254,11 +251,11 @@ private:
 	void								process_scope							(CScope* scope, bool attach);
 	void								cycle_scope								(int idx, bool up = true);
 	void								InitRotateTime							();
-
-	void								PrepareCartridgeToShoot				O$	();
-	void								OnHiddenItem						O$	();
-
+	
+	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
+	CCartridge							getCartridgeToShoot					O$	();
+	void								OnHiddenItem						O$	();
 
 protected:
 	CWeaponHud*							m_hud;
@@ -267,14 +264,10 @@ protected:
 
 	void								updateRecoil							();
 
-	void								ConsumeShotCartridge				O$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
-	Fvector								getFullFireDirection				O$	();
-
-	int								V$	Chamber								C$	()		{ return m_Chamber; }
+	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 
 public:
-	bool								Discharge								(CCartridge& destination);
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								UpdateHudBonesVisibility				();
 	void								loadChamber								(CWeaponAmmo* cartridges);
@@ -294,6 +287,7 @@ public:
 	void								onMotionSignal						O$	();
 
 	void							V$	process_addon							(CAddon* addon, bool attach);
+	bool							V$	Discharge								(CCartridge& destination);
 
 	friend class CWeaponHud;
 };

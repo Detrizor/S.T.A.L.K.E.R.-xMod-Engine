@@ -20,10 +20,9 @@ CCartridge::CCartridge()
 	m_fCondition = 1.f;
 }
 
-void CCartridge::Load(LPCSTR section, u8 LocalAmmoType, float condition)
+void CCartridge::Load(LPCSTR section, float condition)
 {
 	m_ammoSect				= section;
-	m_LocalAmmoType			= LocalAmmoType;
 	param_s.kDisp				= pSettings->r_float(section, "k_disp");
 	param_s.fBulletMass			= pSettings->r_float(section, "bullet_mass") * 0.001f;
 	param_s.mHollowPoint		= !!pSettings->r_bool(section, "hollow_point");

@@ -147,8 +147,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 	else
 		m_bHasDifferentFireModes = false;
 
-	m_Chamber = pSettings->r_s32(section, "chamber");
-
 	m_hud								= xr_new<CWeaponHud>(this);
 	InitRotateTime						();
 
@@ -188,7 +186,7 @@ void CWeaponMagazined::FireStart()
 {
 	if (!IsMisfire())
 	{
-		if (IsValid())
+		if (hasAmmoToShoot())
 		{
 			if (!IsWorking() || AllowFireWhileWorking())
 			{
@@ -199,13 +197,8 @@ void CWeaponMagazined::FireStart()
 
 				inherited::FireStart();
 
-				if (iAmmoElapsed == 0)
-					OnMagazineEmpty();
-				else
-				{
-					R_ASSERT(H_Parent());
-					SwitchState(eFire);
-				}
+				R_ASSERT(H_Parent());
+				SwitchState(eFire);
 			}
 		}
 		else
@@ -231,11 +224,6 @@ void CWeaponMagazined::FireStart()
 	}
 }
 
-void CWeaponMagazined::FireEnd()
-{
-	inherited::FireEnd();
-}
-
 void CWeaponMagazined::Reload()
 {
 	if (!m_pInventory && GetState() != eIdle)
@@ -244,36 +232,22 @@ void CWeaponMagazined::Reload()
 		return;
 	}
 
-	if (ParentIsActor())
+	if (IsMisfire())
 	{
-		if (iAmmoElapsed)
+		m_pInventory->Ruck				(this);
+		bMisfire						= false;
+	}
+	else if (ParentIsActor())
+	{
+		if (m_chamber.capacity())
 		{
-			if (m_magazine.size())
-			{
-				CInventoryOwner* IO			= smart_cast<CInventoryOwner*>(Parent);
-				CCartridge& cartridge		= m_magazine.back();
-				IO->GiveAmmo				(*cartridge.m_ammoSect, 1, cartridge.m_fCondition);
-				ConsumeShotCartridge		();
-				m_pInventory->Ruck			(this);
-				if (IsMisfire())
-					bMisfire				= false;
-			}
-			else if (IsMisfire())
-			{
-				m_pInventory->Ruck			(this);
-				bMisfire					= false;
-			}
+			reload_chamber				();
+			m_pInventory->Ruck			(this);
 		}
 	}
 	else
 	{
 		m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
-
-		if (IsMisfire() && iAmmoElapsed)
-		{
-			StartReload();
-			return;
-		}
 
 		if (m_pCurrentAmmo || unlimited_ammo())
 		{
@@ -313,7 +287,7 @@ bool CWeaponMagazined::IsAmmoAvailable()
 
 bool CWeaponMagazined::Discharge(CCartridge& destination)
 {
-	if (m_magazine.empty())
+	if (m_chamber.empty() && m_magazin.empty())
 		return false;
 	if (ParentIsActor())
 	{
@@ -322,12 +296,16 @@ bool CWeaponMagazined::Discharge(CCartridge& destination)
 		Actor()->callback(GameObject::eOnWeaponMagazineEmpty)(lua_game_object(), AC);
 #endif
 	}
-	CCartridge& back_cartridge	= m_magazine.back();
-	destination.m_ammoSect		= back_cartridge.m_ammoSect;
-	destination.m_fCondition	= back_cartridge.m_fCondition;
-	m_magazine.pop_back			();
-	--iAmmoElapsed;
-	return						true;
+
+	auto discharge = [](CCartridge& destination, xr_vector<CCartridge>& storage)
+	{
+		CCartridge& back_cartridge		= storage.back();
+		destination.m_ammoSect			= back_cartridge.m_ammoSect;
+		destination.m_fCondition		= back_cartridge.m_fCondition;
+		storage.pop_back				();
+	};
+	discharge							(destination, (m_magazin.size()) ? m_magazin : m_chamber);
+	return								true;
 }
 
 void CWeaponMagazined::OnMagazineEmpty()
@@ -353,41 +331,68 @@ void CWeaponMagazined::OnMagazineEmpty()
 	inherited::OnMagazineEmpty();
 }
 
-void CWeaponMagazined::PrepareCartridgeToShoot()
+CCartridge CWeaponMagazined::getCartridgeToShoot()
 {
-	if (m_magazine.empty())
-		LoadCartridgeFromMagazine();
-}
+	bool expand							= true;
+	if (auto actor = ParentIsActor())
+		if (actor->unlimited_ammo())
+			expand						= false;
 
-void CWeaponMagazined::LoadCartridgeFromMagazine(bool set_ammo_type_only)
-{
-	if (!m_pMagazine || m_pMagazine->Empty())
-		return;
-
-	CCartridge						cartridge;
-	m_pMagazine->GetCartridge		(cartridge, !set_ammo_type_only);
-	FindAmmoClass					(*cartridge.m_ammoSect, true);
-	if (!set_ammo_type_only)
+	CCartridge							res;
+	if (m_chamber.capacity())
 	{
-		cartridge.m_LocalAmmoType	= m_ammoType;
-		m_magazine.push_back		(cartridge);
+		res								= m_chamber.back();
+		if (expand)
+		{
+			m_chamber.pop_back			();
+			reload_chamber				();
+		}
 	}
+	else
+		get_cartridge_from_mag			(res, expand);
+	return								res;
 }
 
-void CWeaponMagazined::ConsumeShotCartridge()
+bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 {
-	inherited::ConsumeShotCartridge		();
-	if (m_magazine.empty())
-		LoadCartridgeFromMagazine		(!Chamber());
+	if (m_pMagazine && !m_pMagazine->Empty())
+		m_pMagazine->GetCartridge		(dest, expand);
+	else if (!m_magazin.empty())
+	{
+		dest							= m_magazin.back();
+		if (expand)
+			m_magazin.pop_back			();
+	}
+	else
+		return							false;
+	return								true;
+}
+
+void CWeaponMagazined::reload_chamber()
+{
+	CCartridge							cartridge;
+
+	if (!m_chamber.empty())
+	{
+		CInventoryOwner* IO				= Parent->Cast<CInventoryOwner*>();
+		cartridge						= m_chamber.back();
+		IO->GiveAmmo					(*cartridge.m_ammoSect, 1, cartridge.m_fCondition);
+		m_chamber.pop_back				();
+	}
+	
+	if (get_cartridge_from_mag(cartridge))
+	{
+		set_ammo_type					(cartridge.m_ammoSect);
+		m_chamber.push_back				(cartridge);
+	}
 }
 
 void CWeaponMagazined::loadChamber(CWeaponAmmo* cartridges)
 {
 	CCartridge							l_cartridge;
 	cartridges->Get						(l_cartridge);
-	l_cartridge.m_LocalAmmoType			= m_ammoType;
-	m_magazine.push_back				(l_cartridge);
-	++iAmmoElapsed;
+	set_ammo_type						(l_cartridge.m_ammoSect);
+	m_chamber.push_back					(l_cartridge);
 }
 
 void CWeaponMagazined::startReload(CWeaponAmmo* cartridges)
@@ -404,29 +409,16 @@ void CWeaponMagazined::ReloadMagazine()
 			m_pMagazineSlot->finishLoading();
 		else if (m_pCartridgeToReload)
 		{
-			FindAmmoClass				(*m_pCartridgeToReload->m_section_id, true);
-			CCartridge					l_cartridge;
-			while (iAmmoElapsed < iMagazineSize)
-			{
-				if (!m_pCartridgeToReload->Get(l_cartridge))
-					break;
-				l_cartridge.m_LocalAmmoType	= m_ammoType;
-				m_magazine.push_back	(l_cartridge);
-				++iAmmoElapsed;
-			}
+			set_ammo_type				(m_pCartridgeToReload->m_section_id);
+			SetAmmoElapsed				(min(GetAmmoMagSize(), (int)m_pCartridgeToReload->GetAmmoCount()));
 		}
 	}
 	else
 	{
 		m_BriefInfo_CalcFrame = 0;
 
-		//устранить осечку при перезарядке
-		if (IsMisfire())	bMisfire = false;
-
 		if (!m_bLockType)
-		{
 			m_pCurrentAmmo = NULL;
-		}
 
 		if (!m_pInventory) return;
 
@@ -468,47 +460,31 @@ void CWeaponMagazined::ReloadMagazine()
 		if (!m_pCurrentAmmo && !unlimited_ammo())
 			return;
 
-		VERIFY((u32)iAmmoElapsed == m_magazine.size());
-
-		if (m_DefaultCartridge.m_LocalAmmoType != m_ammoType)
-			m_DefaultCartridge.Load(m_ammoTypes[m_ammoType].c_str(), m_ammoType);
+		if (m_DefaultCartridge.m_ammoSect != m_ammoTypes[m_ammoType])
+			m_DefaultCartridge.Load(m_ammoTypes[m_ammoType].c_str());
 		CCartridge l_cartridge = m_DefaultCartridge;
-		while (iAmmoElapsed < iMagazineSize)
+		while (GetAmmoElapsed() < GetAmmoMagSize())
 		{
 			if (!unlimited_ammo())
-			{
-				if (!m_pCurrentAmmo->Get(l_cartridge)) break;
-			}
-			++iAmmoElapsed;
-			l_cartridge.m_LocalAmmoType = m_ammoType;
-			m_magazine.push_back(l_cartridge);
+				if (!m_pCurrentAmmo->Get(l_cartridge))
+					break;
+			if (m_chamber.size() < m_chamber.capacity())
+				m_chamber.push_back(l_cartridge);
+			else
+				m_magazin.push_back(l_cartridge);
 		}
-
-		VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
 		//выкинуть коробку патронов, если она пустая
 		if (m_pCurrentAmmo && !m_pCurrentAmmo->GetAmmoCount() && OnServer())
 			m_pCurrentAmmo->SetDropManual(TRUE);
 
-		if (iMagazineSize > iAmmoElapsed)
+		if (GetAmmoMagSize() > GetAmmoElapsed())
 		{
 			m_bLockType = true;
 			ReloadMagazine();
 			m_bLockType = false;
 		}
-
-		VERIFY((u32)iAmmoElapsed == m_magazine.size());
 	}
-}
-
-xr_vector<CCartridge>& CWeaponMagazined::Magazine()
-{
-	return m_magazine;
-}
-
-u32 CWeaponMagazined::MagazineElapsed()
-{
-	return Magazine().size();
 }
 
 void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
@@ -611,7 +587,7 @@ void CWeaponMagazined::UpdateSounds()
 
 void CWeaponMagazined::state_Fire(float dt)
 {
-	if (iAmmoElapsed > 0)
+	if (hasAmmoToShoot())
 	{
 		if (!H_Parent())
 		{
@@ -633,7 +609,7 @@ void CWeaponMagazined::state_Fire(float dt)
 			return;
 		}
 
-		while (iAmmoElapsed && fShotTimeCounter < 0 && (IsWorking() || m_bFireSingleShot) && (m_iQueueSize < 0 || m_iShotNum < m_iQueueSize))
+		while (hasAmmoToShoot() && fShotTimeCounter < 0 && (IsWorking() || m_bFireSingleShot) && (m_iQueueSize < 0 || m_iShotNum < m_iQueueSize))
 		{
 			if (CheckForMisfire())
 			{
@@ -646,9 +622,7 @@ void CWeaponMagazined::state_Fire(float dt)
 			//Alundaio: Use fModeShotTime instead of fOneShotTime if current fire mode is 2-shot burst
 			//Alundaio: Cycle down RPM after two shots; used for Abakan/AN-94
 			if (GetCurrentFireMode() == 2 || (bCycleDown == true && m_iShotNum < 1) )
-			{
 				fShotTimeCounter = fModeShotTime;
-			}
 			else
 				fShotTimeCounter = fOneShotTime;
 			//Alundaio: END
@@ -666,26 +640,13 @@ void CWeaponMagazined::state_Fire(float dt)
 
 	if (fShotTimeCounter < 0)
 	{
-		/*
-				if(bDebug && H_Parent() && (H_Parent()->ID() != Actor()->ID()))
-				{
-				Msg("stop shooting w=[%s] magsize=[%d] sshot=[%s] qsize=[%d] shotnum=[%d]",
-				IsWorking()?"true":"false",
-				m_magazine.size(),
-				m_bFireSingleShot?"true":"false",
-				m_iQueueSize,
-				m_iShotNum);
-				}
-				*/
-		if (iAmmoElapsed == 0)
+		if (!hasAmmoToShoot())
 			OnMagazineEmpty();
 
 		StopShooting();
 	}
 	else
-	{
 		fShotTimeCounter -= dt;
-	}
 }
 
 void CWeaponMagazined::state_Misfire(float dt)
@@ -812,7 +773,7 @@ void CWeaponMagazined::PlayReloadSound()
 		}
 		else
 		{
-			if (!iAmmoElapsed && !is_detaching() && m_sounds.FindSoundItem("sndReloadEmpty", false))
+			if (m_chamber.empty() && !is_detaching() && m_sounds.FindSoundItem("sndReloadEmpty", false))
 				PlaySound				("sndReloadEmpty", get_LastFP());
 			else
 				PlaySound				("sndReload", get_LastFP());
@@ -897,7 +858,7 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 
 void CWeaponMagazined::PlayAnimBore()
 {
-	if (iAmmoElapsed == 0 && HudAnimationExist("anm_bore_empty"))
+	if (m_chamber.empty() && HudAnimationExist("anm_bore_empty"))
 		PlayHUDMotion("anm_bore_empty", TRUE, this, GetState());
 	else
 		inherited::PlayAnimBore();
@@ -942,8 +903,8 @@ void CWeaponMagazined::PlayAnimReload()
 		bool detach						= is_detaching();
 		if (HudAnimationExist("anm_reload_empty"))
 		{
-			LPCSTR anm_name				= (iAmmoElapsed || detach) ? "anm_reload" : "anm_reload_empty";
-			float signal_point			= (iAmmoElapsed || detach) ? m_ReloadHalfPoint : m_ReloadEmptyHalfPoint;
+			LPCSTR anm_name				= (m_chamber.size() || detach) ? "anm_reload" : "anm_reload_empty";
+			float signal_point			= (m_chamber.size() || detach) ? m_ReloadHalfPoint : m_ReloadEmptyHalfPoint;
 			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
 				signal_point			*= .5f;
 			float stop_point			= (detach) ? signal_point : 0.f;
@@ -954,7 +915,7 @@ void CWeaponMagazined::PlayAnimReload()
 			float signal_point			= m_ReloadEmptyHalfPoint;
 			if (detach && m_pMagazineSlot && m_pMagazineSlot->hasLoadingBone())
 				signal_point			*= .5f;
-			float stop_point			= (detach) ? signal_point : ((iAmmoElapsed) ? m_ReloadPartialPoint : 0.f);
+			float stop_point			= (detach) ? signal_point : ((m_chamber.size()) ? m_ReloadPartialPoint : 0.f);
 			PlayHUDMotion				("anm_reload", TRUE, this, GetState(), signal_point, stop_point);
 		}
 	}
@@ -1258,12 +1219,12 @@ void CWeaponMagazined::FireBullet(const Fvector& pos,
 		}
 	}
 
-	inherited::FireBullet(pos, shot_dir, fire_disp, cartridge, parent_id, weapon_id, send_hit, GetAmmoElapsed());
+	inherited::FireBullet(pos, shot_dir, fire_disp, cartridge, parent_id, weapon_id, send_hit);
 }
 
 bool CWeaponMagazined::CanTrade() const
 {
-	if (iAmmoElapsed)
+	if (GetAmmoElapsed())
 		return false;
 
 	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
@@ -1323,6 +1284,11 @@ void CWeaponMagazined::OnHiddenItem()
 	if (m_pMagazineSlot && m_pMagazineSlot->isLoading())
 		m_pMagazineSlot->finishLoading(true);
 	inherited::OnHiddenItem				();
+}
+
+bool CWeaponMagazined::hasAmmoToShoot() const
+{
+	return (m_chamber.size() || (!m_chamber.capacity() && GetAmmoElapsed()));
 }
 
 bool CWeaponMagazined::is_detaching() const
@@ -1423,27 +1389,9 @@ float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 
 void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
 {
-	if (attach)
-	{
-		m_pMagazine						= mag;
-		if (Chamber() < m_magazine.size())
-		{ 
-			while (Chamber() < m_magazine.size())
-				m_magazine.pop_back		();
-		}
-		else
-			iAmmoElapsed				+= m_pMagazine->Amount();
-
-		if (m_magazine.size())
-			FindAmmoClass				(*m_magazine.back().m_ammoSect, true);
-		else if (m_pMagazine)
-			LoadCartridgeFromMagazine	(!Chamber());
-	}
-	else
-	{ 
-		iAmmoElapsed					-= m_pMagazine->Amount();
-		m_pMagazine						= NULL;
-	}
+	m_pMagazine							= (attach) ? mag : NULL;
+	if (attach && m_chamber.size() < m_chamber.capacity())
+		reload_chamber					();
 }
 
 void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
@@ -1598,7 +1546,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		}
 
 		case eWeight:
-			return						inherited::Aboba(type, data, param) + GetMagazineWeight(m_magazine);
+			return						inherited::Aboba(type, data, param) + GetMagazineWeight();
 
 		case eTransferAddon:
 			if (auto mag = Cast<CMagazine*>((CAddon*)data))
@@ -1647,6 +1595,27 @@ void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)
 bool CWeaponMagazined::IsRotatingToZoom C$()
 {
 	return m_hud->IsRotatingToZoom();
+}
+
+float CWeaponMagazined::GetMagazineWeight() const
+{
+	float res							= 0.f;
+	LPCSTR last_type					= NULL;
+	float last_ammo_weight				= 0.f;
+	for (auto& c : m_magazin)
+	{
+		if (last_type != c.m_ammoSect.c_str())
+		{
+			last_type					= c.m_ammoSect.c_str();
+			last_ammo_weight			= c.Weight();
+		}
+		res								+= last_ammo_weight;
+	}
+
+	for (auto& c : m_chamber)
+		res								+= c.Weight();
+
+	return								res;
 }
 
 void CWeaponMagazined::InitRotateTime()
@@ -1724,7 +1693,7 @@ u16 CWeaponMagazined::Zeroing C$()
 	return								(active_scope) ? active_scope->Zeroing() : m_IronSightsZeroing.current;
 }
 
-Fvector CWeaponMagazined::getFullFireDirection()
+Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 {
 	auto hi								= HudItemData();
 	if (!hi)
@@ -1733,9 +1702,8 @@ Fvector CWeaponMagazined::getFullFireDirection()
 	float distance						= Zeroing();
 	Fvector transference				= m_hud->getMuzzleSightOffset().mad(vForward, distance);
 	hi->m_transform.transform_dir		(transference);
-	CCartridge cartridge				= m_magazine.back();
-	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(cartridge.param_s.fAirResistZeroingCorrection, distance);
-	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * cartridge.param_s.kBulletSpeed * air_resistance_correction;
+	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);
+	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * c.param_s.kBulletSpeed * air_resistance_correction;
 
 	Fvector								result[2];
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);

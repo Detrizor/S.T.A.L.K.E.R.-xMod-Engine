@@ -54,8 +54,7 @@ float CWeapon::GetWeaponDeterioration	()
 
 void CWeapon::FireTrace		()
 {
-	PrepareCartridgeToShoot		();
-	CCartridge& l_cartridge		= m_magazine.back();
+	CCartridge l_cartridge = getCartridgeToShoot();
 //	Msg("ammo - %s", l_cartridge.m_ammoSect.c_str());
 	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
 	//-------------------------------------------------------------	
@@ -71,19 +70,16 @@ void CWeapon::FireTrace		()
 	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
 
 	Fvector p = get_LastFP();
-	Fvector d = getFullFireDirection();
+	Fvector d = getFullFireDirection(l_cartridge);
 	bool SendHit = SendHitAllowed(H_Parent());
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
 	for (int i = 0; i < l_cartridge.param_s.buckShot; ++i)
-		FireBullet(p, d, GetFireDispersion(true), l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
+		FireBullet(p, d, GetFireDispersion(&l_cartridge), l_cartridge, H_Parent()->ID(), ID(), SendHit);
 
 	StartShotParticles		();
 	
 	if(m_bLightShotEnabled) 
 		Light_Start			();
-
-	// Ammo
-	ConsumeShotCartridge	();
 
 	appendRecoil			(m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot);
 }

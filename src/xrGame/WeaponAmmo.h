@@ -28,7 +28,7 @@ class CCartridge : public IAnticheatDumpable
 {
 public:
 	CCartridge();
-	void Load(LPCSTR section, u8 LocalAmmoType, float condition = 1.f);
+	void Load(LPCSTR section, float condition = 1.f);
 	float Weight() const;
 	float Volume() const;
 
@@ -42,7 +42,6 @@ public:
 	};
 	SCartridgeParam param_s;
 
-	u8		m_LocalAmmoType;
 	u16		bullet_material_idx;
 	Flags8	m_flags;
 

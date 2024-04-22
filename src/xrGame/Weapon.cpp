@@ -47,13 +47,9 @@ CWeapon::CWeapon()
 	m_iAmmoCurrentTotal = 0;
 	m_BriefInfo_CalcFrame = 0;
 
-	iAmmoElapsed = 0;
-	iMagazineSize = -1;
 	m_ammoType = 0;
 
 	eHandDependence = hdNone;
-
-	m_fCurrentCartirdgeDisp = 1.f;
 
 	m_strap_bone0 = 0;
 	m_strap_bone1 = 0;
@@ -218,8 +214,9 @@ void CWeapon::Load(LPCSTR section)
 			m_ammoTypes.push_back(_ammoItem);
 		}
 	}
-
-	iMagazineSize = pSettings->r_s32(section, "ammo_mag_size");
+	
+	m_chamber.reserve(pSettings->r_s32(section, "chamber"));
+	m_magazin.reserve(pSettings->r_s32(section, "ammo_mag_size"));
 
 	////////////////////////////////////////////////////
 	// дисперсия стрельбы
@@ -318,7 +315,6 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	CSE_Abstract					*e = (CSE_Abstract*) (DC);
 	CSE_ALifeItemWeapon			    *E = smart_cast<CSE_ALifeItemWeapon*>(e);
 
-	iAmmoElapsed = E->a_elapsed;
 	m_ammoType = E->ammo_type;
 	SetState(E->wpn_state);
 	SetNextState(E->wpn_state);
@@ -326,12 +322,9 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	if (!m_ammoTypes[m_ammoType])
 		m_ammoType = 0;
 
-	m_DefaultCartridge.Load			(*m_ammoTypes[m_ammoType], m_ammoType);
-	if (iAmmoElapsed)
-	{
-		m_fCurrentCartirdgeDisp		= m_DefaultCartridge.param_s.kDisp;
-		SetAmmoElapsed				(iAmmoElapsed);
-	}
+	m_DefaultCartridge.Load			(*m_ammoTypes[m_ammoType]);
+	if (E->a_elapsed)
+		SetAmmoElapsed				(E->a_elapsed);
 
 	m_dwWeaponIndependencyTime = 0;
 
@@ -340,30 +333,18 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	return bResult;
 }
 
-u8 CWeapon::FindAmmoClass(LPCSTR section, bool set)
+int CWeapon::get_ammo_type(shared_str CR$ section)
 {
 	for (u8 i = 0, i_e = u8(m_ammoTypes.size()); i < i_e; ++i)
-	{
 		if (m_ammoTypes[i] == section)
-		{
-			if (set)
-				m_ammoType = i;
-			return i + 1;
-		}
-	}
-	return 0;
+			return						i;
+	return								-1;
 }
 
-void CWeapon::ConsumeShotCartridge()
+void CWeapon::set_ammo_type(shared_str CR$ section)
 {
-	CActor* pActor = smart_cast<CActor*>(H_Parent());
-	if (pActor && pActor->unlimited_ammo())
-		return;
-
-	m_magazine.pop_back();
-	--iAmmoElapsed;
-	if (m_magazine.size())
-		FindAmmoClass(*m_magazine.back().m_ammoSect, true);
+	m_ammoType						= get_ammo_type(section);
+	R_ASSERT						(m_ammoType != -1);
 }
 
 void CWeapon::net_Destroy()
@@ -375,7 +356,8 @@ void CWeapon::net_Destroy()
 	StopLight();
 	Light_Destroy();
 
-	while (m_magazine.size()) m_magazine.pop_back();
+	while (m_chamber.size()) m_chamber.pop_back();
+	while (m_magazin.size()) m_magazin.pop_back();
 }
 
 BOOL CWeapon::IsUpdating()
@@ -392,7 +374,7 @@ void CWeapon::net_Export(NET_Packet& P)
 
 	u8 need_upd = IsUpdating() ? 1 : 0;
 	P.w_u8(need_upd);
-	P.w_u16(u16(iAmmoElapsed));
+	P.w_u16(u16(GetAmmoElapsed()));
 	P.w_u8(0);		//--xd
 	P.w_u8(m_ammoType);
 	P.w_u8((u8) GetState());
@@ -446,14 +428,12 @@ void CWeapon::net_Import(NET_Packet& P)
 		}
 	}break;
 	}
-
-	VERIFY((u32) iAmmoElapsed == m_magazine.size());
 }
 
 void CWeapon::save(NET_Packet &output_packet)
 {
 	inherited::save(output_packet);
-	save_data(iAmmoElapsed, output_packet);
+	save_data(GetAmmoElapsed(), output_packet);
 	save_data(m_ammoType, output_packet);		//--xd
 	save_data(m_ammoType, output_packet);
 	save_data(m_ammoType, output_packet);
@@ -464,7 +444,7 @@ void CWeapon::save(NET_Packet &output_packet)
 void CWeapon::load(IReader &input_packet)
 {
 	inherited::load(input_packet);
-	load_data(iAmmoElapsed, input_packet);
+	load_data(GetAmmoElapsed(), input_packet);
 	load_data(m_ammoType, input_packet);
 	load_data(m_ammoType, input_packet);
 	load_data(m_ammoType, input_packet);
@@ -559,7 +539,7 @@ void CWeapon::SendHiddenItem()
 		P.w_u8(u8(eHiding));
 		P.w_u8(u8(m_sub_state));
 		P.w_u8(m_ammoType);
-		P.w_u8(u8(iAmmoElapsed & 0xff));
+		P.w_u8(u8(GetAmmoElapsed() & 0xff));
 		P.w_u8(m_set_next_ammoType_on_reload);
 		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
 		SetPending(TRUE);
@@ -698,11 +678,9 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 
 int CWeapon::GetSuitableAmmoTotal(bool use_item_to_spawn) const
 {
-	int ae_count = iAmmoElapsed;
+	int ae_count = GetAmmoElapsed();
 	if (!m_pInventory)
-	{
 		return ae_count;
-	}
 
 	//чтоб не делать лишних пересчетов
 	if (m_pInventory->ModifyFrame() <= m_BriefInfo_CalcFrame)
@@ -838,15 +816,10 @@ void CWeapon::SwitchState(u32 S)
 		P.w_u8(u8(S));
 		P.w_u8(u8(m_sub_state));
 		P.w_u8(m_ammoType);
-		P.w_u8(u8(iAmmoElapsed & 0xff));
+		P.w_u8(u8(GetAmmoElapsed() & 0xff));
 		P.w_u8(m_set_next_ammoType_on_reload);
 		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
 	}
-}
-
-void CWeapon::OnMagazineEmpty()
-{
-	VERIFY((u32) iAmmoElapsed == m_magazine.size());
 }
 
 void CWeapon::reinit()
@@ -1010,25 +983,18 @@ bool CWeapon::ready_to_kill() const
 
 void CWeapon::SetAmmoElapsed(int ammo_count)
 {
-	iAmmoElapsed = ammo_count;
+	CCartridge							l_cartridge;
+	l_cartridge.Load					(m_ammoTypes[m_ammoType].c_str());
 
-	u32 uAmmo = u32(iAmmoElapsed);
+	while (m_chamber.size() > ammo_count)
+		m_chamber.pop_back				();
 
-	if (uAmmo != m_magazine.size())
-	{
-		if (uAmmo > m_magazine.size())
-		{
-			CCartridge			l_cartridge;
-			l_cartridge.Load(m_ammoTypes[m_ammoType].c_str(), m_ammoType);
-			while (uAmmo > m_magazine.size())
-				m_magazine.push_back(l_cartridge);
-		}
-		else
-		{
-			while (uAmmo < m_magazine.size())
-				m_magazine.pop_back();
-		}
-	}
+	while (m_chamber.size() < ammo_count && m_chamber.size() < m_chamber.capacity())
+		m_chamber.push_back				(l_cartridge);
+	ammo_count							-= m_chamber.size();
+	
+	while (m_magazin.size() < ammo_count)
+		m_magazin.push_back				(l_cartridge);
 }
 
 u32	CWeapon::ef_main_weapon_type() const
@@ -1051,33 +1017,8 @@ bool CWeapon::IsNecessaryItem(const shared_str& item_sect)
 bool CWeapon::unlimited_ammo()
 {
 	if (m_pInventory)
-	{
 		return inventory_owner().unlimited_ammo() && m_DefaultCartridge.m_flags.test(CCartridge::cfCanBeUnlimited);
-	}
-	else
-		return false;
-
-	return ((GameID() == eGameIDDeathmatch) &&
-		m_DefaultCartridge.m_flags.test(CCartridge::cfCanBeUnlimited));
-}
-
-float CWeapon::GetMagazineWeight(const decltype(CWeapon::m_magazine)& mag) const
-{
-	float res					= 0.f;
-	const char* last_type		= nullptr;
-	float last_ammo_weight		= 0.f;
-	for (auto& c : mag)
-	{
-		// Usually ammos in mag have same type, use this fact to improve performance
-		if (last_type != c.m_ammoSect.c_str())
-		{
-			last_type			= c.m_ammoSect.c_str();
-			last_ammo_weight	= c.Weight();
-		}
-		res						+= last_ammo_weight;
-	}
-
-	return res;
+	return false;
 }
 
 bool CWeapon::show_crosshair()
@@ -1105,15 +1046,7 @@ BOOL CWeapon::ParentMayHaveAimBullet()
 
 CActor* CWeapon::ParentIsActor()
 {
-	CObject* O = H_Parent();
-	if (!O)
-		return NULL;
-
-	CEntityAlive* EA = smart_cast<CEntityAlive*>(O);
-	if (!EA)
-		return NULL;
-
-	return EA->cast_actor();
+	return Parent->Cast<CActor*>();
 }
 
 extern u32 hud_adj_mode;
@@ -1150,7 +1083,7 @@ void CWeapon::OnStateSwitch(u32 S, u32 oldState)
 
 	if (GetState() == eReload)
 	{
-		if (iAmmoElapsed == 0) //Swartz: re-written to use reload empty DOF
+		if (GetAmmoElapsed() == 0) //Swartz: re-written to use reload empty DOF
 		{
 			if (H_Parent() == Level().CurrentEntity() && !fsimilar(m_zoom_params.m_ReloadEmptyDof.w, -1.0f))
 			{

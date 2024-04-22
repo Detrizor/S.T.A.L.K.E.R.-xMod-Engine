@@ -972,7 +972,7 @@ void CActor::UpdateCL()
 	{
 		if (pWeapon->IsZoomed())
 		{
-			float full_fire_disp = pWeapon->GetFireDispersion(true);
+			float full_fire_disp = pWeapon->GetFireDispersion();
 
 			CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom));
 			if (S)
@@ -1001,7 +1001,7 @@ void CActor::UpdateCL()
 
 		if (current_entity)
 		{
-			m_fdisp_controller.SetDispertion(pWeapon->GetFireDispersion(false, true));
+			m_fdisp_controller.SetDispertion(pWeapon->GetFireDispersion(nullptr, true));		//--xd actually it's wrong, need to use cartridge coeff
 
 			//--#SM+#-- +SecondVP+ Чтобы перекрестие не скакало из за смены FOV (Sin!) [fix for crosshair shaking while SecondVP]
 			if (!Device.m_SecondViewport.IsSVPActive())

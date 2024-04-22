@@ -18,9 +18,9 @@ float CWeapon::GetConditionDispersionFactor() const
 	return (1.f + fireDispersionConditionFactor * (1.f - GetConditionToWork()));
 }
 
-float CWeapon::GetFireDispersion(bool with_cartridge, bool for_crosshair) 
+float CWeapon::GetFireDispersion(CCartridge* cartridge, bool for_crosshair)
 {
-	return GetFireDispersion((with_cartridge && !m_magazine.empty()) ? m_magazine.back().param_s.kDisp : 1.f, for_crosshair);
+	return GetFireDispersion((cartridge) ? cartridge->param_s.kDisp : 1.f, for_crosshair);
 }
 
 float CWeapon::GetBaseDispersion(float cartridge_k)

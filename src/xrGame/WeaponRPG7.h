@@ -27,7 +27,6 @@ public:
 	virtual void SwitchState	(u32 S);
 
 			void UpdateMissileVisibility	();
-	virtual bool Discharge					(CCartridge& destination);
 
 	virtual void net_Import			( NET_Packet& P);				// import from server
 protected:
@@ -37,6 +36,9 @@ protected:
 	shared_str	m_sRocketSection;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+	
+private:
+	bool								Discharge							O$	(CCartridge& destination);
 };
 add_to_type_list(CWeaponRPG7)
 #undef script_type_list

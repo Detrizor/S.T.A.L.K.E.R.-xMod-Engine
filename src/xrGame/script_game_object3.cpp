@@ -1290,11 +1290,9 @@ u32 CScriptGameObject::GetState()
 
 bool CScriptGameObject::WeaponInGrenadeMode()
 {
-	CWeaponMagazinedWGrenade* wpn = smart_cast<CWeaponMagazinedWGrenade*>(&object());
-	if (!wpn)
-		return false;
-	
-	return wpn->m_bGrenadeMode;
+	if (auto wpn = smart_cast<CWeaponMagazinedWGrenade*>(&object()))
+		return wpn->isGrenadeMode();
+	return false;
 }
 
 void CScriptGameObject::SetBoneVisible(LPCSTR bone_name, bool bVisibility, bool bRecursive)

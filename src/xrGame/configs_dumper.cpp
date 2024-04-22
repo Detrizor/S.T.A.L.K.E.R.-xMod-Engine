@@ -66,85 +66,6 @@ struct ExistDumpPredicate
 	}
 }; //struct ExistDumpPredicate
 
-typedef	buffer_vector<IAnticheatDumpable const *>	active_objects_t;
-static active_objects_t::size_type get_active_objects(active_objects_t & dest)
-{
-	CActorMP const* tmp_actor			= smart_cast<CActorMP const*>(
-		Level().CurrentControlEntity());
-
-	if (!tmp_actor)
-		return 0;
-
-	dest.push_back						(tmp_actor);
-
-	for (u16 i = KNIFE_SLOT; i <= GRENADE_SLOT; ++i)
-	{
-		VERIFY(dest.capacity() != dest.size());
-		if (dest.capacity() == dest.size())
-			return dest.size();
-
-		CInventoryItem const * tmp_inv_item	= tmp_actor->inventory().ItemFromSlot(i);
-		if (!tmp_inv_item)
-			continue;
-
-		CWeapon const * tmp_weapon			= smart_cast<CWeapon const*>(tmp_inv_item);
-		if (tmp_weapon)
-		{
-			dest.push_back(tmp_weapon);
-			if (tmp_weapon->m_magazine.size())
-			{
-				VERIFY(dest.capacity() != dest.size());
-				if (dest.capacity() == dest.size())
-					return dest.size();
-				
-				IAnticheatDumpable const * tmp_cartridge = &tmp_weapon->m_magazine[0];
-				if (!tmp_cartridge)
-					continue;
-				
-				ExistDumpPredicate	tmp_predicate;
-				tmp_predicate.section_name = tmp_cartridge->GetAnticheatSectionName();
-				if (std::find_if(dest.begin(), dest.end(), tmp_predicate) == dest.end())
-				{
-					dest.push_back(tmp_cartridge);
-				};
-			}
-		}
-	}
-	return dest.size();
-}
-
-static active_objects_t::size_type const max_active_objects = 16;
-
-void configs_dumper::write_configs()
-{
-	long i							= 0;
-	m_dump_result.clear				();
-	m_ltx_configs.start_dump		();
-	if (m_yield_cb)
-	{
-		while (m_ltx_configs.dump_one(m_dump_result))
-		{
-			m_yield_cb(i);
-			++i;
-		}
-	} else
-	{
-		while (m_ltx_configs.dump_one(m_dump_result)) {};
-	}
-	CInifile			active_params_dumper(NULL, FALSE, FALSE, FALSE);
-	active_objects_t	active_objects(
-		_alloca(sizeof(active_objects_t::value_type) * max_active_objects),
-		max_active_objects);
-	active_objects_t::size_type	aobjs_count	= get_active_objects(active_objects);
-	string16 tmp_strbuff;
-	for (active_objects_t::size_type i = 0; i < aobjs_count; ++i)
-	{
-		xr_sprintf				(tmp_strbuff, "%d", i + 1);
-		m_active_params.dump	(active_objects[i], tmp_strbuff, active_params_dumper);
-	}
-	active_params_dumper.save_as	(m_dump_result);
-}
-
 char const * cd_info_secion			= "config_dump_info";
 char const * cd_player_name_key		= "player_name";
 char const * cd_player_digest_key	= "player_digest";
@@ -264,7 +185,6 @@ void configs_dumper::dumper_thread(void* my_ptr)
 		if (!this_ptr->is_active())
 			break;				// error
 		this_ptr->timer_begin("writing configs");
-		this_ptr->write_configs();
 		this_ptr->timer_end();
 		this_ptr->timer_begin("signing configs");
 		this_ptr->sign_configs();

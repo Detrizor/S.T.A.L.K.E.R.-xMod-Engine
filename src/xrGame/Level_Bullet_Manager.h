@@ -95,8 +95,7 @@ public:
 										const	CCartridge& cartridge,
 										bool	SendHit,
 										float	power,
-										float	impulse,
-										int iShotNum = 0);
+										float	impulse);
 };
 
 class CLevel;
@@ -221,7 +220,7 @@ public:
 												u16	sender_id, u16 sendersweapon_id,
 												ALife::EHitType e_hit_type, float maximum_distance, 
 												const CCartridge& cartridge, bool SendHit,
-												float power, float impulse, int iShotNum = 0);
+												float power, float impulse);
 
 	void					CommitEvents		();	// @ the start of frame
 	void					CommitRenderSet		();	// @ the end of frame

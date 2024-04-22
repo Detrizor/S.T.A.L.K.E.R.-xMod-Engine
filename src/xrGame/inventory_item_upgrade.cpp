@@ -310,15 +310,6 @@ void CInventoryItem::pre_install_upgrade()
 
 	Actor()->Discharge					(this, true);
 
-	CWeaponMagazinedWGrenade* wg		= smart_cast<CWeaponMagazinedWGrenade*>(this);
-	if (wg)
-	{
-		if (!wg->m_bGrenadeMode)
-			wg->PerformSwitchGL			();
-		Actor()->Discharge				(this, true);
-		wg->PerformSwitchGL				();
-	}
-
 	CAddonOwner* ao						= cast<CAddonOwner*>();
 	if (ao)
 	{

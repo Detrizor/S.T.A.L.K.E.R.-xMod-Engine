@@ -26,7 +26,6 @@ public:
 	virtual void	save				(NET_Packet &output_packet);
 	virtual void	load				(IReader &input_packet);
 
-	virtual void	FireEnd					();
 			void	LaunchGrenade			();
 	
 	virtual void	OnStateSwitch	(u32 S, u32 oldState);
@@ -54,35 +53,17 @@ public:
 private:
 	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
 	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
-	virtual	bool	install_upgrade_ammo_class	( LPCSTR section, bool test );
-	
-			int		GetAmmoCount2				( u8 ammo2_type ) const;
-
-public:
-	//дополнительные параметры патронов 
-	//для подствольника
-//-	CWeaponAmmo*			m_pAmmo2;
-	xr_vector<shared_str>	m_ammoTypes2;
-	u8						m_ammoType2;
-
-	int						iMagazineSize2;
-	xr_vector<CCartridge>	m_magazine2;
-
-	bool					m_bGrenadeMode;
-
-	CCartridge				m_DefaultCartridge2;
-
-	virtual void UpdateGrenadeVisibility(bool visibility);
-
-	virtual	xr_vector<CCartridge>&	Magazine();
-			u8						GetGrenade();
-			void					SetGrenade(u8 cnt);
 
 private:
+	xr_vector<shared_str>				m_grenade_types							= {};
+	u8									m_grenade_type							= 0;
+	bool								m_bGrenadeMode							= false;
+
 	CGrenadeLauncher CP$				m_pLauncher								= NULL;
 	Fvector								m_muzzle_position_gl					= vZero;
 	shared_str							m_flame_particles_gl_name				= 0;
 	CParticlesObject*					m_flame_particles_gl					= NULL;
+	CCartridge*							m_grenade								= NULL;
 
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
@@ -93,11 +74,16 @@ private:
 
 	bool								AltHandsAttach						CO$	();
 
-	int									Chamber								CO$	();
 	bool								HasAltAim							CO$	();
 
 	void								SetADS								O$	(int mode);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								UpdateCL							O$	();
 	void								process_addon						O$	(CAddon* addon, bool attach);
+
+public:
+	void								SetGrenade								(u8 cnt);
+
+	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
+	u8									GetGrenade							C$	();
 };

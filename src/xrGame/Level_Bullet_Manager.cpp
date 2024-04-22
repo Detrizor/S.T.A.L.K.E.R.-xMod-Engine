@@ -51,8 +51,7 @@ void SBullet::Init(const Fvector& position,
 				   const CCartridge& cartridge,
 				   bool SendHit,
 				   float power,
-				   float impulse,
-				   int iShotNum)
+				   float impulse)
 {
 	flags._storage			= 0;
 	pos 					= position;
@@ -102,7 +101,6 @@ void SBullet::Init(const Fvector& position,
 	targetID				= u16(-1);
 	density					= 1.f;
 }
-
 
 CBulletManager::CBulletManager()
 #if 0//def PROFILE_CRITICAL_SECTIONS
@@ -223,8 +221,7 @@ void CBulletManager::AddBullet(const Fvector& position,
 							   const CCartridge& cartridge,
 							   bool SendHit,
 							   float power,
-							   float impulse,
-							   int iShotNum)
+							   float impulse)
 {
 #ifdef DEBUG
 	VERIFY						( m_thread_id == GetCurrentThreadId() );
@@ -232,7 +229,7 @@ void CBulletManager::AddBullet(const Fvector& position,
 	VERIFY						(u16(-1)!=cartridge.bullet_material_idx);
 	m_Bullets.push_back			(SBullet());
 	SBullet& bullet				= m_Bullets.back();
-	bullet.Init					(position, direction, starting_speed, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit, power, impulse, iShotNum);
+	bullet.Init					(position, direction, starting_speed, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit, power, impulse);
 }
 
 void CBulletManager::UpdateWorkload()

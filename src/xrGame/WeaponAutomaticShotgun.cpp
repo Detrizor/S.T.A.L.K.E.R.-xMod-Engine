@@ -37,7 +37,6 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 
 	if (m_bTriStateReload && GetState() == eReload && cmd == kWPN_FIRE && flags&CMD_START && m_sub_state == eSubstateReloadInProcess) //остановить перезагрузку
 	{
-		AddCartridge				();
 		m_sub_state					= eSubstateReloadEnd;
 		return						true;
 	}
@@ -67,30 +66,16 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	}
 }
 
-void CWeaponAutomaticShotgun::Reload() 
-{
-	if (ParentIsActor() || !m_bTriStateReload)
-		inherited::Reload			();
-	else
-		TriStateReload				();
-}
-
 void CWeaponAutomaticShotgun::StartReload()
 {
 	if (m_bTriStateReload)
-		TriStateReload				();
-	else
-		inherited::StartReload();
-}
-
-void CWeaponAutomaticShotgun::TriStateReload()
-{
-	if (iAmmoElapsed < iMagazineSize && HaveCartridgeInInventory())
 	{
-		CWeapon::Reload				();
-		m_sub_state					= eSubstateReloadBegin;
-		SwitchState					(eReload);
+		CWeapon::Reload					();
+		m_sub_state						= eSubstateReloadBegin;
+		SwitchState						(eReload);
 	}
+	else
+		inherited::StartReload			();
 }
 
 void CWeaponAutomaticShotgun::OnStateSwitch	(u32 S, u32 oldState)
@@ -103,7 +88,7 @@ void CWeaponAutomaticShotgun::OnStateSwitch	(u32 S, u32 oldState)
 
 	CWeapon::OnStateSwitch			(S, oldState);
 
-	if (m_magazine.size() == (u32)iMagazineSize || !HaveCartridgeInInventory())
+	if (GetAmmoElapsed() == GetAmmoMagSize() || !HaveCartridgeInInventory())
 	{
 		switch2_EndReload			();
 		m_sub_state					= eSubstateReloadEnd;
@@ -129,38 +114,22 @@ void CWeaponAutomaticShotgun::OnStateSwitch	(u32 S, u32 oldState)
 void CWeaponAutomaticShotgun::switch2_StartReload()
 {
 	PlaySound						("sndOpen", get_LastFP());
-	PlayAnimOpenWeapon				();
+	PlayHUDMotion					("anm_open", FALSE, this, GetState());
 	SetPending						(TRUE);
 }
 
 void CWeaponAutomaticShotgun::switch2_AddCartgidge()
 {
 	PlaySound						("sndAddCartridge", get_LastFP());
-	PlayAnimAddOneCartridgeWeapon	();
+	PlayHUDMotion					("anm_add_cartridge", FALSE, this, GetState());
 	SetPending						(TRUE);
 }
 
 void CWeaponAutomaticShotgun::switch2_EndReload()
 {
-	SetPending						(FALSE);
 	PlaySound						("sndClose", get_LastFP());
-	PlayAnimCloseWeapon				();
-}
-
-void CWeaponAutomaticShotgun::PlayAnimOpenWeapon()
-{
-	VERIFY							(GetState() == eReload);
-	PlayHUDMotion					("anm_open", FALSE, this, GetState());
-}
-void CWeaponAutomaticShotgun::PlayAnimAddOneCartridgeWeapon()
-{
-	VERIFY							(GetState() == eReload);
-	PlayHUDMotion					("anm_add_cartridge", FALSE, this, GetState());
-}
-void CWeaponAutomaticShotgun::PlayAnimCloseWeapon()
-{
-	VERIFY							(GetState() == eReload);
 	PlayHUDMotion					("anm_close", FALSE, this, GetState());
+	SetPending						(FALSE);
 }
 
 bool CWeaponAutomaticShotgun::HaveCartridgeInInventory(u8 cnt)
@@ -205,13 +174,10 @@ bool CWeaponAutomaticShotgun::AddCartridge()
 			return					false;
 
 		cartridges					= m_pCartridgeToReload;
-		FindAmmoClass				(*cartridges->m_section_id, true);
+		set_ammo_type				(cartridges->m_section_id);
 	}
 	else
 	{
-		if (IsMisfire())
-			bMisfire				= false;
-
 		if (m_set_next_ammoType_on_reload != undefined_ammo_type)
 		{
 			m_ammoType				= m_set_next_ammoType_on_reload;
@@ -220,21 +186,20 @@ bool CWeaponAutomaticShotgun::AddCartridge()
 		cartridges					= smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
 	}
 
-	if (m_DefaultCartridge.m_LocalAmmoType != m_ammoType)
-		m_DefaultCartridge.Load		(m_ammoTypes[m_ammoType].c_str(), m_ammoType);
+	if (get_ammo_type(m_DefaultCartridge.m_ammoSect) != m_ammoType)
+		m_DefaultCartridge.Load		(m_ammoTypes[m_ammoType].c_str());
 
 	CCartridge l_cartridge			= m_DefaultCartridge;
 	if (unlimited_ammo() || (cartridges && cartridges->Get(l_cartridge)))
 	{
-		++iAmmoElapsed;
-		l_cartridge.m_LocalAmmoType	= m_ammoType;
 		l_cartridge.m_fCondition	= cartridges->GetCondition();
-		m_magazine.push_back		(l_cartridge);
+		if (m_chamber.size() < m_chamber.capacity())
+			m_chamber.push_back		(l_cartridge);
+		else
+			m_magazin.push_back		(l_cartridge);
 	}
 	else
 		return						false;
-
-	VERIFY							((u32)iAmmoElapsed == m_magazine.size());
 
 	return							true;
 }
@@ -242,12 +207,9 @@ bool CWeaponAutomaticShotgun::AddCartridge()
 void CWeaponAutomaticShotgun::net_Export(NET_Packet& P)
 {
 	inherited::net_Export			(P);	
-	P.w_u8							(u8(m_magazine.size()));	
-	for (u32 i = 0; i < m_magazine.size(); i++)
-	{
-		CCartridge& l_cartridge		= *(m_magazine.begin() + i);
-		P.w_u8						(l_cartridge.m_LocalAmmoType);
-	}
+	P.w_u8							(u8(m_magazin.size()));	
+	for (u32 i = 0; i < m_magazin.size(); i++)
+		P.w_u8						(get_ammo_type(m_magazin[i].m_ammoSect));
 }
 
 void CWeaponAutomaticShotgun::net_Import(NET_Packet& P)
@@ -257,11 +219,11 @@ void CWeaponAutomaticShotgun::net_Import(NET_Packet& P)
 	for (u32 i = 0; i < AmmoCount; i++)
 	{
 		u8 LocalAmmoType = P.r_u8	();
-		if (i >= m_magazine.size())
+		if (i >= m_magazin.size())
 			continue;
-		CCartridge& l_cartridge		= *(m_magazine.begin() + i);
-		if (LocalAmmoType == l_cartridge.m_LocalAmmoType)
+		CCartridge& l_cartridge		= m_magazin[i];
+		if (m_ammoTypes[LocalAmmoType] == l_cartridge.m_ammoSect)
 			continue;
-		l_cartridge.Load			(m_ammoTypes[LocalAmmoType].c_str(), LocalAmmoType);
+		l_cartridge.Load			(m_ammoTypes[LocalAmmoType].c_str());
 	}
 }

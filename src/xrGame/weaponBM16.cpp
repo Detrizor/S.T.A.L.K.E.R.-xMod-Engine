@@ -14,11 +14,11 @@ void CWeaponBM16::Load	(LPCSTR section)
 bool CWeaponBM16::SingleCartridgeReload()
 {
 	if (ParentIsActor())
-		return ((iAmmoElapsed == 1) || (m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() == 1));
+		return ((m_chamber.size() == 1) || (m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() == 1));
 	else
 	{
 		bool b_both = HaveCartridgeInInventory(2);
-		return ((iAmmoElapsed == 1 || !b_both) && (m_set_next_ammoType_on_reload == undefined_ammo_type || m_ammoType == m_set_next_ammoType_on_reload));
+		return ((m_chamber.size() == 1 || !b_both) && (m_set_next_ammoType_on_reload == undefined_ammo_type || m_ammoType == m_set_next_ammoType_on_reload));
 	}
 }
 
@@ -29,7 +29,7 @@ void CWeaponBM16::PlayReloadSound()
 
 void CWeaponBM16::PlayAnimShoot()
 {
-	switch (m_magazine.size())
+	switch (m_chamber.size())
 	{
 	case 1:
 		PlayHUDMotion("anm_shot_1", FALSE, this, GetState());
@@ -42,7 +42,7 @@ void CWeaponBM16::PlayAnimShoot()
 
 void CWeaponBM16::PlayAnimShow()
 {
-	switch (m_magazine.size())
+	switch (m_chamber.size())
 	{
 	case 0:
 		PlayHUDMotion("anm_show_0", TRUE, this, GetState());
@@ -58,7 +58,7 @@ void CWeaponBM16::PlayAnimShow()
 
 void CWeaponBM16::PlayAnimHide()
 {
-	switch (m_magazine.size())
+	switch (m_chamber.size())
 	{
 	case 0:
 		PlayHUDMotion("anm_hide_0", TRUE, this, GetState());
@@ -74,7 +74,7 @@ void CWeaponBM16::PlayAnimHide()
 
 void CWeaponBM16::PlayAnimBore()
 {
-	switch (m_magazine.size())
+	switch (m_chamber.size())
 	{
 	case 0:
 		PlayHUDMotion("anm_bore_0", TRUE, this, GetState());
@@ -96,7 +96,7 @@ void CWeaponBM16::PlayAnimReload()
 
 void  CWeaponBM16::PlayAnimIdleMoving()
 {
-	switch( m_magazine.size() )
+	switch(m_chamber.size() )
 	{
 	case 0:
 		PlayHUDMotion("anm_idle_moving_0",TRUE,this,GetState());
@@ -112,7 +112,7 @@ void  CWeaponBM16::PlayAnimIdleMoving()
 
 void  CWeaponBM16::PlayAnimIdleSprint()
 {
-	switch( m_magazine.size() )
+	switch(m_chamber.size() )
 	{
 	case 0:
 		PlayHUDMotion("anm_idle_sprint_0",TRUE,this,GetState());
@@ -132,7 +132,7 @@ void CWeaponBM16::PlayAnimIdle()
 
 	if(IsZoomed())
 	{
-		switch (m_magazine.size())
+		switch (m_chamber.size())
 		{
 		case 0:{
 			PlayHUDMotion("anm_idle_aim_0", TRUE, NULL, GetState());
@@ -145,7 +145,7 @@ void CWeaponBM16::PlayAnimIdle()
 		}break;
 		};
 	}else{
-		switch (m_magazine.size())
+		switch (m_chamber.size())
 		{
 		case 0:{
 			PlayHUDMotion("anm_idle_0", TRUE, NULL, GetState());

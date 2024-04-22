@@ -381,7 +381,7 @@ void CShootingObject::FireBullet(const Fvector& pos,
 								 const CCartridge& cartridge,
 								 u16 parent_id,
 								 u16 weapon_id,
-								 bool send_hit, int iShotNum)
+								 bool send_hit)
 {
 
 	Fvector dir;
@@ -400,8 +400,7 @@ void CShootingObject::FireBullet(const Fvector& pos,
 										cartridge,
 										send_hit,
 										-1.f,
-										-1.f,
-										iShotNum);
+										-1.f);
 }
 void CShootingObject::FireStart	()
 {

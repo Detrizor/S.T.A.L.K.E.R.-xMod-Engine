@@ -122,10 +122,6 @@ public:
 		undefined_ammo_type = u8(-1)
 	};
 
-	IC BOOL					IsValid()	const
-	{
-		return iAmmoElapsed;
-	}
 	// Does weapon need's update?
 	BOOL					IsUpdating();
 
@@ -280,8 +276,6 @@ protected:
 	virtual void			OnStateSwitch(u32 S, u32 oldState);
 	virtual void			OnAnimationEnd(u32 state);
 
-	u8						FindAmmoClass			(LPCSTR section, bool set = false);
-
 	//трассирование полета пули
 	virtual	void			FireTrace();
 	virtual float			GetWeaponDeterioration();
@@ -305,7 +299,7 @@ protected:
 
 public:
 	float					GetBaseDispersion(float cartridge_k);
-	float					GetFireDispersion(bool with_cartridge, bool for_crosshair = false);
+	float					GetFireDispersion(CCartridge* cartridge = NULL, bool for_crosshair = false);
 	virtual float			GetFireDispersion(float cartridge_k, bool for_crosshair = false);
 	virtual	int				ShotsFired()
 	{
@@ -369,19 +363,19 @@ protected:
 	int						GetAmmoCount(u8 ammo_type) const;
 
 public:
-	IC int					GetAmmoElapsed()	const
+	virtual int				GetAmmoElapsed()	const
 	{
-		return /*int(m_magazine.size())*/iAmmoElapsed;
+		return m_chamber.size() + m_magazin.size();
 	}
 	IC int					GetAmmoMagSize()	const
 	{
-		return iMagazineSize;
+		return m_chamber.capacity() + m_magazin.capacity();
 	}
 	int						GetSuitableAmmoTotal	(bool use_item_to_spawn = false) const;
 
 	void					SetAmmoElapsed			(int ammo_count);
 
-	virtual void			OnMagazineEmpty			();
+	virtual void			OnMagazineEmpty			() {}
 
 	virtual	float			Get_PDM_Base()	const
 	{
@@ -396,8 +390,6 @@ public:
 		return m_first_bullet_controller.get_fire_dispertion();
 	};
 protected:
-	u32						iAmmoElapsed;		// ammo in magazine, currently
-	u32						iMagazineSize;		// size (in bullets) of magazine
 
 	//для подсчета в GetSuitableAmmoTotal
 	mutable int				m_iAmmoCurrentTotal;
@@ -412,18 +404,14 @@ public:
 	bool					m_bHasTracers;
 	u8						m_u8TracerColorID;
 	u8						m_set_next_ammoType_on_reload;
-	// Multitype ammo support
-	xr_vector<CCartridge>	m_magazine;
+
 	CCartridge				m_DefaultCartridge;
-	float					m_fCurrentCartirdgeDisp;
 
 	bool					unlimited_ammo();
 	IC	bool				can_be_strapped() const
 	{
 		return m_can_be_strapped;
 	};
-
-	virtual float			GetMagazineWeight	(const decltype(m_magazine)& mag) const;
 
 protected:
 	u32						m_ef_main_weapon_type;
@@ -437,8 +425,6 @@ public:
 	int						GetAmmoCount_forType(shared_str const& ammo_type) const;
 	virtual void			set_ef_main_weapon_type(u32 type){ m_ef_main_weapon_type = type; };
 	virtual void			set_ef_weapon_type(u32 type){ m_ef_weapon_type = type; };
-	virtual void			SetAmmoClass(u8 clas) { m_ammoType = clas - 1; };
-	u8						GetAmmoClass() { return m_ammoType + 1; };
 	//-Alundaio
 
 public:
@@ -510,20 +496,23 @@ protected:
 	Fvector								m_muzzle_point							= vZero;
 	Fvector								m_shell_point							= vZero;
 	u16									m_shell_bone							= 0;
-
-	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
-	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
+	
+	xr_vector<CCartridge>				m_chamber								= {};
+	xr_vector<CCartridge>				m_magazin								= {};
+	
+	int									get_ammo_type							(shared_str CR$ section);
+	void								set_ammo_type							(shared_str CR$ section);
 	CActor*								ParentIsActor							();
 	void								appendRecoil							(float impulse_magnitude);
-	
-	void							V$	PrepareCartridgeToShoot					()		{}
-	bool							V$	HasAltAim							C$	()		{ return m_bHasAltAim; }
-
-	void							V$	SetADS									(int mode);
-	void							V$	ConsumeShotCartridge					();
+	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
+	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
 
 	//with zeroing
-	Fvector							V$	getFullFireDirection					()		{ return get_LastFD(); }
+	Fvector							V$	getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }
+	CCartridge						V$	getCartridgeToShoot						()						{ return m_chamber.back(); }
+	bool							V$	HasAltAim							C$	()						{ return m_bHasAltAim; }
+	
+	void							V$	SetADS									(int mode);
 
 public:
 	void								SwitchArmedMode							();
