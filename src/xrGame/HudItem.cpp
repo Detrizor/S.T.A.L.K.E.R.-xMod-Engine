@@ -56,7 +56,7 @@ void CHudItem::Load(LPCSTR section)
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
 {
-	if (is_empty())
+	if (is_empty_anim())
 	{
 		shared_str tmp = shared_str().printf("%sEmpty", alias);
 		if (m_sounds.FindSoundItem(*tmp, false))
@@ -546,7 +546,7 @@ u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 		if (HudAnimationExist(*tmp))
 			name						= tmp;
 	}
-	if (is_empty())
+	if (is_empty_anim())
 	{
 		tmp.printf						("%s_empty", *name);
 		if (HudAnimationExist(*tmp))

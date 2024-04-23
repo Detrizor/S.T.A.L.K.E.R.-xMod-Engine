@@ -35,7 +35,7 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 		(m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) &&
 		(cmd == kWPN_FIRE || cmd == kWPN_RELOAD))		//остановить перезагрузку
 	{
-		m_sub_state						= (cmd == kWPN_RELOAD && is_empty()) ? eSubstateReloadBolt : eSubstateReloadEnd;
+		m_sub_state						= (cmd == kWPN_RELOAD && isEmptyChamber()) ? eSubstateReloadBolt : eSubstateReloadEnd;
 		PlayAnimReload					();
 		return							true;
 	}

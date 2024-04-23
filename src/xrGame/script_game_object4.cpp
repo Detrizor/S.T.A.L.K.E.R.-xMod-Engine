@@ -785,6 +785,13 @@ u8 CScriptGameObject::GetInvIconIndex() const
 	return							0;
 }
 
+bool CScriptGameObject::isEmptyChamber() const
+{
+	if (auto wpn = object().Cast<CWeaponMagazined*>())
+		return							wpn->isEmptyChamber();
+	return								false;
+}
+
 float CScriptGameObject::Power() const
 {
 	CArtefact* artefact					= object().Cast<CArtefact*>();

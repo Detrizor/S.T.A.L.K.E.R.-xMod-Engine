@@ -11,25 +11,25 @@ void CWeaponMagazined::PlayAnimReload()
 			PlaySound					("sndReload", get_LastFP());
 		break;
 	case eSubstateReloadDetach:
-		PlayHUDMotion					("anm_reload_detach", TRUE, GetState());
+		PlayHUDMotion					("anm_detach", TRUE, GetState());
 		if (m_sounds_enabled)
-			PlaySound					("sndReloadDetach", get_LastFP());
+			PlaySound					("sndDetach", get_LastFP());
 		break;
 	case eSubstateReloadAttach:
 		m_magazine_slot->loadingAttach	();
-		PlayHUDMotion					("anm_reload_attach", TRUE, GetState());
+		PlayHUDMotion					("anm_attach", TRUE, GetState());
 		if (m_sounds_enabled)
-			PlaySound					("sndReloadAttach", get_LastFP());
+			PlaySound					("sndAttach", get_LastFP());
 		break;
 	case eSubstateReloadBolt:
-		if (HudAnimationExist("anm_reload_bolt"))
+		if (HudAnimationExist("anm_pull_bolt"))
 		{
-			if (HudAnimationExist("anm_reload_bolt_dummy") && !m_shot_shell && m_chamber.empty())
-				PlayHUDMotion			("anm_reload_bolt_dummy", FALSE, GetState());
+			if (HudAnimationExist("anm_pull_bolt_dummy") && !m_shot_shell && m_chamber.empty())
+				PlayHUDMotion			("anm_pull_bolt_dummy", FALSE, GetState());
 			else
-				PlayHUDMotion			("anm_reload_bolt", FALSE, GetState());
+				PlayHUDMotion			("anm_pull_bolt", FALSE, GetState());
 			if (m_sounds_enabled)
-				PlaySound				("sndReloadBolt", get_LastFP());
+				PlaySound				("sndPullBolt", get_LastFP());
 		}
 		else
 		{
@@ -63,7 +63,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadAttach:
 		m_magazine_slot->finishLoading	();
-		if (is_empty() && HudAnimationExist("anm_reload_attach_empty"))
+		if (isEmptyChamber() && HudAnimationExist("anm_attach_empty"))
 			reload_chamber				();
 		SwitchState					(eIdle);
 		break;

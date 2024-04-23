@@ -231,7 +231,7 @@ private:
 	bool								m_lower_iron_sights_on_block;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
-	void								reload_chamber							();
+	void								reload_chamber							(CCartridge* dest = nullptr);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
@@ -243,6 +243,9 @@ private:
 	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
+
+	bool								is_empty_anim 						CO$	()		{ return isEmptyChamber(); }
+
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();
 
@@ -252,7 +255,6 @@ protected:
 
 	void								updateRecoil							();
 	
-	bool								is_empty 							CO$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 
@@ -268,6 +270,7 @@ public:
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
 	CScope*								getActiveScope						C$	();
+	bool								isEmptyChamber 						C$	();
 
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 

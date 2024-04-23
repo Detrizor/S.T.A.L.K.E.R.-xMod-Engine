@@ -977,6 +977,7 @@ public:
 	void				Transfer				(u16 id) const;
 	void				SetInvIcon				(u8 idx);
 	u8					GetInvIconIndex			() const;
+	bool				isEmptyChamber			() const;
 
 	float								Radiation							C$	();
 	float								Absorbation							C$	(int hit_type);

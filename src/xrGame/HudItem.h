@@ -189,7 +189,7 @@ public:
 protected:
 	shared_str							m_MotionsSuffix							= 0;
 
-	bool							V$	is_empty							C$	()		{ return false; }
+	bool							V$	is_empty_anim								C$	()		{ return false; }
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр

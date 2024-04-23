@@ -81,9 +81,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(section, (pSettings->line_exist(section, "snd_switch_mode")) ? "snd_switch_mode" : "snd_empty", "sndSwitchMode", true, m_eSoundSwitchMode);
 	
 	m_sounds.LoadSound					(section, "snd_reload", "sndReload", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_reload_detach", "sndReloadDetach", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_reload_attach", "sndReloadAttach", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_reload_bolt", "sndReloadBolt", true, m_eSoundReload);
+	m_sounds.LoadSound					(section, "snd_detach", "sndDetach", true, m_eSoundReload);
+	m_sounds.LoadSound					(section, "snd_attach", "sndAttach", true, m_eSoundReload);
+	m_sounds.LoadSound					(section, "snd_pull_bolt", "sndPullBolt", true, m_eSoundReload);
 	
 	shared_str snd						= "snd_shoot";
 	m_layered_sounds.LoadSound			(section, *snd, "sndShot", false, m_eSoundShot);
@@ -223,7 +223,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 
 	m_sub_state							= substate;
 	if ((m_sub_state == eSubstateReloadDetach || m_sub_state == eSubstateReloadAttach) &&
-		(!HudAnimationExist("anm_reload_detach") || !HudAnimationExist("anm_reload_attach")))
+		(!HudAnimationExist("anm_detach") || !HudAnimationExist("anm_attach")))
 		m_sub_state						= eSubstateReloadBegin;
 
 	CWeapon::Reload						();
@@ -243,8 +243,6 @@ bool CWeaponMagazined::IsAmmoAvailable()
 
 bool CWeaponMagazined::Discharge(CCartridge& destination)
 {
-	if (m_chamber.empty() && m_magazin.empty())
-		return false;
 	if (ParentIsActor())
 	{
 #ifdef	EXTENDED_WEAPON_CALLBACKS
@@ -253,15 +251,24 @@ bool CWeaponMagazined::Discharge(CCartridge& destination)
 #endif
 	}
 
-	auto discharge = [](CCartridge& destination, xr_vector<CCartridge>& storage)
+	if (m_chamber.capacity())
 	{
-		CCartridge& back_cartridge		= storage.back();
+		if (m_chamber.size())
+		{
+			reload_chamber				(&destination);
+			return						true;
+		}
+	}
+	else if (m_magazin.capacity())
+	{
+		CCartridge& back_cartridge		= m_magazin.back();
 		destination.m_ammoSect			= back_cartridge.m_ammoSect;
 		destination.m_fCondition		= back_cartridge.m_fCondition;
-		storage.pop_back				();
-	};
-	discharge							(destination, (m_magazin.size()) ? m_magazin : m_chamber);
-	return								true;
+		m_magazin.pop_back				();
+		return							true;
+	}
+	
+	return								false;
 }
 
 bool CWeaponMagazined::canTake(CWeaponAmmo CPC ammo, bool chamber) const
@@ -335,7 +342,7 @@ bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 	return								true;
 }
 
-void CWeaponMagazined::reload_chamber()
+void CWeaponMagazined::reload_chamber(CCartridge* dest)
 {
 	bMisfire							= false;
 	m_shot_shell						= false;
@@ -343,9 +350,14 @@ void CWeaponMagazined::reload_chamber()
 
 	if (!m_chamber.empty())
 	{
-		CInventoryOwner* IO				= Parent->Cast<CInventoryOwner*>();
 		cartridge						= m_chamber.back();
-		IO->GiveAmmo					(*cartridge.m_ammoSect, 1, cartridge.m_fCondition);
+		if (dest)
+			*dest						= cartridge;
+		else
+		{
+			CInventoryOwner* IO			= Parent->Cast<CInventoryOwner*>();
+			IO->GiveAmmo				(*cartridge.m_ammoSect, 1, cartridge.m_fCondition);
+		}
 		m_chamber.pop_back				();
 	}
 	
@@ -532,7 +544,7 @@ void CWeaponMagazined::UpdateCL()
 
 	if (GetCurrentFireMode() == -1 || m_iShotNum > m_iBaseDispersionedBulletsCount || !bWorking)
 		updateRecoil();
-	if (is_empty() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
+	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
 		StartReload(eSubstateReloadBolt);
 }
 
@@ -548,9 +560,9 @@ void CWeaponMagazined::UpdateSounds()
 	m_sounds.SetPosition("sndHide", P);
 	m_sounds.SetPosition("sndBoltRelease", P);
 	m_sounds.SetPosition("sndReload", P);
-	m_sounds.SetPosition("sndReloadDetach", P);
-	m_sounds.SetPosition("sndReloadAttach", P);
-	m_sounds.SetPosition("sndReloadBolt", P);
+	m_sounds.SetPosition("sndDetach", P);
+	m_sounds.SetPosition("sndAttach", P);
+	m_sounds.SetPosition("sndPullBolt", P);
 }
 
 void CWeaponMagazined::state_Fire(float dt)
@@ -726,7 +738,7 @@ void CWeaponMagazined::switch2_Hiding()
 	if (m_sounds_enabled)
 	{
 		PlaySound("sndHide", get_LastFP());
-		if (is_empty())
+		if (isEmptyChamber())
 			PlaySound("sndBoltRelease", get_LastFP());
 	}
 }
@@ -1144,7 +1156,7 @@ bool CWeaponMagazined::is_detaching() const
 	return								(m_magazine_slot && !m_magazine_slot->isLoading());
 }
 
-bool CWeaponMagazined::is_empty() const
+bool CWeaponMagazined::isEmptyChamber() const
 {
 	return								(m_chamber.capacity() && m_chamber.empty());
 }
