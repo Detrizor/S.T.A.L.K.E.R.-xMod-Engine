@@ -645,7 +645,7 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		return true;
 
 	case kWPN_ZOOM:
-		if (IsPending() || !IsZoomEnabled())
+		if (!IsZoomEnabled())
 			return false;
 
 		if (flags&CMD_START)
@@ -776,7 +776,7 @@ BOOL CWeapon::IsMisfire() const
 }
 void CWeapon::Reload()
 {
-	OnZoomOut();
+	//OnZoomOut();
 }
 
 void CWeapon::OnZoomIn()
@@ -1044,7 +1044,7 @@ BOOL CWeapon::ParentMayHaveAimBullet()
 	return EA->cast_actor() != 0;
 }
 
-CActor* CWeapon::ParentIsActor()
+CActor* CWeapon::ParentIsActor() const
 {
 	return Parent->Cast<CActor*>();
 }

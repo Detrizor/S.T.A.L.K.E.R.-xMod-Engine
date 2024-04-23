@@ -95,6 +95,18 @@ u8 CWeaponMagazinedWGrenade::GetGrenade() const
 	return u8(!!m_grenade);
 }
 
+bool CWeaponMagazinedWGrenade::canTake(CWeaponAmmo CPC ammo, bool chamber) const
+{
+	if (!m_bGrenadeMode || chamber)
+		return							inherited::canTake(ammo, chamber);
+	
+	if (!m_grenade)
+		for (auto& t : m_grenade_types)
+			if (t == ammo->Section())
+				return					true;
+	return								false;
+}
+
 void CWeaponMagazinedWGrenade::SetGrenade(u8 cnt)
 {
 	m_grenade->Load						(*m_grenade_types[m_grenade_type]);
@@ -124,7 +136,7 @@ bool CWeaponMagazinedWGrenade::SwitchMode()
 	if (!m_pLauncher)
 		return false;
 
-	bool bUsefulStateToSwitch = ((eIdle == GetState()) || (eHidden == GetState()) || (eMisfire == GetState()) || (eMagEmpty == GetState())) && (!IsPending());
+	bool bUsefulStateToSwitch = ((eIdle == GetState()) || (eHidden == GetState()) || (eMisfire == GetState())) && (!IsPending());
 	if (!bUsefulStateToSwitch)
 		return false;
 

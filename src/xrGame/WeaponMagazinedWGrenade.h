@@ -86,4 +86,6 @@ public:
 
 	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
 	u8									GetGrenade							C$	();
+	
+	bool								canTake								CO$	(CWeaponAmmo CPC ammo, bool chamber);
 };

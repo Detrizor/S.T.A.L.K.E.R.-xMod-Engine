@@ -910,7 +910,7 @@ public:
 	float				GetTotalVolume			() const;
 	u8					GetGrenade				() const;
 	void				SetGrenade				(u8 cnt);
-	void				startReload				(CScriptGameObject* obj);
+	void				initReload				(CScriptGameObject* obj);
 	void				loadChamber				(CScriptGameObject* obj);
 	void				loadCartridge			(CScriptGameObject* obj);
 	void				ActorSetHealth			(float h);
@@ -968,8 +968,10 @@ public:
 	bool				Full					() const;
 	u32					Amount					() const;
 	u32					Capacity				() const;
-	bool				Discharge				(CScriptGameObject* obj, bool full = false);
-	bool				CanTake					(CScriptGameObject* obj) const;
+	bool				Discharge				(CScriptGameObject* obj);
+	bool				CanTake				C$	(CScriptGameObject* obj, bool chamber);
+	bool				CanTakeNoChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, false); };
+	bool				CanTakeToChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, true); };
 	LPCSTR				Stock					() const;
 	u32					StockCount				() const;
 	void				Transfer				(u16 id) const;

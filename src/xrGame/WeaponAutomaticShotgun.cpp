@@ -13,10 +13,6 @@ CWeaponAutomaticShotgun::CWeaponAutomaticShotgun()
 	m_eSoundAddCartridge			= ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING);
 }
 
-CWeaponAutomaticShotgun::~CWeaponAutomaticShotgun()
-{
-}
-
 void CWeaponAutomaticShotgun::Load(LPCSTR section)
 {
 	inherited::Load					(section);
@@ -32,106 +28,72 @@ void CWeaponAutomaticShotgun::Load(LPCSTR section)
 
 bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags) 
 {
-	if (inherited::Action			(cmd, flags))
-		return						true;
+	if (inherited::Action				(cmd, flags))
+		return							true;
 
-	if (cmd == kWPN_FIRE || cmd == kWPN_RELOAD)
-		if (flags&CMD_START && m_bTriStateReload && GetState() == eReload)
-			if (m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) //остановить перезагрузку
-			{
-				m_sub_state			= eSubstateReloadEnd;
-				return				true;
-			}
-	return							false;
+	if (flags & CMD_START && m_bTriStateReload && GetState() == eReload &&
+		(m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) &&
+		(cmd == kWPN_FIRE || cmd == kWPN_RELOAD))		//остановить перезагрузку
+	{
+		m_sub_state						= (cmd == kWPN_RELOAD && is_empty()) ? eSubstateReloadBolt : eSubstateReloadEnd;
+		PlayAnimReload					();
+		return							true;
+	}
+	return								false;
+}
+
+void CWeaponAutomaticShotgun::PlayAnimReload()
+{
+	if (!m_bTriStateReload)
+		return							inherited::PlayAnimReload();
+
+	switch (m_sub_state)
+	{
+	case eSubstateReloadBegin:
+		PlayHUDMotion					("anm_open", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndOpen", get_LastFP());
+		break;
+	case eSubstateReloadInProcess:
+		PlayHUDMotion					("anm_add_cartridge", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndAddCartridge", get_LastFP());
+		break;
+	case eSubstateReloadEnd:
+		PlayHUDMotion					("anm_close", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndClose", get_LastFP());
+		SetPending						(FALSE);
+		break;
+	default:
+		inherited::PlayAnimReload		();
+	}
 }
 
 void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state) 
 {
 	if (!m_bTriStateReload || state != eReload)
-		return						inherited::OnAnimationEnd(state);
+		return							inherited::OnAnimationEnd(state);
 
 	switch (m_sub_state)
 	{
 	case eSubstateReloadBegin:
-		m_sub_state					= eSubstateReloadInProcess;
-		SwitchState					(eReload);
+		m_sub_state						= eSubstateReloadInProcess;
+		PlayAnimReload					();
 		break;
 	case eSubstateReloadInProcess:
-		if (!AddCartridge())
-			m_sub_state				= eSubstateReloadEnd;
-		SwitchState					(eReload);
+		if (!AddCartridge() || m_magazin.size() == m_magazin.capacity() || !HaveCartridgeInInventory())
+			m_sub_state					= eSubstateReloadEnd;
+		if (!m_magazin.empty() && m_chamber.empty() && !ParentIsActor())
+			m_sub_state					= eSubstateReloadBolt;
+		PlayAnimReload					();
 		break;
 	case eSubstateReloadEnd:
-		m_sub_state					= eSubstateReloadBegin;
-		SwitchState					(eIdle);
+		SwitchState						(eIdle);
 		break;
+	default:
+		inherited::OnAnimationEnd		(state);
 	}
-}
-
-void CWeaponAutomaticShotgun::StartReload()
-{
-	if (m_bTriStateReload)
-	{
-		CWeapon::Reload					();
-		m_sub_state						= eSubstateReloadBegin;
-		SwitchState						(eReload);
-	}
-	else
-		inherited::StartReload			();
-}
-
-void CWeaponAutomaticShotgun::OnStateSwitch	(u32 S, u32 oldState)
-{
-	if (!m_bTriStateReload || S != eReload)
-	{
-		inherited::OnStateSwitch	(S, oldState);
-		return;
-	}
-
-	CWeapon::OnStateSwitch			(S, oldState);
-
-	if (GetAmmoElapsed() == GetAmmoMagSize() || !HaveCartridgeInInventory())
-	{
-		switch2_EndReload			();
-		m_sub_state					= eSubstateReloadEnd;
-		return;
-	}
-
-	switch (m_sub_state)
-	{
-	case eSubstateReloadBegin:
-		if (HaveCartridgeInInventory())
-			switch2_StartReload		();
-		break;
-	case eSubstateReloadInProcess:
-		if (HaveCartridgeInInventory())
-			switch2_AddCartgidge	();
-		break;
-	case eSubstateReloadEnd:
-		switch2_EndReload			();
-		break;
-	}
-}
-
-void CWeaponAutomaticShotgun::switch2_StartReload()
-{
-	PlaySound						("sndOpen", get_LastFP());
-	PlayHUDMotion					("anm_open", FALSE, GetState());
-	SetPending						(TRUE);
-}
-
-void CWeaponAutomaticShotgun::switch2_AddCartgidge()
-{
-	PlaySound						("sndAddCartridge", get_LastFP());
-	PlayHUDMotion					("anm_add_cartridge", FALSE, GetState());
-	SetPending						(TRUE);
-}
-
-void CWeaponAutomaticShotgun::switch2_EndReload()
-{
-	PlaySound						("sndClose", get_LastFP());
-	PlayHUDMotion					("anm_close", FALSE, GetState());
-	SetPending						(FALSE);
 }
 
 bool CWeaponAutomaticShotgun::HaveCartridgeInInventory(u8 cnt)
@@ -142,7 +104,7 @@ bool CWeaponAutomaticShotgun::HaveCartridgeInInventory(u8 cnt)
 		return						false;
 
 	if (ParentIsActor())
-		return						(m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() >= cnt);
+		return						(m_ammo_to_reload && m_ammo_to_reload->GetAmmoCount() >= cnt);
 	else
 	{
 		u32 ac						= GetAmmoCount(m_ammoType);
@@ -172,10 +134,10 @@ bool CWeaponAutomaticShotgun::AddCartridge()
 	CWeaponAmmo*					cartridges;
 	if (ParentIsActor())
 	{
-		if (!m_pCartridgeToReload)
+		if (!m_ammo_to_reload)
 			return					false;
 
-		cartridges					= m_pCartridgeToReload;
+		cartridges					= m_ammo_to_reload;
 		set_ammo_type				(cartridges->m_section_id);
 	}
 	else
@@ -195,10 +157,7 @@ bool CWeaponAutomaticShotgun::AddCartridge()
 	if (unlimited_ammo() || (cartridges && cartridges->Get(l_cartridge)))
 	{
 		l_cartridge.m_fCondition	= cartridges->GetCondition();
-		if (m_chamber.size() < m_chamber.capacity())
-			m_chamber.push_back		(l_cartridge);
-		else
-			m_magazin.push_back		(l_cartridge);
+		m_magazin.push_back			(l_cartridge);
 	}
 	else
 		return						false;

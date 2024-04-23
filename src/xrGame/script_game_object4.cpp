@@ -420,11 +420,11 @@ void CScriptGameObject::SetGrenade(u8 cnt)
 	wpn->SetGrenade						(cnt);
 }
 
-void CScriptGameObject::startReload(CScriptGameObject* obj)
+void CScriptGameObject::initReload(CScriptGameObject* obj)
 {
-	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
+	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
 		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
-			wpn->startReload			(cartridge);
+			wpn->initReload				(ammo);
 }
 
 void CScriptGameObject::loadChamber(CScriptGameObject* obj)
@@ -731,18 +731,23 @@ u32 CScriptGameObject::Capacity() const
 	return							(mag) ? mag->Capacity() : false;
 }
 
-bool CScriptGameObject::Discharge(CScriptGameObject* obj, bool full)
+bool CScriptGameObject::Discharge(CScriptGameObject* obj)
 {
 	CInventoryOwner* owner			= smart_cast<CInventoryOwner*>(&object());
 	PIItem item						= smart_cast<PIItem>(&obj->object());
-	return							(owner && item) ? owner->Discharge(item, full) : false;
+	return							(owner && item) ? owner->Discharge(item, false) : false;
 }
 
-bool CScriptGameObject::CanTake(CScriptGameObject* obj) const
+bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
 {
-	CMagazine* mag					= object().Cast<CMagazine*>();
-	CWeaponAmmo* ammo				= smart_cast<CWeaponAmmo*>(&obj->object());
-	return							(mag && ammo) ? mag->CanTake(ammo) : false;
+	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
+	{
+		if (auto mag = object().Cast<CMagazine*>())
+			return					mag->CanTake(ammo);
+		else if (auto wpn = object().Cast<CWeaponMagazined*>())
+			return					wpn->canTake(ammo, chamber);
+	}
+	return							false;
 }
 
 LPCSTR CScriptGameObject::Stock() const

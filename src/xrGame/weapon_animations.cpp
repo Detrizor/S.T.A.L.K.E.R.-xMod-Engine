@@ -1,24 +1,6 @@
 #include "stdafx.h"
 #include "WeaponMagazined.h"
 
-void CWeaponMagazined::PlayAnimIdle()
-{
-	if (ADS())
-		PlayHUDMotion					("anm_idle_aim", TRUE, GetState());
-	else
-		inherited::PlayAnimIdle			();
-}
-
-void CWeaponMagazined::PlayAnimShow()
-{
-	PlayHUDMotion						("anm_show", FALSE, GetState());
-}
-
-void CWeaponMagazined::PlayAnimHide()
-{
-	PlayHUDMotion						("anm_hide", TRUE, GetState());
-}
-
 void CWeaponMagazined::PlayAnimReload()
 {
 	switch (m_sub_state)
@@ -42,7 +24,10 @@ void CWeaponMagazined::PlayAnimReload()
 	case eSubstateReloadBolt:
 		if (HudAnimationExist("anm_reload_bolt"))
 		{
-			PlayHUDMotion				("anm_reload_bolt", TRUE, GetState());
+			if (HudAnimationExist("anm_reload_bolt_dummy") && !m_shot_shell && m_chamber.empty())
+				PlayHUDMotion			("anm_reload_bolt_dummy", FALSE, GetState());
+			else
+				PlayHUDMotion			("anm_reload_bolt", FALSE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndReloadBolt", get_LastFP());
 		}
@@ -55,16 +40,6 @@ void CWeaponMagazined::PlayAnimReload()
 	}
 }
 
-void CWeaponMagazined::PlayAnimShoot()
-{
-	if (IsZoomed() && HudAnimationExist("anm_shots_aim"))
-		PlayHUDMotion					("anm_shots_aim", FALSE, GetState());
-	else if (m_chamber.capacity() && GetAmmoElapsed() == 1 && HudAnimationExist("anm_shot_l"))
-		PlayHUDMotion					("anm_shot_l", FALSE, GetState());
-	else
-		PlayHUDMotion					("anm_shots", FALSE, GetState());
-}
-
 void CWeaponMagazined::OnAnimationEnd(u32 state)
 {
 	if (state != eReload)
@@ -75,6 +50,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	case eSubstateReloadBegin:
 		ReloadMagazine					();
 		SwitchState						(eIdle);
+		break;
 	case eSubstateReloadDetach:
 		m_magazine_slot->loadingDetach	();
 		if (m_magazine_slot->isLoading())
@@ -87,20 +63,39 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadAttach:
 		m_magazine_slot->finishLoading	();
-		if (is_empty())
-		{
-			if (HudAnimationExist("anm_reload_attach_empty"))
-			{
-				reload_chamber			();
-				SwitchState				(eIdle);
-			}
-			else
-			{
-				m_sub_state				= eSubstateReloadBolt;
-				PlayAnimReload			();
-			}
-		}
-		else
-			SwitchState					(eIdle);
+		if (is_empty() && HudAnimationExist("anm_reload_attach_empty"))
+			reload_chamber				();
+		SwitchState					(eIdle);
+		break;
+	case eSubstateReloadBolt:
+		reload_chamber					();
+		SwitchState						(eIdle);
+		break;
 	}
+}
+
+void CWeaponMagazined::PlayAnimIdle()
+{
+	if (ADS())
+		PlayHUDMotion					("anm_idle_aim", TRUE, GetState());
+	else
+		inherited::PlayAnimIdle			();
+}
+
+void CWeaponMagazined::PlayAnimShow()
+{
+	PlayHUDMotion						("anm_show", FALSE, GetState());
+}
+
+void CWeaponMagazined::PlayAnimHide()
+{
+	PlayHUDMotion						("anm_hide", TRUE, GetState());
+}
+
+void CWeaponMagazined::PlayAnimShoot()
+{
+	if (m_chamber.capacity() && GetAmmoElapsed() == 1 && HudAnimationExist("anm_shot_l"))
+		PlayHUDMotion					("anm_shot_l", FALSE, GetState());
+	else
+		PlayHUDMotion					("anm_shots", FALSE, GetState());
 }

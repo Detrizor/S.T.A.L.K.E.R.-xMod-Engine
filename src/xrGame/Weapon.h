@@ -108,7 +108,6 @@ public:
 		eFire2,
 		eReload,
 		eMisfire,
-		eMagEmpty,
 		eSwitch,
 	};
 	enum EWeaponSubStates
@@ -504,8 +503,9 @@ protected:
 	
 	int									get_ammo_type							(shared_str CR$ section);
 	void								set_ammo_type							(shared_str CR$ section);
-	CActor*								ParentIsActor							();
 	void								appendRecoil							(float impulse_magnitude);
+	
+	CActor*								ParentIsActor						C$	();
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
 
@@ -521,7 +521,6 @@ public:
 
 	Fvector CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
 	Fvector CR$							getRecoilCamDelta					C$	()		{ return m_recoil_cam_delta; }
-
 	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	

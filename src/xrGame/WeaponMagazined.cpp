@@ -168,11 +168,8 @@ void CWeaponMagazined::FireStart()
 				SwitchState(eFire);
 			}
 		}
-		else
-		{
-			if (eReload != GetState())
-				OnMagazineEmpty();
-		}
+		else if (eReload != GetState())
+			OnMagazineEmpty();
 	}
 	else
 	{//misfire
@@ -200,41 +197,36 @@ void CWeaponMagazined::Reload()
 	}
 
 	if (IsMisfire() || ParentIsActor() && m_chamber.capacity())
-	{
-		m_sub_state = eSubstateReloadBolt;
-		StartReload();
-	}
+		StartReload(eSubstateReloadBolt);
 	else
 	{
 		m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
 
 		if (m_pCurrentAmmo || unlimited_ammo())
-		{
-			m_sub_state = eSubstateReloadDetach;
-			StartReload();
-			return;
-		}
+			return StartReload(eSubstateReloadDetach);
 		else for (u8 i = 0; i < u8(m_ammoTypes.size()); ++i)
 		{
 			m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[i].c_str()));
 			if (m_pCurrentAmmo)
 			{
 				m_set_next_ammoType_on_reload = i;
-				m_sub_state = eSubstateReloadDetach;
-				StartReload();
-				return;
+				return StartReload(eSubstateReloadDetach);
 			}
 		}
 	}
 }
 
-void CWeaponMagazined::StartReload()
+void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 {
-	if (m_sub_state == eSubstateReloadDetach && !HudAnimationExist("anm_reload_detach"))
+	if (GetState() == eReload)
+		return;
+
+	m_sub_state							= substate;
+	if ((m_sub_state == eSubstateReloadDetach || m_sub_state == eSubstateReloadAttach) &&
+		(!HudAnimationExist("anm_reload_detach") || !HudAnimationExist("anm_reload_attach")))
 		m_sub_state						= eSubstateReloadBegin;
 
 	CWeapon::Reload						();
-	SetPending							(TRUE);
 	SwitchState							(eReload);
 }
 
@@ -272,6 +264,21 @@ bool CWeaponMagazined::Discharge(CCartridge& destination)
 	return								true;
 }
 
+bool CWeaponMagazined::canTake(CWeaponAmmo CPC ammo, bool chamber) const
+{
+	if (chamber || !m_magazine_slot)
+	{
+		auto& storage					= (chamber) ? m_chamber : m_magazin;
+		if (storage.size() < storage.capacity())
+		{
+			for (auto& t : m_ammoTypes)
+				if (t == ammo->Section())
+					return				true;
+		}
+	}
+	return								false;
+}
+
 void CWeaponMagazined::OnMagazineEmpty()
 {
 #ifdef	EXTENDED_WEAPON_CALLBACKS
@@ -285,11 +292,6 @@ void CWeaponMagazined::OnMagazineEmpty()
 	{
 		OnEmptyClick();
 		return;
-	}
-
-	if (GetNextState() != eMagEmpty && GetNextState() != eReload)
-	{
-		SwitchState(eMagEmpty);
 	}
 
 	inherited::OnMagazineEmpty();
@@ -309,7 +311,8 @@ CCartridge CWeaponMagazined::getCartridgeToShoot()
 		if (expand)
 		{
 			m_chamber.pop_back			();
-			reload_chamber				();
+			if (fOneShotTime != 0.f)
+				reload_chamber			();
 		}
 	}
 	else
@@ -335,6 +338,7 @@ bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 void CWeaponMagazined::reload_chamber()
 {
 	bMisfire							= false;
+	m_shot_shell						= false;
 	CCartridge							cartridge;
 
 	if (!m_chamber.empty())
@@ -352,26 +356,36 @@ void CWeaponMagazined::reload_chamber()
 	}
 }
 
-void CWeaponMagazined::loadChamber(CWeaponAmmo* cartridges)
+void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
-	CCartridge							l_cartridge;
-	cartridges->Get						(l_cartridge);
-	set_ammo_type						(l_cartridge.m_ammoSect);
-	m_chamber.push_back					(l_cartridge);
+	CCartridge							cartridge;
+	ammo->Get							(cartridge);
+	set_ammo_type						(cartridge.m_ammoSect);
+	m_chamber.push_back					(cartridge);
+	m_shot_shell						= false;
 }
 
-void CWeaponMagazined::startReload(CWeaponAmmo* cartridges)
+void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
 {
-	m_pCartridgeToReload				= cartridges;
-	StartReload							();
+	m_ammo_to_reload					= ammo;
+	StartReload							(eSubstateReloadBegin);
 }
 
 void CWeaponMagazined::ReloadMagazine()
 {
 	if (ParentIsActor())
 	{
-		set_ammo_type					(m_pCartridgeToReload->m_section_id);
-		SetAmmoElapsed					(min(GetAmmoMagSize(), (int)m_pCartridgeToReload->GetAmmoCount()));
+		if (m_magazine_slot && m_magazine_slot->isLoading())
+		{
+			m_magazine_slot->loadingDetach();
+			m_magazine_slot->loadingAttach();
+			m_magazine_slot->finishLoading();
+		}
+		else if (m_ammo_to_reload)
+		{
+			set_ammo_type(m_ammo_to_reload->m_section_id);
+			SetAmmoElapsed(min(GetAmmoMagSize(), (int)m_ammo_to_reload->GetAmmoCount()));
+		}
 	}
 	else
 	{
@@ -463,9 +477,6 @@ void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
 		if (smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewEntity() == H_Parent()))
 			CurrentGameUI()->AddCustomStatic("gun_jammed", true);
 		break;
-	case eMagEmpty:
-		switch2_Empty();
-		break;
 	case eReload:
 		if (owner)
 			m_sounds_enabled = owner->CanPlayShHdRldSounds();
@@ -513,7 +524,6 @@ void CWeaponMagazined::UpdateCL()
 			state_Fire(dt);
 		}break;
 		case eMisfire:		state_Misfire(dt);	break;
-		case eMagEmpty:		state_MagEmpty(dt);	break;
 		case eHidden:		break;
 		}
 	}
@@ -522,6 +532,8 @@ void CWeaponMagazined::UpdateCL()
 
 	if (GetCurrentFireMode() == -1 || m_iShotNum > m_iBaseDispersionedBulletsCount || !bWorking)
 		updateRecoil();
+	if (is_empty() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
+		StartReload(eSubstateReloadBolt);
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -615,9 +627,6 @@ void CWeaponMagazined::state_Misfire(float dt)
 	UpdateSounds();
 }
 
-void CWeaponMagazined::state_MagEmpty(float dt)
-{}
-
 void CWeaponMagazined::SetDefaults()
 {
 	CWeapon::SetDefaults();
@@ -644,6 +653,8 @@ void CWeaponMagazined::OnShot()
 	//дым из ствола
 	ForceUpdateFireParticles();
 	StartSmokeParticles(get_LastFP(), vel);
+
+	m_shot_shell = true;
 }
 
 void CWeaponMagazined::OnEmptyClick()
@@ -698,15 +709,9 @@ void CWeaponMagazined::switch2_Fire()
 		FireStart();
 }
 
-void CWeaponMagazined::switch2_Empty()
-{
-	OnZoomOut();
-}
-
 void CWeaponMagazined::switch2_Reload()
 {
 	CWeapon::FireEnd();
-
 	SetPending(TRUE);
 	PlayAnimReload();
 }
@@ -1124,6 +1129,11 @@ void CWeaponMagazined::OnHiddenItem()
 	inherited::OnHiddenItem				();
 }
 
+bool CWeaponMagazined::is_auto_bolt_allowed() const
+{
+	return !ParentIsActor();
+}
+
 bool CWeaponMagazined::hasAmmoToShoot() const
 {
 	return (m_chamber.size() || (!m_chamber.capacity() && GetAmmoElapsed()));
@@ -1392,9 +1402,8 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		case eTransferAddon:
 			if (auto mag = Cast<CMagazine*>((CAddon*)data))
 			{
-				m_sub_state				= (m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach;
-				StartReload				();
 				m_magazine_slot->startLoading((param) ? (CAddon*)data : NULL);
+				StartReload				((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
 				return					1.f;
 			}
 			break;

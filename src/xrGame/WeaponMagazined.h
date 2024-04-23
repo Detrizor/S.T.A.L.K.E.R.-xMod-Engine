@@ -45,7 +45,6 @@ protected:
 
 	virtual void	switch2_Idle();
 	virtual void	switch2_Fire();
-	virtual void	switch2_Empty();
 	virtual void	switch2_Reload();
 	virtual void	switch2_Hiding();
 	virtual void	switch2_Hidden();
@@ -65,7 +64,6 @@ protected:
 	void			ResetSilencerKoeffs	();
 
 	virtual void	state_Fire(float dt);
-	virtual void	state_MagEmpty(float dt);
 	virtual void	state_Misfire(float dt);
 
 public:
@@ -83,7 +81,7 @@ public:
 	virtual void	SetDefaults();
 	virtual void	FireStart();
 	virtual void	Reload();
-	virtual void	StartReload();
+			void	StartReload(EWeaponSubStates substate);
 
 	virtual	void	UpdateCL();
 	virtual void	net_Destroy();
@@ -227,6 +225,7 @@ private:
 	CSilencer*							m_pSilencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
+	bool								m_shot_shell							= false;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
@@ -241,26 +240,27 @@ private:
 	void								cycle_scope								(int idx, bool up = true);
 	void								InitRotateTime							();
 	
+	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
-	bool								is_empty 							CO$	();
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();
 
 protected:
 	CWeaponHud*							m_hud									= nullptr;
-	CWeaponAmmo*						m_pCartridgeToReload					= nullptr;
+	CWeaponAmmo*						m_ammo_to_reload						= nullptr;
 
 	void								updateRecoil							();
-
+	
+	bool								is_empty 							CO$	();
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 
 public:
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								UpdateHudBonesVisibility				();
-	void								loadChamber								(CWeaponAmmo* cartridges);
-	void								startReload								(CWeaponAmmo* cartridges);
+	void								loadChamber								(CWeaponAmmo* ammo);
+	void								initReload								(CWeaponAmmo* ammo);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
@@ -275,6 +275,7 @@ public:
 
 	void							V$	process_addon							(CAddon* addon, bool attach);
 	bool							V$	Discharge								(CCartridge& destination);
+	bool							V$	canTake								C$	(CWeaponAmmo CPC ammo, bool chamber);
 
 	friend class CWeaponHud;
 };

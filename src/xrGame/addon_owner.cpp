@@ -457,7 +457,7 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 	if (!Compatible(addon))
 		return							false;
 	if (m_has_loading_anim)
-		return							true;
+		return							!isLoading();
 
 	int pos								= get_spacing(NULL, addon);
 	for (auto next : addons)

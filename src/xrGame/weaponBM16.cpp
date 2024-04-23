@@ -14,7 +14,7 @@ void CWeaponBM16::Load	(LPCSTR section)
 bool CWeaponBM16::SingleCartridgeReload()
 {
 	if (ParentIsActor())
-		return ((m_chamber.size() == 1) || (m_pCartridgeToReload && m_pCartridgeToReload->GetAmmoCount() == 1));
+		return ((m_chamber.size() == 1) || (m_ammo_to_reload && m_ammo_to_reload->GetAmmoCount() == 1));
 	else
 	{
 		bool b_both = HaveCartridgeInInventory(2);
