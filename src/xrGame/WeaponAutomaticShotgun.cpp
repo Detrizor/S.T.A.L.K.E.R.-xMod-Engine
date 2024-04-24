@@ -20,9 +20,9 @@ void CWeaponAutomaticShotgun::Load(LPCSTR section)
 	m_bTriStateReload				= !!READ_IF_EXISTS(pSettings, r_bool, section, "tri_state_reload", false);
 	if (m_bTriStateReload)
 	{
-		m_sounds.LoadSound			(section, "snd_open_weapon", "sndOpen", false, m_eSoundOpen);
-		m_sounds.LoadSound			(section, "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
-		m_sounds.LoadSound			(section, "snd_close_weapon", "sndClose", false, m_eSoundClose);
+		m_sounds.LoadSound			(*HudSection(), "snd_open_weapon", "sndOpen", false, m_eSoundOpen);
+		m_sounds.LoadSound			(*HudSection(), "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
+		m_sounds.LoadSound			(*HudSection(), "snd_close_weapon", "sndClose", false, m_eSoundClose);
 	}
 }
 

@@ -74,17 +74,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 	inherited::Load(section);
 
 	// Sounds
-	m_sounds.LoadSound					(section, "snd_draw", "sndShow", true, m_eSoundShow);
-	m_sounds.LoadSound					(section, "snd_holster", "sndHide", true, m_eSoundHide);
-	m_sounds.LoadSound					(section, "snd_bolt_release", "sndBoltRelease", true, m_eSoundBoltRelease);
 	m_sounds.LoadSound					(section, "snd_empty", "sndEmptyClick", true, m_eSoundEmptyClick);
-	m_sounds.LoadSound					(section, (pSettings->line_exist(section, "snd_switch_mode")) ? "snd_switch_mode" : "snd_empty", "sndSwitchMode", true, m_eSoundSwitchMode);
-	
-	m_sounds.LoadSound					(section, "snd_reload", "sndReload", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_detach", "sndDetach", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_attach", "sndAttach", true, m_eSoundReload);
-	m_sounds.LoadSound					(section, "snd_pull_bolt", "sndPullBolt", true, m_eSoundReload);
-	
+	m_sounds.LoadSound					(section, "snd_bolt_release", "sndBoltRelease", true, m_eSoundBoltRelease);
+
 	shared_str snd						= "snd_shoot";
 	m_layered_sounds.LoadSound			(section, *snd, "sndShot", false, m_eSoundShot);
 	m_layered_sounds.LoadSound			(section, (pSettings->line_exist(section, "snd_shoot_actor")) ? "snd_shoot_actor" : *snd, "sndShotActor", false, m_eSoundShot);
@@ -94,6 +86,14 @@ void CWeaponMagazined::Load(LPCSTR section)
 	if (pSettings->line_exist(section, "snd_silncer_shot_actor"))
 		snd								= "snd_silncer_shot_actor";
 	m_layered_sounds.LoadSound			(section, *snd, "sndSilencerShotActor", false, m_eSoundShot);
+
+	m_sounds.LoadSound					(*HudSection(), "snd_draw", "sndShow", true, m_eSoundShow);
+	m_sounds.LoadSound					(*HudSection(), "snd_holster", "sndHide", true, m_eSoundHide);
+	m_sounds.LoadSound					(*HudSection(), "snd_switch_mode", "sndSwitchMode", true, m_eSoundSwitchMode);
+	m_sounds.LoadSound					(*HudSection(), "snd_reload", "sndReload", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_pull_bolt", "sndPullBolt", true, m_eSoundReload);
 
 	m_iBaseDispersionedBulletsCount = READ_IF_EXISTS(pSettings, r_u8, section, "base_dispersioned_bullets_count", 0);
 	m_fBaseDispersionedBulletsSpeed = READ_IF_EXISTS(pSettings, r_float, section, "base_dispersioned_bullets_speed", m_fStartBulletSpeed);
@@ -862,18 +862,11 @@ void CWeaponMagazined::OnZoomOut()
 }
 
 //переключение режимов стрельбы одиночными и очередями
-bool CWeaponMagazined::SwitchMode()
+void CWeaponMagazined::on_firemode_switch()
 {
-	if (eIdle != GetState() || IsPending()) return false;
-
-	if (SingleShotMode())
-		m_iQueueSize = WEAPON_ININITE_QUEUE;
-	else
-		m_iQueueSize = 1;
-
+	if (HudAnimationExist("anm_switch_firemode"))
+		PlayHUDMotion("anm_switch_firemode", TRUE, GetState());
 	PlaySound("sndSwitchMode", get_LastFP());
-
-	return true;
 }
 
 void	CWeaponMagazined::OnNextFireMode()
@@ -882,6 +875,7 @@ void	CWeaponMagazined::OnNextFireMode()
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode + 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
+	on_firemode_switch();
 };
 
 void	CWeaponMagazined::OnPrevFireMode()
@@ -890,6 +884,7 @@ void	CWeaponMagazined::OnPrevFireMode()
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode - 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
+	on_firemode_switch();
 };
 
 void	CWeaponMagazined::OnH_A_Chield()

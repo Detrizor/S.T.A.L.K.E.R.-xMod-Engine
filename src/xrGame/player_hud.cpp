@@ -202,7 +202,7 @@ const Fvector* attachable_hud_item::hands_attach() const
 	return ((m_parent_hud_item->AltHandsAttach()) ? m_measures.m_hands_attach_alt : m_measures.m_hands_attach);
 }
 
-void hud_item_measures::load(LPCSTR hud_section, IKinematics* K, attachable_hud_item* hi)
+void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 {
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point") == pSettings->line_exist(hud_section, "fire_bone"), hud_section);
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point2") == pSettings->line_exist(hud_section, "fire_bone2"), hud_section);
@@ -213,12 +213,6 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K, attachable_hud_
 	
 	m_hands_attach_alt[0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "root_offset_alt", m_hands_attach[0]);
 	m_hands_attach_alt[1] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "hands_orientation_alt", m_hands_attach[1]);
-
-	Fvector item_attach_pos				= pSettings->r_fvector3(hud_section, "item_position");
-	Fvector item_attach_rot				= pSettings->r_fvector3(hud_section, "item_orientation");
-	item_attach_rot.mul					(PI / 180.f);
-	hi->m_attach_offset.setHPB			(item_attach_rot.x, item_attach_rot.y, item_attach_rot.z);
-	hi->m_attach_offset.translate_over	(item_attach_pos);
 
 	shared_str bone_name;
 	m_prop_flags.set(e_fire_point, pSettings->line_exist(hud_section, "fire_bone"));
@@ -301,7 +295,13 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 
 	m_attach_place_idx			= pSettings->r_u16(hud_section, "attach_place_idx");
 	m_auto_attach				= pSettings->r_bool(hud_section, "auto_attach");
-	m_measures.load				(hud_section, m_model, this);
+	m_measures.load				(hud_section, m_model);
+	
+	Fvector item_attach_pos				= pSettings->r_fvector3(hud_section, "item_position");
+	Fvector item_attach_rot				= pSettings->r_fvector3(hud_section, "item_orientation");
+	item_attach_rot.mul					(PI / 180.f);
+	m_attach_offset.setHPB				(item_attach_rot.x, item_attach_rot.y, item_attach_rot.z);
+	m_attach_offset.translate_over		(item_attach_pos);
 }
 
 u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)

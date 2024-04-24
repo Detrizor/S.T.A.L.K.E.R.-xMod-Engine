@@ -180,7 +180,7 @@ struct hud_item_measures
 	Fvector							m_hands_attach[2];//pos,rot
 	Fvector							m_hands_attach_alt[2];//pos,rot
 
-	void load						(LPCSTR hud_section, IKinematics* K, attachable_hud_item* hi);
+	void load						(LPCSTR hud_section, IKinematics* K);
 
 	Fvector							m_strafe_offset[4][2]; // pos,rot,data1,data2/ normal,aim-GL	 --#SM+#--
 

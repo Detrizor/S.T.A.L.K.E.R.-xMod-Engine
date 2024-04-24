@@ -25,9 +25,9 @@ void CWeaponMagazined::PlayAnimReload()
 		if (HudAnimationExist("anm_pull_bolt"))
 		{
 			if (HudAnimationExist("anm_pull_bolt_dummy") && !m_shot_shell && m_chamber.empty())
-				PlayHUDMotion			("anm_pull_bolt_dummy", FALSE, GetState());
+				PlayHUDMotion			("anm_pull_bolt_dummy", TRUE, GetState());
 			else
-				PlayHUDMotion			("anm_pull_bolt", FALSE, GetState());
+				PlayHUDMotion			("anm_pull_bolt", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndPullBolt", get_LastFP());
 		}

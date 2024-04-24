@@ -96,7 +96,6 @@ public:
 	virtual bool	GetBriefInfo(II_BriefInfo& info);
 
 public:
-	virtual bool	SwitchMode();
 	virtual bool	SingleShotMode()
 	{
 		return 1 == m_iQueueSize;
@@ -239,6 +238,7 @@ private:
 	void								process_scope							(CScope* scope, bool attach);
 	void								cycle_scope								(int idx, bool up = true);
 	void								InitRotateTime							();
+	void								on_firemode_switch						();
 	
 	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
