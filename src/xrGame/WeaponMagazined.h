@@ -231,6 +231,7 @@ private:
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								reload_chamber							(CCartridge* dest = nullptr);
+	void								load_chamber							(CCartridge CPC cartridge = nullptr);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
@@ -244,7 +245,7 @@ private:
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
 
-	bool								is_empty_anim 						CO$	()		{ return isEmptyChamber(); }
+	bool								isLockedAim 						CO$	()		{ return m_locked; }
 
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();

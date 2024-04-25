@@ -22,17 +22,26 @@ void CWeaponMagazined::PlayAnimReload()
 			PlaySound					("sndAttach", get_LastFP());
 		break;
 	case eSubstateReloadBolt:
-		if (HudAnimationExist("anm_pull_bolt"))
+		Msg("--xd eSubstateReloadBolt m_locked [%d] [%d] [%d]", m_locked);
+		if (m_locked)
 		{
-			if (HudAnimationExist("anm_pull_bolt_dummy") && !m_shot_shell && m_chamber.empty())
-				PlayHUDMotion			("anm_pull_bolt_dummy", TRUE, GetState());
-			else
-				PlayHUDMotion			("anm_pull_bolt", TRUE, GetState());
+			PlayHUDMotion				("anm_bolt_release", TRUE, GetState());
 			if (m_sounds_enabled)
-				PlaySound				("sndPullBolt", get_LastFP());
+				PlaySound				("sndBoltRelease", get_LastFP());
+		}
+		else if (HudAnimationExist("anm_bolt_pull"))
+		{
+			Msg("--xd anm_bolt_pull");
+			if (!m_shot_shell && m_chamber.empty() && HudAnimationExist("anm_bolt_pull_dummy"))
+				PlayHUDMotion			("anm_bolt_pull_dummy", TRUE, GetState());
+			else
+				PlayHUDMotion			("anm_bolt_pull", TRUE, GetState());
+			if (m_sounds_enabled)
+				PlaySound				("sndBoltPull", get_LastFP());
 		}
 		else
 		{
+			Msg("--xd Ruck");
 			reload_chamber				();
 			m_pInventory->Ruck			(this);
 		}
@@ -63,8 +72,6 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadAttach:
 		m_magazine_slot->finishLoading	();
-		if (isEmptyChamber() && HudAnimationExist("anm_attach_empty"))
-			reload_chamber				();
 		SwitchState					(eIdle);
 		break;
 	case eSubstateReloadBolt:
@@ -94,8 +101,11 @@ void CWeaponMagazined::PlayAnimHide()
 
 void CWeaponMagazined::PlayAnimShoot()
 {
-	if (m_chamber.capacity() && GetAmmoElapsed() == 1 && HudAnimationExist("anm_shot_l"))
+	if (isEmptyChamber() && HudAnimationExist("anm_shot_l"))
+	{
 		PlayHUDMotion					("anm_shot_l", FALSE, GetState());
+		m_locked						= true;
+	}
 	else
 		PlayHUDMotion					("anm_shots", FALSE, GetState());
 }

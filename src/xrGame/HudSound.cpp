@@ -202,9 +202,6 @@ void HUD_SOUND_COLLECTION::SetPosition(LPCSTR alias, const Fvector& pos)
 	HUD_SOUND_ITEM* snd_item		= FindSoundItem(alias, false);
 	if (snd_item && snd_item->playing())
 		snd_item->set_position		(pos);
-	else if (snd_item = FindSoundItem(*shared_str().printf("%sEmpty", alias), false))
-		if (snd_item->playing())
-			snd_item->set_position	(pos);
 }
 
 void HUD_SOUND_COLLECTION::StopAllSounds()
@@ -226,13 +223,6 @@ void HUD_SOUND_COLLECTION::LoadSound(LPCSTR section, LPCSTR line, LPCSTR alias, 
 	HUD_SOUND_ITEM::LoadSound	(section, line, snd_item, type);
 	snd_item.m_alias			= alias;
 	snd_item.m_b_exclusive		= exclusive;
-
-	shared_str line_empty		= shared_str().printf("%s_empty", line);
-	if (pSettings->line_exist(section, line_empty))
-	{
-		shared_str alias_empty	= shared_str().printf("%sEmpty", alias);
-		LoadSound				(section, *line_empty, *alias_empty, exclusive, type);
-	}
 }
 
 //Alundaio:

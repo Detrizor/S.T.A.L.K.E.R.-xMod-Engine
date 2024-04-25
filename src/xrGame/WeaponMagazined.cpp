@@ -75,7 +75,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	// Sounds
 	m_sounds.LoadSound					(section, "snd_empty", "sndEmptyClick", true, m_eSoundEmptyClick);
-	m_sounds.LoadSound					(section, "snd_bolt_release", "sndBoltRelease", true, m_eSoundBoltRelease);
 
 	shared_str snd						= "snd_shoot";
 	m_layered_sounds.LoadSound			(section, *snd, "sndShot", false, m_eSoundShot);
@@ -93,7 +92,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_reload", "sndReload", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_pull_bolt", "sndPullBolt", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundBoltRelease);
 
 	m_iBaseDispersionedBulletsCount = READ_IF_EXISTS(pSettings, r_u8, section, "base_dispersioned_bullets_count", 0);
 	m_fBaseDispersionedBulletsSpeed = READ_IF_EXISTS(pSettings, r_float, section, "base_dispersioned_bullets_speed", m_fStartBulletSpeed);
@@ -198,7 +198,7 @@ void CWeaponMagazined::Reload()
 
 	if (IsMisfire() || ParentIsActor() && m_chamber.capacity())
 		StartReload(eSubstateReloadBolt);
-	else
+	else if (!ParentIsActor())
 	{
 		m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
 
@@ -226,7 +226,6 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 		(!HudAnimationExist("anm_detach") || !HudAnimationExist("anm_attach")))
 		m_sub_state						= eSubstateReloadBegin;
 
-	CWeapon::Reload						();
 	SwitchState							(eReload);
 }
 
@@ -318,6 +317,7 @@ CCartridge CWeaponMagazined::getCartridgeToShoot()
 		if (expand)
 		{
 			m_chamber.pop_back			();
+			m_shot_shell				= true;
 			if (fOneShotTime != 0.f)
 				reload_chamber			();
 		}
@@ -344,13 +344,9 @@ bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 
 void CWeaponMagazined::reload_chamber(CCartridge* dest)
 {
-	bMisfire							= false;
-	m_shot_shell						= false;
-	CCartridge							cartridge;
-
 	if (!m_chamber.empty())
 	{
-		cartridge						= m_chamber.back();
+		CCartridge cartridge			= m_chamber.back();
 		if (dest)
 			*dest						= cartridge;
 		else
@@ -361,20 +357,30 @@ void CWeaponMagazined::reload_chamber(CCartridge* dest)
 		m_chamber.pop_back				();
 	}
 	
-	if (get_cartridge_from_mag(cartridge))
-	{
-		set_ammo_type					(cartridge.m_ammoSect);
-		m_chamber.push_back				(cartridge);
-	}
+	load_chamber						();
+}
+
+void CWeaponMagazined::load_chamber(CCartridge CPC cartridge)
+{
+	bMisfire							= false;
+	m_locked							= false;
+	m_shot_shell						= false;
+
+	CCartridge							l_cartridge;
+	if (cartridge)
+		l_cartridge						= *cartridge;
+	else if (!get_cartridge_from_mag(l_cartridge))
+		return;
+
+	set_ammo_type						(l_cartridge.m_ammoSect);
+	m_chamber.push_back					(l_cartridge);
 }
 
 void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
 	CCartridge							cartridge;
 	ammo->Get							(cartridge);
-	set_ammo_type						(cartridge.m_ammoSect);
-	m_chamber.push_back					(cartridge);
-	m_shot_shell						= false;
+	load_chamber						(&cartridge);
 }
 
 void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
@@ -558,11 +564,11 @@ void CWeaponMagazined::UpdateSounds()
 	Fvector P = get_LastFP();
 	m_sounds.SetPosition("sndShow", P);
 	m_sounds.SetPosition("sndHide", P);
-	m_sounds.SetPosition("sndBoltRelease", P);
 	m_sounds.SetPosition("sndReload", P);
 	m_sounds.SetPosition("sndDetach", P);
 	m_sounds.SetPosition("sndAttach", P);
-	m_sounds.SetPosition("sndPullBolt", P);
+	m_sounds.SetPosition("sndBoltPull", P);
+	m_sounds.SetPosition("sndBoltRelease", P);
 }
 
 void CWeaponMagazined::state_Fire(float dt)
@@ -665,8 +671,6 @@ void CWeaponMagazined::OnShot()
 	//дым из ствола
 	ForceUpdateFireParticles();
 	StartSmokeParticles(get_LastFP(), vel);
-
-	m_shot_shell = true;
 }
 
 void CWeaponMagazined::OnEmptyClick()
@@ -736,11 +740,7 @@ void CWeaponMagazined::switch2_Hiding()
 	SetPending(TRUE);
 	PlayAnimHide();
 	if (m_sounds_enabled)
-	{
 		PlaySound("sndHide", get_LastFP());
-		if (isEmptyChamber())
-			PlaySound("sndBoltRelease", get_LastFP());
-	}
 }
 
 void CWeaponMagazined::switch2_Hidden()

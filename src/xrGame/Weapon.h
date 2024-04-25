@@ -287,7 +287,6 @@ protected:
 	}
 	virtual void			FireEnd();
 
-	virtual void			Reload();
 	void			StopShooting();
 
 	// обработка визуализации выстрела
@@ -476,6 +475,7 @@ protected:
 	bool								m_bArmedMode							= false;
 	bool								m_bHasAltAim							= true;
 	bool								m_bArmedRelaxedSwitch					= true;
+	bool								m_locked								= false;
 
 	float								m_grip_accuracy_modifier				= 1.f;
 	float								m_stock_accuracy_modifier				= 1.f;

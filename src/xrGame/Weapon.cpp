@@ -375,7 +375,7 @@ void CWeapon::net_Export(NET_Packet& P)
 	u8 need_upd = IsUpdating() ? 1 : 0;
 	P.w_u8(need_upd);
 	P.w_u16(u16(GetAmmoElapsed()));
-	P.w_u8(0);		//--xd
+	P.w_u8((u8)m_locked);
 	P.w_u8(m_ammoType);
 	P.w_u8((u8) GetState());
 	P.w_u8((u8) IsZoomed());
@@ -395,7 +395,9 @@ void CWeapon::net_Import(NET_Packet& P)
 	u16 ammo_elapsed = 0;
 	P.r_u16(ammo_elapsed);
 
-	P.r_u8(flags);
+	u8 locked;
+	P.r_u8(locked);
+	m_locked = !!locked;
 
 	u8 ammoType, wstate;
 	P.r_u8(ammoType);
@@ -438,7 +440,7 @@ void CWeapon::save(NET_Packet &output_packet)
 	save_data(m_ammoType, output_packet);
 	save_data(m_ammoType, output_packet);
 	save_data(m_zoom_params.m_bIsZoomModeNow, output_packet);
-	save_data(m_ammoType, output_packet);
+	save_data((u8)m_locked, output_packet);
 }
 
 void CWeapon::load(IReader &input_packet)
@@ -455,7 +457,9 @@ void CWeapon::load(IReader &input_packet)
 	else
 		OnZoomOut();
 
-	load_data(m_ammoType, input_packet);
+	u8 locked;
+	load_data(locked, input_packet);
+	m_locked = !!locked;
 }
 
 void CWeapon::OnEvent(NET_Packet& P, u16 type)
@@ -773,10 +777,6 @@ BOOL CWeapon::CheckForMisfire()
 BOOL CWeapon::IsMisfire() const
 {
 	return bMisfire;
-}
-void CWeapon::Reload()
-{
-	//OnZoomOut();
 }
 
 void CWeapon::OnZoomIn()

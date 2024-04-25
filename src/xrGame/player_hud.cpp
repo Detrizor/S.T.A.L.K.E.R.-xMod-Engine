@@ -333,12 +333,15 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 		else
 			item_anm_name = M.name;
 
-		MotionID M2						= ka->ID_Cycle_Safe(item_anm_name);
-		if(!M2.valid())
+		MotionID						M2;
+		if (m_parent_hud_item->isLockedAim())
+			M2							= ka->ID_Cycle_Safe(shared_str().printf("%s_empty", *item_anm_name));
+		if (!M2.valid())
+			M2							= ka->ID_Cycle_Safe(item_anm_name);
+		if (!M2.valid() && m_parent_hud_item->isLockedAim())
+			M2							= ka->ID_Cycle_Safe("idle_empty");
+		if (!M2.valid())
 			M2							= ka->ID_Cycle_Safe("idle");
-		else
-			if(bDebug)
-				Msg						("playing item animation [%s]",item_anm_name.c_str());
 
 		R_ASSERT3(M2.valid(), "model has no motion [idle] ", pSettings->r_string(m_object_section, "visual"));
 
