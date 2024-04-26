@@ -230,7 +230,6 @@ private:
 	bool								m_lower_iron_sights_on_block;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
-	void								reload_chamber							(CCartridge* dest = nullptr);
 	void								load_chamber							(CCartridge CPC cartridge = nullptr);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
@@ -255,6 +254,7 @@ protected:
 	CWeaponAmmo*						m_ammo_to_reload						= nullptr;
 
 	void								updateRecoil							();
+	void								reload_chamber							(CCartridge* dest = nullptr);
 	
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);

@@ -36,6 +36,7 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 		(cmd == kWPN_FIRE || cmd == kWPN_RELOAD))		//остановить перезагрузку
 	{
 		m_sub_state						= (cmd == kWPN_RELOAD && isEmptyChamber()) ? eSubstateReloadBolt : eSubstateReloadEnd;
+		m_sounds.StopAllSounds			();
 		PlayAnimReload					();
 		return							true;
 	}
@@ -50,20 +51,30 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	switch (m_sub_state)
 	{
 	case eSubstateReloadBegin:
-		PlayHUDMotion					("anm_open", TRUE, GetState());
-		if (m_sounds_enabled)
-			PlaySound					("sndOpen", get_LastFP());
-		break;
+		if (HudAnimationExist("anm_open"))
+		{
+			PlayHUDMotion				("anm_open", TRUE, GetState());
+			if (m_sounds_enabled)
+				PlaySound				("sndOpen", get_LastFP());
+			break;
+		}
+		else
+			m_sub_state					= eSubstateReloadInProcess;
+		__fallthrough;
 	case eSubstateReloadInProcess:
 		PlayHUDMotion					("anm_add_cartridge", TRUE, GetState());
 		if (m_sounds_enabled)
 			PlaySound					("sndAddCartridge", get_LastFP());
 		break;
 	case eSubstateReloadEnd:
-		PlayHUDMotion					("anm_close", TRUE, GetState());
-		if (m_sounds_enabled)
-			PlaySound					("sndClose", get_LastFP());
-		SetPending						(FALSE);
+		if (HudAnimationExist("anm_close"))
+		{
+			PlayHUDMotion				("anm_close", TRUE, GetState());
+			if (m_sounds_enabled)
+				PlaySound				("sndClose", get_LastFP());
+		}
+		else
+			SwitchState					(eIdle);
 		break;
 	default:
 		inherited::PlayAnimReload		();
@@ -89,6 +100,7 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadEnd:
+		reload_chamber					();
 		SwitchState						(eIdle);
 		break;
 	default:

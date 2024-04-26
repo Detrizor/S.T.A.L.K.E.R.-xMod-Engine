@@ -353,7 +353,7 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 		u16 pc							= ka->partitions().count();
 		for(u16 pid=0; pid<pc; ++pid)
 		{
-			CBlend* B					= ka->PlayCycle(pid, M2, bMixIn);
+			CBlend* B					= ka->PlayCycle(pid, M2, FALSE);
 			R_ASSERT					(B);
 			B->speed					*= speed;
 		}

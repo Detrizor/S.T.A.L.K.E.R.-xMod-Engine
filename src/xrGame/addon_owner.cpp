@@ -164,9 +164,19 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent):
 
 	tmp.printf							("length_%d", idx);
 	float length						= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-	tmp.printf							("steps_%d", idx);
-	steps								= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 1);
-	m_step								= length / (float(steps) + .5f);
+
+	tmp.printf							("step_%d", idx);
+	if (pSettings->line_exist(section, tmp))
+	{
+		m_step							= pSettings->r_float(section, *tmp);
+		steps							= (int)roundf(length / m_step);
+	}
+	else
+	{
+		tmp.printf						("steps_%d", idx);
+		steps							= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 1);
+		m_step							= length / (float(steps) + .5f);
+	}
 
 	auto ki								= parent->cast<CObject*>()->Visual()->dcast_PKinematics();
 	tmp.printf							("attach_bone_%d", idx);
