@@ -195,6 +195,7 @@ public:
 
 	bool							V$	AltHandsAttach						C$	()		{ return false; }
 	bool							V$	isLockedAim							C$	()		{ return false; }
+	LPCSTR							V$	autoAttachReferenceAnm				C$	()		{ return "anm_idle"; }
 
 	friend class CWeaponHud;
 };

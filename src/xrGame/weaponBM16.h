@@ -24,6 +24,8 @@ protected:
 	virtual void	PlayAnimBore					();
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+	LPCSTR								autoAttachReferenceAnm				CO$	()		{ return "anm_idle_aim_0"; }
 };
 add_to_type_list(CWeaponBM16)
 #undef script_type_list

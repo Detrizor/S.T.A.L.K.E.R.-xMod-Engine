@@ -402,7 +402,10 @@ void CWeaponMagazined::ReloadMagazine()
 		else if (m_ammo_to_reload)
 		{
 			set_ammo_type(m_ammo_to_reload->m_section_id);
-			SetAmmoElapsed(min(GetAmmoMagSize(), (int)m_ammo_to_reload->GetAmmoCount()));
+			CCartridge l_cartridge;
+			while (m_magazin.size() < m_magazin.capacity() && m_ammo_to_reload->Get(l_cartridge))
+				m_magazin.push_back(l_cartridge);
+			m_ammo_to_reload = nullptr;
 		}
 	}
 	else

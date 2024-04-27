@@ -596,7 +596,7 @@ void player_hud::update(Fmatrix cam_trans)
 				dest.invert();
 			};
 
-			calc_attach_offset_full("anm_idle_aim", pi->m_attach_offset_full[0]);
+			calc_attach_offset_full(pi->m_parent_hud_item->autoAttachReferenceAnm(), pi->m_attach_offset_full[0]);
 			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))
 				calc_attach_offset_full("anm_g_idle_aim", pi->m_attach_offset_full[1]);
 
