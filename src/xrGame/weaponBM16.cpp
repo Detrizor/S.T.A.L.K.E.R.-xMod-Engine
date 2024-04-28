@@ -13,13 +13,7 @@ void CWeaponBM16::Load	(LPCSTR section)
 
 bool CWeaponBM16::SingleCartridgeReload()
 {
-	if (ParentIsActor())
-		return ((m_magazin.size() == 1) || (m_ammo_to_reload && m_ammo_to_reload->GetAmmoCount() == 1));
-	else
-	{
-		bool b_both = HaveCartridgeInInventory(2);
-		return ((m_magazin.size() == 1 || !b_both) && (m_set_next_ammoType_on_reload == undefined_ammo_type || m_ammoType == m_set_next_ammoType_on_reload));
-	}
+	return								(m_magazin.size() == 1 || !has_ammo_for_reload(2));
 }
 
 void CWeaponBM16::PlayAnimShoot()

@@ -19,9 +19,6 @@ protected:
 	void	OnAnimationEnd							(u32 state) override;
 	void	PlayAnimReload							() override;
 
-	bool			HaveCartridgeInInventory		(u8 cnt = 1);
-	virtual bool	AddCartridge					();
-
 	ESoundTypes		m_eSoundOpen;
 	ESoundTypes		m_eSoundAddCartridge;
 	ESoundTypes		m_eSoundClose;

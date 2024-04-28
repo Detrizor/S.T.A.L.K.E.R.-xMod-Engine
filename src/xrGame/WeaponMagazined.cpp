@@ -36,7 +36,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 {
 	m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
 	m_eSoundHide = ESoundTypes(SOUND_TYPE_ITEM_HIDING | eSoundType);
-	m_eSoundBoltRelease = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
 	m_eSoundEmptyClick = ESoundTypes(SOUND_TYPE_WEAPON_EMPTY_CLICKING | eSoundType);
 	m_eSoundSwitchMode = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
 	m_eSoundShot = ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING | eSoundType);
@@ -44,13 +43,10 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_sounds_enabled = true;
 	m_sSndShotCurrent = NULL;
 
-	m_pCurrentAmmo = NULL;
-
 	m_bFireSingleShot = false;
 	m_iShotNum = 0;
 	m_fOldBulletSpeed = 0.f;
 	m_iQueueSize = WEAPON_ININITE_QUEUE;
-	m_bLockType = false;
 	m_bHasDifferentFireModes = false;
 	m_iCurFireMode = -1;
 	m_iPrefferedFireMode = -1;
@@ -93,7 +89,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundBoltRelease);
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_load_chamber", "sndLoadChamber", true, m_eSoundReload);
 
 	m_iBaseDispersionedBulletsCount = READ_IF_EXISTS(pSettings, r_u8, section, "base_dispersioned_bullets_count", 0);
 	m_fBaseDispersionedBulletsSpeed = READ_IF_EXISTS(pSettings, r_float, section, "base_dispersioned_bullets_speed", m_fStartBulletSpeed);
@@ -188,32 +185,26 @@ void CWeaponMagazined::FireStart()
 	}
 }
 
+bool CWeaponMagazined::has_ammo_for_reload(int count) const
+{
+	if (unlimited_ammo())
+		return							true;
+
+	return								(m_current_ammo && m_current_ammo->m_boxSize >= count);
+}
+
 void CWeaponMagazined::Reload()
 {
 	if (!m_pInventory && GetState() != eIdle)
 	{
-		SwitchState(eIdle);
+		SwitchState						(eIdle);
 		return;
 	}
 
 	if (IsMisfire() || ParentIsActor() && m_chamber.capacity())
-		StartReload(eSubstateReloadBolt);
-	else if (!ParentIsActor())
-	{
-		m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
-
-		if (m_pCurrentAmmo || unlimited_ammo())
-			return StartReload(eSubstateReloadDetach);
-		else for (u8 i = 0; i < u8(m_ammoTypes.size()); ++i)
-		{
-			m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[i].c_str()));
-			if (m_pCurrentAmmo)
-			{
-				m_set_next_ammoType_on_reload = i;
-				return StartReload(eSubstateReloadDetach);
-			}
-		}
-	}
+		StartReload						(eSubstateReloadBolt);
+	else if (!ParentIsActor() && has_ammo_for_reload())
+		StartReload						(eSubstateReloadDetach);
 }
 
 void CWeaponMagazined::StartReload(EWeaponSubStates substate)
@@ -227,17 +218,6 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 		m_sub_state						= eSubstateReloadBegin;
 
 	SwitchState							(eReload);
-}
-
-bool CWeaponMagazined::IsAmmoAvailable()
-{
-	if (smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str())))
-		return	(true);
-	else
-		for (u32 i = 0; i < m_ammoTypes.size(); ++i)
-			if (smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[i].c_str())))
-				return	(true);
-	return		(false);
 }
 
 bool CWeaponMagazined::Discharge(CCartridge& destination)
@@ -372,7 +352,6 @@ void CWeaponMagazined::load_chamber(CCartridge CPC cartridge)
 	else if (!get_cartridge_from_mag(l_cartridge))
 		return;
 
-	set_ammo_type						(l_cartridge.m_ammoSect);
 	m_chamber.push_back					(l_cartridge);
 }
 
@@ -385,101 +364,26 @@ void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 
 void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
 {
-	m_ammo_to_reload					= ammo;
+	m_current_ammo						= ammo;
 	StartReload							(eSubstateReloadBegin);
+}
+
+bool CWeaponMagazined::reloadCartridge()
+{
+	m_BriefInfo_CalcFrame				= 0;
+	if (m_magazin.size() < m_magazin.capacity() && (unlimited_ammo() || m_current_ammo && m_current_ammo->Get(m_cartridge)))
+	{
+		m_magazin.push_back				(m_cartridge);
+		if (!m_current_ammo->m_boxSize)
+			m_current_ammo				= nullptr;
+		return							true;
+	}
+	return								false;
 }
 
 void CWeaponMagazined::ReloadMagazine()
 {
-	if (ParentIsActor())
-	{
-		if (m_magazine_slot && m_magazine_slot->isLoading())
-		{
-			m_magazine_slot->loadingDetach();
-			m_magazine_slot->loadingAttach();
-			m_magazine_slot->finishLoading();
-		}
-		else if (m_ammo_to_reload)
-		{
-			set_ammo_type(m_ammo_to_reload->m_section_id);
-			CCartridge l_cartridge;
-			while (m_magazin.size() < m_magazin.capacity() && m_ammo_to_reload->Get(l_cartridge))
-				m_magazin.push_back(l_cartridge);
-			m_ammo_to_reload = nullptr;
-		}
-	}
-	else
-	{
-		m_BriefInfo_CalcFrame = 0;
-
-		if (!m_bLockType)
-			m_pCurrentAmmo = NULL;
-
-		if (!m_pInventory) return;
-
-		if (m_set_next_ammoType_on_reload != undefined_ammo_type)
-		{
-			m_ammoType = m_set_next_ammoType_on_reload;
-			m_set_next_ammoType_on_reload = undefined_ammo_type;
-		}
-
-		if (!unlimited_ammo())
-		{
-			if (m_ammoTypes.size() <= m_ammoType)
-				return;
-
-			LPCSTR tmp_sect_name = m_ammoTypes[m_ammoType].c_str();
-
-			if (!tmp_sect_name)
-				return;
-
-			//попытаться найти в инвентаре патроны текущего типа
-			m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(tmp_sect_name));
-
-			if (!m_pCurrentAmmo && !m_bLockType)
-			{
-				for (u8 i = 0; i < u8(m_ammoTypes.size()); ++i)
-				{
-					//проверить патроны всех подходящих типов
-					m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[i].c_str()));
-					if (m_pCurrentAmmo)
-					{
-						m_ammoType = i;
-						break;
-					}
-				}
-			}
-		}
-
-		//нет патронов для перезарядки
-		if (!m_pCurrentAmmo && !unlimited_ammo())
-			return;
-
-		if (m_DefaultCartridge.m_ammoSect != m_ammoTypes[m_ammoType])
-			m_DefaultCartridge.Load(m_ammoTypes[m_ammoType].c_str());
-		CCartridge l_cartridge = m_DefaultCartridge;
-		while (GetAmmoElapsed() < GetAmmoMagSize())
-		{
-			if (!unlimited_ammo())
-				if (!m_pCurrentAmmo->Get(l_cartridge))
-					break;
-			if (m_chamber.size() < m_chamber.capacity())
-				m_chamber.push_back(l_cartridge);
-			else
-				m_magazin.push_back(l_cartridge);
-		}
-
-		//выкинуть коробку патронов, если она пустая
-		if (m_pCurrentAmmo && !m_pCurrentAmmo->GetAmmoCount() && OnServer())
-			m_pCurrentAmmo->SetDropManual(TRUE);
-
-		if (GetAmmoMagSize() > GetAmmoElapsed())
-		{
-			m_bLockType = true;
-			ReloadMagazine();
-			m_bLockType = false;
-		}
-	}
+	while (reloadCartridge());
 }
 
 void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
@@ -572,6 +476,7 @@ void CWeaponMagazined::UpdateSounds()
 	m_sounds.SetPosition("sndAttach", P);
 	m_sounds.SetPosition("sndBoltPull", P);
 	m_sounds.SetPosition("sndBoltRelease", P);
+	m_sounds.SetPosition("sndLoadChamber", P);
 }
 
 void CWeaponMagazined::state_Fire(float dt)
@@ -1019,7 +924,7 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
 		//-Alundaio
 	}
 
-	info.icon = m_ammoTypes[m_ammoType];
+	info.icon = (m_chamber.size()) ? m_chamber.back().m_ammoSect : "";
 	return true;
 }
 
@@ -1135,7 +1040,7 @@ void CWeaponMagazined::UpdateBonesVisibility()
 void CWeaponMagazined::OnHiddenItem()
 {
 	if (m_magazine_slot && m_magazine_slot->isLoading())
-		m_magazine_slot->finishLoading(true);
+		m_magazine_slot->finishLoading	(true);
 	inherited::OnHiddenItem				();
 }
 

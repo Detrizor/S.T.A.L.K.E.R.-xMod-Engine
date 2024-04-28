@@ -43,6 +43,11 @@ void CWeaponMagazined::PlayAnimReload()
 			m_pInventory->Ruck			(this);
 		}
 		break;
+	case eSubstateReloadChamber:
+		PlayHUDMotion					("anm_load_chamber", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndLoadChamber", get_LastFP());
+		break;
 	}
 }
 
@@ -74,6 +79,9 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	case eSubstateReloadBolt:
 		reload_chamber					();
 		SwitchState						(eIdle);
+		break;
+	case eSubstateReloadChamber:
+		loadChamber						(m_current_ammo);
 		break;
 	}
 }

@@ -47,8 +47,6 @@ CWeapon::CWeapon()
 	m_iAmmoCurrentTotal = 0;
 	m_BriefInfo_CalcFrame = 0;
 
-	m_ammoType = 0;
-
 	eHandDependence = hdNone;
 
 	m_strap_bone0 = 0;
@@ -58,7 +56,6 @@ CWeapon::CWeapon()
 	m_can_be_strapped = false;
 	m_ef_main_weapon_type = u32(-1);
 	m_ef_weapon_type = u32(-1);
-	m_set_next_ammoType_on_reload = undefined_ammo_type;
 	m_activation_speed_is_overriden = false;
 }
 
@@ -269,9 +266,6 @@ void CWeapon::Load(LPCSTR section)
 	m_zoom_params.m_ReloadEmptyDof = READ_IF_EXISTS(pSettings, r_fvector4, section, "reload_empty_dof", Fvector4().set(-1, -1, -1, -1));
 	//-Swartz
 
-	m_bHasTracers = !!READ_IF_EXISTS(pSettings, r_bool, section, "tracers", true);
-	m_u8TracerColorID = READ_IF_EXISTS(pSettings, r_u8, section, "tracers_color_ID", u8(-1));
-
 	string256						temp;
 	for (int i = egdNovice; i < egdCount; ++i)
 	{
@@ -315,16 +309,14 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	CSE_Abstract					*e = (CSE_Abstract*) (DC);
 	CSE_ALifeItemWeapon			    *E = smart_cast<CSE_ALifeItemWeapon*>(e);
 
-	m_ammoType = E->ammo_type;
 	SetState(E->wpn_state);
 	SetNextState(E->wpn_state);
 
-	if (!m_ammoTypes[m_ammoType])
-		m_ammoType = 0;
-
-	m_DefaultCartridge.Load			(*m_ammoTypes[m_ammoType]);
+	m_cartridge.Load				(*m_ammoTypes[E->ammo_type]);
 	if (E->a_elapsed)
 		SetAmmoElapsed				(E->a_elapsed);
+
+	m_locked						= E->m_addon_flags.flags;
 
 	m_dwWeaponIndependencyTime = 0;
 
@@ -333,18 +325,12 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	return bResult;
 }
 
-int CWeapon::get_ammo_type(shared_str CR$ section)
+int CWeapon::get_ammo_type(shared_str CR$ section) const
 {
 	for (u8 i = 0, i_e = u8(m_ammoTypes.size()); i < i_e; ++i)
 		if (m_ammoTypes[i] == section)
 			return						i;
-	return								-1;
-}
-
-void CWeapon::set_ammo_type(shared_str CR$ section)
-{
-	m_ammoType						= get_ammo_type(section);
-	R_ASSERT						(m_ammoType != -1);
+	return								0;
 }
 
 void CWeapon::net_Destroy()
@@ -376,7 +362,7 @@ void CWeapon::net_Export(NET_Packet& P)
 	P.w_u8(need_upd);
 	P.w_u16(u16(GetAmmoElapsed()));
 	P.w_u8((u8)m_locked);
-	P.w_u8(m_ammoType);
+	P.w_u8(get_ammo_type(m_cartridge.m_ammoSect));
 	P.w_u8((u8) GetState());
 	P.w_u8((u8) IsZoomed());
 }
@@ -425,7 +411,7 @@ void CWeapon::net_Import(NET_Packet& P)
 			Msg("!! Weapon [%d], State - [%d]", ID(), wstate);
 		else
 		{
-			m_ammoType = ammoType;
+			m_cartridge.Load(*m_ammoTypes[ammoType]);
 			SetAmmoElapsed(ammo_elapsed);
 		}
 	}break;
@@ -435,21 +421,21 @@ void CWeapon::net_Import(NET_Packet& P)
 void CWeapon::save(NET_Packet &output_packet)
 {
 	inherited::save(output_packet);
-	save_data(GetAmmoElapsed(), output_packet);
-	save_data(m_ammoType, output_packet);		//--xd
-	save_data(m_ammoType, output_packet);
-	save_data(m_ammoType, output_packet);
+	save_data(0, output_packet);
+	save_data(u8(0), output_packet);		//--xd
+	save_data(u8(0), output_packet);
+	save_data(u8(0), output_packet);
 	save_data(m_zoom_params.m_bIsZoomModeNow, output_packet);
-	save_data((u8)m_locked, output_packet);
+	save_data(u8(0), output_packet);
 }
 
 void CWeapon::load(IReader &input_packet)
 {
 	inherited::load(input_packet);
-	load_data(GetAmmoElapsed(), input_packet);
-	load_data(m_ammoType, input_packet);
-	load_data(m_ammoType, input_packet);
-	load_data(m_ammoType, input_packet);
+	load_data(0, input_packet);
+	load_data(u8(0), input_packet);
+	load_data(u8(0), input_packet);
+	load_data(u8(0), input_packet);
 	load_data(m_zoom_params.m_bIsZoomModeNow, input_packet);
 
 	if (m_zoom_params.m_bIsZoomModeNow)
@@ -457,31 +443,24 @@ void CWeapon::load(IReader &input_packet)
 	else
 		OnZoomOut();
 
-	u8 locked;
-	load_data(locked, input_packet);
-	m_locked = !!locked;
+	load_data(u8(0), input_packet);
 }
 
 void CWeapon::OnEvent(NET_Packet& P, u16 type)
 {
 	switch (type)
 	{
-	case GE_WPN_STATE_CHANGE:{
+	case GE_WPN_STATE_CHANGE:
+	{
 		u8 state;
 		P.r_u8(state);
-		P.r_u8(m_sub_state);
-		//			u8 NewAmmoType =
 		P.r_u8();
-		u8 AmmoElapsed = P.r_u8();
-		u8 NextAmmo = P.r_u8();
-		if (NextAmmo == undefined_ammo_type)
-			m_set_next_ammoType_on_reload = undefined_ammo_type;
-		else
-			m_set_next_ammoType_on_reload = NextAmmo;
-
-		if (OnClient()) SetAmmoElapsed(int(AmmoElapsed));
+		P.r_u8();
+		P.r_u8();
+		P.r_u8();
 		OnStateSwitch(u32(state), GetState());
-	}break;
+		break;
+	}
 	default:
 		inherited::OnEvent(P, type);
 	}
@@ -530,7 +509,6 @@ void CWeapon::OnHiddenItem()
 	m_BriefInfo_CalcFrame = 0;
 	OnZoomOut();
 	inherited::OnHiddenItem();
-	m_set_next_ammoType_on_reload = undefined_ammo_type;
 }
 
 void CWeapon::SendHiddenItem()
@@ -541,10 +519,10 @@ void CWeapon::SendHiddenItem()
 		NET_Packet		P;
 		CHudItem::object().u_EventGen(P, GE_WPN_STATE_CHANGE, CHudItem::object().ID());
 		P.w_u8(u8(eHiding));
-		P.w_u8(u8(m_sub_state));
-		P.w_u8(m_ammoType);
-		P.w_u8(u8(GetAmmoElapsed() & 0xff));
-		P.w_u8(m_set_next_ammoType_on_reload);
+		P.w_u8(0);
+		P.w_u8(0);
+		P.w_u8(0);
+		P.w_u8(0);
 		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
 		SetPending(TRUE);
 	}
@@ -554,9 +532,7 @@ void CWeapon::OnH_B_Chield()
 {
 	m_dwWeaponIndependencyTime = 0;
 	inherited::OnH_B_Chield();
-
 	OnZoomOut();
-	m_set_next_ammoType_on_reload = undefined_ammo_type;
 }
 
 extern u32 hud_adj_mode;
@@ -814,10 +790,10 @@ void CWeapon::SwitchState(u32 S)
 		NET_Packet		P;
 		CHudItem::object().u_EventGen(P, GE_WPN_STATE_CHANGE, CHudItem::object().ID());
 		P.w_u8(u8(S));
-		P.w_u8(u8(m_sub_state));
-		P.w_u8(m_ammoType);
-		P.w_u8(u8(GetAmmoElapsed() & 0xff));
-		P.w_u8(m_set_next_ammoType_on_reload);
+		P.w_u8(0);
+		P.w_u8(0);
+		P.w_u8(0);
+		P.w_u8(0);
 		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
 	}
 }
@@ -983,18 +959,15 @@ bool CWeapon::ready_to_kill() const
 
 void CWeapon::SetAmmoElapsed(int ammo_count)
 {
-	CCartridge							l_cartridge;
-	l_cartridge.Load					(m_ammoTypes[m_ammoType].c_str());
-
 	while (m_chamber.size() > ammo_count)
 		m_chamber.pop_back				();
 
 	while (m_chamber.size() < ammo_count && m_chamber.size() < m_chamber.capacity())
-		m_chamber.push_back				(l_cartridge);
+		m_chamber.push_back				(m_cartridge);
 	ammo_count							-= m_chamber.size();
 	
 	while (m_magazin.size() < ammo_count)
-		m_magazin.push_back				(l_cartridge);
+		m_magazin.push_back				(m_cartridge);
 }
 
 u32	CWeapon::ef_main_weapon_type() const
@@ -1014,10 +987,10 @@ bool CWeapon::IsNecessaryItem(const shared_str& item_sect)
 	return (std::find(m_ammoTypes.begin(), m_ammoTypes.end(), item_sect) != m_ammoTypes.end());
 }
 
-bool CWeapon::unlimited_ammo()
+bool CWeapon::unlimited_ammo() const
 {
 	if (m_pInventory)
-		return inventory_owner().unlimited_ammo() && m_DefaultCartridge.m_flags.test(CCartridge::cfCanBeUnlimited);
+		return inventory_owner().unlimited_ammo();
 	return false;
 }
 

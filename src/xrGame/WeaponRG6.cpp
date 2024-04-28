@@ -136,11 +136,11 @@ void CWeaponRG6::FireStart ()
 	}
 }
 
-bool CWeaponRG6::AddCartridge()
+bool CWeaponRG6::reloadCartridge()
 {
-	if (inheritedSG::AddCartridge())
+	if (inheritedSG::reloadCartridge())
 	{
-		inheritedRL::SpawnRocket	(pSettings->r_string(m_ammoTypes[m_ammoType].c_str(), "fake_grenade_name"), this);
+		inheritedRL::SpawnRocket	(pSettings->r_string(m_magazin.back().m_ammoSect, "fake_grenade_name"), this);
 		return						true;
 	}
 	return							false;

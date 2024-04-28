@@ -52,7 +52,6 @@ bool CWeapon::install_upgrade_impl( LPCSTR section, bool test )
 			_GetItem					(str, i, ammoItem);
 			m_ammoTypes.push_back		(ammoItem);
 		}
-		m_ammoType						= 0;
 	}
 	result								|= result2;
 

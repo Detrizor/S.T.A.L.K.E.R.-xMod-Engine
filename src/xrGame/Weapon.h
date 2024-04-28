@@ -118,10 +118,7 @@ public:
 		eSubstateReloadDetach,
 		eSubstateReloadAttach,
 		eSubstateReloadBolt,
-	};
-	enum
-	{
-		undefined_ammo_type = u8(-1)
+		eSubstateReloadChamber,
 	};
 
 	// Does weapon need's update?
@@ -400,14 +397,7 @@ protected:
 public:
 	xr_vector<shared_str>	m_ammoTypes;
 
-	u8						m_ammoType;
-	bool					m_bHasTracers;
-	u8						m_u8TracerColorID;
-	u8						m_set_next_ammoType_on_reload;
-
-	CCartridge				m_DefaultCartridge;
-
-	bool					unlimited_ammo();
+	bool					unlimited_ammo() const;
 	IC	bool				can_be_strapped() const
 	{
 		return m_can_be_strapped;
@@ -458,18 +448,9 @@ public:
 		return cNameSect();
 	};
 
-//xMod ported
 private:
 	SafemodeAnm							m_safemode_anm[2];
 
-public:
-	bool								NeedBlendAnm						O$	();
-
-//xMod altered
-public:
-	float								GetControlInertionFactor			CO$	();
-
-//xMod added
 protected:
 	int									m_iADS									= 0;
 	bool								m_bArmedMode							= false;
@@ -501,13 +482,14 @@ protected:
 	xr_vector<CCartridge>				m_chamber								= {};
 	xr_vector<CCartridge>				m_magazin								= {};
 	
-	int									get_ammo_type							(shared_str CR$ section);
-	void								set_ammo_type							(shared_str CR$ section);
+	CCartridge							m_cartridge;
+	
 	void								appendRecoil							(float impulse_magnitude);
 	
 	CActor*								ParentIsActor						C$	();
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
+	int									get_ammo_type						C$	(shared_str CR$ section);
 
 	//with zeroing
 	Fvector							V$	getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }
@@ -525,4 +507,6 @@ public:
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
+	float								GetControlInertionFactor			CO$	();
+	bool								NeedBlendAnm						O$	();
 };

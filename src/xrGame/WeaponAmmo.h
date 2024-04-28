@@ -36,9 +36,8 @@ public:
 	enum{
 		cfTracer				= (1<<0),
 		cfRicochet				= (1<<1),
-		cfCanBeUnlimited		= (1<<2),
-		cfExplosive				= (1<<3),
-		cfMagneticBeam			= (1<<4),
+		cfExplosive				= (1<<2),
+		cfMagneticBeam			= (1<<3),
 	};
 	SCartridgeParam param_s;
 

@@ -32,7 +32,6 @@ protected:
 
 	ESoundTypes		m_eSoundShow;
 	ESoundTypes		m_eSoundHide;
-	ESoundTypes		m_eSoundBoltRelease;
 	ESoundTypes		m_eSoundEmptyClick;
 	ESoundTypes		m_eSoundSwitchMode;
 	ESoundTypes		m_eSoundShot;
@@ -60,6 +59,7 @@ protected:
 	virtual void	UpdateSounds();
 	
 protected:
+	virtual bool	reloadCartridge		();
 	virtual void	ReloadMagazine		();
 	void			ResetSilencerKoeffs	();
 
@@ -91,7 +91,6 @@ public:
 	virtual void	OnH_A_Chield();
 
 	virtual bool	Action			(u16 cmd, u32 flags);
-	bool			IsAmmoAvailable	();
 
 	virtual bool	GetBriefInfo(II_BriefInfo& info);
 
@@ -137,11 +136,6 @@ protected:
 	xr_vector<s8>	m_aFireModes;
 	int				m_iCurFireMode;
 	int				m_iPrefferedFireMode;
-
-	//переменная блокирует использование
-	//только разных типов патронов
-	bool			m_bLockType;
-	CWeaponAmmo*	m_pCurrentAmmo;
 
 public:
 	virtual void	OnZoomIn();
@@ -251,11 +245,12 @@ private:
 
 protected:
 	CWeaponHud*							m_hud									= nullptr;
-	CWeaponAmmo*						m_ammo_to_reload						= nullptr;
+	CWeaponAmmo*						m_current_ammo							= nullptr;
 
 	void								updateRecoil							();
 	void								reload_chamber							(CCartridge* dest = nullptr);
 	
+	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 

@@ -42,7 +42,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.buckShot			= pSettings->r_s32(  section, "buck_shot");
 	param_s.impair				= pSettings->r_float(section, "impair");
 	
-	m_flags.set					(cfCanBeUnlimited | cfRicochet, TRUE);
+	m_flags.set					(cfRicochet, TRUE);
 	m_flags.set					(cfMagneticBeam, FALSE);
 
 	if (pSettings->line_exist(section, "allow_ricochet"))
@@ -55,9 +55,6 @@ void CCartridge::Load(LPCSTR section, float condition)
 		if (pSettings->r_bool(section, "magnetic_beam_shot"))
 			m_flags.set(cfMagneticBeam, TRUE);
 	}
-	
-	if(pSettings->line_exist(section,"can_be_unlimited"))
-		m_flags.set(cfCanBeUnlimited, pSettings->r_bool(section, "can_be_unlimited"));
 
 	m_flags.set			(cfExplosive, pSettings->r_bool(section, "explosive"));
 

@@ -56,11 +56,18 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 			PlayHUDMotion				("anm_open", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndOpen", get_LastFP());
-			break;
+		}
+		else if (isEmptyChamber() && HudAnimationExist("anm_load_chamber"))
+		{
+			m_sub_state					= eSubstateReloadChamber;
+			PlayAnimReload				();
 		}
 		else
+		{
 			m_sub_state					= eSubstateReloadInProcess;
-		__fallthrough;
+			PlayAnimReload				();
+		}
+		break;
 	case eSubstateReloadInProcess:
 		PlayHUDMotion					("anm_add_cartridge", TRUE, GetState());
 		if (m_sounds_enabled)
@@ -93,7 +100,7 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadInProcess:
-		if (!AddCartridge() || m_magazin.size() == m_magazin.capacity() || !HaveCartridgeInInventory())
+		if (!reloadCartridge() || m_magazin.size() == m_magazin.capacity() || !has_ammo_for_reload())
 			m_sub_state					= eSubstateReloadEnd;
 		if (!m_magazin.empty() && m_chamber.empty() && !ParentIsActor())
 			m_sub_state					= eSubstateReloadBolt;
@@ -103,78 +110,14 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		reload_chamber					();
 		SwitchState						(eIdle);
 		break;
+	case eSubstateReloadChamber:
+		inherited::OnAnimationEnd		(state);
+		m_sub_state						= eSubstateReloadInProcess;
+		PlayAnimReload					();
+		break;
 	default:
 		inherited::OnAnimationEnd		(state);
 	}
-}
-
-bool CWeaponAutomaticShotgun::HaveCartridgeInInventory(u8 cnt)
-{
-	if (unlimited_ammo())
-		return						true;
-	if (!m_pInventory)
-		return						false;
-
-	if (ParentIsActor())
-		return						(m_ammo_to_reload && m_ammo_to_reload->GetAmmoCount() >= cnt);
-	else
-	{
-		u32 ac						= GetAmmoCount(m_ammoType);
-		if (ac < cnt)
-		{
-			for (u8 i = 0, i_e = u8(m_ammoTypes.size()); i < i_e; ++i)
-			{
-				if (m_ammoType == i)
-					continue;
-				ac					+= GetAmmoCount(i);
-				if (ac >= cnt)
-				{
-					m_ammoType		= i;
-					break;
-				}
-			}
-		}
-		return						(ac >= cnt);
-	}
-}
-
-bool CWeaponAutomaticShotgun::AddCartridge()
-{
-	if (!HaveCartridgeInInventory())
-		return						false;
-
-	CWeaponAmmo*					cartridges;
-	if (ParentIsActor())
-	{
-		if (!m_ammo_to_reload)
-			return					false;
-
-		cartridges					= m_ammo_to_reload;
-		set_ammo_type				(cartridges->m_section_id);
-	}
-	else
-	{
-		if (m_set_next_ammoType_on_reload != undefined_ammo_type)
-		{
-			m_ammoType				= m_set_next_ammoType_on_reload;
-			m_set_next_ammoType_on_reload = undefined_ammo_type;
-		}
-		cartridges					= smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(m_ammoTypes[m_ammoType].c_str()));
-	}
-
-	if (get_ammo_type(m_DefaultCartridge.m_ammoSect) != m_ammoType)
-		m_DefaultCartridge.Load		(m_ammoTypes[m_ammoType].c_str());
-
-	CCartridge l_cartridge			= m_DefaultCartridge;
-	if (unlimited_ammo() || (cartridges && cartridges->Get(l_cartridge)))
-	{
-		l_cartridge.m_fCondition	= cartridges->GetCondition();
-		m_magazin.push_back			(l_cartridge);
-	}
-	else
-		return						false;
-
-	return							true;
 }
 
 void CWeaponAutomaticShotgun::net_Export(NET_Packet& P)

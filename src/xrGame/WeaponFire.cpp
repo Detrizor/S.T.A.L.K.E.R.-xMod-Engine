@@ -55,18 +55,8 @@ float CWeapon::GetWeaponDeterioration	()
 void CWeapon::FireTrace		()
 {
 	CCartridge l_cartridge = getCartridgeToShoot();
-//	Msg("ammo - %s", l_cartridge.m_ammoSect.c_str());
 	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
-	//-------------------------------------------------------------	
-	bool is_tracer	= m_bHasTracers && !!l_cartridge.m_flags.test(CCartridge::cfTracer);
 
-	l_cartridge.m_flags.set	(CCartridge::cfTracer, is_tracer );
-	if (m_u8TracerColorID != u8(-1))
-		l_cartridge.param_s.u8ColorID	= m_u8TracerColorID;
-	//-------------------------------------------------------------
-	//повысить изношенность оружия с учетом влияния конкретного патрона
-//	float Deterioration = GetWeaponDeterioration();
-//	Msg("Deterioration = %f", Deterioration);
 	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
 
 	Fvector p = get_LastFP();
