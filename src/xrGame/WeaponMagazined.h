@@ -222,9 +222,10 @@ private:
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
+	u32									m_animation_slot_reloading;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
-	void								load_chamber							(CCartridge CPC cartridge = nullptr);
+	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
 	void								ProcessMagazine							(CMagazine* mag, bool attach);
@@ -239,6 +240,7 @@ private:
 	bool								is_detaching						C$	();
 
 	bool								isLockedAim 						CO$	()		{ return m_locked; }
+	u32									animation_slot						CO$	();
 
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();

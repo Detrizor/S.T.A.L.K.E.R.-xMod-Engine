@@ -102,8 +102,6 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	case eSubstateReloadInProcess:
 		if (!reloadCartridge() || m_magazin.size() == m_magazin.capacity() || !has_ammo_for_reload())
 			m_sub_state					= eSubstateReloadEnd;
-		if (!m_magazin.empty() && m_chamber.empty() && !ParentIsActor())
-			m_sub_state					= eSubstateReloadBolt;
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadEnd:

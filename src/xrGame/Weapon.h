@@ -66,8 +66,9 @@ public:
 
 	virtual void			renderable_Render();
 	virtual void			render_hud_mode();
-
-	virtual void			OnH_B_Chield();
+	
+			void			OnH_A_Chield() override;
+			void			OnH_B_Chield() override;
 	virtual void			OnH_B_Independent(bool just_before_destroy);
 	virtual void			OnH_A_Independent();
 	virtual void			OnEvent(NET_Packet& P, u16 type);// {inherited::OnEvent(P,type);}
@@ -457,6 +458,7 @@ protected:
 	bool								m_bHasAltAim							= true;
 	bool								m_bArmedRelaxedSwitch					= true;
 	bool								m_locked								= false;
+	CActor*								m_actor									= nullptr;
 
 	float								m_grip_accuracy_modifier				= 1.f;
 	float								m_stock_accuracy_modifier				= 1.f;
@@ -486,7 +488,6 @@ protected:
 	
 	void								appendRecoil							(float impulse_magnitude);
 	
-	CActor*								ParentIsActor						C$	();
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
 	int									get_ammo_type						C$	(shared_str CR$ section);

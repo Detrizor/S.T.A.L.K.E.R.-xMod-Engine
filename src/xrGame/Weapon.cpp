@@ -528,8 +528,14 @@ void CWeapon::SendHiddenItem()
 	}
 }
 
+void CWeapon::OnH_A_Chield()
+{
+	m_actor = H_Parent()->Cast<CActor*>();
+}
+
 void CWeapon::OnH_B_Chield()
 {
+	m_actor = nullptr;
 	m_dwWeaponIndependencyTime = 0;
 	inherited::OnH_B_Chield();
 	OnZoomOut();
@@ -1015,11 +1021,6 @@ BOOL CWeapon::ParentMayHaveAimBullet()
 	CObject* O = H_Parent();
 	CEntityAlive* EA = smart_cast<CEntityAlive*>(O);
 	return EA->cast_actor() != 0;
-}
-
-CActor* CWeapon::ParentIsActor() const
-{
-	return Parent->Cast<CActor*>();
 }
 
 extern u32 hud_adj_mode;

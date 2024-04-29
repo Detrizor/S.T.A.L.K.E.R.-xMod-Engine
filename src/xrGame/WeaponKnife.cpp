@@ -265,7 +265,7 @@ void CWeaponKnife::switch2_Hidden()
 void CWeaponKnife::switch2_Showing	()
 {
 	VERIFY(GetState() == eShowing);
-	if (ParentIsActor()) g_player_hud->attach_item(this);
+	if (m_actor) g_player_hud->attach_item(this);
 	PlayHUDMotion("anm_show", FALSE, GetState());
 }
 

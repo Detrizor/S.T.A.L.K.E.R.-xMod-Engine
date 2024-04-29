@@ -165,7 +165,7 @@ public:
 	const shared_str&			HudSection				() const		{ return hud_sect;}
 	IC CPhysicItem&				object					() const		{ VERIFY(m_object); return(*m_object);}
 	IC CInventoryItem&			item					() const		{ VERIFY(m_item); return(*m_item);}
-	IC		u32					animation_slot			()				{ return m_animation_slot;}
+	virtual	u32					animation_slot			() const		{ return m_animation_slot;}
 
 	virtual void				on_renderable_Render	() = 0;
 	virtual void				debug_draw_firedeps		() {};

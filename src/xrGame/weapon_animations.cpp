@@ -64,7 +64,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadDetach:
 		m_magazine_slot->loadingDetach	();
-		if (m_magazine_slot->isLoading())
+		if (m_magazine_slot->isLoading() || !m_actor)
 		{
 			m_sub_state					= eSubstateReloadAttach;
 			PlayAnimReload				();
@@ -74,6 +74,8 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadAttach:
 		m_magazine_slot->finishLoading	();
+		if (!m_actor)
+			ReloadMagazine				();
 		SwitchState					(eIdle);
 		break;
 	case eSubstateReloadBolt:
