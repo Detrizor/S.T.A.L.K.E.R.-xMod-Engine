@@ -23,7 +23,6 @@
 #define HIT_POWER_EPSILON 0.05f
 #define WALLMARK_SIZE 0.04f
 
-float CBulletManager::m_fMinBulletSpeed					= 3.f;
 float const CBulletManager::parent_ignore_distance		= 3.f;
 
 #ifdef DEBUG
@@ -64,7 +63,8 @@ void SBullet::Init(const Fvector& position,
 
 	VERIFY					(direction.magnitude() > 0.f);
 
-	fly_dist				= 0;
+	fly_dist				= 0.f;
+	fly_time				= 0.f;
 	tracer_start_position	= position;
 
 	parent_id				= sender_id;
@@ -100,6 +100,9 @@ void SBullet::Init(const Fvector& position,
 
 	targetID				= u16(-1);
 	density					= 1.f;
+
+	static u32 i = 0;
+	id = i++;
 }
 
 CBulletManager::CBulletManager()
@@ -133,7 +136,9 @@ void CBulletManager::Load		()
 	m_fTracerLengthMax		= pSettings->r_float(bullet_manager_sect, "tracer_length_max");
 	m_fTracerLengthMin		= pSettings->r_float(bullet_manager_sect, "tracer_length_min");
 	m_fGravityConst			= pSettings->r_float(bullet_manager_sect, "gravity_const");
-	m_fMinBulletSpeed		= pSettings->r_float(bullet_manager_sect, "min_bullet_speed");
+	m_gravity				= { 0.f, -m_fGravityConst, 0.f };
+	m_min_bullet_speed		= pSettings->r_float(bullet_manager_sect, "min_bullet_speed");
+	m_max_bullet_fly_time	= pSettings->r_float(bullet_manager_sect, "max_bullet_fly_time");
 	m_fCollisionEnergyMin	= pSettings->r_float(bullet_manager_sect, "collision_energy_min");
 	m_fCollisionEnergyMax	= pSettings->r_float(bullet_manager_sect, "collision_energy_max");
 
@@ -262,32 +267,26 @@ void CBulletManager::UpdateWorkload()
 
 bool CBulletManager::process_bullet(collide::rq_results & storage, SBullet& bullet, float time_delta)
 {
-	Msg("--xd process_bullet bullet_mass [%f] speed [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.updates);
 	bullet.tracer_start_position		= bullet.pos;
-	Fbox CR$ level_box					= Level().ObjectSpace.GetBoundingVolume();
-	if ((bullet.pos.x < level_box.x1) ||
-		(bullet.pos.x > level_box.x2) ||
-		(bullet.pos.y < level_box.y1) ||
-		//		(bullet.pos.y > level_box.y2) ||
-		(bullet.pos.z < level_box.z1) ||
-		(bullet.pos.z > level_box.z2) ||
-		(bullet.speed < m_fMinBulletSpeed) ||
-		(bullet.updates > 999))
-		return							false;
-
-	Fvector const gravity				= Fvector().set( 0.f, -m_fGravityConst, 0.f);
-	return								update_bullet(storage, bullet, time_delta, gravity);
+	return								update_bullet(storage, bullet, time_delta);
 }
 
-bool CBulletManager::update_bullet(
-	collide::rq_results& storage, 
-	SBullet& bullet,
-	float time_delta,
-	Fvector const& gravity
-)
+bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet, float time_delta)
 {
-	Msg("--xd update_bullet bullet_mass [%f] speed [%f] fly_dist [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.fly_dist, bullet.updates);
-	R_ASSERT							(bullet.updates++ < 1000);
+	Fbox CR$ level_box					= Level().ObjectSpace.GetBoundingVolume();
+	if (bullet.pos.x < level_box.x1 || bullet.pos.x > level_box.x2 ||
+		bullet.pos.y < level_box.y1 || //bullet.pos.y > level_box.y2 ||
+		bullet.pos.z < level_box.z1 || bullet.pos.z > level_box.z2 ||
+		bullet.speed < m_min_bullet_speed)
+		return							false;
+
+	if (bullet.flush_time >= bullet.fly_time)
+	{
+		Msg("--xd update_bullet id [%d] speed [%.3f] dist [%.3f] time [%.3f]", bullet.id, bullet.speed, bullet.fly_dist, bullet.fly_time);
+		bullet.flush_time += .1f;
+	}
+
+	R_ASSERT							(bullet.fly_time < m_max_bullet_fly_time);
 
 	bullet_test_callback_data			data;
 	data.pBullet						= &bullet;
@@ -304,9 +303,10 @@ bool CBulletManager::update_bullet(
 	}
 	else
 		resistance						*= bullet.speed;
+	R_ASSERT							(!fIsZero(resistance));
 
 	data.start_velocity					= Fvector(bullet.dir).mul(bullet.speed);
-	data.end_velocity					= Fvector(data.start_velocity).mul(1.f - resistance * data.dt).mad(gravity, data.dt);
+	data.end_velocity					= Fvector(data.start_velocity).mul(1.f - resistance * data.dt).mad(m_gravity, data.dt);
 	data.avg_velocity					= Fvector(data.start_velocity).add(data.end_velocity).mul(.5f);
 
 	Fvector new_position				= Fvector(bullet.pos).mad(data.avg_velocity, data.dt);
@@ -317,26 +317,30 @@ bool CBulletManager::update_bullet(
 	collide::ray_defs RD				(bullet.pos, start_to_target, distance, CDB::OPT_FULL_TEST, collide::rqtBoth);
 	if (Level().ObjectSpace.RayQuery(storage, RD, CBulletManager::firetrace_callback, &data, CBulletManager::test_callback, NULL))
 	{
-		Msg("--xd after firetrace_callback bullet_mass [%f] speed [%f] fly_dist [%f] updates [%d]", bullet.bullet_mass, bullet.speed, bullet.fly_dist, bullet.updates);
-		if (bullet.speed < m_fMinBulletSpeed)
-			return						false;
-		bullet.pos.mad					(bullet.dir, EPS_L);
-		bullet.fly_dist					+= EPS_L;
-		return							update_bullet(storage, bullet, time_delta - data.collide_time, gravity);
+		Msg("--xd after firetrace_callback-%d id [%d] speed [%.3f] dist [%.3f] time [%.3f] updates [%d]", ++bullet.updates, bullet.id, bullet.speed, bullet.fly_dist, bullet.fly_time);
+		R_ASSERT						(bullet.updates < 1000);
+
+		float d_pos						= .01f;
+		bullet.pos.mad					(bullet.dir, d_pos);
+		bullet.fly_dist					+= d_pos;
+		float d_time					= (bullet.speed >= m_min_bullet_speed) ? d_pos / bullet.speed : 0.f;
+		bullet.fly_time					+= d_time;
+		
+		return							update_bullet(storage, bullet, time_delta - data.collide_time - d_time);
 	}
 
 	bullet.fly_dist						+= distance;
+	bullet.fly_time						+= time_delta;
 	bullet.pos							= new_position;
 	bullet.speed						= data.end_velocity.magnitude();
 	bullet.dir							= data.end_velocity.normalize_safe();
+	bullet.updates						= 0;
 
 	return								!fis_zero(bullet.speed);
 }
 
 BOOL CBulletManager::firetrace_callback	(collide::rq_result& result, LPVOID params)
 {
-	Msg("--xd firetrace_callback range [%f]", result.range);
-
 	bullet_test_callback_data& data		= *(bullet_test_callback_data*)params;
 	data.collide_time					= result.range / data.avg_velocity.magnitude();
 	if (fIsZero(result.range))
@@ -345,6 +349,7 @@ BOOL CBulletManager::firetrace_callback	(collide::rq_result& result, LPVOID para
 	SBullet& bullet						= *data.pBullet;
 	Fvector collide_position			= Fvector(bullet.pos).mad(data.avg_velocity.normalize(), result.range);
 	bullet.fly_dist						+= bullet.pos.distance_to(collide_position);
+	bullet.fly_time						+= data.collide_time;
 	bullet.pos							= collide_position;
 	bullet.dir.lerp						(data.start_velocity, data.end_velocity, data.collide_time / data.dt);
 	bullet.speed						= bullet.dir.magnitude();

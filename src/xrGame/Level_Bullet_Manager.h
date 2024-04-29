@@ -52,6 +52,7 @@ struct SBullet
 	u16				weapon_id			;			//ID оружия из которого была выпущены пуля
 	
 	float			fly_dist			;			//дистанция которую пуля пролетела
+	float			fly_time			;			//Время которое пуля летит
 	Fvector			tracer_start_position;
 
 	//коэфициенты и параметры патрона
@@ -96,6 +97,9 @@ public:
 										bool	SendHit,
 										float	power,
 										float	impulse);
+
+	u32 id = 0;
+	float flush_time = 0.f;
 };
 
 class CLevel;
@@ -152,9 +156,6 @@ protected:
 	//отрисовка трассеров от пуль
 	CTracer					tracers;
 
-	//минимальная скорость, на которой пуля еще считается
-	static float			m_fMinBulletSpeed;
-
 	float					m_fHPMaxDist;
 
 	//константа G
@@ -200,14 +201,11 @@ protected:
 	bool					update_bullet(
 								collide::rq_results& rq_storage, 
 								SBullet& bullet,
-								float time_delta,
-								Fvector const& gravity
-							);
-	bool					process_bullet		(
+								float time_delta);
+	bool					process_bullet(
 								collide::rq_results& rq_storage,
 								SBullet& bullet,
-								float time_delta
-							);
+								float time_delta);
 	void 		__stdcall	UpdateWorkload		();
 
 public:
@@ -226,34 +224,41 @@ public:
 	void					CommitRenderSet		();	// @ the end of frame
 	void 					Render				();
 
-	float					m_fBulletAirResistanceScale;
-	float					m_fBulletWallMarkSizeScale;
+private:
+	float								m_min_bullet_speed;
+	float								m_max_bullet_fly_time;
+	Fvector								m_gravity;
 
-	float					m_fZeroingAirResistCorrectionK1;
-	float					m_fZeroingAirResistCorrectionK2;
-	float					m_fZeroingAirResistCorrectionK3;
+public:
+	float								m_fBulletAirResistanceScale;
+	float								m_fBulletWallMarkSizeScale;
 
-	float					m_fBulletAPScale;
-	float					m_fBulletArmorPiercingAPFactor;
-	float					m_fBulletHollowPointAPFactor;
-	float					m_fBulletHollowPointResistFactor;
-	float					m_fBulletAPLossOnPierce;
+	float								m_fZeroingAirResistCorrectionK1;
+	float								m_fZeroingAirResistCorrectionK2;
+	float								m_fZeroingAirResistCorrectionK3;
 
-	float					m_fBulletHitImpulseScale;
-	float					m_fBulletArmorDamageScale;
-	float					m_fBulletPierceDamageScale;
-	float					m_fBulletArmorPierceDamageScale;
+	float								m_fBulletAPScale;
+	float								m_fBulletArmorPiercingAPFactor;
+	float								m_fBulletHollowPointAPFactor;
+	float								m_fBulletHollowPointResistFactor;
+	float								m_fBulletAPLossOnPierce;
 
-	SPowerDependency		m_fBulletPierceDamageFromResist;
-	SPowerDependency		m_fBulletPierceDamageFromKAP;
-	SPowerDependency		m_fBulletPierceDamageFromSpeed;
+	float								m_fBulletHitImpulseScale;
+	float								m_fBulletArmorDamageScale;
+	float								m_fBulletPierceDamageScale;
+	float								m_fBulletArmorPierceDamageScale;
 
-	SPowerDependency		m_fBulletPierceDamageFromSpeedScale;
-	SPowerDependency		m_fBulletPierceDamageFromHydroshock;
-	SPowerDependency		m_fBulletPierceDamageFromStability;
-	SPowerDependency		m_fBulletPierceDamageFromPierce;
+	SPowerDependency					m_fBulletPierceDamageFromResist;
+	SPowerDependency					m_fBulletPierceDamageFromKAP;
+	SPowerDependency					m_fBulletPierceDamageFromSpeed;
+
+	SPowerDependency					m_fBulletPierceDamageFromSpeedScale;
+	SPowerDependency					m_fBulletPierceDamageFromHydroshock;
+	SPowerDependency					m_fBulletPierceDamageFromStability;
+	SPowerDependency					m_fBulletPierceDamageFromPierce;
 
 	float								GravityConst						C$	()		{ return m_fGravityConst; }
+
 	float								CalcZeroingCorrection				C$	(float k, float z);
 };
 
