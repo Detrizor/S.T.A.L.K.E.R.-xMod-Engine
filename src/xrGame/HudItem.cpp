@@ -652,12 +652,7 @@ bool CHudItem::HudAnimationExist(LPCSTR anim_name)
 {
 	if (HudItemData()) // First person
 	{
-		player_hud_motion* anm = HudItemData()->m_hand_motions.find_motion(anim_name);
-		if (anm)
-			return true;
-
-		anm = HudItemData()->m_hand_motions.find_motion(anim_name);
-		if (anm)
+		if (HudItemData()->m_hand_motions.find_motion(anim_name))
 			return true;
 	}
 	else // Third person

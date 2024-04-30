@@ -285,6 +285,8 @@ void CWeaponMagazined::OnMagazineEmpty()
 
 LPCSTR CWeaponMagazined::anmType() const
 {
+	if (GetState() == eReload && m_sub_state == eSubstateReloadBolt && !m_shot_shell && m_chamber.empty())
+		return							"_dummy";
 	return								(m_locked) ? "_empty" : inherited::anmType();
 }
 

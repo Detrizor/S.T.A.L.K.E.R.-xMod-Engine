@@ -41,15 +41,10 @@ void update_bones(IKinematics* model)
 
 player_hud_motion* player_hud_motion_container::find_motion(const shared_str& name)
 {
-	xr_vector<player_hud_motion>::iterator it	= m_anims.begin();
-	xr_vector<player_hud_motion>::iterator it_e = m_anims.end();
-	for(;it!=it_e;++it)
-	{
-		const shared_str& s = (true)?(*it).m_alias_name:(*it).m_base_name;
-		if( s == name)
-			return &(*it);
-	}
-	return NULL;
+	for (auto& a : m_anims)
+		if (a.m_alias_name == name)
+			return &a;
+	return nullptr;
 }
 
 void player_hud_motion_container::load(IKinematicsAnimated* model, LPCSTR sect)
