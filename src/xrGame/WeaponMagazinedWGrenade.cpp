@@ -152,7 +152,7 @@ bool CWeaponMagazinedWGrenade::SwitchMode()
 void CWeaponMagazinedWGrenade::PerformSwitchGL()
 {
 	m_bGrenadeMode = !m_bGrenadeMode;
-	m_MotionsSuffix = (m_bGrenadeMode) ? "g" : ((m_pLauncher) ? m_pLauncher->cast<CAddon*>()->MotionSuffix() : 0);
+	m_anm_prefix = (m_bGrenadeMode) ? "g" : ((m_pLauncher) ? m_pLauncher->cast<CAddon*>()->anmPrefix() : 0);
 
 	m_hud->SwitchGL();
 }

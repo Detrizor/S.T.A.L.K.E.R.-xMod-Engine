@@ -534,9 +534,9 @@ void CHudItem::on_a_hud_attach()
 u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 {
 	shared_str							tmp;
-	if (m_MotionsSuffix.size())
+	if (m_anm_prefix.size())
 	{
-		tmp.printf						("anm_%s_%s", *m_MotionsSuffix, (*name + 4));
+		tmp.printf						("anm_%s_%s", *m_anm_prefix, (*name + 4));
 		if (HudAnimationExist(*tmp))
 			name						= tmp;
 	}

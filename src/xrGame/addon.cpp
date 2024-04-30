@@ -13,7 +13,7 @@ void CAddon::Load(LPCSTR section)
 	m_SlotType							= pSettings->r_string(section, "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(section, "icon_offset");
 	m_low_profile						= pSettings->r_bool(section, "low_profile");
-	m_MotionsSuffix						= pSettings->r_string(section, "motions_suffix");
+	m_anm_prefix						= pSettings->r_string(section, "anm_prefix");
 	m_front_positioning					= pSettings->r_bool(section, "front_positioning");
 	if (pSettings->line_exist(section, "addon_type"))
 	{

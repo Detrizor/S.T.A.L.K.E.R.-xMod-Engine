@@ -1,63 +1,34 @@
 #include "stdafx.h"
 #include "weaponBM16.h"
 
-CWeaponBM16::~CWeaponBM16()
+void CWeaponBM16::Load(LPCSTR section)
 {
-}
-
-void CWeaponBM16::Load	(LPCSTR section)
-{
-	inherited::Load		(section);
-	m_sounds.LoadSound	(*HudSection(), "snd_reload_1", "sndReload1", true, m_eSoundReload);
-}
-
-bool CWeaponBM16::SingleCartridgeReload()
-{
-	return								(m_magazin.size() == 1 || !has_ammo_for_reload(2));
+	inherited::Load						(section);
+	m_sounds.LoadSound					(*HudSection(), "snd_reload_1", "sndReload1", true, m_eSoundReload);
 }
 
 void CWeaponBM16::PlayAnimShoot()
 {
-	PlayHUDMotion						(shared_str().printf("anm_shot_%d", m_magazin.size() + 1), TRUE, GetState());
-}
-
-void CWeaponBM16::PlayAnimShow()
-{
-	PlayHUDMotion						(shared_str().printf("anm_show_%d", m_magazin.size()), TRUE, GetState());
-}
-
-void CWeaponBM16::PlayAnimHide()
-{
-	PlayHUDMotion						(shared_str().printf("anm_hide_%d", m_magazin.size()), TRUE, GetState());
-}
-
-void CWeaponBM16::PlayAnimBore()
-{
-	PlayHUDMotion						(shared_str().printf("anm_bore_%d", m_magazin.size()), TRUE, GetState());
+	PlayHUDMotion						((m_magazin.size()) ? "anm_shot" : "anm_shot_1", TRUE, GetState());
 }
 
 void CWeaponBM16::PlayAnimReload()
 {
-	bool single							= SingleCartridgeReload();
-	PlayHUDMotion						((single) ? "anm_reload_1" : "anm_reload_2", TRUE, GetState());
-	PlaySound							((single) ? "sndReload1" : "sndReload", get_LastFP());
+	bool single							= (m_magazin.size() == 1 || !has_ammo_for_reload(2));
+	PlayHUDMotion						((single) ? "anm_reload_1" : "anm_reload", TRUE, GetState());
+	if (m_sounds_enabled)
+		PlaySound						((single) ? "sndReload1" : "sndReload", get_LastFP());
 }
 
-void  CWeaponBM16::PlayAnimIdleMoving()
+LPCSTR CWeaponBM16::anmType() const
 {
-	PlayHUDMotion						(shared_str().printf("anm_idle_moving_%d", m_magazin.size()), TRUE, GetState());
-}
-
-void  CWeaponBM16::PlayAnimIdleSprint()
-{
-	PlayHUDMotion						(shared_str().printf("anm_idle_sprint_%d", m_magazin.size()), TRUE, GetState());
-}
-
-void CWeaponBM16::PlayAnimIdle()
-{
-	if (TryPlayAnimIdle())
-		return;
-
-	LPCSTR mask							= (ADS()) ? "anm_idle_aim_%d" : "anm_idle_%d";
-	PlayHUDMotion						(shared_str().printf(mask, m_magazin.size()), TRUE, GetState());
+	switch (m_magazin.size())
+	{
+	case 0:
+		return							"_empty";
+	case 1:
+		return							"_one";
+	default:
+		return							"";
+	}
 }

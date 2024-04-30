@@ -127,6 +127,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 				m_magazine_slot			= s;
 			if (s->muzzle)
 				s->model_offset.translate_add(m_loaded_muzzle_point);
+			s->model_offset.translate_sub(m_root_bone_position);
 		}
 	}
 	
@@ -282,11 +283,16 @@ void CWeaponMagazined::OnMagazineEmpty()
 	inherited::OnMagazineEmpty();
 }
 
+LPCSTR CWeaponMagazined::anmType() const
+{
+	return								(m_locked) ? "_empty" : inherited::anmType();
+}
+
 u32 CWeaponMagazined::animation_slot() const
 {
 	if (GetState() == eReload)
-		return m_animation_slot_reloading;
-	return inherited::animation_slot();
+		return							m_animation_slot_reloading;
+	return								inherited::animation_slot();
 }
 
 CCartridge CWeaponMagazined::getCartridgeToShoot()
@@ -1274,9 +1280,9 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 
 	InitRotateTime				();
 
-	if (addon->MotionSuffix().size())
+	if (addon->anmPrefix().size())
 	{
-		m_MotionsSuffix			= (attach) ? addon->MotionSuffix() : 0;
+		m_anm_prefix			= (attach) ? addon->anmPrefix() : 0;
 		PlayAnimIdle			();
 	}
 

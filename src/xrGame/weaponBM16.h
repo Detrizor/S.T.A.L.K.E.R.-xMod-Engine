@@ -8,25 +8,17 @@ class CWeaponBM16 :public CWeaponAutomaticShotgun
 	typedef CWeaponAutomaticShotgun inherited;
 
 public:
-	virtual			~CWeaponBM16					();
-	virtual void	Load							(LPCSTR section);
+	void								Load								O$	(LPCSTR section);
 
 protected:
-			bool	SingleCartridgeReload			();
-
-	virtual void	PlayAnimShoot					();
-	virtual void	PlayAnimReload					();
-	virtual void	PlayAnimIdle					();
-	virtual void	PlayAnimIdleMoving				();
-	virtual void	PlayAnimIdleSprint				();
-	virtual void	PlayAnimShow					();
-	virtual void	PlayAnimHide					();
-	virtual void	PlayAnimBore					();
+	void								PlayAnimShoot						O$	();
+	void								PlayAnimReload						O$	();
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
-	LPCSTR								autoAttachReferenceAnm				CO$	()		{ return "anm_idle_aim_0"; }
+	LPCSTR								anmType		 						CO$	();
 };
+
 add_to_type_list(CWeaponBM16)
 #undef script_type_list
 #define script_type_list save_type_list(CWeaponBM16)

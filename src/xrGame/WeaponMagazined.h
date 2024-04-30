@@ -239,7 +239,7 @@ private:
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
 
-	bool								isLockedAim 						CO$	()		{ return m_locked; }
+	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
 
 	CCartridge							getCartridgeToShoot					O$	();

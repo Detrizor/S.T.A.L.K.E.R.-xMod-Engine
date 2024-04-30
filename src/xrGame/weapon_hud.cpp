@@ -25,21 +25,22 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eIS][0].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_pos"));
 	m_hud_offset[eIS][1]				= vZero;
 	m_hud_offset[eIS][1].sub			(pSettings->r_fvector3d2r(O.HudSection(), "iron_sights_rot"));
+	O.m_root_offset.pivot				(m_hud_offset[eIS]);
 
 	m_hud_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
 	m_hud_offset[eRelaxed][1]			= pSettings->r_fvector3d2r(O.HudSection(), "relaxed_rot");
-	O.m_grip_offset.pivot				(m_hud_offset[eRelaxed]);
+	O.m_root_offset.pivot				(m_hud_offset[eRelaxed]);
 
 	m_hud_offset[eArmed][0]				= pSettings->r_fvector3(O.HudSection(), "armed_pos");
 	m_hud_offset[eArmed][1]				= pSettings->r_fvector3d2r(O.HudSection(), "armed_rot");
-	O.m_grip_offset.pivot				(m_hud_offset[eArmed]);
+	O.m_root_offset.pivot				(m_hud_offset[eArmed]);
 
 	m_hud_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hud_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
 	barrel_offset.pivot					(m_hud_offset[eAlt]);
 
 	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.HudSection(), "alt_aim_height");
-	m_hud_offset[eIS][0].z				= O.m_grip_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+	m_hud_offset[eIS][0].z				= O.m_root_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
 	m_hud_offset[eAlt][0].z				= m_hud_offset[eIS][0].z;
 
 	calc_aim_offset						();
@@ -468,13 +469,13 @@ void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 	else
 	{
 		Fvector tmp[2] = {};
-		tmp[0] = Fvector(m_current_hud_offset[0]).sub(O.m_grip_offset);
+		tmp[0] = Fvector(m_current_hud_offset[0]).sub(O.m_root_offset);
 		tmp[1] = {
 			O.getRecoilHudShift().x * s_recoil_hud_angle_per_shift,
 			O.getRecoilHudShift().y * s_recoil_hud_angle_per_shift,
 			O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
 		};
-		O.m_grip_offset.pivot(tmp);
+		O.m_root_offset.pivot(tmp);
 		trans.applyOffset(tmp);
 		trans.applyOffset(vZero, m_current_hud_offset[1]);
 	}

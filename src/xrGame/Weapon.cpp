@@ -295,9 +295,12 @@ void CWeapon::Load(LPCSTR section)
 	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
-
-	m_grip_offset						= pSettings->r_fvector3(section, "grip_point"); m_grip_offset.mul(-1.f);
+	
+	m_root_bone_position				= pSettings->r_fvector3(section, "root_bone_position");
+	m_root_offset						= m_root_bone_position;
+	m_root_offset.sub					(pSettings->r_fvector3(section, "grip_point"));
 	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");
+	m_loaded_muzzle_point.sub			(m_root_bone_position);
 	m_muzzle_point						= m_loaded_muzzle_point;
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
@@ -827,8 +830,8 @@ void CWeapon::reload(LPCSTR section)
 		m_strap_bone1 = pSettings->r_string(section, "strap_bone1");
 	else
 		m_can_be_strapped = false;
-
-	m_Offset.translate_over(m_grip_offset);
+	
+	m_Offset.translate_over(m_root_offset);
 
 	m_StrapOffset = m_Offset;
 	if (pSettings->line_exist(section, "strap_position") && pSettings->line_exist(section, "strap_orientation"))

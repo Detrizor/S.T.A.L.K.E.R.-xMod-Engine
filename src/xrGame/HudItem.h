@@ -187,15 +187,15 @@ public:
 	virtual	bool			NeedBlendAnm			();
 
 protected:
-	shared_str							m_MotionsSuffix							= 0;
+	shared_str							m_anm_prefix							= 0;
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
 	bool							V$	AltHandsAttach						C$	()		{ return false; }
-	bool							V$	isLockedAim							C$	()		{ return false; }
 	LPCSTR							V$	autoAttachReferenceAnm				C$	()		{ return "anm_idle"; }
+	LPCSTR							V$	anmType								C$	()		{ return ""; }
 
 	friend class CWeaponHud;
 };
