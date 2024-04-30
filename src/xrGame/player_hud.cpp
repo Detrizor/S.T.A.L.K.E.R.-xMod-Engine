@@ -135,7 +135,7 @@ void attachable_hud_item::set_bone_visible(const shared_str& bone_name, BOOL bVi
 void attachable_hud_item::update(bool bForce)
 {
 	if (!bForce && m_upd_firedeps_frame == Device.dwFrame) return;
-	m_parent->calc_transform		(m_attach_place_idx, m_attach_offset, m_transform);
+	m_parent->calc_transform		(m_attach_place_idx, m_item_attach, m_transform);
 	m_parent_hud_item->UpdateSlotsTransform();
 	m_upd_firedeps_frame			= Device.dwFrame;
 }
@@ -194,12 +194,9 @@ void attachable_hud_item::render_item_ui()
 	m_parent_hud_item->render_item_3d_ui();
 }
 
-
-//hands bind position
-
-const Fvector* attachable_hud_item::hands_attach() const
+Fmatrix CR$ attachable_hud_item::hands_attach() const
 {
-	return ((m_parent_hud_item->AltHandsAttach()) ? m_measures.m_hands_attach_alt : m_measures.m_hands_attach);
+	return m_hands_attach[m_parent_hud_item->AltHandsAttach()];
 }
 
 void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
@@ -207,12 +204,6 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point") == pSettings->line_exist(hud_section, "fire_bone"), hud_section);
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point2") == pSettings->line_exist(hud_section, "fire_bone2"), hud_section);
 	R_ASSERT2(pSettings->line_exist(hud_section, "shell_point") == pSettings->line_exist(hud_section, "shell_bone"), hud_section);
-
-	m_hands_attach[0] = pSettings->r_fvector3(hud_section, "hands_position");
-	m_hands_attach[1] = pSettings->r_fvector3(hud_section, "hands_orientation");
-	
-	m_hands_attach_alt[0] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "root_offset_alt", m_hands_attach[0]);
-	m_hands_attach_alt[1] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "hands_orientation_alt", m_hands_attach[1]);
 
 	shared_str bone_name;
 	m_prop_flags.set(e_fire_point, pSettings->line_exist(hud_section, "fire_bone"));
@@ -294,14 +285,21 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 	m_model						= smart_cast<IKinematics*>(::Render->model_Create(visual_name));
 
 	m_attach_place_idx			= pSettings->r_u16(hud_section, "attach_place_idx");
-	m_auto_attach				= pSettings->r_bool(hud_section, "auto_attach");
+	m_auto_attach_anm			= pSettings->r_string(hud_section, "auto_attach_anm");
 	m_measures.load				(hud_section, m_model);
 	
-	Fvector item_attach_pos				= pSettings->r_fvector3(hud_section, "item_position");
-	Fvector item_attach_rot				= pSettings->r_fvector3(hud_section, "item_orientation");
-	item_attach_rot.mul					(PI / 180.f);
-	m_attach_offset.setHPB				(item_attach_rot.x, item_attach_rot.y, item_attach_rot.z);
-	m_attach_offset.translate_over		(item_attach_pos);
+	m_item_attach.setHPBv				(pSettings->r_fvector3d2r(hud_section, "item_orientation"));
+	m_item_attach.translate_over		(pSettings->r_fvector3(hud_section, "item_position"));
+	
+	if (!m_auto_attach_anm.size())
+	{
+		m_hands_attach[0].identity();
+		m_hands_attach[0].applyOffset(
+			pSettings->r_fvector3(hud_section, "hands_position"),
+			pSettings->r_fvector3d2r(hud_section, "hands_orientation")
+		);
+		m_hands_attach[1] = m_hands_attach[0];
+	}
 }
 
 u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)
@@ -552,76 +550,24 @@ u32 player_hud::motion_length(const MotionID& M, const CMotionDef*& md, float sp
 	}
 	return					0;
 }
-const Fvector& player_hud::attach_rot() const
-{
-	if (m_attached_items[0])
-		return m_attached_items[0]->hands_attach()[1];
-	else if (m_attached_items[1])
-		return m_attached_items[1]->hands_attach()[1];
-	else
-		return vZero;
-}
 
-const Fvector& player_hud::attach_pos() const
+void player_hud::update(Fmatrix CR$ cam_trans)
 {
-	if (m_attached_items[0])
-		return m_attached_items[0]->hands_attach()[0];
-	else if(m_attached_items[1])
-		return m_attached_items[1]->hands_attach()[0];
-	else
-		return vZero;
-}
+	m_transform = cam_trans;
+	for (int i = 0; i < 2; i++)
+	{
+		if (auto pi = m_attached_items[i])
+		{
+			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
+			m_transform.mulB_43(pi->hands_attach());
+			break;
+		}
+	}
 
-void player_hud::update(Fmatrix cam_trans)
-{
+	update_bones(m_model->dcast_PKinematics());
 	for (int i = 0; i < 2; i++)
 		if (m_attached_items[i])
 			update_bones(m_attached_items[i]->m_model);
-
-	if (m_attached_items[0])
-		m_attached_items[0]->m_parent_hud_item->UpdateHudAdditional(cam_trans);
-	else if (m_attached_items[1])
-		m_attached_items[1]->m_parent_hud_item->UpdateHudAdditional(cam_trans);
-
-	auto pi = m_attached_items[0];
-	if (pi && pi->m_auto_attach)
-	{
-		if (pi->m_auto_attach == 1)
-		{
-			auto calc_attach_offset_full = [this, pi](LPCSTR anm, Fmatrix& dest)
-			{
-				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, 0);
-				update_bones(m_model->dcast_PKinematics());
-				Fmatrix CR$ bone_trans = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
-				dest.mul(bone_trans, pi->m_attach_offset);
-				dest.invert();
-			};
-
-			calc_attach_offset_full(pi->m_parent_hud_item->autoAttachReferenceAnm(), pi->m_attach_offset_full[0]);
-			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))
-				calc_attach_offset_full("anm_g_idle_aim", pi->m_attach_offset_full[1]);
-
-			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
-			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);
-
-			pi->m_auto_attach = 2;
-		}
-		m_transform.mul(cam_trans, pi->m_attach_offset_full[pi->m_parent_hud_item->AltHandsAttach()]);
-	}
-	else
-	{
-		Fvector m1pos = attach_pos();
-		Fvector m1rot = attach_rot();
-		m1rot.mul(PI / 180.f);
-
-		Fmatrix attach_offset;
-		attach_offset.setHPB(m1rot.x, m1rot.y, m1rot.z);
-		attach_offset.translate_over(m1pos);
-
-		m_transform.mul(cam_trans, attach_offset);
-	}
-	
-	update_bones(m_model->dcast_PKinematics());
 
 	for (script_layer* anm : m_script_layers)
 	{
@@ -777,6 +723,31 @@ void player_hud::attach_item(CHudItem* item)
 
 		updateMovementLayerState();
 		item->UpdateHudBonesVisibility();
+		
+		if (pi->m_auto_attach_anm.size())
+		{
+			auto calc_hands_attach = [this, pi](shared_str CR$ anm, Fmatrix& dest)
+			{
+				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, 0);
+				update_bones(m_model->dcast_PKinematics());
+				dest = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
+				dest.mulB_43(pi->m_item_attach);
+				dest.invert();
+			};
+
+			calc_hands_attach(pi->m_auto_attach_anm, pi->m_hands_attach[0]);
+			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))
+				calc_hands_attach("anm_g_idle_aim", pi->m_hands_attach[1]);
+
+			if (auto ao = pi->m_parent_hud_item->object().Cast<CAddonOwner*>())
+			{
+				update_bones(pi->m_model);
+				ao->calculateSlotsBoneOffset();
+			}
+
+			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
+			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);
+		}
 	}
 	pi->m_parent_hud_item							= item;
 }

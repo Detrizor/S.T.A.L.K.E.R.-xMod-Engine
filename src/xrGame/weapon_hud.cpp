@@ -17,15 +17,6 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 {
 	for (int i = 0; i < 2; i++)
 		m_current_hud_offset[i]			= vZero;
-	
-	Fvector barrel_offset				= vZero;
-	barrel_offset.sub					(O.m_muzzle_point);
-
-	m_hud_offset[eIS][0]				= vZero;
-	m_hud_offset[eIS][0].sub			(pSettings->r_fvector3(O.HudSection(), "iron_sights_pos"));
-	m_hud_offset[eIS][1]				= vZero;
-	m_hud_offset[eIS][1].sub			(pSettings->r_fvector3d2r(O.HudSection(), "iron_sights_rot"));
-	O.m_root_offset.pivot				(m_hud_offset[eIS]);
 
 	m_hud_offset[eRelaxed][0]			= pSettings->r_fvector3(O.HudSection(), "relaxed_pos");
 	m_hud_offset[eRelaxed][1]			= pSettings->r_fvector3d2r(O.HudSection(), "relaxed_rot");
@@ -35,12 +26,14 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eArmed][1]				= pSettings->r_fvector3d2r(O.HudSection(), "armed_rot");
 	O.m_root_offset.pivot				(m_hud_offset[eArmed]);
 
+	m_hud_offset[eIS][0]				= O.m_root_bone_position;
+	m_hud_offset[eIS][0].sub			(pSettings->r_fvector3(O.Section(), "iron_sights_pos"));
+	m_hud_offset[eIS][0].z				+= pSettings->r_float(O.Section(), "cam_z_offset");
+	
 	m_hud_offset[eAlt][0]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_pos");
 	m_hud_offset[eAlt][1]				= pSettings->r_fvector3(O.HudSection(), "alt_aim_rot");
-	barrel_offset.pivot					(m_hud_offset[eAlt]);
-
-	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.HudSection(), "alt_aim_height");
-	m_hud_offset[eIS][0].z				= O.m_root_offset.z + pSettings->r_float(O.HudSection(), "cam_z_offset");
+	Fvector(O.m_muzzle_point).mul(-1.f).pivot(m_hud_offset[eAlt]);
+	m_hud_offset[eAlt][0].y				-= pSettings->r_float(O.Section(), "alt_aim_height");
 	m_hud_offset[eAlt][0].z				= m_hud_offset[eIS][0].z;
 
 	calc_aim_offset						();
@@ -53,39 +46,17 @@ void CWeaponHud::calc_aim_offset()
 	m_hud_offset[eAim][1].lerp			(m_hud_offset[eArmed][1], m_hud_offset[idx][1], aim_factor);
 }
 
-void CWeaponHud::process_scope_impl(CScope* scope)
-{
-	Fvector								offset[2];
-	Fmatrix								trans;
-	if (auto addon = scope->cast<CAddon*>())
-	{
-		auto model						= O.HudItemData()->m_model;
-		trans							= model->LL_GetTransform(addon->getRootBoneID());
-		trans.mulB_43					(addon->getLocalTransform());
-	}
-	else
-		trans							= Fidentity;
-	
-	trans.applyOffset					(scope->getSightPosition(), vZero);
-	trans.getOffset						(offset);
-	offset[0].z							= m_hud_offset[eIS][0].z;
-	scope->setHudOffset					(offset);
-}
-
-void CWeaponHud::ProcessScope(CScope* scope, bool attach)
+void CWeaponHud::ProcessScope(CScope* scope, bool attach) const
 {
 	if (attach)
 	{
-		if (O.HudItemData())
-			process_scope_impl			(scope);
-		else
-			m_scopes_to_process.push_back(scope);
-	}
-	else
-	{
-		auto it							= ::std::find(m_scopes_to_process.begin(), m_scopes_to_process.end(), scope);
-		if (it != m_scopes_to_process.end())
-			m_scopes_to_process.erase	(it);
+		Fvector							offset[2];
+		auto addon						= scope->cast<CAddon*>();
+		Fmatrix trans					= (addon) ? addon->getLocalTransform() : Fidentity;
+		trans.applyOffset				(scope->getSightPosition(), vZero);
+		trans.getOffset					(offset);
+		offset[0].z						= m_hud_offset[eIS][0].z;
+		scope->setHudOffset				(offset);
 	}
 }
 
@@ -172,13 +143,6 @@ Fvector CP$ CWeaponHud::get_target_hud_offset() const
 #define s_recoil_hud_roll_per_shift pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift")
 void CWeaponHud::UpdateHudAdditional(Fmatrix& trans)
 {
-	if (!m_scopes_to_process.empty())
-	{
-		for (auto scope : m_scopes_to_process)
-			process_scope_impl(scope);
-		m_scopes_to_process.clear();
-	}
-
 	//============= Подготавливаем общие переменные =============//
 	static float fAvgTimeDelta = Device.fTimeDelta;
 	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
@@ -505,7 +469,6 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 
 	if (g_hud_adjusment_mode && flags&CMD_START)
 	{
-		Fvector CP$ attach				= O.HudItemData()->hands_attach();
 		auto offset						= get_target_hud_offset();
 		int axis						= -1;
 		switch (cmd)
@@ -527,22 +490,14 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 			axis						= 2;
 			break;
 		case kJUMP:
-			if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
-				hands_mode				= int(!hands_mode);
-			else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
-				hands_mode				= 2;
-			else
-			{
-				std::ofstream			out;
-				out.open				("C:\\tmp.txt");
-				Fvector CP$ vp			= &attach[0];
-				Fvector CP$ vr			= &attach[1];
-				out						<< shared_str().printf("m_hands_attach pos [%.6f,%.6f,%.6f] m_hands_attach rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
-				vp						= &offset[0];
-				vr						= &offset[1];
-				out						<< shared_str().printf("m_hands_offset pos [%.6f,%.6f,%.6f] m_hands_offset rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
-			}
+		{
+			std::ofstream				out;
+			out.open					("C:\\tmp.txt");
+			Fvector CP$ vp				= &offset[0];
+			Fvector CP$ vr				= &offset[1];
+			out							<< shared_str().printf("m_hands_offset pos [%.6f,%.6f,%.6f] m_hands_offset rot [%.6f,%.6f,%.6f]", vp->x, vp->y, vp->z, vr->x, vr->y, vr->z).c_str() << std::endl;
 			return						true;
+		}
 		}
 
 		if (axis != -1)
@@ -561,17 +516,7 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 			if (m_gl && rot)
 				rot						= 2;
 
-			if (hands_mode == 1 && rot || hands_mode == 2 && !rot)
-			{
-				if (rot && axis != 2)
-				{
-					axis				= !axis;
-					val					*= -1.f;
-				}
-				attach[rot][axis]		+= val;
-			}
-			else
-				offset[rot][axis]		+= val;
+			offset[rot][axis]			+= val;
 			return						true;
 		}
 	}

@@ -194,7 +194,6 @@ public:
 	void								UpdateHudBonesVisibility				();
 
 	bool							V$	AltHandsAttach						C$	()		{ return false; }
-	LPCSTR							V$	autoAttachReferenceAnm				C$	()		{ return "anm_idle"; }
 	LPCSTR							V$	anmType								C$	()		{ return ""; }
 
 	friend class CWeaponHud;

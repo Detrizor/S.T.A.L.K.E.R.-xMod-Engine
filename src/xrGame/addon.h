@@ -20,7 +20,6 @@ public:
 	void								Load								O$	(LPCSTR section);
 
 private:
-	u16									m_root_bone_id							= 0;
 	Fmatrix 							m_local_transform						= Fidentity;
 	Fmatrix 							m_hud_transform							= Fidentity;
 	CAddonSlot*							m_slot									= NULL;
@@ -37,7 +36,6 @@ private:
 	Fvector2							m_profile_length;
 
 public:
-	void								setRootBoneID							(u16 bone)			{ m_root_bone_id = bone; }
 	void								setSlot									(CAddonSlot* s)		{ m_slot = s; }
 	void								setSlotIdx								(int v)				{ m_slot_idx = v; }
 	void								setPos									(int v)				{ m_pos = v; }
@@ -50,7 +48,6 @@ public:
 	shared_str CR$						anmPrefix							C$	()		{ return m_anm_prefix; }
 	Fmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Fmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
-	u16									getRootBoneID						C$	()		{ return m_root_bone_id; }
 	CAddonSlot*							getSlot								C$	()		{ return m_slot; }
 	int									getSlotIdx							C$	()		{ return m_slot_idx; }
 	int									getPos								C$	()		{ return m_pos; }

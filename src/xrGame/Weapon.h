@@ -505,10 +505,10 @@ public:
 
 	Fvector CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
 	Fvector CR$							getRecoilCamDelta					C$	()		{ return m_recoil_cam_delta; }
-	int									ADS									C$	()		{ return m_iADS; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
+	int									ADS									C$	();
 	float								GetControlInertionFactor			CO$	();
 	bool								NeedBlendAnm						O$	();
 };

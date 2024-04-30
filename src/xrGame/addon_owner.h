@@ -16,18 +16,18 @@ private:
 	CAddon CPC							m_parent_addon;
 
 	float								m_step;
-	u16									m_bone_id;
-	Fmatrix								m_bone_offset;
 	u16									m_overlaping_slot;
-	u16									m_loading_bone_id;
 	BOOL								m_has_loading_anim;
+	BOOL								m_slide_attach;
 
-	CAddon*								m_loading_addon							= NULL;
+	CAddon*								m_loading_addon							= nullptr;
+	u16									m_bone_id								= u16_max;
+	Fmatrix								m_bone_offset							= Fidentity;
 
-	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model, u16 bone, Fmatrix CR$ parent_trans);
 	int									get_spacing							C$	(CAddon CPC left, CAddon CPC right);
 	CAddon*								get_next_addon						C$	(xr_list<CAddon*>::iterator& I);
 	CAddon*								get_prev_addon						C$	(xr_list<CAddon*>::iterator& I);
+	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model);
 
 public:
 	CAddonOwner PC$						parent_ao;
@@ -49,18 +49,19 @@ public:
 	void								shiftAddon								(CAddon* addon, int shift);
 
 	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
+	void								updateAddonsHudTransform				(Fmatrix CR$ parent_trans);
 
-	void								startLoading							(CAddon* loading_addon);
+	void								startReloading							(CAddon* loading_addon);
 	void								loadingDetach							();
 	void								loadingAttach							();
 	void								finishLoading							(bool interrupted = false);
+	void								calculateBoneOffset						(IKinematics* model);
 	
 	bool								hasLoadingAnim						C$	()		{ return m_has_loading_anim; }
-	bool								hasLoadingBone						C$	()		{ return m_loading_bone_id != m_bone_id; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
 
 	void								RenderHud							C$	();
-	void								RenderWorld							C$	(IRenderVisual* model, Fmatrix CR$ parent_trans);
+	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
 	bool								Compatible							C$	(CAddon CPC addon);
 	bool								CanTake								C$	(CAddon CPC addon);
 	void								updateAddonLocalTransform			C$	(CAddon* addon);
@@ -90,6 +91,7 @@ public:
 	int									AttachAddon								(CAddon* addon, CAddonSlot* slot = NULL);
 	int									DetachAddon								(CAddon* addon);
 	void								RegisterAddon							(CAddon PC$ addon, bool attach);
+	void								calculateSlotsBoneOffset				();
 
 	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
 };

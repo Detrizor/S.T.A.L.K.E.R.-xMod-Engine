@@ -1319,7 +1319,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		case eTransferAddon:
 			if (auto mag = Cast<CMagazine*>((CAddon*)data))
 			{
-				m_magazine_slot->startLoading((param) ? (CAddon*)data : NULL);
+				m_magazine_slot->startReloading((param) ? (CAddon*)data : nullptr);
 				StartReload				((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
 				return					1.f;
 			}

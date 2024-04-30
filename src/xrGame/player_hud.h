@@ -177,9 +177,6 @@ struct hud_item_measures
 	u16								m_fire_bone2;
 	Fvector							m_fire_point2_offset;
 
-	Fvector							m_hands_attach[2];//pos,rot
-	Fvector							m_hands_attach_alt[2];//pos,rot
-
 	void load						(LPCSTR hud_section, IKinematics* K);
 
 	Fvector							m_strafe_offset[4][2]; // pos,rot,data1,data2/ normal,aim-GL	 --#SM+#--
@@ -207,12 +204,12 @@ struct attachable_hud_item
 	shared_str						m_object_section;
 	IKinematics*					m_model;
 	u16								m_attach_place_idx;
-	u8								m_auto_attach;
+	shared_str						m_auto_attach_anm;
 	hud_item_measures				m_measures;
 
 	//runtime positioning
-	Fmatrix							m_attach_offset;
-	Fmatrix							m_attach_offset_full[2];
+	Fmatrix							m_item_attach;
+	Fmatrix							m_hands_attach[2];
 	Fmatrix							m_transform;
 
 	player_hud_motion_container		m_hand_motions;
@@ -230,7 +227,7 @@ struct attachable_hud_item
 	void debug_draw_firedeps		();
 
 	//hands bind position
-	const Fvector*					hands_attach() const;
+	Fmatrix CR$ hands_attach	C$	();
 
 //props
 	u32								m_upd_firedeps_frame;
@@ -245,7 +242,7 @@ public:
 					~player_hud			();
 	void			load				(const shared_str& model_name);
 	void			load_default		(){load("actor_hud_05");};
-	void			update				(Fmatrix trans);
+	void			update				(Fmatrix CR$ trans);
 	void			render_hud			();	
 	void			render_item_ui		();
 	bool			render_item_ui_query();
@@ -273,9 +270,6 @@ public:
 	bool			inertion_allowed	();
 
 private:
-	const Fvector&	attach_rot			() const;
-	const Fvector&	attach_pos			() const;
-
 	shared_str							m_sect_name;
 
 	Fmatrix								m_transform;

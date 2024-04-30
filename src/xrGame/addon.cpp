@@ -4,7 +4,6 @@
 #include "scope.h"
 #include "silencer.h"
 #include "GrenadeLauncher.h"
-#include "addon_owner.h"
 
 void CAddon::Load(LPCSTR section)
 {
@@ -36,47 +35,27 @@ void CAddon::RenderHud() const
 {
 	::Render->set_Transform				(m_hud_transform);
 	::Render->add_Visual				(Visual());
-
-	if (auto ao = Cast<CAddonOwner CP$>())
-		for (auto s : ao->AddonSlots())
-			for (auto a : s->addons)
-				a->RenderHud			();
 }
 
 void CAddon::RenderWorld(Fmatrix CR$ trans) const
 {
 	::Render->set_Transform				(Fmatrix().mul(trans, m_local_transform));
 	::Render->add_Visual				(Visual());
-	
-	if (auto ao = Cast<CAddonOwner CP$>())
-		for (auto s : ao->AddonSlots())
-			for (auto a : s->addons)
-				a->RenderWorld			(trans);
 }
 
 void CAddon::updateLocalTransform(Fmatrix CR$ parent_trans)
 {
 	m_local_transform					= parent_trans;
-
-	if (auto ao = Cast<CAddonOwner*>())
-		for (auto s : ao->AddonSlots())
-			for (auto a : s->addons)
-				s->updateAddonLocalTransform(a);
 }
 
 void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
 {
 	m_hud_transform.mul					(parent_trans, m_local_transform);
-	
-	if (auto ao = Cast<CAddonOwner*>())
-		for (auto s : ao->AddonSlots())
-			for (auto a : s->addons)
-				a->updateHudTransform	(parent_trans);
 }
 
 int CAddon::getLength(float step, eLengthType type) const
 {
-	float								len;
+	float len							= 0.f;
 	switch (type)
 	{
 	case Mount: len						= m_mount_length; break;

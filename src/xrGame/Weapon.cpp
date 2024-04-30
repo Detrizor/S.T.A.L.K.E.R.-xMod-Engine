@@ -1205,3 +1205,8 @@ float CWeapon::CurrentZoomFactor C$(bool for_actor)
 {
 	return (float)(!!ADS());
 }
+
+int CWeapon::ADS() const
+{
+	return (GetState() == eReload) ? 0 : m_iADS;
+}

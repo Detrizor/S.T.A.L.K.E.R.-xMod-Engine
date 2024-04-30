@@ -270,7 +270,6 @@ public:
 	CScope*								getActiveScope						C$	();
 	bool								isEmptyChamber 						C$	();
 	
-	LPCSTR								autoAttachReferenceAnm				CO$	()		{ return "anm_idle_aim"; }
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 
 	void								OnTaken								O$	();
