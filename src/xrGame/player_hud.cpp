@@ -311,7 +311,7 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 	const motion_descr& M	= anm->m_animations[ rnd_idx ];
 
 	u32						ret;
-	if (strstr(*anim_name, "anm_shot"))
+	if (strstr(*anim_name, "_shot"))
 		ret					= g_player_hud->motion_length(M.mid, md, speed);
 	else
 		ret					= g_player_hud->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed);

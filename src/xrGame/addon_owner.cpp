@@ -80,8 +80,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 				R_ASSERT				(slot);
 				if (param)
 					slot->attachAddon	(addon);
-				if (!slot->hasLoadingAnim())
-					RegisterAddon		(addon, param);
+				RegisterAddon			(addon, param);
 				if (!param)
 					slot->detachAddon	(addon);
 			}
@@ -401,16 +400,13 @@ void CAddonSlot::updateAddonsHudTransform(Fmatrix CR$ parent_trans)
 
 void CAddonSlot::startReloading(CAddon* loading_addon)
 {
-	for (auto a : addons)
-		parent_ao->RegisterAddon		(a, false);
 	m_loading_addon						= loading_addon;
 }
 
 void CAddonSlot::loadingDetach()
 {
 	for (auto a : addons)
-		if (a != m_loading_addon)
-			a->transfer					(parent_ao->O.H_Parent()->ID());
+		a->transfer						(parent_ao->O.H_Parent()->ID());
 }
 
 void CAddonSlot::loadingAttach()
@@ -425,11 +421,7 @@ void CAddonSlot::finishLoading(bool interrupted)
 		for (auto a : addons)
 			a->transfer					(u16_max);
 	if (m_loading_addon)
-	{
-		if (!interrupted)
-			parent_ao->RegisterAddon	(m_loading_addon, true);
-		m_loading_addon					= NULL;
-	}
+		m_loading_addon					= nullptr;
 }
 
 void CAddonSlot::RenderHud() const

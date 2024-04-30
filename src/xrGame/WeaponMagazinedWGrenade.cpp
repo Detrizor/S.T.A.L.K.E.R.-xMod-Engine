@@ -109,6 +109,7 @@ bool CWeaponMagazinedWGrenade::canTake(CWeaponAmmo CPC ammo, bool chamber) const
 
 void CWeaponMagazinedWGrenade::SetGrenade(u8 cnt)
 {
+	m_grenade							= std::make_unique<CCartridge>();
 	m_grenade->Load						(*m_grenade_types[m_grenade_type]);
 }
 
@@ -121,6 +122,21 @@ void CWeaponMagazinedWGrenade::PlayAnimReload()
 	}
 	else
 		inherited::PlayAnimReload();
+}
+
+bool CWeaponMagazinedWGrenade::Discharge(CCartridge& destination)
+{
+	if (m_bGrenadeMode)
+	{
+		if (m_grenade)
+		{
+			destination = *m_grenade;
+			m_grenade.reset();
+			return true;
+		}
+		return false;
+	}
+	return inherited::Discharge(destination);
 }
 
 void CWeaponMagazinedWGrenade::OnShot()
@@ -298,6 +314,7 @@ void CWeaponMagazinedWGrenade::ReloadMagazine()
 {
 	if (m_bGrenadeMode)
 	{
+		m_grenade = std::make_unique<CCartridge>();
 		m_grenade->Load(m_grenade_types[m_grenade_type].c_str());
 		if (!getRocketCount())
 		{
@@ -465,8 +482,11 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 	}
 	else
 	{
-		if (m_pInventory)
+		if (m_pInventory && m_grenade)
+		{
 			inventory_owner().GiveAmmo	(*m_grenade->m_ammoSect, 1, m_grenade->m_fCondition);
+			m_grenade.reset				();
+		}
 		if (m_bGrenadeMode)
 			PerformSwitchGL				();
 	}

@@ -62,7 +62,7 @@ private:
 	Fvector								m_muzzle_position_gl					= vZero;
 	shared_str							m_flame_particles_gl_name				= 0;
 	CParticlesObject*					m_flame_particles_gl					= NULL;
-	CCartridge*							m_grenade								= NULL;
+	std::unique_ptr<CCartridge>			m_grenade								= nullptr;
 
 	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
 
@@ -70,9 +70,10 @@ private:
 	void								start_flame_particles_gl				();
 	void								stop_flame_particles_gl					();
 	void								update_flame_particles_gl				();
+	
+	int									GetAmmoElapsed						CO$	()		{ return (int)!!m_grenade; }
 
 	bool								AltHandsAttach						CO$	();
-
 	bool								HasAltAim							CO$	();
 
 	void								SetADS								O$	(int mode);
@@ -80,6 +81,7 @@ private:
 	void								UpdateCL							O$	();
 	void								process_addon						O$	(CAddon* addon, bool attach);
 	void								PlayAnimReload						O$	();
+	bool								Discharge							O$	(CCartridge& destination);
 
 public:
 	void								SetGrenade								(u8 cnt);
