@@ -309,6 +309,9 @@ public:
 			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
 
 //xMod added
+private:
+	void								modules_save_data					C$	();
+
 public:
 	void								transfer							C$	(u16 id = u16_max);
 

@@ -17,6 +17,8 @@
 #include "alife_smart_terrain_task.h"
 #endif //#ifdef XRGAME_EXPORTS
 
+#include "xrServer_Objects_Modules.h"
+
 #pragma warning(push)
 #pragma warning(disable:4005)
 
@@ -162,6 +164,27 @@ public:
 	virtual Fvector					draw_level_position	() const;
 	virtual	bool					keep_saved_data_anyway	() const;
 #endif
+
+private:
+	::std::vector<::std::unique_ptr<CSE_ALifeModule>> m_modules					= {};
+
+public:
+	void								clearModules							();
+	CSE_ALifeModule*					addModule								(u16 type);
+	template <typename M>
+	M*									getModule								(bool create_if_absent)
+	{
+		for (auto& m : m_modules)
+			if (auto r = smart_cast<M*>(m.get()))
+				return					r;
+
+		if (!create_if_absent)
+			return						nullptr;
+
+		m_modules.push_back				(::std::make_unique<M>());
+		return							static_cast<M*>(m_modules.back().get());
+	}
+
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeObject)
 #define script_type_list save_type_list(CSE_ALifeObject)

@@ -82,3 +82,15 @@ void CAmountable::ChangeFill(float delta)
 	m_fAmount							+= delta * Capacity();
 	OnAmountChange						();
 }
+
+void CAmountable::saveData(CSE_ALifeObject* se_obj)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(true);
+	m->amount							= m_fAmount;
+}
+
+void CAmountable::loadData(CSE_ALifeObject* se_obj)
+{
+	if (auto m = se_obj->getModule<CSE_ALifeModuleAmountable>(false))
+		m_fAmount						= m->amount;
+}

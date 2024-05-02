@@ -859,6 +859,7 @@
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_ALife_Items.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_ALife_Monsters.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_Alife_Smartcovers.h" />
+    <ClInclude Include="..\xrServerEntities\xrServer_Objects_Modules.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Object_Base.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_script_macroses.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Space.h" />
@@ -2572,6 +2573,7 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="..\xrServerEntities\xrServer_Objects_Modules.cpp" />
     <ClCompile Include="..\xrServerEntities\xrServer_Objects_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>

@@ -34,7 +34,9 @@ public:
 										CModule									(CGameObject* obj) : O(*obj) {}
 
 public:
-	float							V$	aboba									(EEventTypes type, void* data = NULL, int additional_data = 0) { return flt_max; }
+	float							V$	aboba									(EEventTypes type, void* data = NULL, int additional_data = 0)		{ return flt_max; }
+	void							V$	saveData								(CSE_ALifeObject* se_obj)											{}
+	void							V$	loadData								(CSE_ALifeObject* se_obj)											{}
 
 public:
 	void								Transfer							C$	(u16 id = u16_max);

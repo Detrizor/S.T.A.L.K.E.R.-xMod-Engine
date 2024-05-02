@@ -33,6 +33,8 @@
 #include "animation_movement_controller.h"
 #include "../xrengine/xr_collide_form.h"
 #include "module.h"
+#include "../../alife_simulator.h"
+#include "../../alife_object_registry.h"
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 #pragma warning(push)
@@ -156,6 +158,8 @@ void CGameObject::net_Destroy	()
 
 	xr_delete								(m_lua_game_object);
 	m_spawned								= false;
+
+	modules_save_data();
 }
 
 void CGameObject::OnEvent(NET_Packet& P, u16 type)
@@ -430,6 +434,11 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 	m_bObjectRemoved			= false;
 
 	spawn_supplies				();
+
+	for (auto m : m_modules)
+		m->loadData(O);
+	O->clearModules();
+
 #ifdef DEBUG
 	if(ph_dbg_draw_mask1.test(ph_m1_DbgTrackObject)&&stricmp(PH_DBG_ObjectTrackName(),*cName())==0)
 	{
@@ -476,6 +485,8 @@ void CGameObject::net_Save		(NET_Packet &net_packet)
 	// ----------------------------------------------------------
 
 	net_packet.w_chunk_close16	(position);
+
+	modules_save_data();
 }
 
 void CGameObject::net_Load		(IReader &ireader)
@@ -1181,6 +1192,13 @@ void CGameObject::OnRender			()
 	}
 }
 #endif // DEBUG
+
+void CGameObject::modules_save_data() const
+{
+	CSE_ALifeObject* se_obj				= ai().alife().objects().object(ID());
+	for (auto m : m_modules)
+		m->saveData						(se_obj);
+}
 
 void CGameObject::transfer(u16 id) const
 {
