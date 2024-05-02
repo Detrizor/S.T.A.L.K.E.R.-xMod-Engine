@@ -66,7 +66,6 @@ void CWeaponRG6::FireStart ()
 			if(NULL == io->inventory().ActiveItem())
 			{
 			Log("current_state", GetState() );
-			Log("next_state", GetNextState());
 			Log("item_sect", cNameSect().c_str());
 			Log("H_Parent", H_Parent()->cNameSect().c_str());
 			}

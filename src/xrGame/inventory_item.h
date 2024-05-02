@@ -204,11 +204,6 @@ protected:
 
 public:
 	virtual void				make_Interpolation	()			{};
-	virtual void				PH_B_CrPr			(); // actions & operations before physic correction-prediction steps
-	virtual void				PH_I_CrPr			(); // actions & operations after correction before prediction steps
-#ifdef DEBUG
-	virtual void				PH_Ch_CrPr			(); // 
-#endif
 	virtual void				PH_A_CrPr			(); // actions & operations after phisic correction-prediction steps
 
 	virtual void				net_Import			(NET_Packet& P);					// import from server
@@ -242,9 +237,6 @@ public:
 	virtual CInventoryItem*		can_make_killing		(const CInventory *inventory) const;
 	virtual bool				ready_to_kill			() const;
 	IC		bool				useful_for_NPC			() const;
-#ifdef DEBUG
-	virtual void				OnRender					();
-#endif
 
 public:
 	virtual DLL_Pure*			_construct					();

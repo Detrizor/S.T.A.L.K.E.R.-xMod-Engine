@@ -81,7 +81,6 @@ public:
 	virtual bool					bfUseful();
 
 	/////////// network ///////////////
-	u8								m_u8NumItems;
 	SPHNetState						State;
 	///////////////////////////////////
 SERVER_ENTITY_DECLARE_END
@@ -147,11 +146,8 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeapon,CSE_ALifeItem)
 		eWeaponAddonSilencer = 0x04
 	};
 
-	u32								timestamp;
 	u8								wpn_flags;
-	u8								wpn_state;
 	u8								ammo_type;
-	u16								a_current;
 	u16								a_elapsed;
 	//count of grenades to spawn in grenade launcher [ttcccccc]
 	//WARNING! hight 2 bits (tt bits) indicate type of grenade, so maximum grenade count is 2^6 = 64
@@ -171,30 +167,19 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeapon,CSE_ALifeItem)
 	}; //struct grenade_count_t
 	grenade_count_t					a_elapsed_grenades;
 
-	float							m_fHitPower;
-	ALife::EHitType					m_tHitType;
 	LPCSTR							m_caAmmoSections;
 	u32								m_dwAmmoAvailable;
-	Flags8							m_addon_flags;
-	u8								m_bZoom;
 	u32								m_ef_main_weapon_type;
 	u32								m_ef_weapon_type;
 
 									CSE_ALifeItemWeapon	(LPCSTR caSection);
 	virtual							~CSE_ALifeItemWeapon();
-	virtual void					OnEvent				(NET_Packet& P, u16 type, u32 time, ClientID sender );
 	virtual u32						ef_main_weapon_type	() const;
 	virtual u32						ef_weapon_type		() const;
 	u8								get_slot			();
-	u16								get_ammo_total		();
 	u16								get_ammo_elapsed	();
 	void							set_ammo_elapsed	(u16 count);
 	u16								get_ammo_magsize	();
-
-	Flags8&							get_addon_flags() { return m_addon_flags; }
-	//void							set_addon_flags(const Flags8 &_flags) { m_addon_flags.flags = _flags.flags; }
-
-	void							clone_addons		(CSE_ALifeItemWeapon* parent);
 
 	virtual BOOL					Net_Relevant		();
 

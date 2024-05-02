@@ -45,7 +45,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			game->AddDelayedEvent(P,game_event_type,timestamp,sender);
 		}break;
 	case GE_INFO_TRANSFER:
-	case GE_WPN_STATE_CHANGE:
 	case GE_ZONE_STATE_CHANGE:
 	case GE_ACTOR_JUMPING:
 	case GEG_PLAYER_PLAY_HEADSHOT_PARTICLE:

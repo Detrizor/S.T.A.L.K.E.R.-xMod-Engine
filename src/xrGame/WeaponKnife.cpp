@@ -25,7 +25,6 @@
 CWeaponKnife::CWeaponKnife()
 {
 	SetState				( eHidden );
-	SetNextState			( eHidden );
 	knife_material_idx		= (u16)-1;
 	fHitImpulse_cur			= 0.0f;
 

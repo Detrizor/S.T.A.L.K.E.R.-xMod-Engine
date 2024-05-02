@@ -127,16 +127,13 @@ void CMissile::OnActiveItem		()
 {
 	inherited::OnActiveItem	();
 	SetState				(eIdle);
-	SetNextState			(eIdle);	
 }
 
 void CMissile::OnHiddenItem()
 {
 	inherited::OnHiddenItem	();
 	SetState				(eHidden);
-	SetNextState			(eHidden);
 }
-
 
 void CMissile::spawn_fake_missile()
 {
@@ -419,7 +416,6 @@ void CMissile::setup_throw_params()
 		if(NULL == io->inventory().ActiveItem())
 		{
 				Log("current_state", GetState() );
-				Log("next_state", GetNextState());
 				Log("state_time", m_dwStateTime);
 				Log("item_sect", cNameSect().c_str());
 				Log("H_Parent", H_Parent()->cNameSect().c_str());

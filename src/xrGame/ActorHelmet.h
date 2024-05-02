@@ -23,9 +23,6 @@ public:
 	virtual void			OnMoveToSlot			(const SInvItemPlace& previous_place);
 	virtual void			OnMoveToRuck			(const SInvItemPlace& previous_place);
 	virtual BOOL			net_Spawn				(CSE_Abstract* DC);
-	virtual void			net_Export				(NET_Packet& P);
-	virtual void			net_Import				(NET_Packet& P);
-	virtual void			OnH_A_Chield			();
 
 	float					GetHitTypeProtection	(ALife::EHitType hit_type);
 	float					GetBoneArmor			(s16 element);

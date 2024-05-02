@@ -881,10 +881,7 @@ void	game_sv_mp::SpawnWeapon4Actor(u16 actorId,  LPCSTR N, u8 Addons, game_Playe
 	/////////////////////////////////////////////////////////////////////////////////
 	CSE_ALifeItemWeapon		*pWeapon	=	smart_cast<CSE_ALifeItemWeapon*>(E);
 	if (pWeapon)
-	{
-		pWeapon->m_addon_flags.assign(Addons);
 		SetAmmoForWeapon(pWeapon, Addons, playerItems, ammo_diff);
-	};
 	/////////////////////////////////////////////////////////////////////////////////
 
 	spawn_end				(E,m_server->GetServerClient()->ID);

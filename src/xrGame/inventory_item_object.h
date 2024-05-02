@@ -20,7 +20,6 @@ public:
 public:
 	WRAP_CONSTRUCT						()
 	WRAP_VIRTUAL_METHOD1				(void, Load, , ;, LPCSTR)
-	WRAP_VIRTUAL_METHOD2				(void, OnEvent, , ;, NET_Packet&, u16)
 	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Chield, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, OnH_B_Chield, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Independent, , ;)
@@ -97,8 +96,6 @@ public:
 	WRAP_VIRTUAL_METHOD1				(void, reload, , ;, LPCSTR)
 	WRAP_VIRTUAL_METHOD0				(void, reinit, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, make_Interpolation, , ;)
-	WRAP_VIRTUAL_METHOD0				(void, PH_B_CrPr, , ;)
-	WRAP_VIRTUAL_METHOD0				(void, PH_I_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, PH_A_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD1				(void, OnMoveToRuck, , ;, SInvItemPlace CR$)
 };

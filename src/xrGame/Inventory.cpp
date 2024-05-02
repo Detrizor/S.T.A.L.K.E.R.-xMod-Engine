@@ -759,7 +759,7 @@ void CInventory::Update()
 
 					if (!hi->IsHidden())
 					{
-						if (hi->GetState() == CHUDState::eIdle && hi->GetNextState() == CHUDState::eIdle)
+						if (hi->GetState() == CHUDState::eIdle)
 							hi->SendDeactivateItem();
 
 						UpdateDropTasks();

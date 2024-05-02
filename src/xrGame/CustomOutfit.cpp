@@ -41,22 +41,7 @@ CCustomOutfit::~CCustomOutfit()
 BOOL CCustomOutfit::net_Spawn(CSE_Abstract* DC)
 {
 	ReloadBonesProtection	();
-	BOOL res				= inherited::net_Spawn(DC);
-	return					(res);
-}
-
-void CCustomOutfit::net_Export(NET_Packet& P)
-{
-	inherited::net_Export	(P);
-	P.w_float_q8			(GetCondition(),0.0f,1.0f);
-}
-
-void CCustomOutfit::net_Import(NET_Packet& P)
-{
-	inherited::net_Import	(P);
-	float _cond;
-	P.r_float_q8			(_cond,0.0f,1.0f);
-	SetCondition			(_cond);
+	return					inherited::net_Spawn(DC);
 }
 
 void CCustomOutfit::Load(LPCSTR section) 

@@ -36,7 +36,6 @@
 CWeapon::CWeapon()
 {
 	SetState(eHidden);
-	SetNextState(eHidden);
 	m_sub_state = eSubstateReloadBegin;
 	m_bTriStateReload = false;
 	SetDefaults();
@@ -312,14 +311,9 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	CSE_Abstract					*e = (CSE_Abstract*) (DC);
 	CSE_ALifeItemWeapon			    *E = smart_cast<CSE_ALifeItemWeapon*>(e);
 
-	SetState(E->wpn_state);
-	SetNextState(E->wpn_state);
-
 	m_cartridge.Load				(*m_ammoTypes[E->ammo_type]);
 	if (E->a_elapsed)
 		SetAmmoElapsed				(E->a_elapsed);
-
-	m_locked						= E->m_addon_flags.flags;
 
 	m_dwWeaponIndependencyTime = 0;
 
@@ -359,66 +353,25 @@ void CWeapon::net_Export(NET_Packet& P)
 {
 	inherited::net_Export(P);
 
-	P.w_float_q8(GetCondition(), 0.0f, 1.0f);
-
-	u8 need_upd = IsUpdating() ? 1 : 0;
-	P.w_u8(need_upd);
-	P.w_u16(u16(GetAmmoElapsed()));
-	P.w_u8((u8)m_locked);
+	P.w_u8((u8)IsUpdating());
 	P.w_u8(get_ammo_type(m_cartridge.m_ammoSect));
-	P.w_u8((u8) GetState());
-	P.w_u8((u8) IsZoomed());
+	P.w_u16(u16(GetAmmoElapsed()));
 }
 
 void CWeapon::net_Import(NET_Packet& P)
 {
 	inherited::net_Import(P);
 
-	float _cond;
-	P.r_float_q8(_cond, 0.0f, 1.0f);
-	SetCondition(_cond);
-
 	u8 flags = 0;
 	P.r_u8(flags);
 
+	u8 ammoType;
+	P.r_u8(ammoType);
+	m_cartridge.Load(*m_ammoTypes[ammoType]);
+
 	u16 ammo_elapsed = 0;
 	P.r_u16(ammo_elapsed);
-
-	u8 locked;
-	P.r_u8(locked);
-	m_locked = !!locked;
-
-	u8 ammoType, wstate;
-	P.r_u8(ammoType);
-	P.r_u8(wstate);
-
-	u8 Zoom;
-	P.r_u8((u8) Zoom);
-
-	if (H_Parent() && H_Parent()->Remote())
-	{
-		if (Zoom) OnZoomIn();
-		else OnZoomOut();
-	};
-	switch (wstate)
-	{
-	case eFire:
-	case eFire2:
-	case eSwitch:
-	case eReload:
-	{
-	}break;
-	default:
-	{
-		if (ammoType >= m_ammoTypes.size())
-			Msg("!! Weapon [%d], State - [%d]", ID(), wstate);
-		else
-		{
-			m_cartridge.Load(*m_ammoTypes[ammoType]);
 			SetAmmoElapsed(ammo_elapsed);
-		}
-	}break;
-	}
 }
 
 void CWeapon::save(NET_Packet &output_packet)
@@ -448,37 +401,6 @@ void CWeapon::load(IReader &input_packet)
 
 	load_data(u8(0), input_packet);
 }
-
-void CWeapon::OnEvent(NET_Packet& P, u16 type)
-{
-	switch (type)
-	{
-	case GE_WPN_STATE_CHANGE:
-	{
-		u8 state;
-		P.r_u8(state);
-		P.r_u8();
-		P.r_u8();
-		P.r_u8();
-		P.r_u8();
-		OnStateSwitch(u32(state), GetState());
-		break;
-	}
-	default:
-		inherited::OnEvent(P, type);
-	}
-}
-
-void CWeapon::shedule_Update(u32 dT)
-{
-	// Queue shrink
-	//	u32	dwTimeCL		= Level().timeServer()-NET_Latency;
-	//	while ((NET.size()>2) && (NET[1].dwTimeStamp<dwTimeCL)) NET.pop_front();
-
-	// Inherited
-	inherited::shedule_Update(dT);
-}
-
 void CWeapon::OnH_B_Independent(bool just_before_destroy)
 {
 	RemoveShotEffector();
@@ -514,23 +436,6 @@ void CWeapon::OnHiddenItem()
 	inherited::OnHiddenItem();
 }
 
-void CWeapon::SendHiddenItem()
-{
-	if (!CHudItem::object().getDestroy() && m_pInventory)
-	{
-		// !!! Just single entry for given state !!!
-		NET_Packet		P;
-		CHudItem::object().u_EventGen(P, GE_WPN_STATE_CHANGE, CHudItem::object().ID());
-		P.w_u8(u8(eHiding));
-		P.w_u8(0);
-		P.w_u8(0);
-		P.w_u8(0);
-		P.w_u8(0);
-		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-		SetPending(TRUE);
-	}
-}
-
 void CWeapon::OnH_A_Chield()
 {
 	m_actor = H_Parent()->Cast<CActor*>();
@@ -559,7 +464,7 @@ void CWeapon::UpdateCL()
 	//нарисовать партиклы
 	UpdateFlameParticles();
 
-	if ((GetNextState() == GetState()) && H_Parent() == Level().CurrentEntity())
+	if (H_Parent() == Level().CurrentEntity())
 	{
 		CActor* pActor = smart_cast<CActor*>(H_Parent());
 		if (pActor && !pActor->AnyMove() && this == pActor->inventory().ActiveItem())
@@ -778,33 +683,6 @@ void CWeapon::OnZoomOut()
 	if (ADS())
 		SetADS(0);
 	g_player_hud->updateMovementLayerState();
-}
-
-void CWeapon::SwitchState(u32 S)
-{
-	if (OnClient()) return;
-
-#ifndef MASTER_GOLD
-	if ( bDebug )
-	{
-		Msg("---Server is going to send GE_WPN_STATE_CHANGE to [%d], weapon_section[%s], parent[%s]",
-			S, cNameSect().c_str(), H_Parent() ? H_Parent()->cName().c_str() : "NULL Parent");
-	}
-#endif // #ifndef MASTER_GOLD
-
-	SetNextState(S);
-	if (CHudItem::object().Local() && !CHudItem::object().getDestroy() && m_pInventory && OnServer())
-	{
-		// !!! Just single entry for given state !!!
-		NET_Packet		P;
-		CHudItem::object().u_EventGen(P, GE_WPN_STATE_CHANGE, CHudItem::object().ID());
-		P.w_u8(u8(S));
-		P.w_u8(0);
-		P.w_u8(0);
-		P.w_u8(0);
-		P.w_u8(0);
-		CHudItem::object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-	}
 }
 
 void CWeapon::reinit()

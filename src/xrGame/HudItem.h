@@ -28,17 +28,14 @@ enum EHudStates {
 
 private:
 	u32						m_hud_item_state;
-	u32						m_nextState;
 	u32						m_dw_curr_state_time;
 protected:
 	u32						m_dw_curr_substate_time;
 public:
-							CHUDState			():m_nextState(0) 		{SetState(eHidden);}
-	IC		u32				GetNextState		() const				{return		m_nextState;}
+							CHUDState			() 						{SetState(eHidden);}
 	IC		u32				GetState			() const				{return		m_hud_item_state;}
 	
 	IC		void			SetState			(u32 v)					{m_hud_item_state = v; m_dw_curr_state_time=Device.dwTimeGlobal;ResetSubStateTime();}
-	IC		void			SetNextState		(u32 v)					{m_nextState = v;}
 	IC		u32				CurrStateTime		() const				{return Device.dwTimeGlobal-m_dw_curr_state_time;}
 	IC		void			ResetSubStateTime	()						{m_dw_curr_substate_time=Device.dwTimeGlobal;}
 	virtual void			SwitchState			(u32 S)					= 0;
@@ -74,7 +71,6 @@ public:
 	virtual void				Load				(LPCSTR section);
 	virtual	BOOL				net_Spawn			(CSE_Abstract* DC)				{return TRUE;};
 	virtual void				net_Destroy			()								{};
-	virtual void				OnEvent				(NET_Packet& P, u16 type);
 
 	virtual void				OnH_A_Chield		();
 	virtual void				OnH_B_Chield		();

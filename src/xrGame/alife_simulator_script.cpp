@@ -476,7 +476,6 @@ CSE_Abstract* clone_weapon(CALifeSimulator* self, CSE_Abstract* object, LPCSTR s
 		return								NULL;
 
 	new_wpn->wpn_flags						= wpn->wpn_flags;
-	new_wpn->m_addon_flags					= wpn->m_addon_flags;
 	new_wpn->m_fCondition					= wpn->m_fCondition;
 	new_wpn->ammo_type						= wpn->ammo_type;
 	new_wpn->m_upgrades						= wpn->m_upgrades;

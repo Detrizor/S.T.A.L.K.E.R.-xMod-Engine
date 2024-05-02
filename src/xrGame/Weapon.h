@@ -62,7 +62,6 @@ public:
 	}
 
 	virtual void			UpdateCL();
-	virtual void			shedule_Update(u32 dt);
 
 	virtual void			renderable_Render();
 	virtual void			render_hud_mode();
@@ -71,7 +70,6 @@ public:
 			void			OnH_B_Chield() override;
 	virtual void			OnH_B_Independent(bool just_before_destroy);
 	virtual void			OnH_A_Independent();
-	virtual void			OnEvent(NET_Packet& P, u16 type);// {inherited::OnEvent(P,type);}
 
 	virtual	void			Hit(SHit* pHDS);
 
@@ -81,11 +79,8 @@ public:
 	virtual void			activate_physic_shell();
 	virtual void			setup_physic_shell();
 
-	virtual void			SwitchState(u32 S);
-
 	virtual void			OnActiveItem();
 	virtual void			OnHiddenItem();
-	virtual void			SendHiddenItem();	//same as OnHiddenItem but for client... (sends message to a server)...
 
 public:
 	virtual bool			can_kill() const;

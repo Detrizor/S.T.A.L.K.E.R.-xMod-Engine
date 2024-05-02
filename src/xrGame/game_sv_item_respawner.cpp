@@ -122,8 +122,6 @@ CSE_Abstract* item_respawn_manager::make_respawn_entity(shared_str const & secti
 		
 		if (count_of_ammo < pWeapon->a_elapsed)
 			pWeapon->a_elapsed = count_of_ammo;
-
-		pWeapon->m_addon_flags.assign(addons);
 	};
 	return temp_entity;
 }

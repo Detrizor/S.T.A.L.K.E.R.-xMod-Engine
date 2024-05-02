@@ -118,7 +118,6 @@ void CObjectActionHide::finalize	()
 
 	hud_item->StopCurrentAnimWithoutCallback( );
 	hud_item->SetState				( CHUDState::eIdle);
-	hud_item->SetNextState			( CHUDState::eIdle);
 }
 
 // to prevent several recharges

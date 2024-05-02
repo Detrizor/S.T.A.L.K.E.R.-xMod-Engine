@@ -95,41 +95,12 @@ void CHudItem::renderable_Render()
 
 void CHudItem::SwitchState(u32 S)
 {
-	if (OnClient())
-		return;
-
-	SetNextState(S);
-
-	if (object().Local() && !object().getDestroy())
-	{
-		// !!! Just single entry for given state !!!
-		NET_Packet				P;
-		object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
-		P.w_u8(u8(S));
-		object().u_EventSend(P);
-	}
-}
-
-void CHudItem::OnEvent(NET_Packet& P, u16 type)
-{
-	switch (type)
-	{
-	case GE_WPN_STATE_CHANGE:
-	{
-		u8				S;
-		P.r_u8(S);		
-		OnStateSwitch(u32(S), GetState());
-	}
-	break;
-	}
+	OnStateSwitch(S, GetState());
 }
 
 void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 {
 	SetState(S);
-
-	if (object().Remote())
-		SetNextState(S);
 
 	switch (S)
 	{
@@ -138,7 +109,10 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		break;
 	case eHiding:
 		if (oldState != eHiding)
+		{
+			SetPending(TRUE);
 			PlayHUDMotion("anm_hide", FALSE, S);
+		}
 		break;
 	case eIdle:
 		PlayAnimIdle();
@@ -204,13 +178,7 @@ void CHudItem::SendDeactivateItem()
 }
 void CHudItem::SendHiddenItem()
 {
-	if (!object().getDestroy())
-	{
-		NET_Packet				P;
-		object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
-		P.w_u8(u8(eHiding));
-		object().u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-	}
+	SwitchState(eHiding);
 }
 
 void CHudItem::UpdateHudAdditional(Fmatrix& trans)

@@ -438,27 +438,25 @@ void CWeaponMagazined::UpdateCL()
 	inherited::UpdateCL();
 	float dt = Device.fTimeDelta;
 
-	//когда происходит апдейт состояния оружия
-	//ничего другого не делать
-	if (GetNextState() == GetState())
+	switch (GetState())
 	{
-		switch (GetState())
-		{
-		case eShowing:
-		case eHiding:
-		case eReload:
-		case eIdle:
-		{
-			fShotTimeCounter -= dt;
-			clamp(fShotTimeCounter, 0.0f, flt_max);
-		}break;
-		case eFire:
-		{
-			state_Fire(dt);
-		}break;
-		case eMisfire:		state_Misfire(dt);	break;
-		case eHidden:		break;
-		}
+	case eShowing:
+	case eHiding:
+	case eReload:
+	case eIdle:
+	{
+		fShotTimeCounter -= dt;
+		clamp(fShotTimeCounter, 0.0f, flt_max);
+		break;
+	}
+	case eFire:
+		state_Fire(dt);
+		break;
+	case eMisfire:
+		state_Misfire(dt);
+		break;
+	case eHidden:
+		break;
 	}
 
 	UpdateSounds();
