@@ -308,18 +308,9 @@ void CWeapon::Load(LPCSTR section)
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 {
 	BOOL bResult					= inherited::net_Spawn(DC);
-	CSE_Abstract					*e = (CSE_Abstract*) (DC);
-	CSE_ALifeItemWeapon			    *E = smart_cast<CSE_ALifeItemWeapon*>(e);
-
-	m_cartridge.Load				(*m_ammoTypes[E->ammo_type]);
-	if (E->a_elapsed)
-		SetAmmoElapsed				(E->a_elapsed);
-
-	m_dwWeaponIndependencyTime = 0;
-
-	cNameVisual_set(shared_str().printf("_w_%s", *cNameVisual()));
-
-	return bResult;
+	m_dwWeaponIndependencyTime		= 0;
+	cNameVisual_set					(shared_str().printf("_w_%s", *cNameVisual()));
+	return							bResult;
 }
 
 int CWeapon::get_ammo_type(shared_str CR$ section) const
@@ -338,9 +329,6 @@ void CWeapon::net_Destroy()
 	StopFlameParticles();
 	StopLight();
 	Light_Destroy();
-
-	while (m_chamber.size()) m_chamber.pop_back();
-	while (m_magazin.size()) m_magazin.pop_back();
 }
 
 BOOL CWeapon::IsUpdating()
@@ -349,58 +337,6 @@ BOOL CWeapon::IsUpdating()
 	return bIsActiveItem || bWorking;// || IsPending() || getVisible();
 }
 
-void CWeapon::net_Export(NET_Packet& P)
-{
-	inherited::net_Export(P);
-
-	P.w_u8((u8)IsUpdating());
-	P.w_u8(get_ammo_type(m_cartridge.m_ammoSect));
-	P.w_u16(u16(GetAmmoElapsed()));
-}
-
-void CWeapon::net_Import(NET_Packet& P)
-{
-	inherited::net_Import(P);
-
-	u8 flags = 0;
-	P.r_u8(flags);
-
-	u8 ammoType;
-	P.r_u8(ammoType);
-	m_cartridge.Load(*m_ammoTypes[ammoType]);
-
-	u16 ammo_elapsed = 0;
-	P.r_u16(ammo_elapsed);
-			SetAmmoElapsed(ammo_elapsed);
-}
-
-void CWeapon::save(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	save_data(0, output_packet);
-	save_data(u8(0), output_packet);		//--xd
-	save_data(u8(0), output_packet);
-	save_data(u8(0), output_packet);
-	save_data(m_zoom_params.m_bIsZoomModeNow, output_packet);
-	save_data(u8(0), output_packet);
-}
-
-void CWeapon::load(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	load_data(0, input_packet);
-	load_data(u8(0), input_packet);
-	load_data(u8(0), input_packet);
-	load_data(u8(0), input_packet);
-	load_data(m_zoom_params.m_bIsZoomModeNow, input_packet);
-
-	if (m_zoom_params.m_bIsZoomModeNow)
-		OnZoomIn();
-	else
-		OnZoomOut();
-
-	load_data(u8(0), input_packet);
-}
 void CWeapon::OnH_B_Independent(bool just_before_destroy)
 {
 	RemoveShotEffector();
@@ -846,13 +782,8 @@ bool CWeapon::ready_to_kill() const
 
 void CWeapon::SetAmmoElapsed(int ammo_count)
 {
-	while (m_chamber.size() > ammo_count)
-		m_chamber.pop_back				();
-
-	while (m_chamber.size() < ammo_count && m_chamber.size() < m_chamber.capacity())
-		m_chamber.push_back				(m_cartridge);
-	ammo_count							-= m_chamber.size();
-	
+	while (m_magazin.size() > ammo_count)
+		m_magazin.pop_back				();
 	while (m_magazin.size() < ammo_count)
 		m_magazin.push_back				(m_cartridge);
 }
@@ -1087,4 +1018,34 @@ float CWeapon::CurrentZoomFactor C$(bool for_actor)
 int CWeapon::ADS() const
 {
 	return (GetState() == eReload) ? 0 : m_iADS;
+}
+
+float CWeapon::Aboba(EEventTypes type, void* data, int param)
+{
+	switch (type)
+	{
+	case eSyncData:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_wpn						= smart_cast<CSE_ALifeItemWeapon*>(se_obj);
+		if (param)
+		{
+			se_wpn->wpn_flags			= (u8)IsUpdating();
+			se_wpn->ammo_type			= get_ammo_type(m_cartridge.m_ammoSect);
+			se_wpn->a_elapsed			= m_magazin.size();
+			se_wpn->a_chamber			= m_chamber.size();
+		}
+		else
+		{
+			m_cartridge.Load			(*m_ammoTypes[se_wpn->ammo_type]);
+			SetAmmoElapsed				(se_wpn->a_elapsed);
+			if (se_wpn->a_chamber)
+				m_chamber.push_back		(m_cartridge);
+		}
+		return							res;
+	}
+	}
+
+	return								inherited::Aboba(type, data, param);
 }

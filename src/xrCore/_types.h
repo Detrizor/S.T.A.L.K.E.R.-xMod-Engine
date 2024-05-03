@@ -34,11 +34,15 @@ typedef pcstr LPCSTR;
 #define type_zero(T) (::std::numeric_limits<T>::min)()
 #define type_epsilon(T) (::std::numeric_limits<T>::epsilon)()
 
+constexpr s8 s8_max		= type_max(s8);
+constexpr u8 u8_max		= type_max(u8);
+
+constexpr s16 s16_max		= type_max(s16);
+constexpr u16 u16_max		= type_max(u16);
+
 constexpr int int_max		= type_max(int);
 constexpr int int_min		= type_min(int);
 constexpr int int_zero		= type_zero(int);
-
-constexpr u16 u16_max		= type_max(u16);
 
 constexpr float flt_max		= type_max(float);
 constexpr float flt_min		= type_min(float);

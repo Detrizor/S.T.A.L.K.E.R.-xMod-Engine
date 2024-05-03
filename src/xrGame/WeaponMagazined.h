@@ -17,10 +17,6 @@ class CScope;
 class CSilencer;
 class CGrenadeLauncher;
 
-//размер очереди считается бесконечность
-//заканчиваем стрельбу, только, если кончились патроны
-#define WEAPON_ININITE_QUEUE -1
-
 class CWeaponMagazined : public CWeapon
 {
 private:
@@ -85,25 +81,13 @@ public:
 
 	virtual	void	UpdateCL();
 	virtual void	net_Destroy();
-	virtual void	net_Export(NET_Packet& P);
-	virtual void	net_Import(NET_Packet& P);
-
-	virtual void	OnH_A_Chield();
 
 	virtual bool	Action			(u16 cmd, u32 flags);
 
 	virtual bool	GetBriefInfo(II_BriefInfo& info);
 
 public:
-	virtual bool	SingleShotMode()
-	{
-		return 1 == m_iQueueSize;
-	}
 	virtual void	SetQueueSize(int size);
-	IC		int		GetQueueSize() const
-	{
-		return m_iQueueSize;
-	};
 	virtual bool	StopedAfterQueueFired()
 	{
 		return m_bStopedAfterQueueFired;
@@ -135,7 +119,6 @@ protected:
 	bool			m_bHasDifferentFireModes;
 	xr_vector<s8>	m_aFireModes;
 	int				m_iCurFireMode;
-	int				m_iPrefferedFireMode;
 
 public:
 	virtual void	OnZoomIn();
@@ -155,10 +138,6 @@ public:
 		else
 			return 1;
 	};
-
-	virtual void	save(NET_Packet &output_packet);
-	virtual void	load(IReader &input_packet);
-
 
 protected:
 	virtual bool	install_upgrade_impl	(LPCSTR section, bool test);

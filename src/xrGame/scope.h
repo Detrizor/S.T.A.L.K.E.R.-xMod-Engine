@@ -48,7 +48,6 @@ public:
 										~CScope									();
 
 private:
-	const CAddon*						m_addon;
 	const eScopeType					m_Type;
 	const Fvector						m_sight_position;
 	

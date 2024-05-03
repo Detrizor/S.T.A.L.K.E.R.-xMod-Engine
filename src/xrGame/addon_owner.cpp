@@ -71,13 +71,13 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				auto slot				= (addon->getSlotIdx() != -1) ? m_Slots[addon->getSlotIdx()] : NULL;
+				auto slot				= (addon->getSlotIdx() != u16_max) ? m_Slots[addon->getSlotIdx()] : nullptr;
 				if (!slot)
 				{
 					slot				= find_available_slot(addon);
+					R_ASSERT			(slot);
 					addon->setSlotIdx	(slot->idx);
 				}
-				R_ASSERT				(slot);
 				if (param)
 					slot->attachAddon	(addon);
 				RegisterAddon			(addon, param);
@@ -92,7 +92,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 			float res					= 0.f;
 			for (auto slot : m_Slots)
 				for (auto addon : slot->addons)
-					res					+= addon->Aboba(type);
+					res					+= addon->O.Aboba(type);
 			return						res;
 		}
 		case eRenderHudMode:
@@ -249,7 +249,7 @@ void CAddonSlot::attachAddon(CAddon* addon)
 {
 	addon->setSlot						(this);
 
-	if (addon->getPos() == -1)
+	if (addon->getSlotPos() == s16_max)
 	{
 		if (addon->isFrontPositioning())
 		{
@@ -257,15 +257,15 @@ void CAddonSlot::attachAddon(CAddon* addon)
 			int pos						= steps - get_spacing(addon, NULL);
 			while (auto prev = get_prev_addon(I))
 			{
-				if (pos >= prev->getPos() + get_spacing(prev, addon))
+				if (pos >= prev->getSlotPos() + get_spacing(prev, addon))
 				{
 					I++;
 					break;
 				}
-				pos						= prev->getPos() - get_spacing(addon, prev);
+				pos						= prev->getSlotPos() - get_spacing(addon, prev);
 			}
 			addons.insert				(I, addon);
-			addon->setPos				(pos);
+			addon->setSlotPos			(pos);
 		}
 		else
 		{
@@ -273,19 +273,19 @@ void CAddonSlot::attachAddon(CAddon* addon)
 			int pos						= get_spacing(NULL, addon);
 			while (auto next = get_next_addon(I))
 			{
-				if (pos + get_spacing(addon, next) <= next->getPos())
+				if (pos + get_spacing(addon, next) <= next->getSlotPos())
 					break;
-				pos						= next->getPos() + get_spacing(next, addon);
+				pos						= next->getSlotPos() + get_spacing(next, addon);
 			}
 			addons.insert				(I, addon);
-			addon->setPos				(pos);
+			addon->setSlotPos			(pos);
 		}
 	}
 	else
 	{
 		auto I							= addons.begin();
 		while (auto next = get_next_addon(I))
-			if (addon->getPos() < next->getPos())
+			if (addon->getSlotPos() < next->getSlotPos())
 				break;
 		addons.insert					(I, addon);
 	}
@@ -296,8 +296,8 @@ void CAddonSlot::attachAddon(CAddon* addon)
 void CAddonSlot::detachAddon(CAddon* addon)
 {
 	addon->setSlot						(NULL);
-	addon->setSlotIdx					(-1);
-	addon->setPos						(-1);
+	addon->setSlotIdx					(u16_max);
+	addon->setSlotPos					(s16_max);
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
 }
 
@@ -305,7 +305,7 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 {
 	auto A								= ::std::find(addons.begin(), addons.end(), addon);
 	auto I								= A;
-	int pos								= addon->getPos();
+	int pos								= addon->getSlotPos();
 	int prev_pos						= pos;
 	if (shift > 0)
 	{
@@ -313,14 +313,14 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 		while (shift--)
 		{
 			int npos					= pos + 1;
-			int lim_pos					= (next) ? next->getPos() : steps;
+			int lim_pos					= (next) ? next->getSlotPos() : steps;
 			if (npos + get_spacing(addon, next) <= lim_pos)
 				pos						= npos;
 			else while (next)
 			{
-				npos					= next->getPos() + get_spacing(next, addon);
+				npos					= next->getSlotPos() + get_spacing(next, addon);
 				next					= get_next_addon(I);
-				lim_pos					= (next) ? next->getPos() : steps;
+				lim_pos					= (next) ? next->getSlotPos() : steps;
 				if (npos + get_spacing(addon, next) <= lim_pos)
 				{
 					pos					= npos;
@@ -341,14 +341,14 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 		while (shift++)
 		{
 			int npos					= pos - 1;
-			int lim_pos					= (prev) ? prev->getPos(): 0;
+			int lim_pos					= (prev) ? prev->getSlotPos(): 0;
 			if (npos >= lim_pos + get_spacing(prev, addon))
 				pos						= npos;
 			else while (prev)
 			{
-				npos					= prev->getPos() - get_spacing(addon, prev);
+				npos					= prev->getSlotPos() - get_spacing(addon, prev);
 				prev					= get_prev_addon(I);
-				lim_pos					= (prev) ? prev->getPos() : 0;
+				lim_pos					= (prev) ? prev->getSlotPos() : 0;
 				if (npos >= lim_pos + get_spacing(prev, addon))
 				{
 					pos					= npos;
@@ -367,9 +367,9 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 		}
 	}
 
-	if (pos != addon->getPos())
+	if (pos != addon->getSlotPos())
 	{
-		addon->setPos					(pos);
+		addon->setSlotPos				(pos);
 		updateAddonLocalTransform		(addon);
 	}
 }
@@ -381,7 +381,7 @@ void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent
 		Fmatrix trans					= parent_trans;
 		append_bone_trans				(trans, model);
 		addon->updateHudTransform		(trans);
-		if (auto ao = addon->Cast<CAddonOwner*>())
+		if (auto ao = addon->cast<CAddonOwner*>())
 			for (auto s : ao->AddonSlots())
 				s->updateAddonsHudTransform(parent_trans);
 	}
@@ -392,7 +392,7 @@ void CAddonSlot::updateAddonsHudTransform(Fmatrix CR$ parent_trans)
 	for (auto addon : addons)
 	{
 		addon->updateHudTransform		(parent_trans);
-		if (auto ao = addon->Cast<CAddonOwner*>())
+		if (auto ao = addon->cast<CAddonOwner*>())
 			for (auto s : ao->AddonSlots())
 				s->updateAddonsHudTransform(parent_trans);
 	}
@@ -406,20 +406,20 @@ void CAddonSlot::startReloading(CAddon* loading_addon)
 void CAddonSlot::loadingDetach()
 {
 	for (auto a : addons)
-		a->transfer						(parent_ao->O.H_Parent()->ID());
+		a->Transfer						(parent_ao->O.H_Parent()->ID());
 }
 
 void CAddonSlot::loadingAttach()
 {
 	if (m_loading_addon)
-		m_loading_addon->transfer		(parent_ao->O.ID());
+		m_loading_addon->Transfer		(parent_ao->O.ID());
 }
 
 void CAddonSlot::finishLoading(bool interrupted)
 {
 	if (interrupted)
 		for (auto a : addons)
-			a->transfer					(u16_max);
+			a->Transfer					(u16_max);
 	if (m_loading_addon)
 		m_loading_addon					= nullptr;
 }
@@ -429,7 +429,7 @@ void CAddonSlot::RenderHud() const
 	for (auto addon : addons)
 	{
 		addon->RenderHud				();
-		if (auto ao = addon->Cast<CAddonOwner CP$>())
+		if (auto ao = addon->cast<CAddonOwner CP$>())
 			for (auto s : ao->AddonSlots())
 				s->RenderHud			();
 	}
@@ -453,7 +453,7 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 	for (auto addon : addons)
 	{
 		addon->RenderWorld				(parent_trans);
-		if (auto ao = addon->Cast<CAddonOwner CP$>())
+		if (auto ao = addon->cast<CAddonOwner CP$>())
 			for (auto s : ao->AddonSlots())
 				s->RenderWorld			(parent_trans);
 	}
@@ -486,9 +486,9 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 	int pos								= get_spacing(NULL, addon);
 	for (auto next : addons)
 	{
-		if (pos + get_spacing(addon, next) <= next->getPos())
+		if (pos + get_spacing(addon, next) <= next->getSlotPos())
 			return						true;
-		pos								= next->getPos() + get_spacing(next, addon);
+		pos								= next->getSlotPos() + get_spacing(next, addon);
 	}
 	
 	return								(pos + get_spacing(addon, NULL) <= steps);
@@ -497,9 +497,9 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 {
 	Fmatrix transform					= model_offset;
-	transform.c.z						+= float(addon->getPos()) * m_step;
+	transform.c.z						+= float(addon->getSlotPos()) * m_step;
 	addon->updateLocalTransform			((m_parent_addon) ? transform.mulA_43(m_parent_addon->getLocalTransform()) : transform);
-	if (auto ao = addon->Cast<CAddonOwner*>())
+	if (auto ao = addon->cast<CAddonOwner*>())
 		for (auto s : ao->AddonSlots())
 			for (auto a : s->addons)
 				s->updateAddonLocalTransform(a);

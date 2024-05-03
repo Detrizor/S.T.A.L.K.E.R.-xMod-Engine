@@ -38,7 +38,7 @@ bool CAmountable::Useful() const
 	return								res;
 }
 
-float CAmountable::aboba o$(EEventTypes type, void* data, int param)
+float CAmountable::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -54,6 +54,15 @@ float CAmountable::aboba o$(EEventTypes type, void* data, int param)
 			return						m_net_volume * Fill();
 		case eCost:
 			return						m_net_cost * (Fill() - 1.f);
+		case eSyncData:
+		{
+			auto se_obj					= (CSE_ALifeDynamicObject*)data;
+			auto m						= se_obj->getModule<CSE_ALifeModuleAmountable>(!!param);
+			if (param)
+				m->m_amount				= m_fAmount;
+			else if (m)
+				m_fAmount				= m->m_amount;
+		}
 	}
 
 	return								CModule::aboba(type, data, param);
@@ -81,16 +90,4 @@ void CAmountable::ChangeFill(float delta)
 {
 	m_fAmount							+= delta * Capacity();
 	OnAmountChange						();
-}
-
-void CAmountable::saveData(CSE_ALifeObject* se_obj)
-{
-	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(true);
-	m->amount							= m_fAmount;
-}
-
-void CAmountable::loadData(CSE_ALifeObject* se_obj)
-{
-	if (auto m = se_obj->getModule<CSE_ALifeModuleAmountable>(false))
-		m_fAmount						= m->amount;
 }

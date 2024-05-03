@@ -100,7 +100,7 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadInProcess:
-		if (!reloadCartridge() || m_magazin.size() == m_magazin.capacity() || !has_ammo_for_reload())
+		if (!reloadCartridge() || (m_magazin.size() == m_magazin.capacity()) || !has_ammo_for_reload())
 			m_sub_state					= eSubstateReloadEnd;
 		PlayAnimReload					();
 		break;
@@ -118,26 +118,33 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	}
 }
 
-void CWeaponAutomaticShotgun::net_Export(NET_Packet& P)
+float CWeaponAutomaticShotgun::Aboba(EEventTypes type, void* data, int param)
 {
-	inherited::net_Export			(P);	
-	P.w_u8							(u8(m_magazin.size()));	
-	for (u32 i = 0; i < m_magazin.size(); i++)
-		P.w_u8						(get_ammo_type(m_magazin[i].m_ammoSect));
-}
-
-void CWeaponAutomaticShotgun::net_Import(NET_Packet& P)
-{
-	inherited::net_Import			(P);
-	u8 AmmoCount = P.r_u8			();
-	for (u32 i = 0; i < AmmoCount; i++)
+	switch (type)
 	{
-		u8 LocalAmmoType = P.r_u8	();
-		if (i >= m_magazin.size())
-			continue;
-		CCartridge& l_cartridge		= m_magazin[i];
-		if (m_ammoTypes[LocalAmmoType] == l_cartridge.m_ammoSect)
-			continue;
-		l_cartridge.Load			(m_ammoTypes[LocalAmmoType].c_str());
+	case eSyncData:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponAutoShotGun*>(se_obj);
+		if (param)
+		{
+			se_wpn->m_AmmoIDs.clear		();
+			for (auto& c : m_magazin)
+				se_wpn->m_AmmoIDs.push_back(get_ammo_type(c.m_ammoSect));
+		}
+		else
+		{
+			for (int i = 0; i < se_wpn->m_AmmoIDs.size(); i++)
+			{
+				auto CR$ sect			= m_ammoTypes[se_wpn->m_AmmoIDs[i]];
+				if (m_magazin[i].m_ammoSect != sect)
+					m_magazin[i].Load	(*sect);
+			}
+		}
+		return							res;
 	}
+	}
+
+	return								inherited::Aboba(type, data, param);
 }

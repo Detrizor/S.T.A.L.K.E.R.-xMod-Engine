@@ -422,17 +422,6 @@ void CSE_ALifeObject::visible_for_map		(bool value)
 	m_flags.set					(flVisibleForMap,value ? TRUE : FALSE);
 }
 
-CSE_ALifeModule* CSE_ALifeObject::addModule(u16 type)
-{
-	m_modules.push_back					(CSE_ALifeModule::createModule(type));
-	return								m_modules.back().get();
-}
-
-void CSE_ALifeObject::clearModules()
-{
-	m_modules.clear						();
-}
-
 void CSE_ALifeObject::STATE_Write			(NET_Packet &tNetPacket)
 {
 	tNetPacket.w_u16			(m_tGraphID);
@@ -443,13 +432,6 @@ void CSE_ALifeObject::STATE_Write			(NET_Packet &tNetPacket)
 	tNetPacket.w_stringZ		(m_ini_string);
 	tNetPacket.w_u32			(m_story_id);
 	tNetPacket.w_u32			(m_spawn_story_id);
-	
-	u16 mask							= 0;
-	for (auto& m : m_modules)
-		mask							|= m->mask();
-	tNetPacket.w_u16					(mask);
-	for (auto& m : m_modules)
-		m->STATE_Write					(tNetPacket);
 }
 
 void CSE_ALifeObject::STATE_Read			(NET_Packet &tNetPacket, u16 size)
@@ -510,15 +492,6 @@ void CSE_ALifeObject::STATE_Read			(NET_Packet &tNetPacket, u16 size)
 
 	if (m_wVersion > 111)
 		tNetPacket.r_u32		(m_spawn_story_id);
-	
-	if (m_wVersion < 129)
-		return;
-
-	u16									mask;
-	tNetPacket.r_u16					(mask);
-	for (u16 t = 0; t < mModuleTypesCount; t++)
-		if (mask & (u16(1) << t))
-			addModule(t)->STATE_Read	(tNetPacket);
 }
 
 void CSE_ALifeObject::UPDATE_Write			(NET_Packet &tNetPacket)
@@ -698,14 +671,45 @@ CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
 }
 
-void CSE_ALifeDynamicObject::STATE_Write	(NET_Packet &tNetPacket)
+void CSE_ALifeDynamicObject::STATE_Write(NET_Packet &tNetPacket)
 {
-	inherited::STATE_Write		(tNetPacket);
+	inherited::STATE_Write				(tNetPacket);
+	
+	u16 mask							= 0;
+	for (u16 t = 0; t < mModuleTypesCount; t++)
+		if (m_modules[t])
+			mask						|= u16(1) << t;
+	tNetPacket.w_u16					(mask);
+
+	for (auto& m : m_modules)
+		if (m)
+			m->STATE_Write				(tNetPacket);
 }
 
-void CSE_ALifeDynamicObject::STATE_Read		(NET_Packet &tNetPacket, u16 size)
+void CSE_ALifeDynamicObject::STATE_Read(NET_Packet &tNetPacket, u16 size)
 {
-	inherited::STATE_Read		(tNetPacket, size);
+	inherited::STATE_Read				(tNetPacket, size);
+	
+	if (m_wVersion < 129)
+		return;
+
+	u16									mask;
+	tNetPacket.r_u16					(mask);
+	for (u16 t = 0; t < mModuleTypesCount; t++)
+		if (mask & (u16(1) << t))
+			add_module(t)->STATE_Read	(tNetPacket);
+}
+
+CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(u16 type)
+{
+	m_modules[type]						= CSE_ALifeModule::createModule(type);
+	return								m_modules[type].get();
+}
+
+void CSE_ALifeDynamicObject::clearModules()
+{
+	for (auto& m : m_modules)
+		m.reset							();
 }
 
 void CSE_ALifeDynamicObject::UPDATE_Write	(NET_Packet &tNetPacket)

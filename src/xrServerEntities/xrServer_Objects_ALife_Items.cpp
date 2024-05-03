@@ -143,12 +143,12 @@ BOOL CSE_ALifeInventoryItem::Net_Relevant()
 
 void CSE_ALifeInventoryItem::UPDATE_Write	(NET_Packet &tNetPacket)
 {
-	tNetPacket.w_float_q8		(m_fCondition,0.0f,1.0f);
+	tNetPacket.w_u8(0);
 }
 
 void CSE_ALifeInventoryItem::UPDATE_Read	(NET_Packet &tNetPacket)
 {
-	tNetPacket.r_float_q8		(m_fCondition,0.0f,1.0f);
+	tNetPacket.r_u8();
 }
 
 #ifndef XRGAME_EXPORTS
@@ -360,11 +360,9 @@ void CSE_ALifeItemTorch::FillProps			(LPCSTR pref, PropItemVec& values)
 CSE_ALifeItemWeapon::CSE_ALifeItemWeapon	(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	a_elapsed					= 0;
-	a_elapsed_grenades.grenades_count	=	0;
-	a_elapsed_grenades.grenades_type	=	0;
-
 	wpn_flags					= 0;
 	ammo_type					= 0;
+	a_chamber					= 0;
 
 	m_caAmmoSections			= pSettings->r_string(caSection,"ammo_class");
 	if (pSettings->section_exist(caSection) && pSettings->line_exist(caSection,"visual"))
@@ -390,30 +388,23 @@ u32	CSE_ALifeItemWeapon::ef_weapon_type() const
 	return	(m_ef_weapon_type);
 }
 
-void CSE_ALifeItemWeapon::UPDATE_Read(NET_Packet	&tNetPacket)
+void CSE_ALifeItemWeapon::STATE_Write		(NET_Packet	&tNetPacket)
 {
-	inherited::UPDATE_Read		(tNetPacket);
-
-	tNetPacket.r_u8				(wpn_flags);
-	tNetPacket.r_u8				(ammo_type);
-	tNetPacket.r_u16			(a_elapsed);
-}
-
-void CSE_ALifeItemWeapon::UPDATE_Write(NET_Packet	&tNetPacket)
-{
-	inherited::UPDATE_Write		(tNetPacket);
-
-	tNetPacket.w_u8				(wpn_flags);
-	tNetPacket.w_u8				(ammo_type);
+	inherited::STATE_Write		(tNetPacket);
 	tNetPacket.w_u16			(a_elapsed);
+	tNetPacket.w_u8				(ammo_type);
+	tNetPacket.w_u8				(a_chamber);
 }
 
 void CSE_ALifeItemWeapon::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 {
 	inherited::STATE_Read		(tNetPacket, size);
+
 	if (m_wVersion < 129)
 		tNetPacket.r_u16		();
+
 	tNetPacket.r_u16			(a_elapsed);
+
 	if (m_wVersion < 129)
 		tNetPacket.r_u8			();
 	
@@ -423,16 +414,11 @@ void CSE_ALifeItemWeapon::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 	if (m_wVersion > 46)
 		tNetPacket.r_u8			(ammo_type);
 	
-	if (m_wVersion > 122)
-		a_elapsed_grenades.unpack_from_byte(tNetPacket.r_u8());
-}
+	if (m_wVersion > 122 && m_wVersion < 129)
+		tNetPacket.r_u8			();
 
-void CSE_ALifeItemWeapon::STATE_Write		(NET_Packet	&tNetPacket)
-{
-	inherited::STATE_Write		(tNetPacket);
-	tNetPacket.w_u16			(a_elapsed);
-	tNetPacket.w_u8				(ammo_type);
-	tNetPacket.w_u8				(a_elapsed_grenades.pack_to_byte());
+	if (m_wVersion >= 129)
+		tNetPacket.r_u8			(a_chamber);
 }
 
 u8	 CSE_ALifeItemWeapon::get_slot			()
@@ -458,7 +444,6 @@ u16	 CSE_ALifeItemWeapon::get_ammo_magsize	()
 	else
 		return					0;
 }
-
 
 BOOL CSE_ALifeItemWeapon::Net_Relevant()
 {
@@ -488,80 +473,51 @@ void CSE_ALifeItemWeapon::FillProps			(LPCSTR pref, PropItemVec& items)
 #endif // #ifndef XRGAME_EXPORTS
 
 ////////////////////////////////////////////////////////////////////////////
-// CSE_ALifeItemWeaponShotGun
-////////////////////////////////////////////////////////////////////////////
-CSE_ALifeItemWeaponShotGun::CSE_ALifeItemWeaponShotGun	(LPCSTR caSection) : CSE_ALifeItemWeaponMagazined(caSection)
-{
-	m_AmmoIDs.clear();
-}
-
-CSE_ALifeItemWeaponShotGun::~CSE_ALifeItemWeaponShotGun	()
-{
-}
-
-void CSE_ALifeItemWeaponShotGun::UPDATE_Read		(NET_Packet& P)
-{
-	inherited::UPDATE_Read(P);
-
-	m_AmmoIDs.clear();
-	u8 AmmoCount = P.r_u8();
-	for (u8 i=0; i<AmmoCount; i++)
-	{
-		m_AmmoIDs.push_back(P.r_u8());
-	}
-}
-void CSE_ALifeItemWeaponShotGun::UPDATE_Write	(NET_Packet& P)
-{
-	inherited::UPDATE_Write(P);
-
-	P.w_u8(u8(m_AmmoIDs.size()));
-	for (u32 i=0; i<m_AmmoIDs.size(); i++)
-	{
-		P.w_u8(u8(m_AmmoIDs[i]));
-	}
-}
-void CSE_ALifeItemWeaponShotGun::STATE_Read		(NET_Packet& P, u16 size)
-{
-	inherited::STATE_Read(P, size);
-}
-void CSE_ALifeItemWeaponShotGun::STATE_Write		(NET_Packet& P)
-{
-	inherited::STATE_Write(P);
-}
-
-#ifndef XRGAME_EXPORTS
-void CSE_ALifeItemWeaponShotGun::FillProps			(LPCSTR pref, PropItemVec& items)
-{
-	inherited::FillProps			(pref, items);
-}
-#endif // #ifndef XRGAME_EXPORTS
-////////////////////////////////////////////////////////////////////////////
 // CSE_ALifeItemWeaponAutoShotGun
 ////////////////////////////////////////////////////////////////////////////
-CSE_ALifeItemWeaponAutoShotGun::CSE_ALifeItemWeaponAutoShotGun	(LPCSTR caSection) : CSE_ALifeItemWeaponShotGun(caSection)
-{
-}
-
-CSE_ALifeItemWeaponAutoShotGun::~CSE_ALifeItemWeaponAutoShotGun	()
-{
-}
-
-void CSE_ALifeItemWeaponAutoShotGun::UPDATE_Read	(NET_Packet& P)
-{
-	inherited::UPDATE_Read(P);
-}
-void CSE_ALifeItemWeaponAutoShotGun::UPDATE_Write	(NET_Packet& P)
-{
-	inherited::UPDATE_Write(P);
-}
-void CSE_ALifeItemWeaponAutoShotGun::STATE_Read		(NET_Packet& P, u16 size)
-{
-	inherited::STATE_Read(P, size);
-}
-void CSE_ALifeItemWeaponAutoShotGun::STATE_Write	(NET_Packet& P)
+void CSE_ALifeItemWeaponAutoShotGun::STATE_Write(NET_Packet& P)
 {
 	inherited::STATE_Write(P);
+	if (!m_AmmoIDs.empty())
+	{
+		u8 group_type = m_AmmoIDs.front();
+		u8 group_cnt = 1;
+		for (int i = 1; i < m_AmmoIDs.size(); i++)
+		{
+			if (m_AmmoIDs[i] == group_type)
+				group_cnt++;
+			else
+			{
+				P.w_u8(group_type);
+				P.w_u8(group_cnt);
+				group_type = m_AmmoIDs[i];
+				group_cnt = 1;
+			}
+		}
+		P.w_u8(group_type);
+		P.w_u8(group_cnt);
+	}
+	P.w_u8(u8_max);
 }
+
+void CSE_ALifeItemWeaponAutoShotGun::STATE_Read(NET_Packet& P, u16 size)
+{
+	inherited::STATE_Read(P, size);
+	if (m_wVersion < 129)
+		return;
+
+	m_AmmoIDs.clear();
+	while (true)
+	{
+		u8 group_type = P.r_u8();
+		if (group_type == u8_max)
+			break;
+		u8 group_count = P.r_u8();
+		while (group_count--)
+			m_AmmoIDs.push_back(group_type);
+	}
+}
+
 #ifndef XRGAME_EXPORTS
 void CSE_ALifeItemWeaponAutoShotGun::FillProps		(LPCSTR pref, PropItemVec& items)
 {
@@ -571,34 +527,17 @@ void CSE_ALifeItemWeaponAutoShotGun::FillProps		(LPCSTR pref, PropItemVec& items
 ////////////////////////////////////////////////////////////////////////////
 // CSE_ALifeItemWeaponMagazined
 ////////////////////////////////////////////////////////////////////////////
-CSE_ALifeItemWeaponMagazined::CSE_ALifeItemWeaponMagazined	(LPCSTR caSection) : CSE_ALifeItemWeapon(caSection)
-{
-	m_u8CurFireMode = 0;
-}
-
-CSE_ALifeItemWeaponMagazined::~CSE_ALifeItemWeaponMagazined	()
-{
-}
-
-void CSE_ALifeItemWeaponMagazined::UPDATE_Read		(NET_Packet& P)
-{
-	inherited::UPDATE_Read(P);
-
-	m_u8CurFireMode = P.r_u8();
-}
-void CSE_ALifeItemWeaponMagazined::UPDATE_Write	(NET_Packet& P)
-{
-	inherited::UPDATE_Write(P);
-
-	P.w_u8(m_u8CurFireMode);	
-}
-void CSE_ALifeItemWeaponMagazined::STATE_Read		(NET_Packet& P, u16 size)
-{
-	inherited::STATE_Read(P, size);
-}
-void CSE_ALifeItemWeaponMagazined::STATE_Write		(NET_Packet& P)
+void CSE_ALifeItemWeaponMagazined::STATE_Write(NET_Packet& P)
 {
 	inherited::STATE_Write(P);
+	P.w_u8(m_u8CurFireMode);
+}
+
+void CSE_ALifeItemWeaponMagazined::STATE_Read(NET_Packet& P, u16 size)
+{
+	inherited::STATE_Read(P, size);
+	if (m_wVersion >= 129)
+		P.r_u8(m_u8CurFireMode);
 }
 
 #ifndef XRGAME_EXPORTS
@@ -611,34 +550,17 @@ void CSE_ALifeItemWeaponMagazined::FillProps			(LPCSTR pref, PropItemVec& items)
 ////////////////////////////////////////////////////////////////////////////
 // CSE_ALifeItemWeaponMagazinedWGL
 ////////////////////////////////////////////////////////////////////////////
-CSE_ALifeItemWeaponMagazinedWGL::CSE_ALifeItemWeaponMagazinedWGL	(LPCSTR caSection) : CSE_ALifeItemWeaponMagazined(caSection)
-{
-	m_bGrenadeMode = 0;
-}
-
-CSE_ALifeItemWeaponMagazinedWGL::~CSE_ALifeItemWeaponMagazinedWGL	()
-{
-}
-
-void CSE_ALifeItemWeaponMagazinedWGL::UPDATE_Read		(NET_Packet& P)
-{
-	m_bGrenadeMode = !!P.r_u8();
-	inherited::UPDATE_Read(P);
-
-}
-void CSE_ALifeItemWeaponMagazinedWGL::UPDATE_Write	(NET_Packet& P)
-{
-	P.w_u8(m_bGrenadeMode ? 1 : 0);	
-	inherited::UPDATE_Write(P);
-
-}
-void CSE_ALifeItemWeaponMagazinedWGL::STATE_Read		(NET_Packet& P, u16 size)
-{
-	inherited::STATE_Read(P, size);
-}
-void CSE_ALifeItemWeaponMagazinedWGL::STATE_Write		(NET_Packet& P)
+void CSE_ALifeItemWeaponMagazinedWGL::STATE_Write(NET_Packet& P)
 {
 	inherited::STATE_Write(P);
+	P.w_u8(m_bGrenadeMode);
+}
+
+void CSE_ALifeItemWeaponMagazinedWGL::STATE_Read(NET_Packet& P, u16 size)
+{
+	inherited::STATE_Read(P, size);
+	if (m_wVersion >= 129)
+		m_bGrenadeMode = P.r_u8();
 }
 
 #ifndef XRGAME_EXPORTS

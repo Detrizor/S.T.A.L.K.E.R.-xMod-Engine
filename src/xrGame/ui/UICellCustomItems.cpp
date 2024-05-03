@@ -391,13 +391,13 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 		{
 			SUIAddonSlot* s				= xr_new<SUIAddonSlot>(*S);
 			m_slots.push_back			(s);
-			s->addon_name				= addon->Section();
-			s->addon_type				= addon->GetInvIconType();
-			s->addon_index				= addon->GetInvIconIndex();
+			s->addon_name				= addon->O.cNameSect();
+			s->addon_type				= addon->I->GetInvIconType();
+			s->addon_index				= addon->I->GetInvIconIndex();
 			s->icon_offset				= forwarded_offset;
 			s->icon_offset.add			(S->icon_offset);
 			s->icon_offset.sub			(addon->IconOffset());
-			s->icon_offset.x			-= s->icon_step * float(addon->getPos());
+			s->icon_offset.x			-= s->icon_step * float(addon->getSlotPos());
 			s->addon_icon				= xr_new<CUIStatic>();
 			s->addon_icon->SetAutoDelete(true);
 			AttachChild					(s->addon_icon);
@@ -405,7 +405,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 			if (S->hasLoadingAnim())
 				s->addon_icon->SetBackgroundDraw(true);
 
-			if (auto addon_ao = addon->Cast<CAddonOwner*>())
+			if (auto addon_ao = addon->cast<CAddonOwner*>())
 				process_ao				(addon_ao, s->icon_offset);
 		}
 	}

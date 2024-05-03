@@ -91,14 +91,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 
 	m_name = m_nameShort = m_Description = "";
 	m_weight = m_volume = m_cost = m_upgrades_cost = 0.f;
-	
-	m_category			= "";
-	m_subcategory		= "";
-	m_division			= "";
-
-	m_inv_icon.set		(0,0,0,0);
-	m_inv_icon_type		= 0;
-	m_inv_icon_index	= 0;
 
 	O.RegisterModule(this);
 }
@@ -174,6 +166,9 @@ void CInventoryItem::Load(LPCSTR section)
 	m_cost							= ReadBaseCost(section);
 	
 	SetInvIcon						();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
+		m_object->AddModule<CAddon>();
 
 	if (pSettings->line_exist			(section, "slots"))
 		m_object->AddModule<CAddonOwner>();
@@ -332,9 +327,6 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 	CSE_ALifeInventoryItem			*pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e);
 	if (!pSE_InventoryItem)			return TRUE;
 
-	//!!!
-	m_fCondition = pSE_InventoryItem->m_fCondition;
-
 	net_Spawn_install_upgrades(pSE_InventoryItem->m_upgrades);
 
 	m_dwItemIndependencyTime = 0;
@@ -362,9 +354,10 @@ void CInventoryItem::net_Destroy()
 void CInventoryItem::save(NET_Packet &packet)
 {
 	packet.w_u16(m_ItemCurrPlace.value);
-	packet.w_float(m_fCondition);
+	packet.w_float(0.f);
 
-	if (object().H_Parent()) {
+	if (object().H_Parent())
+	{
 		packet.w_u8(0);
 		return;
 	}
@@ -377,10 +370,9 @@ void CInventoryItem::save(NET_Packet &packet)
 void CInventoryItem::load(IReader& packet)
 {
 	m_ItemCurrPlace.value = packet.r_u16();
-	m_fCondition = packet.r_float();
+	packet.r_float();
 
-	u8						tmp = packet.r_u8();
-	if (!tmp)
+	if (!packet.r_u8())
 		return;
 
 	if (!object().PPhysicsShell()) {
@@ -394,36 +386,25 @@ void CInventoryItem::load(IReader& packet)
 
 void CInventoryItem::net_Import(NET_Packet& P)
 {
-	P.r_float_q8(m_fCondition, 0.0f, 1.0f);
+	P.r_u8();
 }
 
 void CInventoryItem::net_Export(NET_Packet& P)
 {
-	P.w_float_q8(m_fCondition, 0.0f, 1.0f);
+	P.w_u8(0);
 }
 
 void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, mask_inv_num_items& num_items)
 {
-
-	//N.State.force.set			(0.f,0.f,0.f);
-	//N.State.torque.set			(0.f,0.f,0.f);
-	//UI().Font().pFontStat->OutSet(100.0f,100.0f);
 	P.r_vec3(N.State.force);
-	//Msg("Import N.State.force.y:%4.6f",N.State.force.y);
 	P.r_vec3(N.State.torque);
-
 	P.r_vec3(N.State.position);
-	//Msg("Import N.State.position.y:%4.6f",N.State.position.y);
-
 	P.r_float(N.State.quaternion.x);
 	P.r_float(N.State.quaternion.y);
 	P.r_float(N.State.quaternion.z);
 	P.r_float(N.State.quaternion.w);
 
-
-
 	N.State.enabled = num_items.mask & CSE_ALifeInventoryItem::inventory_item_state_enabled;
-	//UI().Font().pFontStat->OutNext("Import N.State.enabled:%i",int(N.State.enabled));
 	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null)) {
 		N.State.angular_vel.x = P.r_float();
 		N.State.angular_vel.y = P.r_float();
@@ -439,7 +420,6 @@ void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, ma
 	}
 	else
 		N.State.linear_vel.set(0.f, 0.f, 0.f);
-	//Msg("Import N.State.linear_vel.y:%4.6f",N.State.linear_vel.y);
 
 	N.State.previous_position = N.State.position;
 	N.State.previous_quaternion = N.State.quaternion;
@@ -447,14 +427,9 @@ void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, ma
 
 void CInventoryItem::net_Export_PH_Params(NET_Packet& P, SPHNetState& State, mask_inv_num_items&	num_items)
 {
-	//UI().Font().pFontStat->OutSet(100.0f,100.0f);
 	P.w_vec3(State.force);
-	//Msg("Export State.force.y:%4.6f",State.force.y);
 	P.w_vec3(State.torque);
-	//UI().Font().pFontStat->OutNext("Export State.torque:%4.6f",State.torque.magnitude());
 	P.w_vec3(State.position);
-	//Msg("Export State.position.y:%4.6f",State.position.y);
-	//Msg("Export State.enabled:%i",int(State.enabled));
 
 	float					magnitude = _sqrt(State.quaternion.magnitude());
 	if (fis_zero(magnitude)) {
@@ -464,48 +439,24 @@ void CInventoryItem::net_Export_PH_Params(NET_Packet& P, SPHNetState& State, mas
 		State.quaternion.z = 1.f;
 		State.quaternion.w = 0.f;
 	}
-	else {
-		/*		float				invert_magnitude = 1.f/magnitude;
-
-		State.quaternion.x	*= invert_magnitude;
-		State.quaternion.y	*= invert_magnitude;
-		State.quaternion.z	*= invert_magnitude;
-		State.quaternion.w	*= invert_magnitude;
-
-		clamp				(State.quaternion.x,-1.f,1.f);
-		clamp				(State.quaternion.y,-1.f,1.f);
-		clamp				(State.quaternion.z,-1.f,1.f);
-		clamp				(State.quaternion.w,-1.f,1.f);*/
-	}
 
 	P.w_float(State.quaternion.x);
 	P.w_float(State.quaternion.y);
 	P.w_float(State.quaternion.z);
 	P.w_float(State.quaternion.w);
 
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null)) {
-		/*	clamp				(State.angular_vel.x,-10.f*PI_MUL_2,10.f*PI_MUL_2);
-		clamp				(State.angular_vel.y,-10.f*PI_MUL_2,10.f*PI_MUL_2);
-		clamp				(State.angular_vel.z,-10.f*PI_MUL_2,10.f*PI_MUL_2);*/
-
+	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null))
+	{
 		P.w_float(State.angular_vel.x);
 		P.w_float(State.angular_vel.y);
 		P.w_float(State.angular_vel.z);
 	}
 
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_linear_null)) {
-		/*clamp				(State.linear_vel.x,-32.f,32.f);
-		clamp				(State.linear_vel.y,-32.f,32.f);
-		clamp				(State.linear_vel.z,-32.f,32.f);*/
-
+	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_linear_null))
+	{
 		P.w_float(State.linear_vel.x);
 		P.w_float(State.linear_vel.y);
 		P.w_float(State.linear_vel.z);
-		//Msg("Export State.linear_vel.y:%4.6f",State.linear_vel.y);
-	}
-	else
-	{
-		//Msg("Export State.linear_vel.y:%4.6f",0.0f);
 	}
 }
 
@@ -922,16 +873,33 @@ void CInventoryItem::Transfer(u16 id) const
 	O.transfer							(id);
 }
 
-float CInventoryItem::aboba o$(EEventTypes type, void* data, int param)
+float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eWeight:
-			return						m_weight;
-		case eVolume:
-			return						m_volume;
-		case eCost:
-			return						m_cost;
+	case eWeight:
+		return						m_weight;
+	case eVolume:
+		return						m_volume;
+	case eCost:
+		return						m_cost;
+	case eSyncData:
+	{
+		auto se_obj					= (CSE_ALifeDynamicObject*)data;
+		auto m						= se_obj->getModule<CSE_ALifeModuleInventoryItem>(!!param);
+		auto se_item				= smart_cast<CSE_ALifeItem*>(se_obj);
+		if (param)
+		{
+			se_item->m_fCondition	= m_fCondition;
+			m->m_icon_index			= m_inv_icon_index;
+		}
+		else
+		{
+			m_fCondition			= se_item->m_fCondition;
+			if (m)
+				m_inv_icon_index	= m->m_icon_index;
+		}
+	}
 	}
 
 	return								CModule::aboba(type, data, param);

@@ -141,7 +141,7 @@ public:
 	// Name management
 	ICF shared_str cName() const { return NameObject; }
 	void cName_set(shared_str N);
-	ICF shared_str cNameSect() const { return NameSection; }
+	ICF shared_str CR$ cNameSect() const { return NameSection; }
 	ICF LPCSTR cNameSect_str() const { return NameSection.c_str(); }
 	void cNameSect_set(shared_str N);
 	ICF shared_str cNameVisual() const { return NameVisual; }

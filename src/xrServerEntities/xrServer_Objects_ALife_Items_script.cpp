@@ -78,31 +78,11 @@ void CSE_ALifeItemWeapon::script_register(lua_State *L)
 			"cse_alife_item_weapon",
 			CSE_ALifeItem
 		)
-		.enum_("addon_flag")
-		[
-			value("eWeaponAddonGrenadeLauncher", int(CSE_ALifeItemWeapon::EWeaponAddonState::eWeaponAddonGrenadeLauncher)),
-			value("eWeaponAddonScope", int(CSE_ALifeItemWeapon::EWeaponAddonState::eWeaponAddonScope)),
-			value("eWeaponAddonSilencer", int(CSE_ALifeItemWeapon::EWeaponAddonState::eWeaponAddonSilencer)),
-			value("eAddonAttachable", int(CSE_ALifeItemWeapon::EWeaponAddonStatus::eAddonAttachable)),
-			value("eAddonDisabled", int(CSE_ALifeItemWeapon::EWeaponAddonStatus::eAddonDisabled)),
-			value("eAddonPermanent", int(CSE_ALifeItemWeapon::EWeaponAddonStatus::eAddonPermanent))
-		]
 		.def("set_ammo_elapsed",	&CSE_ALifeItemWeapon::set_ammo_elapsed)
 		.def("get_ammo_elapsed",	&CSE_ALifeItemWeapon::get_ammo_elapsed)
 		.def("get_ammo_magsize",	&CSE_ALifeItemWeapon::get_ammo_magsize)
 		.def_readwrite("ammo_type",					&CSE_ALifeItemWeapon::ammo_type)
 		//.def("set_addon_flags",					    &CSE_ALifeItemWeapon::set_addon_flags)
-	];
-}
-
-void CSE_ALifeItemWeaponShotGun::script_register(lua_State *L)
-{
-	module(L)[
-		luabind_class_item1(
-			CSE_ALifeItemWeaponShotGun,
-			"cse_alife_item_weapon_shotgun",
-			CSE_ALifeItemWeapon
-			)
 	];
 }
 

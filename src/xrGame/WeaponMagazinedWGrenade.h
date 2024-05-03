@@ -18,13 +18,8 @@ public:
 	
 	virtual BOOL	net_Spawn			(CSE_Abstract* DC);
 	virtual void	net_Destroy			();
-	virtual void	net_Export			(NET_Packet& P);
-	virtual void	net_Import			(NET_Packet& P);
 	
 	virtual void	OnH_B_Independent	(bool just_before_destroy);
-
-	virtual void	save				(NET_Packet &output_packet);
-	virtual void	load				(IReader &input_packet);
 
 			void	LaunchGrenade			();
 	
@@ -70,8 +65,6 @@ private:
 	void								start_flame_particles_gl				();
 	void								stop_flame_particles_gl					();
 	void								update_flame_particles_gl				();
-	
-	int									GetAmmoElapsed						CO$	()		{ return (int)!!m_grenade; }
 
 	bool								AltHandsAttach						CO$	();
 	bool								HasAltAim							CO$	();

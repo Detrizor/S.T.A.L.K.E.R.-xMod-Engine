@@ -64,14 +64,12 @@ void CCartridge::Load(LPCSTR section, float condition)
 
 float CCartridge::Weight() const
 {
-	auto sect		= m_ammoSect.c_str();
-	return			(sect) ? pSettings->r_float(sect, "inv_weight") : 0.f;
+	return (m_ammoSect.size()) ? pSettings->r_float(m_ammoSect, "inv_weight") : 0.f;
 }
 
 float CCartridge::Volume() const
 {
-	auto sect		= m_ammoSect.c_str();
-	return			(sect) ? pSettings->r_float(sect, "inv_volume") : 0.f;
+	return (m_ammoSect.size()) ? pSettings->r_float(m_ammoSect, "inv_volume") : 0.f;
 }
 
 CWeaponAmmo::CWeaponAmmo(void) 

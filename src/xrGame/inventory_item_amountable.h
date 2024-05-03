@@ -22,9 +22,6 @@ private:
 	void								OnAmountChange							();
 	bool								Useful								C$	();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
-	
-	void								saveData							O$	(CSE_ALifeObject* se_obj);
-	void								loadData							O$	(CSE_ALifeObject* se_obj);
 
 public:
 	void								SetDepletionSpeed						(float val)		{ m_depletion_speed = val; }

@@ -164,27 +164,6 @@ public:
 	virtual Fvector					draw_level_position	() const;
 	virtual	bool					keep_saved_data_anyway	() const;
 #endif
-
-private:
-	::std::vector<::std::unique_ptr<CSE_ALifeModule>> m_modules					= {};
-
-public:
-	void								clearModules							();
-	CSE_ALifeModule*					addModule								(u16 type);
-	template <typename M>
-	M*									getModule								(bool create_if_absent)
-	{
-		for (auto& m : m_modules)
-			if (auto r = smart_cast<M*>(m.get()))
-				return					r;
-
-		if (!create_if_absent)
-			return						nullptr;
-
-		m_modules.push_back				(::std::make_unique<M>());
-		return							static_cast<M*>(m_modules.back().get());
-	}
-
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeObject)
 #define script_type_list save_type_list(CSE_ALifeObject)
@@ -343,6 +322,31 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeDynamicObject,CSE_ALifeObject)
 	virtual void					on_failed_switch_online	();
 #endif
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
+
+private:
+	::std::unique_ptr<CSE_ALifeModule>	m_modules[mModuleTypesCount]			= { nullptr };
+	
+	CSE_ALifeModule*					add_module								(u16 type);
+
+public:
+	void								clearModules							();
+
+	template <typename M>
+	M*									getModule								(bool create_if_absent)
+	{
+		for (auto& m : m_modules)
+			if (m)
+				if (auto r = smart_cast<M*>(m.get()))
+					return				r;
+
+		if (!create_if_absent)
+			return						nullptr;
+
+		CSE_ALifeModule* created		= xr_new<M>();
+		m_modules[created->type()]		= ::std::unique_ptr<CSE_ALifeModule>(created);
+		return							smart_cast<M*>(created);
+	}
+
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeDynamicObject)
 #define script_type_list save_type_list(CSE_ALifeDynamicObject)

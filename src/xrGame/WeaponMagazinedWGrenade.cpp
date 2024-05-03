@@ -71,23 +71,10 @@ void CWeaponMagazinedWGrenade::net_Destroy()
 
 BOOL CWeaponMagazinedWGrenade::net_Spawn(CSE_Abstract* DC)
 {
-	CSE_ALifeItemWeapon* const weapon = smart_cast<CSE_ALifeItemWeapon*>(DC);
-	R_ASSERT(weapon);
-	inherited::net_Spawn_install_upgrades(weapon->m_upgrades);
-
-	BOOL l_res = inherited::net_Spawn(DC);
-
-	SetPending(FALSE);
-	
-	m_grenade_type = weapon->a_elapsed_grenades.grenades_type;
-
-	if (m_grenade && !getRocketCount())
-	{
-		shared_str fake_grenade_name = pSettings->r_string(m_grenade->m_ammoSect, "fake_grenade_name");
-		CRocketLauncher::SpawnRocket(*fake_grenade_name, this);
-	}
-
-	return l_res;
+	auto se_wpn_gl = smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(DC);
+	R_ASSERT(se_wpn_gl);
+	inherited::net_Spawn_install_upgrades(se_wpn_gl->m_upgrades);
+	return inherited::net_Spawn(DC);
 }
 
 u8 CWeaponMagazinedWGrenade::GetGrenade() const
@@ -383,43 +370,6 @@ void CWeaponMagazinedWGrenade::UpdateSounds()
 	m_sounds.SetPosition("sndSwitch", P);
 }
 
-void CWeaponMagazinedWGrenade::save(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	save_data(m_bGrenadeMode, output_packet);
-	save_data(!!m_grenade, output_packet);
-}
-
-void CWeaponMagazinedWGrenade::load(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	bool b;
-	load_data(b, input_packet);
-	if (b != m_bGrenadeMode)
-		SwitchMode();
-
-	load_data(b, input_packet);
-	if (b)
-		m_grenade->Load(m_grenade_types[m_grenade_type].c_str());
-}
-
-void CWeaponMagazinedWGrenade::net_Export(NET_Packet& P)
-{
-	P.w_u8(m_bGrenadeMode ? 1 : 0);
-
-	inherited::net_Export(P);
-}
-
-void CWeaponMagazinedWGrenade::net_Import(NET_Packet& P)
-{
-	bool NewMode = FALSE;
-	NewMode = !!P.r_u8();
-	if (NewMode != m_bGrenadeMode)
-		SwitchMode();
-
-	inherited::net_Import(P);
-}
-
 bool CWeaponMagazinedWGrenade::IsNecessaryItem(const shared_str& item_sect)
 {
 	return (std::find(m_ammoTypes.begin(), m_ammoTypes.end(), item_sect) != m_ammoTypes.end() ||
@@ -478,6 +428,11 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 		m_hud->ProcessGL				(gl);
 		m_fLaunchSpeed					= gl->GetGrenadeVel();
 		m_flame_particles_gl_name		= gl->FlameParticles();
+		if (m_bGrenadeMode)
+		{
+			PerformSwitchGL				();
+			m_bGrenadeMode				= true;
+		}
 	}
 	else
 	{
@@ -503,21 +458,41 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eOnChild:
+	case eOnChild:
+	{
+		CObject* obj					= (CObject*)data;
+		if (obj->Cast<CCustomRocket*>())
 		{
-			CObject* obj				= (CObject*)data;
-			if (cast<CCustomRocket*>(obj))
-			{
-				if (param)
-					AttachRocket		(obj->ID(), this);
-				else
-					DetachRocket		(obj->ID(), false);
-			}
-			break;
+			if (param)
+				AttachRocket			(obj->ID(), this);
+			else
+				DetachRocket			(obj->ID(), false);
 		}
+		break;
+	}
+	case eWeight:
+		return							inherited::Aboba(type, data, param);		//--xd need implement grenade weight when reworking underbarrel gls
+	case eSyncData:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(se_obj);
+		if (param)
+			se_wpn->m_bGrenadeMode		= (u8)m_bGrenadeMode;
+		else
+		{
+			if (m_bGrenadeMode			= !!se_wpn->m_bGrenadeMode)
+				if (m_pLauncher)
+					PerformSwitchGL		();
 
-		case eWeight:
-			return						inherited::Aboba(type, data, param);		//--xd need implement grenade weight when reworking underbarrel gls
+			if (m_grenade && !getRocketCount())
+			{
+				shared_str fake_grenade_name = pSettings->r_string(m_grenade->m_ammoSect, "fake_grenade_name");
+				CRocketLauncher::SpawnRocket(*fake_grenade_name, this);
+			}
+		}
+		return							res;
+	}
 	}
 
 	return								inherited::Aboba(type, data, param);

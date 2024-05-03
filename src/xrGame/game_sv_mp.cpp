@@ -783,32 +783,6 @@ void game_sv_mp::ChargeAmmo(CSE_ALifeItemWeapon* weapon,
 
 void game_sv_mp::ChargeGrenades(CSE_ALifeItemWeapon* weapon, LPCSTR grenade_string, game_PlayerState::PLAYER_ITEMS_LIST & playerItems)
 {
-	int grenades_count		= _GetItemCount(grenade_string);
-	R_ASSERT2(grenades_count <= 4,
-		make_string("weapon [%s] has greater than 4 types of grenade [%s]",
-			weapon->s_name.c_str(),
-			grenade_string
-		).c_str()
-	);
-	weapon->a_elapsed_grenades.unpack_from_byte(0);
-	string512	temp_ammo_class;
-	for (int i = 0; i < grenades_count; ++i)
-	{
-		_GetItem(grenade_string, i, temp_ammo_class);
-		u32 const ammo_id = static_cast<u16>(
-			m_strWeaponsData->GetItemIdx(shared_str(temp_ammo_class))
-		);
-				
-		game_PlayerState::PLAYER_ITEMS_LIST::iterator temp_iter = std::find(
-			playerItems.begin(), playerItems.end(), ammo_id);
-		if (temp_iter != playerItems.end())
-		{
-			playerItems.erase(temp_iter);
-			weapon->a_elapsed_grenades.grenades_count	=	1;
-			weapon->a_elapsed_grenades.grenades_type	=	i;
-			break;
-		}
-	}
 }
 
 void	game_sv_mp::SetAmmoForWeapon(CSE_ALifeItemWeapon* weapon,
@@ -816,44 +790,6 @@ void	game_sv_mp::SetAmmoForWeapon(CSE_ALifeItemWeapon* weapon,
 									 game_PlayerState::PLAYER_ITEMS_LIST & playerItems,
 									 ammo_diff_t & ammo_diff)
 {
-	R_ASSERT(weapon);
-	R_ASSERT(weapon->s_name.c_str());
-	shared_str ammo_classes = pSettings->r_string(weapon->s_name, "ammo_class");
-	R_ASSERT2(ammo_classes.size() < 512, make_string("ammo_class parameter of [%s] is too large", 
-		weapon->s_name.c_str()).c_str());
-	VERIFY2(ammo_classes.size(), make_string("ammo_class parameter of [%s] not found", 
-		weapon->s_name.c_str()).c_str());
-	
-	if (!ammo_classes.size())
-	{
-#ifdef DEBUG
-		Msg("! WARNING: not found ammo_class for [%s]", weapon->s_name.c_str());
-#endif
-		weapon->a_elapsed	= 0;
-	} else
-	{
-		ChargeAmmo(weapon, ammo_classes.c_str(), playerItems, ammo_diff);
-	}
-	
-	if (Addons & CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher)
-	{
-		shared_str grenade_classes = pSettings->r_string(weapon->s_name, "grenade_class");
-		R_ASSERT2(grenade_classes.size() < 512, make_string(
-			"grenade_class parameter of [%s] is too large", 
-			weapon->s_name.c_str()).c_str()
-		);
-		if (!grenade_classes.size())
-		{
-#ifdef DEBUG
-		Msg("! WARNING: not found grenade_class for [%s]", weapon->s_name.c_str());
-#endif
-			weapon->a_elapsed_grenades.unpack_from_byte(0);
-			return;
-		} else
-		{
-			ChargeGrenades(weapon, grenade_classes.c_str(), playerItems);
-		}
-	}
 }
 
 void	game_sv_mp::SpawnAmmoDifference(u16 actorId, ammo_diff_t const & ammo_diff)

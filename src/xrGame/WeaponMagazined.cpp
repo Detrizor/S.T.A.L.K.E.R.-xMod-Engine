@@ -46,10 +46,9 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_bFireSingleShot = false;
 	m_iShotNum = 0;
 	m_fOldBulletSpeed = 0.f;
-	m_iQueueSize = WEAPON_ININITE_QUEUE;
+	m_iQueueSize = -1;
 	m_bHasDifferentFireModes = false;
 	m_iCurFireMode = -1;
-	m_iPrefferedFireMode = -1;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -110,7 +109,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 		}
 
 		m_iCurFireMode = ModesCount - 1;
-		m_iPrefferedFireMode = READ_IF_EXISTS(pSettings, r_s16, section, "preffered_fire_mode", -1);
 	}
 	else
 		m_bHasDifferentFireModes = false;
@@ -188,10 +186,7 @@ void CWeaponMagazined::FireStart()
 
 bool CWeaponMagazined::has_ammo_for_reload(int count) const
 {
-	if (unlimited_ammo())
-		return							true;
-
-	return								(m_current_ammo && m_current_ammo->m_boxSize >= count);
+	return								(unlimited_ammo()) ? true : (m_current_ammo && m_current_ammo->m_boxSize >= count);
 }
 
 void CWeaponMagazined::Reload()
@@ -382,7 +377,7 @@ bool CWeaponMagazined::reloadCartridge()
 	if (m_magazin.size() < m_magazin.capacity() && (unlimited_ammo() || m_current_ammo && m_current_ammo->Get(m_cartridge)))
 	{
 		m_magazin.push_back				(m_cartridge);
-		if (m_current_ammo && !m_current_ammo->m_boxSize)
+		if (m_current_ammo && m_current_ammo->object_removed())
 			m_current_ammo				= nullptr;
 		return							true;
 	}
@@ -783,29 +778,22 @@ void CWeaponMagazined::on_firemode_switch()
 	PlaySound("sndSwitchMode", get_LastFP());
 }
 
-void	CWeaponMagazined::OnNextFireMode()
+void CWeaponMagazined::OnNextFireMode()
 {
 	if (!m_bHasDifferentFireModes) return;
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode + 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
 	on_firemode_switch();
-};
+}
 
-void	CWeaponMagazined::OnPrevFireMode()
+void CWeaponMagazined::OnPrevFireMode()
 {
 	if (!m_bHasDifferentFireModes) return;
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode - 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
 	on_firemode_switch();
-};
-
-void CWeaponMagazined::OnH_A_Chield()
-{
-	inherited::OnH_A_Chield();
-	if (m_bHasDifferentFireModes)
-		SetQueueSize((m_actor) ? GetCurrentFireMode() : -1);
 }
 
 void CWeaponMagazined::SetQueueSize(int size)
@@ -813,44 +801,9 @@ void CWeaponMagazined::SetQueueSize(int size)
 	m_iQueueSize = size;
 }
 
-float	CWeaponMagazined::GetWeaponDeterioration()
+float CWeaponMagazined::GetWeaponDeterioration()
 {
-	// modified by Peacemaker [17.10.08]
-	//	if (!m_bHasDifferentFireModes || m_iPrefferedFireMode == -1 || u32(GetCurrentFireMode()) <= u32(m_iPrefferedFireMode))
-	//		return inherited::GetWeaponDeterioration();
-	//	return m_iShotNum*conditionDecreasePerShot;
 	return (m_iShotNum == 1) ? conditionDecreasePerShot : conditionDecreasePerQueueShot;
-};
-
-void CWeaponMagazined::save(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	save_data(m_iQueueSize, output_packet);
-	save_data(m_iShotNum, output_packet);
-	save_data(m_iCurFireMode, output_packet);
-}
-
-void CWeaponMagazined::load(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	load_data(m_iQueueSize, input_packet); SetQueueSize(m_iQueueSize);
-	load_data(m_iShotNum, input_packet);
-	load_data(m_iCurFireMode, input_packet);
-}
-
-void CWeaponMagazined::net_Export(NET_Packet& P)
-{
-	inherited::net_Export(P);
-
-	P.w_u8(u8(m_iCurFireMode & 0x00ff));
-}
-
-void CWeaponMagazined::net_Import(NET_Packet& P)
-{
-	inherited::net_Import(P);
-
-	m_iCurFireMode = P.r_u8();
-	SetQueueSize(GetCurrentFireMode());
 }
 
 #include "string_table.h"
@@ -876,10 +829,8 @@ bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
 
 	if (HasFireModes())
 	{
-		if (m_iQueueSize == WEAPON_ININITE_QUEUE)
-		{
+		if (m_iQueueSize < 0)
 			info.fire_mode = "A";
-		}
 		else
 		{
 			xr_sprintf(int_str, "%d", m_iQueueSize);
@@ -1286,8 +1237,8 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		PlayAnimIdle			();
 	}
 
-	if (pSettings->line_exist(addon->Section(), "grip"))
-		m_grip_accuracy_modifier = readAccuracyModifier((attach) ? *addon->Section() : *m_section_id, "grip");
+	if (pSettings->line_exist(addon->O.cNameSect(), "grip"))
+		m_grip_accuracy_modifier = readAccuracyModifier((attach) ? *addon->O.cNameSect() : *m_section_id, "grip");
 			
 	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
 	{
@@ -1297,7 +1248,7 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 			SetInvIconType		(!!m_iron_sights_blockers);
 	}
 
-	if (auto addon_ao = addon->Cast<CAddonOwner*>())
+	if (auto addon_ao = addon->cast<CAddonOwner*>())
 		for (auto s : addon_ao->AddonSlots())
 			for (auto a : s->addons)
 				process_addon	(a, attach);
@@ -1307,36 +1258,49 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eOnAddon:
+	case eOnAddon:
+	{
+		process_addon					((CAddon*)data, !!param);
+		break;
+	}
+	case eWeight:
+		return							inherited::Aboba(type, data, param) + GetMagazineWeight();
+	case eTransferAddon:
+	{
+		auto addon						= (CAddon*)data;
+		if (addon->cast<CMagazine*>())
 		{
-			process_addon				((CAddon*)data, !!param);
-			break;
+			m_magazine_slot->startReloading((param) ? addon : nullptr);
+			StartReload					((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
+			return						1.f;
 		}
-
-		case eWeight:
-			return						inherited::Aboba(type, data, param) + GetMagazineWeight();
-
-		case eTransferAddon:
-			if (auto mag = Cast<CMagazine*>((CAddon*)data))
-			{
-				m_magazine_slot->startReloading((param) ? (CAddon*)data : nullptr);
-				StartReload				((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
-				return					1.f;
-			}
-			break;
-
-		case eUpdateHudBonesVisibility:
-			UpdateHudBonesVisibility	();
-			break;
-
-		case eUpdateSlotsTransform:
+		break;
+	}
+	case eUpdateHudBonesVisibility:
+		UpdateHudBonesVisibility		();
+		break;
+	case eUpdateSlotsTransform:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		if (auto scope = getActiveScope())
+			if (scope->Type() == eOptics)
+				scope->updateCameraLenseOffset();
+		return							res;
+	}
+	case eSyncData:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
+		if (param)
+			se_wpn->m_u8CurFireMode		= (u8)m_iCurFireMode;
+		else
 		{
-			float res					= inherited::Aboba(type, data, param);
-			if (auto scope = getActiveScope())
-				if (scope->Type() == eOptics)
-					scope->updateCameraLenseOffset();
-			return						res;
+			m_iCurFireMode				= se_wpn->m_u8CurFireMode;
+			SetQueueSize				(GetCurrentFireMode());
 		}
+		return							res;
+	}
 	}
 
 	return								inherited::Aboba(type, data, param);

@@ -312,12 +312,13 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-			shared_str		m_category;
-			shared_str		m_subcategory;
-			shared_str		m_division;
-			Frect			m_inv_icon;
-			u8				m_inv_icon_type;
-			u8				m_inv_icon_index;
+	shared_str							m_category;
+	shared_str							m_subcategory;
+	shared_str							m_division;
+	Frect								m_inv_icon;
+
+	u8									m_inv_icon_type							= 0;
+	u8									m_inv_icon_index						= 0;
 
 public:
 	static const float		m_fMaxRepairCondition;

@@ -649,21 +649,21 @@ static void process_ao_for_action(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool
 
 			if (s->steps > 1)
 			{
-				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->NameShort(), upslot_str, *s->name);
+				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->I->NameShort(), upslot_str, *s->name);
 				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_FORWARDS);
 			}
 
-			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->NameShort(), upslot_str, *s->name);
+			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->I->NameShort(), upslot_str, *s->name);
 			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_DETACH);
 
 			if (s->steps > 1)
 			{
-				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->NameShort(), upslot_str, *s->name);
+				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->I->NameShort(), upslot_str, *s->name);
 				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_BACKWARDS);
 			}
 
-			if (auto addon_ao = a->Cast<CAddonOwner*>())
-				process_ao_for_action	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->NameShort()));
+			if (auto addon_ao = a->cast<CAddonOwner*>())
+				process_ao_for_action	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->I->NameShort()));
 		}
 	}
 }
@@ -689,8 +689,8 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		
 		for (auto a : s->addons)
 		{
-			if (auto addon_ao = a->Cast<CAddonOwner*>())
-				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->NameShort()));
+			if (auto addon_ao = a->cast<CAddonOwner*>())
+				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->I->NameShort()));
 		}
 	}
 }

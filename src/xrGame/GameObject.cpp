@@ -159,7 +159,8 @@ void CGameObject::net_Destroy	()
 	xr_delete								(m_lua_game_object);
 	m_spawned								= false;
 
-	modules_save_data();
+	if (auto se_obj = ai().alife().objects().object(ID()))
+		Aboba(eSyncData, (void*)se_obj, 1);
 }
 
 void CGameObject::OnEvent(NET_Packet& P, u16 type)
@@ -435,9 +436,9 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 
 	spawn_supplies				();
 
-	for (auto m : m_modules)
-		m->loadData(O);
-	O->clearModules();
+	auto se_obj							= O->cast_alife_dynamic_object();
+	Aboba								(eSyncData, (void*)se_obj, 0);
+	se_obj->clearModules				();
 
 #ifdef DEBUG
 	if(ph_dbg_draw_mask1.test(ph_m1_DbgTrackObject)&&stricmp(PH_DBG_ObjectTrackName(),*cName())==0)
@@ -486,7 +487,8 @@ void CGameObject::net_Save		(NET_Packet &net_packet)
 
 	net_packet.w_chunk_close16	(position);
 
-	modules_save_data();
+	if (auto se_obj = ai().alife().objects().object(ID()))
+		Aboba(eSyncData, (void*)se_obj, 1);
 }
 
 void CGameObject::net_Load		(IReader &ireader)
@@ -1192,13 +1194,6 @@ void CGameObject::OnRender			()
 	}
 }
 #endif // DEBUG
-
-void CGameObject::modules_save_data() const
-{
-	CSE_ALifeObject* se_obj				= ai().alife().objects().object(ID());
-	for (auto m : m_modules)
-		m->saveData						(se_obj);
-}
 
 void CGameObject::transfer(u16 id) const
 {

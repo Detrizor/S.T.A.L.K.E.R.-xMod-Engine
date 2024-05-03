@@ -816,69 +816,6 @@ bool CScriptGameObject::Aiming C$()
 	return								(actor) ? actor->IsZoomAimingMode() : false;
 }
 
-int CScriptGameObject::getAddonSlotIdx() const
-{
-	auto addon							= object().Cast<CAddon*>();
-	return								(addon) ? addon->getSlotIdx() : -1;
-}
-
-void CScriptGameObject::setAddonSlotIdx(int val)
-{
-	if (auto addon = object().Cast<CAddon*>())
-		addon->setSlotIdx				(val);
-}
-
-int CScriptGameObject::getAddonPos() const
-{
-	auto addon							= object().Cast<CAddon*>();
-	return								(addon) ? addon->getPos() : -1;
-}
-
-void CScriptGameObject::setAddonPos(int val)
-{
-	if (auto addon = object().Cast<CAddon*>())
-		addon->setPos					(val);
-}
-
-float CScriptGameObject::getScopeMagnification() const
-{
-	auto scope							= object().Cast<CScope*>();
-	return								(scope) ? scope->GetCurrentMagnification() : 0.f;
-}
-
-void CScriptGameObject::setScopeMagnification(float val)
-{
-	auto scope							= object().Cast<CScope*>();
-	if (scope)
-		scope->setMagnificaiton			(val);
-}
-
-u16 CScriptGameObject::getScopeZeroing() const
-{
-	auto scope							= object().Cast<CScope*>();
-	return								(scope) ? scope->Zeroing() : 0;
-}
-
-void CScriptGameObject::setScopeZeroing(u16 val)
-{
-	auto scope							= object().Cast<CScope*>();
-	if (scope)
-		scope->setZeroing				(val);
-}
-
-s8 CScriptGameObject::getScopeSelection() const
-{
-	auto scope							= object().Cast<CScope*>();
-	return								(scope) ? scope->getSelection() : 0;
-}
-
-void CScriptGameObject::setScopeSelection(s8 val)
-{
-	auto scope							= object().Cast<CScope*>();
-	if (scope)
-		scope->setSelection				(val);
-}
-
 #define SPECIFIC_CAST(A,B)\
 B* A ()\
 {\

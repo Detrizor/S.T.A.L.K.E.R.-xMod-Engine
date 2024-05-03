@@ -41,8 +41,6 @@ public:
 
 	virtual BOOL			net_Spawn(CSE_Abstract* DC);
 	virtual void			net_Destroy();
-	virtual void			net_Export(NET_Packet& P);
-	virtual void			net_Import(NET_Packet& P);
 
 	virtual CWeapon			*cast_weapon()
 	{
@@ -54,8 +52,6 @@ public:
 	}
 
 	//serialization
-	virtual void			save(NET_Packet &output_packet);
-	virtual void			load(IReader &input_packet);
 	virtual BOOL			net_SaveRelevant()
 	{
 		return inherited::net_SaveRelevant();
@@ -487,6 +483,8 @@ protected:
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
 	int									get_ammo_type						C$	(shared_str CR$ section);
+	
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
 
 	//with zeroing
 	Fvector							V$	getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }

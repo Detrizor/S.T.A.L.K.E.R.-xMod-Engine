@@ -982,20 +982,6 @@ public:
 	float								Radiation							C$	();
 	float								Absorbation							C$	(int hit_type);
 	bool								Aiming								C$	();
-
-//addon
-	int									getAddonSlotIdx						C$	();
-	void								setAddonSlotIdx							(int val);
-	int									getAddonPos							C$	();
-	void								setAddonPos								(int val);
-
-//scope
-	float								getScopeMagnification				C$	();
-	void								setScopeMagnification					(float val);
-	u16									getScopeZeroing						C$	();
-	void								setScopeZeroing							(u16 val);
-	s8									getScopeSelection					C$	();
-	void								setScopeSelection						(s8 val);
 };
 
 add_to_type_list(CScriptGameObject)

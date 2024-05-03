@@ -480,7 +480,6 @@ CSE_Abstract* clone_weapon(CALifeSimulator* self, CSE_Abstract* object, LPCSTR s
 	new_wpn->ammo_type						= wpn->ammo_type;
 	new_wpn->m_upgrades						= wpn->m_upgrades;
 	new_wpn->set_ammo_elapsed				(wpn->get_ammo_elapsed());
-	new_wpn->a_elapsed_grenades				= wpn->a_elapsed_grenades;
 
 	return									(reg) ? reprocess_spawn(self, new_object) : new_object;
 }

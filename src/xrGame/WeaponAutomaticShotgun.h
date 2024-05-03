@@ -9,10 +9,6 @@ public:
 					CWeaponAutomaticShotgun			();
 
 	virtual void	Load							(LPCSTR section);
-	
-	virtual void	net_Export						(NET_Packet& P);
-	virtual void	net_Import						(NET_Packet& P);
-
 	virtual bool	Action							(u16 cmd, u32 flags);
 
 protected:
@@ -24,6 +20,9 @@ protected:
 	ESoundTypes		m_eSoundClose;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+	
+protected:
+	float								Aboba								O$	(EEventTypes type, void* data, int param);
 };
 
 add_to_type_list(CWeaponAutomaticShotgun)

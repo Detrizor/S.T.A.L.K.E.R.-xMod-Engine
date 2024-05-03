@@ -28,7 +28,6 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 }
 
 CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
-m_addon(obj->Cast<CAddon*>()),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_sight_position(pSettings->r_fvector3(section, "sight_position"))
 {
@@ -60,7 +59,7 @@ CScope::~CScope()
 	xr_delete							(m_pNight_vision);
 }
 
-float CScope::aboba o$(EEventTypes type, void* data, int param)
+float CScope::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -78,6 +77,23 @@ float CScope::aboba o$(EEventTypes type, void* data, int param)
 					init_visors			();
 			}
 			return						(result) ? 1.f : flt_max;
+		}
+		case eSyncData:
+		{
+			auto se_obj					= (CSE_ALifeDynamicObject*)data;
+			auto m						= se_obj->getModule<CSE_ALifeModuleScope>(!!param);
+			if (param)
+			{
+				m->m_magnification		= m_Magnificaion.current;
+				m->m_zeroing			= m_Zeroing.current;
+				m->m_selection			= m_selection;
+			}
+			else if (m)
+			{
+				m_Magnificaion.current	= m->m_magnification;
+				m_Zeroing.current		= m->m_zeroing;
+				m_selection				= m->m_selection;
+			}
 		}
 	}
 
@@ -194,7 +210,8 @@ void CScope::RenderUI()
 
 void CScope::updateCameraLenseOffset()
 {
-	Fmatrix CR$ transform				= (m_addon) ? m_addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	auto addon							= cast<CAddon*>();
+	Fmatrix CR$ transform				= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
 	transform.transform_tiny			(m_camera_lense_offset, m_sight_position);
 	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
 }
