@@ -80,18 +80,6 @@ void CSE_ALifeDynamicObject::switch_offline			()
 	clear_client_data();
 }
 
-extern void add_online_impl(CSE_ALifeDynamicObject *object, const bool &update_registries);
-void CSE_ALifeDynamicObject::add_online				(const bool &update_registries)
-{
-	add_online_impl				(this, update_registries);
-}
-
-extern void add_offline_impl(CSE_ALifeDynamicObject *object, const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
-void CSE_ALifeDynamicObject::add_offline			(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
-{
-	add_offline_impl			(this, saved_children, update_registries);
-}
-
 bool CSE_ALifeDynamicObject::synchronize_location	()
 {
 	if (!ai().level_graph().valid_vertex_position(o_Position) || ai().level_graph().inside(ai().level_graph().vertex(m_tNodeID),o_Position))
@@ -178,16 +166,6 @@ bool CSE_ALifeDynamicObject::redundant				() const
 }
 
 /// ---------------------------- CSE_ALifeInventoryBox ---------------------------------------------
-
-void CSE_ALifeInventoryBox::add_online	(const bool &update_registries)
-{
-	inherited::add_online(update_registries);
-}
-
-void CSE_ALifeInventoryBox::add_offline	(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
-{
-	inherited::add_offline(saved_children, update_registries);
-}
 
 void CSE_ALifeDynamicObject::clear_client_data()
 {

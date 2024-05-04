@@ -105,7 +105,15 @@ SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeGraphPoint)
 #define script_type_list save_type_list(CSE_ALifeGraphPoint)
 
-SERVER_ENTITY_DECLARE_BEGIN2(CSE_ALifeObject,CSE_Abstract,CRandom)
+class CSE_ALifeObject : public CSE_Abstract,
+	public CRandom
+{
+typedef CSE_Abstract inherited1;
+typedef CRandom inherited2;
+
+public:
+	static void script_register(lua_State*);
+
 	enum {
 		flUseSwitches		= u32(1) << 0,
 		flSwitchOnline		= u32(1) << 1,
@@ -297,7 +305,13 @@ public:
 #endif
 };
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeDynamicObject,CSE_ALifeObject)
+class CSE_ALifeDynamicObject : public CSE_ALifeObject
+{
+typedef CSE_ALifeObject inherited;
+
+public:
+	static void script_register(lua_State*);
+
 	ALife::_TIME_ID					m_tTimeID;
 	u64								m_switch_counter;
 	
@@ -645,10 +659,6 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeInventoryBox,CSE_ALifeDynamicObjectVisual)
 
 						CSE_ALifeInventoryBox	(LPCSTR caSection);
 	virtual				~CSE_ALifeInventoryBox	();
-#ifdef XRGAME_EXPORTS
-	virtual void		add_offline				(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
-	virtual void		add_online				(const bool &update_registries);
-#endif
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeInventoryBox)
 #define script_type_list save_type_list(CSE_ALifeInventoryBox)
