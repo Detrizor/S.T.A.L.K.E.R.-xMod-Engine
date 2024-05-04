@@ -965,8 +965,6 @@ public:
 	bool				CanTake				C$	(CScriptGameObject* obj, bool chamber);
 	bool				CanTakeNoChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, false); };
 	bool				CanTakeToChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, true); };
-	LPCSTR				Stock					() const;
-	u32					StockCount				() const;
 	void				Transfer				(u16 id) const;
 	void				SetInvIcon				(u8 idx);
 	u8					GetInvIconIndex			() const;

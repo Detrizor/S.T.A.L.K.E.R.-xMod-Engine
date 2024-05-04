@@ -576,7 +576,7 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 
 	shared_str							ammo_section;
 	if (ammo)
-		ammo_section					= pSettings->line_exist(cell_item->m_section, "stock") ? pSettings->r_string(cell_item->m_section, "stock") : cell_item->m_section;
+		ammo_section					= pSettings->line_exist(cell_item->m_section, "supplies") ? pSettings->r_string(cell_item->m_section, "supplies") : cell_item->m_section;
 
 	shared_str							slot_type;
 	if (addon)
@@ -601,7 +601,7 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 
 		if (wpn_with_ammo && ItemCategory(ci->m_section, "ammo"))
 		{
-			LPCSTR tmp					= pSettings->line_exist(ci->m_section, "stock") ? pSettings->r_string(ci->m_section, "stock") : *ci->m_section;
+			LPCSTR tmp					= pSettings->line_exist(ci->m_section, "supplies") ? pSettings->r_string(ci->m_section, "supplies") : *ci->m_section;
 			for (auto& I : ammo_types)
 			{
 				if (I == tmp)

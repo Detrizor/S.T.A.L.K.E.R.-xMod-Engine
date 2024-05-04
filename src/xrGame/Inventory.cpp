@@ -225,7 +225,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 		CMissile* pMissile						= smart_cast<CMissile*>(pIItem);
 		if ((pGrenade && !pGrenade->Useful()) || (pMissile && !pMissile->Useful()))
 		{
-			m_pOwner->O.giveItem(*pIItem->m_section_id);
+			m_pOwner->O->giveItem(*pIItem->m_section_id);
 			if (pIItem->CurrSlot() == pIItem->HandSlot())
 				m_bBoltPickUp					= true;
 			pIItem->object().DestroyObject		();

@@ -17,10 +17,7 @@ private:
 	float								m_Sum[3];
 	bool								m_ArtefactIsolation;
 	float								m_RadiationProtection;
-
 	bool								m_content_volume_scale;
-	LPCSTR								m_stock;
-	u32									m_stock_count;
 
 	float&								Sum										(int type)		{ return m_Sum[type-eWeight]; }
 
@@ -45,8 +42,6 @@ public:
 	TIItemContainer CR$					Items								C$	()		{ return m_Items; }
 	float								GetCapacity							C$	()		{ return m_Capacity; }
 	bool								Empty								C$	()		{ return m_Items.empty(); }
-	LPCSTR								Stock								C$	()		{ return m_stock; }
-	u32									StockCount							C$	()		{ return m_stock_count; }
 
 	void								AddAvailableItems					C$	(TIItemContainer& items_container);
 	void								ParentCheck							C$	(PIItem item, bool add);

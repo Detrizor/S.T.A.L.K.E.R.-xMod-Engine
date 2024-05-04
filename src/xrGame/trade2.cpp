@@ -94,7 +94,7 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 	}
 
 	if (pThis.type == TT_TRADER && !bBuying)
-		pPartner.inv_owner->O.giveItem				(*section);
+		pPartner.inv_owner->O->giveItem				(*section);
 	else
 		pItem->Transfer								((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
 
@@ -179,9 +179,8 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	else
 	{
 		price				= (float)CInventoryItem::ReadBaseCost(*section);
-		float stock_count	= READ_IF_EXISTS(pSettings, r_float, section, "stock_count", 0);
-		if (0 < stock_count)
-			price			+= stock_count * (float)CInventoryItem::ReadBaseCost(pSettings->r_string(section, "stock"));
+		if (float count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
+			price			+= count * (float)CInventoryItem::ReadBaseCost(pSettings->r_string(section, "supplies"));
 	}
 	price					*= action_factor;
 

@@ -24,12 +24,16 @@ void CSE_ALifeDynamicObject::on_spawn()
 		LPCSTR supplies					= pSettings->r_string(s_name, "supplies");
 		if (supplies[0])
 		{
-			u16 count					= READ_IF_EXISTS(pSettings, r_u16, s_name, "supplies_count", 1);
-			string128					sect;
-			for (int i = 0, e = _GetItemCount(supplies); i < e; i++)
+			if (u16 count = READ_IF_EXISTS(pSettings, r_u16, s_name, "supplies_count", 0))
+				alife().spawn_items		(supplies, o_Position, m_tNodeID, m_tGraphID, ID, count);
+			else
 			{
-				_GetItem				(supplies, i, sect);
-				alife().spawn_items		(sect, o_Position, m_tNodeID, m_tGraphID, ID, count);
+				string128				sect;
+				for (int i = 0, e = _GetItemCount(supplies); i < e; i++)
+				{
+					_GetItem			(supplies, i, sect);
+					alife().spawn_item	(sect, o_Position, m_tNodeID, m_tGraphID, ID);
+				}
 			}
 		}
 	}

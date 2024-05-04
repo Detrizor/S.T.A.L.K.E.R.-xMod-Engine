@@ -100,8 +100,7 @@ CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& po
 	while (true)
 	{
 		auto item						= spawn_item(section, position, level_vertex_id, game_vertex_id, parent_id, condition);
-		auto ammo						= smart_cast<CSE_ALifeItemAmmo*>(item);
-		if (ammo)
+		if (auto ammo = smart_cast<CSE_ALifeItemAmmo*>(item))
 		{
 			if (count == u16_max)
 				count					= ammo->m_boxSize;
@@ -161,8 +160,6 @@ CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& pos
 		auto parent								= objects().object(parent_id);
 		R_ASSERT								(parent);
 		parent->children.push_back				(dynamic_object->ID);
-		if (parent->m_bOnline)
-			dynamic_object->switch_online		();
 	}
 
 	dynamic_object->spawn_supplies				();

@@ -478,8 +478,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("discharge",					&CScriptGameObject::Discharge)
 		.def("can_take",					&CScriptGameObject::CanTakeNoChamber)
 		.def("can_take_to_chamber",			&CScriptGameObject::CanTakeToChamber)
-		.def("stock",						&CScriptGameObject::Stock)
-		.def("stock_count",					&CScriptGameObject::StockCount)
 		.def("transfer",					&CScriptGameObject::Transfer)
 		.def("set_inv_icon",				&CScriptGameObject::SetInvIcon)
 		.def("get_inv_icon_index",			&CScriptGameObject::GetInvIconIndex)

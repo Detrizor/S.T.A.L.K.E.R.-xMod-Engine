@@ -219,9 +219,8 @@ bool CUIActorMenu::ToPartnerTradeBag(CUICellItem* itm, bool b_use_cursor_pos)
 float CUIActorMenu::CalcItemWeight(LPCSTR section)
 {
 	float res				= pSettings->r_float(section, "inv_weight") + READ_IF_EXISTS(pSettings, r_float, section, "net_weight", 0.f);
-	float stock_count		= READ_IF_EXISTS(pSettings, r_float, section, "stock_count", 0);
-	if (0 < stock_count)
-		res					+= stock_count * pSettings->r_float(pSettings->r_string(section, "stock"), "inv_weight");
+	if (float supplies_count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
+		res					+= supplies_count * pSettings->r_float(pSettings->r_string(section, "supplies"), "inv_weight");
 	return					res;
 }
 
@@ -245,12 +244,9 @@ float CUIActorMenu::CalcItemsWeight(CUIDragDropListEx* pList)
 float CUIActorMenu::CalcItemVolume(LPCSTR section)
 {
 	float res					= pSettings->r_float(section, "inv_volume") + READ_IF_EXISTS(pSettings, r_float, section, "net_volume", 0.f);
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "content_volume_scale", false))
-	{
-		float stock_count		= READ_IF_EXISTS(pSettings, r_float, section, "stock_count", 0);
-		if (0 < stock_count)
-			res					+= stock_count * pSettings->r_float(pSettings->r_string(section, "stock"), "inv_volume");
-	}
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "content_volume_scale", FALSE))
+		if (float supplies_count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
+			res					+= supplies_count * pSettings->r_float(pSettings->r_string(section, "supplies"), "inv_volume");
 	return						res;
 }
 

@@ -752,18 +752,6 @@ bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
 	return							false;
 }
 
-LPCSTR CScriptGameObject::Stock() const
-{
-	CInventoryContainer* ciitem		= object().Cast<CInventoryContainer*>();
-	return							(ciitem) ? ciitem->Stock() : "";
-}
-
-u32 CScriptGameObject::StockCount() const
-{
-	CInventoryContainer* ciitem		= object().Cast<CInventoryContainer*>();
-	return							(ciitem) ? ciitem->StockCount() : 0;
-}
-
 void CScriptGameObject::Transfer(u16 id) const
 {
 	PIItem item						= smart_cast<PIItem>(&object());

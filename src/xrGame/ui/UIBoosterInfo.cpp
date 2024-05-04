@@ -294,7 +294,7 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 
 	if (ItemCategory(section, "ammo") && (ItemSubcategory(section, "box") || ItemSubcategory(section, "cartridge")))
 	{
-		LPCSTR sect							= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "stock") : *section;
+		LPCSTR sect							= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "supplies") : *section;
 		float bullet_speed					= pSettings->r_float(sect, "bullet_speed") * pSettings->r_float(sect, "k_bullet_speed");
 		m_bullet_speed->SetValue			(bullet_speed);
 		pos.set								(m_bullet_speed->GetWndPos());
@@ -382,7 +382,7 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 	CInventoryContainer* cont			= (item) ? item->cast<CInventoryContainer*>() : NULL;
 	if (cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
 	{
-		if (!((cont) ? cont->StockCount() : pSettings->r_u32(section, "stock_count")))
+		if (!pSettings->r_u16(section, "supplies_count"))
 		{
 			float capacity				= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
 			m_capacity->SetValue		(capacity);

@@ -42,7 +42,7 @@ public:
 	virtual CInventoryOwner*	cast_inventory_owner	()						{return this;}
 
 public:
-	CGameObject&		O;
+	CGameObject*		O;
 
 	virtual DLL_Pure	*_construct				();
 	virtual BOOL		net_Spawn				(CSE_Abstract* DC);

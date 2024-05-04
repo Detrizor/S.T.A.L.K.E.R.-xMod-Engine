@@ -338,7 +338,7 @@ void CWeaponMagazined::reload_chamber(CCartridge* dest)
 		else
 		{
 			CInventoryOwner* IO			= Parent->Cast<CInventoryOwner*>();
-			IO->O.giveItem				(*cartridge.m_ammoSect, cartridge.m_fCondition);
+			IO->O->giveItem				(*cartridge.m_ammoSect, cartridge.m_fCondition);
 		}
 		m_chamber.pop_back				();
 	}

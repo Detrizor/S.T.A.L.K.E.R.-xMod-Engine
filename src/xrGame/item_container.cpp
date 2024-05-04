@@ -11,8 +11,6 @@ CInventoryContainer::CInventoryContainer(CGameObject* obj) : CModule(obj)
 
 	if (cast<PIItem>())
 	{
-		m_stock							= pSettings->r_string(O.cNameSect(), "stock");
-		m_stock_count					= pSettings->r_u32(O.cNameSect(), "stock_count");
 		m_content_volume_scale			= !!pSettings->r_bool(O.cNameSect(), "content_volume_scale");
 		m_ArtefactIsolation				= !!pSettings->r_bool(O.cNameSect(), "artefact_isolation");
 		m_RadiationProtection			= pSettings->r_float(O.cNameSect(), "radiation_protection");

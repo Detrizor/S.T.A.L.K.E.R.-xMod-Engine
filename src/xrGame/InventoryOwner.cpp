@@ -30,7 +30,7 @@
 #include "Magazine.h"
 #include "item_container.h"
 
-CInventoryOwner::CInventoryOwner() : O(*smart_cast<CGameObject*>(this))
+CInventoryOwner::CInventoryOwner()
 {
 	m_pTrade = NULL;
 	m_trade_parameters = 0;
@@ -55,7 +55,7 @@ DLL_Pure *CInventoryOwner::_construct()
 {
 	m_trade_parameters = 0;
 	m_purchase_list = 0;
-
+	O = smart_cast<CGameObject*>(this);
 	return						(smart_cast<DLL_Pure*>(this));
 }
 
@@ -682,7 +682,7 @@ bool CInventoryOwner::Discharge(PIItem item, bool full)
 			}
 		}
 		if (!given)
-			O.giveItem						(*cartridge.m_ammoSect, cartridge.m_fCondition);
+			O->giveItem						(*cartridge.m_ammoSect, cartridge.m_fCondition);
 
 		if (!full)
 			return							true;

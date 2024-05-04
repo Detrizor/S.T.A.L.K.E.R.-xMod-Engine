@@ -438,7 +438,7 @@ void CWeaponMagazinedWGrenade::ProcessGL(CGrenadeLauncher* gl, bool attach)
 	{
 		if (m_pInventory && m_grenade)
 		{
-			inventory_owner().O.giveItem(*m_grenade->m_ammoSect, m_grenade->m_fCondition);
+			inventory_owner().O->giveItem(*m_grenade->m_ammoSect, m_grenade->m_fCondition);
 			m_grenade.reset				();
 		}
 		if (m_bGrenadeMode)
