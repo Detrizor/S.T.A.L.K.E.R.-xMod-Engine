@@ -919,20 +919,13 @@ public:
 	void				ActorSetSprintBlock		(bool p);
 	void				ActorSetAccelBlock		(bool p);
 	float				GetInventoryCapacity	();
-	CSE_Abstract*		GiveObjects				(LPCSTR section, u16 count, float condition, bool dont_reg);
-	CSE_Abstract*		GiveObjects1			(LPCSTR section, u16 count, float condition)										{ return GiveObjects(section, count, condition, false); }
-	CSE_Abstract*		GiveObjects2			(LPCSTR section, u16 count)															{ return GiveObjects1(section, count, 1.f); }
-	CSE_Abstract*		GiveObjects3			(LPCSTR section)																	{ return GiveObjects2(section, 1); }
-	CSE_Abstract*		GiveObject				(LPCSTR section, float condition, bool dont_reg)									{ return GiveObjects(section, 1, condition, dont_reg); }
-	CSE_Abstract*		GiveObject1				(LPCSTR section, float condition)													{ return GiveObject(section, condition, false); }
-	CSE_Abstract*		GiveObject2				(LPCSTR section)																	{ return GiveObject1(section, 1.f); }
-	CSE_Abstract*		GiveAmmo				(LPCSTR section, u32 count, float condition, bool dont_reg);
-	CSE_Abstract*		GiveAmmo1				(LPCSTR section, u32 count, float condition)										{ return GiveAmmo(section, count, condition, false); };
-	CSE_Abstract*		GiveAmmo2				(LPCSTR section, u32 count)															{ return GiveAmmo1(section, count, 1.f); };
-	CSE_Abstract*		GiveAmmo3				(LPCSTR section)																	{ return GiveAmmo2(section, 0); };
+	CSE_Abstract*		giveItem				(LPCSTR section, float condition);
+	CSE_Abstract*		giveItem1				(LPCSTR section)									{ return giveItem(section, 1.f); }
+	CSE_Abstract*		giveItems				(LPCSTR section, u16 count, float condition);
+	CSE_Abstract*		giveItems1				(LPCSTR section, u16 count)							{ return giveItems(section, count, 1.f); }
 	bool				Category				(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd) const;
-	bool				Category1				(LPCSTR cmpc, LPCSTR cmps) const													{ return Category(cmpc, cmps, "*"); };
-	bool				Category2				(LPCSTR cmpc) const																	{ return Category1(cmpc, "*"); };
+	bool				Category1				(LPCSTR cmpc, LPCSTR cmps) const					{ return Category(cmpc, cmps, "*"); };
+	bool				Category2				(LPCSTR cmpc) const									{ return Category1(cmpc, "*"); };
 	bool				InHands					();
 	void				SetMoney				(u32 money);
 	float				GetProtection			(u8 type);

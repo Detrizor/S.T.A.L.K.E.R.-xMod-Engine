@@ -150,7 +150,7 @@ void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
 		back_heap->ChangeAmmoCount		(1);
 	else
 	{
-		O.GiveAmmo						(*ammo->cNameSect(), 1, ammo->GetCondition());
+		O.giveItem						(*ammo->cNameSect(), ammo->GetCondition());
 		m_iNextHeapIdx					= m_Heaps.size();
 	}
 	ammo->ChangeAmmoCount				(-1);

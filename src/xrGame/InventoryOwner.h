@@ -32,14 +32,17 @@ class CWeapon;
 class CCustomOutfit;
 class CHelmet;
 
-class CInventoryOwner : public CAttachmentOwner {							
+class CInventoryOwner : public CAttachmentOwner
+{
 public:
 					CInventoryOwner				();
 	virtual			~CInventoryOwner			();
 
 public:
 	virtual CInventoryOwner*	cast_inventory_owner	()						{return this;}
+
 public:
+	CGameObject&		O;
 
 	virtual DLL_Pure	*_construct				();
 	virtual BOOL		net_Spawn				(CSE_Abstract* DC);
@@ -244,16 +247,11 @@ public:
 			void				deadbody_closed			(bool status);
 	IC		bool				deadbody_closed_status	() const { return m_deadbody_closed; }
 
-public:
-			CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count = 1, float condition = 1.f, bool dont_reg = false)	{ return cast_game_object()->GiveObjects(section, count, condition, dont_reg); }
-			CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
-			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f)							{ return cast_game_object()->GiveAmmo(section, count, condition); }
-
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 public:
 			float			GetProtection			(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const;
-            float			GetProtectionArtefacts	(ALife::EHitType hit_type)		const;
+			float			GetProtectionArtefacts	(ALife::EHitType hit_type)		const;
 			void			HitArtefacts			(float d_damage, ALife::EHitType hit_type) const;
 };
 

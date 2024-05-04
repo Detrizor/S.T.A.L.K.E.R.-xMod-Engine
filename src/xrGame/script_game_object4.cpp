@@ -583,16 +583,18 @@ float CScriptGameObject::GetInventoryCapacity()
 	return				inventory_owner->InventoryCapacity();
 }
 
-CSE_Abstract* CScriptGameObject::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
+CSE_Abstract* CScriptGameObject::giveItem(LPCSTR section, float condition)
 {
-	CGameObject* go					= smart_cast<CGameObject*>(&object());
-	return							(go) ? go->GiveObjects(section, count, condition, dont_reg) : false;
+	if (auto go = smart_cast<CGameObject*>(&object()))
+		go->giveItem					(section, condition);
+	return								nullptr;
 }
 
-CSE_Abstract* CScriptGameObject::GiveAmmo(LPCSTR section, u32 count, float condition, bool dont_reg)
+CSE_Abstract* CScriptGameObject::giveItems(LPCSTR section, u16 count, float condition)
 {
-	CGameObject* go					= smart_cast<CGameObject*>(&object());
-	return							(go) ? go->GiveAmmo(section, count, condition) : false;
+	if (auto go = smart_cast<CGameObject*>(&object()))
+		go->giveItems					(section, count, condition);
+	return								nullptr;
 }
 
 float CScriptGameObject::Volume() const

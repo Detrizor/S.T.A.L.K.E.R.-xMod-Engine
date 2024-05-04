@@ -897,7 +897,7 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 		{
 			m_fCondition			= se_item->m_fCondition;
 			if (m)
-				m_inv_icon_index	= m->m_icon_index;
+				SetInvIconIndex		(m->m_icon_index);
 		}
 	}
 	}

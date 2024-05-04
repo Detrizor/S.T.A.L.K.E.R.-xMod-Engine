@@ -1068,20 +1068,27 @@ void CGameObject::on_matrix_change	(const Fmatrix &previous)
 	obstacle().on_move				();
 }
 
-extern CSE_Abstract* CALifeSimulator__spawn_item(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, bool reg, float condition);
-CSE_Abstract* CGameObject::GiveObjects(LPCSTR section, u16 count, float condition, bool dont_reg)
+CSE_Abstract* CGameObject::giveItem(LPCSTR section, float condition) const
 {
-	CALifeSimulator* alife				= const_cast<CALifeSimulator*>(ai().get_alife());
-	CSE_Abstract* result				= NULL;
-	for (u16 i = 0; i < count; i++)
-		result							= CALifeSimulator__spawn_item(alife, section, Position(), ai_location().level_vertex_id(), ai_location().game_vertex_id(), ID(), !dont_reg, condition);
-	return								result;
+	return const_cast<CALifeSimulator&>(ai().alife()).spawn_item(section,
+		Position(),
+		ai_location().level_vertex_id(),
+		ai_location().game_vertex_id(),
+		ID(),
+		condition
+	);
 }
 
-extern CSE_Abstract* CALifeSimulator__spawn_ammo(CALifeSimulator* alife, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, u32 ammo_to_spawn, bool reg, float condition);
-CSE_Abstract* CGameObject::GiveAmmo(LPCSTR section, u32 count, float condition, bool dont_reg)
+CSE_Abstract* CGameObject::giveItems(LPCSTR section, u16 count, float condition) const
 {
-	return CALifeSimulator__spawn_ammo(const_cast<CALifeSimulator*>(ai().get_alife()), section, Position(), ai_location().level_vertex_id(), ai_location().game_vertex_id(), ID(), count, !dont_reg, condition);
+	return const_cast<CALifeSimulator&>(ai().alife()).spawn_items(section,
+		Position(),
+		ai_location().level_vertex_id(),
+		ai_location().game_vertex_id(),
+		ID(),
+		count,
+		condition
+	);
 }
 
 #ifdef DEBUG

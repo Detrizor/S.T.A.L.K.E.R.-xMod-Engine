@@ -17,11 +17,22 @@
 #include "game_graph.h"
 #include "xrServer.h"
 
-void CSE_ALifeDynamicObject::on_spawn				()
+void CSE_ALifeDynamicObject::on_spawn()
 {
-#ifdef DEBUG
-//	Msg			("[LSS] spawning object [%d][%d][%s][%s]",ID,ID_Parent,name(),name_replace());
-#endif
+	if (pSettings->line_exist(s_name, "supplies"))
+	{
+		LPCSTR supplies					= pSettings->r_string(s_name, "supplies");
+		if (supplies[0])
+		{
+			u16 count					= READ_IF_EXISTS(pSettings, r_u16, s_name, "supplies_count", 1);
+			string128					sect;
+			for (int i = 0, e = _GetItemCount(supplies); i < e; i++)
+			{
+				_GetItem				(supplies, i, sect);
+				alife().spawn_items		(sect, o_Position, m_tNodeID, m_tGraphID, ID, count);
+			}
+		}
+	}
 }
 
 void CSE_ALifeDynamicObject::on_register			()

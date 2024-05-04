@@ -95,7 +95,32 @@ void CALifeSimulatorBase::reload			(LPCSTR section)
 	m_initialized				= true;
 }
 
-CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, bool registration, float condition)
+CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, u16 count, float condition)
+{
+	while (true)
+	{
+		auto item						= spawn_item(section, position, level_vertex_id, game_vertex_id, parent_id, condition);
+		auto ammo						= smart_cast<CSE_ALifeItemAmmo*>(item);
+		if (ammo)
+		{
+			if (count == u16_max)
+				count					= ammo->m_boxSize;
+			int d_count					= min(count, ammo->m_boxSize);
+			ammo->a_elapsed				= d_count;
+			count						-= d_count;
+		}
+		else
+		{
+			if (count == u16_max)
+				count					= 1;
+			count--;
+		}
+		if (count <= 0)
+			return						item;
+	}
+}
+
+CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, float condition)
 {
 	CSE_Abstract* abstract						= F_entity_Create(section);
 	R_ASSERT3									(abstract,"Cannot find item with section",section);
@@ -103,7 +128,6 @@ CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& pos
 	abstract->s_name							= section;
 	abstract->s_RP								= 0xff;
 	abstract->ID								= server().PerformIDgen(0xffff);
-	abstract->ID_Parent							= parent_id;
 	abstract->ID_Phantom						= 0xffff;
 	abstract->o_Position						= position;
 	abstract->m_wVersion						= SPAWN_VERSION;
@@ -130,8 +154,16 @@ CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& pos
 	dynamic_object->m_tGraphID					= game_vertex_id;
 	dynamic_object->m_tSpawnID					= u16(-1);
 
-	if (registration)
-		register_object							(dynamic_object, true);
+	register_object								(dynamic_object, true);
+	if (parent_id != u16_max)
+	{
+		dynamic_object->ID_Parent				= parent_id;
+		auto parent								= objects().object(parent_id);
+		R_ASSERT								(parent);
+		parent->children.push_back				(dynamic_object->ID);
+		if (parent->m_bOnline)
+			dynamic_object->switch_online		();
+	}
 
 	dynamic_object->spawn_supplies				();
 	dynamic_object->on_spawn					();

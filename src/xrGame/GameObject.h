@@ -304,13 +304,11 @@ public:
 
 	virtual void			on_matrix_change	(const Fmatrix &previous);
 
-			CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count = 1, float condition = 1.f, bool dont_reg = false);
-			CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
-			CSE_Abstract*	GiveAmmo				(LPCSTR section, u32 count = 0, float condition = 1.f, bool dont_reg = false);
-
 //xMod added
 public:
-	void								transfer							C$	(u16 id = u16_max);
+	CSE_Abstract*						giveItem								(LPCSTR section, float condition = 1.f)				const;
+	CSE_Abstract*						giveItems								(LPCSTR section, u16 count, float condition = 1.f)	const;
+	void								transfer								(u16 id = u16_max)									const;
 
 	template <typename T>
 	T*									AddModule								()					{ T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
