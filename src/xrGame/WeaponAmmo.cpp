@@ -110,11 +110,10 @@ void CWeaponAmmo::Load(LPCSTR section)
 
 	cartridge_param.buckShot		= pSettings->r_s32(  section, "buck_shot");
 	cartridge_param.impair			= pSettings->r_float(section, "impair");
-
-	m_boxSize				= (u16)floor(1.f/m_volume);
+	
+	m_bHeap					= pSettings->r_bool(m_section_id, "heap");
+	m_boxSize				= m_bHeap ? (u16)iFloor(.5f/m_volume) : 1;
 	m_boxCurr				= m_boxSize;
-
-	m_bHeap = pSettings->r_bool(m_section_id, "heap");
 }
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
@@ -228,8 +227,8 @@ void CWeaponAmmo::SetAmmoCount(u16 val)
 {
 	m_boxCurr = val;
 
-	if (!Useful() && CInventoryItem::object().Local() && OnServer())
-		CInventoryItem::object().DestroyObject();
+	if (!Useful())
+		DestroyObject();
 }
 
 void CWeaponAmmo::ChangeAmmoCount(int val)

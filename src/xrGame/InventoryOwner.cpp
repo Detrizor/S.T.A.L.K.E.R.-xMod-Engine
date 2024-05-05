@@ -668,17 +668,16 @@ bool CInventoryOwner::Discharge(PIItem item, bool full)
 	while ((mag) ? mag->GetCartridge(cartridge) : wpn->Discharge(cartridge))
 	{
 		bool given							= false;
-		if (pSettings->r_bool(cartridge.m_ammoSect, "heap"))
+		for (auto I : inventory().m_all)
 		{
-			for (auto I : inventory().m_all)
+			CWeaponAmmo* heap				= smart_cast<CWeaponAmmo*>(I);
+			if (heap && heap->GetAmmoCount() < heap->m_boxSize &&
+				heap->m_section_id == cartridge.m_ammoSect &&
+				fEqual(heap->GetCondition(), cartridge.m_fCondition))
 			{
-				CWeaponAmmo* heap			= smart_cast<CWeaponAmmo*>(I);
-				if (heap && heap->m_section_id == cartridge.m_ammoSect && fEqual(heap->GetCondition(), cartridge.m_fCondition))
-				{
-					heap->ChangeAmmoCount	(1);
-					given					= true;
-					break;
-				}
+				heap->ChangeAmmoCount		(1);
+				given						= true;
+				break;
 			}
 		}
 		if (!given)
