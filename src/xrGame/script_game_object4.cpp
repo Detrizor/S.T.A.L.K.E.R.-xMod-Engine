@@ -404,22 +404,6 @@ void CScriptGameObject::SetHealthEx(float hp)
 }
 //-AVO
 
-u8 CScriptGameObject::GetGrenade() const
-{
-	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
-	if (!wpn)
-		return							0;
-	return								wpn->GetGrenade();
-}
-
-void CScriptGameObject::SetGrenade(u8 cnt)
-{
-	CWeaponMagazinedWGrenade* wpn		= smart_cast<CWeaponMagazinedWGrenade*>(&object());
-	if (!wpn)
-		return;
-	wpn->SetGrenade						(cnt);
-}
-
 void CScriptGameObject::initReload(CScriptGameObject* obj)
 {
 	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))

@@ -111,6 +111,8 @@ public:
 		eSubstateReloadAttach,
 		eSubstateReloadBolt,
 		eSubstateReloadChamber,
+		eSubstateReloadAttachG,
+		eSubstateReloadDetachG,
 	};
 
 	// Does weapon need's update?
@@ -501,7 +503,8 @@ public:
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
-	int									ADS									C$	();
 	float								GetControlInertionFactor			CO$	();
 	bool								NeedBlendAnm						O$	();
+	
+	int								V$	ADS									C$	();
 };

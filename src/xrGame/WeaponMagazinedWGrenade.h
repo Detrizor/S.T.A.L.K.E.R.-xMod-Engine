@@ -2,85 +2,60 @@
 #include "weaponmagazined.h"
 #include "rocketlauncher.h"
 
-
 class CWeaponFakeGrenade;
 
-
-class CWeaponMagazinedWGrenade : public CWeaponMagazined,
-								 public CRocketLauncher
+class CWeaponMagazinedWGrenade :
+	public CWeaponMagazined,
+	public CRocketLauncher
 {
 	typedef CWeaponMagazined inherited;
+
 public:
-					CWeaponMagazinedWGrenade	(ESoundTypes eSoundType=SOUND_TYPE_WEAPON_SUBMACHINEGUN);
-	virtual			~CWeaponMagazinedWGrenade	();
+										CWeaponMagazinedWGrenade				(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN) {}
 
-	virtual void	Load				(LPCSTR section);
+protected:
+	void								Load								O$	(LPCSTR section);
+
+	void								net_Destroy							O$	();
+	void								UpdateCL							O$	();
+	void								OnEvent								O$	(NET_Packet& P, u16 type);
+	bool								Action								O$	(u16 cmd, u32 flags);
 	
-	virtual BOOL	net_Spawn			(CSE_Abstract* DC);
-	virtual void	net_Destroy			();
-	
-	virtual void	OnH_B_Independent	(bool just_before_destroy);
-
-			void	LaunchGrenade			();
-	
-	virtual void	OnStateSwitch	(u32 S, u32 oldState);
-	
-	virtual void	state_Fire		(float dt);
-	virtual void	OnShot			();
-	virtual void	OnEvent			(NET_Packet& P, u16 type);
-	virtual void	ReloadMagazine	();
-
-	virtual bool	Action			(u16 cmd, u32 flags);
-
-	virtual void	UpdateSounds	();
-
-	//переключение в режим подствольника
-	virtual bool	SwitchMode		();
-	void			PerformSwitchGL	();
-	void			OnAnimationEnd	(u32 state);
-	virtual void	OnMagazineEmpty	();
-
-	virtual bool	IsNecessaryItem	    (const shared_str& item_sect);
-
-	bool			PlayAnimModeSwitch	();
-	
-private:
-	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
-	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
-
-private:
-	xr_vector<shared_str>				m_grenade_types							= {};
-	u8									m_grenade_type							= 0;
-	bool								m_bGrenadeMode							= false;
-
-	CGrenadeLauncher CP$				m_pLauncher								= NULL;
-	Fvector								m_muzzle_position_gl					= vZero;
-	shared_str							m_flame_particles_gl_name				= 0;
-	CParticlesObject*					m_flame_particles_gl					= NULL;
-	std::unique_ptr<CCartridge>			m_grenade								= nullptr;
-
-	void								ProcessGL								(CGrenadeLauncher* gl, bool attach);
-
-	void								shoot_grenade							();
-	void								start_flame_particles_gl				();
-	void								stop_flame_particles_gl					();
-	void								update_flame_particles_gl				();
+	void								OnStateSwitch						O$	(u32 S, u32 oldState);
+	void								UpdateSounds						O$	();
+	void								OnAnimationEnd						O$	(u32 state);
+	bool								IsNecessaryItem						O$	(const shared_str& item_sect);
+	void								PlayAnimReload						O$	();
 
 	bool								AltHandsAttach						CO$	();
 	bool								HasAltAim							CO$	();
+	int									ADS									CO$	();
 
-	void								SetADS								O$	(int mode);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
-	void								UpdateCL							O$	();
 	void								process_addon						O$	(CAddon* addon, bool attach);
-	void								PlayAnimReload						O$	();
-	bool								Discharge							O$	(CCartridge& destination);
+
+private:
+	bool								m_bGrenadeMode							= false;
+	CGrenadeLauncher CP$				m_pLauncher								= nullptr;
+	shared_str							m_flame_particles_gl_name				= 0;
+	CParticlesObject*					m_flame_particles_gl					= nullptr;
+	CWeaponAmmo*						m_grenade								= nullptr;
+	Fvector								m_muzzle_point_gl						= vZero;
+	Fvector								m_fire_point_gl							= vZero;
+	u32									m_fire_point_gl_update_frame			= 0;
+
+
+	void								start_flame_particles_gl				();
+	void								stop_flame_particles_gl					();
+	void								update_flame_particles_gl				();
+	void								set_anm_prefix							();
+	bool								switch_mode								();
+	void								launch_grenade							();
+	void								process_gl								(CGrenadeLauncher* gl, bool attach);
+	Fvector CR$							fire_point_gl							();
 
 public:
-	void								SetGrenade								(u8 cnt);
-
 	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
-	u8									GetGrenade							C$	();
-	
-	bool								canTake								CO$	(CWeaponAmmo CPC ammo, bool chamber);
+
+	friend class CGrenadeLauncher;
 };

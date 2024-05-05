@@ -908,8 +908,6 @@ public:
 //xMod functions
 	float				Volume					() const;
 	float				GetTotalVolume			() const;
-	u8					GetGrenade				() const;
-	void				SetGrenade				(u8 cnt);
 	void				initReload				(CScriptGameObject* obj);
 	void				loadChamber				(CScriptGameObject* obj);
 	void				loadCartridge			(CScriptGameObject* obj);

@@ -423,8 +423,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		//xMod functions
 		.def("volume",						&CScriptGameObject::Volume)
 		.def("get_total_volume",			&CScriptGameObject::GetTotalVolume)
-		.def("get_grenade",					&CScriptGameObject::GetGrenade)
-		.def("set_grenade",					&CScriptGameObject::SetGrenade)
 		.def("load_cartridge",				&CScriptGameObject::loadCartridge)
 		.def("load_chamber",				&CScriptGameObject::loadChamber)
 		.def("init_reload",					&CScriptGameObject::initReload)
