@@ -37,7 +37,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
 	m_eSoundHide = ESoundTypes(SOUND_TYPE_ITEM_HIDING | eSoundType);
 	m_eSoundEmptyClick = ESoundTypes(SOUND_TYPE_WEAPON_EMPTY_CLICKING | eSoundType);
-	m_eSoundSwitchMode = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
+	m_eSoundFiremode = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
 	m_eSoundShot = ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING | eSoundType);
 	m_eSoundReload = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
 	m_sounds_enabled = true;
@@ -83,7 +83,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_sounds.LoadSound					(*HudSection(), "snd_draw", "sndShow", true, m_eSoundShow);
 	m_sounds.LoadSound					(*HudSection(), "snd_holster", "sndHide", true, m_eSoundHide);
-	m_sounds.LoadSound					(*HudSection(), "snd_switch_mode", "sndSwitchMode", true, m_eSoundSwitchMode);
+	m_sounds.LoadSound					(*HudSection(), "snd_firemode", "sndFiremode", true, m_eSoundFiremode);
 	m_sounds.LoadSound					(*HudSection(), "snd_reload", "sndReload", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
@@ -125,7 +125,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 				m_magazine_slot			= s;
 			if (s->attach == "muzzle")
 				s->model_offset.translate_add(m_loaded_muzzle_point);
-			s->model_offset.translate_sub(m_root_bone_position);
+			else
+				s->model_offset.translate_sub(m_root_bone_position);
 		}
 	}
 	
@@ -773,9 +774,10 @@ void CWeaponMagazined::OnZoomOut()
 //переключение режимов стрельбы одиночными и очередями
 void CWeaponMagazined::on_firemode_switch()
 {
-	if (HudAnimationExist("anm_switch_firemode"))
-		PlayHUDMotion("anm_switch_firemode", TRUE, GetState());
-	PlaySound("sndSwitchMode", get_LastFP());
+	if (HudAnimationExist("anm_firemode"))
+		PlayHUDMotion("anm_firemode", TRUE, GetState());
+	if (m_sounds_enabled)
+		PlaySound("sndFiremode", get_LastFP());
 }
 
 void CWeaponMagazined::OnNextFireMode()

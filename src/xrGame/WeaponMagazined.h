@@ -29,7 +29,7 @@ protected:
 	ESoundTypes		m_eSoundShow;
 	ESoundTypes		m_eSoundHide;
 	ESoundTypes		m_eSoundEmptyClick;
-	ESoundTypes		m_eSoundSwitchMode;
+	ESoundTypes		m_eSoundFiremode;
 	ESoundTypes		m_eSoundShot;
 	ESoundTypes		m_eSoundReload;
 	bool			m_sounds_enabled;
