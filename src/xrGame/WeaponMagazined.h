@@ -198,6 +198,7 @@ private:
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
 	bool								m_shot_shell							= false;
+	shared_str CP$						m_addon_anm_prefix						= nullptr;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
@@ -234,6 +235,7 @@ protected:
 	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
+	LPCSTR								get_anm_prefix						CO$	();
 
 public:
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);

@@ -46,7 +46,6 @@ bool CWeaponMagazinedWGrenade::switch_mode()
 		return							false;
 
 	m_bGrenadeMode						= !m_bGrenadeMode;
-	set_anm_prefix						();
 	m_BriefInfo_CalcFrame				= 0;
 	if (HudAnimationExist("anm_switch"))
 	{
@@ -58,14 +57,9 @@ bool CWeaponMagazinedWGrenade::switch_mode()
 	return								true;
 }
 
-void CWeaponMagazinedWGrenade::set_anm_prefix()
+LPCSTR CWeaponMagazinedWGrenade::get_anm_prefix() const
 {
-	if (m_bGrenadeMode)
-		m_anm_prefix					= "g";
-	else if (auto addon = m_pLauncher->cast<CAddon*>())
-		m_anm_prefix					= addon->anmPrefix();
-	else
-		m_anm_prefix					= 0;
+	return								(m_bGrenadeMode) ? "g" : inherited::get_anm_prefix();
 }
 
 bool CWeaponMagazinedWGrenade::Action(u16 cmd, u32 flags)
@@ -259,7 +253,6 @@ void CWeaponMagazinedWGrenade::process_gl(CGrenadeLauncher* gl, bool attach)
 {
 	m_pLauncher							= (attach) ? gl : nullptr;
 	gl->m_wpn							= (attach) ? this : nullptr;
-	set_anm_prefix						();
 
 	if (attach)
 	{
@@ -313,10 +306,7 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 		if (param)
 			se_wpn->m_bGrenadeMode		= (u8)m_bGrenadeMode;
 		else
-		{
 			m_bGrenadeMode				= !!se_wpn->m_bGrenadeMode;
-			set_anm_prefix				();
-		}
 		return							res;
 	}
 	case eOnAddon:

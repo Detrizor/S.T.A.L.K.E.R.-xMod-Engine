@@ -48,11 +48,13 @@ private:
 	void								start_flame_particles_gl				();
 	void								stop_flame_particles_gl					();
 	void								update_flame_particles_gl				();
-	void								set_anm_prefix							();
 	bool								switch_mode								();
 	void								launch_grenade							();
 	void								process_gl								(CGrenadeLauncher* gl, bool attach);
 	Fvector CR$							fire_point_gl							();
+
+protected:
+	LPCSTR								get_anm_prefix						CO$	();
 
 public:
 	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }

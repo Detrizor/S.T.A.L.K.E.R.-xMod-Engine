@@ -22,7 +22,7 @@ void CSE_ALifeDynamicObject::on_spawn()
 	if (pSettings->line_exist(s_name, "supplies"))
 	{
 		LPCSTR supplies					= pSettings->r_string(s_name, "supplies");
-		if (supplies[0])
+		if (supplies)
 		{
 			if (u16 count = READ_IF_EXISTS(pSettings, r_u16, s_name, "supplies_count", 0))
 				alife().spawn_items		(supplies, o_Position, m_tNodeID, m_tGraphID, ID, count);

@@ -1235,7 +1235,7 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 
 	if (addon->anmPrefix().size())
 	{
-		m_anm_prefix			= (attach) ? addon->anmPrefix() : 0;
+		m_addon_anm_prefix		= (attach) ? &addon->anmPrefix() : nullptr;
 		PlayAnimIdle			();
 	}
 
@@ -1443,6 +1443,11 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
 	result[0].normalize					();
 	return								result[0];
+}
+
+LPCSTR CWeaponMagazined::get_anm_prefix() const
+{
+	return								(m_addon_anm_prefix) ? **m_addon_anm_prefix : inherited::get_anm_prefix();
 }
 
 #define s_recoil_hud_stopping_power_per_shift pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift")

@@ -52,6 +52,8 @@ void CHudItem::Load(LPCSTR section)
 	m_animation_slot	= pSettings->r_u32(section, "animation_slot");
 
 	m_sounds.LoadSound	(section, "snd_bore", "sndBore", true);
+
+	m_anm_prefix		= READ_IF_EXISTS(pSettings, r_string, section, "anm_prefix", 0);
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
@@ -502,9 +504,9 @@ void CHudItem::on_a_hud_attach()
 u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 {
 	shared_str							tmp;
-	if (m_anm_prefix.size())
+	if (get_anm_prefix())
 	{
-		tmp.printf						("anm_%s_%s", *m_anm_prefix, (*name + 4));
+		tmp.printf						("anm_%s_%s", get_anm_prefix(), (*name + 4));
 		if (HudAnimationExist(*tmp))
 			name						= tmp;
 	}
