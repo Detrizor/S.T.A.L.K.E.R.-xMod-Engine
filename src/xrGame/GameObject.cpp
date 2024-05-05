@@ -436,9 +436,11 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 
 	spawn_supplies				();
 
-	auto se_obj							= O->cast_alife_dynamic_object();
-	Aboba								(eSyncData, (void*)se_obj, 0);
-	se_obj->clearModules				();
+	if (auto se_obj = smart_cast<CSE_ALifeDynamicObject*>(O))
+	{
+		Aboba							(eSyncData, (void*)se_obj, 0);
+		se_obj->clearModules			();
+	}
 
 #ifdef DEBUG
 	if(ph_dbg_draw_mask1.test(ph_m1_DbgTrackObject)&&stricmp(PH_DBG_ObjectTrackName(),*cName())==0)
@@ -1204,24 +1206,29 @@ void CGameObject::OnRender			()
 
 void CGameObject::transfer(u16 id) const
 {
+	transfer							((Parent) ? Parent->ID() : u16_max, ID(), id);
+}
+
+void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to)
+{
 	NET_Packet							P;
-	if (id == u16_max)
+	if (id_to == u16_max)
 	{
-		u_EventGen						(P, GE_OWNERSHIP_REJECT, Parent->ID());
-		P.w_u16							(ID());
+		u_EventGen						(P, GE_OWNERSHIP_REJECT, id_from);
+		P.w_u16							(id_what);
 	}
-	else if (Parent)
+	else if (id_from != u16_max)
 	{
-		u_EventGen						(P, GE_TRADE_SELL, Parent->ID());
-		P.w_u16							(ID());
+		u_EventGen						(P, GE_TRADE_SELL, id_from);
+		P.w_u16							(id_what);
 		u_EventSend						(P);
-		u_EventGen						(P, GE_TRADE_BUY, id);
-		P.w_u16							(ID());
+		u_EventGen						(P, GE_TRADE_BUY, id_to);
+		P.w_u16							(id_what);
 	}
 	else
 	{
-		u_EventGen						(P,GE_OWNERSHIP_TAKE, id);
-		P.w_u16							(ID());
+		u_EventGen						(P,GE_OWNERSHIP_TAKE, id_to);
+		P.w_u16							(id_what);
 	}
 	u_EventSend							(P);
 }
