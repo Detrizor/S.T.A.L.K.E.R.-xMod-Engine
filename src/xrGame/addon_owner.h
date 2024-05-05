@@ -13,12 +13,9 @@ public:
 										CAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 
 private:
-	CAddon CPC							m_parent_addon;
-
 	float								m_step;
 	u16									m_overlaping_slot;
-	BOOL								m_has_loading_anim;
-	BOOL								m_slide_attach;
+	bool								m_has_loading_anim;
 
 	CAddon*								m_loading_addon							= nullptr;
 	u16									m_bone_id								= u16_max;
@@ -40,7 +37,7 @@ public:
 	Fvector2							icon_offset;
 	float								icon_step;
 	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
-	bool								muzzle;
+	shared_str							attach;
 
 	xr_list<CAddon*>					addons									= {};
 
@@ -49,13 +46,12 @@ public:
 	void								shiftAddon								(CAddon* addon, int shift);
 
 	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
-	void								updateAddonsHudTransform				(Fmatrix CR$ parent_trans);
 
 	void								startReloading							(CAddon* loading_addon);
 	void								loadingDetach							();
 	void								loadingAttach							();
 	void								finishLoading							(bool interrupted = false);
-	void								calculateBoneOffset						(IKinematics* model);
+	void								calculateBoneOffset						(IKinematics* model, shared_str CR$ hud_sect);
 	
 	bool								hasLoadingAnim						C$	()		{ return m_has_loading_anim; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
@@ -91,7 +87,7 @@ public:
 	int									AttachAddon								(CAddon* addon, CAddonSlot* slot = NULL);
 	int									DetachAddon								(CAddon* addon);
 	void								RegisterAddon							(CAddon PC$ addon, bool attach);
-	void								calculateSlotsBoneOffset				();
+	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
 
 	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
 };

@@ -167,11 +167,11 @@ void CInventoryItem::Load(LPCSTR section)
 	
 	SetInvIcon						();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
-		m_object->AddModule<CAddon>();
-
 	if (pSettings->line_exist			(section, "slots"))
 		m_object->AddModule<CAddonOwner>();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
+		m_object->AddModule<CAddon>();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
 		m_object->AddModule<CAmountable>();
@@ -935,10 +935,19 @@ bool CInventoryItem::tryCustomUse()
 		}
 	}
 
-	if (auto active_item = Actor()->inventory().ActiveItem())
-		if (auto ao = active_item->cast<CAddonOwner*>())
-			if (auto addon = cast<CAddon*>())
-				return					CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon);
+	if (auto addon = cast<CAddon*>())
+		if (auto active_item = Actor()->inventory().ActiveItem())
+			if (auto ao = active_item->cast<CAddonOwner*>())
+			{
+				if (CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon))
+					return				true;
+				for (auto s : ao->AddonSlots())
+					for (auto a : s->addons)
+						if (auto sub_ao = a->cast<CAddonOwner*>())
+							if (CurrentGameUI()->GetActorMenu().AttachAddon(sub_ao, addon))
+								return	true;
+
+			}
 
 	return								false;
 }

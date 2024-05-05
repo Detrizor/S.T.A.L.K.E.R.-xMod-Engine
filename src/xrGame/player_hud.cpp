@@ -731,13 +731,13 @@ void player_hud::attach_item(CHudItem* item)
 			};
 
 			calc_hands_attach(pi->m_auto_attach_anm, pi->m_hands_attach[0]);
-			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))
+			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))		//--xd not good, will be reworked some way
 				calc_hands_attach("anm_g_idle_aim", pi->m_hands_attach[1]);
 
 			if (auto ao = pi->m_parent_hud_item->object().Cast<CAddonOwner*>())
 			{
 				update_bones(pi->m_model);
-				ao->calculateSlotsBoneOffset();
+				ao->calculateSlotsBoneOffset(pi->m_model, pi->m_hud_section);
 			}
 
 			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;

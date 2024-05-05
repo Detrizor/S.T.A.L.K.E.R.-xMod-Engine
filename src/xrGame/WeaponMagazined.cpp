@@ -121,9 +121,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 	{
 		for (auto s : ao->AddonSlots())
 		{
-			if (s->hasLoadingAnim())
+			if (s->attach == "magazine")
 				m_magazine_slot			= s;
-			if (s->muzzle)
+			if (s->attach == "muzzle")
 				s->model_offset.translate_add(m_loaded_muzzle_point);
 			s->model_offset.translate_sub(m_root_bone_position);
 		}
