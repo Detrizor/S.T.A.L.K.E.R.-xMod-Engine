@@ -44,7 +44,7 @@ public:
 	template <typename T, typename C>
 	T								S$	cast									(C c)					{ return CObject::Cast<T>(c); }
 	template <typename T>
-	T									cast								C$	()						{ return O.Cast<T>(); }
+	T									cast								C$	()						{ return (this) ? O.Cast<T>() : nullptr; }
 	template <typename T>
-	T									cast									()						{ return O.Cast<T>(); }
+	T									cast									()						{ return (this) ? O.Cast<T>() : nullptr; }
 };

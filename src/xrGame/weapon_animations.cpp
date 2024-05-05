@@ -76,7 +76,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		m_magazine_slot->finishLoading	();
 		if (!m_actor)
 			ReloadMagazine				();
-		SwitchState					(eIdle);
+		SwitchState						(eIdle);
 		break;
 	case eSubstateReloadBolt:
 		reload_chamber					();
