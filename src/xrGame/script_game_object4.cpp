@@ -570,14 +570,14 @@ float CScriptGameObject::GetInventoryCapacity()
 CSE_Abstract* CScriptGameObject::giveItem(LPCSTR section, float condition)
 {
 	if (auto go = smart_cast<CGameObject*>(&object()))
-		go->giveItem					(section, condition);
+		return							go->giveItem(section, condition);
 	return								nullptr;
 }
 
 CSE_Abstract* CScriptGameObject::giveItems(LPCSTR section, u16 count, float condition)
 {
 	if (auto go = smart_cast<CGameObject*>(&object()))
-		go->giveItems					(section, count, condition);
+		return							go->giveItems(section, count, condition);
 	return								nullptr;
 }
 

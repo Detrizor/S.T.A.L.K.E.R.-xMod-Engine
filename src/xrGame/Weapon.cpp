@@ -645,7 +645,7 @@ void CWeapon::reload(LPCSTR section)
 	else
 		m_can_be_strapped = false;
 	
-	m_Offset.translate_over(m_grip_offset);
+	//m_Offset.translate_over(m_grip_offset);		--xd to implement trigger offset for 3rd person, not too disturbing for now
 
 	m_StrapOffset = m_Offset;
 	if (pSettings->line_exist(section, "strap_position") && pSettings->line_exist(section, "strap_orientation"))

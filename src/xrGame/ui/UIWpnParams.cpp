@@ -98,7 +98,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
 
-	auto ao								= item->cast<CAddonOwner*>();
+	auto ao								= (item) ? item->cast<CAddonOwner*>() : nullptr;
 	CUIAddonOwnerCellItem* uiao			= smart_cast<CUIAddonOwnerCellItem*>(itm);
 	if (ao && ao->AddonSlots().size())
 	{
