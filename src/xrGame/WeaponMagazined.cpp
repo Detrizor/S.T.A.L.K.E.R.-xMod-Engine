@@ -89,6 +89,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock", "sndBoltLock", true, m_eSoundReload); 
 	m_sounds.LoadSound					(*HudSection(), "snd_load_chamber", "sndLoadChamber", true, m_eSoundReload);
 
 	m_iBaseDispersionedBulletsCount = READ_IF_EXISTS(pSettings, r_u8, section, "base_dispersioned_bullets_count", 0);
@@ -201,17 +202,18 @@ void CWeaponMagazined::Reload()
 	if (IsMisfire() || m_actor && m_chamber.capacity())
 		StartReload						(eSubstateReloadBolt);
 	else if (!m_actor && has_ammo_for_reload())
-		StartReload						(eSubstateReloadBegin);
+		StartReload						(HudAnimationExist("anm_detach") ? eSubstateReloadDetach : eSubstateReloadBegin);
 }
 
 void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 {
 	if (GetState() == eReload)
 		return;
-
-	m_sub_state							= substate;
-	if (m_sub_state == eSubstateReloadBegin && HudAnimationExist("anm_detach"))
-		m_sub_state						= eSubstateReloadDetach;
+	
+	if (isEmptyChamber() && HudAnimationExist("anm_bolt_lock") && (m_magazine_slot->isLoading() || !m_actor))
+		m_sub_state						= eSubstateReloadBoltLock;
+	else
+		m_sub_state						= substate;
 
 	SwitchState							(eReload);
 }
@@ -478,6 +480,7 @@ void CWeaponMagazined::UpdateSounds()
 	m_sounds.SetPosition("sndAttach", P);
 	m_sounds.SetPosition("sndBoltPull", P);
 	m_sounds.SetPosition("sndBoltRelease", P);
+	m_sounds.SetPosition("sndBoltLock", P);
 	m_sounds.SetPosition("sndLoadChamber", P);
 }
 

@@ -113,6 +113,7 @@ public:
 		eSubstateReloadChamber,
 		eSubstateReloadAttachG,
 		eSubstateReloadDetachG,
+		eSubstateReloadBoltLock,
 	};
 
 	// Does weapon need's update?

@@ -5,11 +5,6 @@ void CWeaponMagazined::PlayAnimReload()
 {
 	switch (m_sub_state)
 	{
-	case eSubstateReloadBegin:
-		PlayHUDMotion					("anm_reload", TRUE, GetState());
-		if (m_sounds_enabled)
-			PlaySound					("sndReload", get_LastFP());
-		break;
 	case eSubstateReloadDetach:
 		PlayHUDMotion					("anm_detach", TRUE, GetState());
 		if (m_sounds_enabled)
@@ -48,6 +43,16 @@ void CWeaponMagazined::PlayAnimReload()
 		if (m_sounds_enabled)
 			PlaySound					("sndLoadChamber", get_LastFP());
 		break;
+	case eSubstateReloadBoltLock:
+		PlayHUDMotion					("anm_bolt_lock", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndBoltLock", get_LastFP());
+		break;
+	default:
+		PlayHUDMotion					("anm_reload", TRUE, GetState());
+		if (m_sounds_enabled)
+			PlaySound					("sndReload", get_LastFP());
+		break;
 	}
 }
 
@@ -58,10 +63,6 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 
 	switch (m_sub_state)
 	{
-	case eSubstateReloadBegin:
-		ReloadMagazine					();
-		SwitchState						(eIdle);
-		break;
 	case eSubstateReloadDetach:
 		m_magazine_slot->loadingDetach	();
 		if (m_magazine_slot->isLoading() || !m_actor)
@@ -76,7 +77,13 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		m_magazine_slot->finishLoading	();
 		if (!m_actor)
 			ReloadMagazine				();
-		SwitchState						(eIdle);
+		if (m_locked)
+		{
+			m_sub_state					= eSubstateReloadBolt;
+			PlayAnimReload				();
+		}
+		else
+			SwitchState					(eIdle);
 		break;
 	case eSubstateReloadBolt:
 		reload_chamber					();
@@ -84,6 +91,15 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadChamber:
 		loadChamber						(m_current_ammo);
+		break;
+	case eSubstateReloadBoltLock:
+		m_locked						= true;
+		m_sub_state						= (!m_magazine_slot->addons.empty() || !m_actor) ? eSubstateReloadDetach : eSubstateReloadAttach;
+		PlayAnimReload					();
+		break;
+	default:
+		ReloadMagazine					();
+		SwitchState						(eIdle);
 		break;
 	}
 }

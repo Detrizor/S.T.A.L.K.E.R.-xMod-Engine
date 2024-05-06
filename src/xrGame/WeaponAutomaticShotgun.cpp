@@ -51,16 +51,16 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	switch (m_sub_state)
 	{
 	case eSubstateReloadBegin:
-		if (HudAnimationExist("anm_open"))
+		if (isEmptyChamber() && HudAnimationExist("anm_load_chamber"))
+		{
+			m_sub_state = eSubstateReloadChamber;
+			PlayAnimReload();
+		}
+		else if (HudAnimationExist("anm_open"))
 		{
 			PlayHUDMotion				("anm_open", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndOpen", get_LastFP());
-		}
-		else if (isEmptyChamber() && HudAnimationExist("anm_load_chamber"))
-		{
-			m_sub_state					= eSubstateReloadChamber;
-			PlayAnimReload				();
 		}
 		else
 		{
