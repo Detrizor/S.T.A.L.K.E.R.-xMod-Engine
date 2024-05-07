@@ -19,6 +19,7 @@ private:
 	u16									m_capacity;
 	u16									m_SumAmount;
 	float								m_SumWeight;
+	bool								m_bullets_visible;
 
 	void								InvalidateState							();
 	void								UpdateBulletsVisibility					();

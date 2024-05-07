@@ -21,6 +21,7 @@ CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 		_GetItem						(S, it, _ammoItem);
 		m_ammo_types.push_back			(_ammoItem);
 	}
+	m_bullets_visible					= !!pSettings->r_bool(O.cNameSect(), "bullets_visible");
 	
 	InvalidateState						();
 	UpdateBulletsVisibility				();
@@ -36,6 +37,9 @@ shared_str bullets_str					= "bullets";
 extern void UpdateBoneVisibility		(IKinematics* pVisual, const shared_str& bone_name, bool status);
 void CMagazine::UpdateBulletsVisibility()
 {
+	if (!m_bullets_visible)
+		return;
+
 	bool vis							= !Empty();
 	cast<PIItem>()->SetInvIconType		((u8)vis);
 
