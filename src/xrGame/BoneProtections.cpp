@@ -4,7 +4,7 @@
 #include "../xrEngine/bone.h"
 #include "Level.h"
 
-static LPCSTR ARMOR_LEVELS = pSettings->r_string("damage_manager", "armor_levels");
+shared_str SBoneProtections::s_armor_levels;
 
 float SBoneProtections::getBoneArmor(s16 bone_id)
 {
@@ -72,9 +72,14 @@ float SBoneProtections::ComputeArmor(float level)
 	string256				buffer;
 	int level_low			= iFloor(level);
 	int level_high			= iCeil(level);
-	float armor_low			= (float)atof(_GetItem(ARMOR_LEVELS, level_low, buffer));
-	float armor_high		= (float)atof(_GetItem(ARMOR_LEVELS, level_high, buffer));
+	float armor_low			= (float)atof(_GetItem(*s_armor_levels, level_low, buffer));
+	float armor_high		= (float)atof(_GetItem(*s_armor_levels, level_high, buffer));
 	float k_level			= level - (float)level_low;
 
 	return (armor_low + (armor_high - armor_low) * k_level);
+}
+
+void SBoneProtections::loadStaticVariables()
+{
+	s_armor_levels = pSettings->r_string("damage_manager", "armor_levels");
 }

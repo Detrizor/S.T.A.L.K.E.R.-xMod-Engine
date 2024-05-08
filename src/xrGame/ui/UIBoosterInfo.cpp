@@ -10,11 +10,9 @@
 #include "../string_table.h"
 #include "UICellItem.h"
 #include "item_container.h"
-
-static const float BULLET_AP_SCALE						= pSettings->r_float("bullet_manager", "ap_scale");
-static const float BULLET_ARMOR_PIERCING_AP_FACTOR		= pSettings->r_float("bullet_manager", "armor_piercing_ap_factor");
-static const float BULLET_HOLLOW_POING_AP_FACTOR		= pSettings->r_float("bullet_manager", "hollow_point_ap_factor");
-static LPCSTR ARMOR_LEVELS								= pSettings->r_string("damage_manager", "armor_levels");
+#include "WeaponAmmo.h"
+#include "Level_Bullet_Manager.h"
+#include "BoneProtections.h"
 
 CUIBoosterInfo::CUIBoosterInfo()
 {
@@ -294,61 +292,51 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 
 	if (ItemCategory(section, "ammo") && (ItemSubcategory(section, "box") || ItemSubcategory(section, "cartridge")))
 	{
-		LPCSTR sect							= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "supplies") : *section;
-		float bullet_speed					= pSettings->r_float(sect, "bullet_speed") * pSettings->r_float(sect, "k_bullet_speed");
-		m_bullet_speed->SetValue			(bullet_speed);
-		pos.set								(m_bullet_speed->GetWndPos());
-		pos.y								= h;
-		m_bullet_speed->SetWndPos			(pos);
-		h									+= m_bullet_speed->GetWndSize().y;
-		AttachChild							(m_bullet_speed);
+		LPCSTR cartridge_section		= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "supplies") : *section;
+		auto cartridge					= CCartridge(cartridge_section);
 
-		float bullet_mass					= pSettings->r_float(sect, "bullet_mass") * 0.001f;
-		float bullet_pulse					= bullet_speed * bullet_mass;
-		m_bullet_pulse->SetValue			(bullet_pulse);
-		pos.set								(m_bullet_pulse->GetWndPos());
-		pos.y								= h;
-		m_bullet_pulse->SetWndPos			(pos);
-		h									+= m_bullet_pulse->GetWndSize().y;
-		AttachChild							(m_bullet_pulse);
+		m_bullet_speed->SetValue		(cartridge.param_s.muzzle_velocity);
+		pos.set							(m_bullet_speed->GetWndPos());
+		pos.y							= h;
+		m_bullet_speed->SetWndPos		(pos);
+		h								+= m_bullet_speed->GetWndSize().y;
+		AttachChild						(m_bullet_speed);
 
-		float bullet_energy					= bullet_mass * pow(bullet_speed, 2.f) / 2.f;
-		float caliber						= pSettings->r_float(sect, "caliber");
-		float area							= PI * pow((caliber / 2.f), 2);
-		float sharpness						= pSettings->r_float(sect, "sharpness");
-		float resist						= area / sharpness;
-		float ap							= BULLET_AP_SCALE * (bullet_energy / resist);
-		if (READ_IF_EXISTS(pSettings, r_bool, sect, "hollow_point", false))
-			ap								*= BULLET_HOLLOW_POING_AP_FACTOR;
-		if (READ_IF_EXISTS(pSettings, r_bool, sect, "armor_piercing", false))
-			ap								*= BULLET_ARMOR_PIERCING_AP_FACTOR;
-		string128							buffer;
-		int									level = 0, levels = _GetItemCount(ARMOR_LEVELS);
-		while (level < levels)
-		{
-			float armor						= (float)atof(_GetItem(ARMOR_LEVELS, level, buffer));
-			if (ap < armor)
+		m_bullet_pulse->SetValue		(cartridge.param_s.muzzle_velocity * cartridge.param_s.fBulletMass);
+		pos.set							(m_bullet_pulse->GetWndPos());
+		pos.y							= h;
+		m_bullet_pulse->SetWndPos		(pos);
+		h								+= m_bullet_pulse->GetWndSize().y;
+		AttachChild						(m_bullet_pulse);
+
+		float muzzle_energy				= cartridge.param_s.fBulletMass * _sqr(cartridge.param_s.muzzle_velocity) * .5f;
+		float muzzle_ap					= cartridge.param_s.bullet_k_ap * muzzle_energy / cartridge.param_s.fBulletResist;
+		muzzle_ap						*= Level().BulletManager().m_fBulletGlobalAPScale;
+
+		string128						buffer;
+		for (int level = 0, levels = _GetItemCount(*SBoneProtections::s_armor_levels); level < levels; level++)
+			if (muzzle_ap < (float)atof(_GetItem(*SBoneProtections::s_armor_levels, level, buffer)))
 				break;
-			++level;
-		}
 		--level;
-		LPCSTR								name;
+
+		LPCSTR							name;
 		if (level == -1)
-			name							= CStringTable().translate("ui_armor_piercing_absent").c_str();
+			name						= CStringTable().translate("ui_armor_piercing_absent").c_str();
 		else if (level == 0)
-			name							= CStringTable().translate("ui_armor_piercing_clothes").c_str();
+			name						= CStringTable().translate("ui_armor_piercing_clothes").c_str();
 		else
-			name							= CStringTable().translate("ui_armor_piercing").c_str();
-		m_armor_piercing->SetCaption		(name);
+			name						= CStringTable().translate("ui_armor_piercing").c_str();
+		m_armor_piercing->SetCaption	(name);
 		if (level > 0)
-			m_armor_piercing->SetValue		((float)level);
+			m_armor_piercing->SetValue	((float)level);
 		else
-			m_armor_piercing->SetStrValue	("");
-		pos.set								(m_armor_piercing->GetWndPos());
-		pos.y								= h;
-		m_armor_piercing->SetWndPos			(pos);
-		h									+= m_armor_piercing->GetWndSize().y;
-		AttachChild							(m_armor_piercing);
+			m_armor_piercing->SetStrValue("");
+		m_armor_piercing->SetValue(muzzle_ap);//--xd tst!
+		pos.set							(m_armor_piercing->GetWndPos());
+		pos.y							= h;
+		m_armor_piercing->SetWndPos		(pos);
+		h								+= m_armor_piercing->GetWndSize().y;
+		AttachChild						(m_armor_piercing);
 	}
 
 	if (ItemCategory(section, "magazine"))

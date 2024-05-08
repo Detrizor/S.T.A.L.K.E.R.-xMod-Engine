@@ -72,17 +72,15 @@ void SBullet::Init(const Fvector& position,
 	weapon_id				= sendersweapon_id;
 	hit_type				= e_hit_type;
 	
-	bullet_mass				= cartridge.param_s.fBulletMass;
-	bullet_resist			= cartridge.param_s.fBulletResist;
+	mass					= cartridge.param_s.fBulletMass;
+	resist					= cartridge.param_s.fBulletResist;
+	hollow_point			= cartridge.param_s.bullet_hollow_point;
 	air_resistance			= cartridge.param_s.fAirResist;
-	hollow_point			= cartridge.param_s.mHollowPoint;
-	armor_piercing			= cartridge.param_s.mArmorPiercing;
+	k_ap					= cartridge.param_s.bullet_k_ap;
 	m_u8ColorID				= cartridge.param_s.u8ColorID;
 	
 	updates					= 0;
-	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? Level().BulletManager().m_fBulletWallMarkSizeScale * sqrt(bullet_resist) : cartridge.param_s.fWMS;
-	if (hollow_point)
-		wallmark_size		*= 2.f;
+	wallmark_size			= (cartridge.param_s.fWMS == -1.f) ? Level().BulletManager().m_fBulletWallMarkSizeScale * sqrt(resist) : cartridge.param_s.fWMS;
 
 	bullet_material_idx		= cartridge.bullet_material_idx;
 	VERIFY					( u16(-1) != bullet_material_idx );
@@ -151,9 +149,7 @@ void CBulletManager::Load		()
 	m_fZeroingAirResistCorrectionK2		= pSettings->r_float(bullet_manager_sect, "zeroing_air_resist_correction_k2");
 	m_fZeroingAirResistCorrectionK3		= pSettings->r_float(bullet_manager_sect, "zeroing_air_resist_correction_k3");
 
-	m_fBulletAPScale					= pSettings->r_float(bullet_manager_sect, "ap_scale");
-	m_fBulletArmorPiercingAPFactor		= pSettings->r_float(bullet_manager_sect, "armor_piercing_ap_factor");
-	m_fBulletHollowPointAPFactor		= pSettings->r_float(bullet_manager_sect, "hollow_point_ap_factor");
+	m_fBulletGlobalAPScale				= pSettings->r_float(bullet_manager_sect, "bullet_global_ap_scale");
 	m_fBulletHollowPointResistFactor	= pSettings->r_float(bullet_manager_sect, "hollow_point_resist_factor");
 	m_fBulletAPLossOnPierce				= pSettings->r_float(bullet_manager_sect, "ap_loss_on_pierce");
 

@@ -381,7 +381,7 @@ void CExplosive::Explode()
 		
 		CCartridge cartridge;
 		cartridge.param_s.fBulletMass		= frag_fMass;
-		cartridge.param_s.mHollowPoint		= false;
+		cartridge.param_s.bullet_hollow_point = false;
 		cartridge.param_s.fBulletResist		= frag_fResist;
 		cartridge.param_s.fAirResist		= Level().BulletManager().m_fBulletAirResistanceScale * frag_fResist * .000001f / frag_fMass;
 		cartridge.bullet_material_idx		= GMLib.GetMaterialIdx(WEAPON_MATERIAL_NAME);

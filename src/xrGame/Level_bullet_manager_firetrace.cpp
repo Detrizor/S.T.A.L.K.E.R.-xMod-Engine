@@ -369,15 +369,11 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 	float k_speed_bone		= 0.f;
 	float k_speed_out		= 0.f;
 	float pierce			= 0.f;
-	float bullet_kap		= 1.f;
 	bool ricoshet			= false;
 	bool inwards			= DOT(hit_normal, bullet->dir) < 0.f;
 
-	if (bullet->hollow_point)
-		bullet_kap						*= m_fBulletHollowPointAPFactor;
-	if (bullet->armor_piercing)
-		bullet_kap						*= m_fBulletArmorPiercingAPFactor;
-	float bullet_ap						= m_fBulletAPScale * bullet_kap * bullet->bullet_mass * pow(bullet->speed, 2) * .5f / bullet->bullet_resist;
+	float bullet_energy					= bullet->mass * _sqr(bullet->speed) * .5f;
+	float bullet_ap						= m_fBulletGlobalAPScale * bullet->k_ap * bullet_energy / bullet->resist;
 
 	float armor							= 0.f;
 	float bone_density					= 0.f;
@@ -393,7 +389,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 
 		if (!bullet->parent_id || R.O && !R.O->ID())
 			Msg("--xd CBulletManager::ObjectHit bullet_mass [%f] speed [%f] bullet_ap [%f] bone [%s] armor [%f] inwards [%d] bullet density [%f] bone_density [%f]",
-				bullet->bullet_mass, bullet->speed, bullet_ap, V->LL_BoneName_dbg(element), armor, inwards, bullet->density, bone_density);		//--xd отладка
+				bullet->mass, bullet->speed, bullet_ap, V->LL_BoneName_dbg(element), armor, inwards, bullet->density, bone_density);		//--xd отладка
 	}
 	else
 	{
@@ -406,7 +402,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 
 		if (!bullet->parent_id)
 			Msg("--xd CBulletManager::ObjectHit bullet_mass [%f] speed [%f] bullet_ap [%f] fShootFactor [%f] inwards [%d] bullet density [%f]",
-				bullet->bullet_mass, bullet->speed, bullet_ap, mtl->fShootFactor, inwards, bullet->density);
+				bullet->mass, bullet->speed, bullet_ap, mtl->fShootFactor, inwards, bullet->density);
 	}
 
 	if (fMoreOrEqual(bullet_ap, armor))
@@ -419,7 +415,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 			{
 				if (bullet->hollow_point)
 				{
-					bullet->bullet_resist *= m_fBulletHollowPointResistFactor;
+					bullet->resist		*= m_fBulletHollowPointResistFactor;
 					bullet_ap			/= m_fBulletHollowPointResistFactor;
 				}
 				bullet->flags.piercing_was = 1;
@@ -474,13 +470,13 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 	if (fMore(pierce, 0.f))
 	{
 		float speed						= bullet->speed * k_speed_in;
-		float resist_factor				= m_fBulletPierceDamageFromResist.Calc(bullet->bullet_resist);
-		float kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet_kap);
+		float resist_factor				= m_fBulletPierceDamageFromResist.Calc(bullet->resist);
+		float kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet->k_ap);
 		float speed_factor				= m_fBulletPierceDamageFromSpeed.Calc(speed);
 
 		float speed_scale_factor		= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
 		float hydroshock_factor			= m_fBulletPierceDamageFromHydroshock.Calc(speed);
-		float stability_factor			= m_fBulletPierceDamageFromStability.Calc(bullet->bullet_mass);
+		float stability_factor			= m_fBulletPierceDamageFromStability.Calc(bullet->mass);
 		float pierce_factor				= m_fBulletPierceDamageFromPierce.Calc(pierce);
 
 		float base_pierce_damage		= resist_factor * kap_factor * speed_factor;
@@ -490,8 +486,8 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 		hit_res->armor_pierce_damage	= m_fBulletArmorPierceDamageScale * base_pierce_damage;
 	}
 	
-	hit_res->impulse					= m_fBulletHitImpulseScale * bullet->bullet_mass * bullet->speed * (1.f - k_speed_out);
-	hit_res->main_damage				= m_fBulletArmorDamageScale * sqrt(bullet->bullet_mass * bullet->speed * (1.f - k_speed_in));
+	hit_res->impulse					= m_fBulletHitImpulseScale * bullet->mass * bullet->speed * (1.f - k_speed_out);
+	hit_res->main_damage				= m_fBulletArmorDamageScale * sqrt(bullet->mass * bullet->speed * (1.f - k_speed_in));
 
 	if (!bullet->parent_id || R.O && !R.O->ID())
 		Msg("--xd CBulletManager::ObjectHit main_damage [%.5f] k_speed_in [%.5f] k_speed_bone [%.5f] k_speed_out [%.5f] pierce [%.5f] ricoshet [%d]",

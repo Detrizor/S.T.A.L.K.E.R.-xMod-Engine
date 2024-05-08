@@ -18,4 +18,7 @@ struct SBoneProtections{
 	float				getBoneArmorLevel	(s16 bone_id);
 
 	float				ComputeArmor		(float level);
+	
+	shared_str						S$	s_armor_levels;
+	void							S$	loadStaticVariables						();
 };

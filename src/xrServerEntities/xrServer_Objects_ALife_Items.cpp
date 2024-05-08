@@ -11,6 +11,7 @@
 #include "xrServer_Objects_ALife_Items.h"
 #include "clsid_game.h"
 #include "object_broker.h"
+#include "WeaponAmmo.h"
 
 #ifndef XRGAME_EXPORTS
 #	include "bone.h"
@@ -576,10 +577,7 @@ void CSE_ALifeItemWeaponMagazinedWGL::FillProps			(LPCSTR pref, PropItemVec& ite
 CSE_ALifeItemAmmo::CSE_ALifeItemAmmo		(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	a_elapsed					= 1;
-	if (pSettings->r_bool(caSection, "heap"))
-		m_boxSize				= (u16)iFloor(.5f / pSettings->r_float(caSection, "inv_volume"));
-	else
-		m_boxSize				= 1;
+	m_boxSize					= CWeaponAmmo::readBoxSize(caSection);
 	if (pSettings->section_exist(caSection) && pSettings->line_exist(caSection,"visual"))
 		set_visual				(pSettings->r_string(caSection,"visual"));
 }

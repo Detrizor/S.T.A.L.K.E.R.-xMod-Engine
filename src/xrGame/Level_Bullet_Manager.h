@@ -62,10 +62,10 @@ struct SBullet
 	//-------------------------------------------------------------------
 	u16				updates				;
 	float			wallmark_size		;
-	float			bullet_mass			;
-	float			bullet_resist		;
+	float			mass				;
+	float			resist				;
+	float			k_ap				;
 	bool			hollow_point		;
-	bool			armor_piercing		;
 	//-------------------------------------------------------------------
 	u8				m_u8ColorID			;
 	
@@ -237,9 +237,7 @@ public:
 	float								m_fZeroingAirResistCorrectionK2;
 	float								m_fZeroingAirResistCorrectionK3;
 
-	float								m_fBulletAPScale;
-	float								m_fBulletArmorPiercingAPFactor;
-	float								m_fBulletHollowPointAPFactor;
+	float								m_fBulletGlobalAPScale;
 	float								m_fBulletHollowPointResistFactor;
 	float								m_fBulletAPLossOnPierce;
 

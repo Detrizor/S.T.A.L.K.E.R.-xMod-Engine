@@ -28,6 +28,8 @@
 
 #include "ui\UIStatic.h"
 
+#include "BoneProtections.h"
+
 typedef xr_vector<std::pair<shared_str,int> >	STORY_PAIRS;
 extern STORY_PAIRS								story_ids;
 extern STORY_PAIRS								spawn_story_ids;
@@ -235,6 +237,9 @@ void loadStaticVariables()
 	createStatic(pUILenseVignette, "wpn\\lense\\vignette", 4.f);
 	createStatic(pUILenseBlackFill, "wpn\\lense\\black_fill", .125f, aLeftTop);
 	createStatic(pUILenseGlass, "wpn\\lense\\glass");
+
+	CCartridge::loadStaticVariables		();
+	SBoneProtections::loadStaticVariables();
 }
 
 void cleanStaticVariables()
