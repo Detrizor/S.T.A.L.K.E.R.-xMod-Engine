@@ -11,31 +11,30 @@ class CUICellItem;
 class CUIBoosterInfo : public CUIWindow
 {
 public:
-					CUIBoosterInfo		();
-	virtual			~CUIBoosterInfo		();
 			void	InitFromXml				(CUIXml& xml);
 			void	SetInfo					(CUICellItem* itm);
 
 protected:
-	UIBoosterInfoItem*	m_boosts[eBoostMaxCount];
-	UIBoosterInfoItem*	m_need_hydration;
-	UIBoosterInfoItem*	m_need_satiety;
-	UIBoosterInfoItem*	m_health_outer;
-	UIBoosterInfoItem*	m_health_neural;
-	UIBoosterInfoItem*	m_power_short;
-	UIBoosterInfoItem*	m_booster_anabiotic;
+	xptr<UIBoosterInfoItem>	m_boosts[eBoostMaxCount];
+	xptr<UIBoosterInfoItem>	m_need_hydration;
+	xptr<UIBoosterInfoItem>	m_need_satiety;
+	xptr<UIBoosterInfoItem>	m_health_outer;
+	xptr<UIBoosterInfoItem>	m_health_neural;
+	xptr<UIBoosterInfoItem>	m_power_short;
+	xptr<UIBoosterInfoItem>	m_booster_anabiotic;
 
-	UIBoosterInfoItem*	m_bullet_speed;
-	UIBoosterInfoItem*	m_armor_piercing;
-	UIBoosterInfoItem*	m_bullet_pulse;
+	xptr<UIBoosterInfoItem>	m_bullet_speed;
+	xptr<UIBoosterInfoItem>	m_bullet_pulse;
+	xptr<UIBoosterInfoItem>	m_armor_piercing;
+	xptr<UIBoosterInfoItem>	m_impair;
 
-	UIBoosterInfoItem*	m_ammo_type;
-	UIBoosterInfoItem*	m_capacity;
+	xptr<UIBoosterInfoItem>	m_ammo_type;
+	xptr<UIBoosterInfoItem>	m_capacity;
 
-	UIBoosterInfoItem*	m_artefact_isolation;
-	UIBoosterInfoItem*	m_radiation_protection;
+	xptr<UIBoosterInfoItem>	m_artefact_isolation;
+	xptr<UIBoosterInfoItem>	m_radiation_protection;
 
-	CUIStatic*			m_Prop_line;
+	xptr<CUIStatic>			m_Prop_line;
 
 }; // class CUIBoosterInfo
 

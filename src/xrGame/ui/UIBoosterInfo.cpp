@@ -14,47 +14,6 @@
 #include "Level_Bullet_Manager.h"
 #include "BoneProtections.h"
 
-CUIBoosterInfo::CUIBoosterInfo()
-{
-	for (u32 i = 0; i < eBoostMaxCount; ++i)
-		m_boosts[i]			= NULL;
-	m_need_hydration		= NULL;
-	m_need_satiety			= NULL;
-	m_health_outer			= NULL;
-	m_health_neural			= NULL;
-	m_power_short			= NULL;
-	m_booster_anabiotic		= NULL;
-
-	m_bullet_speed			= NULL;
-	m_bullet_pulse			= NULL;
-	m_armor_piercing		= NULL;
-
-	m_ammo_type				= NULL;
-	m_capacity				= NULL;
-
-	m_artefact_isolation	= NULL;
-	m_radiation_protection	= NULL;
-}
-
-CUIBoosterInfo::~CUIBoosterInfo()
-{
-	delete_data	(m_boosts);
-	xr_delete	(m_need_hydration);
-	xr_delete	(m_need_satiety);
-	xr_delete	(m_health_outer);
-	xr_delete	(m_health_neural);
-	xr_delete	(m_power_short);
-	xr_delete	(m_booster_anabiotic);
-	xr_delete	(m_bullet_speed);
-	xr_delete	(m_bullet_pulse);
-	xr_delete	(m_armor_piercing);
-	xr_delete	(m_ammo_type);
-	xr_delete	(m_capacity);
-	xr_delete	(m_artefact_isolation);
-	xr_delete	(m_radiation_protection);
-	xr_delete	(m_Prop_line);
-}
-
 LPCSTR boost_influence_caption[] =
 {
 	"ui_inv_painkill",
@@ -152,6 +111,11 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_armor_piercing->SetAutoDelete		(false);
 	xml.SetLocalRoot					(base_node);
 
+	m_impair							= xr_new<UIBoosterInfoItem>();
+	m_impair->Init						(xml, "impair");
+	m_impair->SetCaption				(*CStringTable().translate("ui_bullet_pulse"));
+	xml.SetLocalRoot					(base_node);
+
 	m_ammo_type							= xr_new<UIBoosterInfoItem>();
 	m_ammo_type->Init					(xml, "ammo_type");
 	m_ammo_type->SetAutoDelete			(false);
@@ -182,7 +146,7 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	xml.SetLocalRoot					(stored_root);
 }
 
-void CUIBoosterInfo::SetInfo(CUICellItem* itm)
+void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 {
 	DetachAll			();
 	CActor* actor		= smart_cast<CActor*>(Level().CurrentViewEntity());
@@ -345,6 +309,13 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		m_armor_piercing->SetWndPos		(pos);
 		h								+= m_armor_piercing->GetWndSize().y;
 		AttachChild						(m_armor_piercing);
+
+		m_impair->SetValue				(cartridge.param_s.impair);
+		pos.set							(m_impair->GetWndPos());
+		pos.y							= h;
+		m_impair->SetWndPos				(pos);
+		h								+= m_impair->GetWndSize().y;
+		AttachChild						(m_impair);
 	}
 
 	if (ItemCategory(section, "magazine"))
@@ -374,20 +345,17 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		AttachChild							(m_capacity);
 	}
 
-	PIItem item							= (PIItem)itm->m_pData;
-	CInventoryContainer* cont			= (item) ? item->cast<CInventoryContainer*>() : NULL;
-	if (cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
+	auto item							= PIItem(itm->m_pData);
+	auto cont							= (item) ? item->cast<CInventoryContainer*>() : nullptr;
+	if ((cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE)) && !pSettings->r_string(section, "supplies"))
 	{
-		if (!pSettings->r_u16(section, "supplies_count"))
-		{
-			float capacity				= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
-			m_capacity->SetValue		(capacity);
-			pos.set						(m_capacity->GetWndPos());
-			pos.y						= h;
-			m_capacity->SetWndPos		(pos);
-			h							+= m_capacity->GetWndSize().y;
-			AttachChild					(m_capacity);
-		}
+		float capacity					= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
+		m_capacity->SetValue			(capacity);
+		pos.set							(m_capacity->GetWndPos());
+		pos.y							= h;
+		m_capacity->SetWndPos			(pos);
+		h								+= m_capacity->GetWndSize().y;
+		AttachChild						(m_capacity);
 
 		if ((cont) ? cont->ArtefactIsolation(true) : pSettings->r_bool(section, "artefact_isolation"))
 		{
