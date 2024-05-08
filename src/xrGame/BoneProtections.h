@@ -19,6 +19,6 @@ struct SBoneProtections{
 
 	float				ComputeArmor		(float level);
 	
-	shared_str						S$	s_armor_levels;
+	xr_vector<float>				S$	s_armor_levels;
 	void							S$	loadStaticVariables						();
 };

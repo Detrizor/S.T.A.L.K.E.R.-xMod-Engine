@@ -313,25 +313,33 @@ void CUIBoosterInfo::SetInfo(CUICellItem* itm)
 		float muzzle_ap					= cartridge.param_s.bullet_k_ap * muzzle_energy / cartridge.param_s.fBulletResist;
 		muzzle_ap						*= Level().BulletManager().m_fBulletGlobalAPScale;
 
-		string128						buffer;
-		for (int level = 0, levels = _GetItemCount(*SBoneProtections::s_armor_levels); level < levels; level++)
-			if (muzzle_ap < (float)atof(_GetItem(*SBoneProtections::s_armor_levels, level, buffer)))
+		float level						= -1.f;
+		for (int i = 0; i < SBoneProtections::s_armor_levels.size(); i++)
+		{
+			if (muzzle_ap < SBoneProtections::s_armor_levels[i])
+			{
+				if (i > 0)
+				{
+					float d_ap			= SBoneProtections::s_armor_levels[i] - SBoneProtections::s_armor_levels[i-1];
+					float d_muz_ap		= muzzle_ap - SBoneProtections::s_armor_levels[i - 1];
+					level				+= d_muz_ap / d_ap;
+				}
 				break;
-		--level;
+			}
+			else
+				level					= (float)i;
+		}
 
-		LPCSTR							name;
-		if (level == -1)
-			name						= CStringTable().translate("ui_armor_piercing_absent").c_str();
-		else if (level == 0)
-			name						= CStringTable().translate("ui_armor_piercing_clothes").c_str();
+		if (level >= 0.f)
+		{
+			m_armor_piercing->SetCaption(*CStringTable().translate("ui_armor_piercing"));
+			m_armor_piercing->SetValue	(floor(level * 10.f) * .1f);
+		}
 		else
-			name						= CStringTable().translate("ui_armor_piercing").c_str();
-		m_armor_piercing->SetCaption	(name);
-		if (level > 0)
-			m_armor_piercing->SetValue	((float)level);
-		else
+		{
+			m_armor_piercing->SetCaption(*CStringTable().translate("ui_armor_piercing_absent"));
 			m_armor_piercing->SetStrValue("");
-		m_armor_piercing->SetValue(muzzle_ap);//--xd tst!
+		}
 		pos.set							(m_armor_piercing->GetWndPos());
 		pos.y							= h;
 		m_armor_piercing->SetWndPos		(pos);
