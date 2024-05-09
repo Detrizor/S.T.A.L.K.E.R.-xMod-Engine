@@ -578,9 +578,8 @@ BOOL CHudItem::GetHUDmode()
 
 void CHudItem::PlayAnimIdle()
 {
-	if (TryPlayAnimIdle()) return;
-
-	PlayHUDMotion("anm_idle", TRUE, GetState());
+	if (!TryPlayAnimIdle());
+		PlayHUDMotion("anm_idle", TRUE, GetState());
 }
 
 bool CHudItem::TryPlayAnimIdle()

@@ -145,6 +145,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
 	m_lower_iron_sights_on_block		= !!READ_IF_EXISTS(pSettings, r_bool, section, "lower_iron_sights_on_block", FALSE);
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
+	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 }
 
 void CWeaponMagazined::FireStart()
@@ -200,7 +201,13 @@ void CWeaponMagazined::Reload()
 	}
 
 	if (IsMisfire() || m_actor && m_chamber.capacity())
-		StartReload						(eSubstateReloadBolt);
+	{
+		if (!m_locked && HudAnimationExist("anm_shot_l") && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false))
+			m_sub_state					= eSubstateReloadBoltLock;
+		else
+			m_sub_state					= eSubstateReloadBolt;
+		switch2_Reload					();
+	}
 	else if (!m_actor && has_ammo_for_reload())
 		StartReload						(HudAnimationExist("anm_detach") ? eSubstateReloadDetach : eSubstateReloadBegin);
 }
@@ -210,7 +217,8 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	if (GetState() == eReload)
 		return;
 	
-	if (isEmptyChamber() && HudAnimationExist("anm_bolt_lock") && (m_magazine_slot->isLoading() || !m_actor))
+	if (m_lock_state_reload && isEmptyChamber() && !m_locked && HudAnimationExist("anm_bolt_lock") &&
+		(m_magazine_slot->getLoadingAddon() && !m_magazine_slot->getLoadingAddon()->cast<CMagazine*>()->Empty() || !m_actor))
 		m_sub_state						= eSubstateReloadBoltLock;
 	else
 		m_sub_state						= substate;
@@ -599,6 +607,7 @@ void CWeaponMagazined::switch2_Idle()
 
 	SetPending(FALSE);
 	PlayAnimIdle();
+	m_sub_state = eSubstateReloadBegin;
 }
 
 #ifdef DEBUG
@@ -651,9 +660,19 @@ void CWeaponMagazined::switch2_Hiding()
 	CWeapon::FireEnd();
 	
 	SetPending(TRUE);
-	PlayAnimHide();
-	if (m_sounds_enabled)
-		PlaySound("sndHide", get_LastFP());
+
+	if (m_locked)
+	{
+		m_sub_state = eSubstateReloadBolt;
+		PlayAnimReload();
+	}
+	else
+	{
+		m_sub_state = eSubstateReloadBegin;
+		PlayAnimHide();
+		if (m_sounds_enabled)
+			PlaySound("sndHide", get_LastFP());
+	}
 }
 
 void CWeaponMagazined::switch2_Hidden()

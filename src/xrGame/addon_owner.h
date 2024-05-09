@@ -55,6 +55,7 @@ public:
 	
 	bool								hasLoadingAnim						C$	()		{ return m_has_loading_anim; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
+	CAddon CP$							getLoadingAddon						C$	()		{ return m_loading_addon; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);

@@ -203,6 +203,7 @@ private:
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
 	u32									m_animation_slot_reloading;
+	bool								m_lock_state_reload;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);
