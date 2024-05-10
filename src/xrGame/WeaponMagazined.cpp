@@ -206,7 +206,7 @@ void CWeaponMagazined::Reload()
 			m_sub_state					= eSubstateReloadBoltLock;
 		else
 			m_sub_state					= eSubstateReloadBolt;
-		switch2_Reload					();
+		PlayAnimReload					();
 	}
 	else if (!m_actor && has_ammo_for_reload())
 		StartReload						(HudAnimationExist("anm_detach") ? eSubstateReloadDetach : eSubstateReloadBegin);
