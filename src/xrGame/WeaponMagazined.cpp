@@ -291,7 +291,7 @@ void CWeaponMagazined::OnMagazineEmpty()
 
 LPCSTR CWeaponMagazined::anmType() const
 {
-	if (GetState() == eReload && m_sub_state == eSubstateReloadBolt && !m_shot_shell && m_chamber.empty())
+	if ((m_sub_state == eSubstateReloadBolt || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty())
 		return							"_dummy";
 	return								(m_locked) ? "_empty" : inherited::anmType();
 }
@@ -605,9 +605,9 @@ void CWeaponMagazined::switch2_Idle()
 	if (m_fOldBulletSpeed != 0.f)
 		SetBulletSpeed(m_fOldBulletSpeed);
 
+	m_sub_state = eSubstateReloadBegin;
 	SetPending(FALSE);
 	PlayAnimIdle();
-	m_sub_state = eSubstateReloadBegin;
 }
 
 #ifdef DEBUG
