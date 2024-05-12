@@ -25,7 +25,7 @@ CRenderTarget::CRenderTarget()
 	param_noise_fps		= 25.f;
 	param_noise_scale	= 1.f;
 
-	RT_SecondVP			= nullptr; //--#SM+# +SecondVP+
+	rt_secondVP			= nullptr; //--#SM+# +SecondVP+
 
 	param_color_map_influence	=	0.0f;
 	param_color_map_interpolate	=	0.0f;
@@ -68,7 +68,7 @@ BOOL CRenderTarget::Create	()
 
 	//We need to use Device.resolution in order to maintain performance while rendering image with second viewport + supersampling.
 	//Please do not change this. It's just working properly.
-	RT_SecondVP.create(RTname_SecondVP, Device.dwWidth, Device.dwHeight, HW.Caps.fTarget); //--#SM+#-- +SecondVP+
+	rt_secondVP.create(RTname_SecondVP, Device.dwWidth, Device.dwHeight, HW.Caps.fTarget); //--#SM+#-- +SecondVP+
 
 	if ((rtHeight!=Device.dwHeight) || (rtWidth!=Device.dwWidth))	{
 		R_CHK		(HW.pDevice->CreateDepthStencilSurface	(rtWidth,rtHeight,HW.Caps.fDepth,D3DMULTISAMPLE_NONE,0,TRUE,&ZB,NULL));
@@ -111,7 +111,7 @@ CRenderTarget::~CRenderTarget	()
 	RT_distort.destroy			();
 	RT_color_map.destroy		();
 	RT.destroy					();
-	RT_SecondVP.destroy			(); //--#SM+#-- +SecondVP+
+	rt_secondVP.destroy			(); //--#SM+#-- +SecondVP+s	
 }
 
 void	CRenderTarget::calc_tc_noise		(Fvector2& p0, Fvector2& p1)

@@ -286,7 +286,6 @@
       <Filter>OS</Filter>
     </ClCompile>
     <ClCompile Include="xrSyncronize.cpp" />
-    <ClCompile Include="Threading\Event.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FTimer.h">
@@ -597,7 +596,6 @@
     </ClInclude>
     <ClInclude Include="xrSyncronize.h" />
     <ClInclude Include="..\build_config_defines.h" />
-    <ClInclude Include="Threading\Event.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="xrCore.rc">

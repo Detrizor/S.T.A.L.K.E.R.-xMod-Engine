@@ -695,14 +695,15 @@ void CLevel::OnRender()
     inherited::OnRender();
     if (!game)
         return;
-
     Game().OnRender();
     //Device.Statistic->TEST1.Begin();
     BulletManager().Render();
     //Device.Statistic->TEST1.End();
-    HUD().RenderUI();
 
-    ::Render->AfterWorldRender(); //--#SM+#-- +SecondVP+
+	HUD().RenderUI();
+
+	if (Device.m_SecondViewport.IsSVPFrame())
+		Render->RenderToTarget();
 
 #ifdef DEBUG
     draw_wnds_rects();

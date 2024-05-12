@@ -6,7 +6,7 @@
 class CRenderTarget		: public IRender_Target
 {
 public:
-	ref_rt RT_SecondVP; //--#SM+#-- +SecondVP+
+	ref_rt rt_secondVP; //--#SM+#-- +SecondVP+
 
 private:
 	BOOL				bAvailable;

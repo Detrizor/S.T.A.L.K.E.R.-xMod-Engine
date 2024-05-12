@@ -198,15 +198,10 @@ void CRender::Render		()
 	g_r						= 1;
 	VERIFY					(0==mapDistort.size());
 
-	Target->needClearAccumulator = true;
-
-	Target->u_setrt(Device.dwWidth, Device.dwHeight, HW.pBaseRT, NULL, NULL, HW.pBaseZB); // Set up HW base as RT and ZB
-
 	rmNormal();
 
 	bool	_menu_pp		= g_pGamePersistent?g_pGamePersistent->OnRenderPPUI_query():false;
-	if (currentViewPort == MAIN_VIEWPORT && _menu_pp)
-	{
+	if (_menu_pp)			{
 		render_menu			()	;
 		return					;
 	};
@@ -272,11 +267,6 @@ void CRender::Render		()
 	else 
 	{
 		Target->phase_scene_prepare					();
-	}
-
-	if (currentViewPort == SECONDARY_WEAPON_SCOPE)
-	{
-		Target->phase_cut();
 	}
 
 	//*******
@@ -348,7 +338,7 @@ void CRender::Render		()
 		PIX_EVENT(DEFER_TEST_LIGHT_VIS);
 		// perform tests
 		u32	count			= 0;
-		light_Package&	LP	= Lights.package[RImplementation.getVP()];
+		light_Package&	LP	= Lights.package;
 
 		// stats
 		stats.l_shadowed	= LP.v_shadowed.size();
@@ -539,34 +529,10 @@ void CRender::render_forward				()
 	RImplementation.o.distortion				= FALSE;				// disable distorion
 }
 
-ENGINE_API extern BOOL debugSecondVP;
-
-// После рендера мира и пост-эффектов --#SM+#-- +SecondVP+
-void CRender::AfterWorldRender()
+void CRender::RenderToTarget()
 {
-	if (currentViewPort == SECONDARY_WEAPON_SCOPE)
-	{
-		ID3DResource* res;
-		HW.pBaseRT->GetResource(&res);
-		HW.pContext->CopyResource(Target->rt_secondVP->pSurface, res); // rt sizes must match, to be able to copy
-
-	}
-
-	if (debugSecondVP && RImplementation.currentViewPort == MAIN_VIEWPORT) // Copy svp image into swapchain buffer((MAIN_VIEWPORT).baseRT) to draw it on screen
-	{
-		ID3DResource* res = Target->rt_secondVP->pSurface;
-		ID3DResource* res2;
-
-		HW.viewPortsRTZB.at(MAIN_VIEWPORT).baseRT->GetResource(&res2);
-
-		D3D11_BOX sourceRegion;
-		sourceRegion.left = 0;
-		sourceRegion.right = Device.m_SecondViewport.screenWidth;
-		sourceRegion.top = 0;
-		sourceRegion.bottom = Device.m_SecondViewport.screenHeight;
-		sourceRegion.front = 0;
-		sourceRegion.back = 1;
-
-		HW.pContext->CopySubresourceRegion(res2, 0, 0, 0, 0, res, 0, &sourceRegion);
-	}
+	ID3DTexture2D* pBuffer = nullptr;
+	HW.m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBuffer);
+	HW.pContext->CopyResource(Target->rt_secondVP->pSurface, pBuffer);
+	pBuffer->Release();
 }

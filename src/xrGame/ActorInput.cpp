@@ -323,7 +323,6 @@ void CActor::IR_OnKeyboardHold(int cmd)
 	}
 }
 
-extern float aim_fov_tan;
 void CActor::IR_OnMouseMove(int dx, int dy)
 {
 
@@ -347,14 +346,7 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 
 	float LookFactor = GetLookFactor();
 
-	float			fov;
-	if (Device.m_SecondViewport.IsSVPActive())
-	{
-		float fov_tan = aim_fov_tan / g_pGamePersistent->m_pGShaderConstants->hud_params.w;
-		fov			= atanf(fov_tan) / (.5f * PI / 180.f);
-	}
-	else
-		fov			= cameras[cam_active]->f_fov;
+	float fov		= (Device.m_SecondViewport.IsSVPActive()) ? g_pGamePersistent->m_pGShaderConstants->hud_params.w : cameras[cam_active]->f_fov;
 	float scale		= (fov / g_fov) * psMouseSens * psMouseSensScale / 50.f / LookFactor;
 
 	if (dx)

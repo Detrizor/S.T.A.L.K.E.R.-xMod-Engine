@@ -49,9 +49,7 @@
 #define		r2_jitter_mipped	"$user$jitter_mipped"			// --- dither
 #define		r2_sunmask			"sunmask"
 
-#define		r2_RT_secondVP		"$user$viewport2"		// --#SM+#-- +SecondVP+ ’ранит картинку со второго вьюпорта
-#define     r2_RT_temp          "$user$temp"
-#define     r2_RT_temp_without_samples "$user$temp_ws"
+#define		r2_RT_secondVP		"$user$viewport2"		// --#SM+#-- +SecondVP+ O?aнeo ea?oeнeу nо вoо?оaо вь?iо?oa
 
 #define		JITTER(a) r2_jitter #a
 
@@ -103,3 +101,4 @@ const		u32					LUMINANCE_size		= 16	;
 extern		float	ps_r2_gloss_factor;
 IC	float	u_diffuse2s	(float x, float y, float z)	{ float	v = (x+y+z)/3.f;	return ps_r2_gloss_factor * ((v<1)?powf(v,2.f/3.f):v); }
 IC	float	u_diffuse2s	(Fvector3& c)				{ return u_diffuse2s(c.x,c.y,c.z);					}
+

@@ -16,6 +16,7 @@ class CRenderTarget		: public IRender_Target
 private:
 	u32							dwWidth;
 	u32							dwHeight;
+	u32							dwAccumulatorClearMark;
 public:
 	enum	eStencilOptimizeMode
 	{
@@ -24,8 +25,6 @@ public:
 	};
 
 	u32							dwLightMarkerID;
-	bool						needClearAccumulator;
-
 	// 
 	IBlender*					b_occq;
 	IBlender*					b_accum_mask;
@@ -49,8 +48,6 @@ public:
 	IBlender*					b_accum_reflected_msaa[8];
 	IBlender*					b_ssao;
 	IBlender*					b_ssao_msaa[8];
-
-	IBlender*					b_cut;
 
     // compute shader for hdao
     IBlender*                   b_hdao_cs;
@@ -76,16 +73,12 @@ public:
 	ref_rt						rt_Normal;			// 64bit,	fat	(x,y,z,hemi)			(eye-space)
 	ref_rt						rt_Color;			// 64/32bit,fat	(r,g,b,specular-gloss)	(or decompressed MET-8-8-8-8)
 
-	ref_rt                      rt_temp;
-	ref_rt                      rt_temp_without_samples;
-
 	// 
 	ref_rt						rt_Accumulator;		// 64bit		(r,g,b,specular)
 	ref_rt						rt_Accumulator_temp;// only for HW which doesn't feature fp16 blend
 	ref_rt						rt_Generic_0;		// 32bit		(r,g,b,a)				// post-process, intermidiate results, etc.
 	ref_rt						rt_Generic_1;		// 32bit		(r,g,b,a)				// post-process, intermidiate results, etc.
 
-	//  Second viewport
 	ref_rt						rt_secondVP;		// 32bit		(r,g,b,a) --//#SM+#-- +SecondVP+
 
 	//	Igor: for volumetric lights
@@ -143,8 +136,6 @@ private:
 	ref_shader					s_accum_spot	;
 	ref_shader					s_accum_reflected;
 	ref_shader					s_accum_volume;
-
-	ref_shader					s_cut;
 
 	//	generate min/max
 	ref_shader					s_create_minmax_sm;
@@ -276,9 +267,7 @@ public:
 	void						phase_accumulator		();
 	void						phase_vol_accumulator	();
 	void						shadow_direct			(light* L, u32 dls_phase);
-	void						phase_cut();
 
-	void						SwitchViewPort(ViewPort vp);
 	//	Generates min/max sm
 	void						create_minmax_SM();
 

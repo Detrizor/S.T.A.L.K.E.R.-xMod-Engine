@@ -1113,7 +1113,7 @@ bool CWeaponMagazined::render_item_ui_query()
 		return false;
 
 	if (scope->isPiP())
-		return (::Render->currentViewPort == SECONDARY_WEAPON_SCOPE);
+		return (Device.m_SecondViewport.IsSVPFrame());
 
 	return !IsRotatingToZoom();
 }
@@ -1397,15 +1397,13 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	if (!scope || (scope->Type() == eOptics && !scope->isPiP()))
 		return;
 
-	float								fov_tan;
+	float fov_tan						= aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (scope->Type() == eOptics)
 	{
-		float lense_fov_tan				= scope->getLenseFovTan();
-		hud_params.w					= CurrentZoomFactor(false);
-		hud_params.z					= lense_fov_tan / aim_fov_tan;
-		fov_tan							= lense_fov_tan / hud_params.w;
-		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
+		hud_params.z					= scope->getLenseFovTan() / aim_fov_tan;
+		fov_tan							/= CurrentZoomFactor(false);
+		hud_params.w					= atanf(fov_tan) / (.5f * PI / 180.f);
 		
 		Fvector pos						= scope->getSightPosition();
 		pos.add							(scope->getObjectiveOffset());
@@ -1418,13 +1416,10 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 			trans						= &HudItemData()->m_transform;
 		trans->transform_tiny			(pos);
 
-		Device.m_SecondViewport.setPosition(pos);
+		Device.m_SecondViewport.setCamPosition(pos);
 	}
 	else
-	{
-		fov_tan							= aim_fov_tan;
 		hud_params.z					= scope->GetReticleScale();
-	}
 	
 	Fvector cam_dir						= camera.Direction();
 	float cam_dir_yaw					= atan2f(cam_dir.x, cam_dir.z);

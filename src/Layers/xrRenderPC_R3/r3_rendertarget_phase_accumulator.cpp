@@ -3,8 +3,7 @@
 void	CRenderTarget::phase_accumulator()
 {
 	// Targets
-	if (!needClearAccumulator)
-	{
+	if (dwAccumulatorClearMark==Device.dwFrame)	{
 		// normal operation - setup
       if( !RImplementation.o.dx10_msaa )
       {
@@ -18,7 +17,7 @@ void	CRenderTarget::phase_accumulator()
       }
 	} else {
 		// initial setup
-		needClearAccumulator = false;
+		dwAccumulatorClearMark				= Device.dwFrame;
 
 		// clear
       if( !RImplementation.o.dx10_msaa )

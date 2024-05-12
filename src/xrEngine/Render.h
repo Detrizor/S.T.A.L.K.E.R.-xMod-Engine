@@ -157,12 +157,6 @@ public:
     virtual ~IRender_Target() {};
 };
 
-enum ViewPort
-{
-    MAIN_VIEWPORT = (1 << 1),
-    SECONDARY_WEAPON_SCOPE = (1 << 2),
-};
-
 //////////////////////////////////////////////////////////////////////////
 // definition (Renderer)
 class ENGINE_API IRender_interface
@@ -294,9 +288,6 @@ public:
     virtual void Calculate() = 0;
     virtual void Render() = 0;
 
-    // [FFT++]
-    virtual void AfterWorldRender() = 0; //--#SM+#-- После рендеринга мира
-
     virtual void Screenshot(ScreenshotMode mode = SM_NORMAL, LPCSTR name = 0) = 0;
     virtual void Screenshot(ScreenshotMode mode, CMemoryWriter& memory_writer) = 0;
     virtual void ScreenshotAsyncBegin() = 0;
@@ -309,11 +300,7 @@ public:
     virtual u32 memory_usage() = 0;
     virtual u32 active_phase() = 0; //Swartz: actor shadow
 
-    ViewPort currentViewPort = MAIN_VIEWPORT;
-
-    xr_vector<ViewPort> viewPortsThisFrame;
-
-    u8 getVP() { return currentViewPort == MAIN_VIEWPORT ? 0 : 1; };
+	virtual void RenderToTarget() = 0;
 
     // Constructor/destructor
     virtual ~IRender_interface();
