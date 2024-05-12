@@ -133,10 +133,11 @@ bool CScope::isPiP() const
 	return								Type() == eOptics && !fIsZero(m_lense_radius);
 }
 
-extern bool force_draw_ui_on_svp;
 void CScope::RenderUI()
 {
-	force_draw_ui_on_svp				= true;
+	bool svp							= Device.m_SecondViewport.isRendering();
+	if (svp)
+		Device.m_SecondViewport.toggleRendering();
 
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
@@ -148,6 +149,7 @@ void CScope::RenderUI()
 	}
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
+	float lense_scale					= hud_params.z;
 	Fvector2 derivation					= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
 
 	float w2							= UI_BASE_WIDTH * .5f;
@@ -160,7 +162,7 @@ void CScope::RenderUI()
 		float cur_eye_relief			= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
 		float offset					= m_camera_lense_offset.magnitude() / cur_eye_relief;
 
-		float scale						= s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
+		float scale						= lense_scale * s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
 		Fvector2 pos					= derivation;
 		pos.mul							(s_lense_circle_position_derivation_factor);
 		pUILenseCircle->SetScale		(scale);
@@ -169,7 +171,7 @@ void CScope::RenderUI()
 
 		if (offset > 1.f)
 		{
-			scale						= s_lense_vignette_a / (offset + s_lense_vignette_b);
+			scale						= lense_scale * s_lense_vignette_a / (offset + s_lense_vignette_b);
 			pUILenseVignette->SetScale	(max(scale, 1.f));
 			pUILenseVignette->Draw		();
 		}
@@ -192,6 +194,7 @@ void CScope::RenderUI()
 	
 	if (m_pUIReticle)
 	{
+		m_pUIReticle->SetScale			(lense_scale);
 		m_pUIReticle->SetWndPos			(derivation);
 		m_pUIReticle->Draw				();
 	}
@@ -205,7 +208,8 @@ void CScope::RenderUI()
 		pUILenseCircle->Draw			();
 	}
 
-	force_draw_ui_on_svp				= false;
+	if (svp)
+		Device.m_SecondViewport.toggleRendering();
 }
 
 void CScope::updateCameraLenseOffset()

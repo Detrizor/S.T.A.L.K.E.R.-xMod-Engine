@@ -47,7 +47,7 @@ void	CRenderTarget::phase_combine	()
 
 	//*** exposure-pipeline
 	u32			gpu_id	= Device.dwFrame%HW.Caps.iGPUNum;
-	if (Device.m_SecondViewport.IsSVPActive()) //--#SM+#-- +SecondVP+
+	if (Device.m_SecondViewport.isActive()) //--#SM+#-- +SecondVP+
 	{
 		// clang-format off
 		gpu_id = (Device.dwFrame - 1) % HW.Caps.iGPUNum;

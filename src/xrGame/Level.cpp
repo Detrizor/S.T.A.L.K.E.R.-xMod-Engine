@@ -702,7 +702,7 @@ void CLevel::OnRender()
 
 	HUD().RenderUI();
 
-	if (Device.m_SecondViewport.IsSVPFrame())
+	if (Device.m_SecondViewport.isRendering())
 		Render->RenderToTarget();
 
 #ifdef DEBUG

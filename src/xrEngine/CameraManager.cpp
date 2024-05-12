@@ -441,9 +441,9 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 
 void CCameraManager::ApplyDeviceInternal(float _viewport_near)
 {
-	bool svp = Device.m_SecondViewport.IsSVPFrame();
-	Fvector CR$ cam_pos = (svp) ? Device.m_SecondViewport.getCamPosition() : m_cam_info.p;
-	float fov = (svp) ? g_pGamePersistent->m_pGShaderConstants->hud_params.w : m_cam_info.fFov;
+	bool svp = Device.m_SecondViewport.isRendering();
+	Fvector CR$ cam_pos = (svp) ? Device.m_SecondViewport.getPosition() : m_cam_info.p;
+	float fov = (svp) ? Device.m_SecondViewport.getFov() : m_cam_info.fFov;
 
 	// Device params
 	Device.mView.build_camera_dir(cam_pos, m_cam_info.d, m_cam_info.n);
@@ -458,17 +458,10 @@ void CCameraManager::ApplyDeviceInternal(float _viewport_near)
 	Device.fHUDFOV = fov;
 	Device.fASPECT = m_cam_info.fAspect;
 
-	Device.m_SecondViewport.isCamReady = svp;
-
 	Device.mProject.build_projection(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
 	//--#SM+# End--
 
-	ApplyPP();
-}
-
-void CCameraManager::ApplyPP()
-{
-	if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.m_SecondViewport.IsSVPFrame())
+	if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.m_SecondViewport.isRendering())
 		ResetPP();
 	else
 	{
