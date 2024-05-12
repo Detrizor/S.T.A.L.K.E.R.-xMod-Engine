@@ -302,6 +302,9 @@ class xptr : public ::std::unique_ptr<T>
 	typedef ::std::unique_ptr<T> inherited;
 
 public:
+										xptr									()				{ reset(nullptr); }
+										xptr									(T*&& p)		{ reset(p); }
+
 	xptr&								operator=								(T*&& p)		{ reset(p); return *this; }
 										operator T*								()				{ return get(); }
 };

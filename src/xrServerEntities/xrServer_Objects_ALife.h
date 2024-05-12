@@ -316,7 +316,6 @@ public:
 	u64								m_switch_counter;
 	
 									CSE_ALifeDynamicObject	(LPCSTR caSection);
-	virtual							~CSE_ALifeDynamicObject	();
 #ifdef XRGAME_EXPORTS
 	virtual void					on_spawn				();
 	virtual void					on_before_register		();
@@ -337,8 +336,8 @@ public:
 #endif
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
 
-private:
-	::std::unique_ptr<CSE_ALifeModule>	m_modules[mModuleTypesCount]			= { nullptr };
+protected:
+	xptr<CSE_ALifeModule>				m_modules[mModuleTypesCount]			= { nullptr };
 	
 	CSE_ALifeModule*					add_module								(u16 type);
 
@@ -356,12 +355,12 @@ public:
 		if (!create_if_absent)
 			return						nullptr;
 
-		CSE_ALifeModule* created		= xr_new<M>();
-		m_modules[created->type()]		= ::std::unique_ptr<CSE_ALifeModule>(created);
-		return							smart_cast<M*>(created);
+		M* created						= xr_new<M>();
+		m_modules[created->type()]		= created;
+		return							created;
 	}
+};
 
-SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeDynamicObject)
 #define script_type_list save_type_list(CSE_ALifeDynamicObject)
 

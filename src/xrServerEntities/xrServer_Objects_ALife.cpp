@@ -667,43 +667,10 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 	m_switch_counter			= u64(-1);
 }
 
-CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
-{
-}
-
-void CSE_ALifeDynamicObject::STATE_Write(NET_Packet &tNetPacket)
-{
-	inherited::STATE_Write				(tNetPacket);
-	
-	u16 mask							= 0;
-	for (u16 t = 0; t < mModuleTypesCount; t++)
-		if (m_modules[t])
-			mask						|= u16(1) << t;
-	tNetPacket.w_u16					(mask);
-
-	for (auto& m : m_modules)
-		if (m)
-			m->STATE_Write				(tNetPacket);
-}
-
-void CSE_ALifeDynamicObject::STATE_Read(NET_Packet &tNetPacket, u16 size)
-{
-	inherited::STATE_Read				(tNetPacket, size);
-	
-	if (m_wVersion < 129)
-		return;
-
-	u16									mask;
-	tNetPacket.r_u16					(mask);
-	for (u16 t = 0; t < mModuleTypesCount; t++)
-		if (mask & (u16(1) << t))
-			add_module(t)->STATE_Read	(tNetPacket);
-}
-
 CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(u16 type)
 {
 	m_modules[type]						= CSE_ALifeModule::createModule(type);
-	return								m_modules[type].get();
+	return								m_modules[type];
 }
 
 void CSE_ALifeDynamicObject::clearModules()
@@ -711,16 +678,6 @@ void CSE_ALifeDynamicObject::clearModules()
 	for (auto& m : m_modules)
 		m.reset							();
 }
-
-void CSE_ALifeDynamicObject::UPDATE_Write	(NET_Packet &tNetPacket)
-{
-	inherited::UPDATE_Write		(tNetPacket);
-};
-
-void CSE_ALifeDynamicObject::UPDATE_Read	(NET_Packet &tNetPacket)
-{
-	inherited::UPDATE_Read		(tNetPacket);
-};
 
 #ifndef XRGAME_EXPORTS
 void CSE_ALifeDynamicObject::FillProps	(LPCSTR pref, PropItemVec& values)

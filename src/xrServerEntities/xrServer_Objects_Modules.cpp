@@ -1,18 +1,18 @@
 #include "stdafx.h"
 #include "xrServer_Objects_Modules.h"
 
-::std::unique_ptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type)
+xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type)
 {
 	switch (type)
 	{
 	case mInventoryItem:
-		return							::std::make_unique<CSE_ALifeModuleInventoryItem>();
+		return							xr_new<CSE_ALifeModuleInventoryItem>();
 	case mAmountable:
-		return							::std::make_unique<CSE_ALifeModuleAmountable>();
+		return							xr_new<CSE_ALifeModuleAmountable>();
 	case mAddon:
-		return							::std::make_unique<CSE_ALifeModuleAddon>();
+		return							xr_new<CSE_ALifeModuleAddon>();
 	case mScope:
-		return							::std::make_unique<CSE_ALifeModuleScope>();
+		return							xr_new<CSE_ALifeModuleScope>();
 	default:
 		return							nullptr;
 	}
