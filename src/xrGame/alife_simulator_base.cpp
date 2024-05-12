@@ -95,11 +95,72 @@ void CALifeSimulatorBase::reload			(LPCSTR section)
 	m_initialized				= true;
 }
 
+CSE_Abstract* CALifeSimulatorBase::create_item(LPCSTR section, float condition) const
+{
+	CSE_Abstract* abstract				= F_entity_Create(section);
+	R_ASSERT3							(abstract,"Cannot find item with section",section);
+
+	abstract->s_name					= section;
+	abstract->s_RP						= 0xff;
+	abstract->ID						= server().PerformIDgen(0xffff);
+	abstract->ID_Phantom				= 0xffff;
+	abstract->m_wVersion				= SPAWN_VERSION;
+	
+	string256							s_name_replace;
+	xr_strcpy							(s_name_replace,*abstract->s_name);
+	if (abstract->ID < 1000)
+		xr_strcat						(s_name_replace,"0");
+	if (abstract->ID < 100)
+		xr_strcat						(s_name_replace,"0");
+	if (abstract->ID < 10)
+		xr_strcat						(s_name_replace,"0");
+	string16							S1;
+	xr_strcat							(s_name_replace,itoa(abstract->ID,S1,10));
+	abstract->set_name_replace			(s_name_replace);
+
+	CSE_ALifeInventoryItem* se_item		= smart_cast<CSE_ALifeInventoryItem*>(abstract);
+	if (se_item)
+		se_item->m_fCondition			= condition;
+
+	return								abstract;
+}
+
+void CALifeSimulatorBase::register_item(CSE_Abstract* item, Fvector CR$ position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id)
+{
+	auto dynamic_object					= smart_cast<CSE_ALifeDynamicObject*>(item);
+	VERIFY								(dynamic_object);
+	dynamic_object->o_Position			= position;
+	dynamic_object->m_tNodeID			= level_vertex_id;
+	dynamic_object->m_tGraphID			= game_vertex_id;
+	dynamic_object->m_tSpawnID			= u16(-1);
+
+	register_object						(dynamic_object, true);
+	if (parent_id != u16_max)
+	{
+		dynamic_object->ID_Parent		= parent_id;
+		auto parent						= objects().object(parent_id);
+		R_ASSERT						(parent);
+		parent->children.push_back		(dynamic_object->ID);
+		if (parent->m_bOnline)
+			dynamic_object->switch_online();
+	}
+
+	dynamic_object->spawn_supplies		();
+	dynamic_object->on_spawn			();
+}
+
+CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, Fvector CR$ position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, float condition)
+{
+	auto item							= create_item(section, condition);
+	register_item						(item, position, level_vertex_id, game_vertex_id, parent_id);
+	return								item;
+}
+
 CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, u16 count, float condition)
 {
 	while (true)
 	{
-		auto item						= spawn_item(section, position, level_vertex_id, game_vertex_id, parent_id, condition);
+		auto item						= create_item(section, condition);
 		if (auto ammo = smart_cast<CSE_ALifeItemAmmo*>(item))
 		{
 			if (count == u16_max)
@@ -114,58 +175,10 @@ CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& po
 				count					= 1;
 			count--;
 		}
+		register_item					(item, position, level_vertex_id, game_vertex_id, parent_id);
 		if (count <= 0)
 			return						item;
 	}
-}
-
-CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, float condition)
-{
-	CSE_Abstract* abstract						= F_entity_Create(section);
-	R_ASSERT3									(abstract,"Cannot find item with section",section);
-
-	abstract->s_name							= section;
-	abstract->s_RP								= 0xff;
-	abstract->ID								= server().PerformIDgen(0xffff);
-	abstract->ID_Phantom						= 0xffff;
-	abstract->o_Position						= position;
-	abstract->m_wVersion						= SPAWN_VERSION;
-	
-	string256									s_name_replace;
-	xr_strcpy									(s_name_replace,*abstract->s_name);
-	if (abstract->ID < 1000)
-		xr_strcat								(s_name_replace,"0");
-	if (abstract->ID < 100)
-		xr_strcat								(s_name_replace,"0");
-	if (abstract->ID < 10)
-		xr_strcat								(s_name_replace,"0");
-	string16									S1;
-	xr_strcat									(s_name_replace,itoa(abstract->ID,S1,10));
-	abstract->set_name_replace					(s_name_replace);
-
-	CSE_ALifeInventoryItem* se_item				= smart_cast<CSE_ALifeInventoryItem*>(abstract);
-	if (se_item)
-		se_item->m_fCondition					= condition;
-
-	CSE_ALifeDynamicObject* dynamic_object		= smart_cast<CSE_ALifeDynamicObject*>(abstract);
-	VERIFY										(dynamic_object);
-	dynamic_object->m_tNodeID					= level_vertex_id;
-	dynamic_object->m_tGraphID					= game_vertex_id;
-	dynamic_object->m_tSpawnID					= u16(-1);
-
-	register_object								(dynamic_object, true);
-	if (parent_id != u16_max)
-	{
-		dynamic_object->ID_Parent				= parent_id;
-		auto parent								= objects().object(parent_id);
-		R_ASSERT								(parent);
-		parent->children.push_back				(dynamic_object->ID);
-	}
-
-	dynamic_object->spawn_supplies				();
-	dynamic_object->on_spawn					();
-
-	return										(dynamic_object);
 }
 
 CSE_Abstract *CALifeSimulatorBase::create(CSE_ALifeGroupAbstract *tpALifeGroupAbstract, CSE_ALifeDynamicObject *j)
