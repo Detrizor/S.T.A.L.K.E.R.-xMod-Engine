@@ -299,9 +299,14 @@ void CRenderDevice::on_idle()
 		Sleep(1);
 }
 
+bool CRenderDevice::is_loading_level()
+{
+	return load_screen_renderer.b_registered || !g_loading_events.empty();
+}
+
 void CRenderDevice::render_internal()
 {
-	if (g_pGameLevel)
+	if (g_pGameLevel && !is_loading_level())
 		g_pGameLevel->ApplyCamera(); // Apply camera params of vp, so that we create a correct full transform matrix
 
 	// Matrices

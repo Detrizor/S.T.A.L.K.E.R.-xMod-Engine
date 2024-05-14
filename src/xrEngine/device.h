@@ -338,6 +338,7 @@ private:
 #endif // #ifdef INGAME_EDITOR
 
 private:
+	bool is_loading_level();
 	void render_internal();
 };
 
