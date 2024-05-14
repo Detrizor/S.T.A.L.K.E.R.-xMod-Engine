@@ -790,6 +790,20 @@ bool CScriptGameObject::Aiming C$()
 	return								(actor) ? actor->IsZoomAimingMode() : false;
 }
 
+LPCSTR CScriptGameObject::getInvName() const
+{
+	if (auto item = object().Cast<CInventoryItem*>())
+		return							item->NameItem();
+	return								"";
+}
+
+LPCSTR CScriptGameObject::getInvNameShort() const
+{
+	if (auto item = object().Cast<CInventoryItem*>())
+		return							item->NameShort();
+	return								"";
+}
+
 #define SPECIFIC_CAST(A,B)\
 B* A ()\
 {\

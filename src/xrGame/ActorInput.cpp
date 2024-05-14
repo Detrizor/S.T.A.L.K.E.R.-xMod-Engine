@@ -49,17 +49,11 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	
 	switch (cmd)
 	{
-	case kWPN_FIRE:{
-		u16 slot					= inventory().GetActiveSlot();
-		if (inventory().ActiveItem() && (slot == KNIFE_SLOT || slot == PISTOL_SLOT || slot == PRIMARY_SLOT || slot == SECONDARY_SLOT))
-			mstate_wishful			&=~mcSprint;
-		else if ((CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined))
-		{
-			PIItem active_item		= inventory().ActiveItem();
-			if (!active_item || !active_item->tryCustomUse())
-				if (auto left_item = inventory().LeftItem())
-					left_item->tryCustomUse();
-		}
+	case kWPN_FIRE:
+	{
+		u16 slot						= inventory().GetActiveSlot();
+		if (slot == KNIFE_SLOT || slot == PISTOL_SLOT || slot == PRIMARY_SLOT || slot == SECONDARY_SLOT)
+			mstate_wishful				&=~mcSprint;
 		//-----------------------------
 		if (OnServer())
 		{
@@ -495,6 +489,10 @@ void CActor::ActorUse()
 			}
 		}
 	}
+
+	::luabind::functor<bool> funct;
+	if (ai().script_engine().functor("xmod_action_manager.on_actor_use", funct))
+		funct();
 }
 
 BOOL CActor::HUDview				( )const 

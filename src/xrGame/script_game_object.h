@@ -971,6 +971,9 @@ public:
 	float								Radiation							C$	();
 	float								Absorbation							C$	(int hit_type);
 	bool								Aiming								C$	();
+
+	LPCSTR								getInvName							C$	();
+	LPCSTR								getInvNameShort						C$	();
 };
 
 add_to_type_list(CScriptGameObject)

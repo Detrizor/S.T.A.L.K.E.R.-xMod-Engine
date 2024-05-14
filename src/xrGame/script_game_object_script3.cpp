@@ -484,6 +484,8 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("absorbation",					&CScriptGameObject::Absorbation)
 		.def("aiming",						&CScriptGameObject::Aiming)
 		.def("is_empty_chamber",			&CScriptGameObject::isEmptyChamber)
+		.def("inv_name",					&CScriptGameObject::getInvName)
+		.def("inv_name_short",				&CScriptGameObject::getInvNameShort)
 #endif
 
 
