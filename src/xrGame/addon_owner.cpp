@@ -117,6 +117,11 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 	if (auto parent_ao = getParentAO())
 		parent_ao->RegisterAddon		(addon, attach);
 	O.Aboba								(eOnAddon, (void*)addon, attach);
+
+	if (auto addon_ao = addon->cast<CAddonOwner*>())
+		for (auto s : addon_ao->AddonSlots())
+			for (auto a : s->addons)
+				RegisterAddon			(a, attach);
 }
 
 CAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const

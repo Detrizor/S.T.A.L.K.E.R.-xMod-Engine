@@ -1271,11 +1271,6 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		if (m_lower_iron_sights_on_block)
 			SetInvIconType		(!!m_iron_sights_blockers);
 	}
-
-	if (auto addon_ao = addon->cast<CAddonOwner*>())
-		for (auto s : addon_ao->AddonSlots())
-			for (auto a : s->addons)
-				process_addon	(a, attach);
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
