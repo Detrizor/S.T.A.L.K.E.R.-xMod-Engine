@@ -61,28 +61,3 @@ extern u16	INV_STATE_CAR;
 extern u16	INV_STATE_BLOCK_ALL;
 extern u16	INV_STATE_INV_WND;
 extern u16	INV_STATE_BUY_MENU;
-
-struct II_BriefInfo
-{
-	shared_str		icon;
-	shared_str		cur_ammo;
-	shared_str		fmj_ammo;
-	shared_str		ap_ammo;
-	shared_str		third_ammo; //Alundaio
-	shared_str		fire_mode;
-
-	shared_str		grenade;
-
-	II_BriefInfo() { clear(); }
-	
-	IC void clear()
-	{
-		icon		= "";
-		cur_ammo	= "";
-		fmj_ammo	= "";
-		ap_ammo		= "";
-		third_ammo = ""; //Alundaio
-		fire_mode	= "";
-		grenade		= "";
-	}
-};

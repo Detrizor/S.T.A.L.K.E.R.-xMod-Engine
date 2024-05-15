@@ -104,13 +104,6 @@ void CWeaponBinoculars::render_item_ui()
 	inherited::render_item_ui();
 }
 
-bool CWeaponBinoculars::GetBriefInfo( II_BriefInfo& info )
-{
-	info.clear();
-	info.icon._set( cNameSect() );
-	return true;
-}
-
 void CWeaponBinoculars::net_Relcase	(CObject *object)
 {
 	if (!m_binoc_vision)

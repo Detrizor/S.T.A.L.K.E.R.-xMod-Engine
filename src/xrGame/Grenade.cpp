@@ -327,18 +327,3 @@ void CGrenade::DeactivateItem()
 
 	inherited::DeactivateItem();
 }
-
-bool CGrenade::GetBriefInfo( II_BriefInfo& info )
-{
-	VERIFY( m_pInventory );
-	info.clear();
-
-	info.icon._set( cNameSect() );
-
-	u32 ThisGrenadeCount	= m_pInventory->dwfGetSameItemCount( cNameSect().c_str(), true );
-	
-	string16 stmp;
-	xr_sprintf( stmp, "%d", ThisGrenadeCount );
-	info.cur_ammo._set( stmp );
-	return true;
-}

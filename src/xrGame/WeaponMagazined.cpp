@@ -775,78 +775,40 @@ float CWeaponMagazined::GetWeaponDeterioration()
 }
 
 #include "string_table.h"
-bool CWeaponMagazined::GetBriefInfo(II_BriefInfo& info)
+#include "ui\UIHudStatesWnd.h"
+void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 {
-	VERIFY(m_pInventory);
-	string32	int_str;
+	VERIFY								(m_pInventory);
 
 	CScope* scope						= getActiveScope();
 	if (!scope)
 		scope							= m_selected_scopes[0];
 	if (!scope)
 		scope							= m_selected_scopes[1];
-	info.cur_ammo.printf				("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
-	if (scope && scope->Type() == eOptics)
+
+	info.zeroing.printf					("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
+	if (scope && scope->Type() != eIS)
 	{
 		float magnification				= scope->GetCurrentMagnification();
-		info.fmj_ammo.printf			(fEqual(round(magnification), magnification) ? "%.0fx" : "%.1fx", magnification);
-
+		info.magnification.printf		(fEqual(round(magnification), magnification) ? "%.0fx" : "%.1fx", magnification);
 	}
 	else
-		info.fmj_ammo._set				("");
+		info.magnification				= "";
 
 	if (HasFireModes())
 	{
 		if (m_iQueueSize < 0)
-			info.fire_mode = "A";
+			info.fire_mode				= "A";
 		else
-		{
-			xr_sprintf(int_str, "%d", m_iQueueSize);
-			info.fire_mode = int_str;
-		}
+			info.fire_mode.printf		("%d", m_iQueueSize);
 	}
 	else
-		info.fire_mode = "";
+		info.fire_mode					= "";
 
 	if (m_pInventory->ModifyFrame() <= m_BriefInfo_CalcFrame)
-	{
-		return false;
-	}
+		return;
+
 	GetSuitableAmmoTotal();//update m_BriefInfo_CalcFrame
-	info.grenade = "";
-
-	u32 at_size = m_ammoTypes.size();
-	if (unlimited_ammo() || at_size == 0)
-	{
-		info.ap_ammo._set("--");
-		info.third_ammo._set("--"); //Alundaio
-	}
-	else
-	{
-		//Alundaio: Added third ammo type and cleanup
-		info.ap_ammo._set("");
-		info.third_ammo._set("");
-
-		if (at_size >= 1)
-		{
-			xr_sprintf(int_str, "%d", GetAmmoCount(0));
-			info.fmj_ammo._set(int_str);
-		}
-		if (at_size >= 2)
-		{
-			xr_sprintf(int_str, "%d", GetAmmoCount(1));
-			info.ap_ammo._set(int_str);
-		}
-		if (at_size >= 3)
-		{
-			xr_sprintf(int_str, "%d", GetAmmoCount(2));
-			info.third_ammo._set(int_str);
-		}
-		//-Alundaio
-	}
-
-	info.icon = (m_chamber.size()) ? m_chamber.back().m_ammoSect : "";
-	return true;
 }
 
 bool CWeaponMagazined::install_upgrade_impl(LPCSTR section, bool test)

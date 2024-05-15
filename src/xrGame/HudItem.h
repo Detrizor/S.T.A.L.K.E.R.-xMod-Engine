@@ -32,7 +32,7 @@ private:
 protected:
 	u32						m_dw_curr_substate_time;
 public:
-							CHUDState			() 						{SetState(eHidden);}
+							CHUDState			() 						{SetState(eIdle);}
 	IC		u32				GetState			() const				{return		m_hud_item_state;}
 	
 	IC		void			SetState			(u32 v)					{m_hud_item_state = v; m_dw_curr_state_time=Device.dwTimeGlobal;ResetSubStateTime();}

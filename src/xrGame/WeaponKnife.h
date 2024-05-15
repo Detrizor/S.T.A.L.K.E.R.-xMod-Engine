@@ -58,8 +58,6 @@ public:
 
 	virtual bool		Action							(u16 cmd, u32 flags);
 
-	virtual bool		GetBriefInfo					(II_BriefInfo& info);
-
 #ifdef DEBUG
 	virtual void		OnRender						();
 #endif

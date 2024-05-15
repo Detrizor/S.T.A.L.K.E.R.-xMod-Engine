@@ -16,6 +16,7 @@ class CWeaponHud;
 class CScope;
 class CSilencer;
 class CGrenadeLauncher;
+struct SWpnBriefInfo;
 
 class CWeaponMagazined : public CWeapon
 {
@@ -84,7 +85,7 @@ public:
 
 	virtual bool	Action			(u16 cmd, u32 flags);
 
-	virtual bool	GetBriefInfo(II_BriefInfo& info);
+	void			GetBriefInfo(SWpnBriefInfo& info);
 
 public:
 	virtual void	SetQueueSize(int size);

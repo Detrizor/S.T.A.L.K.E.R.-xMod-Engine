@@ -721,10 +721,3 @@ void	 CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMt
 	if(gd1&&gd2&&(CPhysicsShellHolder*)gd1->callback_data==gd2->ph_ref_object)	
 																				do_colide=false;
 }
-
-bool CMissile::GetBriefInfo( II_BriefInfo& info )
-{
-	info.clear();
-	return true;
-}
-

@@ -15,50 +15,33 @@ class CActor;
 
 int const it_max = ALife::infl_max_count - 1;
 
+struct SWpnBriefInfo
+{
+	shared_str							zeroing									= 0;
+	shared_str							fire_mode								= 0;
+	shared_str							magnification							= 0;
+};
+
 class CUIHudStatesWnd : public CUIWindow
 {
 private:
 	typedef CUIWindow						inherited;
 //-	typedef ALife::EInfluenceType	EIndicatorType;
 
-	CUIStatic*			m_back;
-//	CUIStatic*			m_back_v;
-//	CUIStatic*			m_back_over_arrow;
-//	CUIStatic*			m_static_armor;
+	SWpnBriefInfo		m_wpn_info;
 
-//	CUIStatic*			m_resist_back[it_max];
+	CUIStatic*			m_back;
+	CUITextWnd*			m_zeroing;
+	CUITextWnd*			m_fire_mode;
+	CUITextWnd*			m_magnification;
+
 	CUIStatic*			m_indik[it_max];
 
-	u32					m_ui_weapon_ammo_color_active;
-	u32					m_ui_weapon_ammo_color_inactive;
-	CUITextWnd*			m_ui_weapon_cur_ammo;
-	CUITextWnd*			m_ui_weapon_fmj_ammo;
-	CUITextWnd*			m_ui_weapon_ap_ammo;
-	CUITextWnd*			m_ui_weapon_third_ammo; //Alundaio
-	CUITextWnd*			m_fire_mode;
-	CUITextWnd*			m_ui_grenade;
-	II_BriefInfo		m_item_info;
-	
-	CUIStatic*			m_ui_weapon_icon;
-	Frect				m_ui_weapon_icon_rect;
-
 	CUIProgressBar*		m_ui_health_bar;
-//	CUIProgressBar*		m_ui_armor_bar;
 	CUIProgressBar*		m_ui_stamina_bar;
 
-//	CUIProgressShape*	m_progress_self;
 	CUIStatic*			m_radia_damage;
-//	UI_Arrow*			m_arrow;
-//	UI_Arrow*			m_arrow_shadow;
-/*	
-	CUIStatic*			m_bleeding_lev1;
-	CUIStatic*			m_bleeding_lev2;
-	CUIStatic*			m_bleeding_lev3;
-	
-	CUIStatic*			m_radiation_lev1;
-	CUIStatic*			m_radiation_lev2;
-	CUIStatic*			m_radiation_lev3;
-*/
+
 	float				m_last_health;
 	float				m_health_blink;
 
@@ -91,7 +74,6 @@ public:
 			void	on_connected		();
 			void	reset_ui			();
 			void	UpdateHealth		( CActor* actor );
-			void	SetAmmoIcon			( const shared_str& sect_name );
 			void	UpdateActiveItemInfo( CActor* actor );
 
 			void 	UpdateZones			();

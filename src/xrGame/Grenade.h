@@ -45,7 +45,6 @@ public:
 			void			PutNextToSlot						();
 
 	virtual void			DeactivateItem						();
-	virtual bool			GetBriefInfo						(II_BriefInfo& info);
 
 	virtual void			SendHiddenItem						();	//same as OnHiddenItem but for client... (sends message to a server)...
 protected:
