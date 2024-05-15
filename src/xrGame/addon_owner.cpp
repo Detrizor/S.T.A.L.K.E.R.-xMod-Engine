@@ -277,7 +277,7 @@ void CAddonSlot::attachAddon(CAddon* addon)
 	}
 	else
 	{
-		auto I							= addons.begin();
+		auto I							= --addons.begin();
 		while (auto next = get_next_addon(I))
 			if (addon->getSlotPos() < next->getSlotPos())
 				break;
