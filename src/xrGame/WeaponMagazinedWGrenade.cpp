@@ -53,6 +53,8 @@ bool CWeaponMagazinedWGrenade::switch_mode()
 		SetPending						(TRUE);
 		SwitchState						(eSwitch);
 	}
+	else
+		PlayAnimIdle					();
 
 	return								true;
 }
@@ -251,6 +253,9 @@ bool CWeaponMagazinedWGrenade::IsNecessaryItem(const shared_str& item_sect)
 
 void CWeaponMagazinedWGrenade::process_gl(CGrenadeLauncher* gl, bool attach)
 {
+	if (m_bGrenadeMode)
+		switch_mode						();
+
 	m_pLauncher							= (attach) ? gl : nullptr;
 	gl->m_wpn							= (attach) ? this : nullptr;
 
