@@ -32,6 +32,7 @@
 #include "addon.h"
 #include "addon_owner.h"
 #include "inventory_item_amountable.h"
+#include "item_usable.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -175,6 +176,9 @@ void CInventoryItem::Load(LPCSTR section)
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
 		m_object->AddModule<CAmountable>();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "usable", FALSE))
+		m_object->AddModule<CUsable>();
 }
 
 float CInventoryItem::GetConditionToWork() const
@@ -889,28 +893,19 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 #include "UIGameCustom.h"
 bool CInventoryItem::tryCustomUse()
 {
-	shared_str							functor_field;
-	LPCSTR functor_name					= NULL;
-	CGameObject* GO						= cast_game_object();
-
-	for (u8 i = 1; i <= 4; ++i)
+	if (auto usable = cast<CUsable*>())
 	{
-		functor_field.printf			("use%d_query_functor", i);
-		functor_name					= READ_IF_EXISTS(pSettings, r_string, Section(), functor_field.c_str(), false);
-		if (functor_name)
+		int i							= 0;
+		SAction CP$						action;
+		while (action = usable->getAction(++i))
 		{
-			luabind::functor<bool>		funct;
-			ai().script_engine().functor(functor_name, funct);
-			if (funct(GO->lua_game_object(), i))
+			::luabind::functor<bool>	funct;
+			ai().script_engine().functor(*action->query_functor, funct);
+			if (funct(O.lua_game_object(), i))
 			{
-				functor_field.printf	("use%d_action_functor", i);
-				functor_name			= READ_IF_EXISTS(pSettings, r_string, Section(), functor_field.c_str(), false);
-				if (functor_name)
-				{
-					ai().script_engine().functor(functor_name, funct);
-					funct				(GO->lua_game_object(), i);
-					return				true;
-				}
+				ai().script_engine().functor(*usable->getAction(i)->action_functor, funct);
+				funct					(O.lua_game_object(), i);
+				return					true;
 			}
 		}
 	}
@@ -926,7 +921,6 @@ bool CInventoryItem::tryCustomUse()
 						if (auto sub_ao = a->cast<CAddonOwner*>())
 							if (CurrentGameUI()->GetActorMenu().AttachAddon(sub_ao, addon))
 								return	true;
-
 			}
 
 	return								false;

@@ -46,6 +46,7 @@
 #include "scope.h"
 #include "silencer.h"
 #include "addon.h"
+#include "item_usable.h"
 
 class CWeapon;
 
@@ -802,6 +803,73 @@ LPCSTR CScriptGameObject::getInvNameShort() const
 	if (auto item = object().Cast<CInventoryItem*>())
 		return							item->NameShort();
 	return								"";
+}
+
+LPCSTR CScriptGameObject::getActionTitle(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						*action->title;
+	return								nullptr;
+}
+
+LPCSTR CScriptGameObject::getQueryFunctor(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						*action->query_functor;
+	return								nullptr;
+}
+
+LPCSTR CScriptGameObject::getActionFunctor(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						*action->action_functor;
+	return								nullptr;
+}
+
+LPCSTR CScriptGameObject::getUseFunctor(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						*action->use_functor;
+	return								nullptr;
+}
+
+float CScriptGameObject::getActionDuration(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						action->duration;
+	return								0.f;
+}
+
+u16 CScriptGameObject::getActionItemID(int num) const
+{
+	if (auto usable = object().Cast<CUsable*>())
+		if (auto action = usable->getAction(num))
+			return						action->item_id;
+	return								u16_max;
+}
+
+bool CScriptGameObject::isAttached() const
+{
+	if (auto addon = object().Cast<CAddon*>())
+		return							!!addon->getSlot();
+	return								false;
+}
+
+void CScriptGameObject::detach() const
+{
+	if (auto addon = object().Cast<CAddon*>())
+		addon->getSlot()->parent_ao->DetachAddon(addon);
+}
+
+void CScriptGameObject::shift(int val) const
+{
+	if (auto addon = object().Cast<CAddon*>())
+		addon->getSlot()->shiftAddon	(addon, val);
 }
 
 #define SPECIFIC_CAST(A,B)\

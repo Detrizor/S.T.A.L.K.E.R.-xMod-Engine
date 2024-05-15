@@ -34,6 +34,7 @@
 
 #include "addon.h"
 #include "string_table.h"
+#include "item_usable.h"
 
 using namespace ::luabind; //Alundaio
 
@@ -583,7 +584,6 @@ void CUIActorMenu::ActivatePropertiesBox()
 	if (m_currMenuMode == mmInventory || m_currMenuMode == mmDeadBodySearch)
 	{
 		PropertiesBoxForSlots(item, b_show);
-		PropertiesBoxForAddonOwner(item, b_show);
 		PropertiesBoxForAddon(item, b_show);
 		PropertiesBoxForUsing(item, b_show);
 		PropertiesBoxForPlaying(item, b_show);
@@ -634,46 +634,6 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 }
 
 shared_str attach_to					= "st_attach_to";
-shared_str detach						= "st_detach";
-shared_str shift_fwd					= "st_shift_forwards";
-shared_str shift_bwd					= "st_shift_backwards";
-
-static void process_ao_for_action(CAddonOwner CPC ao, CUIPropertiesBox* pb, bool& b_show, LPCSTR upslot_str)
-{
-	shared_str							action_str;
-	for (auto s : ao->AddonSlots())
-	{
-		for (auto a : s->addons)
-		{
-			b_show						= true;
-
-			if (s->steps > 1)
-			{
-				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_fwd), a->I->NameShort(), upslot_str, *s->name);
-				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_FORWARDS);
-			}
-
-			action_str.printf			("%s %s (%s%s)", *CStringTable().translate(detach), a->I->NameShort(), upslot_str, *s->name);
-			pb->AddItem					(*action_str, (void*)a, INVENTORY_ADDON_DETACH);
-
-			if (s->steps > 1)
-			{
-				action_str.printf		("%s %s (%s%s)", *CStringTable().translate(shift_bwd), a->I->NameShort(), upslot_str, *s->name);
-				pb->AddItem				(*action_str, (void*)a, INVENTORY_ADDON_SHIFT_BACKWARDS);
-			}
-
-			if (auto addon_ao = a->cast<CAddonOwner*>())
-				process_ao_for_action	(addon_ao, pb, b_show, *shared_str().printf((upslot_str[0]) ? "%s - %s" : "%s%s", upslot_str, a->I->NameShort()));
-		}
-	}
-}
-
-void CUIActorMenu::PropertiesBoxForAddonOwner(PIItem item, bool& b_show)
-{
-	if (item->InHands())
-		if (auto ao = item->cast<CAddonOwner*>())
-			process_ao_for_action		(ao, m_UIPropertiesBox, b_show, "");
-}
 
 static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
 {
@@ -705,26 +665,17 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
 {
-	LPCSTR title_str			= NULL;
-	CGameObject* GO				= smart_cast<CGameObject*>(item);
-	LPCSTR section_name			= *GO->cNameSect();
-
-	//Custom Use action
-	shared_str								functor_field;
-	LPCSTR functor_name						= NULL;
-	for (u8 i = 1; i <= 4; ++i)
+	if (auto usable = item->cast<CUsable*>())
 	{
-		functor_field.printf				("use%d_query_functor", i);
-		functor_name						= READ_IF_EXISTS(pSettings, r_string, section_name, functor_field.c_str(), 0);
-		if (functor_name)
+		int i							= 0;
+		SAction CP$						action;
+		while (action = usable->getAction(++i))
 		{
-			::luabind::functor<bool>		funct;
-			if (ai().script_engine().functor(functor_name, funct) && funct(GO->lua_game_object(), i))
+			::luabind::functor<bool>	funct;
+			if (ai().script_engine().functor(*action->query_functor, funct) && funct(item->O.lua_game_object(), i))
 			{
-				functor_field.printf		("use%d_title", i);
-				title_str					= pSettings->r_string(section_name, *functor_field);
-				m_UIPropertiesBox->AddItem	(title_str, NULL, INVENTORY_EAT2_ACTION + i - 1);
-				b_show						= true;
+				m_UIPropertiesBox->AddItem(*action->title, (void*)i, INVENTORY_CUSTOM_ACTION);
+				b_show					= true;
 			}
 		}
 	}
@@ -778,7 +729,6 @@ void CUIActorMenu::PropertiesBoxForDonate(PIItem item, bool& b_show)
 }
 //-Alundaio
 
-#include "../../../xrEngine/xr_input.h"
 void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 {
 	PIItem			item		= CurrentIItem();
@@ -818,19 +768,12 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_EAT_ACTION:
 		TryUseItem						(cell_item);
 		break;
-	case INVENTORY_EAT2_ACTION:
-	case INVENTORY_EAT3_ACTION:
-	case INVENTORY_EAT4_ACTION:
-	case INVENTORY_EAT5_ACTION:
+	case INVENTORY_CUSTOM_ACTION:
 	{
-		CGameObject* GO					= smart_cast<CGameObject*>(item);
-		shared_str						functor_str;
-		u32 num							= m_UIPropertiesBox->GetClickedItem()->GetTAG() - INVENTORY_EAT2_ACTION + 1;
-		functor_str.printf				("use%d_action_functor", num);
-		functor_str						= pSettings->r_string(GO->cNameSect(), *functor_str);
+		int num							= (int)m_UIPropertiesBox->GetClickedItem()->GetData();
 		::luabind::functor<bool>		funct;
-		ai().script_engine().functor	(*functor_str, funct);
-		funct							(GO->lua_game_object(), num);
+		ai().script_engine().functor	(*item->cast<CUsable*>()->getAction(num)->action_functor, funct);
+		funct							(item->O.lua_game_object(), num);
 		break;
 	}
 	case INVENTORY_DROP_ACTION:{
@@ -846,24 +789,6 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		AttachAddon						(slot->parent_ao, item->cast<CAddon*>(), slot);
 		break;
 	}
-	case INVENTORY_ADDON_SHIFT_FORWARDS:
-	case INVENTORY_ADDON_SHIFT_BACKWARDS:
-	{
-		auto addon						= (CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		int shift						= (m_UIPropertiesBox->GetClickedItem()->GetTAG() == INVENTORY_ADDON_SHIFT_FORWARDS) ? 1 : -1;
-		if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
-			shift						*= 50;
-		if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
-			shift						*= 10;
-		if (pInput->iGetAsyncKeyState(DIK_LALT))
-			shift						*= 5;
-		addon->getSlot()->shiftAddon	(addon, shift);
-		HideDialog						();
-		break;
-	}
-	case INVENTORY_ADDON_DETACH:
-		detach_addon					((CAddon*)m_UIPropertiesBox->GetClickedItem()->GetData());
-		break;
 	case INVENTORY_REPAIR:
 		TryRepairItem					(this, 0);
 		break;
@@ -919,13 +844,4 @@ bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, CAddonSlot* slot)
 			HideDialog					();
 	}
 	return								!!res;
-}
-
-void CUIActorMenu::detach_addon(CAddon* addon)
-{
-	if (addon->getSlot()->parent_ao->DetachAddon(addon) == 2)
-	{
-		PlaySnd							(eDetachAddon);
-		HideDialog						();
-	}
 }

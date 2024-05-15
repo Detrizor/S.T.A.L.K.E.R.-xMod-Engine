@@ -7354,6 +7354,7 @@
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_Modules.h">
       <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
     </ClInclude>
+    <ClInclude Include="item_usable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11008,6 +11009,7 @@
     <ClCompile Include="..\xrServerEntities\xrServer_Objects_Modules.cpp">
       <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
     </ClCompile>
+    <ClCompile Include="item_usable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

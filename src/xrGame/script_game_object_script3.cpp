@@ -486,6 +486,17 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("is_empty_chamber",			&CScriptGameObject::isEmptyChamber)
 		.def("inv_name",					&CScriptGameObject::getInvName)
 		.def("inv_name_short",				&CScriptGameObject::getInvNameShort)
+			
+		.def("action_title",				&CScriptGameObject::getActionTitle)
+		.def("query_functor",				&CScriptGameObject::getQueryFunctor)
+		.def("action_functor",				&CScriptGameObject::getActionFunctor)
+		.def("use_functor",					&CScriptGameObject::getUseFunctor)
+		.def("action_duration",				&CScriptGameObject::getActionDuration)
+		.def("action_item_id",				&CScriptGameObject::getActionItemID)
+			
+		.def("is_attached",					&CScriptGameObject::isAttached)
+		.def("detach",						&CScriptGameObject::detach)
+		.def("shift",						&CScriptGameObject::shift)
 #endif
 
 

@@ -162,17 +162,17 @@ void CScope::RenderUI()
 		float cur_eye_relief			= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
 		float offset					= m_camera_lense_offset.magnitude() / cur_eye_relief;
 
-		float scale						= lense_scale * s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
+		float scale						= s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
 		Fvector2 pos					= derivation;
 		pos.mul							(s_lense_circle_position_derivation_factor);
-		pUILenseCircle->SetScale		(scale);
+		pUILenseCircle->SetScale		(lense_scale * scale);
 		pUILenseCircle->SetWndPos		(pos);
 		pUILenseCircle->Draw			();
 
 		if (offset > 1.f)
 		{
-			scale						= lense_scale * s_lense_vignette_a / (offset + s_lense_vignette_b);
-			pUILenseVignette->SetScale	(max(scale, 1.f));
+			scale						= max(s_lense_vignette_a / (offset + s_lense_vignette_b), 1.f);
+			pUILenseVignette->SetScale	(lense_scale * scale);
 			pUILenseVignette->Draw		();
 		}
 

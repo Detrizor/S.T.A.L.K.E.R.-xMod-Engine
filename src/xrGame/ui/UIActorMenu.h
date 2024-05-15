@@ -193,7 +193,6 @@ public:
 
 private:
 	void						PropertiesBoxForSlots		(PIItem item, bool& b_show);
-	void						PropertiesBoxForAddonOwner	(PIItem item, bool& b_show);
 	void						PropertiesBoxForAddon		(PIItem item, bool& b_show);
 	void						PropertiesBoxForUsing		(PIItem item, bool& b_show);
 	void						PropertiesBoxForPlaying		(PIItem item, bool& b_show);
@@ -282,8 +281,6 @@ protected:
 	bool						ToPartnerTrade				(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToPartnerTradeBag			(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
-
-	void						detach_addon				(CAddon* addon);
 	
 	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);
 	void						SendEvent_Item_Eat			(PIItem	pItem, u16 parent);

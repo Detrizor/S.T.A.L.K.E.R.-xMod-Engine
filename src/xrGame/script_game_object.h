@@ -974,6 +974,17 @@ public:
 
 	LPCSTR								getInvName							C$	();
 	LPCSTR								getInvNameShort						C$	();
+	
+	LPCSTR								getActionTitle						C$	(int num);
+	LPCSTR								getQueryFunctor						C$	(int num);
+	LPCSTR								getActionFunctor					C$	(int num);
+	LPCSTR								getUseFunctor						C$	(int num);
+	float								getActionDuration					C$	(int num);
+	u16									getActionItemID						C$	(int num);
+	
+	bool								isAttached							C$	();
+	void								detach								C$	();
+	void								shift								C$	(int val);
 };
 
 add_to_type_list(CScriptGameObject)

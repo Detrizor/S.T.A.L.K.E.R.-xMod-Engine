@@ -116,8 +116,7 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 {
 	if (auto parent_ao = getParentAO())
 		parent_ao->RegisterAddon		(addon, attach);
-	else
-		O.Aboba							(eOnAddon, (void*)addon, attach);
+	O.Aboba								(eOnAddon, (void*)addon, attach);
 }
 
 CAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
@@ -292,8 +291,16 @@ void CAddonSlot::detachAddon(CAddon* addon)
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
 }
 
+#include "../../../xrEngine/xr_input.h"
 void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 {
+	if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
+		shift							*= 64;
+	if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+		shift							*= 16;
+	if (pInput->iGetAsyncKeyState(DIK_LALT))
+		shift							*= 4;
+
 	auto A								= ::std::find(addons.begin(), addons.end(), addon);
 	auto I								= A;
 	int pos								= addon->getSlotPos();
