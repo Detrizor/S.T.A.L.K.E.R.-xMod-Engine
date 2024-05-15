@@ -74,9 +74,7 @@ private:
 	VSlots								m_Slots;
 	
 	void								LoadAddonSlots							(LPCSTR section);
-	int									TransferAddon							(CAddon CPC addon, bool attach);
-	
-	CAddonSlot*							find_available_slot					C$	(CAddon* addon);
+	void								transfer_addon							(CAddon CPC addon, bool attach);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
@@ -84,9 +82,10 @@ public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
 
 	CAddonOwner*						getParentAO							C$	();
+	CAddonSlot*							findAvailableSlot					C$	(CAddon CPC addon);
 
-	int									AttachAddon								(CAddon* addon, CAddonSlot* slot = NULL);
-	int									DetachAddon								(CAddon* addon);
+	bool								attachAddon								(CAddon* addon);
+	void								detachAddon								(CAddon* addon);
 	void								RegisterAddon							(CAddon PC$ addon, bool attach);
 	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
 

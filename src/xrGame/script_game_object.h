@@ -847,7 +847,6 @@ public:
 			void				RemoveMemoryVisibleObject(const MemorySpace::CVisibleObject &memory_object);
 
 			//Weapon
-			void				Weapon_AddonAttach(CScriptGameObject* item);
 			void				SetMainWeaponType(u32 type);
 			void				SetWeaponType(u32 type);
 			u32					GetMainWeaponType();
@@ -983,6 +982,7 @@ public:
 	u16									getActionItemID						C$	(int num);
 	
 	bool								isAttached							C$	();
+	bool								attach								C$	(CScriptGameObject* obj);
 	void								detach								C$	();
 	void								shift								C$	(int val);
 };

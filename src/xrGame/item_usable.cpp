@@ -3,6 +3,8 @@
 #include "GameObject.h"
 #include "addon.h"
 #include "string_table.h"
+#include "script_engine.h"
+#include "script_game_object.h"
 
 CUsable::CUsable(CGameObject* obj) : CModule(obj)
 {
@@ -63,7 +65,21 @@ float CUsable::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-SAction CP$ CUsable::getAction(int num) const
+SAction* CUsable::getAction(int num)
 {
 	return								(num > 0 && num <= m_actions.size()) ? &m_actions[num - 1] : nullptr;
+}
+
+bool CUsable::performAction(int num, bool skip_query, u16 item_id)
+{
+	auto& action						= m_actions[num - 1];
+	::luabind::functor<bool>			funct;
+	action.item_id						= item_id;
+	if (skip_query || ai().script_engine().functor(*action.query_functor, funct) && funct(O.lua_game_object(), num))
+	{
+		ai().script_engine().functor	(*action.action_functor, funct);
+		funct							(O.lua_game_object(), num);
+		return							true;
+	}
+	return								false;
 }

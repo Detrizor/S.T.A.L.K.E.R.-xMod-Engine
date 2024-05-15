@@ -896,32 +896,27 @@ bool CInventoryItem::tryCustomUse()
 	if (auto usable = cast<CUsable*>())
 	{
 		int i							= 0;
-		SAction CP$						action;
-		while (action = usable->getAction(++i))
-		{
-			::luabind::functor<bool>	funct;
-			ai().script_engine().functor(*action->query_functor, funct);
-			if (funct(O.lua_game_object(), i))
-			{
-				ai().script_engine().functor(*usable->getAction(i)->action_functor, funct);
-				funct					(O.lua_game_object(), i);
+		while (usable->getAction(++i))
+			if (usable->performAction(i))
 				return					true;
-			}
-		}
 	}
 
 	if (auto addon = cast<CAddon*>())
+	{
 		if (auto active_item = Actor()->inventory().ActiveItem())
+		{
 			if (auto ao = active_item->cast<CAddonOwner*>())
 			{
-				if (CurrentGameUI()->GetActorMenu().AttachAddon(ao, addon))
+				if (addon->tryAttach(ao))
 					return				true;
+
 				for (auto s : ao->AddonSlots())
 					for (auto a : s->addons)
 						if (auto sub_ao = a->cast<CAddonOwner*>())
-							if (CurrentGameUI()->GetActorMenu().AttachAddon(sub_ao, addon))
+							if (addon->tryAttach(sub_ao))
 								return	true;
 			}
-
+		}
+	}
 	return								false;
 }

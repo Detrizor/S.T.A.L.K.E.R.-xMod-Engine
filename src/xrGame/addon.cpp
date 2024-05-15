@@ -4,6 +4,8 @@
 #include "scope.h"
 #include "silencer.h"
 #include "GrenadeLauncher.h"
+#include "item_usable.h"
+#include "addon_owner.h"
 
 CAddon::CAddon(CGameObject* obj) : CModule(obj)
 {
@@ -82,4 +84,30 @@ float CAddon::aboba(EEventTypes type, void* data, int param)
 	}
 	
 	return								CModule::aboba(type, data, param);
+}
+
+void CAddon::attach(CAddonOwner CPC ao, u16 slot_idx)
+{
+	setSlotIdx							(slot_idx);
+	cast<CUsable*>()->performAction		(2, true, ao->O.ID());
+}
+
+bool CAddon::tryAttach(CAddonOwner CPC ao, u16 slot_idx)
+{
+	if (slot_idx != u16_max)
+	{
+		if (ao->AddonSlots()[slot_idx]->CanTake(this))
+		{
+			attach						(ao, slot_idx);
+			return						true;
+		}
+	}
+
+	if (auto slot = ao->findAvailableSlot(this))
+	{
+		attach							(ao, slot->idx);
+		return							true;
+	}
+
+	return								false;
 }

@@ -310,11 +310,8 @@ void CInventoryItem::pre_install_upgrade()
 
 	Actor()->Discharge					(this, true);
 
-	CAddonOwner* ao						= cast<CAddonOwner*>();
-	if (ao)
-	{
+	if (auto ao = cast<CAddonOwner*>())
 		for (auto slot : ao->AddonSlots())
 			for (auto addon : slot->addons)
-				ao->DetachAddon			(addon);
-	}
+				ao->detachAddon			(addon);
 }

@@ -353,8 +353,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("ammo_get_count", &CScriptGameObject::AmmoGetCount)
 		.def("ammo_set_count", &CScriptGameObject::AmmoSetCount)
 		.def("ammo_box_size", &CScriptGameObject::AmmoBoxSize)
-		//For Weapons
-		.def("weapon_addon_attach", &CScriptGameObject::Weapon_AddonAttach)
 		//For Weapon & Outfit
 		.def("install_upgrade", &CScriptGameObject::InstallUpgrade)
 		.def("has_upgrade", &CScriptGameObject::HasUpgrade)
@@ -495,6 +493,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("action_item_id",				&CScriptGameObject::getActionItemID)
 			
 		.def("is_attached",					&CScriptGameObject::isAttached)
+		.def("attach",						&CScriptGameObject::attach)
 		.def("detach",						&CScriptGameObject::detach)
 		.def("shift",						&CScriptGameObject::shift)
 #endif

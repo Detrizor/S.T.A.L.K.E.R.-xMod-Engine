@@ -23,5 +23,6 @@ protected:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	SAction CP$							getAction							C$	(int num);
+	SAction*							getAction								(int num);
+	bool								performAction							(int num, bool skip_query = false, u16 item_id = u16_max);
 };

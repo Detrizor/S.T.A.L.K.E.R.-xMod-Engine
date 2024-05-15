@@ -860,10 +860,18 @@ bool CScriptGameObject::isAttached() const
 	return								false;
 }
 
+bool CScriptGameObject::attach(CScriptGameObject* obj) const
+{
+	if (auto ao = object().Cast<CAddonOwner*>())
+		if (auto addon = obj->object().Cast<CAddon*>())
+			return						ao->attachAddon(addon);
+	return								false;
+}
+
 void CScriptGameObject::detach() const
 {
 	if (auto addon = object().Cast<CAddon*>())
-		addon->getSlot()->parent_ao->DetachAddon(addon);
+		addon->getSlot()->parent_ao->detachAddon(addon);
 }
 
 void CScriptGameObject::shift(int val) const

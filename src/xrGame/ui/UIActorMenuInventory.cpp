@@ -786,7 +786,8 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_ADDON_ATTACH:
 	{
 		auto slot						= (CAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
-		AttachAddon						(slot->parent_ao, item->cast<CAddon*>(), slot);
+		auto addon						= item->cast<CAddon*>();
+		addon->attach					(slot->parent_ao, slot->idx);
 		break;
 	}
 	case INVENTORY_REPAIR:
@@ -832,16 +833,4 @@ void CUIActorMenu::RefreshCurrentItemCell()
 			invlist->SetItem(parent, GetUICursor().GetCursorPosition());
 		}
 	}
-}
-
-bool CUIActorMenu::AttachAddon(CAddonOwner* ao, CAddon* addon, CAddonSlot* slot)
-{
-	int res								= ao->AttachAddon(addon, slot);
-	if (res == 2)
-	{
-		PlaySnd							(eAttachAddon);
-		if (IsShown())
-			HideDialog					();
-	}
-	return								!!res;
 }

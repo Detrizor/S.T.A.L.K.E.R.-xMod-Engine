@@ -2,6 +2,7 @@
 #include "inventory_item_object.h"
 
 class CAddonSlot;
+class CAddonOwner;
 
 class CAddon : public CModule
 {
@@ -41,6 +42,9 @@ public:
 
 	void								updateLocalTransform					(Fmatrix CR$ parent_trans);
 	void								updateHudTransform						(Fmatrix CR$ parent_trans);
+	
+	void								attach									(CAddonOwner CPC ao, u16 slot_idx);
+	bool								tryAttach								(CAddonOwner CPC ao, u16 slot_idx = u16_max);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 	Fvector2 CR$						IconOffset							C$	()		{ return m_IconOffset; }

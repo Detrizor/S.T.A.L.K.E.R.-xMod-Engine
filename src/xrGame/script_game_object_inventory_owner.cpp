@@ -1718,17 +1718,6 @@ bool CScriptGameObject::is_door_blocked_by_npc() const
 
 //Alundaio: Methods for exporting the ability to detach/attach addons for magazined weapons
 #ifdef GAME_OBJECT_EXTENDED_EXPORTS
-void CScriptGameObject::Weapon_AddonAttach(CScriptGameObject* item)
-{
-	CAddonOwner* ao = object().Cast<CAddonOwner*>();
-	if (!ao)
-		return;
-
-	CAddon* addon = item->object().Cast<CAddon*>();
-	if (addon)
-		ao->AttachAddon(addon);
-}
-
 bool CScriptGameObject::InstallUpgrade(LPCSTR upgrade)
 {
 	CInventoryItem* item = smart_cast<CInventoryItem*>(&object());

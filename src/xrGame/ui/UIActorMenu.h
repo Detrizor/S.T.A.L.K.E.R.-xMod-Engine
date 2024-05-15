@@ -356,9 +356,6 @@ public:
 	//-AxelDominator && Alundaio consumable use condition
 	void DonateCurrentItem(CUICellItem* cell_item); //Alundaio: Donate item via context menu while in trade menu
 	DECLARE_SCRIPT_REGISTER_FUNCTION
-
-public:
-	bool								AttachAddon								(CAddonOwner* ao, CAddon* addon, CAddonSlot* slot = NULL);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

@@ -8,6 +8,7 @@
 #include "string_table.h"
 #include "../xrEngine/CameraManager.h"
 #include "WeaponMagazined.h"
+#include "item_usable.h"
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
@@ -39,10 +40,9 @@ void CAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hu
 		s->calculateBoneOffset			(model, hud_sect);
 }
 
-int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
+void CAddonOwner::transfer_addon(CAddon CPC addon, bool attach)
 {
-	float res							= O.Aboba(eTransferAddon, (void*)addon, (int)attach);
-	if (res == flt_max)
+	if (O.Aboba(eTransferAddon, (void*)addon, (int)attach) == flt_max)
 	{
 		if (attach)
 			addon->Transfer				(O.ID());
@@ -51,9 +51,7 @@ int CAddonOwner::TransferAddon(CAddon CPC addon, bool attach)
 			auto root					= O.H_Root();
 			addon->Transfer				((root->Cast<CInventoryOwner*>()) ? root->ID() : u16_max);
 		}
-		return							2;
 	}
-	return								(int)res;
 }
 
 float CAddonOwner::aboba(EEventTypes type, void* data, int param)
@@ -70,7 +68,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 				auto slot				= (addon->getSlotIdx() != u16_max) ? m_Slots[addon->getSlotIdx()] : nullptr;
 				if (!slot)
 				{
-					slot				= find_available_slot(addon);
+					slot				= findAvailableSlot(addon);
 					R_ASSERT			(slot);
 					addon->setSlotIdx	(slot->idx);
 				}
@@ -124,33 +122,34 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
 				RegisterAddon			(a, attach);
 }
 
-CAddonSlot* CAddonOwner::find_available_slot(CAddon* addon) const
+CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
 {
 	for (auto s : m_Slots)
 	{
 		if (s->CanTake(addon))
 			return						s;
 	}
-	return								NULL;
+	return								nullptr;
 }
 
-int CAddonOwner::AttachAddon(CAddon* addon, CAddonSlot* slot)
+bool CAddonOwner::attachAddon(CAddon* addon)
 {
-	if (!slot)
-		slot							= find_available_slot(addon);
+	if (addon->getSlotIdx() == u16_max)
+		if (auto slot = findAvailableSlot(addon))
+			addon->setSlotIdx			(slot->idx);
 
-	if (slot)
+	if (addon->getSlotIdx() != u16_max)
 	{
-		addon->setSlotIdx				(slot->idx);
-		return							TransferAddon(addon, true);
+		transfer_addon					(addon, true);
+		return							true;
 	}
 
-	return								0;
+	return								false;
 }
 
-int CAddonOwner::DetachAddon(CAddon* addon)
+void CAddonOwner::detachAddon(CAddon* addon)
 {
-	return TransferAddon				(addon, false);
+	transfer_addon						(addon, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
