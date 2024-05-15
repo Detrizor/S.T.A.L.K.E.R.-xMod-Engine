@@ -202,11 +202,8 @@ void CWeaponMagazined::Reload()
 
 	if (IsMisfire() || m_actor && m_chamber.capacity())
 	{
-		if (!m_locked && HudAnimationExist("anm_shot_l") && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false))
-			m_sub_state					= eSubstateReloadBoltLock;
-		else
-			m_sub_state					= eSubstateReloadBolt;
-		PlayAnimReload					();
+		bool lock						= (!m_locked && HudAnimationExist("anm_shot_l") && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false));
+		StartReload						((lock) ? eSubstateReloadBoltLock : eSubstateReloadBolt);
 	}
 	else if (!m_actor && has_ammo_for_reload())
 		StartReload						(HudAnimationExist("anm_detach") ? eSubstateReloadDetach : eSubstateReloadBegin);
@@ -217,7 +214,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	if (GetState() == eReload)
 		return;
 	
-	if (m_lock_state_reload && isEmptyChamber() && !m_locked && HudAnimationExist("anm_bolt_lock") &&
+	if (m_lock_state_reload && !m_locked && isEmptyChamber() &&
 		(m_magazine_slot->getLoadingAddon() && !m_magazine_slot->getLoadingAddon()->cast<CMagazine*>()->Empty() || !m_actor))
 		m_sub_state						= eSubstateReloadBoltLock;
 	else
@@ -738,59 +735,6 @@ void CWeaponMagazined::LoadSilencerKoeffs(LPCSTR sect)
 void CWeaponMagazined::ResetSilencerKoeffs()
 {
 	m_silencer_koef.Reset();
-}
-
-void CWeaponMagazined::OnZoomIn()
-{
-	inherited::OnZoomIn();
-
-	if (GetState() == eIdle)
-		PlayAnimIdle();
-
-	//Alundaio: callback not sure why vs2013 gives error, it's fine
-#ifdef EXTENDED_WEAPON_CALLBACKS
-	CGameObject	*object = smart_cast<CGameObject*>(H_Parent());
-	if (object)
-		object->callback(GameObject::eOnWeaponZoomIn)(object->lua_game_object(),this->lua_game_object());
-#endif
-	//-Alundaio
-
-	CActor* pActor = smart_cast<CActor*>(H_Parent());
-	if (pActor)
-	{
-		CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>	(pActor->Cameras().GetCamEffector(eCEZoom));
-		if (!S)
-		{
-			S = (CEffectorZoomInertion*) pActor->Cameras().AddCamEffector(xr_new<CEffectorZoomInertion>());
-			S->Init(this);
-		}
-		S->SetRndSeed(pActor->GetZoomRndSeed());
-		R_ASSERT(S);
-	}
-}
-
-void CWeaponMagazined::OnZoomOut()
-{
-	if (!IsZoomed())
-		return;
-
-	inherited::OnZoomOut();
-
-	if (GetState() == eIdle)
-		PlayAnimIdle();
-
-	//Alundaio
-#ifdef EXTENDED_WEAPON_CALLBACKS
-	CGameObject	*object = smart_cast<CGameObject*>(H_Parent());
-	if (object)
-		object->callback(GameObject::eOnWeaponZoomOut)(object->lua_game_object(), this->lua_game_object());
-#endif
-	//-Alundaio
-
-	CActor* pActor = smart_cast<CActor*>(H_Parent());
-
-	if (pActor)
-		pActor->Cameras().RemoveCamEffector(eCEZoom);
 }
 
 //переключение режимов стрельбы одиночными и очередями
@@ -1455,6 +1399,49 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
 	result[0].normalize					();
 	return								result[0];
+}
+
+void CWeaponMagazined::SetADS(int mode)
+{
+	bool prev							= !!ADS();
+	inherited::SetADS					(mode);
+	bool cur							= !!ADS();
+	if (prev == cur)
+		return;
+
+	if (cur)
+	{
+		//Alundaio: callback not sure why vs2013 gives error, it's fine
+	#ifdef EXTENDED_WEAPON_CALLBACKS
+		if (auto object = smart_cast<CGameObject*>(H_Parent()))
+			object->callback(GameObject::eOnWeaponZoomIn)(object->lua_game_object(),this->lua_game_object());
+	#endif
+		//-Alundaio
+
+		if (m_actor)
+		{
+			auto S						= smart_cast<CEffectorZoomInertion*>(m_actor->Cameras().GetCamEffector(eCEZoom));
+			if (!S)
+			{
+				S						= (CEffectorZoomInertion*)m_actor->Cameras().AddCamEffector(xr_new<CEffectorZoomInertion>());
+				S->Init					(this);
+			}
+			S->SetRndSeed				(m_actor->GetZoomRndSeed());
+			R_ASSERT					(S);
+		}
+	}
+	else
+	{
+		//Alundaio
+	#ifdef EXTENDED_WEAPON_CALLBACKS
+		if (auto object = smart_cast<CGameObject*>(H_Parent()))
+			object->callback(GameObject::eOnWeaponZoomOut)(object->lua_game_object(), this->lua_game_object());
+	#endif
+		//-Alundaio
+
+		if (m_actor)
+			m_actor->Cameras().RemoveCamEffector(eCEZoom);
+	}
 }
 
 LPCSTR CWeaponMagazined::get_anm_prefix() const

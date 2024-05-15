@@ -121,8 +121,6 @@ protected:
 	int				m_iCurFireMode;
 
 public:
-	virtual void	OnZoomIn();
-	virtual void	OnZoomOut();
 	void	OnNextFireMode();
 	void	OnPrevFireMode();
 	bool	HasFireModes()
@@ -236,6 +234,7 @@ protected:
 	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
+	void								SetADS								O$	(int mode);
 	LPCSTR								get_anm_prefix						CO$	();
 
 public:

@@ -58,7 +58,7 @@ void CWeaponMagazined::PlayAnimReload()
 
 void CWeaponMagazined::OnAnimationEnd(u32 state)
 {
-	if (state != eReload && m_sub_state != eSubstateReloadBolt && m_sub_state != eSubstateReloadBoltLock)
+	if (state != eReload && m_sub_state != eSubstateReloadBolt)
 		return							inherited::OnAnimationEnd(state);;
 
 	switch (m_sub_state)
@@ -98,13 +98,13 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	case eSubstateReloadBoltLock:
 		reload_chamber					();
 		m_locked						= true;
-		if (state == eReload)
+		if (m_lock_state_reload && (m_magazine_slot->isLoading() || !m_actor))
 		{
 			m_sub_state					= (!m_magazine_slot->addons.empty() || !m_actor) ? eSubstateReloadDetach : eSubstateReloadAttach;
 			PlayAnimReload				();
 		}
 		else
-			switch2_Idle				();
+			SwitchState					(eIdle);
 		break;
 	default:
 		ReloadMagazine					();
