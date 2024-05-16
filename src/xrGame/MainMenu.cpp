@@ -272,7 +272,7 @@ bool CMainMenu::IsActive()
 
 bool CMainMenu::CanSkipSceneRendering()
 {
-	return IsActive() && !m_Flags.test(flGameSaveScreenshot);
+	return false;// IsActive() && !m_Flags.test(flGameSaveScreenshot);
 }
 
 //IInputReceiver
@@ -350,7 +350,7 @@ void CMainMenu::IR_OnMouseWheel(int direction)
 
 bool CMainMenu::OnRenderPPUI_query()
 {
-	return IsActive() && !m_Flags.test(flGameSaveScreenshot) && b_shniaganeed_pp;
+	return false;// IsActive() && !m_Flags.test(flGameSaveScreenshot) && b_shniaganeed_pp;
 }
 
 
