@@ -20,8 +20,8 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment
 	dest								= xr_new<CUIStatic>();
 	dest->InitTextureEx					(texture);
 	dest->SetTextureRect				({ 0.f, 0.f, mult * 1024.f, mult * 1024.f });
-	dest->SetPosSize					(2, 1.f, sScreenHeight);
-	dest->SetPosSize					(3, 1.f, sScreenHeight);
+	dest->SetPosSize					(2, 100.f, sScreenHeight);
+	dest->SetPosSize					(3, 100.f, sScreenHeight);
 	dest->SetAlignment					(al);
 	dest->SetAnchor						(al);
 	dest->SetStretchTexture				(true);

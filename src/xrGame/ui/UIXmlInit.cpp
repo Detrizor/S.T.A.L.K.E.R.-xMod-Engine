@@ -1093,16 +1093,11 @@ bool CUIXmlInit::InitListBox(CUIXml& xml_doc, LPCSTR path, int index, CUIListBox
 	strconcat		(sizeof(_path),_path, path, ":font");
 	InitFont		(xml_doc, _path, index, t_color, pFnt);
 
-	pWnd->SetTextColor(t_color);
 	pWnd->SetFont(pFnt);
+	pWnd->SetTextColor(t_color);
 
 	float h					= xml_doc.ReadAttribFlt(path, index, "item_height", 20.0f);
 	pWnd->SetItemHeight		(h);
-
-	Fvector2				size;
-	size.x					= xml_doc.ReadAttribFlt(path, index, "width", 300.0f);
-	size.y					= xml_doc.ReadAttribFlt(path, index, "height", 300.0f);
-	pWnd->SetWndSize		(size);
 
 	return true;
 }
@@ -1201,6 +1196,8 @@ bool CUIXmlInit::ReadParamWithScaling(CUIXml& xml_doc, const LPCSTR path, const 
 bool CUIXmlInit::ReadParamWithScaling(CUIXml& xml_doc, const LPCSTR path, const int index, const LPCSTR param, float& dest_value, EScaling& dest_scaling)
 {
 	if (ReadParamWithScaling(xml_doc, path, index, param, "%s", dest_value, dest_scaling, sAbsolute));
+	else if (ReadParamWithScaling(xml_doc, path, index, param, "%sh", dest_value, dest_scaling, sScreenHeight));
+	else if (ReadParamWithScaling(xml_doc, path, index, param, "%sw", dest_value, dest_scaling, sScreenWidth));
 	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_h", dest_value, dest_scaling, sScreenHeightLayout));
 	else if (ReadParamWithScaling(xml_doc, path, index, param, "%s_w", dest_value, dest_scaling, sScreenWidthLayout));
 	else return false;

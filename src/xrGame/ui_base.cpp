@@ -270,9 +270,9 @@ float ui_core::GetScale(EScaling scaling) const
 	case sAbsolute:
 		return						1.f;
 	case sScreenHeight:
-		return						float(Device.dwHeight) / GetScaleFactor();
+		return						.01f * float(Device.dwHeight) / GetScaleFactor();
 	case sScreenWidth:
-		return						float(Device.dwWidth) / GetScaleFactor();
+		return						.01f * float(Device.dwWidth) / GetScaleFactor();
 	case sScreenHeightLayout:
 		return						float(Device.dwHeight) / (m_layout_unit * GetScaleFactor());
 	case sScreenWidthLayout:
