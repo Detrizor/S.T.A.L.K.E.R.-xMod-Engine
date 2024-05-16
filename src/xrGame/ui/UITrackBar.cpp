@@ -92,21 +92,15 @@ bool CUITrackBar::OnMouseAction(float x, float y, EUIMessages mouse_action)
 
 void CUITrackBar::InitTrackBar(Fvector2 pos, Fvector2 size)
 {
-	float				item_height;
-	float				item_width;
-
 	InitIB				(pos, size);
 
 	InitState			(S_Enabled, "ui_inGame2_opt_slider_bar");
 	InitState			(S_Disabled, "ui_inGame2_opt_slider_bar");
 
-	item_width			= CUITextureMaster::GetTextureWidth("ui_inGame2_opt_slider_box_e");
-    item_height			= CUITextureMaster::GetTextureHeight("ui_inGame2_opt_slider_box_e");
+	float item_width	= CUITextureMaster::GetTextureWidth("ui_inGame2_opt_slider_box_e");
+	float item_height	= size.y; //CUITextureMaster::GetTextureHeight("ui_inGame2_opt_slider_box_e");
 
-	item_width			*= UI().get_current_kx();
-
-	m_pSlider->InitButton(	Fvector2().set(0.0f, 0.0f) /*(size.y - item_height)/2.0f)*/,
-							Fvector2().set(item_width, item_height) );			//size
+	m_pSlider->InitButton(vZero2, { item_width, item_height });
 	m_pSlider->InitTexture("ui_inGame2_opt_slider_box");
 	
 	SetCurrentState(S_Enabled);
@@ -281,7 +275,7 @@ void CUITrackBar::UpdatePos()
 	float window_width			= GetWidth();		
 	float free_space			= window_width - btn_width;
 	Fvector2 pos				= m_pSlider->GetWndPos();
-    
+	
 	float __fval	= (m_b_is_float)?m_f_val:(float)m_i_val;
 	float __fmax	= (m_b_is_float)?m_f_max:(float)m_i_max;
 	float __fmin	= (m_b_is_float)?m_f_min:(float)m_i_min;
