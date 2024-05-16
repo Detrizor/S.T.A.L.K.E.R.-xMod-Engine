@@ -152,6 +152,7 @@ void CMainMenu::ReadTextureInfo()
 
 extern ENGINE_API BOOL	bShowPauseString;
 
+#include "GamePersistent.h"
 void CMainMenu::Activate	(bool bActivate)
 {
 	if (	!!m_Flags.test(flActive) == bActivate)		return;
@@ -162,8 +163,10 @@ void CMainMenu::Activate	(bool bActivate)
 
 	if(g_dedicated_server && bActivate) return;
 
-	if(bActivate)
+	if (bActivate)
 	{
+		GamePersistent().SetEffectorDOF({ -1.f, -0.5f, 0.f });
+
 		b_shniaganeed_pp			= true;
 		Device.Pause				(TRUE, FALSE, TRUE, "mm_activate1");
 		m_Flags.set					(flActive|flNeedChangeCapture,TRUE);
@@ -192,7 +195,11 @@ void CMainMenu::Activate	(bool bActivate)
 		Device.seqRender.Add				(this, 4); // 1-console 2-cursor 3-tutorial
 
 		Console->Execute					("stat_memory");
-	}else{
+	}
+	else
+	{
+		GamePersistent().RestoreEffectorDOF	();
+
 		m_deactivated_frame					= Device.dwFrame;
 		m_Flags.set							(flActive,				FALSE);
 		m_Flags.set							(flNeedChangeCapture,	TRUE);

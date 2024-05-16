@@ -158,12 +158,7 @@ protected:
 	{
 		bool			m_bZoomEnabled;			//разрешение режима приближения
 		bool			m_bHideCrosshairInZoom;
-		bool			m_bZoomDofEnabled;
 		bool			m_bIsZoomModeNow;		//когда режим приближения включен
-
-		Fvector			m_ZoomDof;
-		Fvector4		m_ReloadDof;
-		Fvector4		m_ReloadEmptyDof; //Swartz: reload when empty mag. DOF
 	} m_zoom_params;
 
 public:

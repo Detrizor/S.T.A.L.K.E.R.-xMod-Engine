@@ -117,6 +117,7 @@ void CUIActorMenu::StartMenuMode(EMenuMode mode, CInventoryOwner* actor, void* p
 	ShowDialog							(true);
 }
 
+#include "GamePersistent.h"
 void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 {
 	SetCurrentItem						(NULL);
@@ -204,6 +205,11 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 		UpdateActor						();
 	}
 	UpdateButtonsLayout					();
+
+	if (m_currMenuMode == mmUndefined)
+		GamePersistent().RestoreEffectorDOF();
+	else
+		GamePersistent().SetEffectorDOF({ -1.f, -0.5f, 0.f });
 }
 
 void CUIActorMenu::PlaySnd(eActorMenuSndAction a)

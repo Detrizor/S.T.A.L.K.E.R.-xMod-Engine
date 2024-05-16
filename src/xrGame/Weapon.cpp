@@ -254,17 +254,6 @@ void CWeapon::Load(LPCSTR section)
 	
 	m_zoom_params.m_bHideCrosshairInZoom = !!pSettings->r_bool(section, "zoom_hide_crosshair");
 
-	Fvector			def_dof;
-	def_dof.set(-1, -1, -1);
-	m_zoom_params.m_ZoomDof = READ_IF_EXISTS(pSettings, r_fvector3, section, "zoom_dof", Fvector().set(-1, -1, -1));
-	m_zoom_params.m_bZoomDofEnabled = !def_dof.similar(m_zoom_params.m_ZoomDof);
-
-	m_zoom_params.m_ReloadDof = READ_IF_EXISTS(pSettings, r_fvector4, section, "reload_dof", Fvector4().set(-1, -1, -1, -1));
-
-	//Swartz: empty reload
-	m_zoom_params.m_ReloadEmptyDof = READ_IF_EXISTS(pSettings, r_fvector4, section, "reload_empty_dof", Fvector4().set(-1, -1, -1, -1));
-	//-Swartz
-
 	string256						temp;
 	for (int i = egdNovice; i < egdCount; ++i)
 	{
@@ -866,28 +855,6 @@ void CWeapon::OnStateSwitch(u32 S, u32 oldState)
 {
 	CHudItem::OnStateSwitch				(S, oldState);
 	m_BriefInfo_CalcFrame				= 0;
-
-	if (GetState() == eReload)
-	{
-		if (GetAmmoElapsed() == 0) //Swartz: re-written to use reload empty DOF
-		{
-			if (H_Parent() == Level().CurrentEntity() && !fsimilar(m_zoom_params.m_ReloadEmptyDof.w, -1.0f))
-			{
-				CActor* current_actor	= smart_cast<CActor*>(H_Parent());
-				if (current_actor)
-					current_actor->Cameras().AddCamEffector(xr_new<CEffectorDOF>(m_zoom_params.m_ReloadEmptyDof));
-			}
-		}
-		else
-		{
-			if (H_Parent() == Level().CurrentEntity() && !fsimilar(m_zoom_params.m_ReloadDof.w, -1.0f))
-			{
-				CActor* current_actor	= smart_cast<CActor*>(H_Parent());
-				if (current_actor)
-					current_actor->Cameras().AddCamEffector(xr_new<CEffectorDOF>(m_zoom_params.m_ReloadDof));
-			}
-		}
-	}
 }
 
 void CWeapon::render_hud_mode()
@@ -937,26 +904,9 @@ void CWeapon::SetADS(int mode)
 	if (mode == -1 && !HasAltAim())
 		return;
 
-	if (mode)
-	{
-		if (!ADS())
-		{
-			if (m_zoom_params.m_bZoomDofEnabled)
-				GamePersistent().SetEffectorDOF(m_zoom_params.m_ZoomDof);
-
-			if (GetHUDmode())
-				GamePersistent().SetPickableEffectorDOF(true);
-		}
-	}
-	else
-	{
-		GamePersistent().RestoreEffectorDOF();
-
-		if (GetHUDmode())
-			GamePersistent().SetPickableEffectorDOF(false);
-
+	if (!mode)
 		ResetSubStateTime();
-	}
+
 	m_iADS = mode;
 
 	if (GetState() == eIdle)
