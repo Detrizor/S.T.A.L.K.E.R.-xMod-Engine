@@ -435,33 +435,23 @@ void CCameraManager::UpdatePPEffectors()
 
 void CCameraManager::ApplyDevice(float _viewport_near)
 {
-	g_pGameLevel->lastApplyCamera = fastdelegate::FastDelegate1<float>(this, &CCameraManager::ApplyDeviceInternal);
-	g_pGameLevel->lastApplyCameraVPNear = _viewport_near;
-}
-
-void CCameraManager::ApplyDeviceInternal(float _viewport_near)
-{
-	bool svp = Device.m_SecondViewport.isRendering();
-	Fvector CR$ cam_pos = (svp) ? Device.m_SecondViewport.getPosition() : m_cam_info.p;
-	float fov = (svp) ? Device.m_SecondViewport.getFov() : m_cam_info.fFov;
-
 	// Device params
-	Device.mView.build_camera_dir(cam_pos, m_cam_info.d, m_cam_info.n);
+	Fvector CR$ pos						= (Device.SVP.isRendering()) ? Device.SVP.getPosition() : m_cam_info.p;
+	float fov							= (Device.SVP.isRendering()) ? Device.SVP.getFOV() : m_cam_info.fFov;
 
-	Device.vCameraPosition.set(cam_pos);
-	Device.vCameraDirection.set(m_cam_info.d);
-	Device.vCameraTop.set(m_cam_info.n);
-	Device.vCameraRight.set(m_cam_info.r);
+	Device.mView.build_camera_dir		(pos, m_cam_info.d, m_cam_info.n);
+	Device.vCameraPosition.set			(pos);
+	Device.vCameraDirection.set			(m_cam_info.d);
+	Device.vCameraTop.set				(m_cam_info.n);
+	Device.vCameraRight.set				(m_cam_info.r);
+	Device.fFOV							= fov;
+	Device.fHUDFOV						= fov;
 
 	// projection
-	Device.fFOV = fov;
-	Device.fHUDFOV = fov;
-	Device.fASPECT = m_cam_info.fAspect;
+	Device.fASPECT						= m_cam_info.fAspect;
+	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
 
-	Device.mProject.build_projection(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
-	//--#SM+# End--
-
-	if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.m_SecondViewport.isRendering())
+	if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.SVP.isRendering())
 		ResetPP();
 	else
 	{

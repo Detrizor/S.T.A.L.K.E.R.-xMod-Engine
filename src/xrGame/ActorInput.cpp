@@ -340,7 +340,7 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 
 	float LookFactor = GetLookFactor();
 
-	float fov		= (Device.m_SecondViewport.isActive()) ? Device.m_SecondViewport.getFov() : cameras[cam_active]->f_fov;
+	float fov		= (Device.SVP.isActive()) ? Device.SVP.getFOV() : cameras[cam_active]->f_fov;
 	float scale		= (fov / g_fov) * psMouseSens * psMouseSensScale / 50.f / LookFactor;
 
 	if (dx)

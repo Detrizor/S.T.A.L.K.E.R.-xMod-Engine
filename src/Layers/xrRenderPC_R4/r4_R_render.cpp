@@ -531,8 +531,7 @@ void CRender::render_forward				()
 
 void CRender::RenderToTarget()
 {
-	ID3DTexture2D* pBuffer = nullptr;
-	HW.m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBuffer);
-	HW.pContext->CopyResource(Target->rt_secondVP->pSurface, pBuffer);
-	pBuffer->Release();
+	ID3DResource* res;
+	HW.pBaseRT->GetResource(&res);
+	HW.pContext->CopyResource(Target->rt_secondVP->pSurface, res);
 }

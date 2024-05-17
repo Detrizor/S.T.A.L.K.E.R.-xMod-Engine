@@ -213,9 +213,9 @@ bool CScope::isPiP() const
 
 void CScope::RenderUI()
 {
-	bool svp							= Device.m_SecondViewport.isRendering();
+	bool svp							= Device.SVP.isRendering();
 	if (svp)
-		Device.m_SecondViewport.toggleRendering();
+		Device.SVP.setRendering			(false);
 
 	if (m_pNight_vision && !m_pNight_vision->IsActive())
 		m_pNight_vision->Start			(m_Nighvision, Actor(), false);
@@ -309,7 +309,7 @@ void CScope::RenderUI()
 	}
 
 	if (svp)
-		Device.m_SecondViewport.toggleRendering();
+		Device.SVP.setRendering			(true);
 }
 
 void CScope::updateCameraLenseOffset()

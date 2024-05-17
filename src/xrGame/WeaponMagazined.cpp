@@ -1019,7 +1019,7 @@ bool CWeaponMagazined::render_item_ui_query()
 		return false;
 
 	if (scope->isPiP())
-		return (Device.m_SecondViewport.isRendering());
+		return (Device.SVP.isRendering());
 
 	return !IsRotatingToZoom();
 }
@@ -1294,7 +1294,7 @@ extern float aim_fov_tan;
 void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
 	CScope* scope						= getActiveScope();
-	Device.m_SecondViewport.setActive(scope && scope->isPiP());
+	Device.SVP.setActive(scope && scope->isPiP());
 	if (!scope || scope->Type() == eIS)
 		return;
 	
@@ -1315,7 +1315,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	{
 		hud_params.w					= scope->getLenseFovTan() / aim_fov_tan;
 		fov_tan							/= CurrentZoomFactor(false);
-		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
+		Device.SVP.setFOV				(atanf(fov_tan) / (.5f * PI / 180.f));
 		
 		Fvector pos						= scope->getSightPosition();
 		pos.add							(scope->getObjectiveOffset());
@@ -1328,7 +1328,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 			trans						= &HudItemData()->m_transform;
 		trans->transform_tiny			(pos);
 
-		Device.m_SecondViewport.setPosition(pos);
+		Device.SVP.setPosition			(pos);
 	}
 	else
 		hud_params.w					= scope->GetReticleScale();

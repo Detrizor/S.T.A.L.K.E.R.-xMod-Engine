@@ -168,7 +168,7 @@ CUIWindow::~CUIWindow()
 
 void CUIWindow::Draw()
 {
-	if (Device.m_SecondViewport.isRendering())
+	if (Device.SVP.isRendering())
 		return;
 
 	for (auto I : m_ChildWndList)

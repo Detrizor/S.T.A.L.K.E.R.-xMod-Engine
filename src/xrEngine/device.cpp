@@ -246,6 +246,9 @@ void CRenderDevice::on_idle()
 	if (!Device.dwPrecacheFrame && !g_SASH.IsBenchmarkRunning() && g_bLoaded)
 		g_SASH.StartBenchmark();
 
+	if (b_is_Active && m_pRender->GetDeviceState() != IRenderDeviceRender::DeviceState::dsLost)
+		d_SVPRender();
+
 	FrameMove();
 
 	// Precache
@@ -261,18 +264,41 @@ void CRenderDevice::on_idle()
 		mView.build_camera_dir(vCameraPosition, vCameraDirection, vCameraTop);
 	}
 
-	render_internal();
-	if (m_SecondViewport.isActive())
-	{
-		m_SecondViewport.toggleRendering();
-		render_internal();
-		m_SecondViewport.toggleRendering();
-	}
+	// Matrices
+	mFullTransform.mul(mProject, mView);
+	m_pRender->SetCacheXform(mView, mProject);
+	//RCache.set_xform_view ( mView );
+	//RCache.set_xform_project ( mProject );
+	D3DXMatrixInverse((D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
 
+	vCameraPosition_saved = vCameraPosition;
+	mFullTransform_saved = mFullTransform;
+	mView_saved = mView;
+	mProject_saved = mProject;
+	
+	// *** Resume threads
+	// Capture end point - thread must run only ONE cycle
+	// Release start point - allow thread to run
+	mt_csLeave.Enter();
+	mt_csEnter.Leave();
+
+	Sleep(0);
+
+#ifndef DEDICATED_SERVER
+	Statistic->RenderTOTAL_Real.FrameStart();
+	Statistic->RenderTOTAL_Real.Begin();
+	
+	if (b_is_Active && Begin())
+	{
+		seqRender.Process(rp_Render);
+		if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size())
+			Statistic->Show();
+		End();
+	}
 	Statistic->RenderTOTAL_Real.End();
 	Statistic->RenderTOTAL_Real.FrameEnd();
 	Statistic->RenderTOTAL.accum = Statistic->RenderTOTAL_Real.accum;
-
+#endif // #ifndef DEDICATED_SERVER
 	// *** Suspend threads
 	// Capture startup point
 	// Release end point - allow thread to wait for startup point
@@ -299,45 +325,49 @@ void CRenderDevice::on_idle()
 		Sleep(1);
 }
 
-bool CRenderDevice::is_loading_level()
+void CRenderDevice::d_SVPRender()
 {
-	return load_screen_renderer.b_registered || !g_loading_events.empty();
+	if (SVP.isActive() && !ActiveMain())
+	{
+		dwFrame++;
+		Core.dwFrame = dwFrame;
+		SVP.setRendering(true);
+
+		if (g_pGameLevel)
+			g_pGameLevel->ApplyCamera();
+
+		if (dwPrecacheFrame)
+		{
+			float factor = float(dwPrecacheFrame) / float(dwPrecacheTotal);
+			float angle = PI_MUL_2 * factor;
+			vCameraDirection.set(_sin(angle), 0, _cos(angle));
+			vCameraDirection.normalize();
+			vCameraTop.set(0, 1, 0);
+			vCameraRight.crossproduct(vCameraTop, vCameraDirection);
+			mView.build_camera_dir(vCameraPosition, vCameraDirection, vCameraTop);
+		}
+		// Matrices
+		mFullTransform.mul(mProject, mView);
+		m_pRender->SetCacheXform(mView, mProject);
+		D3DXMatrixInverse((D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
+
+		vCameraPosition_saved = vCameraPosition;
+
+		m_pRender->Begin();
+
+		g_bRendering = TRUE;
+		seqRender.Process(rp_Render);
+		g_bRendering = FALSE;
+
+		m_pRender->End();
+
+		SVP.setRendering(false);
+	}
 }
 
-void CRenderDevice::render_internal()
+bool CRenderDevice::ActiveMain() const
 {
-	if (g_pGameLevel && !is_loading_level())
-		g_pGameLevel->ApplyCamera(); // Apply camera params of vp, so that we create a correct full transform matrix
-
-	// Matrices
-	mFullTransform.mul(mProject, mView);
-	m_pRender->SetCacheXform(mView, mProject);
-	D3DXMatrixInverse((D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
-
-	vCameraPosition_saved = vCameraPosition;
-	mFullTransform_saved = mFullTransform;
-	mView_saved = mView;
-	mProject_saved = mProject;
-	
-	// *** Resume threads
-	// Capture end point - thread must run only ONE cycle
-	// Release start point - allow thread to run
-	mt_csLeave.Enter();
-	mt_csEnter.Leave();
-
-	if (!m_SecondViewport.isRendering())
-		Sleep(0);
-
-	Statistic->RenderTOTAL_Real.FrameStart();
-	Statistic->RenderTOTAL_Real.Begin();
-	
-	if (b_is_Active && Begin())
-	{
-		seqRender.Process(rp_Render);
-		if ((psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size()) && !m_SecondViewport.isRendering())
-			Statistic->Show();
-		End();
-	}
+	return b_is_Active && g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive();
 }
 
 #ifdef INGAME_EDITOR
@@ -614,9 +644,9 @@ void CLoadScreenRenderer::OnRender()
 	pApp->load_draw_internal();
 }
 
-void CRenderDevice::CSecondVPParams::setActive(bool state) //--#SM+#-- +SecondVP+
+void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+
 {
-	m_is_active = state;
+	m_active = val;
 	if (g_pGamePersistent)
-		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)state;
+		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)m_active;
 }

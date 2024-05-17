@@ -337,7 +337,7 @@ void dxRenderDeviceRender::End()
 	RCache.OnFrameEnd	();
 	Memory.dbg_check		();
 
-	if (Device.m_SecondViewport.isRendering())
+	if (Device.SVP.isRendering())
 		return;
 
 	DoAsyncScreenshot();

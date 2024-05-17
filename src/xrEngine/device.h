@@ -114,24 +114,25 @@ public:
 class ENGINE_API CRenderDevice : public CRenderDeviceBase
 {
 public:
-	class ENGINE_API CSecondVPParams //--#SM+#-- +SecondVP+
+	struct ENGINE_API CSVP final
 	{
-		bool							m_is_active								= false;
-		bool							m_is_rendering							= false;
+		bool							m_active								= false;
+		bool							m_rendering								= false;
 		Fvector							m_position								= vZero;
 		float							m_fov									= 0.f;
 
 	public:
-		void							toggleRendering							()						{ m_is_rendering = !m_is_rendering; }
-		void							setPosition								(Fvector CR$ pos)		{ m_position = pos; }
-		void							setFov									(float fov)				{ m_fov = fov; }
 
-		bool							isActive							C$	()		{ return m_is_active; }
-		bool							isRendering							C$	()		{ return m_is_rendering; };
-		Fvector CR$						getPosition							C$	()		{ return m_position; }
-		float							getFov								C$	()		{ return m_fov; }
+		void							setRendering							(bool val)				{ m_rendering = val; }
+		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
+		void							setFOV									(float val)				{ m_fov = val; }
 		
-		void							setActive								(bool state);
+		void							setActive								(bool val);
+
+		bool							isActive							C$	()		{ return m_active; }
+		bool							isRendering							C$	()		{ return m_rendering; }
+		Fvector CR$						getPosition							C$	()		{ return m_position; }
+		float							getFOV								C$	()		{ return m_fov; }
 	};
 
 private:
@@ -223,7 +224,7 @@ public:
 
 	Fmatrix mInvFullTransform;
 
-	CSecondVPParams m_SecondViewport;	//--#SM+#-- +SecondVP+
+	CSVP SVP;	//--#SM+#-- +SecondVP+
 
 	//float fFOV;
 	//float fASPECT;
@@ -248,7 +249,7 @@ public:
 		b_is_Ready = FALSE;
 		Timer.Start();
 		m_bNearer = FALSE;
-	};
+	}
 
 	void Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason);
 	BOOL Paused();
@@ -337,9 +338,8 @@ private:
 	engine_impl* m_engine;
 #endif // #ifdef INGAME_EDITOR
 
-private:
-	bool is_loading_level();
-	void render_internal();
+	void d_SVPRender();
+	bool ActiveMain() const;
 };
 
 extern ENGINE_API CRenderDevice Device;

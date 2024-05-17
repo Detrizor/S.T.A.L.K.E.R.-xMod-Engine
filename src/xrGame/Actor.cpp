@@ -1003,9 +1003,7 @@ void CActor::UpdateCL()
 		{
 			m_fdisp_controller.SetDispertion(pWeapon->GetFireDispersion(nullptr, true));		//--xd actually it's wrong, need to use cartridge coeff
 
-			//--#SM+#-- +SecondVP+ Чтобы перекрестие не скакало из за смены FOV (Sin!) [fix for crosshair shaking while SecondVP]
-			if (!Device.m_SecondViewport.isActive())
-				HUD().SetCrosshairDisp(m_fdisp_controller.GetCurrentDispertion(), 0.02f);
+			HUD().SetCrosshairDisp(m_fdisp_controller.GetCurrentDispertion(), 0.02f);
 
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
@@ -1070,7 +1068,7 @@ void CActor::UpdateCL()
 		pWM->UpdateShadersDataAndSVP(Cameras());
 	else
 	{
-		Device.m_SecondViewport.setActive(false);
+		Device.SVP.setActive(false);
 		g_pGamePersistent->m_pGShaderConstants->hud_params.set(0.f, 0.f, 0.f, 0.f);
 		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.set(0.f, 0.f, 0.f, 0.f);
 	}
