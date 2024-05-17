@@ -15,6 +15,7 @@ class CNightVisionEffector;
 class CWeaponHud;
 class CAddon;
 struct ref_sound;
+struct SPowerDependency;
 
 struct hud_item_measures;
 
@@ -52,7 +53,8 @@ private:
 	static float						s_magnification_eye_relief_shrink;
 	static float						s_lense_circle_scale_default;
 	static float						s_lense_circle_scale_offset_power;
-	static float						s_lense_circle_position_derivation_factor;
+	static SPowerDependency				s_lense_circle_pos_from_axis;
+	static SPowerDependency				s_lense_circle_pos_from_zoom;
 	static float						s_lense_vignette_a;
 	static float						s_lense_vignette_b;
 
@@ -65,9 +67,10 @@ private:
 	CUIStatic*							m_pUIReticle							= NULL;
 	CBinocularsVision*					m_pVision								= NULL;
 	CNightVisionEffector*				m_pNight_vision							= NULL;
-	Fvector								m_camera_lense_offset					= vZero;
+	float								m_camera_lense_distance					= 0.f;
 	Fvector								m_hud_offset[2]							= { vZero, vZero };
 	s8									m_selection								= -1;
+	Fvector								m_cam_pos_ort							= vZero;
 
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
@@ -87,6 +90,8 @@ private:
 public:
 	static void							loadStaticVariables						();
 	static void							cleanStaticVariables					();
+
+	Fvector								d_hpb									= vZero;
 
 	void								ZoomChange								(int val);
 	void								ZeroingChange							(int val);

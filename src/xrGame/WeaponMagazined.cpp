@@ -1295,14 +1295,25 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
 	CScope* scope						= getActiveScope();
 	Device.m_SecondViewport.setActive(scope && scope->isPiP());
-	if (!scope || (scope->Type() == eOptics && !scope->isPiP()))
+	if (!scope || scope->Type() == eIS)
 		return;
+	
+	static Fmatrix						cam_trans;
+	static Fvector						cam_hpb;
+	static Fvector						self_hpb;
+	static Fvector						d_hpb;
+
+	camera.camera_Matrix				(cam_trans);
+	cam_trans.getHPB					(cam_hpb);
+	HudItemData()->m_transform.getHPB	(self_hpb);
+	d_hpb								= cam_hpb;
+	d_hpb.sub							(self_hpb);
 
 	float fov_tan						= aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (scope->Type() == eOptics)
 	{
-		hud_params.z					= scope->getLenseFovTan() / aim_fov_tan;
+		hud_params.w					= scope->getLenseFovTan() / aim_fov_tan;
 		fov_tan							/= CurrentZoomFactor(false);
 		Device.m_SecondViewport.setFov	(atanf(fov_tan) / (.5f * PI / 180.f));
 		
@@ -1320,23 +1331,17 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 		Device.m_SecondViewport.setPosition(pos);
 	}
 	else
-		hud_params.z					= scope->GetReticleScale();
-	
-	Fvector cam_dir						= camera.Direction();
-	float cam_dir_yaw					= atan2f(cam_dir.x, cam_dir.z);
-	float cam_dir_pitch					= asinf(cam_dir.y);
-	
-	Fvector fire_dir					= get_LastFD();
-	float fire_dir_yaw					= atan2f(fire_dir.x, fire_dir.z);
-	float fire_dir_pitch				= asinf(fire_dir.y);
-	
+		hud_params.w					= scope->GetReticleScale();
+
 	float distance						= scope->Zeroing();
-	float x_derivation					= distance * tanf(fire_dir_yaw - cam_dir_yaw);
-	float y_derivation					= distance * tanf(fire_dir_pitch - cam_dir_pitch);
+
+	float x_derivation					= distance * tanf(d_hpb.x);
+	float y_derivation					= distance * tanf(d_hpb.y);
 
 	float h								= 2.f * fov_tan * distance;
 	hud_params.x						= x_derivation / h;
 	hud_params.y						= y_derivation / h;
+	hud_params.z						= d_hpb.z;
 }
 
 u16 CWeaponMagazined::Zeroing C$()

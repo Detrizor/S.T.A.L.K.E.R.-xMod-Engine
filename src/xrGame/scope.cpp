@@ -10,6 +10,7 @@
 #include "addon.h"
 #include "ActorEffector.h"
 #include "ai_sounds.h"
+#include "Level_Bullet_Manager.h"
 
 CUIStatic* pUILenseCircle				= NULL;
 CUIStatic* pUILenseVignette				= NULL;
@@ -19,7 +20,8 @@ CUIStatic* pUILenseGlass				= NULL;
 float CScope::s_magnification_eye_relief_shrink;
 float CScope::s_lense_circle_scale_default;
 float CScope::s_lense_circle_scale_offset_power;
-float CScope::s_lense_circle_position_derivation_factor;
+SPowerDependency CScope::s_lense_circle_pos_from_axis;
+SPowerDependency CScope::s_lense_circle_pos_from_zoom;
 float CScope::s_lense_vignette_a;
 float CScope::s_lense_vignette_b;
 
@@ -43,7 +45,8 @@ void CScope::loadStaticVariables()
 	s_magnification_eye_relief_shrink	= pSettings->r_float("scope_manager", "magnification_eye_relief_shrink");
 	s_lense_circle_scale_default		= pSettings->r_float("scope_manager", "lense_circle_scale_default");
 	s_lense_circle_scale_offset_power	= pSettings->r_float("scope_manager", "lense_circle_scale_offset_power");
-	s_lense_circle_position_derivation_factor = pSettings->r_float("scope_manager", "lense_circle_position_derivation_factor");
+	s_lense_circle_pos_from_axis.Load	("scope_manager", "lense_circle_pos_from_axis");
+	s_lense_circle_pos_from_zoom.Load	("scope_manager", "lense_circle_pos_from_zoom");
 
 	float lense_vignette_offset_max		= pSettings->r_float("scope_manager", "lense_vignette_offset_max");
 	float lense_vignette_scale_max		= pSettings->r_float("scope_manager", "lense_vignette_scale_max");
@@ -180,7 +183,10 @@ void CScope::init_visors()
 {
 	xr_delete							(m_pUIReticle);
 	if (m_Reticle.size())
+	{
 		createStatic					(m_pUIReticle, *shared_str().printf("wpn\\reticle\\%s", *m_Reticle), m_reticle_size);
+		m_pUIReticle->EnableHeading		(true);
+	}
 
 	xr_delete							(m_pVision);
 	if (m_AliveDetector.size())
@@ -195,13 +201,9 @@ void CScope::init_visors()
 		m_pNight_vision					= xr_new<CNightVisionEffector>(m_Nighvision);
 }
 
-void CScope::modify_holder_params C$(float &range, float &fov)
+void CScope::modify_holder_params(float &range, float &fov) const
 {
-	if (Type() == eOptics)
-	{
-		range							*= m_Magnificaion.vmax;
-		fov								*= pow(m_Magnificaion.vmax, .25f);
-	}
+	range								*= m_Magnificaion.vmax;
 }
 
 bool CScope::isPiP() const
@@ -223,26 +225,59 @@ void CScope::RenderUI()
 		m_pVision->Update				();
 		m_pVision->Draw					();
 	}
+
+	float magnification					= 0.f;
+	if (m_Magnificaion.dynamic)
+		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
+	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
+	float offset						= m_camera_lense_distance / cur_eye_relief;
+	float scale							= s_lense_circle_scale_default * pow(offset, s_lense_circle_scale_offset_power);
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	float lense_scale					= hud_params.z;
-	Fvector2 derivation					= { hud_params.x * UI_BASE_WIDTH, -hud_params.y * UI_BASE_HEIGHT };
+	float lense_scale					= hud_params.w;
 
-	float w2							= UI_BASE_WIDTH * .5f;
-	float h2							= UI_BASE_HEIGHT * .5f;
-	if (derivation.x > -w2 && derivation.x < w2 && derivation.y > -h2 && derivation.y < h2)
+	Fvector2 pos						= {
+		s_lense_circle_pos_from_axis.Calc(abs(m_cam_pos_ort.x)),
+		s_lense_circle_pos_from_axis.Calc(abs(m_cam_pos_ort.y))
+	};
+	if (m_cam_pos_ort.x < 0.f)
+		pos.x							*= -1.f;
+	if (m_cam_pos_ort.y > 0.f)
+		pos.y							*= -1.f;
+	pos.mul								(s_lense_circle_pos_from_zoom.Calc(m_Magnificaion.current));
+
+	pUILenseCircle->SetScale			(lense_scale * scale);
+	pUILenseCircle->SetWndPos			(pos);
+
+	Frect crect							= pUILenseCircle->GetWndRect();
+	if (crect.left >= UI_BASE_WIDTH || crect.right <= 0.f || crect.top >= UI_BASE_HEIGHT || crect.bottom <= 0.f)
 	{
-		float magnification				= 0.f;
-		if (m_Magnificaion.dynamic)
-			magnification				= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
-		float cur_eye_relief			= m_eye_relief * (1.f - magnification * s_magnification_eye_relief_shrink);
-		float offset					= m_camera_lense_offset.magnitude() / cur_eye_relief;
-
-		float scale						= s_lense_circle_scale_default * pow(min(offset, 1.f), s_lense_circle_scale_offset_power);
-		Fvector2 pos					= derivation;
-		pos.mul							(s_lense_circle_position_derivation_factor);
-		pUILenseCircle->SetScale		(lense_scale * scale);
-		pUILenseCircle->SetWndPos		(pos);
+		pUILenseBlackFill->SetWndRect	({ 0.f, 0.f, UI_BASE_WIDTH, UI_BASE_HEIGHT });
+		pUILenseBlackFill->Draw			();
+	}
+	else
+	{
+		if (crect.top > 0.f)
+		{
+			pUILenseBlackFill->SetWndRect({ 0.f, 0.f, crect.right, crect.top + 1.f });
+			pUILenseBlackFill->Draw		();
+		}
+		if (crect.right < UI_BASE_WIDTH)
+		{
+			pUILenseBlackFill->SetWndRect({ crect.right - 1.f, 0.f, UI_BASE_WIDTH, crect.bottom });
+			pUILenseBlackFill->Draw		();
+		}
+		if (crect.bottom < UI_BASE_HEIGHT)
+		{
+			pUILenseBlackFill->SetWndRect({ crect.left, crect.bottom - 1.f, UI_BASE_WIDTH, UI_BASE_HEIGHT });
+			pUILenseBlackFill->Draw		();
+		}
+		if (crect.left > 0.f)
+		{
+			pUILenseBlackFill->SetWndRect({ 0.f, crect.top, crect.left + 1.f, UI_BASE_HEIGHT });
+			pUILenseBlackFill->Draw		();
+		}
+		
 		pUILenseCircle->Draw			();
 
 		if (offset > 1.f)
@@ -251,28 +286,16 @@ void CScope::RenderUI()
 			pUILenseVignette->SetScale	(lense_scale * scale);
 			pUILenseVignette->Draw		();
 		}
-
-		Frect crect						= pUILenseCircle->GetWndRect();
-		pUILenseBlackFill->SetWndRect	(Frect().set(0.f, 0.f, crect.right, crect.top));
-		pUILenseBlackFill->Draw			();
-		pUILenseBlackFill->SetWndRect	(Frect().set(crect.right, 0.f, UI_BASE_WIDTH, crect.bottom));
-		pUILenseBlackFill->Draw			();
-		pUILenseBlackFill->SetWndRect	(Frect().set(crect.left, crect.bottom, UI_BASE_WIDTH, UI_BASE_HEIGHT));
-		pUILenseBlackFill->Draw			();
-		pUILenseBlackFill->SetWndRect	(Frect().set(0.f, crect.top, crect.left, UI_BASE_HEIGHT));
-		pUILenseBlackFill->Draw			();
-	}
-	else
-	{
-		pUILenseBlackFill->SetWndRect	({ 0.f, 0.f, UI_BASE_WIDTH, UI_BASE_HEIGHT });
-		pUILenseBlackFill->Draw			();
 	}
 	
 	if (m_pUIReticle)
 	{
 		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
+		Fvector2 derivation				= { hud_params.x * UI_BASE_WIDTH, hud_params.y * UI_BASE_HEIGHT };
+
 		m_pUIReticle->SetScale			(lense_scale * magnification);
 		m_pUIReticle->SetWndPos			(derivation);
+		m_pUIReticle->SetHeading		(d_hpb.z);
 		m_pUIReticle->Draw				();
 	}
 	
@@ -291,15 +314,25 @@ void CScope::RenderUI()
 
 void CScope::updateCameraLenseOffset()
 {
+	static Fmatrix						trans;
+	static Fmatrix						itrans;
+	static Fvector						camera_lense_offset;
+
 	auto addon							= cast<CAddon*>();
-	Fmatrix CR$ transform				= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
-	transform.transform_tiny			(m_camera_lense_offset, m_sight_position);
-	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
+	trans								= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	trans.applyOffset					(m_sight_position, vZero);
+
+	camera_lense_offset					= trans.c;
+	camera_lense_offset.sub				(Actor()->Cameras().Position());
+	m_camera_lense_distance				= camera_lense_offset.magnitude();
+
+	itrans.invert						(trans);
+	itrans.transform_tiny				(m_cam_pos_ort, Actor()->Cameras().Position());
 }
 
 float CScope::getLenseFovTan()
 {
-	return								m_lense_radius / m_camera_lense_offset.magnitude();
+	return								m_lense_radius / m_camera_lense_distance;
 }
 
 float CScope::GetReticleScale() const

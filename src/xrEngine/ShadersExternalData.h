@@ -5,7 +5,7 @@ class ShadersExternalData //--#SM+#--
 {
 public:
 	Fmatrix m_script_params; // Матрица, значения которой доступны из Lua
-	Fvector4 hud_params;      // [x offset, y offset, reticle scale, NULL] - Параметры худа оружия
+	Fvector4 hud_params;      // [x offset, y offset, roll, scale] - Параметры худа оружия
 	Fvector4 m_blender_mode; // x\y = [0 - default, 1 - night vision, 2 - thermo vision, ... см. common.h] - Режимы рендеринга
 							 // x - основной вьюпорт, y - второй вьюпорт, z = ?, w = [0 - идёт рендер обычного объекта, 1 - идёт рендер детальных объектов (трава, мусор)]
 
