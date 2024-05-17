@@ -9,22 +9,96 @@
 #include "weapon_hud.h"
 #include "addon.h"
 #include "ActorEffector.h"
+#include "ai_sounds.h"
 
 CUIStatic* pUILenseCircle				= NULL;
 CUIStatic* pUILenseVignette				= NULL;
 CUIStatic* pUILenseBlackFill			= NULL;
 CUIStatic* pUILenseGlass				= NULL;
 
-void createStatic(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment al = aCenter)
+float CScope::s_magnification_eye_relief_shrink;
+float CScope::s_lense_circle_scale_default;
+float CScope::s_lense_circle_scale_offset_power;
+float CScope::s_lense_circle_position_derivation_factor;
+float CScope::s_lense_vignette_a;
+float CScope::s_lense_vignette_b;
+
+ref_sound CScope::m_zoom_sound;
+ref_sound CScope::m_zeroing_sound;
+
+void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = aCenter)
 {
 	dest								= xr_new<CUIStatic>();
 	dest->InitTextureEx					(texture);
-	dest->SetTextureRect				({ 0.f, 0.f, mult * 1024.f, mult * 1024.f });
+	dest->SetTextureRect				({ 0.f, 0.f, size, size });
 	dest->SetPosSize					(2, 100.f, sScreenHeight);
 	dest->SetPosSize					(3, 100.f, sScreenHeight);
 	dest->SetAlignment					(al);
 	dest->SetAnchor						(al);
 	dest->SetStretchTexture				(true);
+}
+
+void CScope::loadStaticVariables()
+{
+	s_magnification_eye_relief_shrink	= pSettings->r_float("scope_manager", "magnification_eye_relief_shrink");
+	s_lense_circle_scale_default		= pSettings->r_float("scope_manager", "lense_circle_scale_default");
+	s_lense_circle_scale_offset_power	= pSettings->r_float("scope_manager", "lense_circle_scale_offset_power");
+	s_lense_circle_position_derivation_factor = pSettings->r_float("scope_manager", "lense_circle_position_derivation_factor");
+
+	float lense_vignette_offset_max		= pSettings->r_float("scope_manager", "lense_vignette_offset_max");
+	float lense_vignette_scale_max		= pSettings->r_float("scope_manager", "lense_vignette_scale_max");
+	CScope::s_lense_vignette_a			= lense_vignette_scale_max * (1.f - lense_vignette_offset_max) / (1.f - lense_vignette_scale_max);
+	CScope::s_lense_vignette_b			= CScope::s_lense_vignette_a - lense_vignette_offset_max;
+	
+	float lense_circle_size				= pSettings->r_float("scope_manager", "lense_circle_size");
+	float lense_vignette_size			= pSettings->r_float("scope_manager", "lense_vignette_size");
+	float lense_black_fill_size			= pSettings->r_float("scope_manager", "lense_black_fill_size");
+	float lense_glass_size				= pSettings->r_float("scope_manager", "lense_glass_size");
+
+	createStatic						(pUILenseCircle, "wpn\\lense\\circle", lense_circle_size);
+	createStatic						(pUILenseVignette, "wpn\\lense\\vignette", lense_vignette_size);
+	createStatic						(pUILenseBlackFill, "wpn\\lense\\black_fill", lense_black_fill_size, aLeftTop);
+	createStatic						(pUILenseGlass, "wpn\\lense\\glass", lense_glass_size);
+	
+	LPCSTR zoom_sound					= pSettings->r_string("scope_manager", "zoom_sound");
+	LPCSTR zeroing_sound				= pSettings->r_string("scope_manager", "zeroing_sound");
+	m_zoom_sound.create					(zoom_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+	m_zeroing_sound.create				(zeroing_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+}
+
+void CScope::cleanStaticVariables()
+{
+	xr_delete							(pUILenseCircle);
+	xr_delete							(pUILenseVignette);
+	xr_delete							(pUILenseBlackFill);
+	xr_delete							(pUILenseGlass);
+
+	m_zoom_sound.destroy				();
+	m_zeroing_sound.destroy				();
+}
+
+void CScope::ZoomChange(int val)
+{
+	if (val > 0 && m_Magnificaion.current < m_Magnificaion.vmax ||
+		val < 0 && m_Magnificaion.current > m_Magnificaion.vmin)
+	{
+		m_Magnificaion.Shift			(val);
+		ref_sound						snd;
+		snd.clone						(m_zoom_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+		snd.play						(O.Cast<CObject*>(), sm_2D);
+	}
+}
+
+void CScope::ZeroingChange(int val)
+{
+	if (val > 0 && m_Zeroing.current < m_Zeroing.vmax ||
+		val < 0 && m_Zeroing.current > m_Zeroing.vmin)
+	{
+		m_Zeroing.Shift					(val);
+		ref_sound						snd;
+		snd.clone						(m_zeroing_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+		snd.play						(O.Cast<CObject*>(), sm_2D);
+	}
 }
 
 CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
@@ -40,6 +114,8 @@ m_sight_position(pSettings->r_fvector3(section, "sight_position"))
 			m_objective_offset			= pSettings->r_fvector3(section, "objective_offset");
 			m_eye_relief				= pSettings->r_float(section, "eye_relief");
 			m_Reticle					= pSettings->r_string(section, "reticle");
+			m_reticle_size				= pSettings->r_float(section, "reticle_size");
+			m_is_FFP					= !!pSettings->r_bool(section, "first_focal_plane");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
 			init_visors					();
@@ -104,7 +180,7 @@ void CScope::init_visors()
 {
 	xr_delete							(m_pUIReticle);
 	if (m_Reticle.size())
-		createStatic					(m_pUIReticle, shared_str().printf("wpn\\reticle\\%s", *m_Reticle).c_str());
+		createStatic					(m_pUIReticle, *shared_str().printf("wpn\\reticle\\%s", *m_Reticle), m_reticle_size);
 
 	xr_delete							(m_pVision);
 	if (m_AliveDetector.size())
@@ -194,7 +270,8 @@ void CScope::RenderUI()
 	
 	if (m_pUIReticle)
 	{
-		m_pUIReticle->SetScale			(lense_scale);
+		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
+		m_pUIReticle->SetScale			(lense_scale * magnification);
 		m_pUIReticle->SetWndPos			(derivation);
 		m_pUIReticle->Draw				();
 	}

@@ -107,9 +107,6 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 		}
 	}
 
-	if (O.GetState() == CWeapon::eReload)
-		return							 eArmed;
-
 	if (!O.ArmedMode())
 	{
 		if (O.HandSlot() == BOTH_HANDS_SLOT)

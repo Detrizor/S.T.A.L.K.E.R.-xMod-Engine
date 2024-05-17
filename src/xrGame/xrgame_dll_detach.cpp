@@ -163,20 +163,6 @@ SPowerDependency CWeaponHud::HandlingToRotationTime;
 
 float CFireDispertionController::crosshair_inertion;
 
-
-float CScope::s_magnification_eye_relief_shrink;
-float CScope::s_lense_circle_scale_default;
-float CScope::s_lense_circle_scale_offset_power;
-float CScope::s_lense_circle_position_derivation_factor;
-float CScope::s_lense_vignette_a;
-float CScope::s_lense_vignette_b;
-
-extern CUIStatic*			pUILenseCircle;
-extern CUIStatic*			pUILenseVignette;
-extern CUIStatic*			pUILenseBlackFill;
-extern CUIStatic*			pUILenseGlass;
-extern void createStatic	(CUIStatic*& dest, LPCSTR texture, float mult = 1.f, EAlignment al = aCenter);
-
 void loadStaticVariables()
 {
 	CEntityCondition::HitTypeHeadPart.resize						(ALife::eHitTypeMax);
@@ -218,35 +204,17 @@ void loadStaticVariables()
 	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
 	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
 
-	CScope::s_magnification_eye_relief_shrink			= pSettings->r_float("weapon_manager", "magnification_eye_relief_shrink");
-	CScope::s_lense_circle_scale_default				= pSettings->r_float("weapon_manager", "lense_circle_scale_default");
-	CScope::s_lense_circle_scale_offset_power			= pSettings->r_float("weapon_manager", "lense_circle_scale_offset_power");
-	CScope::s_lense_circle_position_derivation_factor	= pSettings->r_float("weapon_manager", "lense_circle_position_derivation_factor");
+	psAIM_FOV							= pSettings->r_float("weapon_manager", "aim_fov");
+	aim_fov_tan							= tanf(psAIM_FOV * (0.5f * PI / 180.f));
 
-	float lense_vignette_offset_max			= pSettings->r_float("weapon_manager", "lense_vignette_offset_max");
-	float lense_vignette_scale_max			= pSettings->r_float("weapon_manager", "lense_vignette_scale_max");
-	CScope::s_lense_vignette_a				= lense_vignette_scale_max * (1.f - lense_vignette_offset_max) / (1.f - lense_vignette_scale_max);
-	CScope::s_lense_vignette_b				= CScope::s_lense_vignette_a - lense_vignette_offset_max;
-
-	psAIM_FOV		= pSettings->r_float("weapon_manager", "aim_fov");
-	aim_fov_tan		= tanf(psAIM_FOV * (0.5f * PI / 180.f));
-
-	g_items_library = xr_new<CItemsLibrary>();
-
-	createStatic(pUILenseCircle, "wpn\\lense\\circle", 4.f);
-	createStatic(pUILenseVignette, "wpn\\lense\\vignette", 4.f);
-	createStatic(pUILenseBlackFill, "wpn\\lense\\black_fill", .125f, aLeftTop);
-	createStatic(pUILenseGlass, "wpn\\lense\\glass");
+	g_items_library						= xr_new<CItemsLibrary>();
 
 	CCartridge::loadStaticVariables		();
 	SBoneProtections::loadStaticVariables();
+	CScope::loadStaticVariables			();
 }
 
 void cleanStaticVariables()
 {
 	xr_delete(g_items_library);
-	xr_delete(pUILenseCircle);
-	xr_delete(pUILenseVignette);
-	xr_delete(pUILenseBlackFill);
-	xr_delete(pUILenseGlass);
 }

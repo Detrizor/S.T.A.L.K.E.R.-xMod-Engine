@@ -14,6 +14,7 @@ class CBinocularsVision;
 class CNightVisionEffector;
 class CWeaponHud;
 class CAddon;
+struct ref_sound;
 
 struct hud_item_measures;
 
@@ -48,6 +49,16 @@ public:
 										~CScope									();
 
 private:
+	static float						s_magnification_eye_relief_shrink;
+	static float						s_lense_circle_scale_default;
+	static float						s_lense_circle_scale_offset_power;
+	static float						s_lense_circle_position_derivation_factor;
+	static float						s_lense_vignette_a;
+	static float						s_lense_vignette_b;
+
+	static ref_sound					m_zoom_sound;
+	static ref_sound					m_zeroing_sound;
+
 	const eScopeType					m_Type;
 	const Fvector						m_sight_position;
 	
@@ -65,6 +76,8 @@ private:
 	Fvector								m_objective_offset;
 	float								m_eye_relief;
 	shared_str							m_Reticle;
+	float								m_reticle_size;
+	bool								m_is_FFP;
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
 	
@@ -72,15 +85,11 @@ private:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	static float						s_magnification_eye_relief_shrink;
-	static float						s_lense_circle_scale_default;
-	static float						s_lense_circle_scale_offset_power;
-	static float						s_lense_circle_position_derivation_factor;
-	static float						s_lense_vignette_a;
-	static float						s_lense_vignette_b;
+	static void							loadStaticVariables						();
+	static void							cleanStaticVariables					();
 
-	void								ZoomChange								(int val)			{ m_Magnificaion.Shift(val); }
-	void								ZeroingChange							(int val)			{ m_Zeroing.Shift(val); }
+	void								ZoomChange								(int val);
+	void								ZeroingChange							(int val);
 	void								setHudOffset							(Fvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
 	void								setMagnificaiton						(float val)			{ m_Magnificaion.current = val; }
 	void								setZeroing								(u16 val)			{ m_Zeroing.current = val; }
