@@ -329,33 +329,22 @@ void CUITalkWnd::AddAnswer(const shared_str& text, LPCSTR SpeakerName)
 
 void CUITalkWnd::SwitchToTrade()
 {
-	if ( m_pOurInvOwner->IsTradeEnabled() && m_pOthersInvOwner->IsTradeEnabled() )
+	if (m_pOurInvOwner->IsTradeEnabled() && m_pOthersInvOwner->IsTradeEnabled())
 	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>( CurrentGameUI() );
-		if ( pGameSP )
+		if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
 		{
-/*			if ( pGameSP->MainInputReceiver() )
-			{
-				pGameSP->MainInputReceiver()->HideDialog();
-			}*/
-			pGameSP->StartTrade	(m_pOurInvOwner, m_pOthersInvOwner);
-		} // pGameSP
+			pGameSP->StartTrade(m_pOurInvOwner, m_pOthersInvOwner);
+			HideDialog();
+		}
 	}
 }
 
 void CUITalkWnd::SwitchToUpgrade()
 {
-	//if ( m_pOurInvOwner->IsInvUpgradeEnabled() && m_pOthersInvOwner->IsInvUpgradeEnabled() )
+	if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
 	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI());
-		if ( pGameSP )
-		{
-/*			if ( pGameSP->MainInputReceiver() )
-			{
-				pGameSP->MainInputReceiver()->HideDialog();
-			}*/
-			pGameSP->StartUpgrade(m_pOurInvOwner, m_pOthersInvOwner);
-		}
+		pGameSP->StartUpgrade(m_pOurInvOwner, m_pOthersInvOwner);
+		HideDialog();
 	}
 }
 

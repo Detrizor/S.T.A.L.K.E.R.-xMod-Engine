@@ -430,20 +430,14 @@ bool CUIActorMenu::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 	if ((is_binded(kUSE, dik) || is_binded(kINVENTORY, dik)) && m_currMenuMode != mmInventory)
 	{
 		if (WINDOW_KEY_PRESSED == keyboard_action)
-		{
-			g_btnHint->Discard();
-			HideDialog();
-		}
+			OnBtnExitClicked(nullptr, nullptr);
 		return true;
 	}
 
 	if (is_binded(kINVENTORY, dik) || is_binded(kQUIT, dik))
 	{
 		if (WINDOW_KEY_PRESSED == keyboard_action)
-		{
-			g_btnHint->Discard();
-			HideDialog();
-		}
+			OnBtnExitClicked(nullptr, nullptr);
 		return true;
 	}
 
@@ -473,8 +467,16 @@ void CUIActorMenu::OnPressUserKey()
 
 void CUIActorMenu::OnBtnExitClicked(CUIWindow* w, void* d)
 {
-	g_btnHint->Discard();
-	HideDialog();
+	switch (m_currMenuMode)
+	{
+	case mmTrade:
+	case mmUpgrade:
+		m_pActorInvOwner->O->Cast<CActor*>()->RunTalkDialog(m_pPartnerInvOwner, false);
+		break;
+	default:
+		g_btnHint->Discard();
+		HideDialog();
+	}
 }
 
 void CUIActorMenu::OnMesBoxYes( CUIWindow*, void* )
