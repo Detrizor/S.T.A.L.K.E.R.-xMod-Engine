@@ -469,14 +469,14 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 		{
 		case kL_STRAFE:
 		case kR_STRAFE:
-		case kUP:
-		case kDOWN:
+		case kLEFT:
+		case kRIGHT:
 			axis						= 0;
 			break;
 		case kFWD:
 		case kBACK:
-		case kLEFT:
-		case kRIGHT:
+		case kUP:
+		case kDOWN:
 			axis						= 1;
 			break;
 		case kL_LOOKOUT:
@@ -497,7 +497,7 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 		if (axis != -1)
 		{
 			float val					= 0.0001f;
-			if (cmd == kL_STRAFE || cmd == kLEFT || cmd == kBACK || cmd == kUP || cmd == kL_LOOKOUT)
+			if (cmd == kL_STRAFE || cmd == kRIGHT || cmd == kBACK || cmd == kDOWN || cmd == kL_LOOKOUT)
 				val						*= -1.f;
 			if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
 				val						*= pInput->iGetAsyncKeyState(DIK_LALT) ? .1f : 100.f;
