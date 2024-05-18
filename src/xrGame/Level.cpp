@@ -811,7 +811,7 @@ void CLevel::OnRender()
 void CLevel::ApplyCamera()
 {
 	if (Actor())
-		Actor()->Cameras().ApplyDevice(VIEWPORT_NEAR / 3.f);
+		Actor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
 }
 
 void CLevel::OnEvent(EVENT E, u64 P1, u64 /**P2/**/)
