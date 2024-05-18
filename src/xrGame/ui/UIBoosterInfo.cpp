@@ -113,7 +113,7 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 
 	m_impair							= xr_new<UIBoosterInfoItem>();
 	m_impair->Init						(xml, "impair");
-	m_impair->SetCaption				(*CStringTable().translate("ui_bullet_pulse"));
+	m_impair->SetCaption				(*CStringTable().translate("ui_impair"));
 	xml.SetLocalRoot					(base_node);
 
 	m_ammo_type							= xr_new<UIBoosterInfoItem>();

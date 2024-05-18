@@ -517,10 +517,13 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 
 Fvector CWeaponHud::getMuzzleSightOffset() const
 {
-	Fvector sight_position				= vZero;
-	sight_position.sub					(get_target_hud_offset()[0]);
-	CScope* scope						= O.getActiveScope();
-	if (scope && scope->Type() == eOptics)
-		sight_position.add				(scope->getObjectiveOffset());
-	return								sight_position.sub(O.m_muzzle_point);
+	Fmatrix sight_trans					= Fidentity;
+	sight_trans.applyOffset				(get_target_hud_offset());
+	if (auto scope = O.getActiveScope())
+		if (scope->Type() == eOptics)
+			sight_trans.translate_add	(scope->getObjectiveOffset());
+
+	Fvector								muzzle_point;
+	sight_trans.transform_tiny			(muzzle_point, O.m_muzzle_point);
+	return								muzzle_point.mul(-1.f);
 }
