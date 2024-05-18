@@ -24,6 +24,7 @@ SPowerDependency CScope::s_lense_circle_pos_from_axis;
 SPowerDependency CScope::s_lense_circle_pos_from_zoom;
 float CScope::s_lense_vignette_a;
 float CScope::s_lense_vignette_b;
+float CScope::s_lense_vignette_scale_min;
 
 ref_sound CScope::m_zoom_sound;
 ref_sound CScope::m_zeroing_sound;
@@ -42,42 +43,44 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = 
 
 void CScope::loadStaticVariables()
 {
-	s_magnification_eye_relief_shrink	= pSettings->r_float("scope_manager", "magnification_eye_relief_shrink");
+	float lense_circle_size				= pSettings->r_float("scope_manager", "lense_circle_texture_size");
 	s_lense_circle_scale_default		= pSettings->r_float("scope_manager", "lense_circle_scale_default");
 	s_lense_circle_scale_offset_power	= pSettings->r_float("scope_manager", "lense_circle_scale_offset_power");
 	s_lense_circle_pos_from_axis.Load	("scope_manager", "lense_circle_pos_from_axis");
 	s_lense_circle_pos_from_zoom.Load	("scope_manager", "lense_circle_pos_from_zoom");
-
-	float lense_vignette_offset_max		= pSettings->r_float("scope_manager", "lense_vignette_offset_max");
-	float lense_vignette_scale_max		= pSettings->r_float("scope_manager", "lense_vignette_scale_max");
-	CScope::s_lense_vignette_a			= lense_vignette_scale_max * (1.f - lense_vignette_offset_max) / (1.f - lense_vignette_scale_max);
-	CScope::s_lense_vignette_b			= CScope::s_lense_vignette_a - lense_vignette_offset_max;
 	
-	float lense_circle_size				= pSettings->r_float("scope_manager", "lense_circle_size");
-	float lense_vignette_size			= pSettings->r_float("scope_manager", "lense_vignette_size");
-	float lense_black_fill_size			= pSettings->r_float("scope_manager", "lense_black_fill_size");
-	float lense_glass_size				= pSettings->r_float("scope_manager", "lense_glass_size");
-
-	createStatic						(pUILenseCircle, "wpn\\lense\\circle", lense_circle_size);
-	createStatic						(pUILenseVignette, "wpn\\lense\\vignette", lense_vignette_size);
-	createStatic						(pUILenseBlackFill, "wpn\\lense\\black_fill", lense_black_fill_size, aLeftTop);
-	createStatic						(pUILenseGlass, "wpn\\lense\\glass", lense_glass_size);
+	float lense_vignette_size			= pSettings->r_float("scope_manager", "lense_vignette_texture_size");
+	float offset_max					= pSettings->r_float("scope_manager", "lense_vignette_offset_max");
+	float scale_max						= pSettings->r_float("scope_manager", "lense_vignette_scale_max");
+	s_lense_vignette_scale_min			= pSettings->r_float("scope_manager", "lense_vignette_scale_min");
+	s_lense_vignette_a					= scale_max * (1.f - s_lense_vignette_scale_min * offset_max) / (1.f - scale_max);
+	s_lense_vignette_b					= s_lense_vignette_a / scale_max - 1.f;
+	
+	s_magnification_eye_relief_shrink	= pSettings->r_float("scope_manager", "magnification_eye_relief_shrink");
+	float lense_black_fill_size			= pSettings->r_float("scope_manager", "lense_black_fill_texture_size");
+	float lense_glass_size				= pSettings->r_float("scope_manager", "lense_glass_texture_size");
 	
 	LPCSTR zoom_sound					= pSettings->r_string("scope_manager", "zoom_sound");
 	LPCSTR zeroing_sound				= pSettings->r_string("scope_manager", "zeroing_sound");
+
 	m_zoom_sound.create					(zoom_sound, st_Effect, SOUND_TYPE_NO_SOUND);
 	m_zeroing_sound.create				(zeroing_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+	
+	createStatic						(pUILenseGlass, "wpn\\lense\\glass", lense_glass_size);
+	createStatic						(pUILenseCircle, "wpn\\lense\\circle", lense_circle_size);
+	createStatic						(pUILenseVignette, "wpn\\lense\\vignette", lense_vignette_size);
+	createStatic						(pUILenseBlackFill, "wpn\\lense\\black_fill", lense_black_fill_size, aLeftTop);
 }
 
 void CScope::cleanStaticVariables()
 {
+	m_zoom_sound.destroy				();
+	m_zeroing_sound.destroy				();
+
+	xr_delete							(pUILenseGlass);
 	xr_delete							(pUILenseCircle);
 	xr_delete							(pUILenseVignette);
 	xr_delete							(pUILenseBlackFill);
-	xr_delete							(pUILenseGlass);
-
-	m_zoom_sound.destroy				();
-	m_zeroing_sound.destroy				();
 }
 
 void CScope::ZoomChange(int val)
@@ -282,7 +285,7 @@ void CScope::RenderUI()
 
 		if (offset > 1.f)
 		{
-			scale						= max(s_lense_vignette_a / (offset + s_lense_vignette_b), 1.f);
+			scale						= max(s_lense_vignette_a / (offset + s_lense_vignette_b), s_lense_vignette_scale_min);
 			pUILenseVignette->SetScale	(lense_scale * scale);
 			pUILenseVignette->Draw		();
 		}
@@ -291,7 +294,7 @@ void CScope::RenderUI()
 	if (m_pUIReticle)
 	{
 		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
-		Fvector2 derivation				= { hud_params.x * UI_BASE_WIDTH, hud_params.y * UI_BASE_HEIGHT };
+		Fvector2 derivation				= { hud_params.x * UI_BASE_HEIGHT, hud_params.y * UI_BASE_HEIGHT };
 
 		m_pUIReticle->SetScale			(lense_scale * magnification);
 		m_pUIReticle->SetWndPos			(derivation);
@@ -314,18 +317,15 @@ void CScope::RenderUI()
 
 void CScope::updateCameraLenseOffset()
 {
-	static Fmatrix						trans;
-	static Fmatrix						itrans;
-	static Fvector						camera_lense_offset;
-
 	auto addon							= cast<CAddon*>();
-	trans								= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	Fmatrix trans						= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
 	trans.applyOffset					(m_sight_position, vZero);
 
-	camera_lense_offset					= trans.c;
+	Fvector camera_lense_offset			= trans.c;
 	camera_lense_offset.sub				(Actor()->Cameras().Position());
 	m_camera_lense_distance				= camera_lense_offset.magnitude();
 
+	Fmatrix								itrans;
 	itrans.invert						(trans);
 	itrans.transform_tiny				(m_cam_pos_ort, Actor()->Cameras().Position());
 }

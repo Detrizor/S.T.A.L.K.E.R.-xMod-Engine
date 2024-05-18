@@ -57,6 +57,7 @@ private:
 	static SPowerDependency				s_lense_circle_pos_from_zoom;
 	static float						s_lense_vignette_a;
 	static float						s_lense_vignette_b;
+	static float						s_lense_vignette_scale_min;
 
 	static ref_sound					m_zoom_sound;
 	static ref_sound					m_zeroing_sound;
