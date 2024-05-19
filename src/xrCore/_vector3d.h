@@ -509,6 +509,16 @@ public:
 	{
 		offset[0].add(rotate_(offset[1]));
 	}
+
+	explicit operator _vector3<double>() const
+	{
+		return _vector3<double>().set(*this);
+	}
+
+	explicit operator _vector3<float>() const
+	{
+		return _vector3<float>().set(*this);
+	}
 };
 
 typedef _vector3<float> Fvector;
@@ -599,3 +609,5 @@ IC BOOL exact_normalize(Fvector3& a) { return exact_normalize(&a.x); }
 constexpr Fvector vZero			= { 0.f, 0.f, 0.f };
 constexpr Fvector vOne			= { 1.f, 1.f, 1.f };
 constexpr Fvector vForward		= { 0.f, 0.f, 1.f };
+
+constexpr Dvector dZero			= { 0., 0., 0. };

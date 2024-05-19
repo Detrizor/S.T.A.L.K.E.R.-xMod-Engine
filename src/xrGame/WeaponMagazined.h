@@ -181,7 +181,7 @@ public:
 
 	void								modify_holder_params				CO$	(float& range, float& fov);
 
-	void								UpdateHudAdditional					O$	(Fmatrix& trans);
+	void								UpdateHudAdditional					O$	(Dmatrix& trans);
 	bool								need_renderable						O$	();
 	bool								render_item_ui_query				O$	();
 	void								render_item_ui						O$	();

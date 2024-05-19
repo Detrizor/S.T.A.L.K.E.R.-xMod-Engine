@@ -22,6 +22,7 @@ class	R_dsgraph_structure										: public IRender_interface, public pureFrame
 public:
 	IRenderable*												val_pObject;
 	Fmatrix CP$													val_pTransform;
+	Fmatrix														val_Transform = Fidentity;
 	BOOL														val_bHUD;
 	BOOL														val_bInvisible;
 	BOOL														val_bRecordMP;		// record nearest for multi-pass
@@ -83,8 +84,9 @@ public:
 	u32															counter_D	;
 	BOOL														b_loaded	;
 public:
-	virtual		void					set_Transform			(Fmatrix CP$	M	)			{ VERIFY(M);	val_pTransform = M;	}
-	virtual		void					set_Transform			(Fmatrix CR$	M	)			{ val_pTransform = &M;				}
+				void					set_Transform			(Fmatrix CP$	M	) override	{ VERIFY(M);	val_pTransform = M;	}
+				void					set_Transform			(Fmatrix CR$	M	) override	{ val_pTransform = &M;				}
+				void					set_Transform			(Dmatrix CR$	M	) override	{ val_Transform = static_cast<Fmatrix>(M); val_pTransform = &val_Transform; }
 	virtual		void					set_HUD					(BOOL 		V	)				{ val_bHUD		= V;				}
 	virtual		BOOL					get_HUD					()								{ return		val_bHUD;			}
 	virtual		void					set_Invisible			(BOOL 		V	)				{ val_bInvisible= V;				}

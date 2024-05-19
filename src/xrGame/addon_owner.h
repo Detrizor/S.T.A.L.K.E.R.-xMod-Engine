@@ -13,18 +13,18 @@ public:
 										CAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
 
 private:
-	float								m_step;
+	double								m_step;
 	u16									m_overlaping_slot;
 	bool								m_has_loading_anim;
 
 	CAddon*								m_loading_addon							= nullptr;
 	u16									m_bone_id								= u16_max;
-	Fmatrix								m_bone_offset							= Fidentity;
+	Dmatrix								m_bone_offset							= Didentity;
 
 	int									get_spacing							C$	(CAddon CPC left, CAddon CPC right);
 	CAddon*								get_next_addon						C$	(xr_list<CAddon*>::iterator& I);
 	CAddon*								get_prev_addon						C$	(xr_list<CAddon*>::iterator& I);
-	void								append_bone_trans					C$	(Fmatrix& trans, IKinematics* model);
+	void								append_bone_trans					C$	(Dmatrix& trans, IKinematics* model);
 
 public:
 	CAddonOwner PC$						parent_ao;
@@ -33,7 +33,7 @@ public:
 	shared_str							name;
 	shared_str							type;
 	int									steps;
-	Fmatrix								model_offset;
+	Dmatrix								model_offset;
 	Fvector2							icon_offset;
 	float								icon_step;
 	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
@@ -45,7 +45,7 @@ public:
 	void								detachAddon								(CAddon* addon);
 	void								shiftAddon								(CAddon* addon, int shift);
 
-	void								updateAddonsHudTransform				(IKinematics* model, Fmatrix CR$ parent_trans);
+	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans);
 
 	void								startReloading							(CAddon* loading_addon);
 	void								loadingDetach							();

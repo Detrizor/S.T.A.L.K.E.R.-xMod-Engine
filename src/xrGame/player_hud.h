@@ -208,9 +208,9 @@ struct attachable_hud_item
 	hud_item_measures				m_measures;
 
 	//runtime positioning
-	Fmatrix							m_item_attach;
-	Fmatrix							m_hands_attach[2];
-	Fmatrix							m_transform;
+	Dmatrix							m_item_attach;
+	Dmatrix							m_hands_attach[2];
+	Dmatrix							m_transform;
 
 	player_hud_motion_container		m_hand_motions;
 			
@@ -227,7 +227,7 @@ struct attachable_hud_item
 	void debug_draw_firedeps		();
 
 	//hands bind position
-	Fmatrix CR$ hands_attach	C$	();
+	Dmatrix CR$ hands_attach	C$	();
 
 //props
 	u32								m_upd_firedeps_frame;
@@ -262,7 +262,7 @@ public:
 	void			detach_item			(CHudItem* item);
 	void			detach_all_items	(){m_attached_items[0]=NULL; m_attached_items[1]=NULL;};
 
-	void			calc_transform		(u16 attach_slot_idx, const Fmatrix& offset, Fmatrix& result);
+	void			calc_transform		(u16 attach_slot_idx, const Dmatrix& offset, Dmatrix& result);
 	void			tune				(Ivector values);
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
@@ -272,7 +272,7 @@ public:
 private:
 	shared_str							m_sect_name;
 
-	Fmatrix								m_transform;
+	Dmatrix								m_transform;
 	IKinematicsAnimated*				m_model;
 	xr_vector<u16>						m_ancors;
 	attachable_hud_item*				m_attached_items[2];

@@ -135,18 +135,18 @@ void CWeapon::UpdateXForm()
 void CWeapon::UpdateFireDependencies_internal()
 {
 	UpdateXForm							();
-
 	if (GetHUDmode())
 	{
 		auto hi							= HudItemData();
 		hi->update						(false);
+		Fmatrix ftrans					= static_cast<Fmatrix>(hi->m_transform);
 
-		hi->m_transform.transform_tiny	(vLastFP, m_muzzle_point);
-		hi->m_transform.transform_dir	(vLastFD, vForward);
+		ftrans.transform_tiny			(vLastFP, m_muzzle_point);
+		ftrans.transform_dir			(vLastFD, vForward);
 
 		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(m_shell_bone);
 		fire_mat.transform_tiny			(vLastSP, m_shell_point);
-		hi->m_transform.transform_tiny	(vLastSP);
+		ftrans.transform_tiny			(vLastSP);
 
 		m_FireParticlesXForm.identity	();
 		m_FireParticlesXForm.k.set		(vLastFD);
@@ -285,8 +285,6 @@ void CWeapon::Load(LPCSTR section)
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 	
 	m_root_bone_position				= pSettings->r_fvector3(section, "root_bone_position");
-	m_grip_offset						= m_root_bone_position;
-	m_grip_offset.sub					(pSettings->r_fvector3(section, "grip_point"));
 	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");
 	m_loaded_muzzle_point.sub			(m_root_bone_position);
 	m_muzzle_point						= m_loaded_muzzle_point;

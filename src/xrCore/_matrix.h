@@ -59,18 +59,6 @@ public:
 	};
 
 	// Class members
-	ICF SelfRef set(const Self& a)
-	{
-		i.set(a.i);
-		_14_ = a._14;
-		j.set(a.j);
-		_24_ = a._24;
-		k.set(a.k);
-		_34_ = a._34;
-		c.set(a.c);
-		_44_ = a._44;
-		return *this;
-	}
 	ICF SelfRef set(const Tvector& R, const Tvector& N, const Tvector& D, const Tvector& C)
 	{
 		i.set(R);
@@ -788,12 +776,21 @@ public:
 	IC void getXYZi(T& x, T& y, T& z) const { getHPB(y, x, z); x *= -1.f; y *= -1.f; z *= -1.f; }
 	IC void getXYZi(Tvector& xyz) const { getXYZ(xyz.x, xyz.y, xyz.z); xyz.mul(-1.f); }
 
+	SelfRef setOffset(const Tvector& position, const Tvector& rotation)
+	{
+		setHPBv							(rotation);
+		translate_over					(position);
+		return							*this;
+	}
+
+	SelfRef setOffset(Tvector const* offset)
+	{
+		return							setOffset(offset[0], offset[1]);
+	}
+
 	SelfRef applyOffset(const Tvector& position, const Tvector& rotation)
 	{
-		Fmatrix							offset;
-		offset.setHPBv					(rotation);
-		offset.translate_over			(position);
-		mulB_43							(offset);
+		mulB_43							(Self().setOffset(position, rotation));
 		return							*this;
 	}
 
@@ -807,6 +804,42 @@ public:
 		Self itrans						= Self().invert(*this);
 		dest[0]							= itrans.c;
 		itrans.getHPB					(dest[1]);
+	}
+
+	SelfRef set(_matrix<double> const& a)
+	{
+		i.set(a.i);
+		_14_ = a._14;
+		j.set(a.j);
+		_24_ = a._24;
+		k.set(a.k);
+		_34_ = a._34;
+		c.set(a.c);
+		_44_ = a._44;
+		return *this;
+	}
+
+	SelfRef set(_matrix<float> const& a)
+	{
+		i.set(a.i);
+		_14_ = a._14;
+		j.set(a.j);
+		_24_ = a._24;
+		k.set(a.k);
+		_34_ = a._34;
+		c.set(a.c);
+		_44_ = a._44;
+		return *this;
+	}
+
+	explicit operator _matrix<double>() const
+	{
+		return _matrix<double>().set(*this);
+	}
+
+	explicit operator _matrix<float>() const
+	{
+		return _matrix<float>().set(*this);
 	}
 };
 

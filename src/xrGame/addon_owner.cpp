@@ -167,25 +167,25 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	type								= pSettings->r_string(section, *tmp);
 
 	tmp.printf							("length_%d", idx);
-	float length						= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
+	double length						= static_cast<double>(READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.));
 
 	tmp.printf							("step_%d", idx);
 	if (pSettings->line_exist(section, tmp))
 	{
-		m_step							= pSettings->r_float(section, *tmp);
-		steps							= (int)roundf(length / m_step);
+		m_step							= static_cast<double>(pSettings->r_float(section, *tmp));
+		steps							= (int)round(length / m_step);
 	}
 	else
 	{
 		tmp.printf						("steps_%d", idx);
-		steps							= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 1);
+		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 1);
 		m_step							= length / (float(steps) + .5f);
 	}
 
 	tmp.printf							("model_offset_rot_%d", idx);
-	model_offset.setHPBv				(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero));
+	model_offset.setHPBv				(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero)));
 	tmp.printf							("model_offset_pos_%d", idx);
-	model_offset.translate_over			(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero));
+	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
@@ -206,11 +206,11 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	m_has_loading_anim					= attach == "magazine" || attach == "grenade";
 }
 
-void CAddonSlot::append_bone_trans(Fmatrix& trans, IKinematics* model) const
+void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
 {
 	if (m_bone_id != u16_max)
 	{
-		trans.mulB_43					(model->LL_GetTransform(m_bone_id));
+		trans.mulB_43					(static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id)));
 		trans.mulB_43					(m_bone_offset);
 	}
 }
@@ -376,11 +376,11 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 	}
 }
 
-void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Fmatrix CR$ parent_trans)
+void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans)
 {
 	for (auto addon : addons)
 	{
-		Fmatrix trans					= parent_trans;
+		Dmatrix trans					= parent_trans;
 		append_bone_trans				(trans, model);
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->cast<CAddonOwner*>())
@@ -436,7 +436,7 @@ void CAddonSlot::calculateBoneOffset(IKinematics* model, shared_str CR$ hud_sect
 		{
 			LPCSTR bone_name			= pSettings->r_string(hud_sect, *line);
 			m_bone_id					= model->LL_BoneID(bone_name);
-			m_bone_offset				= model->LL_GetTransform(m_bone_id);
+			m_bone_offset				= static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id));
 			m_bone_offset.invert		();
 		}
 	}
@@ -496,11 +496,11 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 
 void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 {
-	Fmatrix transform					= model_offset;
-	transform.c.z						+= float(addon->getSlotPos()) * m_step;
+	Dmatrix transform					= model_offset;
+	transform.c.z						+= static_cast<double>(addon->getSlotPos()) * m_step;
 	if (auto addon = parent_ao->cast<CAddon*>())
 		transform.mulA_43				(addon->getLocalTransform());
-	addon->updateLocalTransform			(transform);
+	addon->setLocalTransform			(transform);
 
 	if (auto ao = addon->cast<CAddonOwner*>())
 		for (auto s : ao->AddonSlots())

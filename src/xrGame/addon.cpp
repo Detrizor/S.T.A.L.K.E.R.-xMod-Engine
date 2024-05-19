@@ -37,18 +37,13 @@ void CAddon::RenderHud() const
 	::Render->add_Visual				(O.Visual());
 }
 
-void CAddon::RenderWorld(Fmatrix CR$ trans) const
+void CAddon::RenderWorld(Fmatrix CR$ parent_trans) const
 {
-	::Render->set_Transform				(Fmatrix().mul(trans, m_local_transform));
+	::Render->set_Transform				(static_cast<Dmatrix>(parent_trans).mulB_43(m_local_transform));
 	::Render->add_Visual				(O.Visual());
 }
 
-void CAddon::updateLocalTransform(Fmatrix CR$ parent_trans)
-{
-	m_local_transform					= parent_trans;
-}
-
-void CAddon::updateHudTransform(Fmatrix CR$ parent_trans)
+void CAddon::updateHudTransform(Dmatrix CR$ parent_trans)
 {
 	m_hud_transform.mul					(parent_trans, m_local_transform);
 }

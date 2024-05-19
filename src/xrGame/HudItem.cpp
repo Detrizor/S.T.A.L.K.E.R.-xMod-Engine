@@ -125,7 +125,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		PlayAnimBore();
 		if (HudItemData())
 		{
-			Fvector P = HudItemData()->m_transform.c;
+			Fvector P = static_cast<Fvector>(HudItemData()->m_transform.c);
 			m_sounds.PlaySound("sndBore", P, object().H_Root(), !!GetHUDmode(), false, m_started_rnd_anim_idx);
 		}
 
@@ -183,7 +183,7 @@ void CHudItem::SendHiddenItem()
 	SwitchState(eHiding);
 }
 
-void CHudItem::UpdateHudAdditional(Fmatrix& trans)
+void CHudItem::UpdateHudAdditional(Dmatrix& trans)
 {
 	CActor* pActor = smart_cast<CActor*>(object().H_Parent());
 	if (!pActor)
@@ -281,34 +281,20 @@ void CHudItem::UpdateHudAdditional(Fmatrix& trans)
 
 	clamp(fLR_Factor, -1.0f, 1.0f); // Фактор боковой ходьбы не должен превышать эти лимиты
 
-	Fvector curr_offs, curr_rot;
-	Fmatrix hud_rotation;
-	Fmatrix hud_rotation_y;
+	Dvector curr_offs, curr_rot;
 
-	if ((hi->m_measures.m_strafe_offset[2][0].x != 0.0f))
+	if (hi->m_measures.m_strafe_offset[2][0].x != 0.f)
 	{
 		// Смещение позиции худа в стрейфе
-		curr_offs = hi->m_measures.m_strafe_offset[0][0]; // pos
-		curr_offs.mul(fLR_Factor); // Умножаем на фактор стрейфа
+		curr_offs = static_cast<Dvector>(hi->m_measures.m_strafe_offset[0][0]); // pos
+		curr_offs.mul(static_cast<double>(fLR_Factor)); // Умножаем на фактор стрейфа
 
 		// Поворот худа в стрейфе
-		curr_rot = hi->m_measures.m_strafe_offset[1][0]; // rot
-		curr_rot.mul(-PI / 180.f); // Преобразуем углы в радианы
-		curr_rot.mul(fLR_Factor); // Умножаем на фактор стрейфа
+		curr_rot = static_cast<Dvector>(hi->m_measures.m_strafe_offset[1][0]); // rot
+		curr_rot.mul(-deg2rad(1.)); // Преобразуем углы в радианы
+		curr_rot.mul(static_cast<double>(fLR_Factor)); // Умножаем на фактор стрейфа
 
-		hud_rotation.identity();
-		hud_rotation.rotateX(curr_rot.x);
-
-		hud_rotation_y.identity();
-		hud_rotation_y.rotateY(curr_rot.y);
-		hud_rotation.mulA_43(hud_rotation_y);
-
-		hud_rotation_y.identity();
-		hud_rotation_y.rotateZ(curr_rot.z);
-		hud_rotation.mulA_43(hud_rotation_y);
-
-		hud_rotation.translate_over(curr_offs);
-		trans.mulB_43(hud_rotation);
+		trans.applyOffset(curr_offs, curr_rot);
 	}
 
 	//============= Инерция оружия =============//
@@ -396,9 +382,7 @@ void CHudItem::UpdateHudAdditional(Fmatrix& trans)
 
 	curr_offs = { fLR_lim * -1.f * m_fLR_InertiaFactor, fUD_lim * m_fUD_InertiaFactor, 0.0f };
 
-	hud_rotation.identity();
-	hud_rotation.translate_over(curr_offs);
-	trans.mulB_43(hud_rotation);
+	trans.applyOffset(curr_offs, dZero);
 }
 
 void CHudItem::UpdateCL()

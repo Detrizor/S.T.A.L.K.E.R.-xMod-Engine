@@ -35,19 +35,20 @@ public:
 private:
 	float								m_fRotationFactor						= 0.f;
 	bool								m_going_to_fire							= false;
-	Fvector								m_current_hud_offset[2]					= { vZero, vZero };
+	Dvector								m_current_hud_offset[2]					= { dZero, dZero };
 
-	Fvector								m_hud_offset[eTotal][2];
+	Dvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;
+	Dvector								m_grip_offset;
 
 	EHandsOffset						get_target_hud_offset_idx			C$	();
-	Fvector CP$							get_target_hud_offset				C$	();
+	Dvector CP$							get_target_hud_offset				C$	();
 
 public:
 	static SPowerDependency				HandlingToRotationTime;
 
 	void								InitRotateTime							(float cif);
-	void								UpdateHudAdditional						(Fmatrix& trans);
+	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessGL								(CGrenadeLauncher* gl);
 

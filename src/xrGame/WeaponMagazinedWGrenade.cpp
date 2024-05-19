@@ -266,10 +266,10 @@ void CWeaponMagazinedWGrenade::process_gl(CGrenadeLauncher* gl, bool attach)
 		m_flame_particles_gl_name		= gl->FlameParticles();
 		m_sounds.LoadSound				(*gl->O.cNameSect(), "snd_shoot_grenade", "sndShotG", true, m_eSoundShot);
 
-		Fmatrix trans					= gl->m_slot->model_offset;
+		Dmatrix trans					= gl->m_slot->model_offset;
 		if (auto addon = gl->cast<CAddon*>())
 			trans.mulA_43				(addon->getLocalTransform());
-		m_muzzle_point_gl				= trans.c;
+		m_muzzle_point_gl				= static_cast<Fvector>(trans.c);
 	}
 }
 
@@ -278,7 +278,7 @@ Fvector CR$ CWeaponMagazinedWGrenade::fire_point_gl()
 	if (m_fire_point_gl_update_frame != Device.dwFrame && m_pLauncher)
 	{
 		auto hi							= HudItemData();
-		Fmatrix CR$ trans				= (hi) ? hi->m_transform : XFORM();
+		Fmatrix trans					= (hi) ? static_cast<Fmatrix>(hi->m_transform) : XFORM();
 		trans.transform_tiny			(m_fire_point_gl, m_muzzle_point_gl);
 		m_fire_point_gl_update_frame	= Device.dwFrame;
 	}

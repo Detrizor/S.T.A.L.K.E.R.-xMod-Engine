@@ -125,9 +125,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 			if (s->attach == "magazine")
 				m_magazine_slot			= s;
 			if (s->attach == "muzzle")
-				s->model_offset.translate_add(m_loaded_muzzle_point);
+				s->model_offset.translate_add(static_cast<Dvector>(m_loaded_muzzle_point));
 			else
-				s->model_offset.translate_sub(m_root_bone_position);
+				s->model_offset.translate_sub(static_cast<Dvector>(m_root_bone_position));
 		}
 	}
 	
@@ -1244,7 +1244,7 @@ void CWeaponMagazined::OnTaken()
 	UpdateSndShot();
 }
 
-void CWeaponMagazined::UpdateHudAdditional(Fmatrix& trans)
+void CWeaponMagazined::UpdateHudAdditional(Dmatrix& trans)
 {
 	m_hud->UpdateHudAdditional(trans);
 }
@@ -1300,14 +1300,14 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	
 	static Fmatrix						cam_trans;
 	static Fvector						cam_hpb;
-	static Fvector						self_hpb;
+	static Dvector						self_hpb;
 	static Fvector						d_hpb;
 
 	camera.camera_Matrix				(cam_trans);
 	cam_trans.getHPB					(cam_hpb);
 	HudItemData()->m_transform.getHPB	(self_hpb);
 	d_hpb								= cam_hpb;
-	d_hpb.sub							(self_hpb);
+	d_hpb.sub							(static_cast<Fvector>(self_hpb));
 
 	float fov_tan						= aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
@@ -1317,18 +1317,18 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 		fov_tan							/= CurrentZoomFactor(false);
 		Device.SVP.setFOV				(atanf(fov_tan) / (.5f * PI / 180.f));
 		
-		Fvector pos						= scope->getSightPosition();
+		Dvector pos						= scope->getSightPosition();
 		pos.add							(scope->getObjectiveOffset());
 		pos.z							+= EPS_L;
 
-		Fmatrix CP$						trans;
+		Dmatrix CP$						trans;
 		if (auto addon = scope->cast<CAddon*>())
 			trans						= &addon->getHudTransform();
 		else
 			trans						= &HudItemData()->m_transform;
 		trans->transform_tiny			(pos);
 
-		Device.SVP.setPosition			(pos);
+		Device.SVP.setPosition			(static_cast<Fvector>(pos));
 	}
 	else
 		hud_params.w					= scope->GetReticleScale();
@@ -1358,7 +1358,7 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 
 	float distance						= Zeroing();
 	Fvector transference				= m_hud->getMuzzleSightOffset().mad(vForward, distance);
-	hi->m_transform.transform_dir		(transference);
+	static_cast<Fmatrix>(hi->m_transform).transform_dir(transference);
 
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);
 	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * c.param_s.kBulletSpeed * air_resistance_correction;

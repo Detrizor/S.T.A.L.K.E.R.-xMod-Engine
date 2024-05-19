@@ -138,14 +138,15 @@ void attachable_hud_item::update(bool bForce)
 void attachable_hud_item::setup_firedeps(firedeps& fd)
 {
 	update												(false);
+	Fmatrix ftrans										= static_cast<Fmatrix>(m_transform);
 	if (m_measures.m_prop_flags.test(hud_item_measures::e_fire_point))
 	{
 		Fmatrix& fire_mat								= m_model->LL_GetTransform(m_measures.m_fire_bone);
 		fire_mat.transform_tiny							(fd.vLastFP, m_measures.m_fire_point_offset);
-		m_transform.transform_tiny						(fd.vLastFP);
+		ftrans.transform_tiny							(fd.vLastFP);
 		
 		Fvector fire_dir								= vForward;
-		m_transform.transform_dir						(fire_dir);
+		ftrans.transform_dir							(fire_dir);
 
 		fd.m_FireParticlesXForm.identity				();
 		fd.m_FireParticlesXForm.k.set					(fire_dir);
@@ -161,8 +162,8 @@ void attachable_hud_item::setup_firedeps(firedeps& fd)
 	{
 		Fmatrix& fire_mat			= m_model->LL_GetTransform(m_measures.m_fire_bone2);
 		fire_mat.transform_tiny		(fd.vLastFP2,m_measures.m_fire_point2_offset);
-		m_transform.transform_tiny	(fd.vLastFP2);
-		VERIFY(_valid(fd.vLastFP2));
+		ftrans.transform_tiny		(fd.vLastFP2);
+		VERIFY						(_valid(fd.vLastFP2));
 	}
 }
 
@@ -173,7 +174,7 @@ bool  attachable_hud_item::need_renderable()
 
 void attachable_hud_item::render()
 {
-	::Render->set_Transform		(&m_transform);
+	::Render->set_Transform		(m_transform);
 	::Render->add_Visual		(m_model->dcast_RenderVisual());
 	debug_draw_firedeps			();
 	m_parent_hud_item->render_hud_mode();
@@ -189,7 +190,7 @@ void attachable_hud_item::render_item_ui()
 	m_parent_hud_item->render_item_3d_ui();
 }
 
-Fmatrix CR$ attachable_hud_item::hands_attach() const
+Dmatrix CR$ attachable_hud_item::hands_attach() const
 {
 	return m_hands_attach[m_parent_hud_item->AltHandsAttach()];
 }
@@ -283,15 +284,15 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 	m_auto_attach_anm			= pSettings->r_string(hud_section, "auto_attach_anm");
 	m_measures.load				(hud_section, m_model);
 	
-	m_item_attach.setHPBv				(pSettings->r_fvector3d2r(hud_section, "item_orientation"));
-	m_item_attach.translate_over		(pSettings->r_fvector3(hud_section, "item_position"));
+	m_item_attach.setHPBv				(static_cast<Dvector>(pSettings->r_fvector3d2r(hud_section, "item_orientation")));
+	m_item_attach.translate_over		(static_cast<Dvector>(pSettings->r_fvector3(hud_section, "item_position")));
 	
 	if (!m_auto_attach_anm.size())
 	{
 		m_hands_attach[0].identity();
-		m_hands_attach[0].applyOffset(
-			pSettings->r_fvector3(hud_section, "hands_position"),
-			pSettings->r_fvector3d2r(hud_section, "hands_orientation")
+		m_hands_attach[0].setOffset(
+			static_cast<Dvector>(pSettings->r_fvector3(hud_section, "hands_position")),
+			static_cast<Dvector>(pSettings->r_fvector3d2r(hud_section, "hands_orientation"))
 		);
 		m_hands_attach[1] = m_hands_attach[0];
 	}
@@ -508,7 +509,7 @@ void player_hud::render_hud()
 
 	if(!b_r0 && !b_r1)									return;
 
-	::Render->set_Transform		(&m_transform);
+	::Render->set_Transform		(m_transform);
 	::Render->add_Visual		(m_model->dcast_RenderVisual());
 	
 	if(m_attached_items[0])
@@ -548,7 +549,7 @@ u32 player_hud::motion_length(const MotionID& M, const CMotionDef*& md, float sp
 
 void player_hud::update(Fmatrix CR$ cam_trans)
 {
-	m_transform = cam_trans;
+	m_transform = static_cast<Dmatrix>(cam_trans);
 	for (int i = 0; i < 2; i++)
 	{
 		if (auto pi = m_attached_items[i])
@@ -589,10 +590,8 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 			continue;
 		}
 
-		Fmatrix blend = anm->XFORM();
-
 		if (anm->m_part == 0 || anm->m_part == 2)
-			m_transform.mulB_43(blend);
+			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM()));
 	}
 
 	bool need_blend[2];
@@ -644,7 +643,7 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 		anm->anm->Update(Device.fTimeDelta);
 
 		if ((anm->blend_amount[0] == anm->blend_amount[1]) || (anm->blend_amount[0] > 0.f))
-			m_transform.mulB_43(anm->XFORM(0));
+			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM(0)));
 	}
 
 	if (m_attached_items[0])
@@ -721,11 +720,11 @@ void player_hud::attach_item(CHudItem* item)
 		
 		if (pi->m_auto_attach_anm.size())
 		{
-			auto calc_hands_attach = [this, pi](shared_str CR$ anm, Fmatrix& dest)
+			auto calc_hands_attach = [this, pi](shared_str CR$ anm, Dmatrix& dest)
 			{
 				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, 0);
 				update_bones(m_model->dcast_PKinematics());
-				dest = m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]);
+				dest = static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]));
 				dest.mulB_43(pi->m_item_attach);
 				dest.invert();
 			};
@@ -812,9 +811,9 @@ void player_hud::detach_item(CHudItem* item)
 	}
 }
 
-void player_hud::calc_transform(u16 attach_slot_idx, const Fmatrix& offset, Fmatrix& result)
+void player_hud::calc_transform(u16 attach_slot_idx, const Dmatrix& offset, Dmatrix& result)
 {
-	Fmatrix ancor_m			= m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[attach_slot_idx]);
+	Dmatrix ancor_m			= static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[attach_slot_idx]));
 	result.mul				(m_transform, ancor_m);
 	result.mulB_43			(offset);
 }

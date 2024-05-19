@@ -11,7 +11,7 @@ CSilencer::CSilencer(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 
 Fvector CSilencer::getMuzzlePoint() const
 {
-	Fvector res							= cast<CAddon*>()->getLocalTransform().c;
+	Fvector res							= static_cast<Fvector>(cast<CAddon*>()->getLocalTransform().c);
 	res.z								+= m_muzzle_point_shift;
 	return								res;
 }

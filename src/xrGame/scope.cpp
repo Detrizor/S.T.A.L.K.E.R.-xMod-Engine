@@ -117,7 +117,7 @@ m_sight_position(pSettings->r_fvector3(section, "sight_position"))
 		case eOptics:
 			m_Magnificaion.Load			(pSettings->r_string(section, "magnification"));
 			m_lense_radius				= pSettings->r_float(section, "lense_radius");
-			m_objective_offset			= pSettings->r_fvector3(section, "objective_offset");
+			m_objective_offset			= static_cast<Dvector>(pSettings->r_fvector3(section, "objective_offset"));
 			m_eye_relief				= pSettings->r_float(section, "eye_relief");
 			m_Reticle					= pSettings->r_string(section, "reticle");
 			m_reticle_size				= pSettings->r_float(section, "reticle_size");
@@ -240,12 +240,12 @@ void CScope::RenderUI()
 	float lense_scale					= hud_params.w;
 
 	Fvector2 pos						= {
-		s_lense_circle_pos_from_axis.Calc(abs(m_cam_pos_ort.x)),
-		s_lense_circle_pos_from_axis.Calc(abs(m_cam_pos_ort.y))
+		s_lense_circle_pos_from_axis.Calc(abs(static_cast<float>(m_cam_pos_d_sight_axis.x))),
+		s_lense_circle_pos_from_axis.Calc(abs(static_cast<float>(m_cam_pos_d_sight_axis.y)))
 	};
-	if (m_cam_pos_ort.x < 0.f)
+	if (m_cam_pos_d_sight_axis.x < 0.f)
 		pos.x							*= -1.f;
-	if (m_cam_pos_ort.y > 0.f)
+	if (m_cam_pos_d_sight_axis.y > 0.f)
 		pos.y							*= -1.f;
 	pos.mul								(s_lense_circle_pos_from_zoom.Calc(m_Magnificaion.current));
 
@@ -318,16 +318,16 @@ void CScope::RenderUI()
 void CScope::updateCameraLenseOffset()
 {
 	auto addon							= cast<CAddon*>();
-	Fmatrix trans						= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
-	trans.applyOffset					(m_sight_position, vZero);
+	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	trans.applyOffset					(m_sight_position, dZero);
 
-	Fvector camera_lense_offset			= trans.c;
-	camera_lense_offset.sub				(Actor()->Cameras().Position());
+	Dvector camera_lense_offset			= trans.c;
+	camera_lense_offset.sub				(static_cast<Dvector>(Actor()->Cameras().Position()));
 	m_camera_lense_distance				= camera_lense_offset.magnitude();
 
-	Fmatrix								itrans;
+	Dmatrix								itrans;
 	itrans.invert						(trans);
-	itrans.transform_tiny				(m_cam_pos_ort, Actor()->Cameras().Position());
+	itrans.transform_tiny				(m_cam_pos_d_sight_axis, static_cast<Dvector>(Actor()->Cameras().Position()));
 }
 
 float CScope::getLenseFovTan()

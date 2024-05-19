@@ -63,21 +63,21 @@ private:
 	static ref_sound					m_zeroing_sound;
 
 	const eScopeType					m_Type;
-	const Fvector						m_sight_position;
+	const Dvector						m_sight_position;
 	
 	CUIStatic*							m_pUIReticle							= NULL;
 	CBinocularsVision*					m_pVision								= NULL;
 	CNightVisionEffector*				m_pNight_vision							= NULL;
 	float								m_camera_lense_distance					= 0.f;
-	Fvector								m_hud_offset[2]							= { vZero, vZero };
+	Dvector								m_hud_offset[2]							= { dZero, dZero };
 	s8									m_selection								= -1;
-	Fvector								m_cam_pos_ort							= vZero;
+	Dvector								m_cam_pos_d_sight_axis					= dZero;
 
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
 
 	float								m_lense_radius;
-	Fvector								m_objective_offset;
+	Dvector								m_objective_offset;
 	float								m_eye_relief;
 	shared_str							m_Reticle;
 	float								m_reticle_size;
@@ -96,7 +96,7 @@ public:
 
 	void								ZoomChange								(int val);
 	void								ZeroingChange							(int val);
-	void								setHudOffset							(Fvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
+	void								setHudOffset							(Dvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
 	void								setMagnificaiton						(float val)			{ m_Magnificaion.current = val; }
 	void								setZeroing								(u16 val)			{ m_Zeroing.current = val; }
 	void								setSelection							(s8 val)			{ m_selection = val; }
@@ -108,10 +108,10 @@ public:
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
-	Fvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
-	Fvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
+	Dvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
+	Dvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
-	Fvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
+	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }
 
 	float								GetReticleScale						C$	();

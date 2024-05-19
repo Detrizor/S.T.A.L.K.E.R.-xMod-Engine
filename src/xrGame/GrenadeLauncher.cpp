@@ -7,8 +7,8 @@ CGrenadeLauncher::CGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : C
 {
 	m_fGrenadeVel						= pSettings->r_float(section, "grenade_vel");
 	m_sFlameParticles					= pSettings->r_string(section, "grenade_flame_particles");
-	m_sight_offset[0]					= pSettings->r_fvector3(section, "sight_position");
-	m_sight_offset[1]					= pSettings->r_fvector3d2r(section, "sight_rotation");
+	m_sight_offset[0]					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
+	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
 
 	auto ao								= cast<CAddonOwner*>();
 	for (auto s : ao->AddonSlots())

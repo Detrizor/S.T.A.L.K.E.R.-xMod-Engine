@@ -13,7 +13,7 @@ public:
 private:
 	float								m_fGrenadeVel;
 	shared_str							m_sFlameParticles;
-	Fvector								m_sight_offset[2];
+	Dvector								m_sight_offset[2];
 	
 	CAddonSlot*							m_slot									= nullptr;
 	CWeaponMagazinedWGrenade*			m_wpn									= nullptr;
@@ -25,7 +25,7 @@ public:
 
 	float								GetGrenadeVel						C$	()		{ return m_fGrenadeVel; }
 	shared_str CR$						FlameParticles						C$	()		{ return m_sFlameParticles; }
-	Fvector CP$							getSightOffset						C$	()		{ return m_sight_offset; }
+	Dvector CP$							getSightOffset						C$	()		{ return m_sight_offset; }
 
 	friend class CWeaponMagazinedWGrenade;
 };

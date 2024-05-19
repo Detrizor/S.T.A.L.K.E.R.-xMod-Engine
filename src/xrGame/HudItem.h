@@ -116,7 +116,7 @@ public:
 	virtual void				UpdateCL			();
 	virtual void				renderable_Render	();
 
-	virtual void				UpdateHudAdditional	(Fmatrix&);
+	virtual void				UpdateHudAdditional	(Dmatrix&);
 
 	virtual	void				UpdateXForm			()						= 0;
 
