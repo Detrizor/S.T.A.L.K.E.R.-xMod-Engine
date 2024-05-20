@@ -110,16 +110,20 @@ CAddonOwner* CAddonOwner::getParentAO() const
 	return								(O.H_Parent()) ? O.H_Parent()->Cast<CAddonOwner*>() : NULL;
 }
 
-void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach)
+void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach) const
 {
+	processAddon						(addon, attach);
 	if (auto parent_ao = getParentAO())
 		parent_ao->RegisterAddon		(addon, attach);
-	O.Aboba								(eOnAddon, (void*)addon, attach);
+}
 
+void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
+{
+	O.Aboba								(eOnAddon, (void*)addon, attach);
 	if (auto addon_ao = addon->cast<CAddonOwner*>())
 		for (auto s : addon_ao->AddonSlots())
 			for (auto a : s->addons)
-				RegisterAddon			(a, attach);
+				processAddon			(a, attach);
 }
 
 CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
