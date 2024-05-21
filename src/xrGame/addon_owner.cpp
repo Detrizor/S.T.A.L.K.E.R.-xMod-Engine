@@ -107,7 +107,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 
 CAddonOwner* CAddonOwner::getParentAO() const
 {
-	return								(O.H_Parent()) ? O.H_Parent()->Cast<CAddonOwner*>() : NULL;
+	return								(O.H_Parent()) ? O.H_Parent()->Cast<CAddonOwner*>() : nullptr;
 }
 
 void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach) const

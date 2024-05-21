@@ -278,7 +278,7 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 
 	if (bullet.fly_time >= bullet.flush_time)
 	{
-		Msg("--xd update_bullet id [%d] speed [%.3f] dir [%.2f,%.2f,%.2f] dist [%.3f] time [%.3f]", bullet.id, bullet.speed, bullet.dir.x, bullet.dir.y, bullet.dir.z, bullet.fly_dist, bullet.fly_time);
+		Msg("--xd update_bullet id [%d] speed [%.3f] dir [%.2f,%.2f,%.2f] dist [%.3f] time [%.3f] resist [%.3f]", bullet.id, bullet.speed, bullet.dir.x, bullet.dir.y, bullet.dir.z, bullet.fly_dist, bullet.fly_time, bullet.resist);
 		bullet.flush_time += .1f;
 	}
 
@@ -313,7 +313,7 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 	collide::ray_defs RD				(bullet.pos, start_to_target, distance, CDB::OPT_FULL_TEST, collide::rqtBoth);
 	if (Level().ObjectSpace.RayQuery(storage, RD, CBulletManager::firetrace_callback, &data, CBulletManager::test_callback, NULL))
 	{
-		Msg("--xd after firetrace_callback id [%d]-[%d] speed [%.3f] dist [%.3f] time [%.3f]", bullet.id, ++bullet.updates, bullet.speed, bullet.fly_dist, bullet.fly_time);
+		Msg("--xd after firetrace_callback id [%d]-[%d] speed [%.3f] dist [%.3f] time [%.3f] resist [.%3f]", bullet.id, ++bullet.updates, bullet.speed, bullet.fly_dist, bullet.fly_time, bullet.resist);
 		R_ASSERT						(bullet.updates < 1000);
 
 		float d_pos						= .01f;

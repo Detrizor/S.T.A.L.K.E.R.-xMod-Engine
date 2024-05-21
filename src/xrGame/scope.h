@@ -15,7 +15,6 @@ class CNightVisionEffector;
 class CWeaponHud;
 class CAddon;
 struct ref_sound;
-struct SPowerDependency;
 
 struct hud_item_measures;
 
@@ -45,23 +44,23 @@ struct SRangeNum
 
 class CScope : public CModule
 {
+	static float						s_eye_relief_magnification_shrink;
+	static float						s_shadow_pos_d_axis_factor;
+
+	static float						s_shadow_scale_default;
+	static float						s_shadow_scale_offset_power;
+
+	static float						s_shadow_far_scale_default;
+	static float						s_shadow_far_scale_offset_power;
+
+	static ref_sound					m_zoom_sound;
+	static ref_sound					m_zeroing_sound;
+
 public:
 										CScope									(CGameObject* obj, shared_str CR$ section);
 										~CScope									();
 
 private:
-	static float						s_magnification_eye_relief_shrink;
-	static float						s_lense_circle_scale_default;
-	static float						s_lense_circle_scale_offset_power;
-	static SPowerDependency				s_lense_circle_pos_from_axis;
-	static SPowerDependency				s_lense_circle_pos_from_zoom;
-	static float						s_lense_vignette_a;
-	static float						s_lense_vignette_b;
-	static float						s_lense_vignette_scale_min;
-
-	static ref_sound					m_zoom_sound;
-	static ref_sound					m_zeroing_sound;
-
 	const eScopeType					m_Type;
 	const Dvector						m_sight_position;
 	
@@ -78,9 +77,10 @@ private:
 
 	float								m_lense_radius;
 	Dvector								m_objective_offset;
+	float								m_objective_diameter;
 	float								m_eye_relief;
 	shared_str							m_Reticle;
-	float								m_reticle_size;
+	float								m_reticle_texture_size;
 	bool								m_is_FFP;
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
@@ -91,8 +91,6 @@ private:
 public:
 	static void							loadStaticVariables						();
 	static void							cleanStaticVariables					();
-
-	Fvector								d_hpb									= vZero;
 
 	void								ZoomChange								(int val);
 	void								ZeroingChange							(int val);
