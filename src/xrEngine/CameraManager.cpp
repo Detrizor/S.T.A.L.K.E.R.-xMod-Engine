@@ -448,6 +448,8 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	Device.fHUDFOV						= fov;
 
 	// projection
+	if (Device.SVP.isRendering())
+		_viewport_near					*= Device.SVP.getZoom();
 	Device.fASPECT						= m_cam_info.fAspect;
 	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
 

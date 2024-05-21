@@ -1314,7 +1314,9 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	if (scope->Type() == eOptics)
 	{
 		hud_params.w					= scope->getLenseFovTan() / aim_fov_tan;
-		fov_tan							/= CurrentZoomFactor(false);
+		float zoom_factor				= CurrentZoomFactor(false);
+		Device.SVP.setZoom				(zoom_factor);
+		fov_tan							/= zoom_factor;
 		Device.SVP.setFOV				(atanf(fov_tan) / (.5f * PI / 180.f));
 		
 		Dvector pos						= scope->getSightPosition();
