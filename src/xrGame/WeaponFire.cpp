@@ -111,8 +111,8 @@ void CWeapon::appendRecoil(float impulse_magnitude)
 	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
 		m_recoil_tremble_mean	= Random.randFs(1.f);
 
-	float tremble				= pattern.y * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
-	float kick					= pattern.x * Random.randFs(s_recoil_kick_dispersion, 1.f);
+	float tremble				= pattern.x * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
+	float kick					= pattern.y * Random.randFs(s_recoil_kick_dispersion, 1.f);
 	float roll					= pattern.z * Random.randFs(s_recoil_roll_dispersion);
 	Fvector shot_impulse		= {
 		tremble * s_recoil_tremble_weight,
@@ -121,7 +121,13 @@ void CWeapon::appendRecoil(float impulse_magnitude)
 	};
 
 	shot_impulse.mul			(impulse_magnitude);
-	m_recoil_hud_impulse.add	(shot_impulse);
+	Fvector4 shot_impulse_full	= {
+		shot_impulse.x,
+		shot_impulse.y,
+		shot_impulse.z,
+		impulse_magnitude - shot_impulse.x - shot_impulse.y - shot_impulse.z
+	};
+	m_recoil_hud_impulse.add	(shot_impulse_full);
 	m_recoil_cam_impulse.add	(shot_impulse);
 	m_recoil_cam_last_impulse	= shot_impulse;
 }

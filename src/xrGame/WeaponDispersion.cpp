@@ -18,21 +18,16 @@ float CWeapon::GetConditionDispersionFactor() const
 	return (1.f + fireDispersionConditionFactor * (1.f - GetConditionToWork()));
 }
 
-float CWeapon::GetFireDispersion(CCartridge* cartridge, bool for_crosshair)
+float CWeapon::GetFireDispersion(CCartridge* cartridge)
 {
-	return GetFireDispersion((cartridge) ? cartridge->param_s.kDisp : 1.f, for_crosshair);
-}
-
-float CWeapon::GetBaseDispersion(float cartridge_k)
-{
-	return fireDispersionBase * m_silencer_koef.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
+	return GetFireDispersion(cartridge->param_s.kDisp);
 }
 
 //текущая дисперсия (в радианах) оружия с учетом используемого патрона
-float CWeapon::GetFireDispersion	(float cartridge_k, bool for_crosshair) 
+float CWeapon::GetFireDispersion(float cartridge_k) 
 {
 	//учет базовой дисперсии, состояние оружия и влияение патрона
-	float fire_disp = (for_crosshair) ? 0.f : GetBaseDispersion(cartridge_k);
+	float fire_disp = fireDispersionBase * m_silencer_koef.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
 	
 	//вычислить дисперсию, вносимую самим стрелком
 	if (H_Parent())
@@ -51,23 +46,20 @@ void CWeapon::AddShotEffector		()
 	inventory_owner().on_weapon_shot_start	(this);
 }
 
-void  CWeapon::RemoveShotEffector	()
+void CWeapon::RemoveShotEffector	()
 {
-	CInventoryOwner* pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent());
-	if (pInventoryOwner)
+	if (auto pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent()))
 		pInventoryOwner->on_weapon_shot_remove	(this);
 }
 
-void	CWeapon::ClearShotEffector	()
+void CWeapon::ClearShotEffector		()
 {
-	CInventoryOwner* pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent());
-	if (pInventoryOwner)
+	if (auto pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent()))
 		pInventoryOwner->on_weapon_hide	(this);
 }
 
-void	CWeapon::StopShotEffector	()
+void CWeapon::StopShotEffector		()
 {
-	CInventoryOwner* pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent());
-	if (pInventoryOwner)
+	if (auto pInventoryOwner = smart_cast<CInventoryOwner*>(H_Parent()))
 		pInventoryOwner->on_weapon_shot_stop();
 }

@@ -49,8 +49,7 @@ protected:
 												u16 parent_id,
 												u16 weapon_id,
 												bool send_hit);
-	void					SetBulletSpeed(float new_speed) {m_fStartBulletSpeed = new_speed;}
-	float					GetBulletSpeed()				{return m_fStartBulletSpeed;}
+	float					GetBulletSpeed() const			{return m_fStartBulletSpeed;}
 
 	virtual void			FireStart			();
 	virtual void			FireEnd				();
@@ -61,10 +60,7 @@ public:
 protected:
 	// Weapon fires now
 	bool					bWorking;
-
 	float					fOneShotTime;
-	float					fModeShotTime;
-	bool					bCycleDown;
 
 	//скорость вылета пули из ствола
 	float					m_fStartBulletSpeed;

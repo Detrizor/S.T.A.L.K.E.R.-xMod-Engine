@@ -150,8 +150,8 @@ public:
 		m_BriefInfo_CalcFrame = 0;
 	}
 
-	float	GetBulletSpeed		()		{ return m_fStartBulletSpeed; }
-	float	GetRPM				()		{ return 60.f / fOneShotTime; }
+	float	GetBulletSpeed		() const		{ return CShootingObject::GetBulletSpeed(); }
+	float	GetRPM				() const		{ return 60.f / fOneShotTime; }
 
 protected:
 	struct SZoomParams
@@ -285,9 +285,8 @@ protected:
 	virtual	void			StopShotEffector();
 
 public:
-	float					GetBaseDispersion(float cartridge_k);
-	float					GetFireDispersion(CCartridge* cartridge = NULL, bool for_crosshair = false);
-	virtual float			GetFireDispersion(float cartridge_k, bool for_crosshair = false);
+	float					GetFireDispersion(CCartridge* cartridge);
+	float					GetFireDispersion(float cartridge_k);
 	virtual	int				ShotsFired()
 	{
 		return 0;

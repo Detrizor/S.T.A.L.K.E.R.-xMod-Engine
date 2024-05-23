@@ -45,7 +45,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 
 	m_bFireSingleShot = false;
 	m_iShotNum = 0;
-	m_fOldBulletSpeed = 0.f;
 	m_iQueueSize = -1;
 	m_bHasDifferentFireModes = false;
 	m_iCurFireMode = -1;
@@ -92,8 +91,11 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock", "sndBoltLock", true, m_eSoundReload); 
 	m_sounds.LoadSound					(*HudSection(), "snd_load_chamber", "sndLoadChamber", true, m_eSoundReload);
 
-	m_iBaseDispersionedBulletsCount = READ_IF_EXISTS(pSettings, r_u8, section, "base_dispersioned_bullets_count", 0);
-	m_fBaseDispersionedBulletsSpeed = READ_IF_EXISTS(pSettings, r_float, section, "base_dispersioned_bullets_speed", m_fStartBulletSpeed);
+	if (pSettings->line_exist(section, "base_dispersioned_bullets_count"))
+	{
+		m_iBaseDispersionedBulletsCount	= pSettings->r_u8(section, "base_dispersioned_bullets_count");
+		m_base_dispersion_shot_time		= 60.f / pSettings->r_float(section,"base_dispersioned_rpm");
+	}
 
 	if (pSettings->line_exist(section, "fire_modes"))
 	{
@@ -463,9 +465,8 @@ void CWeaponMagazined::UpdateCL()
 	}
 
 	UpdateSounds();
+	updateRecoil();
 
-	if (GetCurrentFireMode() == -1 || m_iShotNum > m_iBaseDispersionedBulletsCount || !bWorking)
-		updateRecoil();
 	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
 		StartReload(eSubstateReloadBolt);
 }
@@ -521,19 +522,12 @@ void CWeaponMagazined::state_Fire(float dt)
 				return;
 			}
 
-			m_bFireSingleShot = false;
-
-			//Alundaio: Use fModeShotTime instead of fOneShotTime if current fire mode is 2-shot burst
-			//Alundaio: Cycle down RPM after two shots; used for Abakan/AN-94
-			if (GetCurrentFireMode() == 2 || (bCycleDown == true && m_iShotNum < 1) )
-				fShotTimeCounter = fModeShotTime;
-			else
-				fShotTimeCounter = fOneShotTime;
-			//Alundaio: END
-
 			++m_iShotNum;
 			FireTrace();
 			OnShot();
+
+			m_bFireSingleShot = false;
+			fShotTimeCounter = (m_iShotNum < m_iBaseDispersionedBulletsCount) ? m_base_dispersion_shot_time : fOneShotTime;
 		}
 
 		if (m_iShotNum == m_iQueueSize)
@@ -599,8 +593,6 @@ void CWeaponMagazined::OnEmptyClick()
 void CWeaponMagazined::switch2_Idle()
 {
 	m_iShotNum = 0;
-	if (m_fOldBulletSpeed != 0.f)
-		SetBulletSpeed(m_fOldBulletSpeed);
 
 	m_sub_state = eSubstateReloadBegin;
 	SetPending(FALSE);
@@ -832,42 +824,11 @@ bool CWeaponMagazined::install_upgrade_impl(LPCSTR section, bool test)
 	result |= result2;
 
 	result |= process_if_exists(section, "base_dispersioned_bullets_count", m_iBaseDispersionedBulletsCount, test);
-	result |= process_if_exists(section, "base_dispersioned_bullets_speed", m_fBaseDispersionedBulletsSpeed, test);
+	if (result2 = process_if_exists(section, "base_dispersioned_rpm", m_base_dispersion_shot_time, test))
+		m_base_dispersion_shot_time = 60.f / m_base_dispersion_shot_time;
+	result |= result2;
 
 	return result;
-}
-//текущая дисперсия (в радианах) оружия с учетом используемого патрона и недисперсионных пуль
-float CWeaponMagazined::GetFireDispersion(float cartridge_k, bool for_crosshair)
-{
-	float fire_disp = GetBaseDispersion(cartridge_k);
-	if (for_crosshair || !m_iBaseDispersionedBulletsCount || !m_iShotNum || m_iShotNum > m_iBaseDispersionedBulletsCount)
-	{
-		fire_disp = inherited::GetFireDispersion(cartridge_k);
-	}
-	return fire_disp;
-}
-void CWeaponMagazined::FireBullet(const Fvector& pos,
-	const Fvector& shot_dir,
-	float fire_disp,
-	const CCartridge& cartridge,
-	u16 parent_id,
-	u16 weapon_id,
-	bool send_hit)
-{
-	if (m_iBaseDispersionedBulletsCount)
-	{
-		if (m_iShotNum <= 1)
-		{
-			m_fOldBulletSpeed = GetBulletSpeed();
-			SetBulletSpeed(m_fBaseDispersionedBulletsSpeed);
-		}
-		else if (m_iShotNum > m_iBaseDispersionedBulletsCount)
-		{
-			SetBulletSpeed(m_fOldBulletSpeed);
-		}
-	}
-
-	inherited::FireBullet(pos, shot_dir, fire_disp, cartridge, parent_id, weapon_id, send_hit);
 }
 
 bool CWeaponMagazined::CanTrade() const
@@ -1425,6 +1386,9 @@ LPCSTR CWeaponMagazined::get_anm_prefix() const
 #define s_recoil_cam_relax_impulse_ratio pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio")
 void CWeaponMagazined::updateRecoil()
 {
+	if (bWorking && m_iShotNum < m_iBaseDispersionedBulletsCount)
+		return;
+
 	bool hud_impulse = !fIsZero(m_recoil_hud_impulse.magnitude());
 	bool hud_shift = !fIsZero(m_recoil_hud_shift.magnitude());
 	bool cam_impulse = !fIsZero(m_recoil_cam_impulse.magnitude());

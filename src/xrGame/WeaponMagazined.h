@@ -97,7 +97,6 @@ public:
 	{
 		m_bStopedAfterQueueFired = value;
 	}
-	virtual float	GetFireDispersion(float cartridge_k, bool for_crosshair = false);
 
 protected:
 	//максимальный размер очереди, которой можно стрельнуть
@@ -105,11 +104,8 @@ protected:
 	//количество реально выстреляных патронов
 	int				m_iShotNum;
 	//после какого патрона, при непрерывной стрельбе, начинается отдача (сделано из-за Абакана)
-	int				m_iBaseDispersionedBulletsCount;
-	//скорость вылета патронов, на которые не влияет отдача (сделано из-за Абакана)
-	float			m_fBaseDispersionedBulletsSpeed;
-	//скорость вылета остальных патронов
-	float			m_fOldBulletSpeed;
+	int				m_iBaseDispersionedBulletsCount = 0;
+	float			m_base_dispersion_shot_time = 0.f;
 	//флаг того, что мы остановились после того как выстреляли
 	//ровно столько патронов, сколько было задано в m_iQueueSize
 	bool			m_bStopedAfterQueueFired;
@@ -159,14 +155,6 @@ protected:
 		return m_iShotNum;
 	}
 	virtual float	GetWeaponDeterioration();
-
-	virtual void	FireBullet(const Fvector& pos,
-		const Fvector& dir,
-		float fire_disp,
-		const CCartridge& cartridge,
-		u16 parent_id,
-		u16 weapon_id,
-		bool send_hit);
 
 	//Alundaio: LAYERED_SND_SHOOT
 #ifdef LAYERED_SND_SHOOT
