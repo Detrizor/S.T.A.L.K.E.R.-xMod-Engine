@@ -178,6 +178,12 @@ public:
 
 //xMod added
 private:
+	static float						s_recoil_hud_stopping_power_per_shift;
+	static float						s_recoil_hud_relax_impulse_magnitude;
+	static float						s_recoil_cam_angle_per_delta;
+	static float						s_recoil_cam_stopping_power_per_impulse;
+	static float						s_recoil_cam_relax_impulse_ratio;
+
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
@@ -227,6 +233,8 @@ protected:
 	LPCSTR								get_anm_prefix						CO$	();
 
 public:
+	static void							loadStaticVariables						();
+
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								UpdateHudBonesVisibility				();
 	void								loadChamber								(CWeaponAmmo* ammo);

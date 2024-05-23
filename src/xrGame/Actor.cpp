@@ -1832,6 +1832,8 @@ void CActor::loadStaticVariables()
 	CCartridge::loadStaticVariables		();
 	CWeaponHud::loadStaticVariables		();
 	CScope::loadStaticVariables			();
+	CWeapon::loadStaticVariables		();
+	CWeaponMagazined::loadStaticVariables();
 }
 
 void CActor::cleanStaticVariables()

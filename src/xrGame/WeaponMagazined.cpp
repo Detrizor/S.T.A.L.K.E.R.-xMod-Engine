@@ -1380,10 +1380,6 @@ LPCSTR CWeaponMagazined::get_anm_prefix() const
 	return								(m_addon_anm_prefix) ? **m_addon_anm_prefix : inherited::get_anm_prefix();
 }
 
-#define s_recoil_hud_stopping_power_per_shift pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift")
-#define s_recoil_hud_relax_impulse_magnitude pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_magnitude")
-#define s_recoil_cam_stopping_power_per_impulse pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse")
-#define s_recoil_cam_relax_impulse_ratio pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio")
 void CWeaponMagazined::updateRecoil()
 {
 	if (bWorking && m_iShotNum < m_iBaseDispersionedBulletsCount)
@@ -1442,32 +1438,40 @@ void CWeaponMagazined::updateRecoil()
 
 	if (cam_impulse)
 	{
-		auto update_cam_recoil_delta = [this, dt](Fvector CR$ impulse)
-			{
-				m_recoil_cam_delta = impulse;
-				m_recoil_cam_delta.mul(dt);
-			};
+		m_recoil_cam_delta = m_recoil_cam_impulse;
+		m_recoil_cam_delta.mul(s_recoil_cam_angle_per_delta);
+		m_recoil_cam_delta.mul(dt);
 
-		if (cam_impulse)
+		Fvector stopping_power = m_recoil_cam_impulse;
+		stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
+		stopping_power.mul(accuracy);
+		stopping_power.mul(dt);
+		m_recoil_cam_impulse.add(stopping_power);
+		if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
 		{
-			update_cam_recoil_delta(m_recoil_cam_impulse);
-
-			Fvector stopping_power = m_recoil_cam_impulse;
-			stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
-			stopping_power.mul(accuracy);
-			stopping_power.mul(dt);
-			m_recoil_cam_impulse.add(stopping_power);
-			if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
+			if (m_recoil_cam_last_impulse.magnitude())
 			{
-				if (m_recoil_cam_last_impulse.magnitude())
-				{
-					m_recoil_cam_impulse = m_recoil_cam_last_impulse;
-					m_recoil_cam_impulse.mul(-s_recoil_cam_relax_impulse_ratio);
-					m_recoil_cam_last_impulse = vZero;
-				}
-				else
-					m_recoil_cam_impulse = vZero;
+				m_recoil_cam_impulse = m_recoil_cam_last_impulse;
+				m_recoil_cam_impulse.mul(-s_recoil_cam_relax_impulse_ratio);
+				m_recoil_cam_last_impulse = vZero;
 			}
+			else
+				m_recoil_cam_impulse = vZero;
 		}
 	}
+}
+
+float CWeaponMagazined::s_recoil_hud_stopping_power_per_shift;
+float CWeaponMagazined::s_recoil_hud_relax_impulse_magnitude;
+float CWeaponMagazined::s_recoil_cam_angle_per_delta;
+float CWeaponMagazined::s_recoil_cam_stopping_power_per_impulse;
+float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
+
+void CWeaponMagazined::loadStaticVariables()
+{
+	s_recoil_hud_stopping_power_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift");
+	s_recoil_hud_relax_impulse_magnitude = pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_magnitude");
+	s_recoil_cam_angle_per_delta		= pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta");
+	s_recoil_cam_stopping_power_per_impulse = pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse");
+	s_recoil_cam_relax_impulse_ratio	= pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio");
 }

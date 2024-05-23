@@ -13,8 +13,6 @@
 
 constexpr double rotation_eps = .01;
 
-SPowerDependency CWeaponHud::inertionToRotationTime;
-
 CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 {
 	Dvector root_bone_position			= static_cast<Dvector>(O.m_root_bone_position);
@@ -89,9 +87,17 @@ bool CWeaponHud::IsRotatingToZoom C$()
 	return								false;
 }
 
+SPowerDependency CWeaponHud::inertionToRotationTime;
+float CWeaponHud::s_recoil_hud_angle_per_shift;
+float CWeaponHud::s_recoil_hud_roll_per_shift;
+float CWeaponHud::s_recoil_hud_rollback_per_shift;
+
 void CWeaponHud::loadStaticVariables()
 {
 	inertionToRotationTime.Load			("weapon_manager", "inertion_to_rotation_time");
+	s_recoil_hud_angle_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift");
+	s_recoil_hud_roll_per_shift			= pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift");
+	s_recoil_hud_rollback_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_rollback_per_shift");
 }
 
 void CWeaponHud::InitRotateTime(float cif)
@@ -142,9 +148,6 @@ Dvector CP$ CWeaponHud::get_target_hud_offset() const
 		return							m_hud_offset[get_target_hud_offset_idx()];
 }
 
-#define s_recoil_hud_angle_per_shift pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift")
-#define s_recoil_hud_roll_per_shift pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift")
-#define s_recoil_hud_rollback_per_shift pSettings->r_float("weapon_manager", "recoil_hud_rollback_per_shift")
 void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 {
 	//============= Подготавливаем общие переменные =============//

@@ -438,6 +438,19 @@ public:
 	};
 
 private:
+	static float						s_inertion_ads_factor;
+	static float						s_inertion_aim_factor;
+	static float						s_inertion_armed_factor;
+	static float						s_inertion_relaxed_factor;
+
+	static float						s_recoil_kick_weight;
+	static float						s_recoil_tremble_weight;
+	static float						s_recoil_roll_weight;
+	static float						s_recoil_tremble_mean_change_chance;
+	static float						s_recoil_tremble_dispersion;
+	static float						s_recoil_kick_dispersion;
+	static float						s_recoil_roll_dispersion;
+
 	SafemodeAnm							m_safemode_anm[2];
 
 protected:
@@ -490,6 +503,8 @@ protected:
 	void							V$	SetADS									(int mode);
 
 public:
+	static void							loadStaticVariables						();
+
 	void								SwitchArmedMode							();
 
 	Fvector4 CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }

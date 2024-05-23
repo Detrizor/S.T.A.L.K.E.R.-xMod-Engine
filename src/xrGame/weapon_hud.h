@@ -16,6 +16,9 @@ struct SShootingParams
 class CWeaponHud
 {
 	static SPowerDependency				inertionToRotationTime;
+	static float						s_recoil_hud_angle_per_shift;
+	static float						s_recoil_hud_roll_per_shift;
+	static float						s_recoil_hud_rollback_per_shift;
 
 	enum EHandsOffset
 	{
