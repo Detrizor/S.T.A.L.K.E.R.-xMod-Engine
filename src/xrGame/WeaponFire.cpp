@@ -93,14 +93,6 @@ void CWeapon::FireEnd()
 	StopShotEffector();
 }
 
-#define s_recoil_kick_weight pSettings->r_float("weapon_manager", "recoil_kick_weight")
-#define s_recoil_tremble_weight pSettings->r_float("weapon_manager", "recoil_tremble_weight")
-#define s_recoil_roll_weight pSettings->r_float("weapon_manager", "recoil_roll_weight")
-
-#define s_recoil_tremble_mean_change_chance pSettings->r_float("weapon_manager", "recoil_tremble_mean_change_chance")
-#define s_recoil_tremble_dispersion pSettings->r_float("weapon_manager", "recoil_tremble_dispersion")
-#define s_recoil_kick_dispersion pSettings->r_float("weapon_manager", "recoil_kick_dispersion")
-#define s_recoil_roll_dispersion pSettings->r_float("weapon_manager", "recoil_roll_dispersion")
 void CWeapon::appendRecoil(float impulse_magnitude)
 {
 	Fvector pattern				= vZero;

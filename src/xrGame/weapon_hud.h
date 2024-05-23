@@ -41,6 +41,7 @@ private:
 	float								m_fRotationFactor						= 0.f;
 	bool								m_going_to_fire							= false;
 	Dvector								m_current_hud_offset[2]					= { dZero, dZero };
+	Dvector								m_current_d_rot							= dZero;
 
 	Dvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;

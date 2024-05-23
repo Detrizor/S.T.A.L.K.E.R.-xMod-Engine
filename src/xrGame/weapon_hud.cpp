@@ -157,8 +157,8 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	//============= Поворот ствола во время аима =============//
 	{
 		Dvector CPC target_offset = get_target_hud_offset();
-		Dvector CR$ curr_offs = target_offset[0]; //pos,aim
-		Dvector CR$ curr_rot = target_offset[1]; //rot,aim
+		Dvector CR$ target_pos = target_offset[0]; //pos,aim
+		Dvector CR$ target_rot = target_offset[1]; //rot,aim
 
 		float rotate_time = m_fRotateTime;
 		CScope* scope = O.getActiveScope();
@@ -168,24 +168,22 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 			rotate_time *= .4f;
 
 		double factor = static_cast<double>(Device.fTimeDelta / rotate_time);
-		if (curr_offs.similar(m_current_hud_offset[0], EPS_S))
-			m_current_hud_offset[0].set(curr_offs);
-		else
+		auto inertion = [factor](Dvector CR$ target, Dvector& current)
 		{
-			Dvector diff = Dvector(curr_offs).sub(m_current_hud_offset[0]);
-			m_current_hud_offset[0].mad(diff, factor * 2.5);
-		}
+			if (target.similar(current, EPS_S))
+				current.set(target);
+			else
+			{
+				Dvector diff = Dvector(target).sub(current);
+				current.mad(diff, factor * 2.5);
+			}
+		};
 
-		if (curr_rot.similar(m_current_hud_offset[1], EPS_S))
-			m_current_hud_offset[1].set(curr_rot);
-		else
-		{
-			Dvector diff = Dvector(curr_rot).sub(m_current_hud_offset[1]);
-			m_current_hud_offset[1].mad(diff, factor * 2.5);
-		}
+		inertion(target_pos, m_current_hud_offset[0]);
+		inertion(target_rot, m_current_hud_offset[1]);
 
 		// Remove pending state before weapon has fully moved to the new position to remove some delay
-		if (m_going_to_fire && curr_offs.similar(m_current_hud_offset[0], .01f) && curr_rot.similar(m_current_hud_offset[1], .01f))
+		if (m_going_to_fire && target_pos.similar(m_current_hud_offset[0], .01f) && target_rot.similar(m_current_hud_offset[1], .01f))
 		{
 			O.FireStart();
 			m_going_to_fire = false;
@@ -197,6 +195,22 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 			m_fRotationFactor -= static_cast<float>(factor);
 
 		clamp(m_fRotationFactor, 0.f, 1.f);
+
+		Dvector target_d_rot = dZero;
+		if (target_offset == m_hud_offset[eRelaxed])
+		{
+			Dvector hpb;
+			trans.getHPB(hpb);
+			if (hpb.y > -PI_DIV_6)
+				target_d_rot.y = -hpb.y;
+			else
+				target_d_rot.y = PI_DIV_6;
+		}
+		if (IsRotatingToZoom())
+			inertion(target_d_rot, m_current_d_rot);
+		else
+			m_current_d_rot = target_d_rot;
+		trans.applyOffset(dZero, m_current_d_rot);
 	}
 
 	//======== Проверяем доступность инерции и стрейфа ========//
