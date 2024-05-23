@@ -1434,54 +1434,55 @@ void CWeaponMagazined::updateRecoil()
 
 	static float fAvgTimeDelta = Device.fTimeDelta;
 	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
+	float dt = fAvgTimeDelta / GetControlInertionFactor();
+
 	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
 	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
 	accuracy *= m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_layout_accuracy_modifier;
-	float cif = GetControlInertionFactor();
 
 	if (hud_impulse || hud_shift)
 	{
-		auto update_hud_recoil_shift = [this, cif](Fvector CR$ impulse)
+		auto update_hud_recoil_shift = [this, dt](Fvector4 CR$ impulse)
 			{
-				Fvector delta = impulse;
-				delta.mul(fAvgTimeDelta);
-				delta.div(cif);
+				Fvector4 delta = impulse;
+				delta.mul(dt);
+				float prev_shift = m_recoil_hud_shift.magnitude();
 				m_recoil_hud_shift.add(delta);
+				return (fMoreOrEqual(delta.magnitude(), prev_shift));
 			};
 
 		if (hud_impulse)
 		{
 			update_hud_recoil_shift(m_recoil_hud_impulse);
 
-			Fvector stopping_power = m_recoil_hud_impulse;
+			Fvector4 stopping_power = m_recoil_hud_impulse;
 			stopping_power.normalize();
 			stopping_power.mul(m_recoil_hud_shift.magnitude());
 			stopping_power.mul(-s_recoil_hud_stopping_power_per_shift);
 			stopping_power.mul(accuracy);
-			stopping_power.mul(fAvgTimeDelta);
-			m_recoil_hud_impulse.add(stopping_power);
-			if (fMoreOrEqual(m_recoil_hud_impulse.dotproduct(stopping_power), 0.f))
-				m_recoil_hud_impulse = vZero;
+			stopping_power.mul(dt);
+			if (fMoreOrEqual(stopping_power.magnitude(), m_recoil_hud_impulse.magnitude()))
+				m_recoil_hud_impulse = vZero4;
+			else
+				m_recoil_hud_impulse.add(stopping_power);
 		}
 		else
 		{
-			Fvector relax_impulse = m_recoil_hud_shift;
+			Fvector4 relax_impulse = m_recoil_hud_shift;
 			relax_impulse.normalize();
 			relax_impulse.mul(-s_recoil_hud_relax_impulse_magnitude);
-			relax_impulse.mul(accuracy);
-			update_hud_recoil_shift(relax_impulse);
-			if (fMoreOrEqual(m_recoil_hud_shift.dotproduct(relax_impulse), 0.f))
-				m_recoil_hud_shift = vZero;
+			//relax_impulse.mul(accuracy);
+			if (update_hud_recoil_shift(relax_impulse))
+				m_recoil_hud_shift = vZero4;
 		}
 	}
 
 	if (cam_impulse)
 	{
-		auto update_cam_recoil_delta = [this, cif](Fvector CR$ impulse)
+		auto update_cam_recoil_delta = [this, dt](Fvector CR$ impulse)
 			{
 				m_recoil_cam_delta = impulse;
-				m_recoil_cam_delta.mul(fAvgTimeDelta);
-				m_recoil_cam_delta.div(cif);
+				m_recoil_cam_delta.mul(dt);
 			};
 
 		if (cam_impulse)
@@ -1491,7 +1492,7 @@ void CWeaponMagazined::updateRecoil()
 			Fvector stopping_power = m_recoil_cam_impulse;
 			stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
 			stopping_power.mul(accuracy);
-			stopping_power.mul(fAvgTimeDelta);
+			stopping_power.mul(dt);
 			m_recoil_cam_impulse.add(stopping_power);
 			if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
 			{

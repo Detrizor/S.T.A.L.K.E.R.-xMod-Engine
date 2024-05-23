@@ -137,6 +137,7 @@ Dvector CP$ CWeaponHud::get_target_hud_offset() const
 
 #define s_recoil_hud_angle_per_shift pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift")
 #define s_recoil_hud_roll_per_shift pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift")
+#define s_recoil_hud_rollback_per_shift pSettings->r_float("weapon_manager", "recoil_hud_rollback_per_shift")
 void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 {
 	//============= Подготавливаем общие переменные =============//
@@ -436,6 +437,7 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 				O.getRecoilHudShift().z * s_recoil_hud_roll_per_shift
 			}
 		};
+		tmp[0].z -= O.getRecoilHudShift().w * s_recoil_hud_rollback_per_shift;
 		m_grip_offset.pivot(tmp);
 		trans.applyOffset(tmp);
 		trans.applyOffset(dZero, m_current_hud_offset[1]);
