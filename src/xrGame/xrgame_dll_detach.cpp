@@ -26,10 +26,6 @@
 #include "sound_collection_storage.h"
 #include "relation_registry.h"
 
-#include "ui\UIStatic.h"
-
-#include "BoneProtections.h"
-
 typedef xr_vector<std::pair<shared_str,int> >	STORY_PAIRS;
 extern STORY_PAIRS								story_ids;
 extern STORY_PAIRS								spawn_story_ids;
@@ -132,89 +128,4 @@ void clean_game_globals()
 	dump_list_xmls									();
 	DestroyUIGeom									();
 	CUITextureMaster::FreeTexInfo					();
-}
-
-#include "scope.h"
-#include "EntityCondition.h"
-#include "Level_Bullet_Manager.h"
-#include "weapon_hud.h"
-#include "items_library.h"
-
-extern ENGINE_API float		psAIM_FOV;
-float						aim_fov_tan;
-float g_fov					= 75.f;
-
-HitImmunity::HitTypeSVec CEntityCondition::HitTypeHeadPart;
-HitImmunity::HitTypeSVec CEntityCondition::HitTypeGlobalScale;
-
-float CEntityCondition::m_fMeleeOnPierceDamageMultiplier;
-float CEntityCondition::m_fMeleeOnPierceArmorDamageFactor;
-
-SPowerDependency CEntityCondition::ArmorDamageResistance;
-SPowerDependency CEntityCondition::StrikeDamageThreshold;
-SPowerDependency CEntityCondition::StrikeDamageResistance;
-SPowerDependency CEntityCondition::ExplDamageResistance;
-
-SPowerDependency CEntityCondition::AnomalyDamageThreshold;
-SPowerDependency CEntityCondition::AnomalyDamageResistance;
-SPowerDependency CEntityCondition::ProtectionDamageResistance;
-
-SPowerDependency CWeaponHud::HandlingToRotationTime;
-
-float CFireDispertionController::crosshair_inertion;
-
-void loadStaticVariables()
-{
-	CEntityCondition::HitTypeHeadPart.resize						(ALife::eHitTypeMax);
-	for (int i = 0; i < ALife::eHitTypeMax; i++)
-		CEntityCondition::HitTypeHeadPart[i] = 0.f;
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeBurn]			= pSettings->r_float("hit_type_head_part", "burn");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeShock]			= pSettings->r_float("hit_type_head_part", "shock");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeRadiation]		= pSettings->r_float("hit_type_head_part", "radiation");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_head_part", "chemical_burn");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeTelepatic]		= pSettings->r_float("hit_type_head_part", "telepatic");
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeLightBurn]		= CEntityCondition::HitTypeHeadPart[ALife::eHitTypeBurn];
-	CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion]		= pSettings->r_float("hit_type_head_part", "explosion");
-	
-	CEntityCondition::HitTypeGlobalScale.resize							(ALife::eHitTypeMax);
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeBurn]			= pSettings->r_float("hit_type_global_scale", "burn");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeShock]			= pSettings->r_float("hit_type_global_scale", "shock");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_global_scale", "chemical_burn");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeRadiation]		= pSettings->r_float("hit_type_global_scale", "radiation");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeTelepatic]		= pSettings->r_float("hit_type_global_scale", "telepatic");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeWound]			= pSettings->r_float("hit_type_global_scale", "wound");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeFireWound]		= pSettings->r_float("hit_type_global_scale", "fire_wound");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeStrike]			= pSettings->r_float("hit_type_global_scale", "strike");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeExplosion]		= pSettings->r_float("hit_type_global_scale", "explosion");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeWound_2]		= pSettings->r_float("hit_type_global_scale", "wound_2");
-	CEntityCondition::HitTypeGlobalScale[ALife::eHitTypeLightBurn]		= pSettings->r_float("hit_type_global_scale", "light_burn");
-	
-	CEntityCondition::m_fMeleeOnPierceDamageMultiplier		= pSettings->r_float("damage_manager", "melee_on_pierce_damage_multiplier");
-	CEntityCondition::m_fMeleeOnPierceArmorDamageFactor		= pSettings->r_float("damage_manager", "melee_on_pierce_armor_damage_factor");
-
-	CEntityCondition::StrikeDamageThreshold.Load		("damage_manager", "strike_damage_threshold");
-	CEntityCondition::StrikeDamageResistance.Load		("damage_manager", "strike_damage_resistance");
-	CEntityCondition::ExplDamageResistance.Load			("damage_manager", "expl_damage_resistance");
-	CEntityCondition::ArmorDamageResistance.Load		("damage_manager", "armor_damage_resistance");
-	
-	CEntityCondition::AnomalyDamageThreshold.Load		("damage_manager", "anomaly_damage_threshold");
-	CEntityCondition::AnomalyDamageResistance.Load		("damage_manager", "anomaly_damage_resistance");
-	CEntityCondition::ProtectionDamageResistance.Load	("damage_manager", "protection_damage_resistance");
-
-	CFireDispertionController::crosshair_inertion		= pSettings->r_float("weapon_manager", "crosshair_inertion");
-	CWeaponHud::HandlingToRotationTime.Load				("weapon_manager", "handling_to_rotation_time");
-
-	psAIM_FOV							= pSettings->r_float("weapon_manager", "aim_fov");
-	aim_fov_tan							= tanf(psAIM_FOV * (0.5f * PI / 180.f));
-
-	g_items_library						= xr_new<CItemsLibrary>();
-
-	CCartridge::loadStaticVariables		();
-	SBoneProtections::loadStaticVariables();
-	CScope::loadStaticVariables			();
-}
-
-void cleanStaticVariables()
-{
-	xr_delete(g_items_library);
 }

@@ -27,6 +27,21 @@
 #define MAX_RADIATION 1.0f
 #define MAX_PSY_HEALTH 1.0f
 
+HitImmunity::HitTypeSVec CEntityCondition::HitTypeHeadPart;
+HitImmunity::HitTypeSVec CEntityCondition::HitTypeScale;
+
+float CEntityCondition::m_fMeleeOnPierceDamageMultiplier;
+float CEntityCondition::m_fMeleeOnPierceArmorDamageFactor;
+
+SPowerDependency CEntityCondition::ArmorDamageResistance;
+SPowerDependency CEntityCondition::StrikeDamageThreshold;
+SPowerDependency CEntityCondition::StrikeDamageResistance;
+SPowerDependency CEntityCondition::ExplDamageResistance;
+
+SPowerDependency CEntityCondition::AnomalyDamageThreshold;
+SPowerDependency CEntityCondition::AnomalyDamageResistance;
+SPowerDependency CEntityCondition::ProtectionDamageResistance;
+
 CEntityConditionSimple::CEntityConditionSimple()
 {
 	max_health()		= MAX_HEALTH;
@@ -334,33 +349,33 @@ CHelmet* CEntityCondition::GetHelmet()
 }
 
 template <typename T>
-float GearExplEffect(T gear, float damage, float protection, CInventoryOwner* io, bool head)
+float CEntityCondition::GearExplEffect(T gear, float damage, float protection, CInventoryOwner* io, bool head)
 {
-	damage								*= head ? CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion] : 1.f - CEntityCondition::HitTypeHeadPart[ALife::eHitTypeExplosion];
+	damage								*= head ? HitTypeHeadPart[ALife::eHitTypeExplosion] : 1.f - HitTypeHeadPart[ALife::eHitTypeExplosion];
 	if (fEqual(damage, 0.f))
 		return							damage;
 
 	if (gear)
 		protection						+= gear->GetBoneArmor(0);
-	float armor_damage					= damage * CEntityCondition::ArmorDamageResistance.Calc(protection);
+	float armor_damage					= damage * ArmorDamageResistance.Calc(protection);
 	if (gear)
 		gear->Hit						(armor_damage, ALife::eHitTypeExplosion);
 	io->HitArtefacts					(armor_damage, ALife::eHitTypeExplosion);
 
-	return								damage * CEntityCondition::ExplDamageResistance.Calc(protection);
+	return								damage * ExplDamageResistance.Calc(protection);
 }
 
 template <typename T>
-float GearProtectionEffect(T gear, const ALife::EHitType& hit_type, float damage, bool head)
+float CEntityCondition::GearProtectionEffect(T gear, const ALife::EHitType& hit_type, float damage, bool head)
 {
-	damage								*= (head) ? CEntityCondition::HitTypeHeadPart[hit_type] : 1.f - CEntityCondition::HitTypeHeadPart[hit_type];
+	damage								*= (head) ? HitTypeHeadPart[hit_type] : 1.f - HitTypeHeadPart[hit_type];
 	if (!gear || fEqual(damage, 0.f))
 		return							damage;
 
 	float protection					= gear->GetHitTypeProtection(hit_type);
-	gear->Hit							(damage * CEntityCondition::ProtectionDamageResistance.Calc(protection), hit_type);
-	damage								*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
-	damage								-= min(damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
+	gear->Hit							(damage * ProtectionDamageResistance.Calc(protection), hit_type);
+	damage								*= AnomalyDamageResistance.Calc(protection);
+	damage								-= min(damage, AnomalyDamageThreshold.Calc(protection));
 
 	return								damage;
 }
@@ -491,7 +506,7 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	if (!CanBeHarmed())
 		return				NULL;
 	
-	pHDS->main_damage		*= HitTypeGlobalScale[pHDS->hit_type];
+	pHDS->main_damage		*= HitTypeScale[pHDS->hit_type];
 	HitProtectionEffect		(pHDS);
 	float main_damage		= pHDS->main_damage * GetHitImmunity(pHDS->hit_type) * m_fHealthHitPart;
 
@@ -739,4 +754,45 @@ void SBooster::Load(const shared_str& sect, EBoostParams type)
 	fBoostTime		= pSettings->r_float(sect, "boost_time");
 	fBoostValue		= pSettings->r_float(sect, ef_boosters_section_names[type]);
 	m_type			= type;
+}
+
+void CEntityCondition::loadStaticVariables()
+{
+	using namespace ALife;
+
+	HitTypeHeadPart.resize				(eHitTypeMax);
+	for (int i = 0; i < eHitTypeMax; i++)
+		HitTypeHeadPart[i]				= 0.f;
+	HitTypeHeadPart[eHitTypeBurn]		= pSettings->r_float("hit_type_head_part", "burn");
+	HitTypeHeadPart[eHitTypeShock]		= pSettings->r_float("hit_type_head_part", "shock");
+	HitTypeHeadPart[eHitTypeRadiation]	= pSettings->r_float("hit_type_head_part", "radiation");
+	HitTypeHeadPart[eHitTypeChemicalBurn] = pSettings->r_float("hit_type_head_part", "chemical_burn");
+	HitTypeHeadPart[eHitTypeTelepatic]	= pSettings->r_float("hit_type_head_part", "telepatic");
+	HitTypeHeadPart[eHitTypeLightBurn]	= HitTypeHeadPart[eHitTypeBurn];
+	HitTypeHeadPart[eHitTypeExplosion]	= pSettings->r_float("hit_type_head_part", "explosion");
+	
+	HitTypeScale.resize					(eHitTypeMax);
+	HitTypeScale[eHitTypeBurn]			= pSettings->r_float("hit_type_global_scale", "burn");
+	HitTypeScale[eHitTypeShock]			= pSettings->r_float("hit_type_global_scale", "shock");
+	HitTypeScale[eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_global_scale", "chemical_burn");
+	HitTypeScale[eHitTypeRadiation]		= pSettings->r_float("hit_type_global_scale", "radiation");
+	HitTypeScale[eHitTypeTelepatic]		= pSettings->r_float("hit_type_global_scale", "telepatic");
+	HitTypeScale[eHitTypeWound]			= pSettings->r_float("hit_type_global_scale", "wound");
+	HitTypeScale[eHitTypeFireWound]		= pSettings->r_float("hit_type_global_scale", "fire_wound");
+	HitTypeScale[eHitTypeStrike]		= pSettings->r_float("hit_type_global_scale", "strike");
+	HitTypeScale[eHitTypeExplosion]		= pSettings->r_float("hit_type_global_scale", "explosion");
+	HitTypeScale[eHitTypeWound_2]		= pSettings->r_float("hit_type_global_scale", "wound_2");
+	HitTypeScale[eHitTypeLightBurn]		= pSettings->r_float("hit_type_global_scale", "light_burn");
+	
+	m_fMeleeOnPierceDamageMultiplier	= pSettings->r_float("damage_manager", "melee_on_pierce_damage_multiplier");
+	m_fMeleeOnPierceArmorDamageFactor	= pSettings->r_float("damage_manager", "melee_on_pierce_armor_damage_factor");
+
+	StrikeDamageThreshold.Load			("damage_manager", "strike_damage_threshold");
+	StrikeDamageResistance.Load			("damage_manager", "strike_damage_resistance");
+	ExplDamageResistance.Load			("damage_manager", "expl_damage_resistance");
+	ArmorDamageResistance.Load			("damage_manager", "armor_damage_resistance");
+	
+	AnomalyDamageThreshold.Load			("damage_manager", "anomaly_damage_threshold");
+	AnomalyDamageResistance.Load		("damage_manager", "anomaly_damage_resistance");
+	ProtectionDamageResistance.Load		("damage_manager", "protection_damage_resistance");
 }

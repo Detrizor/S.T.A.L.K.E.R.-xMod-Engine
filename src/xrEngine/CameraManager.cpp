@@ -19,8 +19,6 @@
 float psCamInert = 0.f;
 float psCamSlideInert = 0.25f;
 
-ENGINE_API float psAIM_FOV;
-
 SPPInfo pp_identity;
 SPPInfo pp_zero;
 
@@ -321,9 +319,14 @@ void CCameraManager::Update(const Fvector& P, const Fvector& D, const Fvector& N
 	m_cam_info.n.crossproduct(m_cam_info.d, m_cam_info.r);
 
 	float aspect = Device.fHeight_2 / Device.fWidth_2;
-	float src = fLess(fFOV_Dest, psAIM_FOV) ? 1.f : 10.f * Device.fTimeDelta;
-	clamp(src, 0.f, 1.f);
-	float dst = 1 - src;
+	float src = 1.f;
+	if (flags & CCameraBase::flInterpolateFOV)
+	{
+		src = 10.f * Device.fTimeDelta;
+		clamp(src, 0.f, 1.f);
+	}
+	float dst = 1.f - src;
+
 	m_cam_info.fFov = m_cam_info.fFov*dst + fFOV_Dest*src;
 	m_cam_info.fFar = m_cam_info.fFar*dst + fFAR_Dest*src;
 	m_cam_info.fAspect = m_cam_info.fAspect*dst + (fASPECT_Dest*aspect)*src;

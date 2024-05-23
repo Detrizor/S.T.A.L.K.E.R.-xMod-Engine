@@ -1290,7 +1290,6 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	hi->set_bone_visible				(iron_sights_lowered_bone, !!m_iron_sights_blockers, TRUE);
 }
 
-extern float aim_fov_tan;
 void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
 	CScope* scope						= getActiveScope();
@@ -1309,11 +1308,11 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 	d_hpb								= cam_hpb;
 	d_hpb.sub							(static_cast<Fvector>(self_hpb));
 
-	float fov_tan						= aim_fov_tan;
+	float fov_tan						= g_aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (scope->Type() == eOptics)
 	{
-		hud_params.w					= scope->getLenseFovTan() / aim_fov_tan;
+		hud_params.w					= scope->getLenseFovTan() / g_aim_fov_tan;
 		float zoom_factor				= CurrentZoomFactor(false);
 		Device.SVP.setZoom				(zoom_factor);
 		fov_tan							/= zoom_factor;

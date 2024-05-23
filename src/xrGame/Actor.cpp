@@ -104,9 +104,6 @@ static Fvector	vFootExt;
 Flags32			psActorFlags = {AF_GODMODE_RT | AF_AUTOPICKUP | AF_RUN_BACKWARD | AF_IMPORTANT_SAVE | AF_USE_TRACERS};
 int				psActorSleepTime = 1;
 
-extern void loadStaticVariables();
-extern void cleanStaticVariables();
-
 CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 {
 	game_news_registry = xr_new<CGameNewsRegistryWrapper		>();
@@ -525,7 +522,7 @@ void	CActor::Hit(SHit* pHDS)
 		conditions().PlayHitSound(pHDS))
 	{
 		ref_sound& S = sndHit[HDS.hit_type][Random.randI(sndHit[HDS.hit_type].size())];
-		bool b_snd_hit_playing = sndHit[HDS.hit_type].end() != std::find_if(sndHit[HDS.hit_type].begin(), sndHit[HDS.hit_type].end(), playing_pred());
+		bool b_snd_hit_playing = sndHit[HDS.hit_type].end() != ::std::find_if(sndHit[HDS.hit_type].begin(), sndHit[HDS.hit_type].end(), playing_pred());
 
 		if (ALife::eHitTypeExplosion == HDS.hit_type)
 		{
@@ -876,8 +873,6 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 	}
 }
 
-extern ENGINE_API float psAIM_FOV;
-extern float aim_fov_tan;
 float CActor::currentFOV()
 {
 	if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
@@ -890,7 +885,7 @@ float CActor::currentFOV()
 		{
 			float zoom_factor	= pWeapon->CurrentZoomFactor(true);
 			if (fMore(zoom_factor, 0.f))
-				return			(fMore(zoom_factor, 1.f)) ? atanf(aim_fov_tan / zoom_factor) / (.5f * PI / 180.f) : psAIM_FOV;
+				return			(fMore(zoom_factor, 1.f)) ? atanf(g_aim_fov_tan / zoom_factor) / (.5f * PI / 180.f) : g_aim_fov;
 		}
 	}
 	return						g_fov;
@@ -965,6 +960,7 @@ void CActor::UpdateCL()
 	{
 		psHUD_Flags.set(HUD_CROSSHAIR_RT2, true);
 		psHUD_Flags.set(HUD_DRAW_RT, true);
+		HUD().SetCrosshairDisp(0.f);
 	}
 
 	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
@@ -972,11 +968,8 @@ void CActor::UpdateCL()
 	{
 		if (pWeapon->IsZoomed())
 		{
-			float full_fire_disp = pWeapon->GetFireDispersion();
-
-			CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom));
-			if (S)
-				S->SetParams(full_fire_disp);
+			if (auto S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom)))
+				S->SetParams(pWeapon->GetFireDispersion(1.f));
 
 			SetZoomAimingMode(true);
 			//Alun: Force switch to first-person for zooming
@@ -1001,10 +994,6 @@ void CActor::UpdateCL()
 
 		if (current_entity)
 		{
-			m_fdisp_controller.SetDispertion(pWeapon->GetFireDispersion(nullptr, true));		//--xd actually it's wrong, need to use cartridge coeff
-
-			HUD().SetCrosshairDisp(m_fdisp_controller.GetCurrentDispertion(), 0.02f);
-
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
@@ -1022,7 +1011,6 @@ void CActor::UpdateCL()
 	}
 	else if (current_entity)
 	{
-		HUD().SetCrosshairDisp(0.f);
 		HUD().ShowCrosshair(false);
 			
 		//Alun: Switch back to third-person if was forced
@@ -1821,4 +1809,32 @@ bool CActor::unlimited_ammo()
 void CActor::SetPower(float p)
 {
 	conditions().SetPower(p);
+}
+
+#include "items_library.h"
+#include "EntityCondition.h"
+#include "BoneProtections.h"
+#include "weapon_hud.h"
+#include "scope.h"
+
+float g_fov;
+float g_aim_fov;
+float g_aim_fov_tan;
+
+void CActor::loadStaticVariables()
+{
+	g_aim_fov							= pSettings->r_float("weapon_manager", "aim_fov");
+	g_aim_fov_tan						= tanf(g_aim_fov * (.5f * PI / 180.f));
+	g_items_library						= xr_new<CItemsLibrary>();
+
+	CEntityCondition::loadStaticVariables();
+	SBoneProtections::loadStaticVariables();
+	CCartridge::loadStaticVariables		();
+	CWeaponHud::loadStaticVariables		();
+	CScope::loadStaticVariables			();
+}
+
+void CActor::cleanStaticVariables()
+{
+	xr_delete(g_items_library);
 }

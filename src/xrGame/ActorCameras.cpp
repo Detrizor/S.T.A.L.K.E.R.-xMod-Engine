@@ -343,15 +343,7 @@ void CActor::cam_Update(float dt, float fFOV)
 
 	C->Update						(point,dangle);
 	C->f_fov						= fFOV;
-
-	//Alun: for third person zoom to first person
-	/*
-	if(eacFirstEye != cam_active)
-	{
-		cameras[eacFirstEye]->Update	(point,dangle);
-		cameras[eacFirstEye]->f_fov		= fFOV;
-	}
-	*/
+	C->m_Flags.set					(CCameraBase::flInterpolateFOV, fMoreOrEqual(fFOV, g_aim_fov));
 
 	if (Level().CurrentEntity() == this)
 	{

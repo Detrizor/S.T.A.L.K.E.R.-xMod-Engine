@@ -5436,9 +5436,6 @@
     <ClInclude Include="ActorCondition.h">
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClInclude>
-    <ClInclude Include="fire_disp_controller.h">
-      <Filter>Core\Client\Objects\actor\base</Filter>
-    </ClInclude>
     <ClInclude Include="actor_memory.h">
       <Filter>Core\Client\Objects\actor\base\memory</Filter>
     </ClInclude>
@@ -9035,9 +9032,6 @@
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClCompile>
     <ClCompile Include="ActorVehicle.cpp">
-      <Filter>Core\Client\Objects\actor\base</Filter>
-    </ClCompile>
-    <ClCompile Include="fire_disp_controller.cpp">
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClCompile>
     <ClCompile Include="actor_memory.cpp">

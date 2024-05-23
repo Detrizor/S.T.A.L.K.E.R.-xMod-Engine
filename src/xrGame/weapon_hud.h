@@ -15,6 +15,8 @@ struct SShootingParams
 
 class CWeaponHud
 {
+	static SPowerDependency				inertionToRotationTime;
+
 	enum EHandsOffset
 	{
 		eRelaxed,
@@ -45,7 +47,7 @@ private:
 	Dvector CP$							get_target_hud_offset				C$	();
 
 public:
-	static SPowerDependency				HandlingToRotationTime;
+	static void							loadStaticVariables						();
 
 	void								InitRotateTime							(float cif);
 	void								UpdateHudAdditional						(Dmatrix& trans);

@@ -13,6 +13,8 @@
 
 constexpr double rotation_eps = .01;
 
+SPowerDependency CWeaponHud::inertionToRotationTime;
+
 CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 {
 	Dvector root_bone_position			= static_cast<Dvector>(O.m_root_bone_position);
@@ -87,9 +89,14 @@ bool CWeaponHud::IsRotatingToZoom C$()
 	return								false;
 }
 
+void CWeaponHud::loadStaticVariables()
+{
+	inertionToRotationTime.Load			("weapon_manager", "inertion_to_rotation_time");
+}
+
 void CWeaponHud::InitRotateTime(float cif)
 {
-	m_fRotateTime						= HandlingToRotationTime.Calc(cif - 1.f);
+	m_fRotateTime						= inertionToRotationTime.Calc(cif - 1.f);
 }
 
 CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const

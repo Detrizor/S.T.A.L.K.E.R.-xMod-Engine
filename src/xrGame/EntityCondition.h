@@ -243,19 +243,28 @@ public:
 	IC float&						pierce_damage_bone_scale()			{return		(m_fPierceDamageBoneScale);	}
 	IC SConditionChangeV&			change_v				()			{return		(m_change_v);				}
 
+private:
+	static HitImmunity::HitTypeSVec		HitTypeHeadPart;
+	static HitImmunity::HitTypeSVec		HitTypeScale;
+
+	static float						m_fMeleeOnPierceDamageMultiplier;
+	static float						m_fMeleeOnPierceArmorDamageFactor;
+
+	static SPowerDependency				StrikeDamageThreshold;
+	static SPowerDependency				StrikeDamageResistance;
+	static SPowerDependency				ExplDamageResistance;
+	static SPowerDependency				ArmorDamageResistance;
+
+	static SPowerDependency				AnomalyDamageThreshold;
+	static SPowerDependency				AnomalyDamageResistance;
+	static SPowerDependency				ProtectionDamageResistance;
+
+	template <typename T>
+	float								GearProtectionEffect					(T gear, const ALife::EHitType& hit_type, float damage, bool head);
+	template <typename T>
+	float								GearExplEffect							(T gear, float damage, float protection, CInventoryOwner* io, bool head);
+
+
 public:
-	static HitImmunity::HitTypeSVec	HitTypeHeadPart;
-	static HitImmunity::HitTypeSVec HitTypeGlobalScale;
-
-	static float m_fMeleeOnPierceDamageMultiplier;
-	static float m_fMeleeOnPierceArmorDamageFactor;
-
-	static SPowerDependency StrikeDamageThreshold;
-	static SPowerDependency StrikeDamageResistance;
-	static SPowerDependency ExplDamageResistance;
-	static SPowerDependency ArmorDamageResistance;
-
-	static SPowerDependency AnomalyDamageThreshold;
-	static SPowerDependency AnomalyDamageResistance;
-	static SPowerDependency ProtectionDamageResistance;
+	static void							loadStaticVariables						();
 };

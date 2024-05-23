@@ -1508,7 +1508,6 @@
     <ClInclude Include="filetransfer_common.h" />
     <ClInclude Include="filetransfer_node.h" />
     <ClInclude Include="file_transfer.h" />
-    <ClInclude Include="fire_disp_controller.h" />
     <ClInclude Include="first_bullet_controller.h" />
     <ClInclude Include="flare.h" />
     <ClInclude Include="FryupZone.h" />
@@ -3227,7 +3226,6 @@
     <ClCompile Include="filereceiver_node.cpp" />
     <ClCompile Include="filetransfer_node.cpp" />
     <ClCompile Include="file_transfer.cpp" />
-    <ClCompile Include="fire_disp_controller.cpp" />
     <ClCompile Include="first_bullet_controller.cpp" />
     <ClCompile Include="flare.cpp" />
     <ClCompile Include="FryupZone.cpp" />
