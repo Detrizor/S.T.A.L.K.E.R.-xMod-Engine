@@ -149,7 +149,7 @@ void CInventoryItem::Load(LPCSTR section)
 	{
 		m_flags.set					(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
 		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
-		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
+		m_fControlInertionFactor	= sqrt(pSettings->r_float(section, "control_inertion_factor"));
 	}
 
 	m_category						= pSettings->r_string(section, "category");
@@ -607,13 +607,6 @@ void CInventoryItem::activate_physic_shell()
 	object().CPhysicsShellHolder::activate_physic_shell();
 }
 
-//--xd remove static
-#define s_inertion_baseline_weight pSettings->r_float("weapon_manager", "inertion_baseline_weight")
-float CInventoryItem::GetControlInertionFactor() const
-{
-	return sqrt(m_fControlInertionFactor * (Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight);
-}
-
 void CInventoryItem::UpdateXForm()
 {
 	if (0 == object().H_Parent())	return;
@@ -889,8 +882,6 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-#include "UI/UIActorMenu.h"
-#include "UIGameCustom.h"
 bool CInventoryItem::tryCustomUse()
 {
 	if (auto usable = cast<CUsable*>())

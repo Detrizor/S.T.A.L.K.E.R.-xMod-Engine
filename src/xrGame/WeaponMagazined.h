@@ -206,7 +206,6 @@ private:
 	void								ProcessSilencer							(CSilencer* sil, bool attach);
 	void								process_scope							(CScope* scope, bool attach);
 	void								cycle_scope								(int idx, bool up = true);
-	void								InitRotateTime							();
 	void								on_firemode_switch						();
 	
 	bool								is_auto_bolt_allowed				C$	();

@@ -63,6 +63,7 @@ public:
 private:
 	const eScopeType					m_Type;
 	const Dvector						m_sight_position;
+	const float							m_ads_speed_factor;
 	
 	CUIStatic*							m_pUIReticle							= NULL;
 	CBinocularsVision*					m_pVision								= NULL;
@@ -111,6 +112,7 @@ public:
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }
+	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

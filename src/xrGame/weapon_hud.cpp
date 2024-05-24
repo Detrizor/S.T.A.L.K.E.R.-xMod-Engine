@@ -87,22 +87,19 @@ bool CWeaponHud::IsRotatingToZoom C$()
 	return								false;
 }
 
-SPowerDependency CWeaponHud::inertionToRotationTime;
 float CWeaponHud::s_recoil_hud_angle_per_shift;
 float CWeaponHud::s_recoil_hud_roll_per_shift;
 float CWeaponHud::s_recoil_hud_rollback_per_shift;
+float CWeaponHud::s_max_rotate_speed;
+float CWeaponHud::s_rotate_accel_time;
 
 void CWeaponHud::loadStaticVariables()
 {
-	inertionToRotationTime.Load			("weapon_manager", "inertion_to_rotation_time");
 	s_recoil_hud_angle_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift");
 	s_recoil_hud_roll_per_shift			= pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift");
 	s_recoil_hud_rollback_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_rollback_per_shift");
-}
-
-void CWeaponHud::InitRotateTime(float cif)
-{
-	m_fRotateTime						= inertionToRotationTime.Calc(cif - 1.f);
+	s_max_rotate_speed					= pSettings->r_float("weapon_manager", "max_rotate_speed");
+	s_rotate_accel_time					= pSettings->r_float("weapon_manager", "rotate_accel_time");
 }
 
 CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
@@ -157,8 +154,54 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	//============= Поворот ствола во время аима =============//
 	{
 		Dvector CPC target_offset = get_target_hud_offset();
-		Dvector target_pos = target_offset[0]; //pos,aim
-		Dvector target_rot = target_offset[1]; //rot,aim
+		Dvector CR$ target_pos = target_offset[0]; //pos,aim
+		Dvector CR$ target_rot = target_offset[1]; //rot,aim
+
+		if (m_prev_offset != target_offset)
+		{
+			m_current_rotate_speed = 0.f;
+			m_prev_offset = target_offset;
+		}
+
+		float factor = m_current_rotate_speed * fAvgTimeDelta / O.GetControlInertionFactor();
+		if (auto scope = O.getActiveScope())
+			if (target_offset == scope->getHudOffset())
+				factor *= scope->getAdsSpeedFactor();
+
+		auto inertion = [dfactor = static_cast<double>(factor)](Dvector CR$ target, Dvector& current)
+		{
+			if (target.similar(current, EPS_S))
+				current.set(target);
+			else
+			{
+				Dvector diff = target;
+				diff.sub(current);
+				current.mad(diff, dfactor);
+			}
+		};
+
+		inertion(target_pos, m_current_hud_offset[0]);
+		inertion(target_rot, m_current_hud_offset[1]);
+
+		if (m_current_rotate_speed < s_max_rotate_speed)
+		{
+			m_current_rotate_speed += s_max_rotate_speed * fAvgTimeDelta / s_rotate_accel_time;
+			if (m_current_rotate_speed > s_max_rotate_speed)
+				m_current_rotate_speed = s_max_rotate_speed;
+		}
+
+		// Remove pending state before weapon has fully moved to the new position to remove some delay
+		if (m_going_to_fire && target_pos.similar(m_current_hud_offset[0], rotation_eps) && target_rot.similar(m_current_hud_offset[1], rotation_eps))
+		{
+			O.FireStart();
+			m_going_to_fire = false;
+		}
+
+		if (O.IsZoomed())
+			m_fRotationFactor += factor;
+		else
+			m_fRotationFactor -= factor;
+		clamp(m_fRotationFactor, 0.f, 1.f);
 
 		Dvector target_d_rot = dZero;
 		if (target_offset == m_hud_offset[eRelaxed])
@@ -170,46 +213,8 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 			else
 				target_d_rot.y = PI_DIV_6;
 		}
-		Dmatrix t;
-		t.setHPBv(target_d_rot);
-		t.applyOffset(target_pos, target_rot);
-		t.getOffset(target_pos, target_rot, false);
-
-		float rotate_time = m_fRotateTime;
-		CScope* scope = O.getActiveScope();
-		if (scope && scope->Type() == eCollimator)
-			rotate_time *= .6f;
-		if (!O.ADS() && O.ArmedMode())
-			rotate_time *= .4f;
-
-		double factor = static_cast<double>(Device.fTimeDelta / rotate_time);
-		auto inertion = [factor](Dvector CR$ target, Dvector& current)
-		{
-			if (target.similar(current, EPS_S))
-				current.set(target);
-			else
-			{
-				Dvector diff = Dvector(target).sub(current);
-				current.mad(diff, factor * 2.5);
-			}
-		};
-
-		inertion(target_pos, m_current_hud_offset[0]);
-		inertion(target_rot, m_current_hud_offset[1]);
-
-		// Remove pending state before weapon has fully moved to the new position to remove some delay
-		if (m_going_to_fire && target_pos.similar(m_current_hud_offset[0], .01f) && target_rot.similar(m_current_hud_offset[1], .01f))
-		{
-			O.FireStart();
-			m_going_to_fire = false;
-		}
-
-		if (O.IsZoomed())
-			m_fRotationFactor += static_cast<float>(factor);
-		else
-			m_fRotationFactor -= static_cast<float>(factor);
-
-		clamp(m_fRotationFactor, 0.f, 1.f);
+		inertion(target_d_rot, m_current_d_rot);
+		trans.applyOffset(dZero, m_current_d_rot);
 	}
 
 	//======== Проверяем доступность инерции и стрейфа ========//

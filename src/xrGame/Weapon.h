@@ -438,6 +438,7 @@ public:
 	};
 
 private:
+	static float						s_inertion_baseline_weight;
 	static float						s_inertion_ads_factor;
 	static float						s_inertion_aim_factor;
 	static float						s_inertion_armed_factor;

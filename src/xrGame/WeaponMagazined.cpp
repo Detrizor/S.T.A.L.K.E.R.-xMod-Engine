@@ -117,7 +117,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 		m_bHasDifferentFireModes = false;
 
 	m_hud								= xr_new<CWeaponHud>(this);
-	InitRotateTime						();
 
 	CAddonOwner* ao						= cast<CAddonOwner*>();
 	if (ao)
@@ -1120,8 +1119,6 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 	if (auto sil = addon->cast<CSilencer*>())
 		ProcessSilencer			(sil, attach);
 
-	InitRotateTime				();
-
 	if (addon->anmPrefix().size())
 	{
 		m_addon_anm_prefix		= (attach) ? &addon->anmPrefix() : nullptr;
@@ -1234,11 +1231,6 @@ float CWeaponMagazined::GetMagazineWeight() const
 		res								+= c.Weight();
 
 	return								res;
-}
-
-void CWeaponMagazined::InitRotateTime()
-{
-	m_hud->InitRotateTime(GetControlInertionFactor());
 }
 
 void CWeaponMagazined::UpdateHudBonesVisibility()

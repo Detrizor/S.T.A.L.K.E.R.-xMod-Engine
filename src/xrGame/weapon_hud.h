@@ -15,11 +15,7 @@ struct SShootingParams
 
 class CWeaponHud
 {
-	static SPowerDependency				inertionToRotationTime;
-	static float						s_recoil_hud_angle_per_shift;
-	static float						s_recoil_hud_roll_per_shift;
-	static float						s_recoil_hud_rollback_per_shift;
-
+	CWeaponMagazined&					O;
 	enum EHandsOffset
 	{
 		eRelaxed,
@@ -31,17 +27,22 @@ class CWeaponHud
 		eTotal
 	};
 
-private:
-	CWeaponMagazined&					O;
-
 public:
 										CWeaponHud								(CWeaponMagazined* obj);
 
 private:
+	static float						s_recoil_hud_angle_per_shift;
+	static float						s_recoil_hud_roll_per_shift;
+	static float						s_recoil_hud_rollback_per_shift;
+	static float						s_max_rotate_speed;
+	static float						s_rotate_accel_time;
+
 	float								m_fRotationFactor						= 0.f;
 	bool								m_going_to_fire							= false;
 	Dvector								m_current_hud_offset[2]					= { dZero, dZero };
 	Dvector								m_current_d_rot							= dZero;
+	float								m_current_rotate_speed					= 0.f;
+	Dvector CP$							m_prev_offset							= nullptr;
 
 	Dvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;
@@ -53,7 +54,6 @@ private:
 public:
 	static void							loadStaticVariables						();
 
-	void								InitRotateTime							(float cif);
 	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessGL								(CGrenadeLauncher* gl);

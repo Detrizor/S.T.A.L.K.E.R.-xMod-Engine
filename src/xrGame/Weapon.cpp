@@ -939,18 +939,16 @@ bool CWeapon::NeedBlendAnm()
 
 float CWeapon::GetControlInertionFactor C$()
 {
-	float inertion			= inherited::GetControlInertionFactor() - 1.f;
-
+	float inertion						= sqrt((Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight) - 1.f;
 	if (ADS())
-		inertion			*= s_inertion_ads_factor;
+		inertion						*= s_inertion_ads_factor;
 	else if (IsZoomed())
-		inertion			*= s_inertion_aim_factor;
+		inertion						*= s_inertion_aim_factor;
 	else if (ArmedMode())
-		inertion			*= s_inertion_armed_factor;
+		inertion						*= s_inertion_armed_factor;
 	else
-		inertion			*= s_inertion_relaxed_factor;
-
-	return					(1.f + inertion);
+		inertion						*= s_inertion_relaxed_factor;
+	return								1.f + inherited::GetControlInertionFactor() * inertion;
 }
 
 float CWeapon::CurrentZoomFactor C$(bool for_actor)
@@ -994,6 +992,7 @@ float CWeapon::Aboba(EEventTypes type, void* data, int param)
 }
 
 
+float CWeapon::s_inertion_baseline_weight;
 float CWeapon::s_inertion_ads_factor;
 float CWeapon::s_inertion_aim_factor;
 float CWeapon::s_inertion_armed_factor;
@@ -1009,6 +1008,7 @@ float CWeapon::s_recoil_roll_dispersion;
 
 void CWeapon::loadStaticVariables()
 {
+	s_inertion_baseline_weight			= pSettings->r_float("weapon_manager", "inertion_baseline_weight");
 	s_inertion_ads_factor				= pSettings->r_float("weapon_manager", "inertion_ads_factor");
 	s_inertion_aim_factor				= pSettings->r_float("weapon_manager", "inertion_aim_factor");
 	s_inertion_armed_factor				= pSettings->r_float("weapon_manager", "inertion_armed_factor");
