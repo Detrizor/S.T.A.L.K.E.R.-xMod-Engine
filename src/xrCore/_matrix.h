@@ -799,11 +799,20 @@ public:
 		return							applyOffset(offset[0], offset[1]);
 	}
 
-	void getOffset(Tvector* dest) const
+	void getOffset(Tvector& dest_pos, Tvector& dest_rot, bool invert = true) const
 	{
-		Self itrans						= Self().invert(*this);
-		dest[0]							= itrans.c;
-		itrans.getHPB					(dest[1]);
+		Self							t;
+		if (invert)
+			t.invert					(*this);
+		else
+			t							= *this;
+		dest_pos						= t.c;
+		t.getHPB						(dest_rot);
+	}
+
+	void getOffset(Tvector* dest, bool invert = true) const
+	{
+		getOffset						(dest[0], dest[1], invert);
 	}
 
 	SelfRef set(_matrix<double> const& a)

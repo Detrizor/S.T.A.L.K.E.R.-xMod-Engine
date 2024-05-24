@@ -157,8 +157,23 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	//============= Поворот ствола во время аима =============//
 	{
 		Dvector CPC target_offset = get_target_hud_offset();
-		Dvector CR$ target_pos = target_offset[0]; //pos,aim
-		Dvector CR$ target_rot = target_offset[1]; //rot,aim
+		Dvector target_pos = target_offset[0]; //pos,aim
+		Dvector target_rot = target_offset[1]; //rot,aim
+
+		Dvector target_d_rot = dZero;
+		if (target_offset == m_hud_offset[eRelaxed])
+		{
+			Dvector hpb;
+			trans.getHPB(hpb);
+			if (hpb.y > -PI_DIV_6)
+				target_d_rot.y = -hpb.y;
+			else
+				target_d_rot.y = PI_DIV_6;
+		}
+		Dmatrix t;
+		t.setHPBv(target_d_rot);
+		t.applyOffset(target_pos, target_rot);
+		t.getOffset(target_pos, target_rot, false);
 
 		float rotate_time = m_fRotateTime;
 		CScope* scope = O.getActiveScope();
@@ -195,22 +210,6 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 			m_fRotationFactor -= static_cast<float>(factor);
 
 		clamp(m_fRotationFactor, 0.f, 1.f);
-
-		Dvector target_d_rot = dZero;
-		if (target_offset == m_hud_offset[eRelaxed])
-		{
-			Dvector hpb;
-			trans.getHPB(hpb);
-			if (hpb.y > -PI_DIV_6)
-				target_d_rot.y = -hpb.y;
-			else
-				target_d_rot.y = PI_DIV_6;
-		}
-		if (IsRotatingToZoom())
-			inertion(target_d_rot, m_current_d_rot);
-		else
-			m_current_d_rot = target_d_rot;
-		trans.applyOffset(dZero, m_current_d_rot);
 	}
 
 	//======== Проверяем доступность инерции и стрейфа ========//
