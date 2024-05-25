@@ -12,6 +12,7 @@
 #include <D3DX10Tex.h>
 
 #include "../xrRender/dxRenderDeviceRender.h"
+#include <D3DX11.h>
 
 // #include "std_classes.h"
 // #include "xr_avi.h"
@@ -423,9 +424,9 @@ _DDS_CUBE:
 			//LoadInfo.Usage = D3D_USAGE_IMMUTABLE;
 			if (bStaging)
 			{
-				LoadInfo.Usage = D3D_USAGE_STAGING;
-				LoadInfo.BindFlags = 0;
-				LoadInfo.CpuAccessFlags = D3D_CPU_ACCESS_WRITE;
+				LoadInfo.Usage = D3D_USAGE_DEFAULT;
+				LoadInfo.BindFlags = D3DX11_DEFAULT;
+				LoadInfo.CpuAccessFlags = D3DX11_DEFAULT;
 			}
 			else
 			{
@@ -503,9 +504,9 @@ _DDS_2D:
 			//LoadInfo.Usage = D3D_USAGE_IMMUTABLE;
 			if (bStaging)
 			{
-				LoadInfo.Usage = D3D_USAGE_STAGING;
-				LoadInfo.BindFlags = 0;
-				LoadInfo.CpuAccessFlags = D3D_CPU_ACCESS_WRITE;
+				LoadInfo.Usage = D3D_USAGE_DEFAULT;
+				LoadInfo.BindFlags = D3DX11_DEFAULT;
+				LoadInfo.CpuAccessFlags = D3DX11_DEFAULT;
 			}
 			else
 			{
