@@ -68,10 +68,12 @@ void CWeapon::FireTrace		()
 
 	StartShotParticles		();
 	
-	if(m_bLightShotEnabled) 
+	if (m_bLightShotEnabled) 
 		Light_Start			();
 
-	appendRecoil			(m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot);
+	float shot_speed					= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.kBulletSpeed;
+	float shot_mass						= l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
+	appendRecoil						(shot_speed * shot_mass);
 }
 
 void CWeapon::StopShooting()
