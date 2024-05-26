@@ -244,7 +244,7 @@ void CScope::RenderUI()
 	if (m_Magnificaion.dynamic)
 		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
 	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_eye_relief_magnification_shrink);
-	float offset						= m_camera_lense_distance / cur_eye_relief;
+	float offset						= (fMore(cur_eye_relief, 0.f)) ? m_camera_lense_distance / cur_eye_relief : 1.f;
 	
 	CUIStatic* shadow					= nullptr;
 	float scale							= lense_scale;
