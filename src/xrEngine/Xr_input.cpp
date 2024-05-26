@@ -12,6 +12,10 @@ CInput* pInput = NULL;
 IInputReceiver dummyController;
 
 ENGINE_API float psMouseSens = 1.f;
+ENGINE_API float psAimSensScale = 1.f;
+ENGINE_API float psADSSensScale = 1.f;
+ENGINE_API float psVertSensScale = 1.f;
+ENGINE_API float psMouseDPI = 1.f;
 ENGINE_API float psMouseSensScale = 1.f;
 ENGINE_API Flags32 psMouseInvert = {FALSE};
 

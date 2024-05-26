@@ -338,10 +338,12 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 		return;
 	}
 
-	float LookFactor = GetLookFactor();
-
 	float fov		= (Device.SVP.isActive()) ? Device.SVP.getFOV() : cameras[cam_active]->f_fov;
-	float scale		= (fov / g_fov) * psMouseSens * psMouseSensScale / 50.f / LookFactor;
+	float scale		= (fov / g_fov) * GetLookFactor() * psMouseSensScale / psMouseSens;
+	if (IsZoomADSMode())
+		scale		*= psADSSensScale;
+	else if (IsZoomAimingMode())
+		scale		*= psAimSensScale;
 
 	if (dx)
 	{
@@ -350,7 +352,7 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 	}
 	if (dy)
 	{
-		float d				= ((psMouseInvert.test(1)) ? -1 : 1) * float(dy) * scale;
+		float d				= ((psMouseInvert.test(1)) ? -1 : 1) * float(dy) * scale * psVertSensScale;
 		cam_Active()->Move	((d > 0) ? kUP : kDOWN, _abs(d));
 	}
 }

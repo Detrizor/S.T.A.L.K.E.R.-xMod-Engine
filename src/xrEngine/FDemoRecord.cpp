@@ -517,11 +517,11 @@ void CDemoRecord::IR_OnMouseMove(int dx, int dy)
 
     Fvector vR_delta = Fvector().set(0, 0, 0);
 
-    float scale = .5f;//psMouseSens;
+    float scale = psMouseSensScale / psMouseSens;
     if (dx || dy)
     {
         vR_delta.y += float(dx)*scale; // heading
-        vR_delta.x += ((psMouseInvert.test(1)) ? -1 : 1)*float(dy)*scale*(3.f / 4.f); // pitch
+        vR_delta.x += ((psMouseInvert.test(1)) ? -1 : 1)*float(dy)*scale; // pitch
     }
     update_whith_timescale(m_vR, vR_delta);
 }

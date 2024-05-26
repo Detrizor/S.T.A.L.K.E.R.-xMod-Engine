@@ -36,6 +36,10 @@ public:
 };
 
 ENGINE_API extern float psMouseSens;
+ENGINE_API extern float psAimSensScale;
+ENGINE_API extern float psADSSensScale;
+ENGINE_API extern float psVertSensScale;
+ENGINE_API extern float psMouseDPI;
 ENGINE_API extern float psMouseSensScale;
 ENGINE_API extern Flags32 psMouseInvert;
 

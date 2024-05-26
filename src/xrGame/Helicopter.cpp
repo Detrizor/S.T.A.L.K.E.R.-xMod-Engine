@@ -650,7 +650,7 @@ void CHelicopter::OnMouseMove(int dx, int dy)
 	if (Remote())					return;
 
 	CCameraBase* C = active_camera;
-	float scale = (C->f_fov / g_fov)*psMouseSens * psMouseSensScale / 50.f;
+	float scale = (C->f_fov / g_fov) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d = float(dx)*scale;
 		C->Move((d<0) ? kLEFT : kRIGHT, _abs(d));
