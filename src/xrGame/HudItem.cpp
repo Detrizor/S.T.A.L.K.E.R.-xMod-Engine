@@ -147,7 +147,6 @@ void CHudItem::OnAnimationEnd(u32 state)
 		SwitchState(eHidden);
 		break;
 	case eShowing:
-	case eIdle:
 	case eBore:
 		SwitchState(eIdle);
 		break;
