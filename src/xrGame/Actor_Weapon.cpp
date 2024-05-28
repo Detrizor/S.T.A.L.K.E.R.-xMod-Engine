@@ -20,34 +20,29 @@
 static const float VEL_MAX		= 10.f;
 static const float VEL_A_MAX	= 10.f;
 
-//возвращает текуший разброс стрельбы (в радианах)с учетом движения
-float CActor::getWeaponDispersion() const
+void CActor::update_accuracy()
 {
-	float dispersion			= m_fDispBase;
-	CWeapon* W					= smart_cast<CWeapon*>(inventory().ActiveItem());
-	if (W)
+	if (IsZoomADSMode())
+		m_accuracy						= m_accuracy_ads;
+	else if (IsZoomAimingMode())
+		m_accuracy						= m_accuracy_aim;
+	else
+		m_accuracy						= m_accuracy_heap;
+	
+	CEntity::SEntityState				state;
+	if (g_State(state))
 	{
-		m_weapon_accuracy		= 1.f;
-		if (W->ADS())
-			dispersion			= m_fDispADS;
-		else if (W->IsZoomed())
-			dispersion			= m_fDispAim;
-		else
-			m_weapon_accuracy	= W->Get_PDM_Base();
-
-		CEntity::SEntityState	state;
-		if (g_State(state))
-		{
-			m_weapon_accuracy	*= 1.f + (state.fAVelocity / VEL_A_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
-			m_weapon_accuracy	*= 1.f + (state.fVelocity / VEL_MAX) * m_fDispVelFactor * W->Get_PDM_Vel_F();
-			if (state.bCrouch)
-				m_weapon_accuracy *= m_fDispCrouchFactor;
-		}
-		dispersion				*= m_weapon_accuracy;
-		m_weapon_accuracy		= 1.f / m_weapon_accuracy;
+		m_accuracy						*= pow(m_accuracy_vel_factor, state.fAVelocity / VEL_A_MAX);
+		m_accuracy						*= pow(m_accuracy_vel_factor, state.fVelocity / VEL_MAX);
+		if (state.bCrouch)
+			m_accuracy					*= m_accuracy_crouch_factor;
 	}
+}
 
-	return						dispersion;
+//возвращает текуший разброс стрельбы (в радианах)с учетом движения
+float CActor::getWeaponDispersion() const	
+{
+	return								m_dispersion / m_accuracy;
 }
 
 void CActor::g_fireParams	(const CHudItem* pHudItem, Fvector &fire_pos, Fvector &fire_dir)

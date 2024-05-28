@@ -448,12 +448,12 @@ void CActor::Load(LPCSTR section)
 	shedule.t_min = shedule.t_max = 1;
 
 	// настройки дисперсии стрельбы
-	m_fDispBase		= deg2rad(pSettings->r_float(section, "disp_base"));
-	m_fDispAim		= deg2rad(pSettings->r_float(section, "disp_aim"));
-	m_fDispADS		= deg2rad(pSettings->r_float(section, "disp_ads"));
-
-	m_fDispVelFactor		= pSettings->r_float(section, "disp_vel_factor");
-	m_fDispCrouchFactor		= pSettings->r_float(section, "disp_crouch_factor");
+	m_dispersion						= deg2rad(pSettings->r_float(section, "dispersion"));
+	m_accuracy_ads						= pSettings->r_float(section, "accuracy_ads");
+	m_accuracy_aim						= pSettings->r_float(section, "accuracy_aim");
+	m_accuracy_heap						= pSettings->r_float(section, "accuracy_heap");
+	m_accuracy_crouch_factor			= pSettings->r_float(section, "accuracy_crouch_factor");
+	m_accuracy_vel_factor				= pSettings->r_float(section, "accuracy_vel_factor");
 
 	LPCSTR							default_outfit = READ_IF_EXISTS(pSettings, r_string, section, "default_outfit", 0);
 	SetDefaultVisualOutfit(default_outfit);
@@ -952,6 +952,7 @@ void CActor::UpdateCL()
 
 	SetZoomAimingMode(false);
 	SetZoomADSMode(false);
+	m_accuracy = 1.f;
 
 	cam_Update(float(Device.dwTimeDelta) / 1000.0f, currentFOV());
 
@@ -968,29 +969,26 @@ void CActor::UpdateCL()
 	{
 		if (pWeapon->IsZoomed())
 		{
-			if (auto S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom)))
-				S->SetParams(pWeapon->GetFireDispersion(1.f));
-
 			SetZoomAimingMode(true);
+			if (pWeapon->ADS())
+				SetZoomADSMode(true);
+
 			//Alun: Force switch to first-person for zooming
 			if (!bLook_cam_fp_zoom && cam_active == eacLookAt && cam_Active()->m_look_cam_fp_zoom == true)
 			{
 				cam_Set(eacFirstEye);
 				bLook_cam_fp_zoom = true;
 			}
-
-			if (pWeapon->ADS())
-				SetZoomADSMode(true);
 		}
-		else 
+		else if (bLook_cam_fp_zoom && cam_active == eacFirstEye)		//Alun: Switch back to third-person if was forced
 		{
-			//Alun: Switch back to third-person if was forced
-			if (bLook_cam_fp_zoom && cam_active == eacFirstEye)
-			{
-				cam_Set(eacLookAt);
-				bLook_cam_fp_zoom = false;
-			}
+			cam_Set(eacLookAt);
+			bLook_cam_fp_zoom = false;
 		}
+
+		update_accuracy();
+		if (auto S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom)))
+			S->SetParams(pWeapon->GetFireDispersion(1.f));
 
 		if (current_entity)
 		{
@@ -1006,7 +1004,6 @@ void CActor::UpdateCL()
 
 			psHUD_Flags.set(HUD_WEAPON_RT, TRUE);
 			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
-
 		}
 	}
 	else if (current_entity)

@@ -476,14 +476,15 @@ protected:
 
 	//настройки аккуратности стрельбы
 	//базовая дисперсия (когда игрок стоит на месте)
-	float								m_fDispBase;
-	float								m_fDispAim;
-	float								m_fDispADS;
+	float								m_dispersion;
+	float								m_accuracy_ads;
+	float								m_accuracy_aim;
+	float								m_accuracy_heap;
 	//коэффициенты на сколько процентов увеличится базовая дисперсия
-	//учитывает скорость актера 
-	float								m_fDispVelFactor;
 	//если актер сидит
-	float								m_fDispCrouchFactor;
+	float								m_accuracy_crouch_factor;
+	//учитывает скорость актера 
+	float								m_accuracy_vel_factor;
 
 	Fvector								m_vMissileOffset;
 
@@ -797,7 +798,8 @@ public:
 DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float mutable						m_weapon_accuracy = 1.f;
+	float 								m_accuracy								= 1.f;
+	void								update_accuracy							();
 
 public:
 	static void							loadStaticVariables						();
@@ -805,7 +807,7 @@ public:
 
 	void								VicinityUpdate							();
 
-	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
+	float								getAccuracy							CO$	()		{ return m_accuracy; }
 };
 add_to_type_list(CActor)
 #undef script_type_list

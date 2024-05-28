@@ -328,22 +328,7 @@ public:
 	};
 
 protected:
-	struct SPDM
-	{
-		float					m_fPDM_disp_base;
-		float					m_fPDM_disp_vel_factor;
-	};
-	SPDM					m_pdm;
-
 	first_bullet_controller	m_first_bullet_controller;
-protected:
-	//для отдачи оружия
-	Fvector					m_vRecoilDeltaAngle;
-
-	//для сталкеров, чтоб они знали эффективные границы использования
-	//оружия
-	//float					m_fMinRadius;
-	//float					m_fMaxRadius;
 
 protected:
 	int						GetAmmoCount(u8 ammo_type) const;
@@ -363,14 +348,6 @@ public:
 
 	virtual void			OnMagazineEmpty			() {}
 
-	virtual	float			Get_PDM_Base()	const
-	{
-		return m_pdm.m_fPDM_disp_base;
-	};
-	virtual	float			Get_PDM_Vel_F()	const
-	{
-		return m_pdm.m_fPDM_disp_vel_factor;
-	};
 	float			GetFirstBulletDisp()	const
 	{
 		return m_first_bullet_controller.get_fire_dispertion();

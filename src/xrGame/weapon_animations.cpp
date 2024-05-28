@@ -59,7 +59,7 @@ void CWeaponMagazined::PlayAnimReload()
 void CWeaponMagazined::OnAnimationEnd(u32 state)
 {
 	if (state != eReload && m_sub_state != eSubstateReloadBolt)
-		return							inherited::OnAnimationEnd(state);;
+		return							inherited::OnAnimationEnd(state);
 
 	switch (m_sub_state)
 	{
