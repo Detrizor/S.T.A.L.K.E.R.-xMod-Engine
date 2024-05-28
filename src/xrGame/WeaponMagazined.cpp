@@ -147,6 +147,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_lower_iron_sights_on_block		= !!READ_IF_EXISTS(pSettings, r_bool, section, "lower_iron_sights_on_block", FALSE);
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
+	m_iron_sight_section				= READ_IF_EXISTS(pSettings, r_string, section, "iron_sight_section", 0);
+	m_iron_sights						= (m_iron_sight_section.size()) ? 0 : 1;
 }
 
 void CWeaponMagazined::FireStart()
@@ -872,8 +874,8 @@ void CWeaponMagazined::UpdateBonesVisibility()
 	R_ASSERT							(pWeaponVisual);
 
 	pWeaponVisual->CalculateBones_Invalidate();
-	UpdateBoneVisibility				(pWeaponVisual, iron_sights_bone, !m_iron_sights_blockers);
-	UpdateBoneVisibility				(pWeaponVisual, iron_sights_lowered_bone, !!m_iron_sights_blockers);
+	UpdateBoneVisibility				(pWeaponVisual, iron_sights_bone, iron_sights_up());
+	UpdateBoneVisibility				(pWeaponVisual, iron_sights_lowered_bone, !iron_sights_up());
 	pWeaponVisual->CalculateBones_Invalidate();
 	pWeaponVisual->CalculateBones		(TRUE);
 
@@ -1111,29 +1113,31 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 {
 	if (auto mag = addon->cast<CMagazine*>())
-		ProcessMagazine			(mag, attach);
+		ProcessMagazine					(mag, attach);
 
 	if (auto scope = addon->cast<CScope*>())
-		process_scope			(scope, attach);
+		process_scope					(scope, attach);
 
 	if (auto sil = addon->cast<CSilencer*>())
-		ProcessSilencer			(sil, attach);
+		ProcessSilencer					(sil, attach);
 
 	if (addon->anmPrefix().size())
 	{
-		m_addon_anm_prefix		= (attach) ? &addon->anmPrefix() : nullptr;
-		PlayAnimIdle			();
+		m_addon_anm_prefix				= (attach) ? &addon->anmPrefix() : nullptr;
+		PlayAnimIdle					();
 	}
 
 	if (pSettings->line_exist(addon->O.cNameSect(), "grip"))
-		m_grip_accuracy_modifier = readAccuracyModifier((attach) ? *addon->O.cNameSect() : *m_section_id, "grip");
+		m_grip_accuracy_modifier		= readAccuracyModifier((attach) ? *addon->O.cNameSect() : *m_section_id, "grip");
 			
 	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
 	{
-		m_iron_sights_blockers	+= (attach) ? 1 : -1;
-		UpdateBonesVisibility	();
+		m_iron_sights_blockers			+= (attach) ? 1 : -1;
+		if (m_iron_sight_section.size() && addon->O.cNameSect() == m_iron_sight_section)
+			m_iron_sights				+= (attach) ? 1 : -1;
+		UpdateBonesVisibility			();
 		if (m_lower_iron_sights_on_block)
-			SetInvIconType		(!!m_iron_sights_blockers);
+			SetInvIconType				(!iron_sights_up());
 	}
 }
 
@@ -1239,8 +1243,8 @@ void CWeaponMagazined::UpdateHudBonesVisibility()
 	if (!hi)
 		return;
 
-	hi->set_bone_visible				(iron_sights_bone, !m_iron_sights_blockers, TRUE);
-	hi->set_bone_visible				(iron_sights_lowered_bone, !!m_iron_sights_blockers, TRUE);
+	hi->set_bone_visible				(iron_sights_bone, iron_sights_up(), TRUE);
+	hi->set_bone_visible				(iron_sights_lowered_bone, !iron_sights_up(), TRUE);
 }
 
 void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)

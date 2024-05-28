@@ -187,6 +187,7 @@ private:
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
+	u8									m_iron_sights							= 0;
 	CSilencer*							m_pSilencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
@@ -197,6 +198,7 @@ private:
 	bool								m_lower_iron_sights_on_block;
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
+	shared_str							m_iron_sight_section;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);
@@ -207,6 +209,8 @@ private:
 	void								process_scope							(CScope* scope, bool attach);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
+	
+	bool								iron_sights_up						C$	()		{ return m_iron_sights && m_iron_sights_blockers <= m_iron_sights; }
 	
 	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
