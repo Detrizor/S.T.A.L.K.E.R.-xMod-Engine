@@ -932,38 +932,54 @@ CScope* CWeaponMagazined::getActiveScope() const
 
 void CWeaponMagazined::ZoomInc()
 {
-	CScope* scope = getActiveScope();
-	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
-		scope->ZoomChange(1);
+	CScope* scope						= getActiveScope();
+	if (pInput->iGetAsyncKeyState(DIK_LSHIFT) && scope)
+		scope->ZoomChange				(1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
 	{
 		if (scope)
-			scope->ZeroingChange(1);
-		else
-			m_IronSightsZeroing.Shift(1);
+			scope->ZeroingChange		(1);
+		else if (ADS() == 1)
+			m_IronSightsZeroing.Shift	(1);
 	}
-	else if (ADS() && pInput->iGetAsyncKeyState(DIK_LCONTROL))
-		cycle_scope(int(ADS() == -1), true);
+	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+	{
+		if (ADS())
+			cycle_scope					(int(ADS() == -1), true);
+	}
+	else if (pInput->iGetAsyncKeyState(DIK_RALT))
+	{
+		if (ADS() && fLess(m_ads_shift, s_ads_shift_max))
+			m_ads_shift					+= s_ads_shift_step;
+	}
 	else
-		inherited::ZoomInc();
+		inherited::ZoomInc				();
 }
 
 void CWeaponMagazined::ZoomDec()
 {
-	CScope* scope = getActiveScope();
-	if (scope && pInput->iGetAsyncKeyState(DIK_LSHIFT))
-		scope->ZoomChange(-1);
+	CScope* scope						= getActiveScope();
+	if (pInput->iGetAsyncKeyState(DIK_LSHIFT) && scope)
+		scope->ZoomChange				(-1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
 	{
 		if (scope)
-			scope->ZeroingChange(-1);
-		else
-			m_IronSightsZeroing.Shift(-1);
+			scope->ZeroingChange		(-1);
+		else if (ADS() == 1)
+			m_IronSightsZeroing.Shift	(-1);
 	}
-	else if (ADS() && pInput->iGetAsyncKeyState(DIK_LCONTROL))
-		cycle_scope(int(ADS() == -1), false);
+	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
+	{
+		if (ADS())
+			cycle_scope					(int(ADS() == -1), false);
+	}
+	else if (pInput->iGetAsyncKeyState(DIK_RALT))
+	{
+		if (ADS() && fMore(m_ads_shift, -s_ads_shift_max))
+			m_ads_shift					-= s_ads_shift_step;
+	}
 	else
-		inherited::ZoomDec();
+		inherited::ZoomDec				();
 }
 
 bool CWeaponMagazined::need_renderable()
@@ -1180,11 +1196,15 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		auto se_obj						= (CSE_ALifeDynamicObject*)data;
 		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
 		if (param)
+		{
 			se_wpn->m_u8CurFireMode		= (u8)m_iCurFireMode;
+			se_wpn->m_ads_shift			= m_ads_shift;
+		}
 		else
 		{
 			m_iCurFireMode				= se_wpn->m_u8CurFireMode;
 			SetQueueSize				(GetCurrentFireMode());
+			m_ads_shift					= se_wpn->m_ads_shift;
 		}
 		return							res;
 	}
@@ -1457,6 +1477,8 @@ void CWeaponMagazined::updateRecoil()
 	}
 }
 
+float CWeaponMagazined::s_ads_shift_step;
+float CWeaponMagazined::s_ads_shift_max;
 float CWeaponMagazined::s_recoil_hud_stopping_power_per_shift;
 float CWeaponMagazined::s_recoil_hud_relax_impulse_magnitude;
 float CWeaponMagazined::s_recoil_cam_angle_per_delta;
@@ -1465,6 +1487,9 @@ float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
 
 void CWeaponMagazined::loadStaticVariables()
 {
+	s_ads_shift_step					= pSettings->r_float("weapon_manager", "ads_shift_step");
+	s_ads_shift_max						= pSettings->r_float("weapon_manager", "ads_shift_max");
+
 	s_recoil_hud_stopping_power_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift");
 	s_recoil_hud_relax_impulse_magnitude = pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_magnitude");
 	s_recoil_cam_angle_per_delta		= pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta");

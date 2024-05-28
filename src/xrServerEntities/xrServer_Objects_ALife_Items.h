@@ -184,6 +184,7 @@ public:
 
 private:
 	u8 m_u8CurFireMode = 0;
+	float m_ads_shift = 0.f;
 
 public:
 	void STATE_Read(NET_Packet& P, u16 size) override;

@@ -178,6 +178,8 @@ public:
 
 //xMod added
 private:
+	static float						s_ads_shift_step;
+	static float						s_ads_shift_max;
 	static float						s_recoil_hud_stopping_power_per_shift;
 	static float						s_recoil_hud_relax_impulse_magnitude;
 	static float						s_recoil_cam_angle_per_delta;
@@ -193,6 +195,7 @@ private:
 	CAddonSlot*							m_magazine_slot							= nullptr;
 	bool								m_shot_shell							= false;
 	shared_str CP$						m_addon_anm_prefix						= nullptr;
+	float								m_ads_shift								= 0.f;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;

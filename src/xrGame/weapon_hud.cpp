@@ -154,8 +154,10 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	//============= Поворот ствола во время аима =============//
 	{
 		Dvector CPC target_offset = get_target_hud_offset();
-		Dvector CR$ target_pos = target_offset[0]; //pos,aim
-		Dvector CR$ target_rot = target_offset[1]; //rot,aim
+		Dvector CR$ target_rot = target_offset[1];
+		Dvector target_pos = target_offset[0];
+		if (O.ADS())
+			target_pos.z += O.m_ads_shift;
 
 		if (m_prev_offset != target_offset)
 		{
