@@ -1147,7 +1147,11 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 	}
 
 	if (pSettings->line_exist(addon->O.cNameSect(), "grip"))
-		m_grip_accuracy_modifier		= readAccuracyModifier((attach) ? *addon->O.cNameSect() : *m_section_id, "grip");
+	{
+		LPCSTR line						= (attach) ? *addon->O.cNameSect() : *m_section_id;
+		m_grip_recoil_pattern			= readRecoilPattern(line, "grip");
+		m_grip_accuracy_modifier		= readAccuracyModifier(line, "grip");
+	}
 			
 	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
 	{

@@ -278,7 +278,8 @@ void CWeapon::Load(LPCSTR section)
 	m_grip_accuracy_modifier		= readAccuracyModifier(section, "grip");
 	m_stock_accuracy_modifier		= readAccuracyModifier(section, "stock");
 	m_layout_accuracy_modifier		= readAccuracyModifier(section, "layout");
-
+	
+	m_grip_recoil_pattern			= readRecoilPattern(section, "grip");
 	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");

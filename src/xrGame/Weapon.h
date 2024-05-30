@@ -442,7 +442,8 @@ protected:
 	float								m_grip_accuracy_modifier				= 1.f;
 	float								m_stock_accuracy_modifier				= 1.f;
 	float								m_layout_accuracy_modifier				= 1.f;
-
+	
+	Fvector								m_grip_recoil_pattern					= vOne;
 	Fvector								m_stock_recoil_pattern					= vOne;
 	Fvector								m_layout_recoil_pattern					= vOne;
 	Fvector								m_mechanic_recoil_pattern				= vOne;
