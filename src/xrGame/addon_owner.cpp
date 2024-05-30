@@ -59,9 +59,13 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 	switch (type)
 	{
 		case eRenderableRender:
+		{
+			Fmatrix trans				= O.XFORM();
+			trans.applyOffset			(static_cast<Fvector>(O.Cast<CHudItem*>()->getRootBonePosition()), vZero);
 			for (auto s : m_Slots)
-				s->RenderWorld			(O.XFORM());
+				s->RenderWorld			(trans);
 			break;
+		}
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
@@ -190,6 +194,7 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	model_offset.setHPBv				(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero)));
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
+	model_offset.translate_sub			(parent->cast<CHudItem*>()->getRootBonePosition());
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);

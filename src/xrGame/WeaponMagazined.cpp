@@ -127,8 +127,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 				m_magazine_slot			= s;
 			if (s->attach == "muzzle")
 				s->model_offset.translate_add(static_cast<Dvector>(m_loaded_muzzle_point));
-			else
-				s->model_offset.translate_sub(static_cast<Dvector>(m_root_bone_position));
 		}
 	}
 	
@@ -1035,14 +1033,19 @@ void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 	UpdateSndShot						();
 
 	if (sil->cast<CAddon*>())
-		m_muzzle_point					= (attach) ? sil->getMuzzlePoint() : m_loaded_muzzle_point;
+	{
+		if (attach)
+			m_muzzle_point.z			+= sil->getMuzzlePointShift();
+		else
+			m_muzzle_point				= m_loaded_muzzle_point;
+	}
 }
 
 void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 {
-	m_hud->ProcessScope					(scope, attach);
 	if (attach)
 	{
+		m_hud->ProcessScope				(scope);
 		m_attached_scopes.push_back		(scope);
 		if (scope->getSelection() == -1)
 		{

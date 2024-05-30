@@ -60,5 +60,5 @@ public:
 
 	bool								IsRotatingToZoom					C$	();
 	Fvector								getMuzzleSightOffset				C$	();
-	void								ProcessScope						C$	(CScope* scope, bool attach);
+	void								ProcessScope						C$	(CScope* scope);
 };

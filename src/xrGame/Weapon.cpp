@@ -140,8 +140,10 @@ void CWeapon::UpdateFireDependencies_internal()
 		auto hi							= HudItemData();
 		hi->update						(false);
 		Fmatrix ftrans					= static_cast<Fmatrix>(hi->m_transform);
-
-		ftrans.transform_tiny			(vLastFP, m_muzzle_point);
+		
+		Fvector muzzle_point			= m_muzzle_point;
+		muzzle_point.sub				(static_cast<Fvector>(getRootBonePosition()));
+		ftrans.transform_tiny			(vLastFP, muzzle_point);
 		ftrans.transform_dir			(vLastFD, vForward);
 
 		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(m_shell_bone);
@@ -281,12 +283,12 @@ void CWeapon::Load(LPCSTR section)
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 	
-	m_root_bone_position				= pSettings->r_fvector3(section, "root_bone_position");
 	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");
-	m_loaded_muzzle_point.sub			(m_root_bone_position);
 	m_muzzle_point						= m_loaded_muzzle_point;
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
+	
+	m_Offset.translate_sub				(static_cast<Fvector>(getRootBonePosition()));
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -628,8 +630,6 @@ void CWeapon::reload(LPCSTR section)
 		m_strap_bone1 = pSettings->r_string(section, "strap_bone1");
 	else
 		m_can_be_strapped = false;
-	
-	//m_Offset.translate_over(m_grip_offset);		--xd to implement trigger offset for 3rd person, not too disturbing for now
 
 	m_StrapOffset = m_Offset;
 	if (pSettings->line_exist(section, "strap_position") && pSettings->line_exist(section, "strap_orientation"))

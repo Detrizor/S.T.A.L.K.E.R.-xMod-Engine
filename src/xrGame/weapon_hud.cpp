@@ -15,9 +15,7 @@ constexpr double rotation_eps = .01;
 
 CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 {
-	Dvector root_bone_position			= static_cast<Dvector>(O.m_root_bone_position);
-
-	m_grip_offset						= root_bone_position;
+	m_grip_offset						= O.getRootBonePosition();
 	m_grip_offset.sub					(static_cast<Dvector>(pSettings->r_fvector3(O.Section(), "grip_point")));
 
 	m_hud_offset[eRelaxed][0]			= static_cast<Dvector>(pSettings->r_fvector3(O.HudSection(), "relaxed_pos"));
@@ -28,12 +26,12 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eArmed][1]				= static_cast<Dvector>(pSettings->r_fvector3d2r(O.HudSection(), "armed_rot"));
 	m_grip_offset.pivot					(m_hud_offset[eArmed]);
 
-	m_hud_offset[eIS][0]				= root_bone_position;
+	m_hud_offset[eIS][0]				= O.getRootBonePosition();
 	m_hud_offset[eIS][0].sub			(static_cast<Dvector>(pSettings->r_fvector3(O.Section(), "iron_sights_pos")));
-	m_hud_offset[eIS][0].z				+= static_cast<double>(pSettings->r_float(O.Section(), "cam_z_offset"));
+	m_hud_offset[eIS][0].z				= m_grip_offset.z + static_cast<double>(pSettings->r_float(O.Section(), "cam_z_offset"));
 	m_hud_offset[eIS][1]				= dZero;
 
-	auto barrel_pos						= dZero;
+	Dvector barrel_pos					= O.getRootBonePosition();
 	barrel_pos.sub						(static_cast<Dvector>(O.m_muzzle_point));
 	double aim_height					= static_cast<double>(pSettings->r_float(O.Section(), "alt_aim_height"));
 	
@@ -53,18 +51,15 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eAim][0].mad			(dir, aim_height);
 }
 
-void CWeaponHud::ProcessScope(CScope* scope, bool attach) const
+void CWeaponHud::ProcessScope(CScope* scope) const
 {
-	if (attach)
-	{
-		Dvector							offset[2];
-		auto addon						= scope->cast<CAddon*>();
-		Dmatrix trans					= (addon) ? addon->getLocalTransform() : Didentity;
-		trans.applyOffset				(scope->getSightPosition(), dZero);
-		trans.getOffset					(offset);
-		offset[0].z						= m_hud_offset[eIS][0].z;
-		scope->setHudOffset				(offset);
-	}
+	Dvector								offset[2];
+	auto addon							= scope->cast<CAddon*>();
+	Dmatrix trans						= (addon) ? addon->getLocalTransform() : Didentity;
+	trans.applyOffset					(scope->getSightPosition(), dZero);
+	trans.getOffset						(offset);
+	offset[0].z							= m_hud_offset[eIS][0].z;
+	scope->setHudOffset					(offset);
 }
 
 void CWeaponHud::ProcessGL(CGrenadeLauncher* gl)
