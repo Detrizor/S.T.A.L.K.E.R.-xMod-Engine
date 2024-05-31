@@ -284,12 +284,13 @@ void CWeapon::Load(LPCSTR section)
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 	
+	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
 	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");
 	m_muzzle_point						= m_loaded_muzzle_point;
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
 	
-	m_Offset.translate_sub				(static_cast<Fvector>(getRootBonePosition()));
+	m_Offset.translate_sub				(m_grip_point);
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)

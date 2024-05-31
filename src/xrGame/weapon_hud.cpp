@@ -16,7 +16,7 @@ constexpr double rotation_eps = .01;
 CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 {
 	m_grip_offset						= O.getRootBonePosition();
-	m_grip_offset.sub					(static_cast<Dvector>(pSettings->r_fvector3(O.Section(), "grip_point")));
+	m_grip_offset.sub					(static_cast<Dvector>(O.m_grip_point));
 
 	m_hud_offset[eRelaxed][0]			= static_cast<Dvector>(pSettings->r_fvector3(O.HudSection(), "relaxed_pos"));
 	m_hud_offset[eRelaxed][1]			= static_cast<Dvector>(pSettings->r_fvector3d2r(O.HudSection(), "relaxed_rot"));
