@@ -43,6 +43,7 @@ private:
 	Dvector								m_current_d_rot							= dZero;
 	float								m_current_rotate_speed					= 0.f;
 	Dvector CP$							m_prev_offset							= nullptr;
+	bool								m_iron_sights_block						= false;
 
 	Dvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;
@@ -57,8 +58,8 @@ public:
 	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessGL								(CGrenadeLauncher* gl);
+	void								processScope							(CScope* scope, bool attach);
 
 	bool								IsRotatingToZoom					C$	();
 	Fvector								getMuzzleSightOffset				C$	();
-	void								ProcessScope						C$	(CScope* scope);
 };

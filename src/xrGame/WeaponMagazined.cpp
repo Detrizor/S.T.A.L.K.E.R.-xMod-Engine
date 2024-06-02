@@ -147,6 +147,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 	m_iron_sight_section				= READ_IF_EXISTS(pSettings, r_string, section, "iron_sight_section", 0);
 	m_iron_sights						= (m_iron_sight_section.size()) ? 0 : 1;
+	m_iron_sights_blockers				= m_iron_sights;
 }
 
 void CWeaponMagazined::FireStart()
@@ -1043,9 +1044,10 @@ void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
 
 void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 {
+	m_hud->processScope					(scope, attach);
+
 	if (attach)
 	{
-		m_hud->ProcessScope				(scope);
 		m_attached_scopes.push_back		(scope);
 		if (scope->getSelection() == -1)
 		{
@@ -1131,14 +1133,15 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 
 void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 {
-	if (auto mag = addon->cast<CMagazine*>())
-		ProcessMagazine					(mag, attach);
-
-	if (auto scope = addon->cast<CScope*>())
-		process_scope					(scope, attach);
-
-	if (auto sil = addon->cast<CSilencer*>())
-		ProcessSilencer					(sil, attach);
+	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
+	{
+		m_iron_sights_blockers			+= (attach) ? 1 : -1;
+		if (m_iron_sight_section.size() && addon->O.cNameSect() == m_iron_sight_section)
+			m_iron_sights				+= (attach) ? 1 : -1;
+		UpdateBonesVisibility			();
+		if (m_lower_iron_sights_on_block)
+			SetInvIconType				(!iron_sights_up());
+	}
 
 	if (addon->anmPrefix().size())
 	{
@@ -1152,16 +1155,15 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		m_grip_recoil_pattern			= readRecoilPattern(line, "grip");
 		m_grip_accuracy_modifier		= readAccuracyModifier(line, "grip");
 	}
-			
-	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
-	{
-		m_iron_sights_blockers			+= (attach) ? 1 : -1;
-		if (m_iron_sight_section.size() && addon->O.cNameSect() == m_iron_sight_section)
-			m_iron_sights				+= (attach) ? 1 : -1;
-		UpdateBonesVisibility			();
-		if (m_lower_iron_sights_on_block)
-			SetInvIconType				(!iron_sights_up());
-	}
+
+	if (auto mag = addon->cast<CMagazine*>())
+		ProcessMagazine					(mag, attach);
+
+	if (auto scope = addon->cast<CScope*>())
+		process_scope					(scope, attach);
+
+	if (auto sil = addon->cast<CSilencer*>())
+		ProcessSilencer					(sil, attach);
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)

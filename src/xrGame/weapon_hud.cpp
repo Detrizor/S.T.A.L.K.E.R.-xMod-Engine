@@ -51,15 +51,22 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 	m_hud_offset[eAim][0].mad			(dir, aim_height);
 }
 
-void CWeaponHud::ProcessScope(CScope* scope) const
+void CWeaponHud::processScope(CScope* scope, bool attach)
 {
-	Dvector								offset[2];
-	auto addon							= scope->cast<CAddon*>();
-	Dmatrix trans						= (addon) ? addon->getLocalTransform() : Didentity;
-	trans.applyOffset					(scope->getSightPosition(), dZero);
-	trans.getOffset						(offset);
-	offset[0].z							= m_hud_offset[eIS][0].z;
-	scope->setHudOffset					(offset);
+	if (attach)
+	{
+		Dvector							offset[2];
+		auto addon						= scope->cast<CAddon*>();
+		Dmatrix trans					= (addon) ? addon->getLocalTransform() : Didentity;
+		trans.applyOffset				(scope->getSightPosition(), dZero);
+		trans.getOffset					(offset);
+		offset[0].z						= m_hud_offset[eIS][0].z;
+		scope->setHudOffset				(offset);
+	}
+
+	m_iron_sights_block					= (O.m_iron_sight_section.size()) ?
+		!!O.m_iron_sights_blockers :
+		(O.m_iron_sights_blockers > O.m_iron_sights);
 }
 
 void CWeaponHud::ProcessGL(CGrenadeLauncher* gl)
@@ -106,11 +113,11 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 		case 0:
 			return						eAim;
 		case 1:
-			return						(O.m_iron_sights_blockers) ? eAlt : eIS;
+			return						(m_iron_sights_block) ? eAlt : eIS;
 		case 2:
 			return						eGL;
 		case -1:
-			return						(O.m_selected_scopes[0] && !O.m_iron_sights_blockers) ? eIS : eAlt;
+			return						(O.m_selected_scopes[0] && !m_iron_sights_block) ? eIS : eAlt;
 		}
 	}
 
