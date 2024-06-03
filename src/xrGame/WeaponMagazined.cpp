@@ -1304,18 +1304,9 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 		fov_tan							/= zoom_factor;
 		Device.SVP.setFOV				(atanf(fov_tan) / (.5f * PI / 180.f));
 		
-		Dvector pos						= scope->getSightPosition();
-		pos.add							(scope->getObjectiveOffset());
-		pos.z							+= EPS_L;
-
-		Dmatrix CP$						trans;
-		if (auto addon = scope->cast<CAddon*>())
-			trans						= &addon->getHudTransform();
-		else
-			trans						= &HudItemData()->m_transform;
-		trans->transform_tiny			(pos);
-
-		Device.SVP.setPosition			(static_cast<Fvector>(pos));
+		Fvector pos						= static_cast<Fvector>(scope->getObjectiveOffset());
+		cam_trans.transform_tiny		(pos);
+		Device.SVP.setPosition			(pos);
 	}
 	else
 		hud_params.w					= scope->GetReticleScale();

@@ -6,6 +6,7 @@
 #include "GrenadeLauncher.h"
 #include "item_usable.h"
 #include "addon_owner.h"
+#include "WeaponMagazined.h"
 
 CAddon::CAddon(CGameObject* obj) : CModule(obj)
 {
@@ -31,8 +32,22 @@ CAddon::CAddon(CGameObject* obj) : CModule(obj)
 	m_profile_length					= pSettings->r_fvector2(O.cNameSect(), "profile_length");
 }
 
+CAddonOwner* get_root_addon_owner(CAddonOwner* ao)
+{
+	if (ao->O.H_Parent())
+		if (auto ao_parent_ao = ao->O.H_Parent()->Cast<CAddonOwner*>())
+			return						get_root_addon_owner(ao_parent_ao);
+	return								ao;
+}
+
 void CAddon::RenderHud() const
 {
+	if (Device.SVP.isRendering())
+		if (auto scope = cast<CScope*>())
+			if (auto wpn = get_root_addon_owner(O.H_Parent()->Cast<CAddonOwner*>())->cast<CWeaponMagazined*>())
+				if (wpn->getActiveScope() == scope)
+					return;
+
 	::Render->set_Transform				(m_hud_transform);
 	::Render->add_Visual				(O.Visual());
 }
