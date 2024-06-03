@@ -97,10 +97,11 @@ void CWeapon::FireEnd()
 
 void CWeapon::appendRecoil(float impulse_magnitude)
 {
-	Fvector pattern				= vZero;
-	pattern.add					(m_stock_recoil_pattern);
-	pattern.add					(m_layout_recoil_pattern);
-	pattern.add					(m_mechanic_recoil_pattern);
+	Fvector pattern				= vOne;
+	pattern.mul					(m_grip_recoil_pattern);
+	pattern.mul					(m_stock_recoil_pattern);
+	pattern.mul					(m_layout_recoil_pattern);
+	pattern.mul					(m_mechanic_recoil_pattern);
 
 	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
 		m_recoil_tremble_mean	= Random.randFs(1.f);

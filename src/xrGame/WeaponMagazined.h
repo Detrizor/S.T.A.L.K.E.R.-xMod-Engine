@@ -181,7 +181,7 @@ private:
 	static float						s_ads_shift_step;
 	static float						s_ads_shift_max;
 	static float						s_recoil_hud_stopping_power_per_shift;
-	static float						s_recoil_hud_relax_impulse_magnitude;
+	static float						s_recoil_hud_relax_impulse_per_shift;
 	static float						s_recoil_cam_angle_per_delta;
 	static float						s_recoil_cam_stopping_power_per_impulse;
 	static float						s_recoil_cam_relax_impulse_ratio;

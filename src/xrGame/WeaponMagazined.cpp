@@ -1409,7 +1409,6 @@ void CWeaponMagazined::updateRecoil()
 
 	static float fAvgTimeDelta = Device.fTimeDelta;
 	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
-	float dt = fAvgTimeDelta / GetControlInertionFactor();
 
 	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
 	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
@@ -1417,14 +1416,15 @@ void CWeaponMagazined::updateRecoil()
 
 	if (hud_impulse || hud_shift)
 	{
+		float dt = fAvgTimeDelta / GetControlInertionFactor();
 		auto update_hud_recoil_shift = [this, dt](Fvector4 CR$ impulse)
-			{
-				Fvector4 delta = impulse;
-				delta.mul(dt);
-				float prev_shift = m_recoil_hud_shift.magnitude();
-				m_recoil_hud_shift.add(delta);
-				return (fMoreOrEqual(delta.magnitude(), prev_shift));
-			};
+		{
+			Fvector4 delta = impulse;
+			delta.mul(dt);
+			float prev_shift = m_recoil_hud_shift.magnitude();
+			m_recoil_hud_shift.add(delta);
+			return (fMoreOrEqual(delta.magnitude(), prev_shift));
+		};
 
 		if (hud_impulse)
 		{
@@ -1435,7 +1435,7 @@ void CWeaponMagazined::updateRecoil()
 			stopping_power.mul(m_recoil_hud_shift.magnitude());
 			stopping_power.mul(-s_recoil_hud_stopping_power_per_shift);
 			stopping_power.mul(accuracy);
-			stopping_power.mul(dt);
+			stopping_power.mul(fAvgTimeDelta);
 			if (fMoreOrEqual(stopping_power.magnitude(), m_recoil_hud_impulse.magnitude()))
 				m_recoil_hud_impulse = vZero4;
 			else
@@ -1444,9 +1444,8 @@ void CWeaponMagazined::updateRecoil()
 		else
 		{
 			Fvector4 relax_impulse = m_recoil_hud_shift;
-			relax_impulse.normalize();
-			relax_impulse.mul(-s_recoil_hud_relax_impulse_magnitude);
-			//relax_impulse.mul(accuracy);
+			relax_impulse.mul(-s_recoil_hud_relax_impulse_per_shift);
+			relax_impulse.mul(accuracy);
 			if (update_hud_recoil_shift(relax_impulse))
 				m_recoil_hud_shift = vZero4;
 		}
@@ -1456,12 +1455,12 @@ void CWeaponMagazined::updateRecoil()
 	{
 		m_recoil_cam_delta = m_recoil_cam_impulse;
 		m_recoil_cam_delta.mul(s_recoil_cam_angle_per_delta);
-		m_recoil_cam_delta.mul(dt);
+		m_recoil_cam_delta.mul(fAvgTimeDelta);
 
 		Fvector stopping_power = m_recoil_cam_impulse;
 		stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
 		stopping_power.mul(accuracy);
-		stopping_power.mul(dt);
+		stopping_power.mul(fAvgTimeDelta);
 		m_recoil_cam_impulse.add(stopping_power);
 		if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
 		{
@@ -1480,7 +1479,7 @@ void CWeaponMagazined::updateRecoil()
 float CWeaponMagazined::s_ads_shift_step;
 float CWeaponMagazined::s_ads_shift_max;
 float CWeaponMagazined::s_recoil_hud_stopping_power_per_shift;
-float CWeaponMagazined::s_recoil_hud_relax_impulse_magnitude;
+float CWeaponMagazined::s_recoil_hud_relax_impulse_per_shift;
 float CWeaponMagazined::s_recoil_cam_angle_per_delta;
 float CWeaponMagazined::s_recoil_cam_stopping_power_per_impulse;
 float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
@@ -1491,7 +1490,7 @@ void CWeaponMagazined::loadStaticVariables()
 	s_ads_shift_max						= pSettings->r_float("weapon_manager", "ads_shift_max");
 
 	s_recoil_hud_stopping_power_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift");
-	s_recoil_hud_relax_impulse_magnitude = pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_magnitude");
+	s_recoil_hud_relax_impulse_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_per_shift");
 	s_recoil_cam_angle_per_delta		= pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta");
 	s_recoil_cam_stopping_power_per_impulse = pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse");
 	s_recoil_cam_relax_impulse_ratio	= pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio");
