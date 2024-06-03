@@ -394,7 +394,7 @@ void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->cast<CAddonOwner*>())
 			for (auto s : ao->AddonSlots())
-				s->updateAddonsHudTransform(model, parent_trans);
+				s->updateAddonsHudTransform(model, trans);
 	}
 }
 
