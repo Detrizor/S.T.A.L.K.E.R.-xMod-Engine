@@ -149,7 +149,7 @@ void CInventoryItem::Load(LPCSTR section)
 	{
 		m_flags.set					(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
 		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
-		m_fControlInertionFactor	= sqrt(pSettings->r_float(section, "control_inertion_factor"));
+		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
 	}
 
 	m_category						= pSettings->r_string(section, "category");

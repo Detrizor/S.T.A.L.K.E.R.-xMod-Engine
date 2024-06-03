@@ -491,7 +491,7 @@ public:
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
-	float								GetControlInertionFactor			CO$	();
+	float								GetControlInertionFactor			CO$	(bool full = false);
 	bool								NeedBlendAnm						O$	();
 	
 	int								V$	ADS									C$	();

@@ -936,18 +936,21 @@ bool CWeapon::NeedBlendAnm()
 	return inherited::NeedBlendAnm();
 }
 
-float CWeapon::GetControlInertionFactor C$()
+float CWeapon::GetControlInertionFactor C$(bool full)
 {
 	float inertion						= sqrt((Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight) - 1.f;
-	if (ADS())
-		inertion						*= s_inertion_ads_factor;
-	else if (IsZoomed())
-		inertion						*= s_inertion_aim_factor;
-	else if (ArmedMode())
-		inertion						*= s_inertion_armed_factor;
-	else
-		inertion						*= s_inertion_relaxed_factor;
-	return								1.f + inherited::GetControlInertionFactor() * inertion;
+	if (full)
+	{
+		if (ADS())
+			inertion					*= s_inertion_ads_factor;
+		else if (IsZoomed())
+			inertion					*= s_inertion_aim_factor;
+		else if (ArmedMode())
+			inertion					*= s_inertion_armed_factor;
+		else
+			inertion					*= s_inertion_relaxed_factor;
+	}
+	return								1.f + inherited::GetControlInertionFactor(full) * inertion;
 }
 
 float CWeapon::CurrentZoomFactor C$(bool for_actor)
