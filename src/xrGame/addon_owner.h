@@ -27,6 +27,8 @@ private:
 	void								append_bone_trans					C$	(Dmatrix& trans, IKinematics* model);
 
 public:
+	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
+
 	CAddonOwner PC$						parent_ao;
 	const u16							idx;
 
@@ -59,7 +61,6 @@ public:
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
-	bool								Compatible							C$	(CAddon CPC addon);
 	bool								CanTake								C$	(CAddon CPC addon);
 	void								updateAddonLocalTransform			C$	(CAddon* addon);
 };

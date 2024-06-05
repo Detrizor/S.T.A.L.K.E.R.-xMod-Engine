@@ -554,6 +554,8 @@ void CUIActorMenu::set_highlight_item(CUICellItem* cell_item)
 	if (m_currMenuMode == mmDeadBodySearch)
 		highlight_armament(cell_item, m_pDeadBodyBagList);
 
+	highlight_armament(cell_item, m_pTrashList);
+
 	m_highlight_clear = false;
 }
 
@@ -565,7 +567,7 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 	CUIAddonOwnerCellItem* ao			= smart_cast<CUIAddonOwnerCellItem*>(cell_item);
 	bool wpn_with_ammo					= ItemCategory(cell_item->m_section, "weapon") && !ItemSubcategory(cell_item->m_section, "melee") && !ItemSubcategory(cell_item->m_section, "grenade");
 	bool ammo							= ItemCategory(cell_item->m_section, "ammo");
-	bool addon							= ItemCategory(cell_item->m_section, "addon");
+	bool addon							= ItemCategory(cell_item->m_section, "addon") || ItemCategory(cell_item->m_section, "magazine");
 	if (!ao && !wpn_with_ammo && !ammo && !addon)
 		return;
 
@@ -592,12 +594,12 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 	{
 		CUICellItem* ci					= ddlist->GetItemIdx(i);
 
-		if (ao && ItemCategory(ci->m_section, "addon"))
+		if (ao && (ItemCategory(ci->m_section, "addon") || ItemCategory(ci->m_section, "magazine")))
 		{
 			LPCSTR tmp					= pSettings->r_string(ci->m_section, "slot_type");
 			for (auto s : ao->Slots())
 			{
-				if (s->type == tmp)
+				if (CAddonSlot::isCompatible(s->type, tmp))
 				{
 					ci->m_select_armament = true;
 					break;
@@ -639,12 +641,11 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 
 		if (addon)
 		{
-			CUIAddonOwnerCellItem* tmp	= smart_cast<CUIAddonOwnerCellItem*>(ci);
-			if (tmp)
+			if (auto tmp = smart_cast<CUIAddonOwnerCellItem*>(ci))
 			{
 				for (auto s : tmp->Slots())
 				{
-					if (s->type == slot_type)
+					if (CAddonSlot::isCompatible(s->type, slot_type))
 					{
 						ci->m_select_armament = true;
 						break;

@@ -387,27 +387,32 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 {
 	for (auto S : ao->AddonSlots())
 	{
-		for (auto addon : S->addons)
+		if (S->addons.size())
 		{
-			SUIAddonSlot* s				= xr_new<SUIAddonSlot>(*S);
-			m_slots.push_back			(s);
-			s->addon_name				= addon->O.cNameSect();
-			s->addon_type				= addon->I->GetInvIconType();
-			s->addon_index				= addon->I->GetInvIconIndex();
-			s->icon_offset				= forwarded_offset;
-			s->icon_offset.add			(S->icon_offset);
-			s->icon_offset.sub			(addon->IconOffset());
-			s->icon_offset.x			-= s->icon_step * float(addon->getSlotPos());
-			s->addon_icon				= xr_new<CUIStatic>();
-			s->addon_icon->SetAutoDelete(true);
-			AttachChild					(s->addon_icon);
-			s->addon_icon->SetTextureColor(GetTextureColor());
-			if (S->hasLoadingAnim())
-				s->addon_icon->SetBackgroundDraw(true);
+			for (auto addon : S->addons)
+			{
+				SUIAddonSlot* s			= xr_new<SUIAddonSlot>(*S);
+				m_slots.push_back		(s);
+				s->addon_name			= addon->O.cNameSect();
+				s->addon_type			= addon->I->GetInvIconType();
+				s->addon_index			= addon->I->GetInvIconIndex();
+				s->icon_offset			= forwarded_offset;
+				s->icon_offset.add		(S->icon_offset);
+				s->icon_offset.sub		(addon->IconOffset());
+				s->icon_offset.x		-= s->icon_step * float(addon->getSlotPos());
+				s->addon_icon			= xr_new<CUIStatic>();
+				s->addon_icon->SetAutoDelete(true);
+				AttachChild				(s->addon_icon);
+				s->addon_icon->SetTextureColor(GetTextureColor());
+				if (S->hasLoadingAnim())
+					s->addon_icon->SetBackgroundDraw(true);
 
-			if (auto addon_ao = addon->cast<CAddonOwner*>())
-				process_ao				(addon_ao, s->icon_offset);
+				if (auto addon_ao = addon->cast<CAddonOwner*>())
+					process_ao			(addon_ao, s->icon_offset);
+			}
 		}
+		else
+			m_slots.push_back			(xr_new<SUIAddonSlot>(*S));
 	}
 }
 

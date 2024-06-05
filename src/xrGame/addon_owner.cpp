@@ -466,26 +466,25 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 	}
 }
 
-bool CAddonSlot::Compatible(CAddon CPC addon) const
+bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_type)
 {
-	if (addon->SlotType() != type)
+	if (addon_type != slot_type)
 	{
-		if (!pSettings->line_exist("slot_exceptions", addon->SlotType()))
+		if (!pSettings->line_exist("slot_exceptions", addon_type))
 			return						false;
 		
-		if (strcmp(pSettings->r_string("slot_exceptions", *addon->SlotType()), *type))
+		if (strcmp(pSettings->r_string("slot_exceptions", *addon_type), *slot_type))
 			return						false;
 	}
-
-	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
-		return							false;
 
 	return								true;
 }
 
 bool CAddonSlot::CanTake(CAddon CPC addon) const
 {
-	if (!Compatible(addon))
+	if (!isCompatible(type, addon->SlotType()))
+		return							false;
+	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
 		return							false;
 	if (m_has_loading_anim)
 		return							!isLoading();
