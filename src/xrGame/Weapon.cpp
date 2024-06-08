@@ -1003,6 +1003,7 @@ float CWeapon::s_inertion_relaxed_factor;
 float CWeapon::s_recoil_kick_weight;
 float CWeapon::s_recoil_tremble_weight;
 float CWeapon::s_recoil_roll_weight;
+float CWeapon::s_recoil_tremble_mean_dispersion;
 float CWeapon::s_recoil_tremble_mean_change_chance;
 float CWeapon::s_recoil_tremble_dispersion;
 float CWeapon::s_recoil_kick_dispersion;
@@ -1019,6 +1020,7 @@ void CWeapon::loadStaticVariables()
 	s_recoil_kick_weight				= pSettings->r_float("weapon_manager", "recoil_kick_weight");
 	s_recoil_tremble_weight				= pSettings->r_float("weapon_manager", "recoil_tremble_weight");
 	s_recoil_roll_weight				= pSettings->r_float("weapon_manager", "recoil_roll_weight");
+	s_recoil_tremble_mean_dispersion	= pSettings->r_float("weapon_manager", "recoil_tremble_mean_dispersion");
 	s_recoil_tremble_mean_change_chance	= pSettings->r_float("weapon_manager", "recoil_tremble_mean_change_chance");
 	s_recoil_tremble_dispersion			= pSettings->r_float("weapon_manager", "recoil_tremble_dispersion");
 	s_recoil_kick_dispersion			= pSettings->r_float("weapon_manager", "recoil_kick_dispersion");

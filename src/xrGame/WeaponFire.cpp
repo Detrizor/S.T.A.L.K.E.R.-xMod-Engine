@@ -104,7 +104,7 @@ void CWeapon::appendRecoil(float impulse_magnitude)
 	pattern.mul					(m_mechanic_recoil_pattern);
 
 	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
-		m_recoil_tremble_mean	= Random.randFs(1.f);
+		m_recoil_tremble_mean	= Random.randFs(s_recoil_tremble_mean_dispersion);
 
 	float tremble				= pattern.x * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
 	float kick					= pattern.y * Random.randFs(s_recoil_kick_dispersion, 1.f);

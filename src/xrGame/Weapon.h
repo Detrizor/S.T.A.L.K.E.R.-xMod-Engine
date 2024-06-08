@@ -424,6 +424,7 @@ private:
 	static float						s_recoil_kick_weight;
 	static float						s_recoil_tremble_weight;
 	static float						s_recoil_roll_weight;
+	static float						s_recoil_tremble_mean_dispersion;
 	static float						s_recoil_tremble_mean_change_chance;
 	static float						s_recoil_tremble_dispersion;
 	static float						s_recoil_kick_dispersion;
