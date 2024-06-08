@@ -733,7 +733,10 @@ void CWeaponMagazined::ResetSilencerKoeffs()
 void CWeaponMagazined::on_firemode_switch()
 {
 	if (HudAnimationExist("anm_firemode"))
+	{
+		SwitchState(eFiremode);
 		PlayHUDMotion("anm_firemode", TRUE, GetState());
+	}
 	if (m_sounds_enabled)
 		PlaySound("sndFiremode", get_LastFP());
 }

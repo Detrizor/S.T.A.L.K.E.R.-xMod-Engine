@@ -101,6 +101,7 @@ public:
 		eReload,
 		eMisfire,
 		eSwitch,
+		eFiremode
 	};
 	enum EWeaponSubStates
 	{
