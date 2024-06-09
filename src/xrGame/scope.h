@@ -62,7 +62,6 @@ public:
 
 private:
 	const eScopeType					m_Type;
-	const Dvector						m_sight_position;
 	const float							m_ads_speed_factor;
 	
 	CUIStatic*							m_pUIReticle							= NULL;
@@ -73,6 +72,7 @@ private:
 	s8									m_selection								= -1;
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 
+	Dvector								m_sight_position;
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
 

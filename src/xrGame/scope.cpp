@@ -111,9 +111,11 @@ void CScope::ZeroingChange(int val)
 
 CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
-m_sight_position(pSettings->r_fvector3(section, "sight_position")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
+	m_sight_position					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
+	if (!cast<CAddon*>())
+		m_sight_position.sub			(O.Cast<CHudItem*>()->getRootBonePosition());
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
 	{
