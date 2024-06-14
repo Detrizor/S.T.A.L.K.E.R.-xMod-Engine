@@ -18,13 +18,13 @@ CAddon::CAddon(CGameObject* obj) : CModule(obj)
 	if (pSettings->line_exist(O.cNameSect(), "addon_type"))
 	{
 		shared_str addon_type			= pSettings->r_string(O.cNameSect(), "addon_type");
-		if (addon_type == "magazine")
+		if (strstr(*addon_type, "magazine"))
 			O.AddModule<CMagazine>		();
-		else if (addon_type == "scope")
+		if (strstr(*addon_type, "scope"))
 			O.AddModule<CScope>			(O.cNameSect());
-		else if (addon_type == "silencer")
+		if (strstr(*addon_type, "silencer"))
 			O.AddModule<CSilencer>		(O.cNameSect());
-		else if (addon_type == "grenade_launcher")
+		if (strstr(*addon_type, "grenade_launcher"))
 			O.AddModule<CGrenadeLauncher>	(O.cNameSect());
 	}
 	
