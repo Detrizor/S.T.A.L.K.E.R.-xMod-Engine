@@ -283,6 +283,7 @@ void CWeapon::Load(LPCSTR section)
 	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
+	m_muzzle_recoil_pattern			= readRecoilPattern(section, "muzzle");
 	
 	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
 	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");

@@ -449,6 +449,7 @@ protected:
 	Fvector								m_stock_recoil_pattern					= vOne;
 	Fvector								m_layout_recoil_pattern					= vOne;
 	Fvector								m_mechanic_recoil_pattern				= vOne;
+	Fvector								m_muzzle_recoil_pattern					= vOne;
 
 	float								m_recoil_tremble_mean					= 0.f;
 	Fvector4							m_recoil_hud_impulse					= vZero4;

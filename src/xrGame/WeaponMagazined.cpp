@@ -1159,6 +1159,9 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		m_grip_accuracy_modifier		= readAccuracyModifier(line, "grip");
 	}
 
+	if (pSettings->line_exist(addon->O.cNameSect(), "muzzle"))
+		m_muzzle_recoil_pattern			= readRecoilPattern((attach) ? *addon->O.cNameSect() : *m_section_id, "muzzle");
+
 	if (auto mag = addon->cast<CMagazine*>())
 		ProcessMagazine					(mag, attach);
 
