@@ -72,7 +72,7 @@ private:
 	s8									m_selection								= -1;
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 
-	Dvector								m_sight_position;
+	Dvector								m_sight_offset[2];
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
 
@@ -108,7 +108,7 @@ public:
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
 	Dvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
-	Dvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
+	Dvector CP$							getSightOffset						C$	()		{ return m_sight_offset; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }

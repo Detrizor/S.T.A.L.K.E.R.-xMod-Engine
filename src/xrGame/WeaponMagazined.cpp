@@ -1341,7 +1341,7 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 		return							get_LastFD();
 
 	float distance						= Zeroing();
-	Fvector transference				= m_hud->getMuzzleSightOffset().mad(vForward, distance);
+	Fvector transference				= m_hud->getTransference(distance);
 	static_cast<Fmatrix>(hi->m_transform).transform_dir(transference);
 
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);

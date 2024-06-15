@@ -58,7 +58,7 @@ void CWeaponHud::processScope(CScope* scope, bool attach)
 		Dvector							offset[2];
 		auto addon						= scope->cast<CAddon*>();
 		Dmatrix trans					= (addon) ? addon->getLocalTransform() : Didentity;
-		trans.applyOffset				(scope->getSightPosition(), dZero);
+		trans.applyOffset				(scope->getSightOffset());
 		trans.getOffset					(offset);
 		offset[0].z						= m_hud_offset[eIS][0].z;
 		scope->setHudOffset				(offset);
@@ -552,15 +552,21 @@ bool CWeaponHud::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-Fvector CWeaponHud::getMuzzleSightOffset() const
+Fvector CWeaponHud::getTransference(float distance) const
 {
-	Dmatrix								sight_trans;
-	sight_trans.setOffset				(get_target_hud_offset());
+	Dmatrix								cur_trans;
+	cur_trans.setOffset					(get_target_hud_offset());
 	if (auto scope = O.getActiveScope())
 		if (scope->Type() == eOptics)
-			sight_trans.translate_add	(scope->getObjectiveOffset());
+			cur_trans.translate_sub		(scope->getObjectiveOffset());
+	Fmatrix f_cur_trans					= static_cast<Fmatrix>(cur_trans);
 
-	Fvector								muzzle_point;
-	static_cast<Fmatrix>(sight_trans).transform_tiny(muzzle_point, O.m_muzzle_point);
-	return								muzzle_point.mul(-1.f);
+	f_cur_trans.applyOffset				(O.m_muzzle_point, vZero);
+	Fmatrix								i_cur_trans;
+	i_cur_trans.invert					(f_cur_trans);
+
+	Fvector shoot_dir					= vForward;
+	i_cur_trans.transform_dir			(shoot_dir);
+
+	return								i_cur_trans.c.mad(shoot_dir, distance);
 }

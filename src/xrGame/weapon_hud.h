@@ -61,5 +61,5 @@ public:
 	void								processScope							(CScope* scope, bool attach);
 
 	bool								IsRotatingToZoom					C$	();
-	Fvector								getMuzzleSightOffset				C$	();
+	Fvector								getTransference						C$	(float distance);
 };
