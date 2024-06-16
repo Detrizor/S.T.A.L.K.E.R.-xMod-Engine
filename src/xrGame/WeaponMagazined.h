@@ -201,6 +201,7 @@ private:
 	bool								m_lower_iron_sights_on_block;
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
+	bool								m_mag_attach_bolt_release;
 	shared_str							m_iron_sight_section;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);

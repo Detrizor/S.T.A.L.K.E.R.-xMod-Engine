@@ -961,7 +961,7 @@ float CWeapon::CurrentZoomFactor C$(bool for_actor)
 
 int CWeapon::ADS() const
 {
-	return (GetState() == eReload) ? 0 : m_iADS;
+	return /*--xd test (GetState() == eReload) ? 0 : */m_iADS;
 }
 
 float CWeapon::Aboba(EEventTypes type, void* data, int param)

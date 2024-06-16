@@ -57,7 +57,7 @@ void CWeapon::FireTrace		()
 	CCartridge l_cartridge = getCartridgeToShoot();
 	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
 
-	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
+	//--xd tst!!! ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
 
 	Fvector p = get_LastFP();
 	Fvector d = getFullFireDirection(l_cartridge);
@@ -74,6 +74,9 @@ void CWeapon::FireTrace		()
 	float shot_speed					= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * l_cartridge.param_s.kBulletSpeed;
 	float shot_mass						= l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
 	appendRecoil						(shot_speed * shot_mass);
+
+	if (ShotsFired() == 30)
+		FireEnd();//--xd tst!!!
 }
 
 void CWeapon::StopShooting()
