@@ -244,7 +244,6 @@ protected:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								SetADS								O$	(int mode);
-	LPCSTR								get_anm_prefix						CO$	();
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 

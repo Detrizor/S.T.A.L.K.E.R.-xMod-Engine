@@ -27,7 +27,6 @@ private:
 	shared_str							m_SlotType;
 	Fvector2							m_IconOffset;
 	bool								m_low_profile;
-	shared_str							m_anm_prefix;
 	bool								m_front_positioning;
 	
 	float								m_mount_length;
@@ -50,7 +49,6 @@ public:
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 	Fvector2 CR$						IconOffset							C$	()		{ return m_IconOffset; }
-	shared_str CR$						anmPrefix							C$	()		{ return m_anm_prefix; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Dmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	CAddonSlot*							getSlot								C$	()		{ return m_slot; }

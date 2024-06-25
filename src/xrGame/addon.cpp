@@ -30,7 +30,6 @@ CAddon::CAddon(CGameObject* obj) : CModule(obj)
 	m_SlotType							= pSettings->r_string(O.cNameSect(), "slot_type");
 	m_IconOffset						= pSettings->r_fvector2(O.cNameSect(), "icon_offset");
 	m_low_profile						= pSettings->r_bool(O.cNameSect(), "low_profile");
-	m_anm_prefix						= pSettings->r_string(O.cNameSect(), "anm_prefix");
 	m_front_positioning					= pSettings->r_bool(O.cNameSect(), "front_positioning");
 	
 	m_mount_length						= pSettings->r_float(O.cNameSect(), "mount_length");

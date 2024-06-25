@@ -1435,11 +1435,6 @@ void CWeaponMagazined::SetADS(int mode)
 	}
 }
 
-LPCSTR CWeaponMagazined::get_anm_prefix() const
-{
-	return								(m_addon_anm_prefix) ? **m_addon_anm_prefix : inherited::get_anm_prefix();
-}
-
 void CWeaponMagazined::updateRecoil()
 {
 	if (bWorking && m_iShotNum < m_iBaseDispersionedBulletsCount)
