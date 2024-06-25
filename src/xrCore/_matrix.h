@@ -303,6 +303,11 @@ public:
 		c.sub(Loc);
 		return *this;
 	}
+	IC SelfRef translate_mul(const Tvector& Loc) // combine translation
+	{
+		transform_tiny(c, Loc);
+		return *this;
+	}
 	IC SelfRef scale(T x, T y, T z) // setup scale matrix
 	{
 		identity();

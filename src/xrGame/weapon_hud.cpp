@@ -455,7 +455,7 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	float fUD_lim = (O.m_fUD_InertiaFactor < 0.0f ? vIOffsets.z : vIOffsets.w);
 
 	Fvector cur_offs = { fLR_lim * -1.f * O.m_fLR_InertiaFactor, fUD_lim * O.m_fUD_InertiaFactor, 0.0f };
-	trans.applyOffset(static_cast<Dvector>(cur_offs), dZero);
+	trans.translate_mul(static_cast<Dvector>(cur_offs));
 
 	if (fIsZero(O.getRecoilHudShift().magnitude()))
 		trans.applyOffset(m_current_hud_offset);
@@ -561,7 +561,7 @@ Fvector CWeaponHud::getTransference(float distance) const
 			cur_trans.translate_sub		(scope->getObjectiveOffset());
 	Fmatrix f_cur_trans					= static_cast<Fmatrix>(cur_trans);
 
-	f_cur_trans.applyOffset				(O.m_muzzle_point, vZero);
+	f_cur_trans.translate_mul			(O.m_fire_point);
 	Fmatrix								i_cur_trans;
 	i_cur_trans.invert					(f_cur_trans);
 

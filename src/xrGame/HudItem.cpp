@@ -383,7 +383,7 @@ void CHudItem::UpdateHudAdditional(Dmatrix& trans)
 
 	curr_offs = { fLR_lim * -1.f * m_fLR_InertiaFactor, fUD_lim * m_fUD_InertiaFactor, 0.0f };
 
-	trans.applyOffset(curr_offs, dZero);
+	trans.translate_mul(curr_offs);
 }
 
 void CHudItem::UpdateCL()
