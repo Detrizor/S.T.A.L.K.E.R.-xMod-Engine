@@ -380,7 +380,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 	addon_index							= 0;
 	addon_icon							= NULL;
 	icon_offset							= vZero2;
-	icon_step						= slot.icon_step;
+	icon_step							= slot.icon_step;
 }
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
@@ -391,8 +391,8 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 		{
 			for (auto addon : S->addons)
 			{
-				SUIAddonSlot* s			= xr_new<SUIAddonSlot>(*S);
-				m_slots.push_back		(s);
+				m_slots.push_back		(xr_new<SUIAddonSlot>(*S));
+				SUIAddonSlot* s			= m_slots.back();
 				s->addon_name			= addon->O.cNameSect();
 				s->addon_type			= addon->I->GetInvIconType();
 				s->addon_index			= addon->I->GetInvIconIndex();
@@ -404,7 +404,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 				s->addon_icon->SetAutoDelete(true);
 				AttachChild				(s->addon_icon);
 				s->addon_icon->SetTextureColor(GetTextureColor());
-				if (S->hasLoadingAnim())
+				if (S->backgroundDraw())
 					s->addon_icon->SetBackgroundDraw(true);
 
 				if (auto addon_ao = addon->cast<CAddonOwner*>())
@@ -418,7 +418,6 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
 {
-	m_slots.clear						();
 	process_ao							(itm, vZero2);
 
 	float icon_scale					= pSettings->r_float(itm->O.cNameSect(), "icon_scale");
@@ -427,7 +426,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 	Frect tex_rect						= GetTextureRect();
 	tex_rect.mul						(icon_scale, icon_scale);
 
-	for (auto s : m_slots)
+	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
 		{
@@ -436,7 +435,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 
 			Frect						addon_rect;
 			CInventoryItem::ReadIcon	(addon_rect, *s->addon_name);
-			float icon_scale			= pSettings->r_float(s->addon_name, "icon_scale");
+			icon_scale					= pSettings->r_float(s->addon_name, "icon_scale");
 			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + icon_scale * addon_rect.width());
 			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + icon_scale * addon_rect.height());
 		}
@@ -447,22 +446,10 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str section) : inherited(section)
 {
-	m_slots.clear						();
-
 	VSlots								slots;
 	CAddonOwner::LoadAddonSlots			(pSettings->r_string(section, "slots"), slots);
 	for (auto slot : slots)
-	{
-		SUIAddonSlot* s					= xr_new<SUIAddonSlot>(*slot);
-		m_slots.push_back(s);
-	}
-
-	slots.clear							();
-}
-
-CUIAddonOwnerCellItem::~CUIAddonOwnerCellItem()
-{
-	m_slots.clear						();
+		m_slots.push_back				(xr_new<SUIAddonSlot>(*slot));
 }
 
 void CUIAddonOwnerCellItem::Draw()
@@ -470,7 +457,7 @@ void CUIAddonOwnerCellItem::Draw()
 	inherited::Draw						();
 	if (m_upgrade && m_upgrade->IsShown())
 		m_upgrade->Draw					();
-};
+}
 
 void CUIAddonOwnerCellItem::Update()
 {
@@ -478,7 +465,7 @@ void CUIAddonOwnerCellItem::Update()
 	inherited::Update					();
 	if (b != Heading())
 	{
-		for (auto s : m_slots)
+		for (auto& s : m_slots)
 		{
 			if (s->addon_icon)
 				InitAddon				(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, Heading());
@@ -489,7 +476,7 @@ void CUIAddonOwnerCellItem::Update()
 void CUIAddonOwnerCellItem::SetTextureColor(u32 color)
 {
 	inherited::SetTextureColor			(color);
-	for (auto s : m_slots)
+	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
 			s->addon_icon->SetTextureColor(color);
@@ -498,7 +485,7 @@ void CUIAddonOwnerCellItem::SetTextureColor(u32 color)
 
 void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
-	for (auto s : m_slots)
+	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
 			InitAddon					(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
@@ -571,7 +558,7 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 	CUIDragItem* i						= inherited::CreateDragItem();
 	CUIStatic* st						= NULL;
 
-	for (auto s : m_slots)
+	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
 		{

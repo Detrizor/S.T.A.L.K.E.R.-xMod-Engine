@@ -72,15 +72,14 @@ private:
 		SUIAddonSlot					(CAddonSlot CR$ slot);
 	};
 
-	typedef xr_vector<SUIAddonSlot*>	VUISlots;
+	typedef ::std::vector<xptr<SUIAddonSlot>> VUISlots;
 
 public:
 										CUIAddonOwnerCellItem					(CAddonOwner* item);
 										CUIAddonOwnerCellItem					(shared_str section);
-										~CUIAddonOwnerCellItem					();
 
 private:
-	VUISlots							m_slots;
+	VUISlots							m_slots									= {};
 
 	void								process_ao								(CAddonOwner* ao, Fvector2 CR$ forwarded_offset);
 	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);

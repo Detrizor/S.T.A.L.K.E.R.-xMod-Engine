@@ -113,7 +113,7 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else if (uiao && uiao->Slots().size())
 	{
 		str								= "";
-		for (auto slot : uiao->Slots())
+		for (auto& slot : uiao->Slots())
 		{
 			if (str.size())
 				str.printf				("%s, ", *str);

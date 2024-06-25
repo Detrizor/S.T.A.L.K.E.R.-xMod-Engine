@@ -597,7 +597,7 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 		if (ao && (ItemCategory(ci->m_section, "addon") || ItemCategory(ci->m_section, "magazine")))
 		{
 			LPCSTR tmp					= pSettings->r_string(ci->m_section, "slot_type");
-			for (auto s : ao->Slots())
+			for (auto& s : ao->Slots())
 			{
 				if (CAddonSlot::isCompatible(s->type, tmp))
 				{
@@ -643,7 +643,7 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 		{
 			if (auto tmp = smart_cast<CUIAddonOwnerCellItem*>(ci))
 			{
-				for (auto s : tmp->Slots())
+				for (auto& s : tmp->Slots())
 				{
 					if (CAddonSlot::isCompatible(s->type, slot_type))
 					{

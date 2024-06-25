@@ -230,6 +230,9 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	attach								= READ_IF_EXISTS(pSettings, r_string, section, *tmp, 0);
 
 	m_has_loading_anim					= attach == "magazine" || attach == "grenade";
+	
+	tmp.printf							("background_draw_%d", idx);
+	m_background_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
 }
 
 void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
