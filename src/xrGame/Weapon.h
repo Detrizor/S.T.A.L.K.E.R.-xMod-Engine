@@ -430,7 +430,9 @@ private:
 	static float						s_recoil_tremble_dispersion;
 	static float						s_recoil_kick_dispersion;
 	static float						s_recoil_roll_dispersion;
-
+	
+	Fvector								m_mechanic_recoil_pattern;
+	Fvector								m_layout_recoil_pattern;
 	SafemodeAnm							m_safemode_anm[2];
 
 protected:
@@ -444,12 +446,11 @@ protected:
 	float								m_grip_accuracy_modifier				= 1.f;
 	float								m_stock_accuracy_modifier				= 1.f;
 	float								m_layout_accuracy_modifier				= 1.f;
+	float								m_foregrip_accuracy_modifier			= 1.f;
 	
-	Fvector								m_grip_recoil_pattern					= vOne;
 	Fvector								m_stock_recoil_pattern					= vOne;
-	Fvector								m_layout_recoil_pattern					= vOne;
-	Fvector								m_mechanic_recoil_pattern				= vOne;
 	Fvector								m_muzzle_recoil_pattern					= vOne;
+	Fvector								m_foregrip_recoil_pattern				= vOne;
 
 	float								m_recoil_tremble_mean					= 0.f;
 	Fvector4							m_recoil_hud_impulse					= vZero4;
@@ -472,7 +473,9 @@ protected:
 	void								appendRecoil							(float impulse_magnitude);
 	
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
+	float								readAccuracyModifier				C$	(LPCSTR type);
 	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
+	Fvector								readRecoilPattern					C$	(LPCSTR type);
 	int									get_ammo_type						C$	(shared_str CR$ section);
 	
 	float								Aboba								O$	(EEventTypes type, void* data, int param);

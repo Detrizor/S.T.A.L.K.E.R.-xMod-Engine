@@ -1,19 +1,16 @@
 #pragma once
-
-#include "module.h"
+#include "muzzle.h"
 
 class CGameObject;
 
-class CSilencer : public CModule
+class CSilencer : public CMuzzleBase
 {
 public:
 										CSilencer								(CGameObject* obj, shared_str CR$ section);
 
 private:
-	shared_str							m_section;
-	float								m_muzzle_point_shift;
+	const float							m_sound_suppressing;
 
 public:
-	shared_str CR$						Section								C$	()		{ return m_section; }
-	float								getMuzzlePointShift					C$	()		{ return m_muzzle_point_shift; }
+	float								getSoundSuppressing					C$	();
 };

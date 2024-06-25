@@ -373,10 +373,9 @@ void CWeaponMagazinedWGrenade::UpdateCL()
 	update_flame_particles_gl			();
 }
 
-void CWeaponMagazinedWGrenade::process_addon(CAddon* addon, bool attach)
+void CWeaponMagazinedWGrenade::process_addon_modules(CGameObject& obj, bool attach)
 {
-	CGrenadeLauncher* gl				= addon->cast<CGrenadeLauncher*>();
-	if (gl)
+	if (auto gl = obj.Cast<CGrenadeLauncher*>())
 		process_gl						(gl, attach);
-	inherited::process_addon			(addon, attach);
+	inherited::process_addon_modules	(obj, attach);
 }

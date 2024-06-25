@@ -32,7 +32,7 @@ protected:
 	int									ADS									CO$	();
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
-	void								process_addon						O$	(CAddon* addon, bool attach);
+	void								process_addon_modules				O$	(CGameObject& obj, bool attach);
 
 private:
 	bool								m_bGrenadeMode							= false;

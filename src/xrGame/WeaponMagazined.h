@@ -9,6 +9,7 @@
 
 #include "addon_owner.h"
 #include "scope.h"
+#include "barrel.h"
 
 class ENGINE_API CMotionDef;
 
@@ -58,7 +59,6 @@ protected:
 protected:
 	virtual bool	reloadCartridge		();
 	virtual void	ReloadMagazine		();
-	void			ResetSilencerKoeffs	();
 
 	virtual void	state_Fire(float dt);
 	virtual void	state_Misfire(float dt);
@@ -69,7 +69,7 @@ public:
 
 	virtual void	Load(LPCSTR section);
 
-	void	LoadSilencerKoeffs(LPCSTR sect);
+	void	updataeSilencerKoeffs();
 	virtual CWeaponMagazined*cast_weapon_magazined()
 	{
 		return this;
@@ -190,12 +190,16 @@ private:
 	xr_vector<CScope*>					m_attached_scopes						= {};
 	u8									m_iron_sights_blockers					= 0;
 	u8									m_iron_sights							= 0;
-	CSilencer*							m_pSilencer								= nullptr;
+	CMuzzle*							m_muzzle								= nullptr;
+	CSilencer*							m_silencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
+	CBarrel*							m_barrel								= nullptr;
 	bool								m_shot_shell							= false;
-	shared_str CP$						m_addon_anm_prefix						= nullptr;
 	float								m_ads_shift								= 0.f;
+	shared_str							m_handguard								= 0;
+	bool								m_grip									= false;
+	bool								m_usable								= false;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	bool								m_lower_iron_sights_on_block;
@@ -208,11 +212,14 @@ private:
 	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
 	void								UpdateBonesVisibility					();
-	void								ProcessMagazine							(CMagazine* mag, bool attach);
-	void								ProcessSilencer							(CSilencer* sil, bool attach);
-	void								process_scope							(CScope* scope, bool attach);
+	void								load_muzzle_params						(CMuzzleBase* src);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
+	void								process_addon							(CAddon* addon, bool attach);
+	void								process_barrel							(CBarrel* barrel, bool attach);
+	void								process_muzzle							(CMuzzle* muzzle, bool attach);
+	void								process_silencer						(CSilencer* muzzle, bool attach);
+	void								process_scope							(CScope* scope, bool attach);
 	
 	bool								iron_sights_up						C$	()		{ return m_iron_sights && m_iron_sights_blockers <= m_iron_sights; }
 	
@@ -238,6 +245,8 @@ protected:
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								SetADS								O$	(int mode);
 	LPCSTR								get_anm_prefix						CO$	();
+	
+	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 
 public:
 	static void							loadStaticVariables						();
@@ -248,7 +257,7 @@ public:
 	void								initReload								(CWeaponAmmo* ammo);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
-	bool								SilencerAttached					C$	()		{ return !!m_pSilencer; }
+	bool								SilencerAttached					C$	()		{ return !!m_silencer; }
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
@@ -259,7 +268,6 @@ public:
 
 	void								OnTaken								O$	();
 
-	void							V$	process_addon							(CAddon* addon, bool attach);
 	bool							V$	Discharge								(CCartridge& destination);
 	bool							V$	canTake								C$	(CWeaponAmmo CPC ammo, bool chamber);
 

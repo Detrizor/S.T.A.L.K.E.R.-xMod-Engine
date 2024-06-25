@@ -54,18 +54,11 @@ void CShootingObject::reinit()
 
 void CShootingObject::Load	(LPCSTR section)
 {
-	if(pSettings->line_exist(section,"light_disabled"))
-	{
-		m_bLightShotEnabled		= !pSettings->r_bool(section,"light_disabled");
-	}else
-		m_bLightShotEnabled		= true;
-
 	//время затрачиваемое на выстрел
 	float rpm = pSettings->r_float(section,"rpm");
 	fOneShotTime = (fIsZero(rpm)) ? 0.f : 60.f / rpm;
 
 	LoadFireParams		(section);
-	LoadLights			(section);
 	LoadShellParticles	(section);
 	LoadFlameParticles	(section);
 }
@@ -93,9 +86,7 @@ void CShootingObject::LoadFireParams( LPCSTR section )
 
 void CShootingObject::LoadLights(LPCSTR section)
 {
-	string256				full_name;
-	// light
-	if(m_bLightShotEnabled) 
+	if (m_bLightShotEnabled = !READ_IF_EXISTS(pSettings, r_bool, section, "light_disabled", FALSE))
 	{
 		Fvector clr			= pSettings->r_fvector3		(section, "light_color");
 		light_base_color.set(clr.x,clr.y,clr.z,1);

@@ -303,16 +303,10 @@ void CWeapon::Load(LPCSTR section)
 	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_bool, section, "has_alt_aim", TRUE);
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
 	m_bArmedMode = !m_bArmedRelaxedSwitch;
-
-	m_grip_accuracy_modifier		= readAccuracyModifier(section, "grip");
-	m_stock_accuracy_modifier		= readAccuracyModifier(section, "stock");
-	m_layout_accuracy_modifier		= readAccuracyModifier(section, "layout");
 	
-	m_grip_recoil_pattern			= readRecoilPattern(section, "grip");
-	m_stock_recoil_pattern			= readRecoilPattern(section, "stock");
-	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
-	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
-	m_muzzle_recoil_pattern			= readRecoilPattern(section, "muzzle");
+	m_mechanic_recoil_pattern			= readRecoilPattern(section, "mechanic");
+	m_layout_recoil_pattern				= readRecoilPattern(section, "layout");
+	m_layout_accuracy_modifier			= readAccuracyModifier(section, "layout");
 
 	if (pSettings->line_exist(section, "fire_bone"))
 		m_fire_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "fire_bone"));
@@ -925,12 +919,22 @@ void CWeapon::ZoomDec()
 
 float CWeapon::readAccuracyModifier(LPCSTR section, LPCSTR line) const
 {
-	return pSettings->r_float("accuracy_modifiers", pSettings->r_string(section, line));
+	return readAccuracyModifier(pSettings->r_string(section, line));
+}
+
+float CWeapon::readAccuracyModifier(LPCSTR type) const
+{
+	return READ_IF_EXISTS(pSettings, r_float, "accuracy_modifiers", type, 1.f);
 }
 
 Fvector CWeapon::readRecoilPattern(LPCSTR section, LPCSTR line) const
 {
-	return pSettings->r_fvector3("recoil_patterns", pSettings->r_string(section, line));
+	return readRecoilPattern(pSettings->r_string(section, line));
+}
+
+Fvector CWeapon::readRecoilPattern(LPCSTR type) const
+{
+	return READ_IF_EXISTS(pSettings, r_fvector3, "recoil_patterns", type, vOne);
 }
 
 void CWeapon::SetADS(int mode)

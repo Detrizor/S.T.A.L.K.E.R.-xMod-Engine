@@ -1354,6 +1354,7 @@
     <ClInclude Include="awards_store.h" />
     <ClInclude Include="a_star.h" />
     <ClInclude Include="a_star_inline.h" />
+    <ClInclude Include="barrel.h" />
     <ClInclude Include="base_client_classes.h" />
     <ClInclude Include="base_client_classes_wrappers.h" />
     <ClInclude Include="BastArtifact.h" />
@@ -1739,6 +1740,7 @@
     <ClInclude Include="MPPlayersBag.h" />
     <ClInclude Include="mp_config_sections.h" />
     <ClInclude Include="mt_config.h" />
+    <ClInclude Include="muzzle.h" />
     <ClInclude Include="Needles.h" />
     <ClInclude Include="NET_Queue.h" />
     <ClInclude Include="NoGravityZone.h" />
@@ -3046,6 +3048,7 @@
     <ClCompile Include="attachment_owner.cpp" />
     <ClCompile Include="autosave_manager.cpp" />
     <ClCompile Include="awards_store.cpp" />
+    <ClCompile Include="barrel.cpp" />
     <ClCompile Include="base_client_classes_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3590,6 +3593,7 @@
     <ClCompile Include="moving_objects_static.cpp" />
     <ClCompile Include="MPPlayersBag.cpp" />
     <ClCompile Include="mp_config_sections.cpp" />
+    <ClCompile Include="muzzle.cpp" />
     <ClCompile Include="Needles.cpp" />
     <ClCompile Include="NoGravityZone.cpp" />
     <ClCompile Include="object_actions.cpp" />

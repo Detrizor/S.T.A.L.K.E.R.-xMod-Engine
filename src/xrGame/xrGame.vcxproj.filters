@@ -7352,6 +7352,8 @@
       <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
     </ClInclude>
     <ClInclude Include="item_usable.h" />
+    <ClInclude Include="barrel.h" />
+    <ClInclude Include="muzzle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11004,6 +11006,8 @@
       <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
     </ClCompile>
     <ClCompile Include="item_usable.cpp" />
+    <ClCompile Include="barrel.cpp" />
+    <ClCompile Include="muzzle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

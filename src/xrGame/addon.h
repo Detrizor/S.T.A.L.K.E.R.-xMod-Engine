@@ -36,6 +36,8 @@ private:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
+	static void							addAddonModules							(CGameObject& O, shared_str CR$ addon_sect);
+
 	void								setSlot									(CAddonSlot* s)			{ m_slot = s; }
 	void								setSlotIdx								(int v)					{ m_slot_idx = (u16)v; }
 	void								setSlotPos								(int v)					{ m_slot_pos = (s16)v; }

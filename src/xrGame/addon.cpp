@@ -7,6 +7,23 @@
 #include "item_usable.h"
 #include "addon_owner.h"
 #include "WeaponMagazined.h"
+#include "barrel.h"
+
+void CAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
+{
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
+		O.AddModule<CMagazine>			();
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
+		O.AddModule<CScope>				(addon_sect);
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "barrel", FALSE))
+		O.AddModule<CBarrel>			(addon_sect);
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))
+		O.AddModule<CMuzzle>			(addon_sect);
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "silencer", FALSE))
+		O.AddModule<CSilencer>			(addon_sect);
+	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "grenade_launcher", FALSE))
+		O.AddModule<CGrenadeLauncher>	(addon_sect);
+}
 
 CAddon::CAddon(CGameObject* obj) : CModule(obj)
 {
@@ -15,21 +32,11 @@ CAddon::CAddon(CGameObject* obj) : CModule(obj)
 	m_low_profile						= pSettings->r_bool(O.cNameSect(), "low_profile");
 	m_anm_prefix						= pSettings->r_string(O.cNameSect(), "anm_prefix");
 	m_front_positioning					= pSettings->r_bool(O.cNameSect(), "front_positioning");
-	if (pSettings->line_exist(O.cNameSect(), "addon_type"))
-	{
-		shared_str addon_type			= pSettings->r_string(O.cNameSect(), "addon_type");
-		if (strstr(*addon_type, "magazine"))
-			O.AddModule<CMagazine>		();
-		if (strstr(*addon_type, "scope"))
-			O.AddModule<CScope>			(O.cNameSect());
-		if (strstr(*addon_type, "silencer"))
-			O.AddModule<CSilencer>		(O.cNameSect());
-		if (strstr(*addon_type, "grenade_launcher"))
-			O.AddModule<CGrenadeLauncher>	(O.cNameSect());
-	}
 	
 	m_mount_length						= pSettings->r_float(O.cNameSect(), "mount_length");
 	m_profile_length					= pSettings->r_fvector2(O.cNameSect(), "profile_length");
+
+	addAddonModules						(O, O.cNameSect());
 }
 
 CAddonOwner* get_root_addon_owner(CAddonOwner* ao)

@@ -53,9 +53,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 CWeaponMagazined::~CWeaponMagazined()
 {
 	xr_delete(m_hud);
-
-	if (m_pSilencer && !m_pSilencer->cast<CAddon*>())
-		xr_delete(m_pSilencer);
 }
 
 void CWeaponMagazined::net_Destroy()
@@ -128,17 +125,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 				s->model_offset.translate_add(static_cast<Dvector>(m_fire_point));
 		}
 	}
-	
-	shared_str integrated_addon			= READ_IF_EXISTS(pSettings, r_string, section, "scope", "");
-	if (integrated_addon.size())
-	{
-		CScope* scope					= xr_new<CScope>(this, integrated_addon);
-		process_scope					(scope, true);
-	}
-
-	integrated_addon					= READ_IF_EXISTS(pSettings, r_string, section, "silencer", "");
-	if (integrated_addon.size())
-		ProcessSilencer					(xr_new<CSilencer>(this, integrated_addon), true);
 
 	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
 	m_lower_iron_sights_on_block		= !!READ_IF_EXISTS(pSettings, r_bool, section, "lower_iron_sights_on_block", FALSE);
@@ -148,6 +134,15 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_iron_sight_section				= READ_IF_EXISTS(pSettings, r_string, section, "iron_sight_section", 0);
 	m_iron_sights						= (m_iron_sight_section.size()) ? 0 : 1;
 	m_iron_sights_blockers				= m_iron_sights;
+
+	LPCSTR integrated_addons			= READ_IF_EXISTS(pSettings, r_string, section, "integrated_addons", 0);
+	for (int i = 0, cnt = _GetItemCount(integrated_addons); i < cnt; i++)
+	{
+		string64						addon_sect;
+		_GetItem						(integrated_addons, i, addon_sect);
+		CAddon::addAddonModules			(*this, addon_sect);
+	}
+	process_addon_modules				(*this, true);
 }
 
 void CWeaponMagazined::FireStart()
@@ -683,6 +678,9 @@ void CWeaponMagazined::switch2_Showing()
 
 bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 {
+	if (!m_usable)
+		return false;
+
 	if (m_hud->Action(cmd, flags))
 		return true;
 
@@ -718,15 +716,15 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-void CWeaponMagazined::LoadSilencerKoeffs(LPCSTR sect)
+void CWeaponMagazined::updataeSilencerKoeffs()
 {
-	m_silencer_koef.bullet_speed = pSettings->r_float(sect, "bullet_speed_k");
-	m_silencer_koef.fire_dispersion = pSettings->r_float(sect, "fire_dispersion_base_k");
-}
-
-void CWeaponMagazined::ResetSilencerKoeffs()
-{
-	m_silencer_koef.Reset();
+	if (m_silencer)
+	{
+		m_silencer_koef.bullet_speed = pSettings->r_float(m_silencer->getSection(), "bullet_speed_k");
+		m_silencer_koef.fire_dispersion = pSettings->r_float(m_silencer->getSection(), "fire_dispersion_base_k");
+	}
+	else
+		m_silencer_koef.Reset();
 }
 
 //переключение режимов стрельбы одиночными и очередями
@@ -1018,65 +1016,6 @@ float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 		return inherited::CurrentZoomFactor(for_actor);
 }
 
-void CWeaponMagazined::ProcessMagazine(CMagazine* mag, bool attach)
-{
-	m_magazine							= (attach) ? mag : NULL;
-}
-
-void CWeaponMagazined::ProcessSilencer(CSilencer* sil, bool attach)
-{
-	m_pSilencer							= (attach) ? sil : NULL;
-
-	shared_str CR$ sect_to_load			= ((attach) ? sil->Section() : cNameSect());
-	LoadLights							(*sect_to_load);
-	LoadFlameParticles					(*sect_to_load);
-	if (attach)
-		LoadSilencerKoeffs				(*sect_to_load);
-	else
-		ResetSilencerKoeffs				();
-	UpdateSndShot						();
-
-	if (sil->cast<CAddon*>())
-	{
-		if (attach)
-			m_muzzle_point.z			+= sil->getMuzzlePointShift();
-		else
-			m_muzzle_point				= m_loaded_muzzle_point;
-	}
-}
-
-void CWeaponMagazined::process_scope(CScope* scope, bool attach)
-{
-	m_hud->processScope					(scope, attach);
-
-	if (attach)
-	{
-		m_attached_scopes.push_back		(scope);
-		if (scope->getSelection() == -1)
-		{
-			for (int i = 0; i < 2; i++)
-			{
-				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == eIS && scope->Type() != eIS)
-				{
-					m_selected_scopes[i] = scope;
-					scope->setSelection	(i);
-					break;
-				}
-			}
-		}
-		else
-			m_selected_scopes[scope->getSelection()] = scope;
-	}
-	else
-	{
-		if (m_selected_scopes[0] == scope)
-			cycle_scope					(0);
-		else if (m_selected_scopes[1] == scope)
-			cycle_scope					(1);
-		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
-	}
-}
-
 void CWeaponMagazined::cycle_scope(int idx, bool up)
 {
 	if (m_attached_scopes.empty())
@@ -1146,30 +1085,128 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 			SetInvIconType				(!iron_sights_up());
 	}
 
-	if (addon->anmPrefix().size())
+	process_addon_modules				(addon->O, attach);
+}
+
+void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
+{
+	if (auto mag = obj.Cast<CMagazine*>())
+		m_magazine						= (attach) ? mag : nullptr;
+	if (auto scope = obj.Cast<CScope*>())
+		process_scope					(scope, attach);
+	if (auto barrel = obj.Cast<CBarrel*>())
+		process_barrel					(barrel, attach);
+	if (auto muzzle = obj.Cast<CMuzzle*>())
+		process_muzzle					(muzzle, attach);
+	if (auto sil = obj.Cast<CSilencer*>())
+		process_silencer				(sil, attach);
+	
+	shared_str type						= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "grip_type", 0);
+	if (type.size())
 	{
-		m_addon_anm_prefix				= (attach) ? &addon->anmPrefix() : nullptr;
+		m_grip							= attach;
+		m_grip_accuracy_modifier		= (attach) ? readAccuracyModifier(*type) : 1.f;
+	}
+	
+	type								= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "stock_type", 0);
+	if (type.size())
+	{
+		m_stock_recoil_pattern			= (attach) ? readRecoilPattern(*type) : vOne;
+		m_stock_accuracy_modifier		= (attach) ? readAccuracyModifier(*type) : 1.f;
+	}
+	
+	type								= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "foregrip_type", 0);
+	if (type.size())
+	{
+		if (!m_handguard.size())
+			m_handguard					= type;
+		if (m_handguard == type)
+		{
+			m_foregrip_recoil_pattern	= (attach) ? readRecoilPattern(*type) : vOne;
+			m_foregrip_accuracy_modifier= (attach) ? readAccuracyModifier(*type) : 1.f;
+			m_anm_prefix				= (attach) ? pSettings->r_string("anm_prefixes", *type) : 0;
+			if (!attach)
+				m_handguard				= 0;
+		}
+		else
+		{
+			m_foregrip_recoil_pattern	= readRecoilPattern(*((attach) ? type : m_handguard));
+			m_foregrip_accuracy_modifier= readAccuracyModifier(*((attach) ? type : m_handguard));
+			m_anm_prefix				= pSettings->r_string("anm_prefixes", *((attach) ? type : m_handguard));
+		}
 		PlayAnimIdle					();
 	}
+	
+	m_usable							= m_barrel && m_grip;
+	hud_sect							= pSettings->r_string(cNameSect(), (m_usable) ? "hud" : "hud_unusable");
+}
 
-	if (pSettings->line_exist(addon->O.cNameSect(), "grip"))
+void CWeaponMagazined::process_scope(CScope* scope, bool attach)
+{
+	m_hud->processScope					(scope, attach);
+
+	if (attach)
 	{
-		LPCSTR line						= (attach) ? *addon->O.cNameSect() : *m_section_id;
-		m_grip_recoil_pattern			= readRecoilPattern(line, "grip");
-		m_grip_accuracy_modifier		= readAccuracyModifier(line, "grip");
+		m_attached_scopes.push_back		(scope);
+		if (scope->getSelection() == -1)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == eIS && scope->Type() != eIS)
+				{
+					m_selected_scopes[i] = scope;
+					scope->setSelection	(i);
+					break;
+				}
+			}
+		}
+		else
+			m_selected_scopes[scope->getSelection()] = scope;
 	}
+	else
+	{
+		if (m_selected_scopes[0] == scope)
+			cycle_scope					(0);
+		else if (m_selected_scopes[1] == scope)
+			cycle_scope					(1);
+		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
+	}
+}
 
-	if (pSettings->line_exist(addon->O.cNameSect(), "muzzle"))
-		m_muzzle_recoil_pattern			= readRecoilPattern((attach) ? *addon->O.cNameSect() : *m_section_id, "muzzle");
+void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
+{
+	if (attach)
+	{
+		m_barrel						= barrel;
+		load_muzzle_params				(barrel);
+	}
+	else
+		m_barrel						= nullptr;
+}
 
-	if (auto mag = addon->cast<CMagazine*>())
-		ProcessMagazine					(mag, attach);
+void CWeaponMagazined::process_muzzle(CMuzzle* muzzle, bool attach)
+{
+	m_muzzle							= (attach) ? muzzle : nullptr;
+	load_muzzle_params					((m_muzzle) ? m_muzzle : static_cast<CMuzzleBase*>(m_barrel));
+}
 
-	if (auto scope = addon->cast<CScope*>())
-		process_scope					(scope, attach);
+void CWeaponMagazined::process_silencer(CSilencer* sil, bool attach)
+{
+	m_silencer							= (attach) ? sil : nullptr;
+	UpdateSndShot						();
+	updataeSilencerKoeffs				();
+	load_muzzle_params					((attach) ? sil : ((m_muzzle) ? m_muzzle : static_cast<CMuzzleBase*>(m_barrel)));
+}
 
-	if (auto sil = addon->cast<CSilencer*>())
-		ProcessSilencer					(sil, attach);
+void CWeaponMagazined::load_muzzle_params(CMuzzleBase* src)
+{
+	m_muzzle_recoil_pattern				= readRecoilPattern(*src->getSection(), "muzzle_type");
+	m_fire_point						= src->getFirePoint();
+	m_hud->calculateAimOffsets			();
+
+	LoadLights							(*src->getSection());
+	LoadFlameParticles					(*cNameSect());
+	LoadFlameParticles					(*src->getSection());
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
@@ -1231,9 +1268,9 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 void CWeaponMagazined::UpdateSndShot()
 {
 	if (m_actor)
-		m_sSndShotCurrent = (m_pSilencer) ? "sndSilencerShotActor" : "sndShotActor";
+		m_sSndShotCurrent = (m_silencer) ? "sndSilencerShotActor" : "sndShotActor";
 	else
-		m_sSndShotCurrent = (m_pSilencer) ? "sndSilencerShot" : "sndShot";
+		m_sSndShotCurrent = (m_silencer) ? "sndSilencerShot" : "sndShot";
 }
 
 void CWeaponMagazined::OnTaken()
@@ -1243,7 +1280,8 @@ void CWeaponMagazined::OnTaken()
 
 void CWeaponMagazined::UpdateHudAdditional(Dmatrix& trans)
 {
-	m_hud->UpdateHudAdditional(trans);
+	if (m_usable)
+		m_hud->UpdateHudAdditional(trans);
 }
 
 bool CWeaponMagazined::IsRotatingToZoom C$()
@@ -1418,7 +1456,7 @@ void CWeaponMagazined::updateRecoil()
 
 	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
 	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
-	accuracy *= m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_layout_accuracy_modifier;
+	accuracy *= m_layout_accuracy_modifier * m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_foregrip_accuracy_modifier;
 
 	if (hud_impulse || hud_shift)
 	{
