@@ -59,6 +59,7 @@ public:
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessGL								(CGrenadeLauncher* gl);
 	void								processScope							(CScope* scope, bool attach);
+	void								calculateAimOffsets						();
 
 	bool								IsRotatingToZoom					C$	();
 	Fvector								getTransference						C$	(float distance);

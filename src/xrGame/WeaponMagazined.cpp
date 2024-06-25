@@ -118,15 +118,14 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_hud								= xr_new<CWeaponHud>(this);
 
-	CAddonOwner* ao						= cast<CAddonOwner*>();
-	if (ao)
+	if (auto ao = cast<CAddonOwner*>())
 	{
 		for (auto s : ao->AddonSlots())
 		{
 			if (s->attach == "magazine")
 				m_magazine_slot			= s;
 			if (s->attach == "muzzle")
-				s->model_offset.translate_add(static_cast<Dvector>(m_loaded_muzzle_point));
+				s->model_offset.translate_add(static_cast<Dvector>(m_fire_point));
 		}
 	}
 	

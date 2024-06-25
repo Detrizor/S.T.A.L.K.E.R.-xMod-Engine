@@ -182,9 +182,6 @@ protected:
 public:
 	virtual	bool			NeedBlendAnm			();
 
-private:
-	Dvector								m_root_bone_position					= dZero;
-
 protected:
 	shared_str							m_anm_prefix							= 0;
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
@@ -192,8 +189,6 @@ protected:
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
-
-	Dvector CR$							getRootBonePosition					C$	()		{ return m_root_bone_position; }
 
 	bool							V$	AltHandsAttach						C$	()		{ return false; }
 	LPCSTR							V$	anmType								C$	()		{ return ""; }

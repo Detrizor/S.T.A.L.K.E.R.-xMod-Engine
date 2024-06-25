@@ -459,10 +459,10 @@ protected:
 	Fvector								m_recoil_cam_last_impulse				= vZero;
 
 	Fvector								m_grip_point							= vZero;
-	Fvector								m_loaded_muzzle_point					= vZero;
-	Fvector								m_muzzle_point							= vZero;
+	Fvector								m_fire_point							= vZero;
 	Fvector								m_shell_point							= vZero;
-	u16									m_shell_bone							= 0;
+	u16									m_shell_bone							= u16_max;
+	u16									m_fire_bone								= u16_max;
 	
 	xr_vector<CCartridge>				m_chamber								= {};
 	xr_vector<CCartridge>				m_magazin								= {};
@@ -494,6 +494,7 @@ public:
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
+	Fvector								getFirePoint						C$	();
 	float								GetControlInertionFactor			CO$	(bool full = false);
 	bool								NeedBlendAnm						O$	();
 	

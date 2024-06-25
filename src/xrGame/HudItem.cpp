@@ -50,12 +50,8 @@ void CHudItem::Load(LPCSTR section)
 {
 	hud_sect							= pSettings->r_string(section, "hud");
 	m_animation_slot					= pSettings->r_u32(section, "animation_slot");
-
 	m_sounds.LoadSound					(section, "snd_bore", "sndBore", true);
-
 	m_anm_prefix						= READ_IF_EXISTS(pSettings, r_string, section, "anm_prefix", 0);
-	if (pSettings->line_exist(section, "root_bone_position"))
-		m_root_bone_position			= static_cast<Dvector>(pSettings->r_fvector3(section, "root_bone_position"));
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)

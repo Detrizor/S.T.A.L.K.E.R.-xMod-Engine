@@ -1233,6 +1233,28 @@ void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to)
 	u_EventSend							(P);
 }
 
+Dvector CGameObject::getRootBoneOffset()
+{
+	if (!m_root_bone_position_inited)
+		calc_root_bone_position			();
+	return								m_root_bone_offset;
+}
+
+Dvector CGameObject::getRootBonePosition()
+{
+	if (!m_root_bone_position_inited)
+		calc_root_bone_position			();
+	return								m_root_bone_position;
+}
+
+void CGameObject::calc_root_bone_position()
+{
+	Fmatrix CR$ root_mat				= Visual()->dcast_PKinematics()->LL_GetTransform(0);
+	m_root_bone_position				= static_cast<Dvector>(root_mat.c);
+	m_root_bone_offset.sub				(m_root_bone_position);
+	m_root_bone_position_inited			= true;
+}
+
 float CGameObject::Aboba(EEventTypes type, void* data, int param)
 {
 	float res							= flt_max;

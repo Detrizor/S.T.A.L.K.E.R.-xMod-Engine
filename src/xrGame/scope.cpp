@@ -115,8 +115,6 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
 	m_sight_offset[0]					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
 	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
-	if (!cast<CAddon*>())
-		m_sight_offset[0].sub			(O.Cast<CHudItem*>()->getRootBonePosition());
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
 	{

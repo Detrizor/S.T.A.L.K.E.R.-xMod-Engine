@@ -141,14 +141,33 @@ void CWeapon::UpdateFireDependencies_internal()
 		hi->update						(false);
 		Fmatrix ftrans					= static_cast<Fmatrix>(hi->m_transform);
 		
-		Fvector muzzle_point			= m_muzzle_point;
-		muzzle_point.sub				(static_cast<Fvector>(getRootBonePosition()));
-		ftrans.transform_tiny			(vLastFP, muzzle_point);
+		Fvector fire_point				= m_fire_point;
+		if (m_fire_bone != u16_max)
+		{
+			Fmatrix CR$ fire_mat		= hi->m_model->LL_GetTransform(m_fire_bone);
+			fire_mat.transform_tiny		(fire_point);
+		}
+		else
+		{
+			Fmatrix CR$ root_mat		= Visual()->dcast_PKinematics()->LL_GetTransform(0);
+			fire_point.sub				(root_mat.c);
+		}
+		
+		Fvector shell_point				= m_shell_point;
+		if (m_shell_bone != u16_max)
+		{
+			Fmatrix CR$ shell_mat		= hi->m_model->LL_GetTransform(m_shell_bone);
+			shell_mat.transform_tiny	(shell_point);
+		}
+		else
+		{
+			Fmatrix CR$ root_mat		= Visual()->dcast_PKinematics()->LL_GetTransform(0);
+			shell_point.sub				(root_mat.c);
+		}
+		
+		ftrans.transform_tiny			(vLastFP, fire_point);
 		ftrans.transform_dir			(vLastFD, vForward);
-
-		Fmatrix CR$ fire_mat			= hi->m_model->LL_GetTransform(m_shell_bone);
-		fire_mat.transform_tiny			(vLastSP, m_shell_point);
-		ftrans.transform_tiny			(vLastSP);
+		ftrans.transform_tiny			(vLastSP, shell_point);
 
 		m_FireParticlesXForm.identity	();
 		m_FireParticlesXForm.k.set		(vLastFD);
@@ -158,13 +177,23 @@ void CWeapon::UpdateFireDependencies_internal()
 	}
 	else
 	{
-		// 3rd person or no parent
-		XFORM().transform_tiny			(vLastFP, m_muzzle_point);
-		XFORM().transform_dir			(vLastFD, vForward);
+		Fvector fire_point				= m_fire_point;
+		if (m_fire_bone != u16_max)
+		{
+			Fmatrix CR$ fire_mat		= Visual()->dcast_PKinematics()->LL_GetTransform(m_fire_bone);
+			fire_mat.transform_tiny		(fire_point);
+		}
+		XFORM().transform_tiny			(vLastFP, fire_point);
 
-		Fmatrix CR$ fire_mat			= Visual()->dcast_PKinematics()->LL_GetTransform(m_shell_bone);
-		fire_mat.transform_tiny			(vLastSP, m_shell_point);
-		XFORM().transform_tiny			(vLastSP);
+		XFORM().transform_dir			(vLastFD, vForward);
+		
+		Fvector shell_point				= m_shell_point;
+		if (m_shell_bone != u16_max)
+		{
+			Fmatrix CR$ shell_mat		= Visual()->dcast_PKinematics()->LL_GetTransform(m_shell_bone);
+			shell_mat.transform_tiny	(shell_point);
+		}
+		XFORM().transform_tiny			(vLastSP, shell_point);
 
 		m_FireParticlesXForm.set		(XFORM());
 	}
@@ -284,14 +313,21 @@ void CWeapon::Load(LPCSTR section)
 	m_layout_recoil_pattern			= readRecoilPattern(section, "layout");
 	m_mechanic_recoil_pattern		= readRecoilPattern(section, "mechanic");
 	m_muzzle_recoil_pattern			= readRecoilPattern(section, "muzzle");
+
+	if (pSettings->line_exist(section, "fire_bone"))
+		m_fire_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "fire_bone"));
+	if (pSettings->line_exist(section, "shell_bone"))
+		m_shell_bone					= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
 	
-	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
-	m_loaded_muzzle_point				= pSettings->r_fvector3(section, "muzzle_point");
-	m_muzzle_point						= m_loaded_muzzle_point;
+	m_fire_point						= getFirePoint();
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
-	m_shell_bone						= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
-	
+	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
 	m_Offset.translate_sub				(m_grip_point);
+}
+
+Fvector CWeapon::getFirePoint() const
+{
+	return								pSettings->r_fvector3(cNameSect(), "fire_point");
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -961,7 +997,7 @@ float CWeapon::CurrentZoomFactor C$(bool for_actor)
 
 int CWeapon::ADS() const
 {
-	return /*--xd test (GetState() == eReload) ? 0 : */m_iADS;
+	return (GetState() == eReload) ? 0 : m_iADS;
 }
 
 float CWeapon::Aboba(EEventTypes type, void* data, int param)

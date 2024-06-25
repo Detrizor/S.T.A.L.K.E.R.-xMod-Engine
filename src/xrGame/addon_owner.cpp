@@ -60,10 +60,8 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 	{
 		case eRenderableRender:
 		{
-			Fmatrix trans				= O.XFORM();
-			trans.applyOffset			(static_cast<Fvector>(O.Cast<CHudItem*>()->getRootBonePosition()), vZero);
 			for (auto s : m_Slots)
-				s->RenderWorld			(trans);
+				s->RenderWorld			(O.XFORM());
 			break;
 		}
 		case eOnChild:
@@ -100,8 +98,10 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eUpdateSlotsTransform:
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
+			Dmatrix trans				= hi->m_transform;
+			trans.translate_mul			(O.getRootBoneOffset());
 			for (auto s : m_Slots)
-				s->updateAddonsHudTransform(hi->m_model, hi->m_transform);
+				s->updateAddonsHudTransform(hi->m_model, trans);
 			break;
 		}
 	}
@@ -194,7 +194,6 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	model_offset.setHPBv				(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero)));
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
-	model_offset.translate_sub			(parent->cast<CHudItem*>()->getRootBonePosition());
 
 	tmp.printf							("icon_offset_pos_%d", idx);
 	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
