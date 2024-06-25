@@ -322,6 +322,7 @@ void CAddonSlot::detachAddon(CAddon* addon)
 	addon->setSlotIdx					(u16_max);
 	addon->setSlotPos					(s16_max);
 	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
+	updateAddonLocalTransform			(addon);
 }
 
 #include "../../../xrEngine/xr_input.h"
@@ -524,11 +525,16 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 
 void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 {
-	Dmatrix transform					= model_offset;
-	transform.c.z						+= static_cast<double>(addon->getSlotPos()) * m_step;
-	if (auto addon = parent_ao->cast<CAddon*>())
-		transform.mulA_43				(addon->getLocalTransform());
-	addon->setLocalTransform			(transform);
+	if (addon->getSlot() == this)
+	{
+		Dmatrix transform				= model_offset;
+		transform.c.z					+= static_cast<double>(addon->getSlotPos()) * m_step;
+		if (auto parent_addon = parent_ao->cast<CAddon*>())
+			transform.mulA_43			(parent_addon->getLocalTransform());
+		addon->setLocalTransform		(transform);
+	}
+	else
+		addon->setLocalTransform		(Didentity);
 
 	if (auto ao = addon->cast<CAddonOwner*>())
 		for (auto s : ao->AddonSlots())
