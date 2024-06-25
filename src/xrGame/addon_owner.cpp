@@ -112,7 +112,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
 			Dmatrix trans				= hi->m_transform;
-			trans.translate_mul			(O.getRootBoneOffset());
+			trans.translate_mul			(O.getRootBonePosition().mul(-1.));
 			for (auto s : m_Slots)
 				s->updateAddonsHudTransform(hi->m_model, trans);
 			break;

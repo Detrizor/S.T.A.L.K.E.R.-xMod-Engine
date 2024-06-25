@@ -305,17 +305,9 @@ public:
 	virtual void			on_matrix_change	(const Fmatrix &previous);
 
 //xMod added
-private:
-	Dvector								m_root_bone_offset						= dZero;
-	Dvector								m_root_bone_position					= dZero;
-	bool								m_root_bone_position_inited				= false;
-	
-	void								calc_root_bone_position					();
-
 public:
 	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max);
 
-	Dvector								getRootBoneOffset						();
 	Dvector								getRootBonePosition						();
 	
 	void								transfer							C$	(u16 id = u16_max);
