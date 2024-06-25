@@ -67,12 +67,25 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eOnChild:
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
-				auto slot				= (addon->getSlotIdx() != u16_max) ? m_Slots[addon->getSlotIdx()] : nullptr;
+				auto slot				= addon->getSlot();
+				if (!slot && param && addon->getSlotIdx() != u16_max)
+					slot				= m_Slots[addon->getSlotIdx()];
 				if (!slot)
 				{
-					slot				= findAvailableSlot(addon);
-					R_ASSERT			(slot);
-					addon->setSlotIdx	(slot->idx);
+					if (param && (slot = findAvailableSlot(addon)))
+						addon->setSlotIdx(slot->idx);
+					
+					if (!slot)
+					{
+						if (param)
+							for (auto s : m_Slots)
+								for (auto a : s->addons)
+									if (auto ao = a->cast<CAddonOwner*>())
+										if (ao->attachAddon(addon))
+											return CModule::aboba(type, data, param);
+						transfer_addon	(addon, false);
+						return			CModule::aboba(type, data, param);
+					}
 				}
 				if (param)
 					slot->attachAddon	(addon);
@@ -123,11 +136,16 @@ void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach) const
 
 void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
 {
-	O.Aboba								(eOnAddon, (void*)addon, attach);
+	if (attach)
+		O.Aboba							(eOnAddon, (void*)addon, true);
+
 	if (auto addon_ao = addon->cast<CAddonOwner*>())
 		for (auto s : addon_ao->AddonSlots())
 			for (auto a : s->addons)
 				processAddon			(a, attach);
+
+	if (!attach)
+		O.Aboba							(eOnAddon, (void*)addon, false);
 }
 
 CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
