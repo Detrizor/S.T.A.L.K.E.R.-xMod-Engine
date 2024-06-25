@@ -35,7 +35,7 @@ CWeaponHud::CWeaponHud(CWeaponMagazined* obj) : O(*obj)
 void CWeaponHud::calculateAimOffsets()
 {
 	Dvector barrel_offset				= static_cast<Dvector>(O.m_fire_point).mul(-1.);
-	double aim_height					= static_cast<double>(pSettings->r_float(O.Section(), "alt_aim_height"));
+	double aim_height					= static_cast<double>(pSettings->r_float(O.Section(), "aim_height"));
 	LPCSTR hud_sect						= pSettings->r_string(O.Section(), "hud");
 	
 	m_hud_offset[eAlt][0]				= static_cast<Dvector>(pSettings->r_fvector3(hud_sect, "alt_aim_pos"));
