@@ -21,7 +21,6 @@ class CWeaponHud
 		eRelaxed,
 		eArmed,
 		eAim,
-		eIS,
 		eAlt,
 		eGL,
 		eTotal
@@ -36,6 +35,8 @@ private:
 	static float						s_recoil_hud_rollback_per_shift;
 	static float						s_max_rotate_speed;
 	static float						s_rotate_accel_time;
+	
+	float								m_aim_z_offset;
 
 	float								m_fRotationFactor						= 0.f;
 	bool								m_going_to_fire							= false;
@@ -43,7 +44,6 @@ private:
 	Dvector								m_current_d_rot							= dZero;
 	float								m_current_rotate_speed					= 0.f;
 	Dvector CP$							m_prev_offset							= nullptr;
-	bool								m_iron_sights_block						= false;
 
 	Dvector								m_hud_offset[eTotal][2];
 	float								m_fRotateTime;

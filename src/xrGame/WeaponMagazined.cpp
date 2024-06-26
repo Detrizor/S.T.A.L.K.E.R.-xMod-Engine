@@ -780,7 +780,7 @@ void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 		scope							= m_selected_scopes[1];
 
 	info.zeroing.printf					("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
-	if (scope && scope->Type() != eIS)
+	if (scope && scope->Type() != CScope::eIS)
 	{
 		float magnification				= scope->GetCurrentMagnification();
 		info.magnification.printf		(fEqual(round(magnification), magnification) ? "%.0fx" : "%.1fx", magnification);
@@ -913,7 +913,7 @@ void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 {
 	for (auto s : m_attached_scopes)
 	{
-		if (s->Type() == eOptics)
+		if (s->Type() == CScope::eOptics)
 		{
 			s->modify_holder_params		(range, fov);
 			return;
@@ -985,7 +985,7 @@ void CWeaponMagazined::ZoomDec()
 bool CWeaponMagazined::need_renderable()
 {
 	CScope* scope = getActiveScope();
-	if (!scope || scope->Type() != eOptics || scope->isPiP())
+	if (!scope || scope->Type() != CScope::eOptics || scope->isPiP())
 		return true;
 	return !IsRotatingToZoom();
 }
@@ -993,7 +993,7 @@ bool CWeaponMagazined::need_renderable()
 bool CWeaponMagazined::render_item_ui_query()
 {
 	CScope* scope = getActiveScope();
-	if (!scope || scope->Type() != eOptics)
+	if (!scope || scope->Type() != CScope::eOptics)
 		return false;
 
 	if (scope->isPiP())
@@ -1010,7 +1010,7 @@ void CWeaponMagazined::render_item_ui()
 float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 {
 	CScope* scope = getActiveScope();
-	if (scope && scope->Type() == eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
+	if (scope && scope->Type() == CScope::eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
 		return scope->GetCurrentMagnification();
 	else
 		return inherited::CurrentZoomFactor(for_actor);
@@ -1021,10 +1021,9 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 	if (m_attached_scopes.empty())
 		return;
 
-	CScope* cur_scope					= m_selected_scopes[idx];
-	if (cur_scope)
+	if (auto cur_scope = m_selected_scopes[idx])
 	{
-		cur_scope->setSelection			(-1);
+		cur_scope->setSelection			(s8_max);
 		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
 		{
 			if (m_attached_scopes[i] == cur_scope)
@@ -1152,7 +1151,7 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 		{
 			for (int i = 0; i < 2; i++)
 			{
-				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == eIS && scope->Type() != eIS)
+				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == CScope::eIS && scope->Type() != CScope::eIS)
 				{
 					m_selected_scopes[i] = scope;
 					scope->setSelection	(i);
@@ -1238,7 +1237,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 		float res						= inherited::Aboba(type, data, param);
 		if (auto scope = getActiveScope())
-			if (scope->Type() == eOptics)
+			if (scope->Type() == CScope::eOptics)
 				scope->updateCameraLenseOffset();
 		return							res;
 	}
@@ -1324,7 +1323,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 {
 	CScope* scope						= getActiveScope();
 	Device.SVP.setActive(scope && scope->isPiP());
-	if (!scope || scope->Type() == eIS)
+	if (!scope || scope->Type() == CScope::eIS)
 		return;
 	
 	static Fmatrix						cam_trans;
@@ -1340,7 +1339,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 
 	float fov_tan						= g_aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	if (scope->Type() == eOptics)
+	if (scope->Type() == CScope::eOptics)
 	{
 		hud_params.w					= scope->getLenseFovTan() / g_aim_fov_tan;
 		float zoom_factor				= CurrentZoomFactor(false);

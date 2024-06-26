@@ -2,13 +2,6 @@
 
 #include "module.h"
 
-enum eScopeType
-{
-	eOptics = 1,
-	eCollimator,
-	eIS
-};
-
 class CUIStatic;
 class CBinocularsVision;
 class CNightVisionEffector;
@@ -44,6 +37,15 @@ struct SRangeNum
 
 class CScope : public CModule
 {
+public:
+	enum eScopeType
+	{
+		eOptics = 1,
+		eCollimator,
+		eIS
+	};
+
+private:
 	static float						s_eye_relief_magnification_shrink;
 	static float						s_shadow_pos_d_axis_factor;
 
