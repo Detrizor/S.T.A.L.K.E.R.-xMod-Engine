@@ -49,7 +49,6 @@ protected:
 												u16 parent_id,
 												u16 weapon_id,
 												bool send_hit);
-	float					GetBulletSpeed() const			{return m_fStartBulletSpeed;}
 
 	virtual void			FireStart			();
 	virtual void			FireEnd				();
@@ -62,8 +61,6 @@ protected:
 	bool					bWorking;
 	float					fOneShotTime;
 
-	//скорость вылета пули из ствола
-	float					m_fStartBulletSpeed;
 	//максимальное расстояние стрельбы
 	float					fireDistance;
 
@@ -164,4 +161,7 @@ protected:
 
 	//объект партиклов огня
 	CParticlesObject*		m_pFlameParticles;
+
+protected:
+	float								m_barrel_len							= 1.f;
 };

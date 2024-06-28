@@ -6,7 +6,9 @@
 struct SCartridgeParam
 {
 	float								kDisp									= 1.f;
-	float								kBulletSpeed							= 1.f;
+	float								barrel_length							= 1.f;
+	float								barrel_len								= 1.f;
+	float								bullet_speed_per_barrel_len				= 1.f;
 	float								impair									= 1.f;
 	float								fBulletMass								= 1.f;
 	float								fBulletResist							= 1.f;
@@ -14,7 +16,6 @@ struct SCartridgeParam
 	float								fAirResist								= 1.f;
 	float								fAirResistZeroingCorrection				= 1000.f;
 	float								bullet_k_ap								= 1.f;
-	float								muzzle_velocity							= 1.f;
 	int									buckShot								= 1;
 	u8									u8ColorID								= 0;
 	bool								bullet_hollow_point						= false;

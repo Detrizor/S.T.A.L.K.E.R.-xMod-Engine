@@ -143,6 +143,7 @@ protected:
 
 	BOOL					m_bAutoSpawnAmmo;
 	virtual bool			AllowBore();
+
 public:
 	u8						m_sub_state;
 
@@ -151,7 +152,6 @@ public:
 		m_BriefInfo_CalcFrame = 0;
 	}
 
-	float	GetBulletSpeed		() const		{ return CShootingObject::GetBulletSpeed(); }
 	float	GetRPM				() const		{ return 60.f / fOneShotTime; }
 
 protected:

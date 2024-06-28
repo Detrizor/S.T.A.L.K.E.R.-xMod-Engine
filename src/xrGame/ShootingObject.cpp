@@ -24,7 +24,6 @@ CShootingObject::CShootingObject(void)
 {
 	fShotTimeCounter				= 0;
  	fOneShotTime					= 0;
-	m_fStartBulletSpeed				= 1000.f;
 
 	m_vCurrentShootDir.set			(0,0,0);
 	m_vCurrentShootPos.set			(0,0,0);
@@ -80,8 +79,6 @@ void CShootingObject::LoadFireParams( LPCSTR section )
 {
 	//базовая дисперсия оружия
 	fireDispersionBase	= deg2rad( pSettings->r_float	(section,"fire_dispersion_base"	) );
-	//начальная скорость пули
-	m_fStartBulletSpeed = pSettings->r_float	(section, "bullet_speed" );
 }
 
 void CShootingObject::LoadLights(LPCSTR section)
@@ -367,16 +364,18 @@ void CShootingObject::FireBullet(const Fvector& pos,
 	m_vCurrentShootPos = pos;
 	m_iCurrentParentID = parent_id;
 
-	Level().BulletManager().AddBullet( pos, 
-										dir,
-										m_fStartBulletSpeed * m_silencer_koef.bullet_speed,
-										parent_id, 
-										weapon_id,
-										ALife::eHitTypeFireWound, 0.f,
-										cartridge,
-										send_hit,
-										-1.f,
-										-1.f);
+	Level().BulletManager().AddBullet(
+		pos,
+		dir,
+		m_barrel_len * m_silencer_koef.bullet_speed,
+		parent_id, 
+		weapon_id,
+		ALife::eHitTypeFireWound, 0.f,
+		cartridge,
+		send_hit,
+		-1.f,
+		-1.f
+	);
 }
 void CShootingObject::FireStart	()
 {

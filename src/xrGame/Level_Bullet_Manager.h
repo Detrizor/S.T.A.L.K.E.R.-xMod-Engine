@@ -88,7 +88,7 @@ public:
 
 	void			Init				(const	Fvector& position,
 										const	Fvector& direction,
-										float	start_speed,
+										float	barrel_length,
 										u16		sender_id,
 										u16		sendersweapon_id,
 										ALife::EHitType e_hit_type,
@@ -214,7 +214,7 @@ public:
 
 	void 					Load				();
 	void 					Clear				();
-	void 					AddBullet			(const Fvector& position, const Fvector& direction, float starting_speed, 
+	void 					AddBullet			(const Fvector& position, const Fvector& direction, float barrel_length,
 												u16	sender_id, u16 sendersweapon_id,
 												ALife::EHitType e_hit_type, float maximum_distance, 
 												const CCartridge& cartridge, bool SendHit,

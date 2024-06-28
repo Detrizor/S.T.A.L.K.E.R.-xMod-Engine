@@ -13,6 +13,7 @@
 #include "WeaponAmmo.h"
 #include "Level_Bullet_Manager.h"
 #include "BoneProtections.h"
+#include "WeaponMagazined.h"
 
 LPCSTR boost_influence_caption[] =
 {
@@ -37,14 +38,12 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	
 	m_Prop_line						= xr_new<CUIStatic>();
 	AttachChild						(m_Prop_line);
-	m_Prop_line->SetAutoDelete		(false);	
 	CUIXmlInit::InitStatic			(xml, "prop_line", 0, m_Prop_line);
 
 	for (u32 i = 0; i < eBoostMaxCount; ++i)
 	{
 		m_boosts[i]					= xr_new<UIBoosterInfoItem>();
 		m_boosts[i]->Init			(xml, ef_boosters_section_names[i]);
-		m_boosts[i]->SetAutoDelete	(false);
 		LPCSTR name					= *CStringTable().translate(boost_influence_caption[i]);
 		m_boosts[i]->SetCaption		(name);
 		xml.SetLocalRoot			(base_node);
@@ -52,63 +51,58 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 
 	m_need_hydration					= xr_new<UIBoosterInfoItem>();
 	m_need_hydration->Init				(xml, "need_hydration");
-	m_need_hydration->SetAutoDelete		(false);
 	LPCSTR name							= CStringTable().translate("ui_inv_hydration").c_str();
 	m_need_hydration->SetCaption		(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_need_satiety						= xr_new<UIBoosterInfoItem>();
 	m_need_satiety->Init				(xml, "need_satiety");
-	m_need_satiety->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_inv_satiety").c_str();
 	m_need_satiety->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_health_outer						= xr_new<UIBoosterInfoItem>();
 	m_health_outer->Init				(xml, "health_outer");
-	m_health_outer->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_inv_health_outer").c_str();
 	m_health_outer->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_health_neural						= xr_new<UIBoosterInfoItem>();
 	m_health_neural->Init				(xml, "health_neural");
-	m_health_neural->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_inv_health_neural").c_str();
 	m_health_neural->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_power_short						= xr_new<UIBoosterInfoItem>();
 	m_power_short->Init					(xml, "power_short");
-	m_power_short->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_inv_power_short").c_str();
 	m_power_short->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_booster_anabiotic					= xr_new<UIBoosterInfoItem>();
 	m_booster_anabiotic->Init			(xml, "anabiotic");
-	m_booster_anabiotic->SetAutoDelete	(false);
 	name								= CStringTable().translate("ui_inv_survive_surge").c_str();
 	m_booster_anabiotic->SetCaption		(name);
 	xml.SetLocalRoot					(base_node);
 
+	m_disclaimer						= xr_new<CUIStatic>();
+	AttachChild							(m_disclaimer);
+	CUIXmlInit::InitStatic				(xml, "ammo_disclaimer", 0, m_disclaimer);
+
 	m_bullet_speed						= xr_new<UIBoosterInfoItem>();
 	m_bullet_speed->Init				(xml, "bullet_speed");
-	m_bullet_speed->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_bullet_speed").c_str();
 	m_bullet_speed->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_bullet_pulse						= xr_new<UIBoosterInfoItem>();
 	m_bullet_pulse->Init				(xml, "bullet_pulse");
-	m_bullet_pulse->SetAutoDelete		(false);
 	name								= CStringTable().translate("ui_bullet_pulse").c_str();
 	m_bullet_pulse->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_armor_piercing					= xr_new<UIBoosterInfoItem>();
 	m_armor_piercing->Init				(xml, "armor_piercing");
-	m_armor_piercing->SetAutoDelete		(false);
 	xml.SetLocalRoot					(base_node);
 
 	m_impair							= xr_new<UIBoosterInfoItem>();
@@ -118,21 +112,18 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 
 	m_ammo_type							= xr_new<UIBoosterInfoItem>();
 	m_ammo_type->Init					(xml, "ammo_type");
-	m_ammo_type->SetAutoDelete			(false);
 	name								= CStringTable().translate("ui_ammo_type").c_str();
 	m_ammo_type->SetCaption				(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_capacity							= xr_new<UIBoosterInfoItem>();
 	m_capacity->Init					(xml, "capacity");
-	m_capacity->SetAutoDelete			(false);
 	name								= CStringTable().translate("ui_capacity").c_str();
 	m_capacity->SetCaption				(name);
 	xml.SetLocalRoot					(base_node);
 
 	m_artefact_isolation				= xr_new<UIBoosterInfoItem>();
 	m_artefact_isolation->Init			(xml, "artefact_isolation");
-	m_artefact_isolation->SetAutoDelete	(false);
 	name								= CStringTable().translate("ui_artefact_isolation").c_str();
 	m_artefact_isolation->SetCaption	(name);
 	m_artefact_isolation->SetStrValue	("");
@@ -140,7 +131,6 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 
 	m_radiation_protection				= xr_new<UIBoosterInfoItem>();
 	m_radiation_protection->Init		(xml, "radiation_protection");
-	m_radiation_protection->SetAutoDelete(false);
 	name								= CStringTable().translate("ui_radiation_protection").c_str();
 	m_radiation_protection->SetCaption	(name);
 	xml.SetLocalRoot					(stored_root);
@@ -258,22 +248,46 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 	{
 		LPCSTR cartridge_section		= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "supplies") : *section;
 		auto cartridge					= CCartridge(cartridge_section);
+		
+		float barrel_len				= 0.f;
+		if (auto ai = Actor()->inventory().ActiveItem())
+			if (auto wpn = ai->cast<CWeaponMagazined*>())
+				for (auto& type : wpn->m_ammoTypes)
+					if (type == cartridge_section)
+						barrel_len		= wpn->getBarrelLen();
 
-		m_bullet_speed->SetValue		(cartridge.param_s.muzzle_velocity);
+		if (barrel_len)
+			m_disclaimer->TextItemControl()->SetText(*CStringTable().translate("ui_disclaimer_active_weapon"));
+		else
+		{
+			shared_str					str;
+			str.printf					("%s %.0f %s:", *CStringTable().translate("ui_disclaimer_reference_weapon"), cartridge.param_s.barrel_length, *CStringTable().translate("st_mm"));
+			m_disclaimer->TextItemControl()->SetText(*str);
+			barrel_len					= cartridge.param_s.barrel_len;
+		}
+		float bullet_speed				= cartridge.param_s.bullet_speed_per_barrel_len * barrel_len;
+
+		pos.set							(m_disclaimer->GetWndPos());
+		pos.y							= h;
+		m_disclaimer->SetWndPos			(pos);
+		h								+= m_disclaimer->GetWndSize().y;
+		AttachChild						(m_disclaimer);
+
+		m_bullet_speed->SetValue		(bullet_speed);
 		pos.set							(m_bullet_speed->GetWndPos());
 		pos.y							= h;
 		m_bullet_speed->SetWndPos		(pos);
 		h								+= m_bullet_speed->GetWndSize().y;
 		AttachChild						(m_bullet_speed);
 
-		m_bullet_pulse->SetValue		(cartridge.param_s.muzzle_velocity * cartridge.param_s.fBulletMass);
+		m_bullet_pulse->SetValue		(bullet_speed * cartridge.param_s.fBulletMass * cartridge.param_s.buckShot);
 		pos.set							(m_bullet_pulse->GetWndPos());
 		pos.y							= h;
 		m_bullet_pulse->SetWndPos		(pos);
 		h								+= m_bullet_pulse->GetWndSize().y;
 		AttachChild						(m_bullet_pulse);
 
-		float muzzle_energy				= cartridge.param_s.fBulletMass * _sqr(cartridge.param_s.muzzle_velocity) * .5f;
+		float muzzle_energy				= cartridge.param_s.fBulletMass * _sqr(bullet_speed) * .5f;
 		float muzzle_ap					= cartridge.param_s.bullet_k_ap * muzzle_energy / cartridge.param_s.fBulletResist;
 		muzzle_ap						*= Level().BulletManager().m_fBulletGlobalAPScale;
 

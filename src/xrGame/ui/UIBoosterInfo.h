@@ -22,7 +22,8 @@ protected:
 	xptr<UIBoosterInfoItem>	m_health_neural;
 	xptr<UIBoosterInfoItem>	m_power_short;
 	xptr<UIBoosterInfoItem>	m_booster_anabiotic;
-
+	
+	xptr<CUIStatic>			m_disclaimer;
 	xptr<UIBoosterInfoItem>	m_bullet_speed;
 	xptr<UIBoosterInfoItem>	m_bullet_pulse;
 	xptr<UIBoosterInfoItem>	m_armor_piercing;

@@ -42,7 +42,7 @@ SBullet::~SBullet()
 
 void SBullet::Init(const Fvector& position,
 				   const Fvector& direction,
-				   float starting_speed,
+				   float barrel_length,
 				   u16	sender_id,
 				   u16 sendersweapon_id,
 				   ALife::EHitType e_hit_type,
@@ -55,7 +55,7 @@ void SBullet::Init(const Fvector& position,
 	flags._storage			= 0;
 	pos 					= position;
 	dir.normalize			(direction);
-	speed 					= starting_speed * cartridge.param_s.kBulletSpeed;
+	speed 					= barrel_length * cartridge.param_s.bullet_speed_per_barrel_len;
 	VERIFY					(speed > 0.f);
 	
 	hit_param.impulse		= impulse;
@@ -214,7 +214,7 @@ void CBulletManager::Clear		()
 
 void CBulletManager::AddBullet(const Fvector& position,
 							   const Fvector& direction,
-							   float starting_speed,
+							   float barrel_length,
 							   u16	sender_id,
 							   u16 sendersweapon_id,
 							   ALife::EHitType e_hit_type,
@@ -230,7 +230,7 @@ void CBulletManager::AddBullet(const Fvector& position,
 	VERIFY						(u16(-1)!=cartridge.bullet_material_idx);
 	m_Bullets.push_back			(SBullet());
 	SBullet& bullet				= m_Bullets.back();
-	bullet.Init					(position, direction, starting_speed, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit, power, impulse);
+	bullet.Init					(position, direction, barrel_length, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit, power, impulse);
 }
 
 void CBulletManager::UpdateWorkload()

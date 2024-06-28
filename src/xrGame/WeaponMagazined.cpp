@@ -48,6 +48,8 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_iQueueSize = -1;
 	m_bHasDifferentFireModes = false;
 	m_iCurFireMode = -1;
+
+	m_barrel_len = 0.f;
 }
 
 CWeaponMagazined::~CWeaponMagazined()
@@ -1159,12 +1161,16 @@ void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
 	if (attach)
 	{
 		m_barrel						= barrel;
-		load_muzzle_params				(barrel);
-		if (barrel->cast<CAddon*>())
-			update_barrel_sights_visibility(barrel, iron_sights_up());
+		m_barrel_len					= pow(m_barrel->getLength(), s_barrel_length_power);
+		load_muzzle_params				(m_barrel);
+		if (m_barrel->cast<CAddon*>())
+			update_barrel_sights_visibility(m_barrel, iron_sights_up());
 	}
 	else
+	{
 		m_barrel						= nullptr;
+		m_barrel_len					= 0.f;
+	}
 }
 
 void CWeaponMagazined::process_muzzle(CMuzzle* muzzle, bool attach)
@@ -1365,7 +1371,7 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 	static_cast<Fmatrix>(hi->m_transform).transform_dir(transference);
 
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);
-	float speed							= m_fStartBulletSpeed * m_silencer_koef.bullet_speed * c.param_s.kBulletSpeed * air_resistance_correction;
+	float speed							= m_barrel_len * m_silencer_koef.bullet_speed * c.param_s.bullet_speed_per_barrel_len * air_resistance_correction;
 
 	Fvector								result[2];
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
@@ -1499,6 +1505,7 @@ void CWeaponMagazined::updateRecoil()
 
 float CWeaponMagazined::s_ads_shift_step;
 float CWeaponMagazined::s_ads_shift_max;
+float CWeaponMagazined::s_barrel_length_power;
 float CWeaponMagazined::s_recoil_hud_stopping_power_per_shift;
 float CWeaponMagazined::s_recoil_hud_relax_impulse_per_shift;
 float CWeaponMagazined::s_recoil_cam_angle_per_delta;
@@ -1509,6 +1516,7 @@ void CWeaponMagazined::loadStaticVariables()
 {
 	s_ads_shift_step					= pSettings->r_float("weapon_manager", "ads_shift_step");
 	s_ads_shift_max						= pSettings->r_float("weapon_manager", "ads_shift_max");
+	s_barrel_length_power				= pSettings->r_float("weapon_manager", "barrel_length_power");
 
 	s_recoil_hud_stopping_power_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_stopping_power_per_shift");
 	s_recoil_hud_relax_impulse_per_shift = pSettings->r_float("weapon_manager", "recoil_hud_relax_impulse_per_shift");

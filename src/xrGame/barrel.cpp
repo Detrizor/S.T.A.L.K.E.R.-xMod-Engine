@@ -3,6 +3,6 @@
 #include "addon.h"
 
 CBarrel::CBarrel(CGameObject* obj, shared_str CR$ section) : CMuzzleBase(obj, section),
-m_length(pSettings->r_float(section, "barrel_length"))
+m_length(pSettings->r_float(section, "length"))
 {
 }

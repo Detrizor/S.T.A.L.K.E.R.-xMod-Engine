@@ -246,6 +246,7 @@ protected:
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 
 public:
+	static float						s_barrel_length_power;
 	static void							loadStaticVariables						();
 
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
@@ -255,6 +256,8 @@ public:
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }
+	float								getBarrelLength						C$	()		{ return (m_barrel) ? m_barrel->getLength() : 0.f; }
+	float								getBarrelLen						C$	()		{ return m_barrel_len; }
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();

@@ -163,7 +163,7 @@ void CWeaponKnife::MakeShot(Fvector const & pos, Fvector const & dir, float cons
 
 	Level().BulletManager().AddBullet(	pos,
 										dir,
-										m_fStartBulletSpeed,
+										m_barrel_len,
 										H_Parent()->ID(),
 										ID(),
 										m_eHitType,

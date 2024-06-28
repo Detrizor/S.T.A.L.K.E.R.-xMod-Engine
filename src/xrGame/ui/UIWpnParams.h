@@ -19,8 +19,8 @@ public:
 	void					SetInfo				(CUICellItem* item);
 
 protected:
-	CUITextWnd				m_textBulletSpeed;
-	CUITextWnd				m_textBulletSpeedValue;
+	CUITextWnd				m_text_barrel_length;
+	CUITextWnd				m_text_barrel_length_value;
 	CUITextWnd				m_textRPM;
 	CUITextWnd				m_textRPMValue;
 	CUITextWnd				m_textAmmoTypes;

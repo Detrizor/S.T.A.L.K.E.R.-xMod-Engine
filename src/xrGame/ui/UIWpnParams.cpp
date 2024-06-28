@@ -17,8 +17,8 @@ CUIWpnParams::CUIWpnParams()
 {
 	AttachChild		(&m_Prop_line);
 
-	AttachChild		(&m_textBulletSpeed);
-	AttachChild		(&m_textBulletSpeedValue);
+	AttachChild		(&m_text_barrel_length);
+	AttachChild		(&m_text_barrel_length_value);
 	AttachChild		(&m_textRPM);
 	AttachChild		(&m_textRPMValue);
 
@@ -39,8 +39,8 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 	CUIXmlInit::InitWindow			(xml_doc, "wpn_params",								0, this);
 	CUIXmlInit::InitStatic			(xml_doc, "wpn_params:prop_line",					0, &m_Prop_line);
 
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_bullet_speed",			0, &m_textBulletSpeed);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_bullet_speed_value",		0, &m_textBulletSpeedValue);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_barrel_length",			0, &m_text_barrel_length);
+	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_barrel_length_value",		0, &m_text_barrel_length_value);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm",						0, &m_textRPM);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm_value",				0, &m_textRPMValue);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",				0, &m_textAmmoTypes);
@@ -63,27 +63,44 @@ void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
 	}
 }
 
+static float get_barrel_length(CUICellItem* itm)
+{
+	LPCSTR integrated_addons			= pSettings->r_string(itm->m_section, "integrated_addons");
+	string64							tmp;
+	for (int i = 0, cnt = _GetItemCount(integrated_addons); i < cnt; ++i)
+	{
+		_GetItem						(integrated_addons, i, tmp);
+		if (strstr(tmp, "barrel"))
+			return						pSettings->r_float(tmp, "length");
+	}
+
+	if (auto ao = smart_cast<CUIAddonOwnerCellItem*>(itm))
+		for (auto& s : ao->Slots())
+			if (strstr(*s->addon_name, "barrel"))
+				return					pSettings->r_float(s->addon_name, "length");
+
+	return								0.f;
+}
+
 void CUIWpnParams::SetInfo(CUICellItem* itm)
 {
-	shared_str& section					= itm->m_section;
 	PIItem item							= (PIItem)itm->m_pData;
 	CWeaponMagazined* wpn				= (item) ? item->cast<CWeaponMagazined*>() : NULL;
 
-	float bullet_speed					= (wpn) ? wpn->GetBulletSpeed() : pSettings->r_float(section, "bullet_speed");
-	float rpm							= (wpn) ? wpn->GetRPM() : pSettings->r_float(section, "rpm");
+	float barrel_length					= (wpn) ? wpn->getBarrelLength() : get_barrel_length(itm);
 	shared_str							str;
-	LPCSTR mps_str						= CStringTable().translate("st_mps").c_str();
-	str.printf							("%.0f %s", bullet_speed, mps_str);
-	m_textBulletSpeedValue.SetText		(*str);
-	LPCSTR rpm_str						= CStringTable().translate("st_rpm").c_str();
-	str.printf							("%.0f %s", rpm, rpm_str);
+	str.printf							("%.0f %s", barrel_length, *CStringTable().translate("st_mm"));
+	m_text_barrel_length_value.SetText	(*str);
+
+	float rpm							= (wpn) ? wpn->GetRPM() : pSettings->r_float(itm->m_section, "rpm");
+	str.printf							("%.0f %s", rpm, *CStringTable().translate("st_rpm"));
 	m_textRPMValue.SetText				(*str);
 
 	xr_vector<shared_str>				ammo_types;
 	if (wpn)
 		ammo_types						= wpn->m_ammoTypes;
 	else
-		FillVector						(ammo_types, *section, "ammo_class");
+		FillVector						(ammo_types, *itm->m_section, "ammo_class");
 	LPCSTR name_s						= READ_IF_EXISTS(pSettings, r_string, ammo_types[0], "inv_name_short", false);
 	if (name_s)
 	{
