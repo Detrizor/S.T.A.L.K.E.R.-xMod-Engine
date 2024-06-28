@@ -112,7 +112,6 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
 			Dmatrix trans				= hi->m_transform;
-			trans.translate_mul			(O.getRootBonePosition().mul(-1.));
 			for (auto s : m_Slots)
 				s->updateAddonsHudTransform(hi->m_model, trans);
 			break;
@@ -412,6 +411,7 @@ void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent
 	{
 		Dmatrix trans					= parent_trans;
 		append_bone_trans				(trans, model);
+		trans.translate_mul				(parent_ao->O.getRootBonePosition().mul(-1.));
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->cast<CAddonOwner*>())
 			for (auto s : ao->AddonSlots())
