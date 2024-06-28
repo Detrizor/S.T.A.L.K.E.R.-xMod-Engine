@@ -68,22 +68,34 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 			if (auto addon = cast<CAddon*>((CObject*)data))
 			{
 				auto slot				= addon->getSlot();
-				if (!slot && param && addon->getSlotIdx() != u16_max)
+				if (slot)
+				{
+					if (param && slot->parent_ao == this || !param && slot->parent_ao != this)
+						return			CModule::aboba(type, data, param);
+				}
+				else if (param && addon->getSlotIdx() != u16_max)
 					slot				= m_Slots[addon->getSlotIdx()];
+
 				if (!slot)
 				{
 					if (param && (slot = findAvailableSlot(addon)))
+					{
 						addon->setSlotIdx(slot->idx);
+						if (slot->parent_ao != this)
+							addon->Transfer(slot->parent_ao->O.ID());
+					}
 					
 					if (!slot)
 					{
-						transfer_addon	(addon, false);
+						if (param)
+							transfer_addon(addon, false);
 						return			CModule::aboba(type, data, param);
 					}
 				}
+
 				if (param)
 					slot->attachAddon	(addon);
-				RegisterAddon			(addon, param);
+				slot->parent_ao->RegisterAddon(addon, param);
 				if (!param)
 					slot->detachAddon	(addon);
 			}
@@ -150,7 +162,7 @@ CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
 		for (auto a : s->addons)
 			if (auto ao = a->cast<CAddonOwner*>())
 				if (auto slot = ao->findAvailableSlot(addon))
-					return slot;
+					return				slot;
 	}
 	return								nullptr;
 }
