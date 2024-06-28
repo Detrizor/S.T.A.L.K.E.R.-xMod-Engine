@@ -77,12 +77,6 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 					
 					if (!slot)
 					{
-						if (param)
-							for (auto s : m_Slots)
-								for (auto a : s->addons)
-									if (auto ao = a->cast<CAddonOwner*>())
-										if (ao->attachAddon(addon))
-											return CModule::aboba(type, data, param);
 						transfer_addon	(addon, false);
 						return			CModule::aboba(type, data, param);
 					}
@@ -153,19 +147,28 @@ CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
 	{
 		if (s->CanTake(addon))
 			return						s;
+		for (auto a : s->addons)
+			if (auto ao = a->cast<CAddonOwner*>())
+				if (auto slot = ao->findAvailableSlot(addon))
+					return slot;
 	}
 	return								nullptr;
 }
 
 bool CAddonOwner::attachAddon(CAddon* addon)
 {
+	CAddonSlot* slot					= nullptr;
 	if (addon->getSlotIdx() == u16_max)
-		if (auto slot = findAvailableSlot(addon))
-			addon->setSlotIdx			(slot->idx);
-
-	if (addon->getSlotIdx() != u16_max)
 	{
-		transfer_addon					(addon, true);
+		if (slot = findAvailableSlot(addon))
+			addon->setSlotIdx			(slot->idx);
+	}
+	else
+		slot							= m_Slots[addon->getSlotIdx()];
+
+	if (slot)
+	{
+		slot->parent_ao->transfer_addon	(addon, true);
 		return							true;
 	}
 
