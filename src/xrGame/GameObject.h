@@ -305,10 +305,13 @@ public:
 	virtual void			on_matrix_change	(const Fmatrix &previous);
 
 //xMod added
+private:
+	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
 public:
 	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max);
 
 	Dvector								getRootBonePosition						();
+	void								UpdateBoneVisibility					(shared_str CR$ bone_name, bool status);
 	
 	void								transfer							C$	(u16 id = u16_max);
 	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f);

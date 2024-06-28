@@ -315,6 +315,7 @@ private:
 	shared_str							m_subcategory;
 	shared_str							m_division;
 	Frect								m_inv_icon;
+	bool								m_inv_icon_types;
 
 	u8									m_inv_icon_type							= 0;
 	u8									m_inv_icon_index						= 0;

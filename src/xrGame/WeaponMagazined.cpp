@@ -127,7 +127,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 	}
 
 	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
-	m_lower_iron_sights_on_block		= !!READ_IF_EXISTS(pSettings, r_bool, section, "lower_iron_sights_on_block", FALSE);
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_bool, section, "mag_attach_bolt_release", FALSE);
@@ -850,38 +849,6 @@ bool CWeaponMagazined::CanTrade() const
 	return true;
 }
 
-void UpdateBoneVisibility(IKinematics* pVisual, const shared_str& bone_name, bool status)
-{
-	u16 bone_id = pVisual->LL_BoneID(bone_name);
-	if (bone_id != BI_NONE)
-	{
-		if (status)
-		{
-			if (!pVisual->LL_GetBoneVisible(bone_id))
-				pVisual->LL_SetBoneVisible(bone_id, TRUE, TRUE);
-		}
-		else if (pVisual->LL_GetBoneVisible(bone_id))
-			pVisual->LL_SetBoneVisible(bone_id, FALSE, TRUE);
-	}
-}
-
-shared_str iron_sights_bone = "iron_sights";
-shared_str iron_sights_lowered_bone = "iron_sights_lowered";
-
-void CWeaponMagazined::UpdateBonesVisibility()
-{
-	IKinematics* pWeaponVisual			= smart_cast<IKinematics*>(Visual());
-	R_ASSERT							(pWeaponVisual);
-
-	pWeaponVisual->CalculateBones_Invalidate();
-	UpdateBoneVisibility				(pWeaponVisual, iron_sights_bone, iron_sights_up());
-	UpdateBoneVisibility				(pWeaponVisual, iron_sights_lowered_bone, !iron_sights_up());
-	pWeaponVisual->CalculateBones_Invalidate();
-	pWeaponVisual->CalculateBones		(TRUE);
-
-	UpdateHudBonesVisibility			();
-}
-
 void CWeaponMagazined::OnHiddenItem()
 {
 	if (m_magazine_slot && m_magazine_slot->isLoading())
@@ -1072,6 +1039,15 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 		m_selected_scopes[idx]->setSelection(idx);
 }
 
+shared_str iron_sights_bone				= "iron_sights";
+shared_str iron_sights_lowered_bone		= "iron_sights_lowered";
+static void update_barrel_sights_visibility(CBarrel* barrel, bool status)
+{
+	barrel->O.UpdateBoneVisibility		(iron_sights_bone, status);
+	barrel->O.UpdateBoneVisibility		(iron_sights_lowered_bone, !status);
+	barrel->I->SetInvIconType			(!status);
+}
+
 void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 {
 	if (addon->getSlot()->blocking_iron_sights == 2 || (addon->getSlot()->blocking_iron_sights == 1 && !addon->isLowProfile()))
@@ -1079,9 +1055,15 @@ void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
 		m_iron_sights_blockers			+= (attach) ? 1 : -1;
 		if (m_iron_sight_section.size() && addon->O.cNameSect() == m_iron_sight_section)
 			m_iron_sights				+= (attach) ? 1 : -1;
-		UpdateBonesVisibility			();
-		if (m_lower_iron_sights_on_block)
-			SetInvIconType				(!iron_sights_up());
+		bool status						= iron_sights_up();
+
+		UpdateBoneVisibility			(iron_sights_bone, status);
+		UpdateBoneVisibility			(iron_sights_lowered_bone, !status);
+		UpdateHudBonesVisibility		(status);
+		SetInvIconType					(!iron_sights_up());
+
+		if (m_barrel && m_barrel->cast<CAddon*>())
+			update_barrel_sights_visibility(m_barrel, status);
 	}
 
 	process_addon_modules				(addon->O, attach);
@@ -1178,6 +1160,8 @@ void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
 	{
 		m_barrel						= barrel;
 		load_muzzle_params				(barrel);
+		if (barrel->cast<CAddon*>())
+			update_barrel_sights_visibility(barrel, iron_sights_up());
 	}
 	else
 		m_barrel						= nullptr;
@@ -1231,7 +1215,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		break;
 	}
 	case eUpdateHudBonesVisibility:
-		UpdateHudBonesVisibility		();
+		UpdateHudBonesVisibility		(iron_sights_up());
 		break;
 	case eUpdateSlotsTransform:
 	{
@@ -1309,14 +1293,13 @@ float CWeaponMagazined::GetMagazineWeight() const
 	return								res;
 }
 
-void CWeaponMagazined::UpdateHudBonesVisibility()
+void CWeaponMagazined::UpdateHudBonesVisibility(bool status)
 {
-	attachable_hud_item* hi				= HudItemData();
-	if (!hi)
-		return;
-
-	hi->set_bone_visible				(iron_sights_bone, iron_sights_up(), TRUE);
-	hi->set_bone_visible				(iron_sights_lowered_bone, !iron_sights_up(), TRUE);
+	if (auto hi = HudItemData())
+	{
+		hi->set_bone_visible			(iron_sights_bone, status, TRUE);
+		hi->set_bone_visible			(iron_sights_lowered_bone, !status, TRUE);
+	}
 }
 
 void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)

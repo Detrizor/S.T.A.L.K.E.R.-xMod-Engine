@@ -34,27 +34,20 @@ void CMagazine::InvalidateState()
 }
 
 shared_str bullets_str					= "bullets";
-extern void UpdateBoneVisibility		(IKinematics* pVisual, const shared_str& bone_name, bool status);
 void CMagazine::UpdateBulletsVisibility()
 {
 	if (!m_bullets_visible)
 		return;
 
 	bool vis							= !Empty();
+	O.UpdateBoneVisibility				(bullets_str, vis);
 	cast<PIItem>()->SetInvIconType		((u8)vis);
-
-	IKinematics* pVisual				= smart_cast<IKinematics*>(O.Visual());
-	pVisual->CalculateBones_Invalidate	();
-	UpdateBoneVisibility				(pVisual, bullets_str, vis);
-	pVisual->CalculateBones_Invalidate	();
-	pVisual->CalculateBones				(TRUE);
 	UpdateHudBulletsVisibility			();
 }
 
 void CMagazine::UpdateHudBulletsVisibility()
 {
-	auto hi								= cast<CHudItem*>()->HudItemData();
-	if (hi)
+	if (auto hi = cast<CHudItem*>()->HudItemData())
 		hi->set_bone_visible			(bullets_str, (BOOL)!Empty(), TRUE);
 }
 

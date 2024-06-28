@@ -166,6 +166,7 @@ void CInventoryItem::Load(LPCSTR section)
 	R_ASSERT						(m_volume >= 0.f);
 	m_cost							= ReadBaseCost(section);
 	
+	m_inv_icon_types				= !!READ_IF_EXISTS(pSettings, r_bool, section, "inv_icon_types", FALSE);
 	SetInvIcon						();
 
 	if (pSettings->line_exist			(section, "slots"))
@@ -780,8 +781,11 @@ void CInventoryItem::ReadIcon(Frect& destination, LPCSTR section, u8 type, u8 id
 
 void CInventoryItem::SetInvIconType(u8 type)
 {
-	m_inv_icon_type					= type;
-	SetInvIcon						();
+	if (m_inv_icon_types)
+	{
+		m_inv_icon_type				= type;
+		SetInvIcon					();
+	}
 }
 
 void CInventoryItem::SetInvIconIndex(u8 idx)

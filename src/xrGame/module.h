@@ -31,7 +31,7 @@ class CModule
 {
 public:
 	CGameObject&						O;
-	CInventoryItemObject CPC			I;
+	CInventoryItemObject PC$			I;
 
 public:
 										CModule									(CGameObject* obj);

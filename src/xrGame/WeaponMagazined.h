@@ -202,7 +202,6 @@ private:
 	bool								m_usable								= false;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
-	bool								m_lower_iron_sights_on_block;
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
 	bool								m_mag_attach_bolt_release;
@@ -211,7 +210,6 @@ private:
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
-	void								UpdateBonesVisibility					();
 	void								load_muzzle_params						(CMuzzleBase* src);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
@@ -251,7 +249,7 @@ public:
 	static void							loadStaticVariables						();
 
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
-	void								UpdateHudBonesVisibility				();
+	void								UpdateHudBonesVisibility				(bool status);
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);
 

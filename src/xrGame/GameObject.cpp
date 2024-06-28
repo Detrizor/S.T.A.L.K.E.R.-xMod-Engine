@@ -1239,6 +1239,30 @@ Dvector CGameObject::getRootBonePosition()
 	return								static_cast<Dvector>(root_mat.c);
 }
 
+void CGameObject::update_bone_visibility(IKinematics* visual, shared_str CR$ bone_name, bool status)
+{
+	u16 bone_id							= visual->LL_BoneID(bone_name);
+	if (bone_id != BI_NONE)
+	{
+		if (status)
+		{
+			if (!visual->LL_GetBoneVisible(bone_id))
+				visual->LL_SetBoneVisible(bone_id, TRUE, TRUE);
+		}
+		else if (visual->LL_GetBoneVisible(bone_id))
+			visual->LL_SetBoneVisible	(bone_id, FALSE, TRUE);
+	}
+}
+
+void CGameObject::UpdateBoneVisibility(shared_str CR$ bone_name, bool status)
+{
+	auto visual							= smart_cast<IKinematics*>(Visual());
+	visual->CalculateBones_Invalidate	();
+	update_bone_visibility				(visual, bone_name, status);
+	visual->CalculateBones_Invalidate	();
+	visual->CalculateBones				(TRUE);
+}
+
 float CGameObject::Aboba(EEventTypes type, void* data, int param)
 {
 	float res							= flt_max;
