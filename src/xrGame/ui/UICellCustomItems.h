@@ -53,7 +53,7 @@ public:
 				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
 
-class CUIAddonOwnerCellItem :public CUIInventoryCellItem
+class CUIAddonOwnerCellItem : public CUIInventoryCellItem
 {
 private:
 	typedef CUIInventoryCellItem		inherited;

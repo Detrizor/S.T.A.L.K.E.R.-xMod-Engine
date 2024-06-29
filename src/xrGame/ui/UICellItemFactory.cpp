@@ -1,28 +1,23 @@
 #include "stdafx.h"
 #include "UICellItemFactory.h"
 #include "UICellCustomItems.h"
-#include "..\addon_owner.h"
+#include "addon_owner.h"
 
 CUICellItem*	create_cell_item(CInventoryItem* itm)
 {
-	VERIFY								(itm);
-	CUICellItem*						cell_item;
+	if (auto ammo = itm->cast<CWeaponAmmo*>())
+		return							xr_new<CUIAmmoCellItem>(ammo);
 
-	CWeaponAmmo* pAmmo					= itm->cast<CWeaponAmmo*>();
-	CAddonOwner* ao						= itm->cast<CAddonOwner*>();
-	if (pAmmo)
-		cell_item						= xr_new<CUIAmmoCellItem>(pAmmo);
-	else if (ao)
-		cell_item						= xr_new<CUIAddonOwnerCellItem>(ao);
-	else
-		cell_item						= xr_new<CUIInventoryCellItem>(itm);
+	if (auto ao = itm->cast<CAddonOwner*>())
+		return							xr_new<CUIAddonOwnerCellItem>(ao);
 
-	return								cell_item;
+	return								xr_new<CUIInventoryCellItem>(itm);
 }
 
-CUICellItem* create_cell_item_from_section(shared_str& section)
+CUICellItem* create_cell_item_from_section(shared_str CR$ section)
 {
 	if (READ_IF_EXISTS(pSettings, r_string, section, "slots", 0))
 		return							xr_new<CUIAddonOwnerCellItem>(section);
+
 	return								xr_new<CUIInventoryCellItem>(section);
 }

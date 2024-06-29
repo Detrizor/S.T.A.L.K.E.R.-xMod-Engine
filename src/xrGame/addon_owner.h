@@ -29,12 +29,13 @@ private:
 
 public:
 	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
+	static LPCSTR						getSlotName								(LPCSTR slot_type);
 
 	CAddonOwner PC$						parent_ao;
 	const u16							idx;
 
-	shared_str							name;
 	shared_str							type;
+	shared_str							name;
 	int									steps;
 	Dmatrix								model_offset;
 	Fvector2							icon_offset;

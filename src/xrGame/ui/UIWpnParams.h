@@ -13,7 +13,6 @@ class CUIWpnParams : public CUIWindow
 {
 public:
 							CUIWpnParams		();
-	virtual					~CUIWpnParams		();
 
 	void 					InitFromXml			(CUIXml& xml_doc);
 	void					SetInfo				(CUICellItem* item);
@@ -25,8 +24,6 @@ protected:
 	CUITextWnd				m_textRPMValue;
 	CUITextWnd				m_textAmmoTypes;
 	CUITextWnd				m_textAmmoTypesValue;
-	CUITextWnd				m_textAddonSlots;
-	CUITextWnd				m_textAddonSlotsValue;
 	CUIStatic				m_Prop_line;
 };
 
@@ -36,7 +33,6 @@ class CUIConditionParams : public CUIWindow
 {
 public:
 							CUIConditionParams	();
-	virtual					~CUIConditionParams	();
 
 	void 					InitFromXml			(CUIXml& xml_doc);
 	void					SetInfo				(CInventoryItem const* slot_wpn, CInventoryItem const& cur_wpn);

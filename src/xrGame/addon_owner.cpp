@@ -30,7 +30,7 @@ void CAddonOwner::LoadAddonSlots(LPCSTR section, VSlots& slots, CAddonOwner PC$ 
 {
 	shared_str							tmp;
 	u16 i								= 0;
-	while (pSettings->line_exist(section, tmp.printf("name_%d", i)))
+	while (pSettings->line_exist(section, tmp.printf("type_%d", i)))
 		slots.push_back					(xr_new<CAddonSlot>(section, i++, parent_ao));
 }
 
@@ -194,14 +194,16 @@ void CAddonOwner::detachAddon(CAddon* addon)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
+{
+	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
+}
+
 CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	parent_ao(parent),
 	idx(_idx)
 {
 	shared_str							tmp;
-
-	tmp.printf							("name_%d", idx);
-	name								= CStringTable().translate(pSettings->r_string(section, *tmp));
 
 	tmp.printf							("type_%d", idx);
 	type								= pSettings->r_string(section, *tmp);
@@ -223,9 +225,25 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	}
 
 	tmp.printf							("model_offset_rot_%d", idx);
-	model_offset.setHPBv				(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero)));
+	Fvector model_rot					= READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero);
+	model_offset.setHPBv				(static_cast<Dvector>(model_rot));
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
+
+	name								= getSlotName(*type);
+	tmp.printf							("name_suffix_%d", idx);
+	shared_str suffix					= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "");
+	if (!suffix.size())
+	{
+		if (abs(model_rot.z) >= PI * .75f)
+			suffix						= "st_bottom";
+		else if (model_rot.z <= -PI_DIV_4)
+			suffix						= "st_left";
+		else if (model_rot.z >= PI_DIV_4)
+			suffix						= "st_right";
+	}
+	if (suffix.size())
+		name.printf						("%s (%s)", *name, *CStringTable().translate(suffix));
 
 	Fvector2 icon_origin				= pSettings->r_fvector2(parent->O.cNameSect(), "inv_icon_origin");
 	float icon_ppm						= pSettings->r_float(parent->O.cNameSect(), "icon_ppm");

@@ -7354,6 +7354,9 @@
     <ClInclude Include="item_usable.h" />
     <ClInclude Include="barrel.h" />
     <ClInclude Include="muzzle.h" />
+    <ClInclude Include="ui\CUIAddonInfo.h">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11008,6 +11011,9 @@
     <ClCompile Include="item_usable.cpp" />
     <ClCompile Include="barrel.cpp" />
     <ClCompile Include="muzzle.cpp" />
+    <ClCompile Include="ui\CUIAddonInfo.cpp">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

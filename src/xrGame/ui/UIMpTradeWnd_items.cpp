@@ -18,9 +18,7 @@ DLL_Pure*	__cdecl xrFactory_Create		(CLASS_ID clsid);
 extern "C"
 void	__cdecl xrFactory_Destroy		(DLL_Pure* O);
 
-CUICellItem*	create_cell_item(CInventoryItem* itm);
-
-
+CUICellItem*	create_cell_item(CInventoryItem* item);
 
 SBuyItemInfo::SBuyItemInfo()
 {

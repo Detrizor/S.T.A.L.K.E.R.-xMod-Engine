@@ -14,6 +14,7 @@ class CUIFrameWindow;
 class UIInvUpgPropertiesWnd;
 class CUIOutfitInfo;
 class CUIBoosterInfo;
+class CUIAddonInfo;
 class CUICellItem;
 
 extern const char * const 		fieldsCaptionColor;
@@ -43,6 +44,7 @@ public:
 	void				TryAddOutfitInfo	(CUICellItem* item);
 	void				TryAddUpgradeInfo	(CUICellItem* item);
 	void				TryAddBoosterInfo	(CUICellItem* item);
+	void				tryAddAddonInfo		(CUICellItem* itm);
 	
 	virtual void		Draw				();
 	bool				m_b_FitToHeight;
@@ -66,4 +68,7 @@ public:
 
 	Fvector2			UIItemImageSize; 
 	CUIStatic*			UIItemImage;
+
+private:
+	xptr<CUIAddonInfo>					m_addon_info							= nullptr;
 };

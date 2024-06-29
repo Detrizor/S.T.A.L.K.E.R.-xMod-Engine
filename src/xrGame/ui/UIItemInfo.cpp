@@ -27,6 +27,8 @@
 #include "UIActorMenu.h"
 #include "uigamecustom.h"
 #include "clsid_game.h"
+#include "CUIAddonInfo.h"
+#include "UICellCustomItems.h"
 
 extern const LPCSTR g_inventory_upgrade_xml;
 
@@ -128,6 +130,9 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 
 	UIBoosterInfo					= xr_new<CUIBoosterInfo>();
 	UIBoosterInfo->InitFromXml		(uiXml);
+	
+	m_addon_info					= xr_new<CUIAddonInfo>();
+	m_addon_info->initFromXml		(uiXml);
 
 	if (ai().get_alife())
 	{
@@ -343,6 +348,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 		TryAddOutfitInfo						(pCellItem);
 		TryAddUpgradeInfo						(pCellItem);
 		TryAddBoosterInfo						(pCellItem);
+		tryAddAddonInfo							(pCellItem);
 
 		if (m_b_FitToHeight)
 		{
@@ -422,6 +428,15 @@ void CUIItemInfo::TryAddBoosterInfo(CUICellItem* itm)
 {
 	UIBoosterInfo->SetInfo			(itm);
 	UIDesc->AddWindow				(UIBoosterInfo, false);
+}
+
+void CUIItemInfo::tryAddAddonInfo(CUICellItem* itm)
+{
+	if (READ_IF_EXISTS(pSettings, r_bool, itm->m_section, "addon", FALSE) || smart_cast<CUIAddonOwnerCellItem*>(itm))
+	{
+		m_addon_info->setInfo		(itm);
+		UIDesc->AddWindow			(m_addon_info, false);
+	}
 }
 
 void CUIItemInfo::Draw()

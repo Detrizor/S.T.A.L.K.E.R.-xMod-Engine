@@ -24,12 +24,6 @@ CUIWpnParams::CUIWpnParams()
 
 	AttachChild		(&m_textAmmoTypes);
 	AttachChild		(&m_textAmmoTypesValue);
-	AttachChild		(&m_textAddonSlots);
-	AttachChild		(&m_textAddonSlotsValue);
-}
-
-CUIWpnParams::~CUIWpnParams()
-{
 }
 
 void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
@@ -45,8 +39,6 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm_value",				0, &m_textRPMValue);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",				0, &m_textAmmoTypes);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types_value",		0, &m_textAmmoTypesValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_addon_slots",				0, &m_textAddonSlots);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:addon_slots_value",			0, &m_textAddonSlotsValue);
 }
 
 void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
@@ -114,33 +106,6 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	else
 		str._set						("---");
 	m_textAmmoTypesValue.SetText		(*str);
-
-	auto ao								= (item) ? item->cast<CAddonOwner*>() : nullptr;
-	CUIAddonOwnerCellItem* uiao			= smart_cast<CUIAddonOwnerCellItem*>(itm);
-	if (ao && ao->AddonSlots().size())
-	{
-		str								= "";
-		for (auto slot : ao->AddonSlots())
-		{
-			if (str.size())
-				str.printf				("%s, ", *str);
-			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));
-		}
-	}
-	else if (uiao && uiao->Slots().size())
-	{
-		str								= "";
-		for (auto& slot : uiao->Slots())
-		{
-			if (str.size())
-				str.printf				("%s, ", *str);
-			str.printf					("%s%s", *str, *CStringTable().translate(slot->type));
-		}
-	}
-	else
-		str								= "---";
-	m_textAddonSlotsValue.SetText		(*str);
-	m_textAddonSlotsValue.AdjustHeightToText();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -149,10 +114,6 @@ CUIConditionParams::CUIConditionParams()
 {
 	AttachChild( &m_progress );
 	AttachChild( &m_text );
-}
-
-CUIConditionParams::~CUIConditionParams()
-{
 }
 
 void CUIConditionParams::InitFromXml(CUIXml& xml_doc)
