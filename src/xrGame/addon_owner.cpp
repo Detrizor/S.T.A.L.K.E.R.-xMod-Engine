@@ -213,13 +213,13 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	if (pSettings->line_exist(section, tmp))
 	{
 		m_step							= static_cast<double>(pSettings->r_float(section, *tmp));
-		steps							= (int)round(length / m_step);
+		steps							= static_cast<int>(round(length / m_step));
 	}
 	else
 	{
 		tmp.printf						("steps_%d", idx);
 		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 1);
-		m_step							= length / (float(steps) + .5f);
+		m_step							= length / (static_cast<double>(steps) + .5);
 	}
 
 	tmp.printf							("model_offset_rot_%d", idx);
@@ -227,12 +227,11 @@ CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
 	tmp.printf							("model_offset_pos_%d", idx);
 	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
 
-	tmp.printf							("icon_offset_pos_%d", idx);
-	icon_offset							= READ_IF_EXISTS(pSettings, r_fvector2, section, *tmp, vZero2);
-	
-	tmp.printf							("icon_length_%d", idx);
-	float icon_length					= READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.f);
-	icon_step							= icon_length / (float(steps) + .5f);
+	Fvector2 icon_origin				= pSettings->r_fvector2(parent->O.cNameSect(), "inv_icon_origin");
+	float icon_ppm						= pSettings->r_float(parent->O.cNameSect(), "icon_ppm");
+	icon_offset.x						= icon_origin.x - static_cast<float>(model_offset.c.z) * icon_ppm;
+	icon_offset.y						= icon_origin.y - static_cast<float>(model_offset.c.y) * icon_ppm;
+	icon_step							= static_cast<float>(length) * icon_ppm / (static_cast<float>(steps) + .5f);
 
 	tmp.printf							("blocking_ironsights_%d", idx);
 	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);

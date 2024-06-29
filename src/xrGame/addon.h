@@ -25,7 +25,7 @@ private:
 	s16									m_slot_pos								= s16_max;
 
 	shared_str							m_SlotType;
-	Fvector2							m_IconOffset;
+	Fvector2							m_icon_origin;
 	bool								m_low_profile;
 	bool								m_front_positioning;
 	
@@ -48,7 +48,7 @@ public:
 	bool								tryAttach								(CAddonOwner CPC ao, u16 slot_idx = u16_max);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
-	Fvector2 CR$						IconOffset							C$	()		{ return m_IconOffset; }
+	Fvector2 CR$						getIconOrigin						C$	()		{ return m_icon_origin; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Dmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	CAddonSlot*							getSlot								C$	()		{ return m_slot; }

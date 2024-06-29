@@ -398,7 +398,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 				s->addon_index			= addon->I->GetInvIconIndex();
 				s->icon_offset			= forwarded_offset;
 				s->icon_offset.add		(S->icon_offset);
-				s->icon_offset.sub		(addon->IconOffset());
+				s->icon_offset.sub		(addon->getIconOrigin());
 				s->icon_offset.x		-= s->icon_step * float(addon->getSlotPos());
 				s->addon_icon			= xr_new<CUIStatic>();
 				s->addon_icon->SetAutoDelete(true);

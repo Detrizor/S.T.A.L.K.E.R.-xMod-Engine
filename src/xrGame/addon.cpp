@@ -28,7 +28,7 @@ void CAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 CAddon::CAddon(CGameObject* obj) : CModule(obj)
 {
 	m_SlotType							= pSettings->r_string(O.cNameSect(), "slot_type");
-	m_IconOffset						= pSettings->r_fvector2(O.cNameSect(), "icon_offset");
+	m_icon_origin						= pSettings->r_fvector2(O.cNameSect(), "inv_icon_origin");
 	m_low_profile						= pSettings->r_bool(O.cNameSect(), "low_profile");
 	m_front_positioning					= pSettings->r_bool(O.cNameSect(), "front_positioning");
 	
