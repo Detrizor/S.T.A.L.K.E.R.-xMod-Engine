@@ -48,7 +48,6 @@ public:
 	bool								tryAttach								(CAddonOwner CPC ao, u16 slot_idx = u16_max);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
-	Fvector2 CR$						getIconOrigin						C$	()		{ return m_icon_origin; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Dmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
 	CAddonSlot*							getSlot								C$	()		{ return m_slot; }
@@ -60,4 +59,5 @@ public:
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
 	int									getLength							C$	(float step, eLengthType type = Mount);
+	Fvector2 							getIconOrigin						C$	(u8 type);
 };

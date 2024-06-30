@@ -47,7 +47,7 @@ void CUIAddonInfo::setInfo(CUICellItem* itm)
 		{
 			if (str.size())
 				str.printf				("%s\\n", *str);
-			LPCSTR color				= (slot->addon_name.size()) ? "ui_2g" : "ui_4";
+			LPCSTR color				= (slot->addon_section.size()) ? "ui_2" : "ui_4";
 			str.printf					("%s%%c[%s]• %s", *str, color, *slot->name);
 		}
 		

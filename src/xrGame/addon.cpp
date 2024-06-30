@@ -64,6 +64,18 @@ void CAddon::RenderWorld(Fmatrix CR$ parent_trans) const
 	::Render->add_Visual				(O.Visual());
 }
 
+Fvector2 CAddon::getIconOrigin(u8 type) const
+{
+	if (type)
+	{
+		shared_str						tmp;
+		tmp.printf						("inv_icon_origin_%d", type);
+		if (pSettings->line_exist(O.cNameSect(), *tmp))
+			return						pSettings->r_fvector2(O.cNameSect(), *tmp);
+	}
+	return								m_icon_origin;
+}
+
 void CAddon::updateHudTransform(Dmatrix CR$ parent_trans)
 {
 	m_hud_transform.mul					(parent_trans, m_local_transform);

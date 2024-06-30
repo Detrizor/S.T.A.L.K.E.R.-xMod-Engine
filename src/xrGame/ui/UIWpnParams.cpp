@@ -68,8 +68,8 @@ static float get_barrel_length(CUICellItem* itm)
 
 	if (auto ao = smart_cast<CUIAddonOwnerCellItem*>(itm))
 		for (auto& s : ao->Slots())
-			if (strstr(*s->addon_name, "barrel"))
-				return					pSettings->r_float(s->addon_name, "length");
+			if (strstr(*s->addon_section, "barrel"))
+				return					pSettings->r_float(s->addon_section, "length");
 
 	return								0.f;
 }

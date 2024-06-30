@@ -773,10 +773,21 @@ u32 CInventoryItem::ReadBaseCost(LPCSTR section)
 
 void CInventoryItem::ReadIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
 {
-	Fvector4 icon					= pSettings->r_fvector4(section, "inv_icon");
-	float x							= icon.x + type * icon.z;
-	float y							= icon.y + idx * pSettings->r_u16(section, "icon_index_step");
-	destination.set					(x, y, x + icon.z, y + icon.w);
+	Fvector4 icon_rect				= pSettings->r_fvector4(section, "inv_icon");
+	if (type)
+	{
+		shared_str					tmp;
+		tmp.printf					("inv_icon_%d", type);
+		if (pSettings->line_exist(section, *tmp))
+			icon_rect				= pSettings->r_fvector4(section, *tmp);
+		else
+			icon_rect.x				+= type * icon_rect.z;
+	}
+
+	if (idx)
+		icon_rect.y					+= idx * pSettings->r_u16(section, "icon_index_step");
+
+	destination.set					(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
 }
 
 void CInventoryItem::SetInvIconType(u8 type)

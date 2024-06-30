@@ -375,12 +375,9 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 {
 	name								= slot.name;
 	type								= slot.type;
-	addon_name							= 0;
-	addon_type							= 0;
-	addon_index							= 0;
-	addon_icon							= NULL;
-	icon_offset							= vZero2;
+	icon_offset							= slot.icon_offset;
 	icon_step							= slot.icon_step;
+	icon_background_draw				= slot.backgroundDraw();
 }
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
@@ -393,18 +390,30 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 			{
 				m_slots.push_back		(xr_new<SUIAddonSlot>(*S));
 				SUIAddonSlot* s			= m_slots.back();
-				s->addon_name			= addon->O.cNameSect();
-				s->addon_type			= addon->I->GetInvIconType();
+				
+				Dvector					hpb;
+				addon->getLocalTransform().getHPB(hpb);
+
+				if (addon->I->areInvIconTypesAllowed())
+				{
+					if (abs(hpb.z) >= PI * .75f)
+						s->addon_type	= 1;
+					else if (abs(hpb.z) >= PI_DIV_4)
+						s->addon_type	= 2;
+					else
+						s->addon_type	= addon->I->GetInvIconType();
+				}
+
+				s->addon_section			= addon->O.cNameSect();
 				s->addon_index			= addon->I->GetInvIconIndex();
-				s->icon_offset			= forwarded_offset;
-				s->icon_offset.add		(S->icon_offset);
-				s->icon_offset.sub		(addon->getIconOrigin());
+				s->icon_offset.add		(forwarded_offset);
+				s->icon_offset.sub		(addon->getIconOrigin(s->addon_type));
 				s->icon_offset.x		-= s->icon_step * float(addon->getSlotPos());
+
 				s->addon_icon			= xr_new<CUIStatic>();
-				s->addon_icon->SetAutoDelete(true);
 				AttachChild				(s->addon_icon);
 				s->addon_icon->SetTextureColor(GetTextureColor());
-				if (S->backgroundDraw())
+				if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
 					s->addon_icon->SetBackgroundDraw(true);
 
 				if (auto addon_ao = addon->cast<CAddonOwner*>())
@@ -416,11 +425,11 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 	}
 }
 
-CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->cast<PIItem>())
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->cast<PIItem>())
 {
-	process_ao							(itm, vZero2);
+	process_ao							(ao, vZero2);
 
-	float icon_scale					= pSettings->r_float(itm->O.cNameSect(), "icon_scale");
+	float icon_scale					= pSettings->r_float(ao->O.cNameSect(), "icon_scale");
 	Frect res_rect						= GetTextureRect();
 	res_rect.mul						(icon_scale, icon_scale);
 	Frect tex_rect						= GetTextureRect();
@@ -434,8 +443,8 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 			res_rect.top				= min(res_rect.top, tex_rect.top + s->icon_offset.y);
 
 			Frect						addon_rect;
-			CInventoryItem::ReadIcon	(addon_rect, *s->addon_name);
-			icon_scale					= pSettings->r_float(s->addon_name, "icon_scale");
+			CInventoryItem::ReadIcon	(addon_rect, *s->addon_section, s->addon_type);
+			icon_scale					= pSettings->r_float(s->addon_section, "icon_scale");
 			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + icon_scale * addon_rect.width());
 			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + icon_scale * addon_rect.height());
 		}
@@ -444,7 +453,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* itm) : inherited(itm->
 	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
 }
 
-CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str section) : inherited(section)
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited(section)
 {
 	VSlots								slots;
 	CAddonOwner::LoadAddonSlots			(pSettings->r_string(section, "slots"), slots);
@@ -468,7 +477,7 @@ void CUIAddonOwnerCellItem::Update()
 		for (auto& s : m_slots)
 		{
 			if (s->addon_icon)
-				InitAddon				(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, Heading());
+				InitAddon				(s->addon_icon, *s->addon_section, s->addon_type, s->addon_index, s->icon_offset, Heading());
 		}
 	}
 }
@@ -488,7 +497,7 @@ void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
-			InitAddon					(s->addon_icon, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
+			InitAddon					(s->addon_icon, *s->addon_section, s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
 	}
 }
 
@@ -564,7 +573,7 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 		{
 			st							= xr_new<CUIStatic>();
 			st->SetAutoDelete			(true);
-			InitAddon					(st, *s->addon_name, s->addon_type, s->addon_index, s->icon_offset, false, true);
+			InitAddon					(st, *s->addon_section, s->addon_type, s->addon_index, s->icon_offset, false, true);
 			st->SetTextureColor			(i->wnd()->GetTextureColor());
 			i->wnd()->AttachChild		(st);
 		}

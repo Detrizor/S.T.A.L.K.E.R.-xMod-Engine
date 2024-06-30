@@ -345,6 +345,8 @@ public:
 public:
 	bool								tryCustomUse							();
 
+	bool								areInvIconTypesAllowed				C$	()		{ return m_inv_icon_types; }
+
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();

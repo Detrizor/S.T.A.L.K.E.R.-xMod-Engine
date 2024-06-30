@@ -62,12 +62,14 @@ private:
 	{
 		shared_str						name;
 		shared_str						type;
-		shared_str						addon_name;
-		u8								addon_type;
-		u8								addon_index;
-		CUIStatic*						addon_icon;
 		Fvector2						icon_offset;
 		float							icon_step;
+		bool							icon_background_draw;
+		
+		shared_str						addon_section							= 0;
+		u8								addon_type								= 0;
+		u8								addon_index								= 0;
+		xptr<CUIStatic>					addon_icon								= nullptr;
 
 		SUIAddonSlot					(CAddonSlot CR$ slot);
 	};
@@ -75,8 +77,8 @@ private:
 	typedef ::std::vector<xptr<SUIAddonSlot>> VUISlots;
 
 public:
-										CUIAddonOwnerCellItem					(CAddonOwner* item);
-										CUIAddonOwnerCellItem					(shared_str section);
+										CUIAddonOwnerCellItem					(CAddonOwner* ao);
+										CUIAddonOwnerCellItem					(shared_str CR$ section);
 
 private:
 	VUISlots							m_slots									= {};
