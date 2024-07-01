@@ -19,7 +19,7 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 	trader.supplies_list.clear_not_free();
 	for (auto& item : ini_file.r_section(section).Data)
 	{
-		if (g_items_library->CheckSection(item.first))
+		if (g_items_library->checkSection(item.first))
 		{
 			GiveObject				(owner, item.first);
 			continue;
@@ -31,7 +31,7 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 		shared_str subcategory		= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
 		shared_str division			= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
 
-		for (auto& subcat : g_items_library->Get(category))
+		for (auto& subcat : g_items_library->getCategory(category))
 		{
 			if (subcategory != "any" && subcat.first != subcategory)
 				continue;
