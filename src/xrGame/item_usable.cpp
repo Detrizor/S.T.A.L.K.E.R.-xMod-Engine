@@ -41,7 +41,7 @@ float CUsable::aboba(EEventTypes type, void* data, int param)
 		if (param)
 		{
 			SAction						act;
-			act.title.printf			("%s %s", *CStringTable().translate("st_manage"), addon->cast<CInventoryItem*>()->NameShort());
+			act.title.printf			("%s %s", *CStringTable().translate("st_manage"), addon->cast<CInventoryItem*>()->getNameShort());
 			act.query_functor			= pSettings->r_string(*O.cNameSect(), "manage_addon_query_functor");
 			act.action_functor			= pSettings->r_string(*O.cNameSect(), "manage_addon_action_functor");
 			act.item_id					= addon->O.ID();

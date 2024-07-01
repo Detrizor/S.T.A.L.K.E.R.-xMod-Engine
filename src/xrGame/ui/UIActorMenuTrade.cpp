@@ -291,7 +291,7 @@ bool CUIActorMenu::CanMoveToPartner(PIItem pItem, shared_str* reason)
 	
 	float condition_factor		= m_pPartnerInvOwner->trade_parameters().buy_item_condition_factor;
 	if (pItem->Category("weapon") || pItem->Category("outfit"))
-		condition_factor		*= CInventoryItem::m_fMaxRepairCondition;
+		condition_factor		*= CInventoryItem::s_max_repair_condition;
 	if (fLess(pItem->GetCondition(), condition_factor))
 	{
 		if (reason)

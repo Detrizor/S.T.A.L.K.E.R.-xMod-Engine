@@ -93,19 +93,19 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 		ammo_types						= wpn->m_ammoTypes;
 	else
 		FillVector						(ammo_types, *itm->m_section, "ammo_class");
-	LPCSTR name_s						= READ_IF_EXISTS(pSettings, r_string, ammo_types[0], "inv_name_short", false);
-	if (name_s)
+	shared_str name_s					= CInventoryItem::readNameShort(ammo_types[0]);
+	if (name_s.size())
 	{
-		str._set						(CStringTable().translate(name_s));
+		str								= name_s;
 		for (u32 i = 1, i_e = ammo_types.size(); i < i_e; i++)
 		{
-			name_s						= pSettings->r_string(ammo_types[i], "inv_name_short");
-			str.printf					("%s, %s", *str, *CStringTable().translate(name_s));
+			name_s						= CInventoryItem::readNameShort(ammo_types[i]);
+			str.printf					("%s, %s", str.c_str(), CStringTable().translate(name_s).c_str());
 		}
 	}
 	else
-		str._set						("---");
-	m_textAmmoTypesValue.SetText		(*str);
+		str								= "---";
+	m_textAmmoTypesValue.SetText		(str.c_str());
 }
 
 // -------------------------------------------------------------------------------------------------

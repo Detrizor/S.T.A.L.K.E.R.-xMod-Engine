@@ -33,7 +33,7 @@ void CUIStatsIcon::InitTexInfo()
 	LPCSTR artefact_name = pSettings->r_string("artefacthunt_gamedata", "artefact");
 
 	m_tex_info[ARTEFACT][0].sh = InventoryUtilities::GetEquipmentIconsShader(artefact_name);
-	CInventoryItem::ReadIcon(m_tex_info[ARTEFACT][0].rect, artefact_name);
+	CInventoryItem::readIcon(m_tex_info[ARTEFACT][0].rect, artefact_name);
 	
 	m_tex_info[ARTEFACT][1] = m_tex_info[ARTEFACT][0];
 

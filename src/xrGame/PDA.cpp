@@ -134,7 +134,7 @@ void CPda::OnH_A_Chield()
 	if(H_Parent()->ID() == m_idOriginalOwner){
 		TurnOn					();
 		if(m_sFullName.empty()){
-			m_sFullName.assign( NameItem() );
+			m_sFullName.assign( getName() );
 			m_sFullName += " ";
 			m_sFullName += (smart_cast<CInventoryOwner*>(H_Parent()))->Name();
 		}

@@ -11,11 +11,11 @@ CGrenadeLauncher::CGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : C
 	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
 
 	auto ao								= cast<CAddonOwner*>();
-	for (auto s : ao->AddonSlots())
+	for (auto& s : ao->AddonSlots())
 	{
 		if (s->attach == "grenade")
 		{
-			m_slot						= s;
+			m_slot						= s.get();
 			break;
 		}
 	}

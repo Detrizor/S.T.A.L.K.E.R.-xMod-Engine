@@ -795,14 +795,14 @@ bool CScriptGameObject::Aiming C$()
 LPCSTR CScriptGameObject::getInvName() const
 {
 	if (auto item = object().Cast<CInventoryItem*>())
-		return							item->NameItem();
+		return							item->getName();
 	return								"";
 }
 
 LPCSTR CScriptGameObject::getInvNameShort() const
 {
 	if (auto item = object().Cast<CInventoryItem*>())
-		return							item->NameShort();
+		return							item->getNameShort();
 	return								"";
 }
 

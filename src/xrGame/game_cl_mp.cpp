@@ -869,7 +869,7 @@ void game_cl_mp::OnPlayerKilled			(NET_Packet& P)
 					{
 						KMS.m_initiator.m_rect	 = pIItem->GetKillMsgRect();
 						KMS.m_initiator.m_rect.rb.add(KMS.m_initiator.m_rect.lt);
-						xr_sprintf(sWeapon, "%s %s", st.translate("mp_from").c_str(), pIItem->NameShort());
+						xr_sprintf(sWeapon, "%s %s", st.translate("mp_from").c_str(), pIItem->getNameShort());
 					}
 				} else
 				{

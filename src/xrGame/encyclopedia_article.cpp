@@ -76,7 +76,7 @@ void CEncyclopediaArticle::load_shared	(LPCSTR)
 	{
 		data()->image.SetShader(InventoryUtilities::GetEquipmentIconsShader(ltx));
 		Frect tex_rect;
-		CInventoryItem::ReadIcon(tex_rect, ltx);
+		CInventoryItem::readIcon(tex_rect, ltx);
 		data()->image.GetUIStaticItem().SetTextureRect(tex_rect);
 	}
 	else 

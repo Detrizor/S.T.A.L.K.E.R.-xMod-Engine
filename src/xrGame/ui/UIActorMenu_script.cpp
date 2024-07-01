@@ -140,7 +140,7 @@ void CUIActorMenu::RepairEffect_CurItem()
 	R_ASSERT( ai().script_engine().functor( "inventory_upgrades.effect_repair_item", funct ) );
 	funct(item_name, item->GetCondition());
 
-	item->SetCondition(CInventoryItem::m_fMaxRepairCondition);
+	item->SetCondition(CInventoryItem::s_max_repair_condition);
 	UpdateConditionProgressBars();
 	SeparateUpgradeItem();
 	CUICellItem* itm = CurrentItem();

@@ -71,7 +71,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(shared_str section)
 	m_pData								= NULL;
 
 	Frect								tex_rect;
-	CInventoryItem::ReadIcon			(tex_rect, *section);
+	CInventoryItem::readIcon			(tex_rect, *section);
 	
 	inherited::SetShader				(InventoryUtilities::GetEquipmentIconsShader(section));
 	inherited::SetTextureRect			(tex_rect);
@@ -236,7 +236,7 @@ CUIStatic* CUIInventoryCellItem::InitLayer(CUIStatic* s, LPCSTR section, Fvector
 		base_scale.y		= (GetHeight() / GetTextureRect().height()) * scale;
 	}
 
-	CInventoryItem::ReadIcon(tex_rect, section);
+	CInventoryItem::readIcon(tex_rect, section);
 	Fvector2 cell_size;
 	tex_rect.getsize(cell_size);
 	cell_size.mul(base_scale);
@@ -382,7 +382,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
 {
-	for (auto S : ao->AddonSlots())
+	for (auto& S : ao->AddonSlots())
 	{
 		if (S->addons.size())
 		{
@@ -443,7 +443,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->ca
 			res_rect.top				= min(res_rect.top, tex_rect.top + s->icon_offset.y);
 
 			Frect						addon_rect;
-			CInventoryItem::ReadIcon	(addon_rect, *s->addon_section, s->addon_type);
+			CInventoryItem::readIcon	(addon_rect, *s->addon_section, s->addon_type);
 			icon_scale					= pSettings->r_float(s->addon_section, "icon_scale");
 			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + icon_scale * addon_rect.width());
 			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + icon_scale * addon_rect.height());
@@ -456,8 +456,8 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->ca
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited(section)
 {
 	VSlots								slots;
-	CAddonOwner::LoadAddonSlots			(pSettings->r_string(section, "slots"), slots);
-	for (auto slot : slots)
+	CAddonOwner::LoadAddonSlots			(section, slots);
+	for (auto& slot : slots)
 		m_slots.push_back				(xr_new<SUIAddonSlot>(*slot));
 }
 
@@ -520,7 +520,7 @@ void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, u8 type, u8 
 	}
 	base_scale.div						(pSettings->r_float(m_section, "icon_scale"));
 
-	CInventoryItem::ReadIcon			(tex_rect, section, type, index);
+	CInventoryItem::readIcon			(tex_rect, section, type, index);
 	Fvector2							cell_size;
 	tex_rect.getsize					(cell_size);
 	cell_size.mul						(base_scale);

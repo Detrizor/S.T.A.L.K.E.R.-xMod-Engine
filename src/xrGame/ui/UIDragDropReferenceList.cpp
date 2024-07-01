@@ -69,7 +69,7 @@ void CUIDragDropReferenceList::SetReference(LPCSTR section, Ivector2 cell_pos, b
 	}
 
 	Frect					texture_rect;
-	CInventoryItem::ReadIcon(texture_rect, section);
+	CInventoryItem::readIcon(texture_rect, section);
 	
 	float r_x		= texture_rect.width();
 	float r_y		= texture_rect.height();

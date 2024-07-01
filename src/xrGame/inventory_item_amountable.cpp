@@ -12,7 +12,7 @@ CAmountable::CAmountable(CGameObject* obj) : CModule(obj)
 	m_fAmount							= m_capacity;
 
 	float net_cost						= pSettings->r_float(O.cNameSect(), "net_cost");
-	m_net_cost							= (net_cost == -1.f) ? CInventoryItem::ReadBaseCost(*O.cNameSect()): net_cost;
+	m_net_cost							= (net_cost == -1.f) ? CInventoryItem::readBaseCost(*O.cNameSect()): net_cost;
 
 	m_item								= cast<PIItem>();
 }

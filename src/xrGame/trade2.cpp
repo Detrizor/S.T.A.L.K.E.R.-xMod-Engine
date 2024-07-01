@@ -178,9 +178,9 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 		price				= (float)pItem->Price();
 	else
 	{
-		price				= (float)CInventoryItem::ReadBaseCost(*section);
+		price				= (float)CInventoryItem::readBaseCost(*section);
 		if (float count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
-			price			+= count * (float)CInventoryItem::ReadBaseCost(pSettings->r_string(section, "supplies"));
+			price			+= count * (float)CInventoryItem::readBaseCost(pSettings->r_string(section, "supplies"));
 	}
 	price					*= action_factor;
 

@@ -16,7 +16,7 @@ CUICellItem*	create_cell_item(CInventoryItem* itm)
 
 CUICellItem* create_cell_item_from_section(shared_str CR$ section)
 {
-	if (READ_IF_EXISTS(pSettings, r_string, section, "slots", 0))
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
 		return							xr_new<CUIAddonOwnerCellItem>(section);
 
 	return								xr_new<CUIInventoryCellItem>(section);

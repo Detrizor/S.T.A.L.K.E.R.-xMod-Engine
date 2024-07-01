@@ -193,7 +193,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 	string256							str;
 
 	if (UIName)
-		UIName->SetText					(*CStringTable().translate(pSettings->r_string(section, "inv_name")));
+		UIName->SetText					((pInvItem) ? pInvItem->getName() : CInventoryItem::readName(section));
 
 	if (UIWeight)
 	{

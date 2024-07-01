@@ -119,10 +119,10 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	if (auto ao = cast<CAddonOwner*>())
 	{
-		for (auto s : ao->AddonSlots())
+		for (auto& s : ao->AddonSlots())
 		{
 			if (s->attach == "magazine")
-				m_magazine_slot			= s;
+				m_magazine_slot			= s.get();
 			if (s->attach == "muzzle")
 				s->model_offset.translate_add(static_cast<Dvector>(m_fire_point));
 		}
@@ -841,7 +841,7 @@ bool CWeaponMagazined::CanTrade() const
 	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
 	if (ao)
 	{
-		for (auto slot : ao->AddonSlots())
+		for (auto& slot : ao->AddonSlots())
 		{
 			if (!slot->addons.empty())
 				return false;

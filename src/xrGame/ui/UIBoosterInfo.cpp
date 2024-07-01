@@ -339,8 +339,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 			LPCSTR ammo_class				= pSettings->r_string(section, "ammo_class");
 			string128						buffer;
 			LPCSTR ammo_type				= _GetItem(ammo_class, 0, buffer);
-			LPCSTR ammo_type_name_s			= pSettings->r_string(ammo_type, "inv_name_short");
-			m_ammo_type->SetStrValue		(*CStringTable().translate(ammo_type_name_s));
+			m_ammo_type->SetStrValue		(CInventoryItem::readNameShort(ammo_type));
 			pos.set							(m_ammo_type->GetWndPos());
 			pos.y							= h;
 			m_ammo_type->SetWndPos			(pos);

@@ -5,12 +5,12 @@ class CAddon;
 class CAddonOwner;
 class CAddonSlot;
 
-typedef xr_vector<CAddonSlot*> VSlots;
+typedef ::std::vector<xptr<CAddonSlot>> VSlots;
 
 class CAddonSlot
 {
 public:
-										CAddonSlot								(LPCSTR section, u16 _idx, CAddonOwner PC$ parent);
+										CAddonSlot								(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent);
 
 private:
 	double								m_step;
@@ -71,20 +71,16 @@ class CAddonOwner : public CModule
 {
 public:
 										CAddonOwner								(CGameObject* obj);
-										~CAddonOwner							();
 
 private:
-	VSlots								m_Slots;
+	VSlots								m_slots									= {};
 	
-	void								LoadAddonSlots							(LPCSTR section);
 	void								transfer_addon							(CAddon CPC addon, bool attach);
-
 	void								processAddon						C$	(CAddon PC$ addon, bool attach);
-
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:
-	VSlots CR$							AddonSlots							C$	()		{ return m_Slots; }
+	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
 
 	CAddonOwner*						getParentAO							C$	();
 	CAddonSlot*							findAvailableSlot					C$	(CAddon CPC addon);
@@ -94,5 +90,5 @@ public:
 	void								detachAddon								(CAddon* addon);
 	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
 
-	void							S$	LoadAddonSlots							(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
+	void							S$	LoadAddonSlots							(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
 };

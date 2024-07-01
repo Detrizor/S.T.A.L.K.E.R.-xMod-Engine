@@ -98,10 +98,6 @@ public:
 
 public:
 	virtual void				Load				(LPCSTR section);
-
-			LPCSTR				NameItem			();// remove <virtual> by sea
-			LPCSTR				NameShort			() const;
-	shared_str					ItemDescription		() { return m_Description; }
 	
 	virtual void				OnEvent				(NET_Packet& P, u16 type);
 	
@@ -143,9 +139,6 @@ public:
 public:
 	CInventory*					m_pInventory;
 	shared_str					m_section_id;
-	shared_str					m_name;
-	shared_str					m_nameShort;
-	shared_str					m_nameComplex;
 	bool						m_highlight_equipped;
 
 	SInvItemPlace				m_ItemCurrPlace;
@@ -161,10 +154,10 @@ public:
 			const shared_str&	GetIconName			() const		{return m_icon_name;};
 			Frect				GetKillMsgRect		() const;
 	//---------------------------------------------------------------------
-	IC		float				GetCondition		() const					{return m_fCondition;}
+	IC		float				GetCondition		() const					{return m_condition;}
 			float				GetConditionToWork	() const;
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
-	IC		void				SetCondition		(float val)					{m_fCondition = val;}
+	IC		void				SetCondition		(float val)					{m_condition = val;}
 			void				ChangeCondition		(float fDeltaCondition);
 
 			u16					BaseSlot			()  const					{return m_ItemCurrPlace.base_slot_id;}
@@ -186,14 +179,6 @@ public:
 
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
-
-protected:
-	float						m_weight;
-	float						m_volume;
-	float						m_cost;
-	float						m_upgrades_cost;
-	float						m_fCondition;
-	shared_str					m_Description;
 
 protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
@@ -321,11 +306,6 @@ private:
 	u8									m_inv_icon_index						= 0;
 
 public:
-	static const float		m_fMaxRepairCondition;
-	static	u32				ReadBaseCost			(LPCSTR section);
-	static	void			ReadIcon				(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
-			void			SetInvIcon				();
-
 	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, float& value, bool test);
 	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, int& value, bool test);
 	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, u32& value, bool test);
@@ -342,9 +322,30 @@ public:
 
 	virtual	void			OnTaken					()										{}
 
+private:
+	float								m_weight								= 0.f;
+	float								m_volume								= 0.f;
+	float								m_cost									= 0.f;
+	float								m_upgrades_cost							= 0.f;
+	float								m_condition								= 1.f;
+	shared_str							m_name									= 0;
+	shared_str							m_name_short							= 0;
+	shared_str							m_description							= 0;
+	
+	void								set_inv_icon							();
+
 public:
+	static const float					s_max_repair_condition;
+	static u32							readBaseCost							(LPCSTR section);
+	static void							readIcon								(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
+	static LPCSTR						readName								(shared_str CR$ section);
+	static LPCSTR						readNameShort							(shared_str CR$ section);
+
 	bool								tryCustomUse							();
 
+	LPCSTR								getName								C$	()		{ return m_name.c_str(); }
+	LPCSTR								getNameShort						C$	()		{ return m_name_short.c_str(); }
+	LPCSTR								ItemDescription						C$	()		{ return m_description.c_str(); }
 	bool								areInvIconTypesAllowed				C$	()		{ return m_inv_icon_types; }
 
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");

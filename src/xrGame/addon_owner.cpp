@@ -12,31 +12,26 @@
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
-	m_Slots.clear						();
-	LoadAddonSlots						(pSettings->r_string(O.cNameSect(), "slots"));
+	LoadAddonSlots						(O.cNameSect(), m_slots, this);
 }
 
-CAddonOwner::~CAddonOwner()
+void CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao)
 {
-	m_Slots.clear						();
-}
+	shared_str							slots_section;
+	if (pSettings->line_exist(section, "slots"))
+		slots_section					= pSettings->r_string(section, "slots");
+	else
+		slots_section.printf			("slots_%s", *section);
 
-void CAddonOwner::LoadAddonSlots(LPCSTR section)
-{
-	LoadAddonSlots						(section, m_Slots, this);
-}
-
-void CAddonOwner::LoadAddonSlots(LPCSTR section, VSlots& slots, CAddonOwner PC$ parent_ao)
-{
 	shared_str							tmp;
 	u16 i								= 0;
-	while (pSettings->line_exist(section, tmp.printf("type_%d", i)))
-		slots.push_back					(xr_new<CAddonSlot>(section, i++, parent_ao));
+	while (pSettings->line_exist(slots_section, tmp.printf("type_%d", i)))
+		slots.push_back					(xr_new<CAddonSlot>(slots_section, i++, parent_ao));
 }
 
 void CAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hud_sect)
 {
-	for (auto s : m_Slots)
+	for (auto& s : m_slots)
 		s->calculateBoneOffset			(model, hud_sect);
 }
 
@@ -60,7 +55,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 	{
 		case eRenderableRender:
 		{
-			for (auto s : m_Slots)
+			for (auto& s : m_slots)
 				s->RenderWorld			(O.XFORM());
 			break;
 		}
@@ -74,7 +69,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 						return			CModule::aboba(type, data, param);
 				}
 				else if (param && addon->getSlotIdx() != u16_max)
-					slot				= m_Slots[addon->getSlotIdx()];
+					slot				= m_slots[addon->getSlotIdx()];
 
 				if (!slot)
 				{
@@ -105,20 +100,20 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eCost:
 		{
 			float res					= 0.f;
-			for (auto slot : m_Slots)
+			for (auto& slot : m_slots)
 				for (auto addon : slot->addons)
 					res					+= addon->O.Aboba(type);
 			return						res;
 		}
 		case eRenderHudMode:
-			for (auto s : m_Slots)
+			for (auto& s : m_slots)
 				s->RenderHud			();
 			break;
 		case eUpdateSlotsTransform:
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
 			Dmatrix trans				= hi->m_transform;
-			for (auto s : m_Slots)
+			for (auto& s : m_slots)
 				s->updateAddonsHudTransform(hi->m_model, trans);
 			break;
 		}
@@ -145,7 +140,7 @@ void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
 		O.Aboba							(eOnAddon, (void*)addon, true);
 
 	if (auto addon_ao = addon->cast<CAddonOwner*>())
-		for (auto s : addon_ao->AddonSlots())
+		for (auto& s : addon_ao->AddonSlots())
 			for (auto a : s->addons)
 				processAddon			(a, attach);
 
@@ -155,10 +150,10 @@ void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
 
 CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
 {
-	for (auto s : m_Slots)
+	for (auto& s : m_slots)
 	{
 		if (s->CanTake(addon))
-			return						s;
+			return						s.get();
 		for (auto a : s->addons)
 			if (auto ao = a->cast<CAddonOwner*>())
 				if (auto slot = ao->findAvailableSlot(addon))
@@ -176,7 +171,7 @@ bool CAddonOwner::attachAddon(CAddon* addon)
 			addon->setSlotIdx			(slot->idx);
 	}
 	else
-		slot							= m_Slots[addon->getSlotIdx()];
+		slot							= m_slots[addon->getSlotIdx()];
 
 	if (slot)
 	{
@@ -199,7 +194,7 @@ LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
 	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
 }
 
-CAddonSlot::CAddonSlot(LPCSTR section, u16 _idx, CAddonOwner PC$ parent) :
+CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent) :
 	parent_ao(parent),
 	idx(_idx)
 {
@@ -446,7 +441,7 @@ void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent
 		trans.translate_mul				(parent_ao->O.getRootBonePosition().mul(-1.));
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->cast<CAddonOwner*>())
-			for (auto s : ao->AddonSlots())
+			for (auto& s : ao->AddonSlots())
 				s->updateAddonsHudTransform(model, trans);
 	}
 }
@@ -483,7 +478,7 @@ void CAddonSlot::RenderHud() const
 	{
 		addon->RenderHud				();
 		if (auto ao = addon->cast<CAddonOwner CP$>())
-			for (auto s : ao->AddonSlots())
+			for (auto& s : ao->AddonSlots())
 				s->RenderHud			();
 	}
 }
@@ -514,7 +509,7 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 	{
 		addon->RenderWorld				(parent_trans);
 		if (auto ao = addon->cast<CAddonOwner CP$>())
-			for (auto s : ao->AddonSlots())
+			for (auto& s : ao->AddonSlots())
 				s->RenderWorld			(parent_trans);
 	}
 }
@@ -569,7 +564,7 @@ void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
 		addon->setLocalTransform		(Didentity);
 
 	if (auto ao = addon->cast<CAddonOwner*>())
-		for (auto s : ao->AddonSlots())
+		for (auto& s : ao->AddonSlots())
 			for (auto a : s->addons)
 				s->updateAddonLocalTransform(a);
 }

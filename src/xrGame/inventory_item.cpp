@@ -40,7 +40,7 @@
 
 #define ITEM_REMOVE_TIME		30000
 
-const float	CInventoryItem::m_fMaxRepairCondition = pSettings->r_float("miscellaneous", "max_repair_condition");
+const float	CInventoryItem::s_max_repair_condition = pSettings->r_float("miscellaneous", "max_repair_condition");
 
 bool ItemCategory(const shared_str& section, LPCSTR cmp)
 {
@@ -76,7 +76,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 	m_flags.set(FCanTrade, m_can_trade);
 	m_flags.set(FUsingCondition, FALSE);
 	m_flags.set(FShowFullCondition, FALSE);
-	m_fCondition = 1.0f;
 
 	m_ItemCurrPlace.value = 0;
 	m_ItemCurrPlace.type = eItemPlaceUndefined;
@@ -89,9 +88,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 	m_section_id = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
-
-	m_name = m_nameShort = m_Description = "";
-	m_weight = m_volume = m_cost = m_upgrades_cost = 0.f;
 
 	O.RegisterModule(this);
 }
@@ -152,24 +148,23 @@ void CInventoryItem::Load(LPCSTR section)
 		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
 	}
 
-	m_category						= pSettings->r_string(section, "category");
-	m_subcategory					= pSettings->r_string(section, "subcategory");
-	m_division						= pSettings->r_string(section, "division");
+	m_category							= pSettings->r_string(section, "category");
+	m_subcategory						= pSettings->r_string(section, "subcategory");
+	m_division							= pSettings->r_string(section, "division");
 	
-	if (pSettings->line_exist(section, "inv_name"))
-		m_name						= CStringTable().translate(pSettings->r_string(section, "inv_name"));
-	m_nameShort						= (pSettings->line_exist(section, "inv_name_short")) ? CStringTable().translate(pSettings->r_string(section, "inv_name_short")) : m_name;
-	m_Description					= (pSettings->line_exist(section, "description")) ? CStringTable().translate(pSettings->r_string(section, "description")) : "";
-	m_weight						= pSettings->r_float(section, "inv_weight");
-	R_ASSERT						(m_weight >= 0.f);
-	m_volume						= pSettings->r_float(section, "inv_volume");
-	R_ASSERT						(m_volume >= 0.f);
-	m_cost							= ReadBaseCost(section);
+	m_name								= readName(section);
+	m_name_short						= readNameShort(section);
+	m_description						= (pSettings->line_exist(section, "description")) ? CStringTable().translate(pSettings->r_string(section, "description")) : "";
+	m_weight							= pSettings->r_float(section, "inv_weight");
+	R_ASSERT							(m_weight >= 0.f);
+	m_volume							= pSettings->r_float(section, "inv_volume");
+	R_ASSERT							(m_volume >= 0.f);
+	m_cost								= readBaseCost(section);
 	
-	m_inv_icon_types				= !!READ_IF_EXISTS(pSettings, r_bool, section, "inv_icon_types", FALSE);
-	SetInvIcon						();
+	m_inv_icon_types					= !!READ_IF_EXISTS(pSettings, r_bool, section, "inv_icon_types", FALSE);
+	set_inv_icon							();
 
-	if (pSettings->line_exist			(section, "slots"))
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
 		m_object->AddModule<CAddonOwner>();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
@@ -184,14 +179,14 @@ void CInventoryItem::Load(LPCSTR section)
 
 float CInventoryItem::GetConditionToWork() const
 {
-	float condition		= m_fCondition / m_fMaxRepairCondition;
-	return				(condition < 1.f) ? condition : 1.f;
+	float condition						= m_condition / s_max_repair_condition;
+	return								(condition < 1.f) ? condition : 1.f;
 }
 
-void  CInventoryItem::ChangeCondition(float fDeltaCondition)
+void CInventoryItem::ChangeCondition(float fDeltaCondition)
 {
-	m_fCondition += fDeltaCondition;
-	clamp(m_fCondition, 0.f, 1.f);
+	m_condition							+= fDeltaCondition;
+	clamp								(m_condition, 0.f, 1.f);
 }
 
 void	CInventoryItem::Hit(SHit* pHDS)
@@ -202,16 +197,6 @@ void	CInventoryItem::Hit(SHit* pHDS)
 	hit_power *= GetHitImmunity(pHDS->hit_type);
 
 	ChangeCondition(-hit_power);
-}
-
-LPCSTR CInventoryItem::NameItem()
-{
-	return m_name.c_str();
-}
-
-LPCSTR CInventoryItem::NameShort() const
-{
-	return m_nameShort.c_str();
 }
 
 bool CInventoryItem::Useful() const
@@ -759,7 +744,7 @@ bool CInventoryItem::InHands() const
 	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
 }
 
-u32 CInventoryItem::ReadBaseCost(LPCSTR section)
+u32 CInventoryItem::readBaseCost(LPCSTR section)
 {
 	float							cost;
 	if (pSettings->line_exist("costs", section))
@@ -771,7 +756,7 @@ u32 CInventoryItem::ReadBaseCost(LPCSTR section)
 	return							(u32)round(cost);
 }
 
-void CInventoryItem::ReadIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
+void CInventoryItem::readIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
 {
 	Fvector4 icon_rect				= pSettings->r_fvector4(section, "inv_icon");
 	if (type)
@@ -790,24 +775,44 @@ void CInventoryItem::ReadIcon(Frect& destination, LPCSTR section, u8 type, u8 id
 	destination.set					(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
 }
 
+LPCSTR CInventoryItem::readName(shared_str CR$ section)
+{
+	if (pSettings->line_exist(section, "inv_name"))
+		return						CStringTable().translate(pSettings->r_string(section, "inv_name")).c_str();
+	return							CStringTable().translate(shared_str().printf("st_%s_name", *section)).c_str();
+}
+
+LPCSTR CInventoryItem::readNameShort(shared_str CR$ section)
+{
+	if (pSettings->line_exist(section, "inv_name_short"))
+		return						CStringTable().translate(pSettings->r_string(section, "inv_name_short")).c_str();
+
+	shared_str						tmp;
+	tmp.printf						("st_%s_name_s", *section);
+	if (CStringTable().exists(tmp))
+		return						CStringTable().translate(tmp).c_str();
+
+	return							readName(section);
+}
+
 void CInventoryItem::SetInvIconType(u8 type)
 {
 	if (m_inv_icon_types)
 	{
 		m_inv_icon_type				= type;
-		SetInvIcon					();
+		set_inv_icon					();
 	}
 }
 
 void CInventoryItem::SetInvIconIndex(u8 idx)
 {
 	m_inv_icon_index				= idx;
-	SetInvIcon						();
+	set_inv_icon						();
 }
 
-void CInventoryItem::SetInvIcon()
+void CInventoryItem::set_inv_icon()
 {
-	ReadIcon						(m_inv_icon, *m_section_id, m_inv_icon_type, m_inv_icon_index);
+	readIcon						(m_inv_icon, *m_section_id, m_inv_icon_type, m_inv_icon_index);
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)
@@ -882,12 +887,12 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 		auto se_item				= smart_cast<CSE_ALifeItem*>(se_obj);
 		if (param)
 		{
-			se_item->m_fCondition	= m_fCondition;
+			se_item->m_fCondition	= m_condition;
 			m->m_icon_index			= m_inv_icon_index;
 		}
 		else
 		{
-			m_fCondition			= se_item->m_fCondition;
+			m_condition				= se_item->m_fCondition;
 			if (m)
 				SetInvIconIndex		(m->m_icon_index);
 		}
@@ -916,7 +921,7 @@ bool CInventoryItem::tryCustomUse()
 				if (addon->tryAttach(ao))
 					return				true;
 
-				for (auto s : ao->AddonSlots())
+				for (auto& s : ao->AddonSlots())
 					for (auto a : s->addons)
 						if (auto sub_ao = a->cast<CAddonOwner*>())
 							if (addon->tryAttach(sub_ao))
