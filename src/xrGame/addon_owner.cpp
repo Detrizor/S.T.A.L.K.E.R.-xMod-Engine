@@ -516,16 +516,16 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 
 bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_type)
 {
-	if (addon_type != slot_type)
-	{
-		if (!pSettings->line_exist("slot_exceptions", addon_type))
-			return						false;
-		
-		if (strcmp(pSettings->r_string("slot_exceptions", *addon_type), *slot_type))
-			return						false;
-	}
+	if (addon_type == slot_type)
+		return							true;
 
-	return								true;
+	if (pSettings->line_exist("slot_type_exceptions", slot_type))
+		return							!!strstr(pSettings->r_string("slot_type_exceptions", *slot_type), *addon_type);
+
+	if (pSettings->line_exist("addon_type_exceptions", addon_type))
+		return							!!strstr(pSettings->r_string("addon_type_exceptions", *addon_type), *slot_type);
+
+	return								false;
 }
 
 bool CAddonSlot::CanTake(CAddon CPC addon) const
