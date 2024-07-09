@@ -112,9 +112,9 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eUpdateSlotsTransform:
 		{
 			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
-			Dmatrix trans				= hi->m_transform;
+			Dvector root_offset			= O.getRootBonePosition().mul(-1.);
 			for (auto& s : m_slots)
-				s->updateAddonsHudTransform(hi->m_model, trans);
+				s->updateAddonsHudTransform(hi->m_model, hi->m_transform, root_offset);
 			break;
 		}
 	}
@@ -432,17 +432,17 @@ void CAddonSlot::shiftAddon(CAddon* addon, int shift)
 	}
 }
 
-void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans)
+void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset)
 {
 	for (auto addon : addons)
 	{
 		Dmatrix trans					= parent_trans;
 		append_bone_trans				(trans, model);
-		trans.translate_mul				(parent_ao->O.getRootBonePosition().mul(-1.));
+		trans.translate_mul				(root_offset);
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->cast<CAddonOwner*>())
 			for (auto& s : ao->AddonSlots())
-				s->updateAddonsHudTransform(model, trans);
+				s->updateAddonsHudTransform(model, parent_trans, root_offset);
 	}
 }
 

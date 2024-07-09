@@ -30,10 +30,10 @@ float CGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
 	{
 	case eTransferAddon:
 	{
-		auto addon = (CAddon*)data;
+		auto addon = static_cast<CAddon*>(data);
 		if (addon->cast<CWeaponAmmo*>())
 		{
-			m_slot->startReloading		((param) ? (CAddon*)data : nullptr);
+			m_slot->startReloading		((param) ? addon : nullptr);
 			m_wpn->m_sub_state			= (m_slot->addons.empty()) ? CWeapon::eSubstateReloadAttachG : CWeapon::eSubstateReloadDetachG;
 			m_wpn->SwitchState			(CWeapon::eReload);
 			return						1.f;

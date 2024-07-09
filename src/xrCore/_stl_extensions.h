@@ -304,7 +304,6 @@ class xptr : public ::std::unique_ptr<T>
 public:
 										xptr									()				{ reset(nullptr); }
 										xptr									(T*&& p)		{ reset(p); }
-
 	xptr&								operator=								(T*&& p)		{ reset(p); return *this; }
-										operator T*								()				{ return get(); }
+										operator T*								() const		{ return get(); }
 };

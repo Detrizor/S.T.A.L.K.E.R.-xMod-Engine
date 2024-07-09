@@ -648,10 +648,8 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		}
 		
 		for (auto a : s->addons)
-		{
 			if (auto addon_ao = a->cast<CAddonOwner*>())
 				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->I->getNameShort()));
-		}
 	}
 }
 
@@ -785,9 +783,9 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ADDON_ATTACH:
 	{
-		auto slot						= (CAddonSlot*)m_UIPropertiesBox->GetClickedItem()->GetData();
+		auto slot						= static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData());
 		auto addon						= item->cast<CAddon*>();
-		addon->attach					(slot->parent_ao, slot->idx);
+		addon->attach					(slot);
 		break;
 	}
 	case INVENTORY_REPAIR:

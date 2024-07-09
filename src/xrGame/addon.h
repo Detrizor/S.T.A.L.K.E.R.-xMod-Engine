@@ -44,7 +44,7 @@ public:
 
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	
-	void								attach									(CAddonOwner CPC ao, u16 slot_idx);
+	void								attach									(CAddonSlot CPC slot);
 	bool								tryAttach								(CAddonOwner CPC ao, u16 slot_idx = u16_max);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }

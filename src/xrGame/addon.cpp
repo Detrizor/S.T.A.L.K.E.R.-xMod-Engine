@@ -114,26 +114,27 @@ float CAddon::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CAddon::attach(CAddonOwner CPC ao, u16 slot_idx)
+void CAddon::attach(CAddonSlot CPC slot)
 {
-	setSlotIdx							(slot_idx);
-	cast<CUsable*>()->performAction		(2, true, ao->O.ID());
+	setSlotIdx							(slot->idx);
+	cast<CUsable*>()->performAction		(2, true, slot->parent_ao->O.ID());
 }
 
 bool CAddon::tryAttach(CAddonOwner CPC ao, u16 slot_idx)
 {
 	if (slot_idx != u16_max)
 	{
-		if (ao->AddonSlots()[slot_idx]->CanTake(this))
+		auto& slot						= ao->AddonSlots()[slot_idx];
+		if (slot->CanTake(this))
 		{
-			attach						(ao, slot_idx);
+			attach						(slot);
 			return						true;
 		}
 	}
 
 	if (auto slot = ao->findAvailableSlot(this))
 	{
-		attach							(ao, slot->idx);
+		attach							(slot);
 		return							true;
 	}
 

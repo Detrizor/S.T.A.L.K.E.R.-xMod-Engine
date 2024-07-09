@@ -49,7 +49,7 @@ public:
 	void								detachAddon								(CAddon* addon);
 	void								shiftAddon								(CAddon* addon, int shift);
 
-	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans);
+	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset);
 
 	void								startReloading							(CAddon* loading_addon);
 	void								loadingDetach							();
