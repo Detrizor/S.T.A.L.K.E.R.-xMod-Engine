@@ -12,10 +12,10 @@
 
 CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
 {
-	LoadAddonSlots						(O.cNameSect(), m_slots, this);
+	m_base_foreground_draw				= LoadAddonSlots(O.cNameSect(), m_slots, this);
 }
 
-void CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao)
+bool CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao)
 {
 	shared_str							slots_section;
 	if (pSettings->line_exist(section, "slots"))
@@ -27,6 +27,8 @@ void CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOw
 	u16 i								= 0;
 	while (pSettings->line_exist(slots_section, tmp.printf("type_%d", i)))
 		slots.push_back					(xr_new<CAddonSlot>(slots_section, i++, parent_ao));
+
+	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
 }
 
 void CAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hud_sect)

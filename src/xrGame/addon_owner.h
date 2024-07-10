@@ -73,6 +73,8 @@ public:
 										CAddonOwner								(CGameObject* obj);
 
 private:
+	bool								m_base_foreground_draw;
+
 	VSlots								m_slots									= {};
 	
 	void								transfer_addon							(CAddon CPC addon, bool attach);
@@ -81,6 +83,7 @@ private:
 	
 public:
 	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
+	bool								getBaseForegroundDraw				C$	()		{ return m_base_foreground_draw; }
 
 	CAddonOwner*						getParentAO							C$	();
 	CAddonSlot*							findAvailableSlot					C$	(CAddon CPC addon);
@@ -90,5 +93,5 @@ public:
 	void								detachAddon								(CAddon* addon);
 	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
 
-	void							S$	LoadAddonSlots							(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao = NULL);
+	bool							S$	LoadAddonSlots							(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao = nullptr);
 };

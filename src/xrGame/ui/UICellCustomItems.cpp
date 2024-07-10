@@ -451,12 +451,13 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->ca
 	}
 
 	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
+	m_base_foreground_draw				= ao->getBaseForegroundDraw();
 }
 
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited(section)
 {
 	VSlots								slots;
-	CAddonOwner::LoadAddonSlots			(section, slots);
+	m_base_foreground_draw				= CAddonOwner::LoadAddonSlots(section, slots);
 	for (auto& slot : slots)
 		m_slots.push_back				(xr_new<SUIAddonSlot>(*slot));
 }
