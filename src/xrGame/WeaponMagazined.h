@@ -144,7 +144,6 @@ protected:
 	}
 
 	//виртуальные функции для проигрывания анимации HUD
-			void	PlayAnimIdle() override;
 	virtual void	PlayAnimShow();
 	virtual void	PlayAnimHide();
 	virtual void	PlayAnimReload();
@@ -206,6 +205,7 @@ private:
 	bool								m_lock_state_reload;
 	bool								m_mag_attach_bolt_release;
 	shared_str							m_iron_sight_section;
+	SScriptAnm							m_empty_click_anm;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);

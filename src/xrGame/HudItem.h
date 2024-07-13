@@ -14,6 +14,12 @@ class CMotionDef;
 struct attachable_hud_item;
 class motion_marks;
 
+struct SScriptAnm
+{
+	shared_str name;
+	float power, speed;
+};
+
 class CHUDState
 {
 public:
@@ -46,7 +52,6 @@ class CHudItem :public CHUDState
 {
 public:
 							CHudItem			();
-	virtual					~CHudItem			();
 	virtual DLL_Pure*		_construct			();
 protected:
 	Flags16					m_huditem_flags;
@@ -81,7 +86,7 @@ public:
 	virtual void				PlaySound			(LPCSTR alias, const Fvector& position, u8 index); //Alundaio: Play at index
 
 	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}
-			void				OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
+			void				onMovementChanged	();
 
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
@@ -107,11 +112,6 @@ public:
 	virtual void				PlayAnimIdle		();
 	virtual void				PlayAnimBore		();
 	bool						TryPlayAnimIdle		();
-	virtual bool				MovingAnimAllowedNow ()				{return true;}
-
-	virtual void				PlayAnimIdleMoving			();
-	virtual void				PlayAnimIdleMovingCrouch	(); //AVO: new crouch idle animation
-	virtual void				PlayAnimIdleSprint			();
 
 	virtual void				UpdateCL			();
 	virtual void				renderable_Render	();
@@ -172,21 +172,20 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 protected:
-			float			m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
-			float			m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
-			float			m_fLR_InertiaFactor; // Фактор горизонтальной инерции худа при движении камеры [-1; +1]
-			float			m_fUD_InertiaFactor; // Фактор вертикальной инерции худа при движении камеры [-1; +1]
+	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
+	float								m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
+	float								m_fLR_InertiaFactor; // Фактор горизонтальной инерции худа при движении камеры [-1; +1]
+	float								m_fUD_InertiaFactor; // Фактор вертикальной инерции худа при движении камеры [-1; +1]
+	bool								m_using_blend_idle_anims;
 
-			void			PlayBlendAnm			(LPCSTR name, float speed = 1.f, float power = 1.f, bool stop_old = true);
-
-public:
-	virtual	bool			NeedBlendAnm			();
-
-protected:
 	shared_str							m_anm_prefix							= 0;
+
+	void								playBlendAnm						C$	(shared_str CR$ name, float speed = 1.f, float power = 1.f, bool stop_old = true);
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 
 public:
+	bool								isUsingBlendIdleAnims				C$	()		{ return m_using_blend_idle_anims; }
+
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 

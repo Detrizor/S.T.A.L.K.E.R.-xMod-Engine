@@ -43,14 +43,12 @@ DLL_Pure *CHudItem::_construct()
 	return				(m_object);
 }
 
-CHudItem::~CHudItem()
-{}
-
 void CHudItem::Load(LPCSTR section)
 {
 	hud_sect							= pSettings->r_string(section, "hud");
 	m_animation_slot					= pSettings->r_u32(section, "animation_slot");
 	m_sounds.LoadSound					(section, "snd_bore", "sndBore", true);
+	m_using_blend_idle_anims			= !!READ_IF_EXISTS(pSettings, r_bool, hud_sect, "using_blend_idle_anims", TRUE);
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
@@ -128,8 +126,6 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 
 		break;
 	}
-
-	g_player_hud->updateMovementLayerState();
 }
 
 void CHudItem::OnAnimationEnd(u32 state)
@@ -558,39 +554,50 @@ BOOL CHudItem::GetHUDmode()
 
 void CHudItem::PlayAnimIdle()
 {
-	if (!TryPlayAnimIdle())
+	if (m_using_blend_idle_anims || !TryPlayAnimIdle())
 		PlayHUDMotion("anm_idle", TRUE, GetState());
 }
 
 bool CHudItem::TryPlayAnimIdle()
 {
-	if (MovingAnimAllowedNow())
-	{
-		CActor* pActor = smart_cast<CActor*>(object().H_Parent());
-		if (pActor && pActor->AnyMove())
-		{
-			CEntity::SEntityState st;
-			pActor->g_State(st);
-			if (st.bSprint)
-			{
-				if (auto wpn = object().Cast<CWeapon*>())
-					if (!wpn->ArmedMode() && wpn->HandSlot() == BOTH_HANDS_SLOT)
-						return false;
+	auto actor = smart_cast<CActor*>(object().H_Parent());
+	auto wpn = object().Cast<CWeapon*>();
+	bool ads = wpn && wpn->ADS();
 
-				PlayAnimIdleSprint();
-				return true;
-			}
-			else if (st.bCrouch)
-			{
-				PlayAnimIdleMovingCrouch();
-				return true;
-			}
-			else
-			{
-				PlayAnimIdleMoving();
-				return true;
-			}
+	if (actor && actor->AnyMove())
+	{
+		if (ads)
+		{
+			PlayHUDMotion("anm_idle_aim_moving", TRUE, GetState());
+			return true;
 		}
+
+		CEntity::SEntityState st;
+		actor->g_State(st);
+		if (st.bSprint)
+		{
+			if (wpn && !wpn->ArmedMode() && wpn->HandSlot() == BOTH_HANDS_SLOT)
+				PlayHUDMotion("anm_idle_moving", TRUE, GetState());
+			else
+				PlayHUDMotion("anm_idle_sprint", TRUE, GetState());
+			return true;
+		}
+		else if (st.bCrouch)
+		{
+			PlayHUDMotion((HudAnimationExist("anm_idle_moving_crouch")) ? "anm_idle_moving_crouch" : "anm_idle_moving", TRUE, GetState());
+			return true;
+		}
+		else
+		{
+			PlayHUDMotion("anm_idle_moving", TRUE, GetState());
+			return true;
+		}
+	}
+
+	if (ads)
+	{
+		PlayHUDMotion("anm_idle_aim", TRUE, GetState());
+		return true;
 	}
 
 	return false;
@@ -616,32 +623,13 @@ bool CHudItem::HudAnimationExist(LPCSTR anim_name)
 }
 //-AVO
 
-void CHudItem::PlayAnimIdleMoving()
-{
-	PlayHUDMotion("anm_idle_moving", TRUE, GetState());
-}
-
-//AVO: new crouch idle animation
-void CHudItem::PlayAnimIdleMovingCrouch()
-{
-	PlayHUDMotion((HudAnimationExist("anm_idle_moving_crouch")) ? "anm_idle_moving_crouch" : "anm_idle_moving", TRUE, GetState());
-}
-//-AVO
-
-void CHudItem::PlayAnimIdleSprint()
-{
-	PlayHUDMotion("anm_idle_sprint", TRUE, GetState());
-}
-
-void CHudItem::OnMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
+void CHudItem::onMovementChanged()
 {
 	if (GetState() == eIdle && !m_bStopAtEndAnimIsRunning)
 	{
-		if ((cmd == ACTOR_DEFS::mcSprint) || (cmd == ACTOR_DEFS::mcAnyMove) || (cmd == ACTOR_DEFS::mcCrouch) || (cmd == ACTOR_DEFS::mcAccel))
-		{
+		ResetSubStateTime();
+		if (!m_using_blend_idle_anims)
 			PlayAnimIdle();
-			ResetSubStateTime();
-		}
 	}
 }
 
@@ -662,18 +650,12 @@ attachable_hud_item* CHudItem::HudItemData() const
 	return NULL;
 }
 
-void CHudItem::PlayBlendAnm(LPCSTR name, float speed, float power, bool stop_old)
+void CHudItem::playBlendAnm(shared_str CR$ name, float speed, float power, bool stop_old) const
 {
-	u8 part = (object().cast_weapon()->IsZoomed() ? 2 : (g_player_hud->attached_item(1) ? 0 : 2));
-
-	if (stop_old) g_player_hud->StopBlendAnm(name, true);
-	g_player_hud->PlayBlendAnm(name, part, speed, power, false);
-}
-
-bool CHudItem::NeedBlendAnm()
-{
-	u32 state = GetState();
-	return (state != eIdle && state != eHidden);
+	if (stop_old)
+		g_player_hud->StopBlendAnm		(name, true);
+	u8 part								= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
+	g_player_hud->PlayBlendAnm			(name, part, speed, power, false);
 }
 
 void CHudItem::UpdateSlotsTransform()

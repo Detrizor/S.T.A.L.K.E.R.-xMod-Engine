@@ -20,12 +20,6 @@ class CSE_ALifeItemWeaponAmmo;
 class CWeaponMagazined;
 class CParticlesObject;
 
-struct SafemodeAnm
-{
-	LPCSTR name;
-	float power, speed;
-};
-
 class CWeapon : public CInventoryItemObject,
 	public CShootingObject
 {
@@ -262,7 +256,6 @@ public:
 protected:
 	virtual void			SetDefaults();
 
-	virtual bool			MovingAnimAllowedNow();
 	virtual void			OnStateSwitch(u32 S, u32 oldState);
 
 	//трассирование полета пули
@@ -433,7 +426,7 @@ private:
 	
 	Fvector								m_mechanic_recoil_pattern;
 	Fvector								m_layout_recoil_pattern;
-	SafemodeAnm							m_safemode_anm[2];
+	SScriptAnm							m_safemode_anm[2];
 
 protected:
 	int									m_iADS									= 0;
@@ -499,7 +492,6 @@ public:
 	bool								isCamRecoilRelaxed					C$	();
 	Fvector								getFirePoint						C$	();
 	float								GetControlInertionFactor			CO$	(bool full = false);
-	bool								NeedBlendAnm						O$	();
 	
 	int								V$	ADS									C$	();
 };

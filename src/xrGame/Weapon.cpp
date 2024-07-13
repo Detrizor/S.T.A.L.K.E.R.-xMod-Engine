@@ -626,10 +626,11 @@ BOOL CWeapon::IsMisfire() const
 
 void CWeapon::OnZoomIn()
 {
+	m_zoom_params.m_bIsZoomModeNow = true;
 	if (!ArmedMode())
 		SwitchArmedMode();
-	m_zoom_params.m_bIsZoomModeNow = true;
-	g_player_hud->updateMovementLayerState();
+	else
+		g_player_hud->OnMovementChanged();
 }
 
 void CWeapon::OnZoomOut()
@@ -637,7 +638,8 @@ void CWeapon::OnZoomOut()
 	m_zoom_params.m_bIsZoomModeNow = false;
 	if (ADS())
 		SetADS(0);
-	g_player_hud->updateMovementLayerState();
+	else
+		g_player_hud->OnMovementChanged();
 }
 
 void CWeapon::reinit()
@@ -891,11 +893,6 @@ void CWeapon::render_hud_mode()
 	RenderLight();
 }
 
-bool CWeapon::MovingAnimAllowedNow()
-{
-	return !ADS();
-}
-
 bool CWeapon::IsHudModeNow()
 {
 	return (HudItemData() != NULL);
@@ -946,9 +943,7 @@ void CWeapon::SetADS(int mode)
 		ResetSubStateTime();
 
 	m_iADS = mode;
-
-	if (GetState() == eIdle)
-		PlayAnimIdle();
+	g_player_hud->OnMovementChanged();
 }
 
 void CWeapon::SwitchArmedMode()
@@ -956,25 +951,9 @@ void CWeapon::SwitchArmedMode()
 	if (!m_bArmedRelaxedSwitch)
 		return;
 
-	bool new_state = !ArmedMode();
-	m_bArmedMode = new_state;
-	g_player_hud->OnMovementChanged(mcAnyMove);
-	g_player_hud->updateMovementLayerState();
-	if (!new_state && m_safemode_anm[1].name)
-		PlayBlendAnm(m_safemode_anm[1].name, m_safemode_anm[1].speed, m_safemode_anm[1].power, false);
-	else if (m_safemode_anm[0].name)
-		PlayBlendAnm(m_safemode_anm[0].name, m_safemode_anm[0].speed, m_safemode_anm[0].power, false);
-}
-
-bool CWeapon::NeedBlendAnm()
-{
-	if (GetState() == eIdle && !ArmedMode() && HandSlot() == BOTH_HANDS_SLOT)
-		return true;
-
-	if (ADS())
-		return true;
-
-	return inherited::NeedBlendAnm();
+	m_bArmedMode = !m_bArmedMode;
+	playBlendAnm(m_safemode_anm[m_bArmedMode].name, m_safemode_anm[m_bArmedMode].speed, m_safemode_anm[m_bArmedMode].power, false);
+	g_player_hud->OnMovementChanged();
 }
 
 float CWeapon::GetControlInertionFactor C$(bool full)

@@ -118,14 +118,6 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	}
 }
 
-void CWeaponMagazined::PlayAnimIdle()
-{
-	if (ADS())
-		PlayHUDMotion					("anm_idle_aim", TRUE, GetState());
-	else
-		inherited::PlayAnimIdle			();
-}
-
 void CWeaponMagazined::PlayAnimShow()
 {
 	PlayHUDMotion						("anm_show", FALSE, GetState());

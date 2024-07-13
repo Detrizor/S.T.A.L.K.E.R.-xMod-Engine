@@ -31,17 +31,6 @@ struct player_hud_motion_container
 	void		load				(IKinematicsAnimated* model, LPCSTR sect);
 };
 
-enum eMovementLayers
-{
-	eAimWalk = 0,
-	eAimCrouch,
-	eCrouch,
-	eWalk,
-	eRun,
-	eSprint,
-	move_anms_end
-};
-
 struct movement_layer
 {
 	CObjectAnimator* anm;
@@ -122,14 +111,14 @@ struct script_layer
 	Fmatrix blend;
 	u8 m_part;
 
-	script_layer(LPCSTR name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true)
+	script_layer(shared_str CR$ name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true)
 	{
 		m_name = name;
 		m_part = part;
 		m_power = power;
 		blend.identity();
 		anm = xr_new<CObjectAnimator>();
-		anm->Load(name);
+		anm->Load(name.c_str());
 		anm->Play(looped);
 		anm->Speed() = speed;
 		blend_amount = 0.f;
@@ -249,10 +238,6 @@ public:
 	u32				anim_play			(u16 part, const MotionID& M, BOOL bMixIn, const CMotionDef*& md, float speed);
 	const shared_str& section_name		() const {return m_sect_name;}
 
-	//Movement animation layers: 0 = aim_walk, 1 = aim_crouch, 2 = crouch, 3 = walk, 4 = run, 5 = sprint
-	xr_vector<movement_layer*>			m_movement_layers;
-	xr_vector<script_layer*>			m_script_layers;
-
 	attachable_hud_item* create_hud_item(LPCSTR hud_section, LPCSTR object_section);
 
 	void			attach_item			(CHudItem* item);
@@ -266,7 +251,7 @@ public:
 	void			tune				(Ivector values);
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
-	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
+	void			OnMovementChanged	();
 	bool			inertion_allowed	();
 
 private:
@@ -278,10 +263,36 @@ private:
 	attachable_hud_item*				m_attached_items[2];
 	xr_vector<attachable_hud_item*>		m_pool;
 
+private:
+	enum eMovementLayers
+	{
+		eIdle = 0,
+		eWalk,
+		eRun,
+		eSprint,
+		move_anms_end
+	};
+	enum eWeaponStateLayers
+	{
+		eRelaxed = 0,
+		eArmed,
+		eAim,
+		eADS,
+		state_anms_end
+	};
+	enum ePoseLayers
+	{
+		eStand = 0,
+		eCrouch,
+		pose_anms_end
+	};
+	movement_layer						m_movement_layers[move_anms_end][state_anms_end][pose_anms_end];
+	::std::vector<xptr<script_layer>>	m_script_layers;
+
 public:
-			void			updateMovementLayerState();
-			void			PlayBlendAnm			(LPCSTR name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false);
-			void			StopBlendAnm			(LPCSTR name, bool bForce = false);
+	void								updateMovementLayerState				();
+	void								PlayBlendAnm							(shared_str CR$ name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false);
+	void								StopBlendAnm							(shared_str CR$ name, bool bForce = false);
 };
 
 extern player_hud* g_player_hud;

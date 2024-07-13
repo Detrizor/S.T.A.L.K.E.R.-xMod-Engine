@@ -303,8 +303,8 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 	R_ASSERT				(strstr(anim_name.c_str(),"anm_")== anim_name.c_str());
 
 	player_hud_motion* anm	= m_hand_motions.find_motion(anim_name);
-	R_ASSERT2				(anm, make_string("model [%s] has no motion alias defined [%s]", m_hud_section.c_str(), anim_name).c_str());
-	R_ASSERT2				(anm->m_animations.size(), make_string("model [%s] has no motion defined in motion_alias [%s]", pSettings->r_string(m_object_section, "visual"), anim_name).c_str());
+	R_ASSERT2				(anm, make_string("model [%s] has no motion alias defined [%s]", m_hud_section.c_str(), anim_name.c_str()).c_str());
+	R_ASSERT2				(anm->m_animations.size(), make_string("model [%s] has no motion defined in motion_alias [%s]", pSettings->r_string(m_object_section, "visual"), anim_name.c_str()).c_str());
 	
 	float speed = anm->m_anim_speed;
 
@@ -394,27 +394,31 @@ player_hud::player_hud()
 	m_transform.identity();
 
 	//Movement Layers
-	m_movement_layers.reserve(move_anms_end);
-
 	for (int i = 0; i < move_anms_end; i++)
-	{
-		movement_layer* anm = xr_new<movement_layer>();
+		for (int j = 0; j < state_anms_end; j++)
+			for (int k = 0; k < pose_anms_end; k++)
+			{
+				char temp[20];
+				string512 tmp;
+				strconcat(sizeof(temp), temp, "movement_layer_", std::to_string(i).c_str());
+				R_ASSERT2(pSettings->line_exist("hud_movement_layers", temp), make_string("Missing definition for [hud_movement_layers] %s", temp));
+				LPCSTR layer_def = pSettings->r_string("hud_movement_layers", temp);
+				R_ASSERT2(_GetItemCount(layer_def) > 0, make_string("Wrong definition for [hud_movement_layers] %s", temp));
 
-		char temp[20];
-		string512 tmp;
-		strconcat(sizeof(temp), temp, "movement_layer_", std::to_string(i).c_str());
-		R_ASSERT2(pSettings->line_exist("hud_movement_layers", temp), make_string("Missing definition for [hud_movement_layers] %s", temp));
-		LPCSTR layer_def = pSettings->r_string("hud_movement_layers", temp);
-		R_ASSERT2(_GetItemCount(layer_def) > 0, make_string("Wrong definition for [hud_movement_layers] %s", temp));
+				auto anm = &m_movement_layers[i][j][k];
+				_GetItem(layer_def, 0, tmp);
+				anm->Load(tmp);
 
-		_GetItem(layer_def, 0, tmp);
-		anm->Load(tmp);
-		_GetItem(layer_def, 1, tmp);
-		anm->anm->Speed() = (atof(tmp) ? atof(tmp) : 1.f);
-		_GetItem(layer_def, 2, tmp);
-		anm->m_power = (atof(tmp) ? atof(tmp) : 1.f);
-		m_movement_layers.push_back(anm);
-	}
+				_GetItem(layer_def, 1, tmp);
+				anm->anm->Speed() = (atof(tmp) ? atof(tmp) : 1.f);
+				anm->anm->Speed() *= pSettings->r_float("hud_movement_layers", shared_str().printf("pose_speed_k_%d", k).c_str());
+
+				_GetItem(layer_def, 2, tmp);
+				anm->m_power = (atof(tmp) ? atof(tmp) : 1.f);
+				anm->m_power *= pSettings->r_float("hud_movement_layers", shared_str().printf("weapon_state_power_k_%d", j).c_str());
+				float pose_power_k = pSettings->r_float("hud_movement_layers", shared_str().printf("pose_power_k_%d", k).c_str());
+				anm->m_power *= (i) ? pose_power_k : (1.f / pose_power_k);
+			}
 }
 
 player_hud::~player_hud()
@@ -431,9 +435,6 @@ player_hud::~player_hud()
 		xr_delete				(a);
 	}
 	m_pool.clear				();
-
-	delete_data(m_script_layers);
-	delete_data(m_movement_layers);
 }
 
 void player_hud::load(const shared_str& player_hud_sect)
@@ -519,7 +520,6 @@ void player_hud::render_hud()
 		m_attached_items[1]->render();
 }
 
-
 #include "../xrEngine/motion.h"
 
 u32 player_hud::motion_length(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md)
@@ -550,23 +550,13 @@ u32 player_hud::motion_length(const MotionID& M, const CMotionDef*& md, float sp
 void player_hud::update(Fmatrix CR$ cam_trans)
 {
 	m_transform = static_cast<Dmatrix>(cam_trans);
-	for (int i = 0; i < 2; i++)
-	{
-		if (auto pi = m_attached_items[i])
-		{
-			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
-			m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
-			m_transform.mulB_43(pi->hands_attach());
-			break;
-		}
-	}
 
 	update_bones(m_model->dcast_PKinematics());
 	for (int i = 0; i < 2; i++)
 		if (m_attached_items[i])
 			update_bones(m_attached_items[i]->m_model);
 
-	for (script_layer* anm : m_script_layers)
+	for (auto& anm : m_script_layers)
 	{
 		if (!anm || !anm->anm || (!anm->active && anm->blend_amount == 0.f))
 			continue;
@@ -595,56 +585,61 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM()));
 	}
 
-	bool need_blend[2];
-	need_blend[0] = (m_attached_items[0] && m_attached_items[0]->m_parent_hud_item->NeedBlendAnm());
-	need_blend[1] = (m_attached_items[1] && m_attached_items[1]->m_parent_hud_item->NeedBlendAnm());
-
-	for (movement_layer* anm : m_movement_layers)
-	{
-		if (!anm || !anm->anm || (!anm->active && anm->blend_amount[0] == 0.f && anm->blend_amount[1] == 0.f))
-			continue;
-
-		if (anm->active && (need_blend[0] || need_blend[1]))
-		{
-			if (need_blend[0])
+	for (auto& i : m_movement_layers)
+		for (auto& j : i)
+			for (auto& k : j)
 			{
-				anm->blend_amount[0] += Device.fTimeDelta / .4f;
+				auto anm = &k;
 
-				if (!m_attached_items[1])
-					anm->blend_amount[1] += Device.fTimeDelta / .4f;
-				else if (!need_blend[1])
-					anm->blend_amount[1] -= Device.fTimeDelta / .4f;
-			}
+				if (!anm || !anm->anm || (!anm->active && anm->blend_amount[0] == 0.f && anm->blend_amount[1] == 0.f))
+					continue;
 
-			if (need_blend[1])
-			{
-				anm->blend_amount[1] += Device.fTimeDelta / .4f;
+				if (anm->active)
+				{
+					if (m_attached_items[0])
+					{
+						anm->blend_amount[0] += Device.fTimeDelta / .4f;
+						if (!m_attached_items[1])
+							anm->blend_amount[1] += Device.fTimeDelta / .4f;
+					}
 
-				if (!m_attached_items[0])
-					anm->blend_amount[0] += Device.fTimeDelta / .4f;
-				else if (!need_blend[0])
+					if (m_attached_items[1])
+					{
+						anm->blend_amount[1] += Device.fTimeDelta / .4f;
+						if (!m_attached_items[0])
+							anm->blend_amount[0] += Device.fTimeDelta / .4f;
+					}
+				}
+				else
+				{
 					anm->blend_amount[0] -= Device.fTimeDelta / .4f;
+					anm->blend_amount[1] -= Device.fTimeDelta / .4f;
+				}
+
+				clamp(anm->blend_amount[0], 0.f, 1.f);
+				clamp(anm->blend_amount[1], 0.f, 1.f);
+
+				if (anm->blend_amount[0] == 0.f && anm->blend_amount[1] == 0.f)
+				{
+					anm->Stop(true);
+					continue;
+				}
+
+				anm->anm->Update(Device.fTimeDelta);
+
+				if ((anm->blend_amount[0] == anm->blend_amount[1]) || (anm->blend_amount[0] > 0.f))
+					m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM(0)));
 			}
-		}
-		else
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (auto pi = m_attached_items[i])
 		{
-			anm->blend_amount[0] -= Device.fTimeDelta / .4f;
-			anm->blend_amount[1] -= Device.fTimeDelta / .4f;
+			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
+			m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
+			m_transform.mulB_43(pi->hands_attach());
+			break;
 		}
-
-		clamp(anm->blend_amount[0], 0.f, 1.f);
-		clamp(anm->blend_amount[1], 0.f, 1.f);
-
-		if (anm->blend_amount[0] == 0.f && anm->blend_amount[1] == 0.f)
-		{
-			anm->Stop(true);
-			continue;
-		}
-
-		anm->anm->Update(Device.fTimeDelta);
-
-		if ((anm->blend_amount[0] == anm->blend_amount[1]) || (anm->blend_amount[0] > 0.f))
-			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM(0)));
 	}
 
 	if (m_attached_items[0])
@@ -767,7 +762,7 @@ void player_hud::detach_item_idx(u16 idx)
 
 	m_attached_items[idx]							= NULL;
 
-	if(idx==1 && attached_item(0))
+	if (idx==1 && attached_item(0))
 	{
 		u16 part_idR			= m_model->partitions().part_id("right_hand");
 		u32 bc					= m_model->LL_PartBlendsCount(part_idR);
@@ -794,11 +789,9 @@ void player_hud::detach_item_idx(u16 idx)
 				}
 			}
 		}
-	}else
-	if(idx==0 && attached_item(1))
-	{
-		OnMovementChanged(mcAnyMove);
 	}
+	else if (idx==0 && attached_item(1))
+		OnMovementChanged();
 }
 
 void player_hud::detach_item(CHudItem* item)
@@ -830,74 +823,56 @@ bool player_hud::inertion_allowed()
 	return true;
 }
 
-void player_hud::OnMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
+void player_hud::OnMovementChanged()
 {
-	if(cmd==0)
-	{
-		if(m_attached_items[0])
-		{
-			if(m_attached_items[0]->m_parent_hud_item->GetState()==CHUDState::eIdle)
-				m_attached_items[0]->m_parent_hud_item->PlayAnimIdle();
-		}
-		if(m_attached_items[1])
-		{
-			if(m_attached_items[1]->m_parent_hud_item->GetState()==CHUDState::eIdle)
-				m_attached_items[1]->m_parent_hud_item->PlayAnimIdle();
-		}
-	}else
-	{
-		if(m_attached_items[0])
-			m_attached_items[0]->m_parent_hud_item->OnMovementChanged(cmd);
+	if (!m_attached_items[0] && !m_attached_items[1])
+		return;
 
-		if(m_attached_items[1])
-			m_attached_items[1]->m_parent_hud_item->OnMovementChanged(cmd);
-	}
-
-	updateMovementLayerState();
+	if (m_attached_items[0])
+		m_attached_items[0]->m_parent_hud_item->onMovementChanged();
+	if (m_attached_items[1])
+		m_attached_items[1]->m_parent_hud_item->onMovementChanged();
+	g_player_hud->updateMovementLayerState();
 }
 
 void player_hud::updateMovementLayerState()
 {
-	CActor* pActor = Actor();
-
-	if (!pActor)
+	if (!(m_attached_items[0] && m_attached_items[0]->m_parent_hud_item->isUsingBlendIdleAnims() ||
+		m_attached_items[1] && m_attached_items[1]->m_parent_hud_item->isUsingBlendIdleAnims()))
 		return;
 
-	for (movement_layer* anm : m_movement_layers)
+	for (auto& i : m_movement_layers)
+		for (auto& j : i)
+			for (auto& k : j)
+				k.Stop(false);
+
+	eWeaponStateLayers wpn_state = eRelaxed;
+	if (m_attached_items[0])
+		if (auto wpn = m_attached_items[0]->m_parent_hud_item->object().cast_weapon())
+			wpn_state = (wpn->ADS()) ? eADS : ((wpn->IsZoomed()) ? eAim : ((wpn->ArmedMode()) ? eArmed : eRelaxed));
+
+	CEntity::SEntityState state;
+	Actor()->g_State(state);
+	ePoseLayers pose = (state.bCrouch) ? eCrouch : eStand;
+
+	if (state.bSprint)
+		m_movement_layers[eSprint][wpn_state][pose].Play();
+	else if (Actor()->AnyMove())
 	{
-		anm->Stop(false);
-	}
-
-	bool need_blend = (m_attached_items[0] && m_attached_items[0]->m_parent_hud_item->NeedBlendAnm() || m_attached_items[1] && m_attached_items[1]->m_parent_hud_item->NeedBlendAnm());
-
-	if (pActor->AnyMove() && need_blend)
-	{
-		CEntity::SEntityState state;
-		pActor->g_State(state);
-
-		CWeapon* wep = nullptr;
-
-		if (m_attached_items[0] && m_attached_items[0]->m_parent_hud_item->object().cast_weapon())
-			wep = m_attached_items[0]->m_parent_hud_item->object().cast_weapon();
-
-		if (wep && wep->IsZoomed())
-			state.bCrouch ? m_movement_layers[eAimCrouch]->Play() : m_movement_layers[eAimWalk]->Play();
-		else if (state.bCrouch)
-			m_movement_layers[eCrouch]->Play();
-		else if (state.bSprint)
-			m_movement_layers[eSprint]->Play();
-		else if (!isActorAccelerated(pActor->MovingState(), false))
-			m_movement_layers[eWalk]->Play();
+		if (isActorAccelerated(Actor()->MovingState(), false))
+			m_movement_layers[eRun][wpn_state][pose].Play();
 		else
-			m_movement_layers[eRun]->Play();
+			m_movement_layers[eWalk][wpn_state][pose].Play();
 	}
+	else
+		m_movement_layers[eIdle][wpn_state][pose].Play();
 }
 
-void player_hud::PlayBlendAnm(LPCSTR name, u8 part, float speed, float power, bool bLooped, bool no_restart)
+void player_hud::PlayBlendAnm(shared_str CR$ name, u8 part, float speed, float power, bool bLooped, bool no_restart)
 {
-	for (script_layer* anm : m_script_layers)
+	for (auto& anm : m_script_layers)
 	{
-		if (!xr_strcmp(*anm->m_name, name))
+		if (anm->m_name == name)
 		{
 			if (!no_restart)
 			{
@@ -918,15 +893,14 @@ void player_hud::PlayBlendAnm(LPCSTR name, u8 part, float speed, float power, bo
 		}
 	}
 
-	script_layer* anm = xr_new<script_layer>(name, part, speed, power, bLooped);
-	m_script_layers.push_back(anm);
+	m_script_layers.push_back(xr_new<script_layer>(name, part, speed, power, bLooped));
 }
 
-void player_hud::StopBlendAnm(LPCSTR name, bool bForce)
+void player_hud::StopBlendAnm(shared_str CR$ name, bool bForce)
 {
-	for (script_layer* anm : m_script_layers)
+	for (auto& anm : m_script_layers)
 	{
-		if (!xr_strcmp(*anm->m_name, name))
+		if (anm->m_name == name)
 		{
 			anm->Stop(bForce);
 			return;

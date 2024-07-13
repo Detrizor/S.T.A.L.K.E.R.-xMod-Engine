@@ -144,6 +144,13 @@ void CWeaponMagazined::Load(LPCSTR section)
 		CAddon::addAddonModules			(*this, addon_sect);
 	}
 	process_addon_modules				(*this, true);
+
+	if (pSettings->line_exist(hud_sect, "empty_click_anm"))
+	{
+		m_empty_click_anm.name			= pSettings->r_string(hud_sect, "empty_click_anm");
+		m_empty_click_anm.speed			= pSettings->r_float(hud_sect, "empty_click_anm_speed");
+		m_empty_click_anm.power			= pSettings->r_float(hud_sect, "empty_click_anm_power");
+	}
 }
 
 void CWeaponMagazined::FireStart()
@@ -584,6 +591,7 @@ void CWeaponMagazined::OnShot()
 void CWeaponMagazined::OnEmptyClick()
 {
 	PlaySound("sndEmptyClick", get_LastFP());
+	playBlendAnm(m_empty_click_anm.name, m_empty_click_anm.speed, m_empty_click_anm.power, false);
 }
 
 void CWeaponMagazined::switch2_Idle()
