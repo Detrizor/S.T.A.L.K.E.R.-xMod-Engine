@@ -55,8 +55,8 @@ private:
 	static float						s_shadow_far_scale_default;
 	static float						s_shadow_far_scale_offset_power;
 
-	static ref_sound					m_zoom_sound;
-	static ref_sound					m_zeroing_sound;
+	static shared_str					s_zoom_sound;
+	static shared_str					s_zeroing_sound;
 
 public:
 										CScope									(CGameObject* obj, shared_str CR$ section);

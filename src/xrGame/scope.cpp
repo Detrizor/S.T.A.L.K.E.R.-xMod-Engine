@@ -25,9 +25,8 @@ float CScope::s_shadow_scale_offset_power;
 float CScope::s_shadow_far_scale_default;
 float CScope::s_shadow_far_scale_offset_power;
 
-
-ref_sound CScope::m_zoom_sound;
-ref_sound CScope::m_zeroing_sound;
+shared_str CScope::s_zoom_sound;
+shared_str CScope::s_zeroing_sound;
 
 void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = aCenter)
 {
@@ -68,17 +67,12 @@ void CScope::loadStaticVariables()
 	s_shadow_far_scale_default			= pSettings->r_float("scope_manager", "shadow_far_scale_default");
 	s_shadow_far_scale_offset_power		= pSettings->r_float("scope_manager", "shadow_far_scale_offset_power");
 	
-	LPCSTR zoom_sound					= pSettings->r_string("scope_manager", "zoom_sound");
-	LPCSTR zeroing_sound				= pSettings->r_string("scope_manager", "zeroing_sound");
-	m_zoom_sound.create					(zoom_sound, st_Effect, SOUND_TYPE_NO_SOUND);
-	m_zeroing_sound.create				(zeroing_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+	s_zoom_sound						= pSettings->r_string("scope_manager", "zoom_sound");
+	s_zeroing_sound						= pSettings->r_string("scope_manager", "zeroing_sound");
 }
 
 void CScope::cleanStaticVariables()
 {
-	m_zoom_sound.destroy				();
-	m_zeroing_sound.destroy				();
-
 	xr_delete							(static_scope_shadow_far);
 	xr_delete							(static_scope_shadow);
 	xr_delete							(static_black_fill);
@@ -92,7 +86,7 @@ void CScope::ZoomChange(int val)
 	{
 		m_Magnificaion.Shift			(val);
 		ref_sound						snd;
-		snd.clone						(m_zoom_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+		snd.create						(s_zoom_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
 		snd.play						(O.Cast<CObject*>(), sm_2D);
 	}
 }
@@ -104,7 +98,7 @@ void CScope::ZeroingChange(int val)
 	{
 		m_Zeroing.Shift					(val);
 		ref_sound						snd;
-		snd.clone						(m_zeroing_sound, st_Effect, SOUND_TYPE_NO_SOUND);
+		snd.create						(s_zeroing_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
 		snd.play						(O.Cast<CObject*>(), sm_2D);
 	}
 }

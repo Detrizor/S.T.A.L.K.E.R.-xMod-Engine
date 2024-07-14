@@ -265,6 +265,9 @@ shared_str	ui_core::get_xml_name(LPCSTR fn)
 
 float ui_core::GetScale(EScaling scaling) const
 {
+	if (!this)
+		return						1.f;
+
 	switch (scaling)
 	{
 	case sAbsolute:
