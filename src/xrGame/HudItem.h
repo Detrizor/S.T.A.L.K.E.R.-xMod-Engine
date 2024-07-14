@@ -13,6 +13,7 @@ class CMotionDef;
 
 struct attachable_hud_item;
 class motion_marks;
+struct script_layer;
 
 struct SScriptAnm
 {
@@ -171,6 +172,10 @@ public:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+private:
+	SScriptAnm							m_show_anm;
+	SScriptAnm							m_hide_anm;
+
 protected:
 	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
 	float								m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
@@ -180,7 +185,7 @@ protected:
 
 	shared_str							m_anm_prefix							= 0;
 
-	void								playBlendAnm						C$	(shared_str CR$ name, float speed = 1.f, float power = 1.f, bool stop_old = true);
+	script_layer*						playBlendAnm						C$	(shared_str CR$ name, float speed = 1.f, float power = 1.f, bool stop_old = true);
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 
 public:

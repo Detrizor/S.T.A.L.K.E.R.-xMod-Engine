@@ -118,16 +118,6 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	}
 }
 
-void CWeaponMagazined::PlayAnimShow()
-{
-	PlayHUDMotion						("anm_show", FALSE, GetState());
-}
-
-void CWeaponMagazined::PlayAnimHide()
-{
-	PlayHUDMotion						("anm_hide", TRUE, GetState());
-}
-
 void CWeaponMagazined::PlayAnimShoot()
 {
 	if (isEmptyChamber() && HudAnimationExist("anm_shot_l"))

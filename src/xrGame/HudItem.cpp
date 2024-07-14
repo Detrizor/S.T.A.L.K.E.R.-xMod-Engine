@@ -49,6 +49,19 @@ void CHudItem::Load(LPCSTR section)
 	m_animation_slot					= pSettings->r_u32(section, "animation_slot");
 	m_sounds.LoadSound					(section, "snd_bore", "sndBore", true);
 	m_using_blend_idle_anims			= !!READ_IF_EXISTS(pSettings, r_bool, hud_sect, "using_blend_idle_anims", TRUE);
+	
+	if (pSettings->line_exist(hud_sect, "show_anm"))
+	{
+		m_show_anm.name					= pSettings->r_string(hud_sect, "show_anm");
+		m_show_anm.speed				= pSettings->r_float(hud_sect, "show_anm_speed");
+		m_show_anm.power				= pSettings->r_float(hud_sect, "show_anm_power");
+	}
+	if (pSettings->line_exist(hud_sect, "hide_anm"))
+	{
+		m_hide_anm.name				= pSettings->r_string(hud_sect, "hide_anm");
+		m_hide_anm.speed				= pSettings->r_float(hud_sect, "hide_anm_speed");
+		m_hide_anm.power				= pSettings->r_float(hud_sect, "hide_anm_power");
+	}
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
@@ -102,13 +115,22 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 	switch (S)
 	{
 	case eShowing:
-		PlayHUDMotion("anm_show", FALSE, S);
+		if (HudAnimationExist("anm_show"))
+			PlayHUDMotion("anm_show", FALSE, S);
+		else
+		{
+			auto anm = playBlendAnm(m_show_anm.name, m_show_anm.speed, m_show_anm.power, false);
+			anm->blend_amount = 1.f;
+		}
 		break;
 	case eHiding:
 		if (oldState != eHiding)
 		{
 			SetPending(TRUE);
-			PlayHUDMotion("anm_hide", FALSE, S);
+			if (HudAnimationExist("anm_hide"))
+				PlayHUDMotion("anm_hide", FALSE, S);
+			else
+				playBlendAnm(m_hide_anm.name, m_hide_anm.speed, m_hide_anm.power, false);
 		}
 		break;
 	case eIdle:
@@ -650,12 +672,12 @@ attachable_hud_item* CHudItem::HudItemData() const
 	return NULL;
 }
 
-void CHudItem::playBlendAnm(shared_str CR$ name, float speed, float power, bool stop_old) const
+script_layer* CHudItem::playBlendAnm(shared_str CR$ name, float speed, float power, bool stop_old) const
 {
 	if (stop_old)
 		g_player_hud->StopBlendAnm		(name, true);
 	u8 part								= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
-	g_player_hud->PlayBlendAnm			(name, part, speed, power, false);
+	return								g_player_hud->playBlendAnm(name, part, speed, power, false, false, GetState());
 }
 
 void CHudItem::UpdateSlotsTransform()

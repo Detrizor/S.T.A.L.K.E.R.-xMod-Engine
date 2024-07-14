@@ -333,20 +333,10 @@ bool CArtefact::Action(u16 cmd, u32 flags)
 void CArtefact::OnStateSwitch(u32 S, u32 oldState)
 {	
 	CHudItem::OnStateSwitch	(S, oldState);
-	
-	switch(S){
-	case eShowing:
-		PlayHUDMotion("anm_show", FALSE, S);
-		break;
-	case eHiding:
-		if (oldState != eHiding)
-			PlayHUDMotion("anm_hide", FALSE, S);
-		break;
+	switch(S)
+	{
 	case eActivating:
 		PlayHUDMotion("anm_activate", FALSE, S);
-		break;
-	case eIdle:
-		PlayAnimIdle();
 		break;
 	}
 }

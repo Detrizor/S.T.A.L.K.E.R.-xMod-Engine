@@ -662,7 +662,6 @@ void CWeaponMagazined::switch2_Hiding()
 	else
 	{
 		m_sub_state = eSubstateReloadBegin;
-		PlayAnimHide();
 		if (m_sounds_enabled)
 			PlaySound("sndHide", get_LastFP());
 	}
@@ -680,7 +679,6 @@ void CWeaponMagazined::switch2_Hidden()
 void CWeaponMagazined::switch2_Showing()
 {
 	SetPending(TRUE);
-	PlayAnimShow();
 	if (m_sounds_enabled)
 		PlaySound("sndShow", get_LastFP());
 }
