@@ -185,7 +185,7 @@ protected:
 
 	shared_str							m_anm_prefix							= 0;
 
-	script_layer*						playBlendAnm						C$	(shared_str CR$ name, float speed = 1.f, float power = 1.f, bool stop_old = true);
+	script_layer*						playBlendAnm						C$	(SScriptAnm CR$ anm, u32 state = 0, bool stop_old = false);
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 
 public:

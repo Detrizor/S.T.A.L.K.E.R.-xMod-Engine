@@ -311,11 +311,7 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 	rnd_idx					= (u8)Random.randI(anm->m_animations.size()) ;
 	const motion_descr& M	= anm->m_animations[ rnd_idx ];
 
-	u32						ret;
-	if (strstr(*anim_name, "_shot"))
-		ret					= g_player_hud->motion_length(M.mid, md, speed);
-	else
-		ret					= g_player_hud->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed);
+	u32 ret					= g_player_hud->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed);
 	
 	if(m_model->dcast_PKinematicsAnimated())
 	{
@@ -846,7 +842,7 @@ void player_hud::updateMovementLayerState()
 			for (auto& k : j)
 				k.Stop(false);
 
-	eWeaponStateLayers wpn_state = eRelaxed;
+	eWeaponStateLayers wpn_state = eArmed;
 	if (m_attached_items[0])
 		if (auto wpn = m_attached_items[0]->m_parent_hud_item->object().cast_weapon())
 			wpn_state = (wpn->ADS()) ? eADS : ((wpn->IsZoomed()) ? eAim : ((wpn->ArmedMode()) ? eArmed : eRelaxed));
@@ -859,7 +855,7 @@ void player_hud::updateMovementLayerState()
 		m_movement_layers[eSprint][wpn_state][pose].Play();
 	else if (Actor()->AnyMove())
 	{
-		if (isActorAccelerated(Actor()->MovingState(), false))
+		if (isActorAccelerated(Actor()->MovingState(), Actor()->IsZoomADSMode()))
 			m_movement_layers[eRun][wpn_state][pose].Play();
 		else
 			m_movement_layers[eWalk][wpn_state][pose].Play();

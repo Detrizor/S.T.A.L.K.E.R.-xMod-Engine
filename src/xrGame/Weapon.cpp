@@ -950,7 +950,7 @@ void CWeapon::SwitchArmedMode()
 		return;
 
 	m_bArmedMode = !m_bArmedMode;
-	playBlendAnm(m_safemode_anm[m_bArmedMode].name, m_safemode_anm[m_bArmedMode].speed, m_safemode_anm[m_bArmedMode].power, false);
+	playBlendAnm(m_safemode_anm[m_bArmedMode]);
 	g_player_hud->OnMovementChanged();
 }
 

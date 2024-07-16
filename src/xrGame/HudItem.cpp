@@ -119,7 +119,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 			PlayHUDMotion("anm_show", FALSE, S);
 		else
 		{
-			auto anm = playBlendAnm(m_show_anm.name, m_show_anm.speed, m_show_anm.power, false);
+			auto anm = playBlendAnm(m_show_anm, GetState());
 			anm->blend_amount = 1.f;
 		}
 		break;
@@ -130,7 +130,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 			if (HudAnimationExist("anm_hide"))
 				PlayHUDMotion("anm_hide", FALSE, S);
 			else
-				playBlendAnm(m_hide_anm.name, m_hide_anm.speed, m_hide_anm.power, false);
+				playBlendAnm(m_hide_anm, GetState());
 		}
 		break;
 	case eIdle:
@@ -484,19 +484,6 @@ void CHudItem::on_b_hud_detach()
 
 void CHudItem::on_a_hud_attach()
 {
-	if (m_current_motion_def)
-	{
-		PlayHUDMotion_noCB(m_current_motion, FALSE);
-#ifdef DEBUG
-		//		Msg("continue playing [%s][%d]",m_current_motion.c_str(), Device.dwFrame);
-#endif // #ifdef DEBUG
-	}
-	else
-	{
-#ifdef DEBUG
-		//		Msg("no active motion");
-#endif // #ifdef DEBUG
-	}
 }
 
 u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
@@ -576,6 +563,7 @@ BOOL CHudItem::GetHUDmode()
 
 void CHudItem::PlayAnimIdle()
 {
+	SetPending(FALSE);
 	if (m_using_blend_idle_anims || !TryPlayAnimIdle())
 		PlayHUDMotion("anm_idle", TRUE, GetState());
 }
@@ -672,12 +660,12 @@ attachable_hud_item* CHudItem::HudItemData() const
 	return NULL;
 }
 
-script_layer* CHudItem::playBlendAnm(shared_str CR$ name, float speed, float power, bool stop_old) const
+script_layer* CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool stop_old) const
 {
 	if (stop_old)
-		g_player_hud->StopBlendAnm		(name, true);
+		g_player_hud->StopBlendAnm		(anm.name, true);
 	u8 part								= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
-	return								g_player_hud->playBlendAnm(name, part, speed, power, false, false, GetState());
+	return								g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power, false, false, state);
 }
 
 void CHudItem::UpdateSlotsTransform()

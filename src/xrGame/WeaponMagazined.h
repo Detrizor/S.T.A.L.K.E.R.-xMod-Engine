@@ -202,8 +202,10 @@ private:
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
 	bool								m_mag_attach_bolt_release;
+	bool								m_bolt_catch;
 	shared_str							m_iron_sight_section;
 	SScriptAnm							m_empty_click_anm;
+	SScriptAnm							m_firemode_anm;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);

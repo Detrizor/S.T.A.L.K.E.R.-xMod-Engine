@@ -120,11 +120,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 
 void CWeaponMagazined::PlayAnimShoot()
 {
-	if (isEmptyChamber() && HudAnimationExist("anm_shot_l"))
-	{
-		PlayHUDMotion					("anm_shot_l", FALSE, GetState());
+	if (isEmptyChamber() && m_bolt_catch)
 		m_locked						= true;
-	}
-	else
-		PlayHUDMotion					("anm_shots", FALSE, GetState());
+	PlayHUDMotion						("anm_shoot", FALSE, GetState());
 }

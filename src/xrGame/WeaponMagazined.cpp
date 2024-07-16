@@ -132,6 +132,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_bool, section, "mag_attach_bolt_release", FALSE);
+	m_bolt_catch						= !!READ_IF_EXISTS(pSettings, r_bool, section, "bolt_catch", FALSE);
 	m_iron_sight_section				= READ_IF_EXISTS(pSettings, r_string, section, "iron_sight_section", 0);
 	m_iron_sights						= (m_iron_sight_section.size()) ? 0 : 1;
 	m_iron_sights_blockers				= m_iron_sights;
@@ -150,6 +151,13 @@ void CWeaponMagazined::Load(LPCSTR section)
 		m_empty_click_anm.name			= pSettings->r_string(hud_sect, "empty_click_anm");
 		m_empty_click_anm.speed			= pSettings->r_float(hud_sect, "empty_click_anm_speed");
 		m_empty_click_anm.power			= pSettings->r_float(hud_sect, "empty_click_anm_power");
+	}
+
+	if (pSettings->line_exist(hud_sect, "firemode_anm"))
+	{
+		m_firemode_anm.name				= pSettings->r_string(hud_sect, "firemode_anm");
+		m_firemode_anm.speed			= pSettings->r_float(hud_sect, "firemode_anm_speed");
+		m_firemode_anm.power			= pSettings->r_float(hud_sect, "firemode_anm_power");
 	}
 }
 
@@ -207,7 +215,7 @@ void CWeaponMagazined::Reload()
 
 	if (IsMisfire() || m_actor && m_chamber.capacity())
 	{
-		bool lock						= (!m_locked && HudAnimationExist("anm_shot_l") && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false));
+		bool lock						= (!m_locked && m_bolt_catch && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false));
 		StartReload						((lock) ? eSubstateReloadBoltLock : eSubstateReloadBolt);
 	}
 	else if (!m_actor && has_ammo_for_reload())
@@ -438,6 +446,9 @@ void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
 	case eHidden:
 		switch2_Hidden();
 		break;
+	case eFiremode:
+		on_firemode_switch();
+		break;
 	}
 }
 
@@ -591,15 +602,14 @@ void CWeaponMagazined::OnShot()
 void CWeaponMagazined::OnEmptyClick()
 {
 	PlaySound("sndEmptyClick", get_LastFP());
-	playBlendAnm(m_empty_click_anm.name, m_empty_click_anm.speed, m_empty_click_anm.power, false);
+	PlayHUDMotion("anm_trigger", FALSE, GetState());
+	playBlendAnm(m_empty_click_anm);
 }
 
 void CWeaponMagazined::switch2_Idle()
 {
 	m_iShotNum = 0;
-
 	m_sub_state = eSubstateReloadBegin;
-	SetPending(FALSE);
 	PlayAnimIdle();
 }
 
@@ -734,25 +744,13 @@ void CWeaponMagazined::updataeSilencerKoeffs()
 		m_silencer_koef.Reset();
 }
 
-//переключение режимов стрельбы одиночными и очередями
-void CWeaponMagazined::on_firemode_switch()
-{
-	if (HudAnimationExist("anm_firemode"))
-	{
-		SwitchState(eFiremode);
-		PlayHUDMotion("anm_firemode", TRUE, GetState());
-	}
-	if (m_sounds_enabled)
-		PlaySound("sndFiremode", get_LastFP());
-}
-
 void CWeaponMagazined::OnNextFireMode()
 {
 	if (!m_bHasDifferentFireModes) return;
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode + 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
-	on_firemode_switch();
+	SwitchState(eFiremode);
 }
 
 void CWeaponMagazined::OnPrevFireMode()
@@ -761,7 +759,7 @@ void CWeaponMagazined::OnPrevFireMode()
 	if (GetState() != eIdle) return;
 	m_iCurFireMode = (m_iCurFireMode - 1 + m_aFireModes.size()) % m_aFireModes.size();
 	SetQueueSize(GetCurrentFireMode());
-	on_firemode_switch();
+	SwitchState(eFiremode);
 }
 
 void CWeaponMagazined::SetQueueSize(int size)
@@ -1045,6 +1043,17 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 
 	if (m_selected_scopes[idx])
 		m_selected_scopes[idx]->setSelection(idx);
+}
+
+void CWeaponMagazined::on_firemode_switch()
+{
+	SetPending							(TRUE);
+	if (HudAnimationExist("anm_firemode"))
+		PlayHUDMotion					("anm_firemode", TRUE, GetState());
+	else
+		playBlendAnm					(m_firemode_anm, GetState());
+	if (m_sounds_enabled)
+		PlaySound						("sndFiremode", get_LastFP());
 }
 
 shared_str iron_sights_bone				= "iron_sights";
