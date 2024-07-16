@@ -469,10 +469,8 @@ public:
 
 protected:
 	//если актер целитс€ в прицел
-	void								SetZoomAimingMode	(bool val)	{m_bZoomAimingMode = val;}
-	void								SetZoomADSMode		(bool val)	{m_bZoomADSMode = val;}
-	bool								m_bZoomAimingMode;
-	bool								m_bZoomADSMode;
+	bool								m_bZoomAimingMode		= false;
+	bool								m_bZoomADSMode			= false;
 
 	//настройки аккуратности стрельбы
 	//базова€ дисперси€ (когда игрок стоит на месте)
@@ -492,6 +490,9 @@ public:
 	// ѕолучение, и запись смещени€ дл€ гранат
 	Fvector								GetMissileOffset	() const;
 	void								SetMissileOffset	(const Fvector &vNewOffset);
+	
+	void								setZoomAimingMode	(bool val)	{ m_bZoomAimingMode = val; }
+	void								setZoomADSMode		(bool val)	{ m_bZoomADSMode = val; }
 
 protected:
 	//косточки используемые при стрельбе

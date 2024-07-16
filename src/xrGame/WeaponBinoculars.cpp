@@ -42,35 +42,28 @@ bool CWeaponBinoculars::Action(u16 cmd, u32 flags)
 	return inherited::Action(cmd, flags);
 }
 
-void CWeaponBinoculars::OnZoomIn		()
+void CWeaponBinoculars::setADS(int mode)
 {
-	if(H_Parent() && !IsZoomed())
+	if (mode)
 	{
-		m_sounds.StopSound("sndZoomOut");
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());
-		m_sounds.PlaySound("sndZoomIn", H_Parent()->Position(), H_Parent(), b_hud_mode);
-		if(m_bVision && !m_binoc_vision) 
+		if (H_Parent() && !ADS())
 		{
-			//.VERIFY			(!m_binoc_vision);
-			m_binoc_vision	= xr_new<CBinocularsVision>(cNameSect());
+			m_sounds.StopSound("sndZoomOut");
+			bool b_hud_mode = (Level().CurrentEntity() == H_Parent());
+			m_sounds.PlaySound("sndZoomIn", H_Parent()->Position(), H_Parent(), b_hud_mode);
+			if (m_bVision && !m_binoc_vision)
+				m_binoc_vision = xr_new<CBinocularsVision>(cNameSect());
 		}
 	}
-	inherited::OnZoomIn		();
-}
-
-void CWeaponBinoculars::OnZoomOut		()
-{
-	if(H_Parent() && IsZoomed() && !IsRotatingToZoom())
+	else if (H_Parent() && ADS() && !IsRotatingToZoom())
 	{
 		m_sounds.StopSound("sndZoomIn");
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());	
+		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());
 		m_sounds.PlaySound("sndZoomOut", H_Parent()->Position(), H_Parent(), b_hud_mode);
-		VERIFY			(m_binoc_vision);
-		xr_delete		(m_binoc_vision);
+		xr_delete(m_binoc_vision);
 	}
 
-
-	inherited::OnZoomOut();
+	inherited::setADS(mode);
 }
 
 BOOL CWeaponBinoculars::net_Spawn(CSE_Abstract* DC)

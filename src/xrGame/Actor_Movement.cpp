@@ -530,7 +530,7 @@ bool isActorAccelerated(u32 mstate, bool ZoomMode)
 {
 	bool res = !!(mstate&mcAccel);
 
-	if (mstate&(mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))
+	if (mstate&(mcClimb|mcJump|mcLanding|mcLanding2))
 		return res;
 	if (mstate & mcLookout || ZoomMode)
 		return false;

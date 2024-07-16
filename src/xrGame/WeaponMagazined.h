@@ -239,7 +239,7 @@ protected:
 	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
-	void								SetADS								O$	(int mode);
+	void								setADS								O$	(int mode);
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 

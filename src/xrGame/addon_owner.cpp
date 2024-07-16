@@ -532,6 +532,10 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 
 bool CAddonSlot::CanTake(CAddon CPC addon) const
 {
+	auto hi								= parent_ao->cast<CHudItem*>();
+	if (hi->IsPending())
+		return							false;
+
 	if (!isCompatible(type, addon->SlotType()))
 		return							false;
 	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())

@@ -649,7 +649,7 @@ void CWeaponMagazined::switch2_Reload()
 
 void CWeaponMagazined::switch2_Hiding()
 {
-	OnZoomOut();
+	setAiming(false);
 	CWeapon::FireEnd();
 	
 	SetPending(TRUE);
@@ -1386,10 +1386,10 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 	return								result[0];
 }
 
-void CWeaponMagazined::SetADS(int mode)
+void CWeaponMagazined::setADS(int mode)
 {
 	bool prev							= !!ADS();
-	inherited::SetADS					(mode);
+	inherited::setADS					(mode);
 	bool cur							= !!ADS();
 	if (prev == cur)
 		return;

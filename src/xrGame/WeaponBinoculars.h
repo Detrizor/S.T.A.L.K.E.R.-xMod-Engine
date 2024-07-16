@@ -19,8 +19,6 @@ public:
 
 	void			Load				(LPCSTR section);
 
-	virtual void	OnZoomIn			();
-	virtual void	OnZoomOut			();
 	virtual void	net_Destroy			();
 	virtual BOOL	net_Spawn			(CSE_Abstract* DC);
 	bool			can_kill			() const;
@@ -35,6 +33,9 @@ protected:
 	CBinocularsVision*					m_binoc_vision;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	void								setADS								O$	(int mode);
 };
 add_to_type_list(CWeaponBinoculars)
 #undef script_type_list

@@ -184,9 +184,6 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 
 	m_pActorEffector = NULL;
 
-	SetZoomAimingMode(false);
-	SetZoomADSMode(false);
-
 	m_sDefaultObjAction = NULL;
 
 	m_fSprintFactor = 4.f;
@@ -950,10 +947,7 @@ void CActor::UpdateCL()
 			VicinityUpdate();
 	}
 
-	SetZoomAimingMode(false);
-	SetZoomADSMode(false);
-	m_accuracy = 1.f;
-
+	update_accuracy();
 	cam_Update(float(Device.dwTimeDelta) / 1000.0f, currentFOV());
 
 	bool current_entity = Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID();
@@ -964,15 +958,10 @@ void CActor::UpdateCL()
 		HUD().SetCrosshairDisp(0.f);
 	}
 
-	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
-	if (pWeapon)
+	if (auto wpn = smart_cast<CWeapon*>(inventory().ActiveItem()))
 	{
-		if (pWeapon->IsZoomed())
+		if (wpn->IsZoomed())
 		{
-			SetZoomAimingMode(true);
-			if (pWeapon->ADS())
-				SetZoomADSMode(true);
-
 			//Alun: Force switch to first-person for zooming
 			if (!bLook_cam_fp_zoom && cam_active == eacLookAt && cam_Active()->m_look_cam_fp_zoom == true)
 			{
@@ -986,24 +975,23 @@ void CActor::UpdateCL()
 			bLook_cam_fp_zoom = false;
 		}
 
-		update_accuracy();
 		if (auto S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom)))
-			S->SetParams(pWeapon->GetFireDispersion(1.f));
+			S->SetParams(wpn->GetFireDispersion(1.f));
 
 		if (current_entity)
 		{
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
-			HUD().ShowCrosshair(pWeapon->use_crosshair());
+			HUD().ShowCrosshair(wpn->use_crosshair());
 
 			if (cam_active == eacLookAt && !cam_Active()->m_look_cam_fp_zoom)
 				psHUD_Flags.set(HUD_CROSSHAIR_RT2, TRUE);
 			else
-				psHUD_Flags.set(HUD_CROSSHAIR_RT2, pWeapon->show_crosshair());
+				psHUD_Flags.set(HUD_CROSSHAIR_RT2, wpn->show_crosshair());
 
 			psHUD_Flags.set(HUD_WEAPON_RT, TRUE);
-			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
+			psHUD_Flags.set(HUD_DRAW_RT, wpn->show_indicators());
 		}
 	}
 	else if (current_entity)
@@ -1048,9 +1036,9 @@ void CActor::UpdateCL()
 	if (IsFocused())
 		g_player_hud->update(trans);
 
-	CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*>(pWeapon);
-	if (pWM && current_entity)
-		pWM->UpdateShadersDataAndSVP(Cameras());
+	auto wpn = smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
+	if (wpn && current_entity)
+		wpn->UpdateShadersDataAndSVP(Cameras());
 	else
 	{
 		Device.SVP.setActive(false);
@@ -1593,10 +1581,6 @@ void CActor::OnItemDrop(CInventoryItem *inventory_item, bool just_before_destroy
 	CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(inventory_item);
 	if (outfit && inventory_item->m_ItemCurrPlace.type == eItemPlaceSlot)
 		outfit->ApplySkinModel(this, false, false);
-
-	CWeapon* weapon = smart_cast<CWeapon*>(inventory_item);
-	if (weapon && inventory_item->m_ItemCurrPlace.type == eItemPlaceSlot)
-		weapon->OnZoomOut();
 }
 
 void CActor::OnItemDropUpdate()

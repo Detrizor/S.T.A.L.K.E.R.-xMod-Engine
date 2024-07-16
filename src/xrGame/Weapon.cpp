@@ -387,7 +387,7 @@ void CWeapon::OnActiveItem()
 void CWeapon::OnHiddenItem()
 {
 	m_BriefInfo_CalcFrame = 0;
-	OnZoomOut();
+	setAiming(false);
 	inherited::OnHiddenItem();
 }
 
@@ -401,7 +401,7 @@ void CWeapon::OnH_B_Chield()
 	m_actor = nullptr;
 	m_dwWeaponIndependencyTime = 0;
 	inherited::OnH_B_Chield();
-	OnZoomOut();
+	setAiming(false);
 }
 
 extern u32 hud_adj_mode;
@@ -500,12 +500,12 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		if (flags&CMD_START)
 		{
 			if (g_hud_adjusment_mode && IsZoomed())
-				OnZoomOut();
+				setAiming(false);
 			else if (!IsZoomed())
-				OnZoomIn();
+				setAiming(true);
 		}
 		else if (!g_hud_adjusment_mode)
-			OnZoomOut();
+			setAiming(false);
 		return true;
 
 	case kWPN_ZOOM_INC:
@@ -624,24 +624,6 @@ BOOL CWeapon::IsMisfire() const
 	return bMisfire;
 }
 
-void CWeapon::OnZoomIn()
-{
-	m_zoom_params.m_bIsZoomModeNow = true;
-	if (!ArmedMode())
-		SwitchArmedMode();
-	else
-		g_player_hud->OnMovementChanged();
-}
-
-void CWeapon::OnZoomOut()
-{
-	m_zoom_params.m_bIsZoomModeNow = false;
-	if (ADS())
-		SetADS(0);
-	else
-		g_player_hud->OnMovementChanged();
-}
-
 void CWeapon::reinit()
 {
 	CShootingObject::reinit();
@@ -709,6 +691,20 @@ void CWeapon::SetActivationSpeedOverride(Fvector const& speed)
 {
 	m_overriden_activation_speed = speed;
 	m_activation_speed_is_overriden = true;
+}
+
+void CWeapon::setAiming(bool mode)
+{
+	m_zoom_params.m_bIsZoomModeNow		= mode;
+	if (m_actor)
+		m_actor->setZoomAimingMode		(mode);
+
+	if (mode && !ArmedMode())
+		SwitchArmedMode					();
+	else if (!mode && ADS())
+		setADS							(0);
+	else
+		g_player_hud->OnMovementChanged	();
 }
 
 void CWeapon::activate_physic_shell()
@@ -901,7 +897,7 @@ bool CWeapon::IsHudModeNow()
 void CWeapon::ZoomInc()
 {
 	if (IsZoomed())
-		SetADS							(ADS() ? -ADS() : 1);
+		setADS							(ADS() ? -ADS() : 1);
 	else if (!ArmedMode())
 		SwitchArmedMode					();
 }
@@ -909,7 +905,7 @@ void CWeapon::ZoomInc()
 void CWeapon::ZoomDec()
 {
 	if (IsZoomed())
-		SetADS							(ADS() ? 0 : -1);
+		setADS							(ADS() ? 0 : -1);
 	else if (ArmedMode())
 		SwitchArmedMode					();
 }
@@ -934,7 +930,7 @@ Fvector CWeapon::readRecoilPattern(LPCSTR type) const
 	return READ_IF_EXISTS(pSettings, r_fvector3, "recoil_patterns", type, vOne);
 }
 
-void CWeapon::SetADS(int mode)
+void CWeapon::setADS(int mode)
 {
 	if (mode == -1 && !HasAltAim())
 		return;
@@ -943,6 +939,8 @@ void CWeapon::SetADS(int mode)
 		ResetSubStateTime();
 
 	m_iADS = mode;
+	if (m_actor)
+		m_actor->setZoomADSMode(mode);
 	g_player_hud->OnMovementChanged();
 }
 

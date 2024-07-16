@@ -160,8 +160,6 @@ public:
 	IC bool					IsZoomEnabled()	const { return m_zoom_params.m_bZoomEnabled; }
 	virtual	void			ZoomInc();
 	virtual	void			ZoomDec();
-	virtual void			OnZoomIn();
-	virtual void			OnZoomOut();
 	IC		bool			IsZoomed()	const { return m_zoom_params.m_bIsZoomModeNow; };
 
 	bool			ZoomHideCrosshair()
@@ -478,7 +476,8 @@ protected:
 	CCartridge						V$	getCartridgeToShoot						()						{ return m_chamber.back(); }
 	bool							V$	HasAltAim							C$	()						{ return m_bHasAltAim; }
 	
-	void							V$	SetADS									(int mode);
+	void							V$	setADS									(int mode);
+	void							V$	setAiming								(bool mode);
 
 public:
 	static void							loadStaticVariables						();

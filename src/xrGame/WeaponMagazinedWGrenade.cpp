@@ -49,7 +49,7 @@ bool CWeaponMagazinedWGrenade::switch_mode()
 	m_BriefInfo_CalcFrame				= 0;
 	if (HudAnimationExist("anm_switch"))
 	{
-		SetADS							(0);
+		setADS							(0);
 		SetPending						(TRUE);
 		SwitchState						(eSwitch);
 	}
