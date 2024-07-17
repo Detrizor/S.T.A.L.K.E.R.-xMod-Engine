@@ -17,8 +17,9 @@ struct script_layer;
 
 struct SScriptAnm
 {
-	shared_str name;
-	float power, speed;
+	shared_str name = 0;
+	float power = 1.f;
+	float speed = 1.f;
 };
 
 class CHUDState
@@ -194,7 +195,6 @@ public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
-	bool							V$	AltHandsAttach						C$	()		{ return false; }
 	LPCSTR							V$	anmType								C$	()		{ return ""; }
 };
 

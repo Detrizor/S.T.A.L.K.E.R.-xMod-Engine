@@ -1050,7 +1050,7 @@ void CWeaponMagazined::on_firemode_switch()
 	SetPending							(TRUE);
 	if (HudAnimationExist("anm_firemode"))
 		PlayHUDMotion					("anm_firemode", TRUE, GetState());
-	else
+	if (m_firemode_anm.name.size())
 		playBlendAnm					(m_firemode_anm, GetState());
 	if (m_sounds_enabled)
 		PlaySound						("sndFiremode", get_LastFP());
