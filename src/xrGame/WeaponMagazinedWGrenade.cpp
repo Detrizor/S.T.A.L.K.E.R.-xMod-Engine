@@ -346,11 +346,6 @@ int CWeaponMagazinedWGrenade::ADS() const
 	return								res;
 }
 
-bool CWeaponMagazinedWGrenade::AltHandsAttach() const
-{
-	return								m_bGrenadeMode;// && ADS();
-}
-
 void CWeaponMagazinedWGrenade::start_flame_particles_gl()
 {
 	CShootingObject::StartParticles		(m_flame_particles_gl, *m_flame_particles_gl_name, fire_point_gl());

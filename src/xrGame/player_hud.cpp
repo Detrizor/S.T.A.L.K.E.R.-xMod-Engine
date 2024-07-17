@@ -190,11 +190,6 @@ void attachable_hud_item::render_item_ui()
 	m_parent_hud_item->render_item_3d_ui();
 }
 
-Dmatrix CR$ attachable_hud_item::hands_attach() const
-{
-	return m_hands_attach[m_parent_hud_item->AltHandsAttach()];
-}
-
 void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 {
 	R_ASSERT2(pSettings->line_exist(hud_section, "fire_point") == pSettings->line_exist(hud_section, "fire_bone"), hud_section);
@@ -288,14 +283,10 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 	m_item_attach.translate_over		(static_cast<Dvector>(pSettings->r_fvector3(hud_section, "item_position")));
 	
 	if (!m_auto_attach_anm.size())
-	{
-		m_hands_attach[0].identity();
-		m_hands_attach[0].setOffset(
+		m_hands_attach.setOffset(
 			static_cast<Dvector>(pSettings->r_fvector3(hud_section, "hands_position")),
 			static_cast<Dvector>(pSettings->r_fvector3d2r(hud_section, "hands_orientation"))
 		);
-		m_hands_attach[1] = m_hands_attach[0];
-	}
 }
 
 u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)
@@ -633,7 +624,7 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 		{
 			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
 			m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
-			m_transform.mulB_43(pi->hands_attach());
+			m_transform.mulB_43(pi->m_hands_attach);
 			break;
 		}
 	}
@@ -712,18 +703,11 @@ void player_hud::attach_item(CHudItem* item)
 		
 		if (pi->m_auto_attach_anm.size())
 		{
-			auto calc_hands_attach = [this, pi](shared_str CR$ anm, Dmatrix& dest)
-			{
-				pi->m_parent_hud_item->PlayHUDMotion(anm, FALSE, 0);
-				update_bones(m_model->dcast_PKinematics());
-				dest = static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]));
-				dest.mulB_43(pi->m_item_attach);
-				dest.invert();
-			};
-
-			calc_hands_attach(pi->m_auto_attach_anm, pi->m_hands_attach[0]);
-			if (pi->m_parent_hud_item->HudAnimationExist("anm_g_idle_aim"))		//--xd not good, will be reworked some way
-				calc_hands_attach("anm_g_idle_aim", pi->m_hands_attach[1]);
+			pi->m_parent_hud_item->PlayHUDMotion(pi->m_auto_attach_anm, FALSE, 0);
+			update_bones(m_model->dcast_PKinematics());
+			pi->m_hands_attach = static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]));
+			pi->m_hands_attach.mulB_43(pi->m_item_attach);
+			pi->m_hands_attach.invert();
 
 			if (auto ao = pi->m_parent_hud_item->object().Cast<CAddonOwner*>())
 			{

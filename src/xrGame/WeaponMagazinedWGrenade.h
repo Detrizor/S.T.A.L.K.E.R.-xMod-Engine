@@ -27,7 +27,6 @@ protected:
 	bool								IsNecessaryItem						O$	(const shared_str& item_sect);
 	void								PlayAnimReload						O$	();
 
-	bool								AltHandsAttach						CO$	();
 	bool								HasAltAim							CO$	();
 	int									ADS									CO$	();
 

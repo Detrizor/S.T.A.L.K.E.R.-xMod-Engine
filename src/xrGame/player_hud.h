@@ -190,7 +190,7 @@ struct attachable_hud_item
 
 	//runtime positioning
 	Dmatrix							m_item_attach;
-	Dmatrix							m_hands_attach[2];
+	Dmatrix							m_hands_attach;
 	Dmatrix							m_transform;
 
 	player_hud_motion_container		m_hand_motions;
@@ -206,9 +206,6 @@ struct attachable_hud_item
 	bool need_renderable			();
 	void set_bone_visible			(const shared_str& bone_name, BOOL bVisibility, BOOL bSilent=FALSE);
 	void debug_draw_firedeps		();
-
-	//hands bind position
-	Dmatrix CR$ hands_attach	C$	();
 
 //props
 	u32								m_upd_firedeps_frame;
