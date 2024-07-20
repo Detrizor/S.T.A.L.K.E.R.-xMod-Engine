@@ -533,8 +533,9 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 bool CAddonSlot::CanTake(CAddon CPC addon) const
 {
 	auto hi								= parent_ao->cast<CHudItem*>();
-	if (hi->IsPending())
-		return							false;
+	if (hi->HudItemData())
+		if (hi->IsPending())
+			return						false;
 
 	if (!isCompatible(type, addon->SlotType()))
 		return							false;
