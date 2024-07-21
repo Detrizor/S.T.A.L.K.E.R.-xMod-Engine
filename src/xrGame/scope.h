@@ -66,13 +66,14 @@ private:
 	const eScopeType					m_Type;
 	const float							m_ads_speed_factor;
 	
-	CUIStatic*							m_pUIReticle							= NULL;
-	CBinocularsVision*					m_pVision								= NULL;
-	CNightVisionEffector*				m_pNight_vision							= NULL;
+	CUIStatic*							m_pUIReticle							= nullptr;
+	CBinocularsVision*					m_pVision								= nullptr;
+	CNightVisionEffector*				m_pNight_vision							= nullptr;
 	float								m_camera_lense_distance					= 0.f;
 	Dvector								m_hud_offset[2]							= { dZero, dZero };
 	s8									m_selection								= -1;
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
+	xptr<CScope>						m_backup_sight							= nullptr;
 
 	Dvector								m_sight_offset[2];
 	SRangeNum<u16>						m_Zeroing;
@@ -115,6 +116,7 @@ public:
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
+	CScope*								getBackupSight						C$	()		{ return m_backup_sight.get(); }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

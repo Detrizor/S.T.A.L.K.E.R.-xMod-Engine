@@ -1147,6 +1147,9 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 			cycle_scope					(1);
 		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
 	}
+
+	if (scope->getBackupSight())
+		process_scope					(scope->getBackupSight(), attach);
 }
 
 void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
