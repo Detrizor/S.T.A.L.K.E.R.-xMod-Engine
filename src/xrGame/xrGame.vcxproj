@@ -1406,6 +1406,7 @@
     <ClInclude Include="cover_point_inline.h" />
     <ClInclude Include="cta_game_artefact.h" />
     <ClInclude Include="cta_game_artefact_activation.h" />
+    <ClInclude Include="foldable.h" />
     <ClInclude Include="ui\CUIAddonInfo.h" />
     <ClInclude Include="item_usable.h" />
     <ClInclude Include="CustomDetector.h" />
@@ -3119,6 +3120,7 @@
     </ClCompile>
     <ClCompile Include="cta_game_artefact.cpp" />
     <ClCompile Include="cta_game_artefact_activation.cpp" />
+    <ClCompile Include="foldable.cpp" />
     <ClCompile Include="ui\CUIAddonInfo.cpp" />
     <ClCompile Include="item_usable.cpp" />
     <ClCompile Include="CustomDetector.cpp" />

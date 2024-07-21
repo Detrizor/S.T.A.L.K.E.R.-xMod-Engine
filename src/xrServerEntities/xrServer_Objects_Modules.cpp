@@ -13,6 +13,8 @@ xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type)
 		return							xr_new<CSE_ALifeModuleAddon>();
 	case mScope:
 		return							xr_new<CSE_ALifeModuleScope>();
+	case mFoldable:
+		return							xr_new<CSE_ALifeModuleFoldable>();
 	default:
 		return							nullptr;
 	}
@@ -70,4 +72,16 @@ void CSE_ALifeModuleScope::STATE_Read(NET_Packet& tNetPacket)
 	tNetPacket.r_float					(m_magnification);
 	tNetPacket.r_u16					(m_zeroing);
 	tNetPacket.r_s8						(m_selection);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CSE_ALifeModuleFoldable::STATE_Write(NET_Packet& tNetPacket)
+{
+	tNetPacket.w_u8						(m_status);
+}
+
+void CSE_ALifeModuleFoldable::STATE_Read(NET_Packet& tNetPacket)
+{
+	tNetPacket.r_u8						(m_status);
 }

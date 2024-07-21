@@ -33,6 +33,7 @@
 #include "addon_owner.h"
 #include "inventory_item_amountable.h"
 #include "item_usable.h"
+#include "foldable.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -175,6 +176,9 @@ void CInventoryItem::Load(LPCSTR section)
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "usable", FALSE))
 		m_object->AddModule<CUsable>();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "foldable", FALSE))
+		m_object->AddModule<CFoldable>();
 }
 
 float CInventoryItem::GetConditionToWork() const

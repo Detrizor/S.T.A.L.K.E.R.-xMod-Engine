@@ -496,6 +496,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("attach",						&CScriptGameObject::attach)
 		.def("detach",						&CScriptGameObject::detach)
 		.def("shift",						&CScriptGameObject::shift)
+			
+		.def("fold",						&CScriptGameObject::fold)
+		.def("unfold",						&CScriptGameObject::unfold)
+		.def("is_folded",					&CScriptGameObject::isFolded)
 #endif
 
 

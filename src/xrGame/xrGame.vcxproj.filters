@@ -7357,6 +7357,7 @@
     <ClInclude Include="ui\CUIAddonInfo.h">
       <Filter>UI\Common\ui-item-infos</Filter>
     </ClInclude>
+    <ClInclude Include="foldable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11014,6 +11015,7 @@
     <ClCompile Include="ui\CUIAddonInfo.cpp">
       <Filter>UI\Common\ui-item-infos</Filter>
     </ClCompile>
+    <ClCompile Include="foldable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

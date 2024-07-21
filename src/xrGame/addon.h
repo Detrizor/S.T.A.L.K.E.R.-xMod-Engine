@@ -41,6 +41,7 @@ public:
 	void								setSlotIdx								(int v)					{ m_slot_idx = (u16)v; }
 	void								setSlotPos								(int v)					{ m_slot_pos = (s16)v; }
 	void								setLocalTransform						(Dmatrix CR$ trans)		{ m_local_transform = trans; }
+	void								setLowProfile							(bool status)			{ m_low_profile = status; }
 
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	

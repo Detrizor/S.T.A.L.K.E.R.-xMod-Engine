@@ -185,8 +185,6 @@ private:
 
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
-	u8									m_iron_sights_blockers					= 0;
-	u8									m_iron_sights							= 0;
 	CMuzzle*							m_muzzle								= nullptr;
 	CSilencer*							m_silencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
@@ -203,7 +201,6 @@ private:
 	bool								m_lock_state_reload;
 	bool								m_mag_attach_bolt_release;
 	bool								m_bolt_catch;
-	shared_str							m_iron_sight_section;
 	SScriptAnm							m_empty_click_anm;
 	SScriptAnm							m_firemode_anm;
 
@@ -213,17 +210,15 @@ private:
 	void								load_muzzle_params						(CMuzzleBase* src);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
-	void								process_addon							(CAddon* addon, bool attach);
 	void								process_barrel							(CBarrel* barrel, bool attach);
 	void								process_muzzle							(CMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);
 	void								process_scope							(CScope* scope, bool attach);
 	
-	bool								iron_sights_up						C$	()		{ return m_iron_sights && m_iron_sights_blockers <= m_iron_sights; }
-	
 	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
+	CScope*								get_active_scope					C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
@@ -250,7 +245,6 @@ public:
 	static void							loadStaticVariables						();
 
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
-	void								UpdateHudBonesVisibility				(bool status);
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);
 

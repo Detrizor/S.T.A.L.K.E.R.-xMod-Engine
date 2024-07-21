@@ -985,6 +985,10 @@ public:
 	bool								attach								C$	(CScriptGameObject* obj);
 	void								detach								C$	();
 	void								shift								C$	(int val);
+	
+	void								fold								C$	();
+	void								unfold								C$	();
+	bool								isFolded							C$	();
 };
 
 add_to_type_list(CScriptGameObject)

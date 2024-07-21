@@ -40,7 +40,6 @@ public:
 	Dmatrix								model_offset;
 	Fvector2							icon_offset;
 	float								icon_step;
-	u8									blocking_iron_sights;		//1 for blocking if non-lowered addon attached, 2 for force block on any addon
 	shared_str							attach;
 
 	xr_list<CAddon*>					addons									= {};

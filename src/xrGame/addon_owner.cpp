@@ -248,9 +248,6 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent)
 	icon_offset.y						= icon_origin.y - static_cast<float>(model_offset.c.y) * icon_ppm;
 	icon_step							= static_cast<float>(length) * icon_ppm / (static_cast<float>(steps) + .5f);
 
-	tmp.printf							("blocking_ironsights_%d", idx);
-	blocking_iron_sights				= READ_IF_EXISTS(pSettings, r_u8, section, *tmp, 0);
-
 	tmp.printf							("overlapping_slot_%d", idx);
 	m_overlaping_slot					= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
 	

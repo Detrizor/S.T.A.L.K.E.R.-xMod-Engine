@@ -47,6 +47,7 @@
 #include "silencer.h"
 #include "addon.h"
 #include "item_usable.h"
+#include "foldable.h"
 
 class CWeapon;
 
@@ -879,6 +880,24 @@ void CScriptGameObject::shift(int val) const
 {
 	if (auto addon = object().Cast<CAddon*>())
 		addon->getSlot()->shiftAddon	(addon, val);
+}
+
+void CScriptGameObject::fold() const
+{
+	if (auto foldable = object().Cast<CFoldable*>())
+		foldable->setStatus				(true);
+}
+
+void CScriptGameObject::unfold() const
+{
+	if (auto foldable = object().Cast<CFoldable*>())
+		foldable->setStatus				(false);
+}
+
+bool CScriptGameObject::isFolded() const
+{
+	if (auto foldable = object().Cast<CFoldable*>())
+		return							foldable->getStatus();
 }
 
 #define SPECIFIC_CAST(A,B)\

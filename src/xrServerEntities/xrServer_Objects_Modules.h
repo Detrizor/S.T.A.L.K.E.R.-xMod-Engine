@@ -7,6 +7,7 @@ enum eModuleTypes
 	mAmountable,
 	mAddon,
 	mScope,
+	mFoldable,
 	mModuleTypesCount
 };
 
@@ -79,4 +80,18 @@ public:
 	u16									type								CO$	()		{ return mScope; }
 
 	friend class CScope;
+};
+
+class CSE_ALifeModuleFoldable : public CSE_ALifeModule
+{
+	u8									m_status								= 0;
+
+protected:
+	void								STATE_Write							O$	(NET_Packet& tNetPacket);
+	void								STATE_Read							O$	(NET_Packet& tNetPacket);
+
+public:
+	u16									type								CO$	()		{ return mFoldable; }
+
+	friend class CFoldable;
 };
