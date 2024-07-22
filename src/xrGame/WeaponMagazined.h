@@ -17,6 +17,7 @@ class CWeaponHud;
 class CScope;
 class CSilencer;
 class CGrenadeLauncher;
+class CFoldable;
 struct SWpnBriefInfo;
 
 class CWeaponMagazined : public CWeapon
@@ -195,6 +196,7 @@ private:
 	shared_str							m_handguard								= 0;
 	bool								m_grip									= false;
 	bool								m_usable								= false;
+	Dvector								m_align_front							= dZero;
 
 	SRangeNum<u16>						m_IronSightsZeroing;
 	u32									m_animation_slot_reloading;
@@ -214,11 +216,11 @@ private:
 	void								process_muzzle							(CMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);
 	void								process_scope							(CScope* scope, bool attach);
+	void								process_align_front						(CGameObject* obj, bool attach);
 	
 	bool								is_auto_bolt_allowed				C$	();
 	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
-	CScope*								get_active_scope					C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
@@ -247,6 +249,7 @@ public:
 	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);
+	void								onFold									(CFoldable CP$ foldable, bool new_status);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }

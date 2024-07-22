@@ -35,6 +35,7 @@ private:
 	static float						s_recoil_hud_rollback_per_shift;
 	static float						s_max_rotate_speed;
 	static float						s_rotate_accel_time;
+	static float						s_iron_sights_max_angle;
 	
 	float								m_aim_z_offset;
 
@@ -58,9 +59,9 @@ public:
 	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
 	void								ProcessGL								(CGrenadeLauncher* gl);
-	void								processScope							(CScope* scope, bool attach);
 	void								calculateAimOffsets						();
 
 	bool								IsRotatingToZoom					C$	();
 	Fvector								getTransference						C$	(float distance);
+	void								calculateScopeOffset				C$	(CScope* scope);
 };

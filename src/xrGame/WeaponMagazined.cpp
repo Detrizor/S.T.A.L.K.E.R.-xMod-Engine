@@ -390,6 +390,13 @@ void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
 	StartReload							(eSubstateReloadBegin);
 }
 
+void CWeaponMagazined::onFold(CFoldable CP$ foldable, bool new_status)
+{
+	if (auto scope = foldable->cast<CScope*>())
+		process_scope					(scope, !new_status);
+	process_align_front					(&foldable->O, !new_status);
+}
+
 bool CWeaponMagazined::reloadCartridge()
 {
 	m_BriefInfo_CalcFrame				= 0;
@@ -892,23 +899,13 @@ void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 	}
 }
 
-CScope* CWeaponMagazined::get_active_scope() const
+CScope* CWeaponMagazined::getActiveScope() const
 {
 	if (ADS() == 1)
 		return							m_selected_scopes[0];
 	else if (ADS() == -1)
 		return							m_selected_scopes[1];
 	return								nullptr;
-}
-
-CScope* CWeaponMagazined::getActiveScope() const
-{
-	CScope* res							= get_active_scope();
-	if (res)
-		if (auto foldable = res->cast<CFoldable*>())
-			if (foldable->getStatus())
-				return					nullptr;
-	return								res;
 }
 
 void CWeaponMagazined::ZoomInc()
@@ -1115,11 +1112,17 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 	
 	m_usable							= m_barrel && m_grip;
 	hud_sect							= pSettings->r_string(cNameSect(), (m_usable) ? "hud" : "hud_unusable");
+	process_align_front					(&obj, attach);
 }
 
 void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 {
-	m_hud->processScope					(scope, attach);
+	if (auto foldable = scope->cast<CFoldable*>())
+		if (foldable->getStatus())
+			return;
+
+	if (attach)
+		m_hud->calculateScopeOffset		(scope);
 
 	if (attach)
 	{
@@ -1150,6 +1153,47 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 
 	if (scope->getBackupSight())
 		process_scope					(scope->getBackupSight(), attach);
+}
+
+static void check_addons(CAddonOwner* ao, CGameObject* obj, Dvector& align_front)
+{
+	for (auto& s : ao->AddonSlots())
+	{
+		for (auto a : s->addons)
+		{
+			if (auto addon_ao = a->cast<CAddonOwner*>())
+				check_addons			(addon_ao, obj, align_front);
+			if (&a->O != obj && pSettings->line_exist(a->O.cNameSect(), "align_front"))
+			{
+				Dvector al				= pSettings->r_dvector3(a->O.cNameSect(), "align_front");
+				al.add					(a->getLocalTransform().c);
+				if (al.z < align_front.z)
+					align_front			= al;
+			}
+		}
+	}
+}
+
+void CWeaponMagazined::process_align_front(CGameObject* obj, bool attach)
+{
+	if (!pSettings->line_exist(obj->cNameSect(), "align_front"))
+		return;
+	
+	if (attach)
+	{
+		m_align_front					= pSettings->r_dvector3(obj->cNameSect(), "align_front");
+		if (auto addon = obj->Cast<CAddon*>())
+			m_align_front.add			(addon->getLocalTransform().c);
+	}
+	else
+		m_align_front					= READ_IF_EXISTS(pSettings, r_dvector3, cNameSect(), "align_front", dMax);
+	
+	if (auto ao = Cast<CAddonOwner*>())
+		check_addons					(ao, obj, m_align_front);
+
+	for (auto scope : m_attached_scopes)
+		if (scope->Type() == CScope::eIS)
+			m_hud->calculateScopeOffset	(scope);
 }
 
 void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)

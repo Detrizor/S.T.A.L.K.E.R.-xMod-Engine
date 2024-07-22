@@ -52,18 +52,34 @@ void CWeaponHud::calculateAimOffsets()
 	m_hud_offset[eAim][0].mad			(dir, aim_height);
 }
 
-void CWeaponHud::processScope(CScope* scope, bool attach)
+void CWeaponHud::calculateScopeOffset(CScope* scope) const
 {
-	if (attach)
+	Dvector sight_position				= scope->getSightPosition();
+	Dvector sight_rotation				= dZero;
+	if (auto addon = scope->cast<CAddon*>())
 	{
-		Dvector							offset[2];
-		auto addon						= scope->cast<CAddon*>();
-		Dmatrix trans					= (addon) ? addon->getLocalTransform() : Didentity;
-		trans.applyOffset				(scope->getSightOffset());
-		trans.getOffset					(offset);
-		offset[0].z						= m_aim_z_offset;
-		scope->setHudOffset				(offset);
+		addon->getLocalTransform().transform_tiny(sight_position);
+		addon->getLocalTransform().getHPB(sight_rotation);
 	}
+
+	if (scope->Type() == CScope::eIS && O.m_align_front.z != dbl_max)
+	{
+		double dx						= O.m_align_front.x - sight_position.x;
+		double dy						= O.m_align_front.y - sight_position.y;
+		double dz						= O.m_align_front.z - sight_position.z;
+		sight_rotation.x				+= atan(dx / dz);
+		sight_rotation.y				+= atan(dy / dz);
+		if (abs(sight_rotation.x) > s_iron_sights_max_angle)
+			sight_rotation.x			= 0.;
+		if (abs(sight_rotation.y) > s_iron_sights_max_angle)
+			sight_rotation.y			= 0.;
+	}
+	
+	Dmatrix trans						= Didentity;
+	trans.setOffset						(sight_position, sight_rotation);
+	trans.getOffset						(sight_position, sight_rotation);
+	sight_position.z					= m_aim_z_offset;
+	scope->setHudOffset					(sight_position, sight_rotation);
 }
 
 void CWeaponHud::ProcessGL(CGrenadeLauncher* gl)
@@ -91,6 +107,7 @@ float CWeaponHud::s_recoil_hud_roll_per_shift;
 float CWeaponHud::s_recoil_hud_rollback_per_shift;
 float CWeaponHud::s_max_rotate_speed;
 float CWeaponHud::s_rotate_accel_time;
+float CWeaponHud::s_iron_sights_max_angle;
 
 void CWeaponHud::loadStaticVariables()
 {
@@ -99,6 +116,7 @@ void CWeaponHud::loadStaticVariables()
 	s_recoil_hud_rollback_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_rollback_per_shift");
 	s_max_rotate_speed					= pSettings->r_float("weapon_manager", "max_rotate_speed");
 	s_rotate_accel_time					= pSettings->r_float("weapon_manager", "rotate_accel_time");
+	s_iron_sights_max_angle				= pSettings->r_float("weapon_manager", "iron_sights_max_angle");
 }
 
 CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const

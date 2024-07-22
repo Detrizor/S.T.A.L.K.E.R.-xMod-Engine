@@ -611,3 +611,4 @@ constexpr Fvector vOne			= { 1.f, 1.f, 1.f };
 constexpr Fvector vForward		= { 0.f, 0.f, 1.f };
 
 constexpr Dvector dZero			= { 0., 0., 0. };
+constexpr Dvector dMax			= { dbl_max, dbl_max, dbl_max };

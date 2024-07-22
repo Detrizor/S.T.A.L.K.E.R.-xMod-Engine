@@ -9,6 +9,8 @@ public:
 private:
 	bool								m_status								= false;
 	
+	void								on_status_change					C$	(bool new_status);
+
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:

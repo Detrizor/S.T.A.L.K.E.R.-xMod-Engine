@@ -75,7 +75,7 @@ private:
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 	xptr<CScope>						m_backup_sight							= nullptr;
 
-	Dvector								m_sight_offset[2];
+	Dvector								m_sight_position;
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
 
@@ -98,10 +98,10 @@ public:
 
 	void								ZoomChange								(int val);
 	void								ZeroingChange							(int val);
-	void								setHudOffset							(Dvector CP$ v)		{ m_hud_offset[0] = v[0]; m_hud_offset[1] = v[1]; }
-	void								setMagnificaiton						(float val)			{ m_Magnificaion.current = val; }
-	void								setZeroing								(u16 val)			{ m_Zeroing.current = val; }
-	void								setSelection							(s8 val)			{ m_selection = val; }
+	void								setHudOffset							(Dvector CR$ pos, Dvector CR$ rot)		{ m_hud_offset[0] = pos; m_hud_offset[1] = rot; }
+	void								setMagnificaiton						(float val)								{ m_Magnificaion.current = val; }
+	void								setZeroing								(u16 val)								{ m_Zeroing.current = val; }
+	void								setSelection							(s8 val)								{ m_selection = val; }
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
@@ -111,7 +111,7 @@ public:
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
 	Dvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
-	Dvector CP$							getSightOffset						C$	()		{ return m_sight_offset; }
+	Dvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }

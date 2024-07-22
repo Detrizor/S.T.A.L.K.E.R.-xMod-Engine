@@ -107,8 +107,7 @@ CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
-	m_sight_offset[0]					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
-	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
+	m_sight_position					= static_cast<Dvector>(pSettings->r_fvector3(section, (m_Type == eIS) ? "align_rear" : "sight_position"));
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
 	{
@@ -330,7 +329,7 @@ void CScope::updateCameraLenseOffset()
 {
 	auto addon							= cast<CAddon*>();
 	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
-	trans.applyOffset					(m_sight_offset);
+	trans.translate_mul					(m_sight_position);
 
 	Dvector camera_lense_offset			= trans.c;
 	camera_lense_offset.sub				(static_cast<Dvector>(Actor()->Cameras().Position()));
