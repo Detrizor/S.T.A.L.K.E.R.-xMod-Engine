@@ -151,7 +151,7 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 
 Dvector CP$ CWeaponHud::get_target_hud_offset() const
 {
-	if (HUD().GetCurrentRayQuery().range < .7f && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))		//--xd not accurate, doesn't take into accout weapon length
+	if (HUD().GetCurrentRayQuery().range < O.m_fire_point.z && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
 		return							m_hud_offset[eRelaxed];
 
 	CScope* active_scope				= O.getActiveScope();
