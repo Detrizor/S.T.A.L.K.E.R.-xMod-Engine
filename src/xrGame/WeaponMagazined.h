@@ -195,7 +195,6 @@ private:
 	float								m_ads_shift								= 0.f;
 	shared_str							m_handguard								= 0;
 	bool								m_grip									= false;
-	bool								m_usable								= false;
 	Dvector								m_align_front							= dZero;
 
 	SRangeNum<u16>						m_IronSightsZeroing;

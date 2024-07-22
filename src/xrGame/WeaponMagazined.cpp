@@ -163,7 +163,7 @@ void CWeaponMagazined::FireStart()
 {
 	if (!IsMisfire())
 	{
-		if (hasAmmoToShoot())
+		if (hasAmmoToShoot() && m_barrel)
 		{
 			if (!IsWorking() || AllowFireWhileWorking())
 			{
@@ -700,7 +700,7 @@ void CWeaponMagazined::switch2_Showing()
 
 bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 {
-	if (!m_usable)
+	if (!m_grip)
 		return false;
 
 	if (m_hud->Action(cmd, flags))
@@ -1079,6 +1079,7 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 	{
 		m_grip							= attach;
 		m_grip_accuracy_modifier		= (attach) ? readAccuracyModifier(*type) : 1.f;
+		hud_sect						= pSettings->r_string(cNameSect(), (attach) ? "hud" : "hud_unusable");
 	}
 	
 	type								= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "stock_type", 0);
@@ -1109,9 +1110,7 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 		}
 		PlayAnimIdle					();
 	}
-	
-	m_usable							= m_barrel && m_grip;
-	hud_sect							= pSettings->r_string(cNameSect(), (m_usable) ? "hud" : "hud_unusable");
+
 	process_align_front					(&obj, attach);
 }
 
@@ -1304,7 +1303,7 @@ void CWeaponMagazined::OnTaken()
 
 void CWeaponMagazined::UpdateHudAdditional(Dmatrix& trans)
 {
-	if (m_usable)
+	if (m_grip)
 		m_hud->UpdateHudAdditional(trans);
 }
 
