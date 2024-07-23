@@ -197,7 +197,6 @@ private:
 	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
 
-	SRangeNum<u16>						m_IronSightsZeroing;
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
 	bool								m_mag_attach_bolt_release;

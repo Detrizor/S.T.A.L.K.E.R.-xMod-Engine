@@ -129,7 +129,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 		}
 	}
 
-	m_IronSightsZeroing.Load			(pSettings->r_string(section, "zeroing"));
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_bool, section, "mag_attach_bolt_release", FALSE);
@@ -789,7 +788,11 @@ void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 	if (!scope)
 		scope							= m_selected_scopes[1];
 
-	info.zeroing.printf					("%d %s", (scope) ? scope->Zeroing() : m_IronSightsZeroing.current, *CStringTable().translate("st_m"));
+	if (scope)
+		info.zeroing.printf				("%d %s", scope->Zeroing(), CStringTable().translate("st_m").c_str());
+	else
+		info.zeroing					= "";
+
 	if (scope && scope->Type() != CScope::eIS)
 	{
 		float magnification				= scope->GetCurrentMagnification();
@@ -917,8 +920,6 @@ void CWeaponMagazined::ZoomInc()
 	{
 		if (scope)
 			scope->ZeroingChange		(1);
-		else if (ADS() == 1)
-			m_IronSightsZeroing.Shift	(1);
 	}
 	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
 	{
@@ -943,8 +944,6 @@ void CWeaponMagazined::ZoomDec()
 	{
 		if (scope)
 			scope->ZeroingChange		(-1);
-		else if (ADS() == 1)
-			m_IronSightsZeroing.Shift	(-1);
 	}
 	else if (pInput->iGetAsyncKeyState(DIK_LCONTROL))
 	{
@@ -1382,7 +1381,7 @@ void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
 u16 CWeaponMagazined::Zeroing C$()
 {
 	CScope* active_scope				= getActiveScope();
-	return								(active_scope) ? active_scope->Zeroing() : m_IronSightsZeroing.current;
+	return								(active_scope) ? active_scope->Zeroing() : 100.f;
 }
 
 Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
