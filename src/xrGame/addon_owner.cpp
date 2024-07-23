@@ -273,11 +273,10 @@ int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
 {
 	if (m_step == 0.f)
 		return							0;
-	int mount_edge_bonus				= (parent_ao->cast<CAddon*>()) ? -1 : 0;
 	if (!left)
-		return							mount_edge_bonus;
+		return							-1;
 	if (!right)
-		return							left->getLength(m_step) + mount_edge_bonus;
+		return							left->getLength(m_step) -1;
 	if (left->isLowProfile() || right->isLowProfile())
 		return							left->getLength(m_step);
 	return								left->getLength(m_step, CAddon::ProfileFwd) + right->getLength(m_step, CAddon::ProfileBwd);
@@ -302,9 +301,12 @@ void CAddonSlot::attachAddon(CAddon* addon)
 		if (addon->isFrontPositioning())
 		{
 			auto I						= addons.end();
-			int pos						= steps - get_spacing(addon, NULL);
+			int first_pos				= steps - get_spacing(addon, nullptr) + 1;
+			int pos						= first_pos;
 			while (auto prev = get_prev_addon(I))
 			{
+				if (pos == first_pos && (pos < prev->getSlotPos() + get_spacing(prev, addon)))
+					pos					+= 1;
 				if (pos >= prev->getSlotPos() + get_spacing(prev, addon))
 				{
 					I++;
@@ -318,9 +320,11 @@ void CAddonSlot::attachAddon(CAddon* addon)
 		else
 		{
 			auto I						= --addons.begin();
-			int pos						= get_spacing(NULL, addon);
+			int pos						= 0;
 			while (auto next = get_next_addon(I))
 			{
+				if (pos == 0 && (get_spacing(addon, next) > next->getSlotPos()))
+					pos					= -1;
 				if (pos + get_spacing(addon, next) <= next->getSlotPos())
 					break;
 				pos						= next->getSlotPos() + get_spacing(next, addon);
