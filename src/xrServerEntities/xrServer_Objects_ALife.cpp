@@ -669,7 +669,7 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 
 CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(u16 type)
 {
-	m_modules[type]						= CSE_ALifeModule::createModule(type);
+	m_modules[type]						= CSE_ALifeModule::createModule(type, m_wVersion);
 	return								m_modules[type];
 }
 

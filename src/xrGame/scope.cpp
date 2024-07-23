@@ -27,6 +27,7 @@ float CScope::s_shadow_far_scale_offset_power;
 
 shared_str CScope::s_zoom_sound;
 shared_str CScope::s_zeroing_sound;
+shared_str CScope::s_reticle_sound;
 
 void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = aCenter)
 {
@@ -69,6 +70,7 @@ void CScope::loadStaticVariables()
 	
 	s_zoom_sound						= pSettings->r_string("scope_manager", "zoom_sound");
 	s_zeroing_sound						= pSettings->r_string("scope_manager", "zeroing_sound");
+	s_reticle_sound						= pSettings->r_string("scope_manager", "reticle_sound");
 }
 
 void CScope::cleanStaticVariables()
@@ -103,10 +105,32 @@ void CScope::ZeroingChange(int val)
 	}
 }
 
+bool CScope::reticleChange(int val)
+{
+	if (m_reticles_count > 1)
+	{
+		int new_reticle					= m_current_reticle + val;
+		if (new_reticle >= m_reticles_count)
+			new_reticle					= 0;
+		else if (new_reticle < 0)
+			new_reticle					= m_reticles_count - 1;
+		m_current_reticle				= new_reticle;
+		init_marks						();
+		
+		ref_sound						snd;
+		snd.create						(s_reticle_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
+		snd.play						(O.Cast<CObject*>(), sm_2D);
+
+		return							true;
+	}
+	return								false;
+}
+
 CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
+	m_reticles_count					= pSettings->r_u8(section, "reticles_count");
 	m_sight_position					= static_cast<Dvector>(pSettings->r_fvector3(section, (m_Type == eIS) ? "align_rear" : "sight_position"));
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
@@ -124,8 +148,6 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 
 			m_lense_radius				= pSettings->r_float(section, "lense_radius");
 			m_objective_offset			= static_cast<Dvector>(pSettings->r_fvector3(section, "objective_offset"));
-
-			init_visors					();
 
 			if (pSettings->line_exist(section, "backup_sight"))
 				m_backup_sight			= xr_new<CScope>(obj, pSettings->r_string(section, "backup_sight"));
@@ -175,13 +197,17 @@ float CScope::aboba(EEventTypes type, void* data, int param)
 				m->m_magnification		= m_Magnificaion.current;
 				m->m_zeroing			= m_Zeroing.current;
 				m->m_selection			= m_selection;
+				m->m_current_reticle	= m_current_reticle;
 			}
 			else if (m)
 			{
 				m_Magnificaion.current	= m->m_magnification;
 				m_Zeroing.current		= m->m_zeroing;
 				m_selection				= m->m_selection;
+				m_current_reticle		= m->m_current_reticle;
 			}
+			if (!param)
+				init_marks				();
 		}
 	}
 
@@ -193,7 +219,11 @@ void CScope::init_visors()
 	xr_delete							(m_pUIReticle);
 	if (m_Reticle.size())
 	{
-		createStatic					(m_pUIReticle, *shared_str().printf("wpn\\reticle\\%s", *m_Reticle), m_reticle_texture_size);
+		shared_str texture				= "wpn\\reticle\\";
+		texture.printf					("%s%s", texture.c_str(), m_Reticle.c_str());
+		if (m_reticles_count > 1)
+			texture.printf				("%s_%d", texture.c_str(), m_current_reticle);
+		createStatic					(m_pUIReticle, texture.c_str(), m_reticle_texture_size);
 		m_pUIReticle->EnableHeading		(true);
 	}
 
@@ -208,6 +238,21 @@ void CScope::init_visors()
 	}
 	if (m_Nighvision.size())
 		m_pNight_vision					= xr_new<CNightVisionEffector>(m_Nighvision);
+}
+
+void CScope::init_marks()
+{
+	switch (m_Type)
+	{
+	case eOptics:
+		init_visors						();
+		break;
+	case eCollimator:
+		if (m_reticles_count > 1)
+			for (int i = 0; i < m_reticles_count; i++)
+				O.UpdateBoneVisibility	(shared_str().printf("mark_%d", i), i == m_current_reticle);
+		break;
+	}
 }
 
 void CScope::modify_holder_params(float &range, float &fov) const

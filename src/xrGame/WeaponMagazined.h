@@ -210,6 +210,7 @@ private:
 	void								load_muzzle_params						(CMuzzleBase* src);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
+	void								on_reticle_switch						();
 	void								process_barrel							(CBarrel* barrel, bool attach);
 	void								process_muzzle							(CMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);

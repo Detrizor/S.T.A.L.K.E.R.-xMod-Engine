@@ -57,6 +57,7 @@ private:
 
 	static shared_str					s_zoom_sound;
 	static shared_str					s_zeroing_sound;
+	static shared_str					s_reticle_sound;
 
 public:
 										CScope									(CGameObject* obj, shared_str CR$ section);
@@ -74,7 +75,9 @@ private:
 	s8									m_selection								= -1;
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 	xptr<CScope>						m_backup_sight							= nullptr;
+	u8									m_current_reticle						= 0;
 
+	u8									m_reticles_count;
 	Dvector								m_sight_position;
 	SRangeNum<u16>						m_Zeroing;
 	SRangeNum<float>					m_Magnificaion;
@@ -90,6 +93,7 @@ private:
 	shared_str							m_Nighvision;
 	
 	void								init_visors								();
+	void								init_marks								();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
@@ -98,6 +102,7 @@ public:
 
 	void								ZoomChange								(int val);
 	void								ZeroingChange							(int val);
+	bool								reticleChange							(int val);
 	void								setHudOffset							(Dvector CR$ pos, Dvector CR$ rot)		{ m_hud_offset[0] = pos; m_hud_offset[1] = rot; }
 	void								setMagnificaiton						(float val)								{ m_Magnificaion.current = val; }
 	void								setZeroing								(u16 val)								{ m_Zeroing.current = val; }

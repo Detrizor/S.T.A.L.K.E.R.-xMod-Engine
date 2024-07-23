@@ -931,6 +931,12 @@ void CWeaponMagazined::ZoomInc()
 		if (ADS() && fLess(m_ads_shift, s_ads_shift_max))
 			m_ads_shift					+= s_ads_shift_step;
 	}
+	else if (pInput->iGetAsyncKeyState(DIK_RCONTROL))
+	{
+		if (scope)
+			if (scope->reticleChange(1))
+				on_reticle_switch		();
+	}
 	else
 		inherited::ZoomInc				();
 }
@@ -954,6 +960,12 @@ void CWeaponMagazined::ZoomDec()
 	{
 		if (ADS() && fMore(m_ads_shift, -s_ads_shift_max))
 			m_ads_shift					-= s_ads_shift_step;
+	}
+	else if (pInput->iGetAsyncKeyState(DIK_RCONTROL))
+	{
+		if (scope)
+			if (scope->reticleChange(-1))
+				on_reticle_switch		();
 	}
 	else
 		inherited::ZoomDec				();
@@ -1058,6 +1070,11 @@ void CWeaponMagazined::on_firemode_switch()
 		playBlendAnm					(m_firemode_anm, GetState());
 	if (m_sounds_enabled)
 		PlaySound						("sndFiremode", get_LastFP());
+}
+
+void CWeaponMagazined::on_reticle_switch()
+{
+	playBlendAnm						(m_empty_click_anm);
 }
 
 void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)

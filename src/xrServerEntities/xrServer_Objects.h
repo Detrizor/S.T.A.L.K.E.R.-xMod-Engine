@@ -164,8 +164,9 @@
 // 128	 CSE_ALifeObjectClimable		added can_fire in smart covers;
 // 129 - xMod base
 // 130 - weapon ads shift
+// 131 - current scope reticle
 //------------------------------------------------------------------------------
-constexpr u16 SPAWN_VERSION = 130;
+constexpr u16 SPAWN_VERSION = 131;
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

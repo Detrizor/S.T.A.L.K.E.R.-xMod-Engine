@@ -14,7 +14,10 @@ enum eModuleTypes
 class CSE_ALifeModule
 {
 public:
-	S$ xptr<CSE_ALifeModule>			createModule							(u16 type);
+	S$ xptr<CSE_ALifeModule>			createModule							(u16 type, u16 version);
+
+protected:
+	u16									m_version;
 
 public:
 	void							V$	STATE_Write								(NET_Packet& tNetPacket) = 0;
@@ -71,6 +74,7 @@ class CSE_ALifeModuleScope : public CSE_ALifeModule
 	float								m_magnification							= 0.f;
 	u16									m_zeroing								= 0;
 	s8									m_selection								= -1;
+	u8									m_current_reticle						= 0;
 
 protected:
 	void								STATE_Write							O$	(NET_Packet& tNetPacket);
