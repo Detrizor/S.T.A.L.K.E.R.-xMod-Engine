@@ -279,8 +279,6 @@ void CWeapon::Load(LPCSTR section)
 		m_bAutoSpawnAmmo = pSettings->r_bool(section, "auto_spawn_ammo");
 	else
 		m_bAutoSpawnAmmo = TRUE;
-	
-	m_zoom_params.m_bHideCrosshairInZoom = !!pSettings->r_bool(section, "zoom_hide_crosshair");
 
 	string256						temp;
 	for (int i = egdNovice; i < egdCount; ++i)
@@ -816,10 +814,9 @@ bool CWeapon::unlimited_ammo() const
 	return false;
 }
 
-bool CWeapon::show_crosshair()
+bool CWeapon::show_crosshair() const
 {
-	return !ArmedMode() && !IsZoomed();
-	//--xd return (ADS()) ? !ZoomHideCrosshair() : (IsZoomed() || ArmedMode());
+	return !ArmedMode();
 }
 
 bool CWeapon::show_indicators()
@@ -963,11 +960,6 @@ float CWeapon::GetControlInertionFactor C$(bool full)
 float CWeapon::CurrentZoomFactor C$(bool for_actor)
 {
 	return (float)(!!ADS());
-}
-
-int CWeapon::ADS() const
-{
-	return (GetState() == eReload) ? 0 : m_iADS;
 }
 
 float CWeapon::Aboba(EEventTypes type, void* data, int param)

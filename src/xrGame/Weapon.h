@@ -151,7 +151,6 @@ protected:
 	struct SZoomParams
 	{
 		bool			m_bZoomEnabled;			//разрешение режима приближения
-		bool			m_bHideCrosshairInZoom;
 		bool			m_bIsZoomModeNow;		//когда режим приближения включен
 	} m_zoom_params;
 
@@ -160,14 +159,6 @@ public:
 	virtual	void			ZoomInc();
 	virtual	void			ZoomDec();
 	IC		bool			IsZoomed()	const { return m_zoom_params.m_bIsZoomModeNow; };
-
-	bool			ZoomHideCrosshair()
-	{
-		CActor *pA = smart_cast<CActor *>(H_Parent());
-		if (pA && pA->active_cam() == eacLookAt)
-			return false;
-		return m_zoom_params.m_bHideCrosshairInZoom;
-	}
 
 	virtual float			CurrentZoomFactor	(bool for_actor) const;
 
@@ -376,7 +367,7 @@ public:
 
 public:
 	virtual bool			use_crosshair()	const { return true; }
-	bool					show_crosshair();
+	bool					show_crosshair() const;
 	bool					show_indicators();
 	virtual BOOL			ParentMayHaveAimBullet();
 
@@ -490,5 +481,5 @@ public:
 	bool								isCamRecoilRelaxed					C$	();
 	float								GetControlInertionFactor			CO$	(bool full = false);
 	
-	int								V$	ADS									C$	();
+	int								V$	ADS									C$	()		{ return m_iADS; }
 };
