@@ -737,17 +737,6 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-void CWeaponMagazined::updataeSilencerKoeffs()
-{
-	if (m_silencer)
-	{
-		m_silencer_koef.bullet_speed = pSettings->r_float(m_silencer->getSection(), "bullet_speed_k");
-		m_silencer_koef.fire_dispersion = pSettings->r_float(m_silencer->getSection(), "fire_dispersion_base_k");
-	}
-	else
-		m_silencer_koef.Reset();
-}
-
 void CWeaponMagazined::OnNextFireMode()
 {
 	if (!m_bHasDifferentFireModes) return;

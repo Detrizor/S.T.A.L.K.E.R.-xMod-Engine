@@ -624,12 +624,6 @@ BOOL CWeapon::IsMisfire() const
 	return bMisfire;
 }
 
-void CWeapon::reinit()
-{
-	CShootingObject::reinit();
-	inherited::reinit();
-}
-
 void CWeapon::reload(LPCSTR section)
 {
 	CShootingObject::reload(section);

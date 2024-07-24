@@ -61,9 +61,27 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.impair						= pSettings->r_float(section, "impair");
 	
 	m_flags.set							(cfTracer, pSettings->r_bool(section, "tracer"));
-	m_flags.set							(cfRicochet, READ_IF_EXISTS(pSettings, r_bool, section, "allow_ricochet", TRUE));
+	m_flags.set							(cfRicochet, pSettings->r_bool(section, "allow_ricochet"));
 	m_flags.set							(cfExplosive, pSettings->r_bool(section, "explosive"));
-	m_flags.set							(cfMagneticBeam, READ_IF_EXISTS(pSettings, r_bool, section, "magnetic_beam_shot", FALSE));
+	m_flags.set							(cfMagneticBeam, pSettings->r_bool(section, "magnetic_beam_shot"));
+
+	shell_particles						= pSettings->r_string(section, "shell_particles");
+	flame_particles						= pSettings->r_string(section, "flame_particles");
+	smoke_particles						= pSettings->r_string(section, "smoke_particles");
+	shot_particles						= pSettings->r_string(section, "shot_particles");
+	
+	flame_particles_flash_hider			= pSettings->r_string(section, "flame_particles_flash_hider");
+	smoke_particles_silencer			= pSettings->r_string(section, "smoke_particles_silencer");
+	
+	if (light_enabled = !pSettings->r_bool(section, "light_disabled"))
+	{
+		Fvector clr						= pSettings->r_fvector3(section, "light_color");
+		light_base_color.set			(clr.x, clr.y, clr.z, 1);
+		light_base_range				= pSettings->r_float(section, "light_range");
+		light_var_color					= pSettings->r_float(section, "light_var_color");
+		light_var_range					= pSettings->r_float(section, "light_var_range");
+		light_lifetime					= pSettings->r_float(section, "light_time");
+	}
 }
 
 float CCartridge::Weight() const

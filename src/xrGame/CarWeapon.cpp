@@ -229,10 +229,7 @@ void CCarWeapon::OnShot()
 								m_object->ID(), m_object->ID(), SendHitAllowed(m_object));
 
 	StartShotParticles		();
-	
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(m_fire_pos, zero_vel);
 //	OnShellDrop				(m_fire_pos, zero_vel);

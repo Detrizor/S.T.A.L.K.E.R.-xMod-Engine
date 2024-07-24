@@ -8,9 +8,8 @@
 
 #include "alife_space.h"
 #include "../xrEngine/render.h"
-#include "anticheat_dumpable_object.h"
+#include "WeaponAmmo.h"
 
-class CCartridge;
 class CParticlesObject;
 class IRender_Sector;
 
@@ -22,9 +21,7 @@ class CShootingObject : public IAnticheatDumpable
 {
 protected:
 			CShootingObject			();
-	virtual ~CShootingObject		();
 
-	void	reinit	();
 	void	reload	(LPCSTR section) {};
 	void	Load	(LPCSTR section);
 
@@ -91,18 +88,12 @@ protected:
 	//float					m_fMaxRadius;
 
 protected:
-	Fcolor					light_base_color;
-	float					light_base_range;
 	Fcolor					light_build_color;
 	float					light_build_range;
 	ref_light				light_render;
-	float					light_var_color;
-	float					light_var_range;
-	float					light_lifetime;
 	u32						light_frame;
-	float					light_time;
-	//включение подсветки во время выстрела
-	bool					m_bLightShotEnabled;
+	float					light_time = -1.f;
+
 protected:
 	void					Light_Create		();
 	void					Light_Destroy		();
@@ -110,7 +101,6 @@ protected:
 	void					Light_Start			();
 	void					Light_Render		(const Fvector& P);
 
-	virtual	void			LoadLights			(LPCSTR section);
 	virtual void			RenderLight			();
 	virtual void			UpdateLight			();
 	virtual void			StopLight			();
@@ -129,9 +119,6 @@ protected:
 			void			StartParticles		(CParticlesObject*& pParticles, LPCSTR particles_name, const Fvector& pos, const Fvector& vel = zero_vel, bool auto_remove_flag = false);
 			void			StopParticles		(CParticlesObject*& pParticles);
 			void			UpdateParticles		(CParticlesObject*& pParticles, const Fvector& pos, const  Fvector& vel = zero_vel);
-
-			void			LoadShellParticles	(LPCSTR section);
-			void			LoadFlameParticles	(LPCSTR section);
 	
 	////////////////////////////////////////////////
 	//спецефические функции для партиклов
@@ -150,18 +137,11 @@ protected:
 			void			OnShellDrop			(const Fvector& play_pos, const Fvector& parent_vel);
 
 protected:
-	//для выстрела 1м и 2м видом стрельбы
-	shared_str				m_sFlameParticles;
-	//имя пратиклов для дыма
-	shared_str				m_sSmokeParticles;
-	//имя партиклов следа от пули
-	shared_str				m_sShotParticles;
-	//имя пратиклов для гильз
-	shared_str				m_sShellParticles;
-
 	//объект партиклов огня
-	CParticlesObject*		m_pFlameParticles;
-
-protected:
+	CParticlesObject*					m_flame_particles						= nullptr;
 	float								m_barrel_len							= 1.f;
+	bool								m_silencer								= false;
+	bool								m_flash_hider							= false;
+
+	CCartridge							m_shot_cartridge;
 };

@@ -119,10 +119,7 @@ void CWeaponStatMgun::OnShot()
 								Owner()->ID(),ID(), SendHitAllowed(Owner()));
 
 	StartShotParticles		();
-	
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(m_fire_pos, zero_vel);
 	OnShellDrop				(m_fire_pos, zero_vel);

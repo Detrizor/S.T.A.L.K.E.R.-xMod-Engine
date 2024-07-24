@@ -135,17 +135,13 @@ void CHelicopter::OnShot		()
 
 	FireBullet(fire_pos, fire_dir, fireDispersionBase, m_CurrentAmmo, ID(), ID(), OnServer());
 
-	StartShotParticles	();
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
-
+	StartShotParticles		();
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(fire_pos, zero_vel);
 	OnShellDrop				(fire_pos, zero_vel);
 
 	HUD_SOUND_ITEM::PlaySound	(m_sndShot, fire_pos, this, false);
-
 }
 
 void CHelicopter::MGunFireStart()

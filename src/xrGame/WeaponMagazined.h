@@ -70,7 +70,6 @@ public:
 
 	virtual void	Load(LPCSTR section);
 
-	void	updataeSilencerKoeffs();
 	virtual CWeaponMagazined*cast_weapon_magazined()
 	{
 		return this;

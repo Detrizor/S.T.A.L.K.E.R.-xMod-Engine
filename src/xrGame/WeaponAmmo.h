@@ -50,6 +50,21 @@ public:
 	SCartridgeParam						param_s;
 	Flags8								m_flags;
 
+	shared_str							shell_particles;
+	shared_str							flame_particles;
+	shared_str							smoke_particles;
+	shared_str							shot_particles;
+
+	shared_str							flame_particles_flash_hider;
+	shared_str							smoke_particles_silencer;
+	
+	bool								light_enabled;
+	Fcolor								light_base_color;
+	float								light_base_range;
+	float								light_var_color;
+	float								light_var_range;
+	float								light_lifetime;
+
 	float								Weight								C$	();
 
 	void							S$	loadStaticVariables						();

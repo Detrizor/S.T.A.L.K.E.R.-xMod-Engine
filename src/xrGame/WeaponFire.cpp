@@ -52,40 +52,37 @@ float CWeapon::GetWeaponDeterioration	()
 	return conditionDecreasePerShot;
 };
 
-void CWeapon::FireTrace		()
+void CWeapon::FireTrace()
 {
-	CCartridge l_cartridge = getCartridgeToShoot();
-	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
+	m_shot_cartridge					= getCartridgeToShoot();
+	VERIFY								(m_shot_cartridge.bullet_material_idx != u16_max);
 
-	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
+	Fvector p							= get_LastFP();
+	Fvector d							= getFullFireDirection(m_shot_cartridge);
+	float disp							= GetFireDispersion(&m_shot_cartridge);
+	bool SendHit						= SendHitAllowed(H_Parent());
 
-	Fvector p = get_LastFP();
-	Fvector d = getFullFireDirection(l_cartridge);
-	bool SendHit = SendHitAllowed(H_Parent());
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
-	for (int i = 0; i < l_cartridge.param_s.buckShot; ++i)
-		FireBullet(p, d, GetFireDispersion(&l_cartridge), l_cartridge, H_Parent()->ID(), ID(), SendHit);
+	for (int i = 0; i < m_shot_cartridge.param_s.buckShot; ++i)
+		FireBullet						(p, d, disp, m_shot_cartridge, H_Parent()->ID(), ID(), SendHit);
 
-	StartShotParticles		();
-	
-	if (m_bLightShotEnabled) 
-		Light_Start			();
+	StartShotParticles					();
+	Light_Start							();
 
-	float shot_speed					= m_barrel_len * m_silencer_koef.bullet_speed * l_cartridge.param_s.bullet_speed_per_barrel_len;
-	float shot_mass						= l_cartridge.param_s.fBulletMass * l_cartridge.param_s.buckShot;
+	float shot_speed					= m_barrel_len * m_silencer_koef.bullet_speed * m_shot_cartridge.param_s.bullet_speed_per_barrel_len;
+	float shot_mass						= m_shot_cartridge.param_s.fBulletMass * m_shot_cartridge.param_s.buckShot;
 	appendRecoil						(shot_speed * shot_mass);
+
+	ChangeCondition						(-GetWeaponDeterioration() * l_cartridge.param_s.impair);
 }
 
 void CWeapon::StopShooting()
 {
-//	SetPending			(TRUE);
-
 	//принудительно останавливать зацикленные партиклы
-	if(m_pFlameParticles && m_pFlameParticles->IsLooped())
+	if (m_flame_particles && m_flame_particles->IsLooped())
 		StopFlameParticles	();	
 
 	SwitchState(eIdle);
-
 	bWorking = false;
 }
 
