@@ -313,15 +313,10 @@ void CWeapon::Load(LPCSTR section)
 	if (pSettings->line_exist(section, "shell_bone"))
 		m_shell_bone					= Visual()->dcast_PKinematics()->LL_BoneID(pSettings->r_string(section, "shell_bone"));
 	
-	m_fire_point						= getFirePoint();
+	m_fire_point						= pSettings->r_fvector3(section, "fire_point");
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
 	m_Offset.translate_sub				(m_grip_point);
-}
-
-Fvector CWeapon::getFirePoint() const
-{
-	return								pSettings->r_fvector3(cNameSect(), "fire_point");
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -914,12 +909,12 @@ float CWeapon::readAccuracyModifier(LPCSTR type) const
 	return READ_IF_EXISTS(pSettings, r_float, "accuracy_modifiers", type, 1.f);
 }
 
-Fvector CWeapon::readRecoilPattern(LPCSTR section, LPCSTR line) const
+Fvector CWeapon::readRecoilPattern(LPCSTR section, LPCSTR line)
 {
 	return readRecoilPattern(pSettings->r_string(section, line));
 }
 
-Fvector CWeapon::readRecoilPattern(LPCSTR type) const
+Fvector CWeapon::readRecoilPattern(LPCSTR type)
 {
 	return READ_IF_EXISTS(pSettings, r_fvector3, "recoil_patterns", type, vOne);
 }

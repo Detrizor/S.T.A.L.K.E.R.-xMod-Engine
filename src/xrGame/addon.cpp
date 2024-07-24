@@ -7,7 +7,6 @@
 #include "item_usable.h"
 #include "addon_owner.h"
 #include "WeaponMagazined.h"
-#include "barrel.h"
 
 void CAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
@@ -15,8 +14,6 @@ void CAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 		O.AddModule<CMagazine>			();
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
 		O.AddModule<CScope>				(addon_sect);
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "barrel", FALSE))
-		O.AddModule<CBarrel>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))
 		O.AddModule<CMuzzle>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "silencer", FALSE))

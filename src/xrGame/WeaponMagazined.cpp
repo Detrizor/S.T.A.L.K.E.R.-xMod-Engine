@@ -140,7 +140,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 		string64						addon_sect;
 		_GetItem						(integrated_addons, i, addon_sect);
 		CAddon::addAddonModules			(*this, addon_sect);
+		process_addon_data				(*this, addon_sect, true);
 	}
+	process_addon_data					(*this, cNameSect(), true);
 	process_addon_modules				(*this, true);
 
 	if (pSettings->line_exist(hud_sect, "empty_click_anm"))
@@ -1066,6 +1068,12 @@ void CWeaponMagazined::on_reticle_switch()
 	playBlendAnm						(m_empty_click_anm);
 }
 
+void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
+{
+	process_addon_data					(addon->O, addon->O.cNameSect(), attach);
+	process_addon_modules				(addon->O, attach);
+}
+
 static LPCSTR read_root_type(CObject* obj, LPCSTR part)
 {
 	auto parent							= obj->H_Parent();
@@ -1075,46 +1083,53 @@ static LPCSTR read_root_type(CObject* obj, LPCSTR part)
 	return								read_root_type(parent, part);
 }
 
-void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
+void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ section, bool attach)
 {
-	if (auto mag = obj.Cast<CMagazine*>())
-		m_magazine						= (attach) ? mag : nullptr;
-	if (auto scope = obj.Cast<CScope*>())
-		process_scope					(scope, attach);
-	if (auto barrel = obj.Cast<CBarrel*>())
-		process_barrel					(barrel, attach);
-	if (auto muzzle = obj.Cast<CMuzzle*>())
-		process_muzzle					(muzzle, attach);
-	if (auto sil = obj.Cast<CSilencer*>())
-		process_silencer				(sil, attach);
-
-	if (pSettings->line_exist(obj.cNameSect(), "grip_type"))
+	if (pSettings->line_exist(section, "grip_type"))
 	{
 		if (m_grip = attach)
 		{
-			LPCSTR grip_type			= pSettings->r_string(obj.cNameSect(), "grip_type");
+			LPCSTR grip_type			= pSettings->r_string(section, "grip_type");
 			m_grip_accuracy_modifier	= readAccuracyModifier(grip_type);
 		}
 		hud_sect						= pSettings->r_string(cNameSect(), (attach) ? "hud" : "hud_unusable");
 	}
 
-	if (pSettings->line_exist(obj.cNameSect(), "stock_type"))
+	if (pSettings->line_exist(section, "stock_type"))
 	{
-		LPCSTR stock_type				= (attach) ? pSettings->r_string(obj.cNameSect(), "stock_type") : read_root_type(obj.dcast_CObject(), "stock_type");
+		LPCSTR stock_type				= (attach) ? pSettings->r_string(section, "stock_type") : read_root_type(obj.dcast_CObject(), "stock_type");
 		m_stock_recoil_pattern			= readRecoilPattern(stock_type);
 		m_stock_accuracy_modifier		= readAccuracyModifier(stock_type);
 	}
 	
-	if (pSettings->line_exist(obj.cNameSect(), "foregrip_type"))
+	if (pSettings->line_exist(section, "foregrip_type"))
 	{
-		LPCSTR foregrip_type			= (attach) ? pSettings->r_string(obj.cNameSect(), "foregrip_type") : read_root_type(obj.dcast_CObject(), "foregrip_type");
+		LPCSTR foregrip_type			= (attach) ? pSettings->r_string(section, "foregrip_type") : read_root_type(obj.dcast_CObject(), "foregrip_type");
 		m_foregrip_recoil_pattern		= readRecoilPattern(foregrip_type);
 		m_foregrip_accuracy_modifier	= readAccuracyModifier(foregrip_type);
 		m_anm_prefix					= pSettings->r_string("anm_prefixes", foregrip_type);
 		PlayAnimIdle					();
 	}
 
+	if (float length = READ_IF_EXISTS(pSettings, r_float, section, "barrel_length", 0.f))
+	{
+		m_barrel_length					+= (attach) ? length : -length;
+		m_barrel_len					= pow(m_barrel_length, s_barrel_length_power);
+	}
+
 	process_align_front					(&obj, attach);
+}
+
+void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
+{
+	if (auto mag = obj.Cast<CMagazine*>())
+		m_magazine						= (attach) ? mag : nullptr;
+	if (auto scope = obj.Cast<CScope*>())
+		process_scope					(scope, attach);
+	if (auto muzzle = obj.Cast<CMuzzle*>())
+		process_muzzle					(muzzle, attach);
+	if (auto sil = obj.Cast<CSilencer*>())
+		process_silencer				(sil, attach);
 }
 
 void CWeaponMagazined::process_scope(CScope* scope, bool attach)
@@ -1198,49 +1213,38 @@ void CWeaponMagazined::process_align_front(CGameObject* obj, bool attach)
 			m_hud->calculateScopeOffset	(scope);
 }
 
-void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
-{
-	if (attach)
-	{
-		m_barrel_length					= barrel->getLength();
-		m_barrel_len					= pow(m_barrel_length, s_barrel_length_power);
-		load_muzzle_params				(barrel);
-	}
-	else
-		m_barrel_length = m_barrel_len	= 0.f;
-}
-
-static CMuzzleBase* get_root_muzzle(CObject* obj)
+static CMuzzle* get_parent_muzzle(CObject* obj)
 {
 	auto parent							= obj->H_Parent();
-	R_ASSERT							(parent);
-	if (auto mb = parent->Cast<CMuzzleBase*>())
-		return							mb;
-	return								get_root_muzzle(parent);
+	if (!parent)
+		return							nullptr;
+	if (auto muzzle = parent->Cast<CMuzzle*>())
+		return							muzzle;
+	return								get_parent_muzzle(parent);
 }
 
 void CWeaponMagazined::process_muzzle(CMuzzle* muzzle, bool attach)
 {
-	load_muzzle_params					((attach) ? muzzle : get_root_muzzle(muzzle->O.dcast_CObject()));
+	if (auto src = (attach) ? muzzle : get_parent_muzzle(muzzle->O.dcast_CObject()))
+	{
+		m_muzzle_recoil_pattern			= src->getRecoilPattern();
+		m_fire_point					= src->getFirePoint();
+		m_flash_hider					= src->isFlashHider();
+		m_hud->calculateAimOffsets		();
+	}
 }
 
 void CWeaponMagazined::process_silencer(CSilencer* sil, bool attach)
 {
-	m_silencer							= (attach) ? sil : nullptr;
+	m_silencer							= attach;
+	if (attach)
+	{
+		m_silencer_koef.bullet_speed	= sil->getBulletSpeedK();
+		m_silencer_koef.fire_dispersion	= sil->getFireDispersionBaseK();
+	}
+	else
+		m_silencer_koef.Reset			();
 	UpdateSndShot						();
-	updataeSilencerKoeffs				();
-	load_muzzle_params					((attach) ? sil : get_root_muzzle(sil->O.dcast_CObject()));
-}
-
-void CWeaponMagazined::load_muzzle_params(CMuzzleBase* src)
-{
-	m_muzzle_recoil_pattern				= readRecoilPattern(*src->getSection(), "muzzle_type");
-	m_fire_point						= src->getFirePoint();
-	m_hud->calculateAimOffsets			();
-
-	LoadLights							(*src->getSection());
-	LoadFlameParticles					(*cNameSect());
-	LoadFlameParticles					(*src->getSection());
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
@@ -1249,14 +1253,14 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnAddon:
 	{
-		process_addon_modules			(reinterpret_cast<CAddon*>(data)->O, !!param);
+		process_addon					(reinterpret_cast<CAddon*>(data), !!param);
 		break;
 	}
 	case eWeight:
 		return							inherited::Aboba(type, data, param) + GetMagazineWeight();
 	case eTransferAddon:
 	{
-		auto addon						= (CAddon*)data;
+		auto addon						= reinterpret_cast<CAddon*>(data);
 		if (addon->cast<CMagazine*>())
 		{
 			m_magazine_slot->startReloading((param) ? addon : nullptr);
@@ -1276,7 +1280,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	case eSyncData:
 	{
 		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_obj						= reinterpret_cast<CSE_ALifeDynamicObject*>(data);
 		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
 		if (param)
 		{

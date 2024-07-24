@@ -50,7 +50,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.bullet_hollow_point			= !!pSettings->r_bool(section, "hollow_point");
 	param_s.u8ColorID					= pSettings->r_u8(section, "tracer_color_ID");
 	float bullet_speed					= pSettings->r_float(section, "bullet_speed") * pSettings->r_float(section, "k_bullet_speed");
-	param_s.barrel_length				= pSettings->r_float(section, "barrel_length");
+	param_s.barrel_length				= pSettings->r_float(section, "reference_barrel_length");
 	param_s.barrel_len					= pow(param_s.barrel_length, CWeaponMagazined::s_barrel_length_power);
 	param_s.bullet_speed_per_barrel_len = bullet_speed / param_s.barrel_len;
 	param_s.bullet_k_ap					= pSettings->r_float(section, "bullet_k_ap");

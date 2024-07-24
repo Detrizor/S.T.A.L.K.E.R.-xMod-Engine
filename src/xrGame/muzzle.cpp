@@ -1,22 +1,19 @@
 #include "stdafx.h"
 #include "muzzle.h"
 #include "addon.h"
-#include "WeaponMagazined.h"
+#include "Weapon.h"
 
-CMuzzleBase::CMuzzleBase(CGameObject* obj, shared_str CR$ section) : CModule(obj),
-m_section(section),
-m_muzzle_point(pSettings->r_fvector3(section, "muzzle_point"))
+CMuzzle::CMuzzle(CGameObject* obj, shared_str CR$ section) : CModule(obj),
+m_muzzle_point(pSettings->r_fvector3(section, "muzzle_point")),
+m_recoil_pattern(CWeapon::readRecoilPattern(section.c_str(), "muzzle_type")),
+m_flash_hider(pSettings->r_bool(section, "flash_hider"))
 {
 }
 
-Fvector CMuzzleBase::getFirePoint() const
+Fvector CMuzzle::getFirePoint() const
 {
-	Fvector								res;
+	Fvector res							= m_muzzle_point;
 	if (auto addon = cast<CAddon*>())
-		res								= static_cast<Fvector>(addon->getLocalTransform().c);
-	else if (auto wpn = cast<CWeaponMagazined*>())
-		res								= wpn->getFirePoint();
-
-	res.add								(m_muzzle_point);
+		res.add							(static_cast<Fvector>(addon->getLocalTransform().c));
 	return								res;
 }

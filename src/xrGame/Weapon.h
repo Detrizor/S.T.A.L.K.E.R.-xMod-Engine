@@ -464,8 +464,6 @@ protected:
 	
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	float								readAccuracyModifier				C$	(LPCSTR type);
-	Fvector								readRecoilPattern					C$	(LPCSTR section, LPCSTR line);
-	Fvector								readRecoilPattern					C$	(LPCSTR type);
 	int									get_ammo_type						C$	(shared_str CR$ section);
 	
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
@@ -480,6 +478,8 @@ protected:
 
 public:
 	static void							loadStaticVariables						();
+	static Fvector						readRecoilPattern						(LPCSTR section, LPCSTR line);
+	static Fvector						readRecoilPattern						(LPCSTR type);
 
 	void								SwitchArmedMode							();
 
@@ -488,7 +488,6 @@ public:
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
 	
 	bool								isCamRecoilRelaxed					C$	();
-	Fvector								getFirePoint						C$	();
 	float								GetControlInertionFactor			CO$	(bool full = false);
 	
 	int								V$	ADS									C$	();

@@ -9,15 +9,14 @@
 
 #include "addon_owner.h"
 #include "scope.h"
-#include "barrel.h"
 
 class ENGINE_API CMotionDef;
 
 class CWeaponHud;
-class CScope;
 class CSilencer;
 class CGrenadeLauncher;
 class CFoldable;
+class CMuzzle;
 struct SWpnBriefInfo;
 
 class CWeaponMagazined : public CWeapon
@@ -185,7 +184,6 @@ private:
 
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
-	CSilencer*							m_silencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
 	bool								m_shot_shell							= false;
@@ -204,11 +202,10 @@ private:
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
 	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
-	void								load_muzzle_params						(CMuzzleBase* src);
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
 	void								on_reticle_switch						();
-	void								process_barrel							(CBarrel* barrel, bool attach);
+	void								process_addon							(CAddon* addon, bool attach);
 	void								process_muzzle							(CMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);
 	void								process_scope							(CScope* scope, bool attach);
@@ -230,6 +227,7 @@ protected:
 
 	void								updateRecoil							();
 	void								reload_chamber							(CCartridge* dest = nullptr);
+	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
 	
 	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
