@@ -224,11 +224,13 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 			obj->H_SetParent			(this);
 			obj->setVisible				(FALSE);
 			obj->setEnabled				(FALSE);
+			Aboba						(eOnChild, reinterpret_cast<void*>(obj), 1);
 		}
 		else
-			obj->H_SetParent			(NULL, dont_create_shell);
-
-		Aboba							(eOnChild, (void*)obj, (int)take);
+		{
+			Aboba						(eOnChild, reinterpret_cast<void*>(obj), 0);
+			obj->H_SetParent			(nullptr, dont_create_shell);
+		}
 	}
 }
 

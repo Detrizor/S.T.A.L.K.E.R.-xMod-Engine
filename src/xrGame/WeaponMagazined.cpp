@@ -162,7 +162,7 @@ void CWeaponMagazined::FireStart()
 {
 	if (!IsMisfire())
 	{
-		if (hasAmmoToShoot() && m_barrel)
+		if (hasAmmoToShoot() && m_barrel_len)
 		{
 			if (!IsWorking() || AllowFireWhileWorking())
 			{
@@ -1077,6 +1077,15 @@ void CWeaponMagazined::on_reticle_switch()
 	playBlendAnm						(m_empty_click_anm);
 }
 
+static LPCSTR read_root_type(CObject* obj, LPCSTR part)
+{
+	auto parent							= obj->H_Parent();
+	R_ASSERT							(parent);
+	if (pSettings->line_exist(parent->cNameSect(), part))
+		return							pSettings->r_string(parent->cNameSect(), part);
+	return								read_root_type(parent, part);
+}
+
 void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 {
 	if (auto mag = obj.Cast<CMagazine*>())
@@ -1089,41 +1098,30 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 		process_muzzle					(muzzle, attach);
 	if (auto sil = obj.Cast<CSilencer*>())
 		process_silencer				(sil, attach);
-	
-	shared_str type						= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "grip_type", 0);
-	if (type.size())
+
+	if (pSettings->line_exist(obj.cNameSect(), "grip_type"))
 	{
-		m_grip							= attach;
-		m_grip_accuracy_modifier		= (attach) ? readAccuracyModifier(*type) : 1.f;
+		if (m_grip = attach)
+		{
+			LPCSTR grip_type			= pSettings->r_string(obj.cNameSect(), "grip_type");
+			m_grip_accuracy_modifier	= readAccuracyModifier(grip_type);
+		}
 		hud_sect						= pSettings->r_string(cNameSect(), (attach) ? "hud" : "hud_unusable");
 	}
-	
-	type								= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "stock_type", 0);
-	if (type.size())
+
+	if (pSettings->line_exist(obj.cNameSect(), "stock_type"))
 	{
-		m_stock_recoil_pattern			= (attach) ? readRecoilPattern(*type) : vOne;
-		m_stock_accuracy_modifier		= (attach) ? readAccuracyModifier(*type) : 1.f;
+		LPCSTR stock_type				= (attach) ? pSettings->r_string(obj.cNameSect(), "stock_type") : read_root_type(obj.dcast_CObject(), "stock_type");
+		m_stock_recoil_pattern			= readRecoilPattern(stock_type);
+		m_stock_accuracy_modifier		= readAccuracyModifier(stock_type);
 	}
 	
-	type								= READ_IF_EXISTS(pSettings, r_string, obj.cNameSect(), "foregrip_type", 0);
-	if (type.size())
+	if (pSettings->line_exist(obj.cNameSect(), "foregrip_type"))
 	{
-		if (!m_handguard.size())
-			m_handguard					= type;
-		if (m_handguard == type)
-		{
-			m_foregrip_recoil_pattern	= (attach) ? readRecoilPattern(*type) : vOne;
-			m_foregrip_accuracy_modifier= (attach) ? readAccuracyModifier(*type) : 1.f;
-			m_anm_prefix				= (attach) ? pSettings->r_string("anm_prefixes", *type) : 0;
-			if (!attach)
-				m_handguard				= 0;
-		}
-		else
-		{
-			m_foregrip_recoil_pattern	= readRecoilPattern(*((attach) ? type : m_handguard));
-			m_foregrip_accuracy_modifier= readAccuracyModifier(*((attach) ? type : m_handguard));
-			m_anm_prefix				= pSettings->r_string("anm_prefixes", *((attach) ? type : m_handguard));
-		}
+		LPCSTR foregrip_type			= (attach) ? pSettings->r_string(obj.cNameSect(), "foregrip_type") : read_root_type(obj.dcast_CObject(), "foregrip_type");
+		m_foregrip_recoil_pattern		= readRecoilPattern(foregrip_type);
+		m_foregrip_accuracy_modifier	= readAccuracyModifier(foregrip_type);
+		m_anm_prefix					= pSettings->r_string("anm_prefixes", foregrip_type);
 		PlayAnimIdle					();
 	}
 
@@ -1215,21 +1213,26 @@ void CWeaponMagazined::process_barrel(CBarrel* barrel, bool attach)
 {
 	if (attach)
 	{
-		m_barrel						= barrel;
-		m_barrel_len					= pow(m_barrel->getLength(), s_barrel_length_power);
-		load_muzzle_params				(m_barrel);
+		m_barrel_length					= barrel->getLength();
+		m_barrel_len					= pow(m_barrel_length, s_barrel_length_power);
+		load_muzzle_params				(barrel);
 	}
 	else
-	{
-		m_barrel						= nullptr;
-		m_barrel_len					= 0.f;
-	}
+		m_barrel_length = m_barrel_len	= 0.f;
+}
+
+static CMuzzleBase* get_root_muzzle(CObject* obj)
+{
+	auto parent							= obj->H_Parent();
+	R_ASSERT							(parent);
+	if (auto mb = parent->Cast<CMuzzleBase*>())
+		return							mb;
+	return								get_root_muzzle(parent);
 }
 
 void CWeaponMagazined::process_muzzle(CMuzzle* muzzle, bool attach)
 {
-	m_muzzle							= (attach) ? muzzle : nullptr;
-	load_muzzle_params					((m_muzzle) ? m_muzzle : static_cast<CMuzzleBase*>(m_barrel));
+	load_muzzle_params					((attach) ? muzzle : get_root_muzzle(muzzle->O.dcast_CObject()));
 }
 
 void CWeaponMagazined::process_silencer(CSilencer* sil, bool attach)
@@ -1237,7 +1240,7 @@ void CWeaponMagazined::process_silencer(CSilencer* sil, bool attach)
 	m_silencer							= (attach) ? sil : nullptr;
 	UpdateSndShot						();
 	updataeSilencerKoeffs				();
-	load_muzzle_params					((attach) ? sil : ((m_muzzle) ? m_muzzle : static_cast<CMuzzleBase*>(m_barrel)));
+	load_muzzle_params					((attach) ? sil : get_root_muzzle(sil->O.dcast_CObject()));
 }
 
 void CWeaponMagazined::load_muzzle_params(CMuzzleBase* src)

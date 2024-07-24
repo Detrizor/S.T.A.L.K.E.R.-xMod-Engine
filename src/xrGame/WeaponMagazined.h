@@ -186,16 +186,14 @@ private:
 
 	CScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<CScope*>					m_attached_scopes						= {};
-	CMuzzle*							m_muzzle								= nullptr;
 	CSilencer*							m_silencer								= nullptr;
 	CMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
-	CBarrel*							m_barrel								= nullptr;
 	bool								m_shot_shell							= false;
 	float								m_ads_shift								= 0.f;
-	shared_str							m_handguard								= 0;
 	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
+	float								m_barrel_length							= 0.f;
 
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
@@ -252,7 +250,7 @@ public:
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }
-	float								getBarrelLength						C$	()		{ return (m_barrel) ? m_barrel->getLength() : 0.f; }
+	float								getBarrelLength						C$	()		{ return m_barrel_length; }
 	float								getBarrelLen						C$	()		{ return m_barrel_len; }
 
 	bool								CanTrade							C$	();
