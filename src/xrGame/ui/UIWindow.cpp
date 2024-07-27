@@ -115,8 +115,7 @@ m_bCustomDraw(false),
 m_alignment(aLeftTop),
 m_anchor(aLeftTop),
 m_offsetTag(""),
-m_offset_wnd_name(""),
-m_background_draw(false)
+m_offset_wnd_name("")
 {
 	Show					(true);
 	Enable					(true);
@@ -172,10 +171,8 @@ void CUIWindow::Draw()
 		return;
 
 	for (auto I : m_ChildWndList)
-	{
-		if (I->IsShown() && !I->GetCustomDraw() && !I->BackgroundDraw())
+		if (I->IsShown() && !I->GetCustomDraw() && !I->getBackgroundDraw() && !I->getForegroundDraw())
 			I->Draw();
-	}
 
 #ifdef DEBUG
 	if(g_show_wnd_rect2){
@@ -186,13 +183,18 @@ void CUIWindow::Draw()
 #endif
 }
 
-void CUIWindow::DrawBackground()
+void CUIWindow::drawBackground()
 {
 	for (auto I : m_ChildWndList)
-	{
-		if (I->BackgroundDraw())
+		if (I->getBackgroundDraw())
 			I->Draw();
-	}
+}
+
+void CUIWindow::drawForeground()
+{
+	for (auto I : m_ChildWndList)
+		if (I->getForegroundDraw())
+			I->Draw();
 }
 
 void CUIWindow::Draw(float x, float y)

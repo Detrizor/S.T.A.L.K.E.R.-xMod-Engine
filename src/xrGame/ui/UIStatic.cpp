@@ -78,12 +78,16 @@ void CUIStatic::InitTextureEx(LPCSTR tex_name, LPCSTR sh_name)
 
 void CUIStatic::Draw()
 {
-	DrawBackground			();
+	drawBackground			();
+
 	if (!m_base_foreground_draw)
 		DrawTexture			();
 	inherited::Draw			();
+
 	if (m_base_foreground_draw)
-		DrawTexture			();	
+		DrawTexture			();
+	drawForeground			();
+
 	DrawText				();
 }
 

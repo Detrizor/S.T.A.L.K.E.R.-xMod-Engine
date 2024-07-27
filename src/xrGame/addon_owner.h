@@ -16,6 +16,7 @@ private:
 	double								m_step;
 	u16									m_overlaping_slot;
 	bool								m_background_draw;
+	bool								m_foreground_draw;
 
 	CAddon*								m_loading_addon							= nullptr;
 	u16									m_bone_id								= u16_max;
@@ -55,7 +56,8 @@ public:
 	void								finishLoading							(bool interrupted = false);
 	void								calculateBoneOffset						(IKinematics* model, shared_str CR$ hud_sect);
 	
-	bool								backgroundDraw						C$	()		{ return m_background_draw || m_has_loading_anim; }
+	bool								getBackgroundDraw					C$	()		{ return m_background_draw; }
+	bool								getForegroundDraw					C$	()		{ return m_foreground_draw; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
 	CAddon CP$							getLoadingAddon						C$	()		{ return m_loading_addon; }
 

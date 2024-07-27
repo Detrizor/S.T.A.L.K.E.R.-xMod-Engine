@@ -377,7 +377,8 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 	type								= slot.type;
 	icon_offset							= slot.icon_offset;
 	icon_step							= slot.icon_step;
-	icon_background_draw				= slot.backgroundDraw();
+	icon_background_draw				= slot.getBackgroundDraw();
+	icon_foreground_draw				= slot.getForegroundDraw();
 }
 
 void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
@@ -414,7 +415,9 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 				AttachChild				(s->addon_icon);
 				s->addon_icon->SetTextureColor(GetTextureColor());
 				if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
-					s->addon_icon->SetBackgroundDraw(true);
+					s->addon_icon->setBackgroundDraw(true);
+				else if (s->icon_foreground_draw)
+					s->addon_icon->setForegroundDraw(true);
 
 				if (auto addon_ao = addon->cast<CAddonOwner*>())
 					process_ao			(addon_ao, s->icon_offset);

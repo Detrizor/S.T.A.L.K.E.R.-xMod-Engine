@@ -264,6 +264,9 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent)
 	tmp.printf							("background_draw_%d", idx);
 	m_background_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
 	m_background_draw					|= (attach == "magazine" || attach == "grenade");
+	
+	tmp.printf							("foreground_draw_%d", idx);
+	m_foreground_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
 }
 
 void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const

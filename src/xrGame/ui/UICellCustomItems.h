@@ -65,6 +65,7 @@ private:
 		Fvector2						icon_offset;
 		float							icon_step;
 		bool							icon_background_draw;
+		bool							icon_foreground_draw;
 		
 		shared_str						addon_section							= 0;
 		u8								addon_type								= 0;

@@ -176,7 +176,8 @@ public:
 
 	//прорисовка окна
 	virtual void			Draw				();
-	void					DrawBackground		();
+	void					drawBackground		();
+	void					drawForeground		();
 	virtual void			Draw				(float x, float y);
 	//обновление окна передпрорисовкой
 	virtual void			Update				();
@@ -258,11 +259,15 @@ private:
 	u8									m_alignment;
 	shared_str							m_offsetTag;
 	shared_str							m_offset_wnd_name;
-	bool								m_background_draw;
+
+	bool								m_background_draw						= false;
+	bool								m_foreground_draw						= false;
 
 public:
-	bool								BackgroundDraw						C$	()			{ return m_background_draw; }
-	void								SetBackgroundDraw						(bool v)	{ m_background_draw = v; }
+	bool								getBackgroundDraw					C$	()			{ return m_background_draw; }
+	bool								getForegroundDraw					C$	()			{ return m_foreground_draw; }
+	void								setBackgroundDraw						(bool v)	{ m_background_draw = v; }
+	void								setForegroundDraw						(bool v)	{ m_foreground_draw = v; }
 
 			void			SetAnchor				(u8 val)								{ m_anchor = val; }
 			void			SetAlignment			(u8 val)								{ m_alignment = val; }
