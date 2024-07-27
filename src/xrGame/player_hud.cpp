@@ -817,10 +817,6 @@ void player_hud::OnMovementChanged()
 
 void player_hud::updateMovementLayerState()
 {
-	if (!(m_attached_items[0] && m_attached_items[0]->m_parent_hud_item->isUsingBlendIdleAnims() ||
-		m_attached_items[1] && m_attached_items[1]->m_parent_hud_item->isUsingBlendIdleAnims()))
-		return;
-
 	for (auto& i : m_movement_layers)
 		for (auto& j : i)
 			for (auto& k : j)

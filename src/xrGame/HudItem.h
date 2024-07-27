@@ -113,7 +113,6 @@ public:
 
 	virtual void				PlayAnimIdle		();
 	virtual void				PlayAnimBore		();
-	bool						TryPlayAnimIdle		();
 
 	virtual void				UpdateCL			();
 	virtual void				renderable_Render	();
@@ -182,16 +181,13 @@ protected:
 	float								m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
 	float								m_fLR_InertiaFactor; // Фактор горизонтальной инерции худа при движении камеры [-1; +1]
 	float								m_fUD_InertiaFactor; // Фактор вертикальной инерции худа при движении камеры [-1; +1]
-	bool								m_using_blend_idle_anims;
 
 	shared_str							m_anm_prefix							= 0;
 
-	script_layer*						playBlendAnm						C$	(SScriptAnm CR$ anm, u32 state = 0, bool stop_old = false);
+	void								playBlendAnm						C$	(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false);
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 
 public:
-	bool								isUsingBlendIdleAnims				C$	()		{ return m_using_blend_idle_anims; }
-
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
