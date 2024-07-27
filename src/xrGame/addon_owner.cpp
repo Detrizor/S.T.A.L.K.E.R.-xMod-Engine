@@ -244,8 +244,13 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent)
 
 	Fvector2 icon_origin				= pSettings->r_fvector2(parent->O.cNameSect(), "inv_icon_origin");
 	float icon_ppm						= pSettings->r_float(parent->O.cNameSect(), "icon_ppm");
-	icon_offset.x						= icon_origin.x - static_cast<float>(model_offset.c.z) * icon_ppm;
-	icon_offset.y						= icon_origin.y - static_cast<float>(model_offset.c.y) * icon_ppm;
+	bool icon_inversed					= !!READ_IF_EXISTS(pSettings, r_bool, parent->O.cNameSect(), "icon_inversed", FALSE);
+
+	icon_offset							= icon_origin;
+	float x_offset						= static_cast<float>(model_offset.c.z) * icon_ppm;
+	float y_offset						= static_cast<float>(model_offset.c.y) * icon_ppm;
+	icon_offset.x						-= x_offset;
+	icon_offset.y						-= (icon_inversed) ? -y_offset : y_offset;
 	icon_step							= static_cast<float>(length) * icon_ppm / (static_cast<float>(steps) + .5f);
 
 	tmp.printf							("overlapping_slot_%d", idx);

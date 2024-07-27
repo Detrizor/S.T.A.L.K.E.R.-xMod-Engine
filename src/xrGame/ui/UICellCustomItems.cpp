@@ -396,7 +396,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 
 				if (addon->I->areInvIconTypesAllowed())
 				{
-					if (abs(hpb.z) >= PI * .75f)
+					if (abs(hpb.z) >= .75f * PI)
 						s->addon_type	= 1;
 					else if (abs(hpb.z) >= PI_DIV_4)
 						s->addon_type	= 2;
