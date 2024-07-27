@@ -177,6 +177,8 @@ bool CAddonOwner::attachAddon(CAddon* addon)
 
 	if (slot)
 	{
+		if (!slot->steps && slot->addons.size())
+			slot->parent_ao->transfer_addon(slot->addons.front(), false);
 		slot->parent_ao->transfer_addon	(addon, true);
 		return							true;
 	}
@@ -217,7 +219,7 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent)
 	else
 	{
 		tmp.printf						("steps_%d", idx);
-		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 1);
+		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 0);
 		m_step							= length / (static_cast<double>(steps) + .5);
 	}
 
@@ -258,11 +260,10 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent)
 	
 	tmp.printf							("attach_%d", idx);
 	attach								= READ_IF_EXISTS(pSettings, r_string, section, *tmp, 0);
-
-	m_has_loading_anim					= attach == "magazine" || attach == "grenade";
 	
 	tmp.printf							("background_draw_%d", idx);
 	m_background_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
+	m_background_draw					|= (attach == "magazine" || attach == "grenade");
 }
 
 void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
@@ -547,12 +548,10 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 		return							false;
 	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
 		return							false;
-	if (m_has_loading_anim)
-		return							!isLoading();
-	if (fIsZero(m_step))
-		return							addons.empty();
+	if (!steps)
+		return							true;
 
-	int pos								= get_spacing(NULL, addon);
+	int pos								= get_spacing(nullptr, addon);
 	for (auto next : addons)
 	{
 		if (pos + get_spacing(addon, next) <= next->getSlotPos())
@@ -560,7 +559,7 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 		pos								= next->getSlotPos() + get_spacing(next, addon);
 	}
 	
-	return								(pos + get_spacing(addon, NULL) <= steps);
+	return								(pos + get_spacing(addon, nullptr) <= steps);
 }
 
 void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const

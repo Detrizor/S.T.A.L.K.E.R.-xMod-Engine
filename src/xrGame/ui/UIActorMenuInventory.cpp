@@ -633,8 +633,6 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 	}
 }
 
-shared_str attach_to					= "st_attach_to";
-
 static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
 {
 	shared_str							attach_str;
@@ -643,7 +641,9 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		if (s->CanTake(addon))
 		{
 			attach_str.printf			("%s %s", str, *s->name);
-			pb->AddItem					(*attach_str, (void*)s.get(), INVENTORY_ADDON_ATTACH);
+			if (s->addons.size())
+				attach_str.printf		("%s (%s %s)", attach_str.c_str(), CStringTable().translate("st_swap").c_str(), s->addons.front()->I->getNameShort());
+			pb->AddItem					(*attach_str, reinterpret_cast<void*>(s.get()), INVENTORY_ADDON_ATTACH);
 			b_show						= true;
 		}
 		
@@ -658,7 +658,7 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 	if (auto addon = item->cast<CAddon*>())
 		if (auto active_item = m_pActorInv->ActiveItem())
 			if (auto ao = active_item->cast<CAddonOwner*>())
-				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show, *shared_str().printf("%s %s -", *CStringTable().translate(attach_to), active_item->getNameShort()));
+				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show, *shared_str().printf("%s %s -", *CStringTable().translate("st_attach_to"), active_item->getNameShort()));
 }
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)

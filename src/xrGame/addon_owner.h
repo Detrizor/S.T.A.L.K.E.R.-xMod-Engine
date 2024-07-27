@@ -16,7 +16,6 @@ private:
 	double								m_step;
 	u16									m_overlaping_slot;
 	bool								m_background_draw;
-	bool								m_has_loading_anim;
 
 	CAddon*								m_loading_addon							= nullptr;
 	u16									m_bone_id								= u16_max;
