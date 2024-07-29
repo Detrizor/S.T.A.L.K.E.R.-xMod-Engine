@@ -641,7 +641,7 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		if (s->CanTake(addon))
 		{
 			attach_str.printf			("%s %s", str, *s->name);
-			if (s->addons.size())
+			if (!s->steps && s->addons.size())
 				attach_str.printf		("%s (%s %s)", attach_str.c_str(), CStringTable().translate("st_swap").c_str(), s->addons.front()->I->getNameShort());
 			pb->AddItem					(*attach_str, reinterpret_cast<void*>(s.get()), INVENTORY_ADDON_ATTACH);
 			b_show						= true;
