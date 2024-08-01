@@ -398,9 +398,9 @@ void CHudItem::UpdateHudAdditional(Dmatrix& trans)
 
 void CHudItem::UpdateCL()
 {
-	if (m_current_motion_def)
+	if (m_bStopAtEndAnimIsRunning)
 	{
-		if (m_bStopAtEndAnimIsRunning)
+		if (m_current_motion_def)
 		{
 			const xr_vector<motion_marks>&	marks = m_current_motion_def->marks;
 			if (!marks.empty())
@@ -424,17 +424,17 @@ void CHudItem::UpdateCL()
 					}
 				}
 			}
+		}
 
-			m_dwMotionCurrTm = Device.dwTimeGlobal;
-			if (m_dwMotionCurrTm > m_dwMotionEndTm)
-			{
-				m_current_motion_def = NULL;
-				m_dwMotionStartTm = 0;
-				m_dwMotionEndTm = 0;
-				m_dwMotionCurrTm = 0;
-				m_bStopAtEndAnimIsRunning = false;
-				OnAnimationEnd(m_startedMotionState);
-			}
+		m_dwMotionCurrTm = Device.dwTimeGlobal;
+		if (m_dwMotionCurrTm > m_dwMotionEndTm)
+		{
+			m_current_motion_def = nullptr;
+			m_dwMotionStartTm = 0;
+			m_dwMotionEndTm = 0;
+			m_dwMotionCurrTm = 0;
+			m_bStopAtEndAnimIsRunning = false;
+			OnAnimationEnd(m_startedMotionState);
 		}
 	}
 }
@@ -630,12 +630,33 @@ attachable_hud_item* CHudItem::HudItemData() const
 	return NULL;
 }
 
-void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend) const
+void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend)
 {
-	u8 part								= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
-	auto ml								= g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power, false, false, state);
-	if (full_blend)
-		ml->blend_amount				= 1.f;
+	float								 anim_time;
+	if (HudItemData())
+	{
+		u8 part							= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
+		auto layer						= g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power, false, false);
+		if (full_blend)
+			layer->blend_amount			= 1.f;
+		anim_time						= layer->anm->anim_param().max_t;
+	}
+	else
+	{
+		CObjectAnimator					animator;
+		animator.Load					(anm.name.c_str());
+		animator.Play					(false);
+		anim_time						= animator.anim_param().max_t;
+	}
+
+	if (state && anim_time > 0)
+	{
+		m_bStopAtEndAnimIsRunning		= true;
+		m_dwMotionStartTm				= Device.dwTimeGlobal;
+		m_dwMotionCurrTm				= m_dwMotionStartTm;
+		m_dwMotionEndTm					= m_dwMotionStartTm + anim_time * 1000.f;
+		m_startedMotionState			= state;
+	}
 }
 
 void CHudItem::UpdateSlotsTransform()

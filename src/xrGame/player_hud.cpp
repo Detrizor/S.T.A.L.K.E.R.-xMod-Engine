@@ -844,7 +844,7 @@ void player_hud::updateMovementLayerState()
 		m_movement_layers[eIdle][wpn_state][pose].Play();
 }
 
-script_layer* player_hud::playBlendAnm(shared_str CR$ name, u8 part, float speed, float power, bool bLooped, bool no_restart, u32 state)
+script_layer* player_hud::playBlendAnm(shared_str CR$ name, u8 part, float speed, float power, bool bLooped, bool no_restart)
 {
 	for (auto& anm : m_script_layers)
 	{
@@ -865,12 +865,11 @@ script_layer* player_hud::playBlendAnm(shared_str CR$ name, u8 part, float speed
 			anm->anm->Speed() = speed;
 			anm->m_power = power;
 			anm->active = true;
-			anm->m_state = state;
 			return anm;
 		}
 	}
 
-	m_script_layers.push_back(xr_new<script_layer>(name, part, speed, power, bLooped, state));
+	m_script_layers.push_back(xr_new<script_layer>(name, part, speed, power, bLooped));
 	return m_script_layers.back().get();
 }
 
@@ -883,27 +882,5 @@ void player_hud::StopBlendAnm(shared_str CR$ name, bool bForce)
 			anm->Stop(bForce);
 			return;
 		}
-	}
-}
-
-void player_hud::onAnimationEnd(script_layer* anm)
-{
-	if (m_attached_items[0])
-		m_attached_items[0]->m_parent_hud_item->OnAnimationEnd(anm->m_state);
-}
-
-void script_layer::Stop(bool bForce)
-{
-	if (bForce)
-	{
-		anm->Stop();
-		blend_amount = 0.f;
-		blend.identity();
-	}
-
-	if (active)
-	{
-		active = false;
-		g_player_hud->onAnimationEnd(this);
 	}
 }

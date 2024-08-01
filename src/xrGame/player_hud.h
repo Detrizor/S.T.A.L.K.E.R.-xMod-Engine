@@ -110,9 +110,8 @@ struct script_layer
 	bool active;
 	Fmatrix blend;
 	u8 m_part;
-	u32 m_state;
 
-	script_layer(shared_str CR$ name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true, u32 state = 0)
+	script_layer(shared_str CR$ name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true)
 	{
 		m_name = name;
 		m_part = part;
@@ -124,7 +123,6 @@ struct script_layer
 		anm->Speed() = speed;
 		blend_amount = 0.f;
 		active = true;
-		m_state = state;
 	}
 
 	bool IsPlaying()
@@ -132,7 +130,17 @@ struct script_layer
 		return anm->IsPlaying();
 	}
 
-	void Stop(bool bForce);
+	void Stop(bool bForce)
+	{
+		if (bForce)
+		{
+			anm->Stop();
+			blend_amount = 0.f;
+			blend.identity();
+		}
+
+		active = false;
+	}
 
 	const Fmatrix& XFORM()
 	{
@@ -280,9 +288,8 @@ private:
 
 public:
 	void								updateMovementLayerState				();
-	script_layer*						playBlendAnm							(shared_str CR$ name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false, u32 state = 0);
+	script_layer*						playBlendAnm							(shared_str CR$ name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false);
 	void								StopBlendAnm							(shared_str CR$ name, bool bForce = false);
-	void								onAnimationEnd							(script_layer* anm);
 };
 
 extern player_hud* g_player_hud;
