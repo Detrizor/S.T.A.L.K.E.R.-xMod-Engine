@@ -1038,7 +1038,7 @@ void CActor::UpdateCL()
 
 	auto wpn = smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
 	if (wpn && current_entity)
-		wpn->UpdateShadersDataAndSVP(Cameras());
+		wpn->updateShadersDataAndSVP(Cameras());
 	else
 	{
 		Device.SVP.setActive(false);

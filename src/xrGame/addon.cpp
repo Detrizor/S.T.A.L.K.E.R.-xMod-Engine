@@ -87,7 +87,7 @@ int CAddon::getLength(float step, eLengthType type) const
 	case ProfileFwd: len				= m_profile_length.x; break;
 	case ProfileBwd: len				= m_profile_length.y; break;
 	}
-	return								(int)ceil(len / step);
+	return								static_cast<int>(ceil(len / step));
 }
 
 float CAddon::aboba(EEventTypes type, void* data, int param)

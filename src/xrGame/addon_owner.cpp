@@ -280,12 +280,12 @@ void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
 
 int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
 {
-	if (m_step == 0.f)
+	if (m_step == 0.)
 		return							0;
 	if (!left)
 		return							-1;
 	if (!right)
-		return							left->getLength(m_step) -1;
+		return							left->getLength(m_step) - 1;
 	if (left->isLowProfile() || right->isLowProfile())
 		return							left->getLength(m_step);
 	return								left->getLength(m_step, CAddon::ProfileFwd) + right->getLength(m_step, CAddon::ProfileBwd);

@@ -1317,6 +1317,8 @@ void CWeaponMagazined::UpdateHudAdditional(Dmatrix& trans)
 {
 	if (m_grip)
 		m_hud->UpdateHudAdditional(trans);
+	else
+		inherited::UpdateHudAdditional(trans);
 }
 
 bool CWeaponMagazined::IsRotatingToZoom C$()
@@ -1345,7 +1347,7 @@ float CWeaponMagazined::GetMagazineWeight() const
 	return								res;
 }
 
-void CWeaponMagazined::UpdateShadersDataAndSVP(CCameraManager& camera)
+void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
 {
 	CScope* scope						= getActiveScope();
 	Device.SVP.setActive(scope && scope->isPiP());

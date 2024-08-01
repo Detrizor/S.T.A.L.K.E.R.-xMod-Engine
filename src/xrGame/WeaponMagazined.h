@@ -240,7 +240,6 @@ public:
 	static float						s_barrel_length_power;
 	static void							loadStaticVariables						();
 
-	void								UpdateShadersDataAndSVP					(CCameraManager& camera);
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);
 	void								onFold									(CFoldable CP$ foldable, bool new_status);
@@ -254,6 +253,7 @@ public:
 	u16									Zeroing								C$	();
 	CScope*								getActiveScope						C$	();
 	bool								isEmptyChamber 						C$	();
+	void								updateShadersDataAndSVP				C$	(CCameraManager& camera);
 	
 	float								CurrentZoomFactor					CO$	(bool for_actor);
 
