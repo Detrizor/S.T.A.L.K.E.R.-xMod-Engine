@@ -21,7 +21,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(IncludePath);$(xrSdkDir)include;</IncludePath>
-    <OutDir>$(xrGameDir)bin_rel\</OutDir>
+    <OutDir>$(xrGameDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
