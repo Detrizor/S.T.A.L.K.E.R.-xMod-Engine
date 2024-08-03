@@ -623,7 +623,8 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 		if (auto pi = m_attached_items[i])
 		{
 			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
-			m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
+			if (pi->m_auto_attach_anm.size())
+				m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
 			m_transform.mulB_43(pi->m_hands_attach);
 			break;
 		}

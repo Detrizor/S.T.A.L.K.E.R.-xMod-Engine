@@ -158,6 +158,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 		m_firemode_anm.speed			= pSettings->r_float(hud_sect, "firemode_anm_speed");
 		m_firemode_anm.power			= pSettings->r_float(hud_sect, "firemode_anm_power");
 	}
+	
+	hud_sect							= pSettings->r_string(cNameSect(), (m_grip) ? "hud" : "hud_unusable");
 }
 
 void CWeaponMagazined::FireStart()
