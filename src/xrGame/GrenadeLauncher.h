@@ -8,6 +8,9 @@ class CAddonSlot;
 class MGrenadeLauncher : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mLauncher; }
+
+public:
 										MGrenadeLauncher						(CGameObject* obj, shared_str CR$ section);
 
 private:

@@ -38,6 +38,9 @@ struct SRangeNum
 class MScope : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mScope; }
+
+public:
 	enum eScopeType
 	{
 		eOptics = 1,

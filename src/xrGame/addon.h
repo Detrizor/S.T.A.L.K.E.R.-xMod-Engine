@@ -7,6 +7,8 @@ class MAddonOwner;
 class MAddon : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mAddon; }
+
 	enum eLengthType
 	{
 		Mount,

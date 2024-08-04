@@ -4,6 +4,9 @@
 class MMuzzle : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mMuzzle; }
+
+public:
 										MMuzzle									(CGameObject* obj, shared_str CR$ section);
 
 private:

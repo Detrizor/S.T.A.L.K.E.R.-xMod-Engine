@@ -70,6 +70,9 @@ public:
 class MAddonOwner : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mAddonOwner; }
+	
+public:
 										MAddonOwner								(CGameObject* obj);
 
 private:

@@ -68,6 +68,9 @@ class CInventoryItem : public CAttachableItem,
 	, public pureRender
 #endif
 {
+public:
+	static EModuleTypes					mid										()		{ return mInventoryItem; }
+
 private:
 	typedef CAttachableItem inherited;
 

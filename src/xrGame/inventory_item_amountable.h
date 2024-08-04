@@ -4,6 +4,9 @@
 class MAmountable : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mAmountable; }
+
+public:
 										MAmountable								(CGameObject* obj);
 
 private:

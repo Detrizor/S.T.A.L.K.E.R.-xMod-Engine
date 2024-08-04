@@ -317,11 +317,14 @@ public:
 	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f);
 	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f);
 
-	template <typename T>
-	T*									AddModule								()					{ T* res = xr_new<T>(this); m_modules.push_back(res); return res; }
-	template <typename T>
-	T*									AddModule								(shared_str CR$ S)	{ T* res = xr_new<T>(this, S); m_modules.push_back(res); return res; }
-	void								RegisterModule							(CModule* m)		{ m_modules.push_back(m); }
+	template <typename M, typename... Args>
+	void								addModule								(Args&&... args)	{ m_modules[M::mid()] = create_xptr<CModule, M>(this, ::std::forward<Args>(args)...); }
 
-	float							V$	Aboba									(EEventTypes type, void* data = NULL, int param = 0);
+	template <typename M>
+	void								registerModule							(M* p)				{ m_modules[M::mid()] = xptr<CModule>(p); }
+	
+	template <typename M>
+	void								unregisterModule						()					{ m_modules[M::mid()].release(); }
+
+	float							V$	Aboba									(EEventTypes type, void* data = nullptr, int param = 0);
 };

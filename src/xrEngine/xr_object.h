@@ -7,6 +7,7 @@
 #include "icollidable.h"
 #include "engineapi.h"
 #include "device.h"
+#include "..\xrGame\module.h"
 // refs
 //class ENGINE_API IRender_Visual;
 class ENGINE_API IRender_Sector;
@@ -14,8 +15,6 @@ class ENGINE_API IRender_ObjectSpecific;
 class ENGINE_API CCustomHUD;
 class NET_Packet;
 class CSE_Abstract;
-
-class CModule;
 
 //-----------------------------------------------------------------------------------------------------------
 #define CROW_RADIUS (30.f)
@@ -168,6 +167,8 @@ public:
 
 	//---------------------------------------------------------------------
 	CObject();
+	CObject(const CObject&) = delete;
+	CObject& operator=(const CObject&) = delete;
 	virtual ~CObject();
 
 	virtual void Load(LPCSTR section);
@@ -213,7 +214,7 @@ public:
 
 //xMod added
 protected:
-	xr_vector<CModule*>					m_modules;
+	xptr<CModule>						m_modules[CModule::mModuleTypesEnd];
 
 public:
 	template <typename T>
@@ -222,11 +223,8 @@ public:
 	template <typename M>
 	M*									getModule								()
 	{
-		for (auto m : m_modules)
-			if (m)
-				if (M* res = smart_cast<M*>(m))
-					return				res;
-
+		if (auto& m = m_modules[M::mid()])
+			return						smart_cast<M*>(m.get());
 		return							nullptr;
 	}
 	

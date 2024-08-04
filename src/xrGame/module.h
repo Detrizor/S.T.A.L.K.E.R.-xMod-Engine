@@ -30,15 +30,30 @@ enum EEventTypes
 class CModule
 {
 public:
+	enum EModuleTypes
+	{
+		mModuleTypesBegin,
+		mAddon = mModuleTypesBegin,
+		mAddonOwner,
+		mFoldable,
+		mLauncher,
+		mInventoryItem,
+		mAmountable,
+		mContainer,
+		mUsable,
+		mMagazine,
+		mMuzzle,
+		mScope,
+		mModuleTypesEnd
+	};
+
 	CGameObject&						O;
 	CInventoryItemObject PC$			I;
 
-public:
+protected:
 										CModule									(CGameObject* obj);
 
 public:
 	float							V$	aboba									(EEventTypes type, void* data = NULL, int additional_data = 0)		{ return flt_max; }
-
-public:
 	void								Transfer							C$	(u16 id = u16_max);
 };

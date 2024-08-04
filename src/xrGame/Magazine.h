@@ -10,6 +10,9 @@ class CGameObject;
 class MMagazine : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mMagazine; }
+
+public:
 										MMagazine								(CGameObject* obj);
 
 private:

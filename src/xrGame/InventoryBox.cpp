@@ -23,7 +23,8 @@ BOOL CInventoryBox::net_Spawn(CSE_Abstract* DC)
 		m_closed						= pSE_box->m_closed;
 		set_tip_text					(pSE_box->m_tip_text.c_str());
 	}
-	m_pContainer						= AddModule<MContainer>();
+	addModule<MContainer>				();
+	m_pContainer						= getModule<MContainer>();
 	return								res;
 }
 

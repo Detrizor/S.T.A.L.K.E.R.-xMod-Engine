@@ -4,6 +4,9 @@
 class MFoldable : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mFoldable; }
+
+public:
 										MFoldable								(CGameObject* obj) : CModule(obj) {}
 
 private:

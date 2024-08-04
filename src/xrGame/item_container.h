@@ -9,6 +9,9 @@ class CInventoryItem;
 class MContainer : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mContainer; }
+
+public:
 										MContainer								(CGameObject* obj);
 
 private:

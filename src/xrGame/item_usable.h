@@ -14,6 +14,9 @@ struct SAction
 class MUsable : public CModule
 {
 public:
+	static EModuleTypes					mid										()		{ return mUsable; }
+
+public:
 										MUsable									(CGameObject* obj);
 
 private:

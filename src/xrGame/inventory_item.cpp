@@ -90,7 +90,7 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
 
-	O.RegisterModule(this);
+	O.registerModule(this);
 }
 
 CInventoryItem::~CInventoryItem()
@@ -114,6 +114,8 @@ CInventoryItem::~CInventoryItem()
 			Device.dwFrame);
 	}
 #endif // #ifndef MASTER_GOLD
+
+	O.unregisterModule<CInventoryItem>();
 }
 
 void CInventoryItem::Load(LPCSTR section)
@@ -166,22 +168,22 @@ void CInventoryItem::Load(LPCSTR section)
 	set_inv_icon							();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
-		O.AddModule<MAddonOwner>		();
+		O.addModule<MAddonOwner>		();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
-		O.AddModule<MAddon>				();
+		O.addModule<MAddon>				();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
-		O.AddModule<MAmountable>		();
+		O.addModule<MAmountable>		();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "usable", FALSE))
-		O.AddModule<MUsable>			();
+		O.addModule<MUsable>			();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "foldable", FALSE))
-		O.AddModule<MFoldable>			();
+		O.addModule<MFoldable>			();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
-		O.AddModule<MContainer>			();
+		O.addModule<MContainer>			();
 }
 
 float CInventoryItem::GetConditionToWork() const

@@ -11,15 +11,15 @@
 void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
-		O.AddModule<MMagazine>			();
+		O.addModule<MMagazine>			();
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
-		O.AddModule<MScope>				(addon_sect);
+		O.addModule<MScope>				(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))
-		O.AddModule<MMuzzle>			(addon_sect);
+		O.addModule<MMuzzle>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "silencer", FALSE))
-		O.AddModule<CSilencer>			(addon_sect);
+		O.addModule<CSilencer>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "grenade_launcher", FALSE))
-		O.AddModule<MGrenadeLauncher>	(addon_sect);
+		O.addModule<MGrenadeLauncher>	(addon_sect);
 }
 
 MAddon::MAddon(CGameObject* obj) : CModule(obj)
