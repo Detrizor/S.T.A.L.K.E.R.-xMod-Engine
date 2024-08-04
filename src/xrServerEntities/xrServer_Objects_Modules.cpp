@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "xrServer_Objects_Modules.h"
 
-xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type)
+xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(eAlifeModuleTypes type)
 {
 	switch (type)
 	{

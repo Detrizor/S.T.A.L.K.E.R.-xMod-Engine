@@ -667,7 +667,7 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 	m_switch_counter			= u64(-1);
 }
 
-CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(u16 type)
+CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
 {
 	m_modules[type]						= CSE_ALifeModule::createModule(type);
 	m_modules[type]->setVersion			(m_wVersion);

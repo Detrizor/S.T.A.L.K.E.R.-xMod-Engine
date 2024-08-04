@@ -337,9 +337,9 @@ public:
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
 
 protected:
-	xptr<CSE_ALifeModule>				m_modules[mModuleTypesCount]			= { nullptr };
+	xptr<CSE_ALifeModule>				m_modules[CSE_ALifeModule::mModuleTypesEnd];
 	
-	CSE_ALifeModule*					add_module								(u16 type);
+	CSE_ALifeModule*					add_module								(CSE_ALifeModule::eAlifeModuleTypes type);
 
 public:
 	void								clearModules							();
@@ -347,16 +347,9 @@ public:
 	template <typename M>
 	M*									getModule								(bool create_if_absent)
 	{
-		for (auto& m : m_modules)
-			if (m)
-				if (auto r = smart_cast<M*>(m.get()))
-					return				r;
-
-		if (!create_if_absent)
-			return						nullptr;
-
-		auto created					= create_xptr<CSE_ALifeModule, M>();
-		return							smart_cast<M*>((m_modules[created->type()] = ::std::move(created)).get());
+		if (auto& m = m_modules[M::mid()])
+			return						smart_cast<M*>(m.get());
+		return							(create_if_absent) ? smart_cast<M*>(add_module(M::mid())) : nullptr;
 	}
 };
 
