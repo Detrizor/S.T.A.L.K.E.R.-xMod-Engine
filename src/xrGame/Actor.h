@@ -57,7 +57,7 @@ class CActorMemory;
 class CActorStatisticMgr;
 
 class CLocationManager;
-class CInventoryContainer;
+class MContainer;
 
 class	CActor: 
 	public CEntityAlive, 
@@ -348,7 +348,7 @@ public:
 	CGameObject*			ObjectWeLookingAt			() {return m_pObjectWeLookingAt;}
 	CInventoryOwner*		PersonWeLookingAt			() {return m_pPersonWeLookingAt;}
 	CInventoryBox*			InvBoxWeLookingAt			() const {return m_pInvBoxWeLookingAt;}
-	CInventoryContainer*	ContainerWeLookingAt		() const {return m_pContainerWeLookingAt;}
+	MContainer*	ContainerWeLookingAt		() const {return m_pContainerWeLookingAt;}
 	LPCSTR					GetDefaultActionForObject	() {return *m_sDefaultObjAction;}
 
 protected:
@@ -358,7 +358,7 @@ protected:
 	CHolderCustom*			m_pVehicleWeLookingAt;
 	CGameObject*			m_pObjectWeLookingAt;
 	CInventoryBox*			m_pInvBoxWeLookingAt;
-	CInventoryContainer*	m_pContainerWeLookingAt;
+	MContainer*	m_pContainerWeLookingAt;
 
 	// Tip for action for object we're looking at
 	shared_str				m_sDefaultObjAction;

@@ -9,7 +9,7 @@
 shared_str folded_str					= "folded";
 shared_str unfolded_str					= "unfolded";
 
-float CFoldable::aboba(EEventTypes type, void* data, int param)
+float MFoldable::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -27,12 +27,12 @@ float CFoldable::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CFoldable::on_status_change(bool new_status) const
+void MFoldable::on_status_change(bool new_status) const
 {
 	auto parent							= O.H_Parent();
 	while (parent)
 	{
-		if (auto wpn = parent->Cast<CWeaponMagazined*>())
+		if (auto wpn = parent->scast<CWeaponMagazined*>())
 		{
 			wpn->onFold					(this, new_status);
 			break;
@@ -42,7 +42,7 @@ void CFoldable::on_status_change(bool new_status) const
 	}
 }
 
-void CFoldable::setStatus(bool status)
+void MFoldable::setStatus(bool status)
 {
 	if (status)
 		on_status_change				(status);
@@ -55,6 +55,6 @@ void CFoldable::setStatus(bool status)
 	if (!status)
 		on_status_change				(status);
 
-	if (auto addon = cast<CAddon*>())
+	if (auto addon = O.getModule<MAddon>())
 		addon->setLowProfile			(status);
 }

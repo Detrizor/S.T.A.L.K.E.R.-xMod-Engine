@@ -35,7 +35,7 @@ protected:
 
 private:
 	bool								m_bGrenadeMode							= false;
-	CGrenadeLauncher CP$				m_pLauncher								= nullptr;
+	MGrenadeLauncher CP$				m_pLauncher								= nullptr;
 	shared_str							m_flame_particles_gl_name				= 0;
 	CParticlesObject*					m_flame_particles_gl					= nullptr;
 	CWeaponAmmo*						m_grenade								= nullptr;
@@ -49,7 +49,7 @@ private:
 	void								update_flame_particles_gl				();
 	bool								switch_mode								();
 	void								launch_grenade							();
-	void								process_gl								(CGrenadeLauncher* gl, bool attach);
+	void								process_gl								(MGrenadeLauncher* gl, bool attach);
 	Fvector CR$							fire_point_gl							();
 
 protected:
@@ -58,5 +58,5 @@ protected:
 public:
 	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
 
-	friend class CGrenadeLauncher;
+	friend class MGrenadeLauncher;
 };

@@ -146,7 +146,7 @@ CInventoryItem* CWeaponAmmo::can_make_killing(const CInventory *inventory) const
 
 	for (auto item : inventory->m_all)
 	{
-		CWeapon* weapon					= item->cast<CWeapon*>();
+		CWeapon* weapon					= item->O.scast<CWeapon*>();
 		if (!weapon)
 			continue;
 

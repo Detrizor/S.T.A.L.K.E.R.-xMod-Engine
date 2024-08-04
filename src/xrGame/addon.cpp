@@ -8,21 +8,21 @@
 #include "addon_owner.h"
 #include "WeaponMagazined.h"
 
-void CAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
+void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
-		O.AddModule<CMagazine>			();
+		O.AddModule<MMagazine>			();
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
-		O.AddModule<CScope>				(addon_sect);
+		O.AddModule<MScope>				(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))
-		O.AddModule<CMuzzle>			(addon_sect);
+		O.AddModule<MMuzzle>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "silencer", FALSE))
 		O.AddModule<CSilencer>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "grenade_launcher", FALSE))
-		O.AddModule<CGrenadeLauncher>	(addon_sect);
+		O.AddModule<MGrenadeLauncher>	(addon_sect);
 }
 
-CAddon::CAddon(CGameObject* obj) : CModule(obj)
+MAddon::MAddon(CGameObject* obj) : CModule(obj)
 {
 	m_SlotType							= pSettings->r_string(O.cNameSect(), "slot_type");
 	m_icon_origin						= pSettings->r_fvector2(O.cNameSect(), "inv_icon_origin");
@@ -35,19 +35,19 @@ CAddon::CAddon(CGameObject* obj) : CModule(obj)
 	addAddonModules						(O, O.cNameSect());
 }
 
-CAddonOwner* get_root_addon_owner(CAddonOwner* ao)
+MAddonOwner* get_root_addon_owner(MAddonOwner* ao)
 {
 	if (ao->O.H_Parent())
-		if (auto ao_parent_ao = ao->O.H_Parent()->Cast<CAddonOwner*>())
+		if (auto ao_parent_ao = ao->O.H_Parent()->getModule<MAddonOwner>())
 			return						get_root_addon_owner(ao_parent_ao);
 	return								ao;
 }
 
-void CAddon::RenderHud() const
+void MAddon::RenderHud() const
 {
 	if (Device.SVP.isRendering())
-		if (auto scope = cast<CScope*>())
-			if (auto wpn = get_root_addon_owner(O.H_Parent()->Cast<CAddonOwner*>())->cast<CWeaponMagazined*>())
+		if (auto scope = O.getModule<MScope>())
+			if (auto wpn = get_root_addon_owner(O.H_Parent()->getModule<MAddonOwner>())->O.scast<CWeaponMagazined*>())
 				if (wpn->getActiveScope() == scope)
 					return;
 
@@ -55,13 +55,13 @@ void CAddon::RenderHud() const
 	::Render->add_Visual				(O.Visual());
 }
 
-void CAddon::RenderWorld(Fmatrix CR$ parent_trans) const
+void MAddon::RenderWorld(Fmatrix CR$ parent_trans) const
 {
 	::Render->set_Transform				(static_cast<Dmatrix>(parent_trans).mulB_43(m_local_transform));
 	::Render->add_Visual				(O.Visual());
 }
 
-Fvector2 CAddon::getIconOrigin(u8 type) const
+Fvector2 MAddon::getIconOrigin(u8 type) const
 {
 	if (type)
 	{
@@ -73,12 +73,12 @@ Fvector2 CAddon::getIconOrigin(u8 type) const
 	return								m_icon_origin;
 }
 
-void CAddon::updateHudTransform(Dmatrix CR$ parent_trans)
+void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)
 {
 	m_hud_transform.mul					(parent_trans, m_local_transform);
 }
 
-int CAddon::getLength(float step, eLengthType type) const
+int MAddon::getLength(float step, eLengthType type) const
 {
 	float len							= 0.f;
 	switch (type)
@@ -90,7 +90,7 @@ int CAddon::getLength(float step, eLengthType type) const
 	return								static_cast<int>(ceil(len / step));
 }
 
-float CAddon::aboba(EEventTypes type, void* data, int param)
+float MAddon::aboba(EEventTypes type, void* data, int param)
 {
 	if (type == eSyncData)
 	{
@@ -111,13 +111,13 @@ float CAddon::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CAddon::attach(CAddonSlot CPC slot)
+void MAddon::attach(CAddonSlot CPC slot)
 {
 	setSlotIdx							(slot->idx);
-	cast<CUsable*>()->performAction		(2, true, slot->parent_ao->O.ID());
+	O.getModule<MUsable>()->performAction(2, true, slot->parent_ao->O.ID());
 }
 
-bool CAddon::tryAttach(CAddonOwner CPC ao, u16 slot_idx)
+bool MAddon::tryAttach(MAddonOwner CPC ao, u16 slot_idx)
 {
 	if (slot_idx != u16_max)
 	{

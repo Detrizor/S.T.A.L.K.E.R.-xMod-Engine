@@ -249,9 +249,9 @@ void CScriptGameObject::ForEachInventoryItems(const luabind::functor<bool> &func
     }
 }
 
-void CScriptGameObject::IterateVicinity(luabind::functor<bool> functor)
+void CScriptGameObject::IterateVicinity(::luabind::functor<bool> functor)
 {
-	CActor* actor						= object().Cast<CActor*>();
+	CActor* actor						= object().scast<CActor*>();
 	if (!actor)
 		return;
 
@@ -272,7 +272,7 @@ void CScriptGameObject::IterateVicinity(luabind::functor<bool> functor)
 	}
 }
 
-void CScriptGameObject::IterateInventory(luabind::functor<bool> functor, luabind::object object, int division_index)
+void CScriptGameObject::IterateInventory(::luabind::functor<bool> functor, ::luabind::object object, int division_index)
 {
     CInventoryOwner* inventory_owner		= smart_cast<CInventoryOwner*>(&this->object());
     if (!inventory_owner)
@@ -317,7 +317,7 @@ void CScriptGameObject::IterateInventory(luabind::functor<bool> functor, luabind
 
 void CScriptGameObject::IterateInventoryBox(::luabind::functor<bool> functor, ::luabind::object object) const
 {
-	CInventoryContainer* cont = this->object().Cast<CInventoryContainer*>();
+	MContainer* cont = this->object().getModule<MContainer>();
 	if (!cont)
         return;
 

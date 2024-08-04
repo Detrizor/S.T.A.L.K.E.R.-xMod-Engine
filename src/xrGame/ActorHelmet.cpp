@@ -43,7 +43,7 @@ void CHelmet::Load(LPCSTR section)
 
 	m_NightVisionSect				= READ_IF_EXISTS(pSettings, r_string, section, "nightvision_sect", "");
 	if (m_NightVisionSect.size())
-		Cast<CAmountable*>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
+		getModule<MAmountable>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", *m_NightVisionSect));
 
 	m_fRecuperationFactor			= READ_IF_EXISTS(pSettings, r_float, section, "recuperation_factor", 0.f);
 
@@ -142,7 +142,7 @@ bool CHelmet::install_upgrade_impl( LPCSTR section, bool test )
 	if (result2 && !test)
 	{
 		m_NightVisionSect._set			(str);
-		Cast<CAmountable*>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", str));
+		getModule<MAmountable>()->SetDepletionSpeed(pSettings->r_float("nightvision_depletes", str));
 	}
 	result |= result2;
 

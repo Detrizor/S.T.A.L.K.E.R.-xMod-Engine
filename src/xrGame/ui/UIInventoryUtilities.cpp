@@ -399,7 +399,7 @@ LPCSTR InventoryUtilities::GetTimePeriodAsString(LPSTR _buff, u32 buff_sz, ALife
 
 //////////////////////////////////////////////////////////////////////////
 
-void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryContainer* cont)
+void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, MContainer* cont)
 {
 	float								total_weight, total_volume, max_volume;
 	if (pInventoryOwner)

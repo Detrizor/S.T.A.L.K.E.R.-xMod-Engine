@@ -14,9 +14,9 @@ class ENGINE_API CMotionDef;
 
 class CWeaponHud;
 class CSilencer;
-class CGrenadeLauncher;
-class CFoldable;
-class CMuzzle;
+class MGrenadeLauncher;
+class MFoldable;
+class MMuzzle;
 struct SWpnBriefInfo;
 
 class CWeaponMagazined : public CWeapon
@@ -182,9 +182,9 @@ private:
 	static float						s_recoil_cam_stopping_power_per_impulse;
 	static float						s_recoil_cam_relax_impulse_ratio;
 
-	CScope*								m_selected_scopes[2]					= { NULL, NULL };
-	xr_vector<CScope*>					m_attached_scopes						= {};
-	CMagazine*							m_magazine								= nullptr;
+	MScope*								m_selected_scopes[2]					= { NULL, NULL };
+	xr_vector<MScope*>					m_attached_scopes						= {};
+	MMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
 	bool								m_shot_shell							= false;
 	float								m_ads_shift								= 0.f;
@@ -205,10 +205,10 @@ private:
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
 	void								on_reticle_switch						();
-	void								process_addon							(CAddon* addon, bool attach);
-	void								process_muzzle							(CMuzzle* muzzle, bool attach);
+	void								process_addon							(MAddon* addon, bool attach);
+	void								process_muzzle							(MMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);
-	void								process_scope							(CScope* scope, bool attach);
+	void								process_scope							(MScope* scope, bool attach);
 	void								process_align_front						(CGameObject* obj, bool attach);
 	
 	bool								is_auto_bolt_allowed				C$	();
@@ -242,7 +242,7 @@ public:
 
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);
-	void								onFold									(CFoldable CP$ foldable, bool new_status);
+	void								onFold									(MFoldable CP$ foldable, bool new_status);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }
@@ -251,7 +251,7 @@ public:
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
-	CScope*								getActiveScope						C$	();
+	MScope*								getActiveScope						C$	();
 	bool								isEmptyChamber 						C$	();
 	void								updateShadersDataAndSVP				C$	(CCameraManager& camera);
 	

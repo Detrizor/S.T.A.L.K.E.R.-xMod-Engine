@@ -260,7 +260,7 @@ bool CScriptGameObject::critically_wounded()
 
 bool CScriptGameObject::IsInvBoxEmpty()
 {
-	CInventoryContainer* ib = object().Cast<CInventoryContainer*>();
+	MContainer* ib = object().getModule<MContainer>();
 	if (!ib)
 		return			(false);
 	else
@@ -423,7 +423,7 @@ void CScriptGameObject::loadChamber(CScriptGameObject* obj)
 void CScriptGameObject::loadCartridge(CScriptGameObject* obj)
 {
 	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
-		if (auto mag = object().Cast<CMagazine*>())
+		if (auto mag = object().getModule<MMagazine>())
 			mag->LoadCartridge			(cartridge);
 }
 
@@ -504,8 +504,8 @@ float CScriptGameObject::GetArmorLevel()
 
 float CScriptGameObject::GetWeightDump()
 {
-	CCustomOutfit* outfit				= object().Cast<CCustomOutfit*>();
-	CArtefact* art						= object().Cast<CArtefact*>();
+	CCustomOutfit* outfit				= object().scast<CCustomOutfit*>();
+	CArtefact* art						= object().scast<CArtefact*>();
 	if (!outfit && !art)
 		return							0.f;
 
@@ -524,8 +524,8 @@ float CScriptGameObject::GetRecuperationFactor()
 
 float CScriptGameObject::GetDrainFactor()
 {
-	CCustomOutfit* outfit				= object().Cast<CCustomOutfit*>();
-	CArtefact* art						= object().Cast<CArtefact*>();
+	CCustomOutfit* outfit				= object().scast<CCustomOutfit*>();
+	CArtefact* art						= object().scast<CArtefact*>();
 	if (!outfit && !art)
 		return							0.f;
 
@@ -619,31 +619,28 @@ void CScriptGameObject::AmmoChangeCount(u16 val)
 
 float CScriptGameObject::GetDepletionRate() const
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
+	MAmountable* aiitem				= object().getModule<MAmountable>();
 	return							(aiitem) ? aiitem->GetDepletionRate() : false;
 }
 
 float CScriptGameObject::GetDepletionSpeed() const
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
+	MAmountable* aiitem				= object().getModule<MAmountable>();
 	return							(aiitem) ? aiitem->GetDepletionSpeed() : false;
 }
 
 void CScriptGameObject::SetDepletionSpeed(float val)
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->SetDepletionSpeed	(val);
 }
 
 float CScriptGameObject::GetCapacity() const
 {
-	CInventoryContainer* cont			= object().Cast<CInventoryContainer*>();
-	if (cont)
+	if (auto cont = object().getModule<MContainer>())
 		return							cont->GetCapacity();
 
-	CAmountable* aiitem					= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		return							aiitem->Capacity();
 
 	return								0.f;
@@ -657,15 +654,13 @@ float CScriptGameObject::GetAmount() const
 
 void CScriptGameObject::SetAmount(float val)
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->SetAmount			(val);
 }
 
 void CScriptGameObject::ChangeAmount(float val)
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->ChangeAmount		(val);
 }
 
@@ -677,46 +672,43 @@ float CScriptGameObject::GetFill() const
 
 void CScriptGameObject::SetFill(float val)
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->SetFill				(val);
 }
 
 void CScriptGameObject::ChangeFill(float val)
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->ChangeFill			(val);
 }
 
 void CScriptGameObject::Deplete()
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
-	if (aiitem)
+	if (auto aiitem = object().getModule<MAmountable>())
 		aiitem->Deplete				();
 }
 
 bool CScriptGameObject::Empty() const
 {
-	CAmountable* aiitem				= object().Cast<CAmountable*>();
+	MAmountable* aiitem				= object().getModule<MAmountable>();
 	return							(aiitem) ? aiitem->Empty() : false;
 }
 
 bool CScriptGameObject::Full() const
 {
-	CAmountable	* aiitem			= object().Cast<CAmountable*>();
+	MAmountable* aiitem				= object().getModule<MAmountable>();
 	return							(aiitem) ? aiitem->Full() : false;
 }
 
 u32 CScriptGameObject::Amount() const
 {
-	CMagazine* mag					= object().Cast<CMagazine*>();
+	MMagazine* mag					= object().getModule<MMagazine>();
 	return							(mag) ? mag->Amount() : false;
 }
 
 u32 CScriptGameObject::Capacity() const
 {
-	CMagazine* mag					=object().Cast<CMagazine*>();
+	MMagazine* mag					=object().getModule<MMagazine>();
 	return							(mag) ? mag->Capacity() : false;
 }
 
@@ -731,9 +723,9 @@ bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
 {
 	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
 	{
-		if (auto mag = object().Cast<CMagazine*>())
+		if (auto mag = object().getModule<MMagazine>())
 			return					mag->CanTake(ammo);
-		else if (auto wpn = object().Cast<CWeaponMagazined*>())
+		else if (auto wpn = object().scast<CWeaponMagazined*>())
 			return					wpn->canTake(ammo, chamber);
 	}
 	return							false;
@@ -764,52 +756,52 @@ u8 CScriptGameObject::GetInvIconIndex() const
 
 bool CScriptGameObject::isEmptyChamber() const
 {
-	if (auto wpn = object().Cast<CWeaponMagazined*>())
+	if (auto wpn = object().scast<CWeaponMagazined*>())
 		return							wpn->isEmptyChamber();
 	return								false;
 }
 
 float CScriptGameObject::Power() const
 {
-	CArtefact* artefact					= object().Cast<CArtefact*>();
+	CArtefact* artefact					= object().scast<CArtefact*>();
 	return								(artefact) ? artefact->Power() : 0.f;
 }
 
 float CScriptGameObject::Radiation() const
 {
-	CArtefact* artefact					= object().Cast<CArtefact*>();
+	CArtefact* artefact					= object().scast<CArtefact*>();
 	return								(artefact) ? artefact->Radiation() : 0.f;
 }
 
 float CScriptGameObject::Absorbation C$(int hit_type)
 {
-	CArtefact* artefact					= object().Cast<CArtefact*>();
+	CArtefact* artefact					= object().scast<CArtefact*>();
 	return								(artefact) ? artefact->Absorbation(hit_type) : 0.f;
 }
 
 bool CScriptGameObject::Aiming C$()
 {
-	CActor* actor						= object().Cast<CActor*>();
+	CActor* actor						= object().scast<CActor*>();
 	return								(actor) ? actor->IsZoomAimingMode() : false;
 }
 
 LPCSTR CScriptGameObject::getInvName() const
 {
-	if (auto item = object().Cast<CInventoryItem*>())
+	if (auto item = object().getModule<CInventoryItem>())
 		return							item->getName();
 	return								"";
 }
 
 LPCSTR CScriptGameObject::getInvNameShort() const
 {
-	if (auto item = object().Cast<CInventoryItem*>())
+	if (auto item = object().getModule<CInventoryItem>())
 		return							item->getNameShort();
 	return								"";
 }
 
 LPCSTR CScriptGameObject::getActionTitle(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						*action->title;
 	return								nullptr;
@@ -817,7 +809,7 @@ LPCSTR CScriptGameObject::getActionTitle(int num) const
 
 LPCSTR CScriptGameObject::getQueryFunctor(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						*action->query_functor;
 	return								nullptr;
@@ -825,7 +817,7 @@ LPCSTR CScriptGameObject::getQueryFunctor(int num) const
 
 LPCSTR CScriptGameObject::getActionFunctor(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						*action->action_functor;
 	return								nullptr;
@@ -833,7 +825,7 @@ LPCSTR CScriptGameObject::getActionFunctor(int num) const
 
 LPCSTR CScriptGameObject::getUseFunctor(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						*action->use_functor;
 	return								nullptr;
@@ -841,7 +833,7 @@ LPCSTR CScriptGameObject::getUseFunctor(int num) const
 
 float CScriptGameObject::getActionDuration(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						action->duration;
 	return								0.f;
@@ -849,7 +841,7 @@ float CScriptGameObject::getActionDuration(int num) const
 
 u16 CScriptGameObject::getActionItemID(int num) const
 {
-	if (auto usable = object().Cast<CUsable*>())
+	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
 			return						action->item_id;
 	return								u16_max;
@@ -857,46 +849,46 @@ u16 CScriptGameObject::getActionItemID(int num) const
 
 bool CScriptGameObject::isAttached() const
 {
-	if (auto addon = object().Cast<CAddon*>())
+	if (auto addon = object().getModule<MAddon>())
 		return							!!addon->getSlot();
 	return								false;
 }
 
 bool CScriptGameObject::attach(CScriptGameObject* obj) const
 {
-	if (auto ao = object().Cast<CAddonOwner*>())
-		if (auto addon = obj->object().Cast<CAddon*>())
+	if (auto ao = object().getModule<MAddonOwner>())
+		if (auto addon = obj->object().getModule<MAddon>())
 			return						ao->attachAddon(addon);
 	return								false;
 }
 
 void CScriptGameObject::detach() const
 {
-	if (auto addon = object().Cast<CAddon*>())
+	if (auto addon = object().getModule<MAddon>())
 		addon->getSlot()->parent_ao->detachAddon(addon);
 }
 
 void CScriptGameObject::shift(int val) const
 {
-	if (auto addon = object().Cast<CAddon*>())
+	if (auto addon = object().getModule<MAddon>())
 		addon->getSlot()->shiftAddon	(addon, val);
 }
 
 void CScriptGameObject::fold() const
 {
-	if (auto foldable = object().Cast<CFoldable*>())
+	if (auto foldable = object().getModule<MFoldable>())
 		foldable->setStatus				(true);
 }
 
 void CScriptGameObject::unfold() const
 {
-	if (auto foldable = object().Cast<CFoldable*>())
+	if (auto foldable = object().getModule<MFoldable>())
 		foldable->setStatus				(false);
 }
 
 bool CScriptGameObject::isFolded() const
 {
-	if (auto foldable = object().Cast<CFoldable*>())
+	if (auto foldable = object().getModule<MFoldable>())
 		return							foldable->getStatus();
 }
 
@@ -921,12 +913,12 @@ SPECIFIC_CAST(CScriptGameObject::cast_Actor, CActor);
 SPECIFIC_CAST(CScriptGameObject::cast_Weapon, CWeapon);
 CEatableItem* CScriptGameObject::cast_EatableItem()
 {
-	return object().Cast<CEatableItem*>();
+	return object().scast<CEatableItem*>();
 }
 SPECIFIC_CAST(CScriptGameObject::cast_CustomOutfit, CCustomOutfit);
-SPECIFIC_CAST(CScriptGameObject::cast_Scope, CScope);
+SPECIFIC_CAST(CScriptGameObject::cast_Scope, MScope);
 SPECIFIC_CAST(CScriptGameObject::cast_Silencer, CSilencer);
-SPECIFIC_CAST(CScriptGameObject::cast_GrenadeLauncher, CGrenadeLauncher);
+SPECIFIC_CAST(CScriptGameObject::cast_GrenadeLauncher, MGrenadeLauncher);
 SPECIFIC_CAST(CScriptGameObject::cast_WeaponMagazined, CWeaponMagazined);
 SPECIFIC_CAST(CScriptGameObject::cast_SpaceRestrictor, CSpaceRestrictor);
 SPECIFIC_CAST(CScriptGameObject::cast_Stalker, CAI_Stalker);

@@ -571,7 +571,7 @@ void CHudItem::PlayAnimIdle()
 			actor->g_State				(st);
 			if (st.bSprint)
 			{
-				auto wpn				= object().Cast<CWeapon*>();
+				auto wpn				= object().scast<CWeapon*>();
 				if (wpn && !wpn->ArmedMode())
 				{
 					PlayHUDMotion		("anm_idle_sprint", TRUE, GetState());

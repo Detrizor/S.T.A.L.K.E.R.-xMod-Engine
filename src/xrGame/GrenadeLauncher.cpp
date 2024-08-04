@@ -3,14 +3,14 @@
 #include "addon.h"
 #include "WeaponMagazinedWGrenade.h"
 
-CGrenadeLauncher::CGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : CModule(obj)
+MGrenadeLauncher::MGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 {
 	m_fGrenadeVel						= pSettings->r_float(section, "grenade_vel");
 	m_sFlameParticles					= pSettings->r_string(section, "grenade_flame_particles");
 	m_sight_offset[0]					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
 	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
 
-	auto ao								= cast<CAddonOwner*>();
+	auto ao								= O.getModule<MAddonOwner>();
 	for (auto& s : ao->AddonSlots())
 	{
 		if (s->attach == "grenade")
@@ -21,7 +21,7 @@ CGrenadeLauncher::CGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : C
 	}
 }
 
-float CGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
+float MGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
 {
 	if (!m_wpn)
 		return							CModule::aboba(type, data, param);
@@ -30,8 +30,8 @@ float CGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
 	{
 	case eTransferAddon:
 	{
-		auto addon = static_cast<CAddon*>(data);
-		if (addon->cast<CWeaponAmmo*>())
+		auto addon = reinterpret_cast<MAddon*>(data);
+		if (addon->O.scast<CWeaponAmmo*>())
 		{
 			m_slot->startReloading		((param) ? addon : nullptr);
 			m_wpn->m_sub_state			= (m_slot->addons.empty()) ? CWeapon::eSubstateReloadAttachG : CWeapon::eSubstateReloadDetachG;

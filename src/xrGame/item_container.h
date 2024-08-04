@@ -6,10 +6,10 @@
 class CGameObject;
 class CInventoryItem;
 
-class CInventoryContainer : public CModule
+class MContainer : public CModule
 {
 public:
-										CInventoryContainer						(CGameObject* obj);
+										MContainer								(CGameObject* obj);
 
 private:
 	TIItemContainer						m_Items;

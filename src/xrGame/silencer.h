@@ -3,7 +3,7 @@
 
 class CGameObject;
 
-class CSilencer : public CMuzzle
+class CSilencer : public MMuzzle
 {
 public:
 										CSilencer								(CGameObject* obj, shared_str CR$ section);

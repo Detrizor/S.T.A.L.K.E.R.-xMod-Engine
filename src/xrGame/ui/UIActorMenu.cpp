@@ -89,7 +89,7 @@ void CUIActorMenu::SetInvBox(CInventoryBox* box)
 	m_pInvBox							= box;
 }
 
-void CUIActorMenu::SetContainer(CInventoryContainer* ciitem)
+void CUIActorMenu::SetContainer(MContainer* ciitem)
 {
 	if (ciitem)
 	{
@@ -100,7 +100,7 @@ void CUIActorMenu::SetContainer(CInventoryContainer* ciitem)
 	m_pContainer						= ciitem;
 }
 
-void CUIActorMenu::SetBag(CInventoryContainer* bag)
+void CUIActorMenu::SetBag(MContainer* bag)
 {
 	CUIDragDropListEx* pBagList			= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
 	if (!bag)
@@ -120,8 +120,8 @@ void CUIActorMenu::StartMenuMode(EMenuMode mode, CInventoryOwner* actor, void* p
 #include "GamePersistent.h"
 void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 {
-	SetCurrentItem						(NULL);
-	m_hint_wnd->set_text				(NULL);
+	SetCurrentItem						(nullptr);
+	m_hint_wnd->set_text				(nullptr);
 
 	if (mode != m_currMenuMode)
 	{
@@ -154,21 +154,21 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 		case mmTrade:
 		case mmUpgrade:
 		case mmDeadBodySearch:
-			SetPartner					((CInventoryOwner*)partner);
+			SetPartner					(reinterpret_cast<CInventoryOwner*>(partner));
 			break;
 		case mmInvBoxSearch:
-			SetInvBox					((CInventoryBox*)partner);
+			SetInvBox					(reinterpret_cast<CInventoryBox*>(partner));
 			mode						= mmDeadBodySearch;
 			break;
 		case mmContainerSearch:
-			SetContainer				((CInventoryContainer*)partner);
+			SetContainer				(reinterpret_cast<MContainer*>(partner));
 			mode						= mmDeadBodySearch;
 			break;
 		default:
-			SetPartner					(NULL);
-			SetInvBox					(NULL);
-			SetContainer				(NULL);
-			SetBag						(NULL);
+			SetPartner					(nullptr);
+			SetInvBox					(nullptr);
+			SetContainer				(nullptr);
+			SetBag						(nullptr);
 			break;
 		}
 
@@ -274,8 +274,7 @@ void CUIActorMenu::Update()
 	PIItem active_item					= m_pActorInv->ActiveItem();
 	if (active_item)
 	{
-		CInventoryContainer* ciitem		= active_item->cast<CInventoryContainer*>();
-		if (ciitem)
+		if (auto ciitem = active_item->O.getModule<MContainer>())
 		{
 			CHudItem* hi				= smart_cast<CHudItem*>(active_item);
 			if (!hi->IsHidden() && !hi->IsHiding() && !hi->IsShowing())
@@ -288,7 +287,7 @@ void CUIActorMenu::Update()
 	ToggleBag							(NULL);
 }
 
-void CUIActorMenu::ToggleBag(CInventoryContainer* bag)
+void CUIActorMenu::ToggleBag(MContainer* bag)
 {
 	if (m_pBag == bag)
 		return;

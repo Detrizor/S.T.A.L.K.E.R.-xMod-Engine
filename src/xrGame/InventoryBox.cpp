@@ -23,7 +23,7 @@ BOOL CInventoryBox::net_Spawn(CSE_Abstract* DC)
 		m_closed						= pSE_box->m_closed;
 		set_tip_text					(pSE_box->m_tip_text.c_str());
 	}
-	m_pContainer						= AddModule<CInventoryContainer>();
+	m_pContainer						= AddModule<MContainer>();
 	return								res;
 }
 
@@ -58,7 +58,7 @@ float CInventoryBox::Aboba o$(EEventTypes type, void* data, int param)
 {
 	if (type == eOnChild && !param && m_in_use)
 	{
-		CGameObject* GO					= Cast<CGameObject*>((CObject*)data);
+		CGameObject* GO					= reinterpret_cast<CObject*>(data)->scast<CGameObject*>();
 		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
 	}
 

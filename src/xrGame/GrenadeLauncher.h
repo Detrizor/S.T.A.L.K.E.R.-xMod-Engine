@@ -5,10 +5,10 @@
 class CWeaponMagazinedWGrenade;
 class CAddonSlot;
 
-class CGrenadeLauncher : public CModule
+class MGrenadeLauncher : public CModule
 {
 public:
-										CGrenadeLauncher						(CGameObject* obj, shared_str CR$ section);
+										MGrenadeLauncher						(CGameObject* obj, shared_str CR$ section);
 
 private:
 	float								m_fGrenadeVel;

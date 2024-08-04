@@ -11,10 +11,10 @@ struct SAction
 	u16									item_id									= u16_max;
 };
 
-class CUsable : public CModule
+class MUsable : public CModule
 {
 public:
-										CUsable									(CGameObject* obj);
+										MUsable									(CGameObject* obj);
 
 private:
 	xr_vector<SAction>					m_actions								= {};

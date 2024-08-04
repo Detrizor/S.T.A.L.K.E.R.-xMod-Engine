@@ -2,7 +2,7 @@
 #include "inventory_item_amountable.h"
 #include "Level.h"
 
-CAmountable::CAmountable(CGameObject* obj) : CModule(obj)
+MAmountable::MAmountable(CGameObject* obj) : CModule(obj)
 {
 	m_net_weight						= pSettings->r_float(O.cNameSect(), "net_weight");
 	m_net_volume						= pSettings->r_float(O.cNameSect(), "net_volume");
@@ -13,11 +13,9 @@ CAmountable::CAmountable(CGameObject* obj) : CModule(obj)
 
 	float net_cost						= pSettings->r_float(O.cNameSect(), "net_cost");
 	m_net_cost							= (net_cost == -1.f) ? CInventoryItem::readBaseCost(*O.cNameSect()): net_cost;
-
-	m_item								= cast<PIItem>();
 }
 
-void CAmountable::OnAmountChange()
+void MAmountable::OnAmountChange()
 {
 	if (m_fAmount < 0.f)
 		m_fAmount						= 0.f;
@@ -26,19 +24,19 @@ void CAmountable::OnAmountChange()
 
 	if (!Useful() && O.Local() && OnServer())
 	{
-		m_item->SetDropManual			(TRUE);
+		I->SetDropManual				(TRUE);
 		O.DestroyObject					();
 	}
 }
 
-bool CAmountable::Useful() const
+bool MAmountable::Useful() const
 {
-	bool res							= m_item->Useful();
-	res									&= !Empty() || fMore(m_item->Weight(), 0.f) || fMore(m_item->Volume(), 0.f);
+	bool res							= I->Useful();
+	res									&= !Empty() || fMore(I->Weight(), 0.f) || fMore(I->Volume(), 0.f);
 	return								res;
 }
 
-float CAmountable::aboba(EEventTypes type, void* data, int param)
+float MAmountable::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -68,25 +66,25 @@ float CAmountable::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CAmountable::SetAmount(float val)
+void MAmountable::SetAmount(float val)
 {
 	m_fAmount							= val;
 	OnAmountChange						();
 }
 
-void CAmountable::ChangeAmount(float delta)
+void MAmountable::ChangeAmount(float delta)
 {
 	m_fAmount							+= delta;
 	OnAmountChange						();
 }
 
-void CAmountable::SetFill(float val)
+void MAmountable::SetFill(float val)
 {
 	m_fAmount							= val * Capacity();
 	OnAmountChange						();
 }
 
-void CAmountable::ChangeFill(float delta)
+void MAmountable::ChangeFill(float delta)
 {
 	m_fAmount							+= delta * Capacity();
 	OnAmountChange						();

@@ -6,7 +6,7 @@ class CUIStatic;
 class CBinocularsVision;
 class CNightVisionEffector;
 class CWeaponHud;
-class CAddon;
+class MAddon;
 struct ref_sound;
 
 struct hud_item_measures;
@@ -35,7 +35,7 @@ struct SRangeNum
 	}
 };
 
-class CScope : public CModule
+class MScope : public CModule
 {
 public:
 	enum eScopeType
@@ -60,8 +60,8 @@ private:
 	static shared_str					s_reticle_sound;
 
 public:
-										CScope									(CGameObject* obj, shared_str CR$ section);
-										~CScope									();
+										MScope									(CGameObject* obj, shared_str CR$ section);
+										~MScope									();
 
 private:
 	const eScopeType					m_Type;
@@ -74,7 +74,7 @@ private:
 	Dvector								m_hud_offset[2]							= { dZero, dZero };
 	s8									m_selection								= -1;
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
-	xptr<CScope>						m_backup_sight							= nullptr;
+	xptr<MScope>						m_backup_sight							= nullptr;
 	u8									m_current_reticle						= 0;
 
 	u8									m_reticles_count;
@@ -121,7 +121,7 @@ public:
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
-	CScope*								getBackupSight						C$	()		{ return m_backup_sight.get(); }
+	MScope*								getBackupSight						C$	()		{ return m_backup_sight.get(); }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

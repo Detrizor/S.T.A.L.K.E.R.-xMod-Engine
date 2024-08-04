@@ -16,18 +16,18 @@ CUIStatic* static_scope_shadow			= nullptr;
 CUIStatic* static_black_fill			= nullptr;
 CUIStatic* static_glass					= nullptr;
 
-float CScope::s_eye_relief_magnification_shrink;
-float CScope::s_shadow_pos_d_axis_factor;
+float MScope::s_eye_relief_magnification_shrink;
+float MScope::s_shadow_pos_d_axis_factor;
 
-float CScope::s_shadow_scale_default;
-float CScope::s_shadow_scale_offset_power;
+float MScope::s_shadow_scale_default;
+float MScope::s_shadow_scale_offset_power;
 
-float CScope::s_shadow_far_scale_default;
-float CScope::s_shadow_far_scale_offset_power;
+float MScope::s_shadow_far_scale_default;
+float MScope::s_shadow_far_scale_offset_power;
 
-shared_str CScope::s_zoom_sound;
-shared_str CScope::s_zeroing_sound;
-shared_str CScope::s_reticle_sound;
+shared_str MScope::s_zoom_sound;
+shared_str MScope::s_zeroing_sound;
+shared_str MScope::s_reticle_sound;
 
 void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = aCenter)
 {
@@ -41,7 +41,7 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = 
 	dest->SetStretchTexture				(true);
 }
 
-void CScope::loadStaticVariables()
+void MScope::loadStaticVariables()
 {
 	LPCSTR shadow_far_texture			= pSettings->r_string("scope_manager", "shadow_far_texture");
 	float shadow_far_texture_size		= pSettings->r_float("scope_manager", "shadow_far_texture_size");
@@ -73,7 +73,7 @@ void CScope::loadStaticVariables()
 	s_reticle_sound						= pSettings->r_string("scope_manager", "reticle_sound");
 }
 
-void CScope::cleanStaticVariables()
+void MScope::cleanStaticVariables()
 {
 	xr_delete							(static_scope_shadow_far);
 	xr_delete							(static_scope_shadow);
@@ -81,7 +81,7 @@ void CScope::cleanStaticVariables()
 	xr_delete							(static_glass);
 }
 
-void CScope::ZoomChange(int val)
+void MScope::ZoomChange(int val)
 {
 	if (val > 0 && m_Magnificaion.current < m_Magnificaion.vmax ||
 		val < 0 && m_Magnificaion.current > m_Magnificaion.vmin)
@@ -89,11 +89,11 @@ void CScope::ZoomChange(int val)
 		m_Magnificaion.Shift			(val);
 		ref_sound						snd;
 		snd.create						(s_zoom_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
-		snd.play						(O.Cast<CObject*>(), sm_2D);
+		snd.play						(&O, sm_2D);
 	}
 }
 
-void CScope::ZeroingChange(int val)
+void MScope::ZeroingChange(int val)
 {
 	if (val > 0 && m_Zeroing.current < m_Zeroing.vmax ||
 		val < 0 && m_Zeroing.current > m_Zeroing.vmin)
@@ -101,11 +101,11 @@ void CScope::ZeroingChange(int val)
 		m_Zeroing.Shift					(val);
 		ref_sound						snd;
 		snd.create						(s_zeroing_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
-		snd.play						(O.Cast<CObject*>(), sm_2D);
+		snd.play						(&O, sm_2D);
 	}
 }
 
-bool CScope::reticleChange(int val)
+bool MScope::reticleChange(int val)
 {
 	if (m_reticles_count > 1)
 	{
@@ -119,14 +119,14 @@ bool CScope::reticleChange(int val)
 		
 		ref_sound						snd;
 		snd.create						(s_reticle_sound.c_str(), st_Effect, SOUND_TYPE_NO_SOUND);
-		snd.play						(O.Cast<CObject*>(), sm_2D);
+		snd.play						(&O, sm_2D);
 
 		return							true;
 	}
 	return								false;
 }
 
-CScope::CScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
+MScope::MScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
@@ -150,7 +150,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 			m_objective_offset			= static_cast<Dvector>(pSettings->r_fvector3(section, "objective_offset"));
 
 			if (pSettings->line_exist(section, "backup_sight"))
-				m_backup_sight			= xr_new<CScope>(obj, pSettings->r_string(section, "backup_sight"));
+				m_backup_sight			= xr_new<MScope>(obj, pSettings->r_string(section, "backup_sight"));
 
 			break;
 
@@ -162,14 +162,14 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 	}
 }
 
-CScope::~CScope()
+MScope::~MScope()
 {
 	xr_delete							(m_pUIReticle);
 	xr_delete							(m_pVision);
 	xr_delete							(m_pNight_vision);
 }
 
-float CScope::aboba(EEventTypes type, void* data, int param)
+float MScope::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -214,7 +214,7 @@ float CScope::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void CScope::init_visors()
+void MScope::init_visors()
 {
 	xr_delete							(m_pUIReticle);
 	if (m_Reticle.size())
@@ -240,7 +240,7 @@ void CScope::init_visors()
 		m_pNight_vision					= xr_new<CNightVisionEffector>(m_Nighvision);
 }
 
-void CScope::init_marks()
+void MScope::init_marks()
 {
 	switch (m_Type)
 	{
@@ -255,17 +255,17 @@ void CScope::init_marks()
 	}
 }
 
-void CScope::modify_holder_params(float &range, float &fov) const
+void MScope::modify_holder_params(float &range, float &fov) const
 {
 	range								*= m_Magnificaion.vmax;
 }
 
-bool CScope::isPiP() const
+bool MScope::isPiP() const
 {
 	return								Type() == eOptics && !fIsZero(m_lense_radius);
 }
 
-void CScope::RenderUI()
+void MScope::RenderUI()
 {
 	bool svp							= Device.SVP.isRendering();
 	if (svp)
@@ -370,10 +370,10 @@ void CScope::RenderUI()
 		Device.SVP.setRendering			(true);
 }
 
-void CScope::updateCameraLenseOffset()
+void MScope::updateCameraLenseOffset()
 {
-	auto addon							= cast<CAddon*>();
-	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.Cast<CHudItem*>()->HudItemData()->m_transform;
+	auto addon							= O.getModule<MAddon>();
+	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.scast<CHudItem*>()->HudItemData()->m_transform;
 	trans.translate_mul					(m_sight_position);
 
 	Dvector camera_lense_offset			= trans.c;
@@ -385,12 +385,12 @@ void CScope::updateCameraLenseOffset()
 	itrans.transform_tiny				(m_cam_pos_d_sight_axis, static_cast<Dvector>(Actor()->Cameras().Position()));
 }
 
-float CScope::getLenseFovTan()
+float MScope::getLenseFovTan()
 {
 	return								m_lense_radius / m_camera_lense_distance;
 }
 
-float CScope::GetReticleScale() const
+float MScope::GetReticleScale() const
 {
 	return (Type() == eCollimator) ? m_Magnificaion.current : 1.f;
 }

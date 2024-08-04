@@ -655,8 +655,8 @@ void CInventoryOwner::deadbody_closed(bool status)
 
 bool CInventoryOwner::Discharge(PIItem item, bool full)
 {
-	CMagazine* mag							= item->cast<CMagazine*>();
-	CWeaponMagazined* wpn					= item->cast<CWeaponMagazined*>();
+	MMagazine* mag							= item->O.getModule<MMagazine>();
+	CWeaponMagazined* wpn					= item->O.scast<CWeaponMagazined*>();
 	CCartridge								cartridge;
 	bool flag								= false;
 	while ((mag) ? mag->GetCartridge(cartridge) : wpn->Discharge(cartridge))

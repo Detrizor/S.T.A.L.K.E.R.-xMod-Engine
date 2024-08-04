@@ -118,7 +118,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_hud								= xr_new<CWeaponHud>(this);
 
-	if (auto ao = cast<CAddonOwner*>())
+	if (auto ao = getModule<MAddonOwner>())
 	{
 		for (auto& s : ao->AddonSlots())
 		{
@@ -139,7 +139,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	{
 		string64						addon_sect;
 		_GetItem						(integrated_addons, i, addon_sect);
-		CAddon::addAddonModules			(*this, addon_sect);
+		MAddon::addAddonModules			(*this, addon_sect);
 		process_addon_data				(*this, addon_sect, true);
 	}
 	process_addon_data					(*this, cNameSect(), true);
@@ -229,7 +229,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 		return;
 	
 	if (m_lock_state_reload && !m_locked && isEmptyChamber() &&
-		(m_magazine_slot->getLoadingAddon() && !m_magazine_slot->getLoadingAddon()->cast<CMagazine*>()->Empty() || !m_actor))
+		(m_magazine_slot->getLoadingAddon() && !m_magazine_slot->getLoadingAddon()->O.getModule<MMagazine>()->Empty() || !m_actor))
 		m_sub_state						= eSubstateReloadBoltLock;
 	else
 		m_sub_state						= substate;
@@ -359,7 +359,7 @@ void CWeaponMagazined::reload_chamber(CCartridge* dest)
 			*dest						= cartridge;
 		else
 		{
-			CInventoryOwner* IO			= Parent->Cast<CInventoryOwner*>();
+			CInventoryOwner* IO			= Parent->scast<CInventoryOwner*>();
 			IO->O->giveItem				(*cartridge.m_ammoSect, cartridge.m_fCondition);
 		}
 		m_chamber.pop_back				();
@@ -393,9 +393,9 @@ void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
 	StartReload							(eSubstateReloadBegin);
 }
 
-void CWeaponMagazined::onFold(CFoldable CP$ foldable, bool new_status)
+void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
 {
-	if (auto scope = foldable->cast<CScope*>())
+	if (auto scope = foldable->O.getModule<MScope>())
 		process_scope					(scope, !new_status);
 	process_align_front					(&foldable->O, !new_status);
 }
@@ -775,7 +775,7 @@ void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 {
 	VERIFY								(m_pInventory);
 
-	CScope* scope						= getActiveScope();
+	MScope* scope						= getActiveScope();
 	if (!scope)
 		scope							= m_selected_scopes[0];
 	if (!scope)
@@ -786,7 +786,7 @@ void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 	else
 		info.zeroing					= "";
 
-	if (scope && scope->Type() != CScope::eIS)
+	if (scope && scope->Type() != MScope::eIS)
 	{
 		float magnification				= scope->GetCurrentMagnification();
 		info.magnification.printf		(fEqual(round(magnification), magnification) ? "%.0fx" : "%.1fx", magnification);
@@ -843,8 +843,7 @@ bool CWeaponMagazined::CanTrade() const
 	if (GetAmmoElapsed())
 		return false;
 
-	CAddonOwner CPC ao = cast<CAddonOwner CP$>();
-	if (ao)
+	if (auto ao = getModule<MAddonOwner>())
 	{
 		for (auto& slot : ao->AddonSlots())
 		{
@@ -887,7 +886,7 @@ void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 {
 	for (auto s : m_attached_scopes)
 	{
-		if (s->Type() == CScope::eOptics)
+		if (s->Type() == MScope::eOptics)
 		{
 			s->modify_holder_params		(range, fov);
 			return;
@@ -895,7 +894,7 @@ void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
 	}
 }
 
-CScope* CWeaponMagazined::getActiveScope() const
+MScope* CWeaponMagazined::getActiveScope() const
 {
 	if (ADS() == 1)
 		return							m_selected_scopes[0];
@@ -906,7 +905,7 @@ CScope* CWeaponMagazined::getActiveScope() const
 
 void CWeaponMagazined::ZoomInc()
 {
-	CScope* scope						= getActiveScope();
+	MScope* scope						= getActiveScope();
 	if (pInput->iGetAsyncKeyState(DIK_LSHIFT) && scope)
 		scope->ZoomChange				(1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
@@ -936,7 +935,7 @@ void CWeaponMagazined::ZoomInc()
 
 void CWeaponMagazined::ZoomDec()
 {
-	CScope* scope						= getActiveScope();
+	MScope* scope						= getActiveScope();
 	if (pInput->iGetAsyncKeyState(DIK_LSHIFT) && scope)
 		scope->ZoomChange				(-1);
 	else if (pInput->iGetAsyncKeyState(DIK_LALT))
@@ -966,16 +965,16 @@ void CWeaponMagazined::ZoomDec()
 
 bool CWeaponMagazined::need_renderable()
 {
-	CScope* scope = getActiveScope();
-	if (!scope || scope->Type() != CScope::eOptics || scope->isPiP())
+	MScope* scope = getActiveScope();
+	if (!scope || scope->Type() != MScope::eOptics || scope->isPiP())
 		return true;
 	return !IsRotatingToZoom();
 }
 
 bool CWeaponMagazined::render_item_ui_query()
 {
-	CScope* scope = getActiveScope();
-	if (!scope || scope->Type() != CScope::eOptics)
+	MScope* scope = getActiveScope();
+	if (!scope || scope->Type() != MScope::eOptics)
 		return false;
 
 	if (scope->isPiP())
@@ -991,8 +990,8 @@ void CWeaponMagazined::render_item_ui()
 
 float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
 {
-	CScope* scope = getActiveScope();
-	if (scope && scope->Type() == CScope::eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
+	MScope* scope = getActiveScope();
+	if (scope && scope->Type() == MScope::eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
 		return scope->GetCurrentMagnification();
 	else
 		return inherited::CurrentZoomFactor(for_actor);
@@ -1070,7 +1069,7 @@ void CWeaponMagazined::on_reticle_switch()
 	playBlendAnm						(m_empty_click_anm);
 }
 
-void CWeaponMagazined::process_addon(CAddon* addon, bool attach)
+void CWeaponMagazined::process_addon(MAddon* addon, bool attach)
 {
 	process_addon_data					(addon->O, addon->O.cNameSect(), attach);
 	process_addon_modules				(addon->O, attach);
@@ -1124,19 +1123,19 @@ void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ secti
 
 void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 {
-	if (auto mag = obj.Cast<CMagazine*>())
+	if (auto mag = obj.getModule<MMagazine>())
 		m_magazine						= (attach) ? mag : nullptr;
-	if (auto scope = obj.Cast<CScope*>())
+	if (auto scope = obj.getModule<MScope>())
 		process_scope					(scope, attach);
-	if (auto muzzle = obj.Cast<CMuzzle*>())
+	if (auto muzzle = obj.getModule<MMuzzle>())
 		process_muzzle					(muzzle, attach);
-	if (auto sil = obj.Cast<CSilencer*>())
+	if (auto sil = obj.getModule<CSilencer>())
 		process_silencer				(sil, attach);
 }
 
-void CWeaponMagazined::process_scope(CScope* scope, bool attach)
+void CWeaponMagazined::process_scope(MScope* scope, bool attach)
 {
-	if (auto foldable = scope->cast<CFoldable*>())
+	if (auto foldable = scope->O.getModule<MFoldable>())
 		if (foldable->getStatus())
 			return;
 
@@ -1150,7 +1149,7 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 		{
 			for (int i = 0; i < 2; i++)
 			{
-				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == CScope::eIS && scope->Type() != CScope::eIS)
+				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == MScope::eIS && scope->Type() != MScope::eIS)
 				{
 					m_selected_scopes[i] = scope;
 					scope->setSelection	(i);
@@ -1174,13 +1173,13 @@ void CWeaponMagazined::process_scope(CScope* scope, bool attach)
 		process_scope					(scope->getBackupSight(), attach);
 }
 
-static void check_addons(CAddonOwner* ao, CGameObject* obj, Dvector& align_front)
+static void check_addons(MAddonOwner* ao, CGameObject* obj, Dvector& align_front)
 {
 	for (auto& s : ao->AddonSlots())
 	{
 		for (auto a : s->addons)
 		{
-			if (auto addon_ao = a->cast<CAddonOwner*>())
+			if (auto addon_ao = a->O.getModule<MAddonOwner>())
 				check_addons			(addon_ao, obj, align_front);
 			if (&a->O != obj && pSettings->line_exist(a->O.cNameSect(), "align_front"))
 			{
@@ -1201,31 +1200,31 @@ void CWeaponMagazined::process_align_front(CGameObject* obj, bool attach)
 	if (attach)
 	{
 		m_align_front					= pSettings->r_dvector3(obj->cNameSect(), "align_front");
-		if (auto addon = obj->Cast<CAddon*>())
+		if (auto addon = obj->getModule<MAddon>())
 			m_align_front.add			(addon->getLocalTransform().c);
 	}
 	else
 		m_align_front					= READ_IF_EXISTS(pSettings, r_dvector3, cNameSect(), "align_front", dMax);
 	
-	if (auto ao = Cast<CAddonOwner*>())
+	if (auto ao = getModule<MAddonOwner>())
 		check_addons					(ao, obj, m_align_front);
 
 	for (auto scope : m_attached_scopes)
-		if (scope->Type() == CScope::eIS)
+		if (scope->Type() == MScope::eIS)
 			m_hud->calculateScopeOffset	(scope);
 }
 
-static CMuzzle* get_parent_muzzle(CObject* obj)
+static MMuzzle* get_parent_muzzle(CObject* obj)
 {
 	auto parent							= obj->H_Parent();
 	if (!parent)
 		return							nullptr;
-	if (auto muzzle = parent->Cast<CMuzzle*>())
+	if (auto muzzle = parent->getModule<MMuzzle>())
 		return							muzzle;
 	return								get_parent_muzzle(parent);
 }
 
-void CWeaponMagazined::process_muzzle(CMuzzle* muzzle, bool attach)
+void CWeaponMagazined::process_muzzle(MMuzzle* muzzle, bool attach)
 {
 	if (auto src = (attach) ? muzzle : get_parent_muzzle(muzzle->O.dcast_CObject()))
 	{
@@ -1255,15 +1254,15 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnAddon:
 	{
-		process_addon					(reinterpret_cast<CAddon*>(data), !!param);
+		process_addon					(reinterpret_cast<MAddon*>(data), !!param);
 		break;
 	}
 	case eWeight:
 		return							inherited::Aboba(type, data, param) + GetMagazineWeight();
 	case eTransferAddon:
 	{
-		auto addon						= reinterpret_cast<CAddon*>(data);
-		if (addon->cast<CMagazine*>())
+		auto addon						= reinterpret_cast<MAddon*>(data);
+		if (addon->O.getModule<MMagazine>())
 		{
 			m_magazine_slot->startReloading((param) ? addon : nullptr);
 			StartReload					((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
@@ -1275,7 +1274,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 		float res						= inherited::Aboba(type, data, param);
 		if (auto scope = getActiveScope())
-			if (scope->Type() == CScope::eOptics)
+			if (scope->Type() == MScope::eOptics)
 				scope->updateCameraLenseOffset();
 		return							res;
 	}
@@ -1351,9 +1350,9 @@ float CWeaponMagazined::GetMagazineWeight() const
 
 void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
 {
-	CScope* scope						= getActiveScope();
+	MScope* scope						= getActiveScope();
 	Device.SVP.setActive(scope && scope->isPiP());
-	if (!scope || scope->Type() == CScope::eIS)
+	if (!scope || scope->Type() == MScope::eIS)
 		return;
 	
 	static Fmatrix						cam_trans;
@@ -1369,7 +1368,7 @@ void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
 
 	float fov_tan						= g_aim_fov_tan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	if (scope->Type() == CScope::eOptics)
+	if (scope->Type() == MScope::eOptics)
 	{
 		hud_params.w					= scope->getLenseFovTan() / g_aim_fov_tan;
 		float zoom_factor				= CurrentZoomFactor(false);
@@ -1397,7 +1396,7 @@ void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
 
 u16 CWeaponMagazined::Zeroing C$()
 {
-	CScope* active_scope				= getActiveScope();
+	MScope* active_scope				= getActiveScope();
 	return								(active_scope) ? active_scope->Zeroing() : 100.f;
 }
 

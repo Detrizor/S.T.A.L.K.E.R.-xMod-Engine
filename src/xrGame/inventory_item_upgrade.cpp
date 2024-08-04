@@ -305,12 +305,12 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 
 void CInventoryItem::pre_install_upgrade()
 {
-	if (!cast<CWeaponMagazined*>())
+	if (!O.scast<CWeaponMagazined*>())
 		return;
 
 	Actor()->Discharge					(this, true);
 
-	if (auto ao = cast<CAddonOwner*>())
+	if (auto ao = O.getModule<MAddonOwner>())
 		for (auto& slot : ao->AddonSlots())
 			for (auto addon : slot->addons)
 				ao->detachAddon			(addon);

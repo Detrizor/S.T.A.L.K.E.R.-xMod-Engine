@@ -251,7 +251,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		
 		float barrel_len				= 0.f;
 		if (auto ai = Actor()->inventory().ActiveItem())
-			if (auto wpn = ai->cast<CWeaponMagazined*>())
+			if (auto wpn = ai->O.scast<CWeaponMagazined*>())
 				for (auto& type : wpn->m_ammoTypes)
 					if (type == cartridge_section)
 						barrel_len		= wpn->getBarrelLen();
@@ -359,7 +359,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 	}
 
 	auto item							= PIItem(itm->m_pData);
-	auto cont							= (item) ? item->cast<CInventoryContainer*>() : nullptr;
+	auto cont							= (item) ? item->O.getModule<MContainer>() : nullptr;
 	if ((cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE)) && !pSettings->r_string(section, "supplies"))
 	{
 		float capacity					= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");

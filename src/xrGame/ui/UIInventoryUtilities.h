@@ -8,7 +8,7 @@
 class CUIStatic;
 class CUITextWnd;
 class CInventoryBox;
-class CInventoryContainer;
+class MContainer;
 
 //размеры сетки в текстуре иконок персонажей
 #define ICON_GRID_WIDTH			64.0f
@@ -76,7 +76,7 @@ const shared_str Get_GameTimeAndDate_AsString();
 LPCSTR GetTimePeriodAsString	(LPSTR _buff, u32 buff_sz, ALife::_TIME_ID _from, ALife::_TIME_ID _to);
 
 // Обновить метки веса и объёма
-void UpdateLabelsValues			(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryContainer* cont = NULL);
+void UpdateLabelsValues			(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, MContainer* cont = nullptr);
 
 // Выравнить координаты меток веса и объёма
 void AlighLabels				(CUIStatic* pWeightInfo, CUITextWnd* pWeight, CUIStatic* pVolumeInfo, CUITextWnd* pVolume);

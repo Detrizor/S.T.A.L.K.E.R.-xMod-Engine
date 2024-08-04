@@ -28,7 +28,7 @@ void CEatableItem::OnH_B_Independent(bool just_before_destroy)
 
 bool CEatableItem::UseBy(CEntityAlive* entity_alive)
 {
-	CAmountable* ai				= cast<CAmountable*>();
+	MAmountable* ai				= getModule<MAmountable>();
 	float deprate				= (ai && READ_IF_EXISTS(pSettings, r_bool, m_section_id, "use1_continuous", FALSE)) ? ai->GetDepletionRate() : 1.f;
 
 	SMedicineInfluenceValues	V;

@@ -7,10 +7,10 @@ class CWeaponAmmo;
 class CCartridge;
 class CGameObject;
 
-class CMagazine : public CModule
+class MMagazine : public CModule
 {
 public:
-										CMagazine								(CGameObject* obj);
+										MMagazine								(CGameObject* obj);
 
 private:
 	xr_vector<CWeaponAmmo*>				m_Heaps;

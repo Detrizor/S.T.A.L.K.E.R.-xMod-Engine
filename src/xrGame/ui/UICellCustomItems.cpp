@@ -381,7 +381,7 @@ CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
 	icon_foreground_draw				= slot.getForegroundDraw();
 }
 
-void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_offset)
+void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_offset)
 {
 	for (auto& S : ao->AddonSlots())
 	{
@@ -419,7 +419,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 				else if (s->icon_foreground_draw)
 					s->addon_icon->setForegroundDraw(true);
 
-				if (auto addon_ao = addon->cast<CAddonOwner*>())
+				if (auto addon_ao = addon->O.getModule<MAddonOwner>())
 					process_ao			(addon_ao, s->icon_offset);
 			}
 		}
@@ -428,7 +428,7 @@ void CUIAddonOwnerCellItem::process_ao(CAddonOwner* ao, Fvector2 CR$ forwarded_o
 	}
 }
 
-CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->cast<PIItem>())
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(MAddonOwner* ao) : inherited(ao->O.getModule<CInventoryItem>())
 {
 	process_ao							(ao, vZero2);
 
@@ -460,7 +460,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(CAddonOwner* ao) : inherited(ao->ca
 CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited(section)
 {
 	VSlots								slots;
-	m_base_foreground_draw				= CAddonOwner::LoadAddonSlots(section, slots);
+	m_base_foreground_draw				= MAddonOwner::LoadAddonSlots(section, slots);
 	for (auto& slot : slots)
 		m_slots.push_back				(xr_new<SUIAddonSlot>(*slot));
 }

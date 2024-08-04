@@ -1,8 +1,8 @@
 #pragma once
 #include "Weapon.h"
 
-class CGrenadeLauncher;
-class CScope;
+class MGrenadeLauncher;
+class MScope;
 enum eScopeType;
 
 struct SShootingParams
@@ -58,10 +58,10 @@ public:
 
 	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);
-	void								ProcessGL								(CGrenadeLauncher* gl);
+	void								ProcessGL								(MGrenadeLauncher* gl);
 	void								calculateAimOffsets						();
 
 	bool								IsRotatingToZoom					C$	();
 	Fvector								getTransference						C$	(float distance);
-	void								calculateScopeOffset				C$	(CScope* scope);
+	void								calculateScopeOffset				C$	(MScope* scope);
 };

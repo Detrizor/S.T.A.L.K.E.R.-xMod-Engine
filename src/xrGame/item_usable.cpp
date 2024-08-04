@@ -6,7 +6,7 @@
 #include "script_engine.h"
 #include "script_game_object.h"
 
-CUsable::CUsable(CGameObject* obj) : CModule(obj)
+MUsable::MUsable(CGameObject* obj) : CModule(obj)
 {
 	int i								= 0;
 	shared_str							line;
@@ -31,17 +31,17 @@ CUsable::CUsable(CGameObject* obj) : CModule(obj)
 	}
 }
 
-float CUsable::aboba(EEventTypes type, void* data, int param)
+float MUsable::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
 	case eOnAddon:
 	{
-		auto addon						= (CAddon*)data;
+		auto addon						= reinterpret_cast<MAddon*>(data);
 		if (param)
 		{
 			SAction						act;
-			act.title.printf			("%s %s", *CStringTable().translate("st_manage"), addon->cast<CInventoryItem*>()->getNameShort());
+			act.title.printf			("%s %s", *CStringTable().translate("st_manage"), addon->I->getNameShort());
 			act.query_functor			= pSettings->r_string(*O.cNameSect(), "manage_addon_query_functor");
 			act.action_functor			= pSettings->r_string(*O.cNameSect(), "manage_addon_action_functor");
 			act.item_id					= addon->O.ID();
@@ -65,12 +65,12 @@ float CUsable::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-SAction* CUsable::getAction(int num)
+SAction* MUsable::getAction(int num)
 {
 	return								(num > 0 && num <= m_actions.size()) ? &m_actions[num - 1] : nullptr;
 }
 
-bool CUsable::performAction(int num, bool skip_query, u16 item_id)
+bool MUsable::performAction(int num, bool skip_query, u16 item_id)
 {
 	auto& action						= m_actions[num - 1];
 	::luabind::functor<bool>			funct;

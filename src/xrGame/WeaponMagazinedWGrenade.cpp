@@ -28,10 +28,6 @@ void CWeaponMagazinedWGrenade::Load(LPCSTR section)
 	//// Sounds
 	m_sounds.LoadSound					(*HudSection(), "snd_reload_grenade", "sndReloadG", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_switch", "sndSwitch", true, m_eSoundReload);
-
-	shared_str integrated_gl			= READ_IF_EXISTS(pSettings, r_string, section, "grenade_launcher", "");
-	if (integrated_gl.size())
-		process_gl						(xr_new<CGrenadeLauncher>(this, integrated_gl), true);
 }
 
 void CWeaponMagazinedWGrenade::net_Destroy()
@@ -251,7 +247,7 @@ bool CWeaponMagazinedWGrenade::IsNecessaryItem(const shared_str& item_sect)
 	return								(m_pLauncher->m_slot->type == slot_type);
 }
 
-void CWeaponMagazinedWGrenade::process_gl(CGrenadeLauncher* gl, bool attach)
+void CWeaponMagazinedWGrenade::process_gl(MGrenadeLauncher* gl, bool attach)
 {
 	if (m_bGrenadeMode)
 		switch_mode						();
@@ -267,7 +263,7 @@ void CWeaponMagazinedWGrenade::process_gl(CGrenadeLauncher* gl, bool attach)
 		m_sounds.LoadSound				(*gl->O.cNameSect(), "snd_shoot_grenade", "sndShotG", true, m_eSoundShot);
 
 		Dmatrix trans					= gl->m_slot->model_offset;
-		if (auto addon = gl->cast<CAddon*>())
+		if (auto addon = gl->O.getModule<MAddon>())
 			trans.mulA_43				(addon->getLocalTransform());
 		m_muzzle_point_gl				= static_cast<Fvector>(trans.c);
 	}
@@ -291,8 +287,8 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnChild:
 	{
-		CObject* obj					= (CObject*)data;
-		if (auto rocket = obj->Cast<CCustomRocket*>())
+		CObject* obj					= reinterpret_cast<CObject*>(data);
+		if (auto rocket = obj->scast<CCustomRocket*>())
 		{
 			if (param)
 				AttachRocket			(obj->ID(), this);
@@ -316,8 +312,8 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	}
 	case eOnAddon:
 	{
-		auto addon						= (CAddon*)data;
-		if (auto grenade = addon->cast<CWeaponAmmo*>())
+		auto addon						= reinterpret_cast<MAddon*>(data);
+		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
 		{
 			m_grenade					= (param) ? grenade : nullptr;
 			if (m_grenade && !getRocketCount())
@@ -370,7 +366,7 @@ void CWeaponMagazinedWGrenade::UpdateCL()
 
 void CWeaponMagazinedWGrenade::process_addon_modules(CGameObject& obj, bool attach)
 {
-	if (auto gl = obj.Cast<CGrenadeLauncher*>())
+	if (auto gl = obj.getModule<MGrenadeLauncher>())
 		process_gl						(gl, attach);
 	inherited::process_addon_modules	(obj, attach);
 }

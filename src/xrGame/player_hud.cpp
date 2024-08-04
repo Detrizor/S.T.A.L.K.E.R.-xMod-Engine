@@ -710,7 +710,7 @@ void player_hud::attach_item(CHudItem* item)
 			pi->m_hands_attach.mulB_43(pi->m_item_attach);
 			pi->m_hands_attach.invert();
 
-			if (auto ao = pi->m_parent_hud_item->object().Cast<CAddonOwner*>())
+			if (auto ao = pi->m_parent_hud_item->object().getModule<MAddonOwner>())
 			{
 				update_bones(pi->m_model);
 				ao->calculateSlotsBoneOffset(pi->m_model, pi->m_hud_section);

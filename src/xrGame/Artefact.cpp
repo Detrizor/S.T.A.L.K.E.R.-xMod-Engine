@@ -521,15 +521,14 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 float CArtefact::Power() const
 {
 	if (Parent)
-	{
-		CInventoryContainer* cont		= Parent->Cast<CInventoryContainer*>();
-		if (cont && cont->ArtefactIsolation())
-			return						0.f;
-	}
+		if (auto cont = Parent->getModule<MContainer>())
+			if (cont->ArtefactIsolation())
+				return					0.f;
 
 	float dfill							= GetFill() / m_fChargeThreshold;
 	if (dfill > 1.f)
 		dfill							= 1.f;
+
 	return								sqrt(dfill);
 }
 
@@ -537,11 +536,8 @@ float CArtefact::Radiation() const
 {
 	float res							= m_fRadiation * Power();
 	if (Parent)
-	{
-		CInventoryContainer* cont		= Parent->Cast<CInventoryContainer*>();
-		if (cont)
+		if (auto cont = Parent->getModule<MContainer>())
 			res							*= cont->RadiationProtection();
-	}
 
 	return								res;
 }

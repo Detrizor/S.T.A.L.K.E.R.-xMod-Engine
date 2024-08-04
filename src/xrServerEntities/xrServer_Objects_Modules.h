@@ -51,7 +51,7 @@ protected:
 public:
 	u16									type								CO$	()		{ return mAmountable; }
 
-	friend class CAmountable;
+	friend class MAmountable;
 };
 
 class CSE_ALifeModuleAddon : public CSE_ALifeModule
@@ -66,7 +66,7 @@ protected:
 public:
 	u16									type								CO$	()		{ return mAddon; }
 
-	friend class CAddon;
+	friend class MAddon;
 };
 
 class CSE_ALifeModuleScope : public CSE_ALifeModule
@@ -83,7 +83,7 @@ protected:
 public:
 	u16									type								CO$	()		{ return mScope; }
 
-	friend class CScope;
+	friend class MScope;
 };
 
 class CSE_ALifeModuleFoldable : public CSE_ALifeModule
@@ -97,5 +97,5 @@ protected:
 public:
 	u16									type								CO$	()		{ return mFoldable; }
 
-	friend class CFoldable;
+	friend class MFoldable;
 };

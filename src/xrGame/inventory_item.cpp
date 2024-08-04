@@ -166,19 +166,22 @@ void CInventoryItem::Load(LPCSTR section)
 	set_inv_icon							();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
-		m_object->AddModule<CAddonOwner>();
+		O.AddModule<MAddonOwner>		();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
-		m_object->AddModule<CAddon>();
+		O.AddModule<MAddon>				();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
-		m_object->AddModule<CAmountable>();
+		O.AddModule<MAmountable>		();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "usable", FALSE))
-		m_object->AddModule<CUsable>();
+		O.AddModule<MUsable>			();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "foldable", FALSE))
-		m_object->AddModule<CFoldable>();
+		O.AddModule<MFoldable>			();
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
+		O.AddModule<MContainer>			();
 }
 
 float CInventoryItem::GetConditionToWork() const
@@ -908,7 +911,7 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 
 bool CInventoryItem::tryCustomUse()
 {
-	if (auto usable = cast<CUsable*>())
+	if (auto usable = O.getModule<MUsable>())
 	{
 		int i							= 0;
 		while (usable->getAction(++i))
@@ -916,9 +919,9 @@ bool CInventoryItem::tryCustomUse()
 				return					true;
 	}
 
-	if (auto addon = cast<CAddon*>())
+	if (auto addon = O.getModule<MAddon>())
 		if (auto active_item = Actor()->inventory().ActiveItem())
-			if (auto ao = active_item->cast<CAddonOwner*>())
+			if (auto ao = active_item->O.getModule<MAddonOwner>())
 				if (addon->tryAttach(ao))
 					return				true;
 

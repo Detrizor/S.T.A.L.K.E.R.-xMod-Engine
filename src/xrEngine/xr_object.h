@@ -216,25 +216,22 @@ protected:
 	xr_vector<CModule*>					m_modules;
 
 public:
-	template <typename T_to, typename T_from>
-	T_to							S$	Cast									(T_from ptr)
+	template <typename T>
+	T									scast									()		{ return smart_cast<T>(this); }
+	
+	template <typename M>
+	M*									getModule								()
 	{
-		if (!ptr)
-			return						nullptr;
-
-		if (T_to res = smart_cast<T_to>(ptr))
-			return						res;
-
-		for (auto m : ptr->m_modules)
-			if (T_to res = smart_cast<T_to>(m))
-				return					res;
+		for (auto m : m_modules)
+			if (m)
+				if (M* res = smart_cast<M*>(m))
+					return				res;
 
 		return							nullptr;
 	}
-	template <typename T>
-	T									Cast								C$	() { return Cast<T>(this); }
-	template <typename T>
-	T									Cast									() { return Cast<T>(this); }
+	
+	template <typename M>
+	const M*							getModule							C$	()		{ return getModule<M>(); }
 };
 
 #pragma pack(pop)

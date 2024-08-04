@@ -507,10 +507,8 @@ bool CUIActorMenu::TryUseItem(CUICellItem* cell_itm)
 	if (!cell_itm)
 		return false;
 	PIItem item	= (PIItem)cell_itm->m_pData;
-	
-	CEatableItem*	pEatableItem	= item->cast<CEatableItem*>();
 
-	if (!pEatableItem)
+	if (!item->O.scast<CEatableItem*>())
 		return false;
 	if (!item->Useful())
 		return false;
@@ -633,7 +631,7 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 	}
 }
 
-static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
+static void process_ao_for_attach(MAddonOwner CPC ao, MAddon CPC addon, CUIPropertiesBox* pb, bool& b_show, LPCSTR str)
 {
 	shared_str							attach_str;
 	for (auto& s : ao->AddonSlots())
@@ -648,22 +646,22 @@ static void process_ao_for_attach(CAddonOwner CPC ao, CAddon CPC addon, CUIPrope
 		}
 		
 		for (auto a : s->addons)
-			if (auto addon_ao = a->cast<CAddonOwner*>())
+			if (auto addon_ao = a->O.getModule<MAddonOwner>())
 				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->I->getNameShort()));
 	}
 }
 
 void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 {
-	if (auto addon = item->cast<CAddon*>())
+	if (auto addon = item->O.getModule<MAddon>())
 		if (auto active_item = m_pActorInv->ActiveItem())
-			if (auto ao = active_item->cast<CAddonOwner*>())
+			if (auto ao = active_item->O.getModule<MAddonOwner>())
 				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show, *shared_str().printf("%s %s -", *CStringTable().translate("st_attach_to"), active_item->getNameShort()));
 }
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
 {
-	if (auto usable = item->cast<CUsable*>())
+	if (auto usable = item->O.getModule<MUsable>())
 	{
 		int i							= 0;
 		SAction CP$						action;
@@ -770,7 +768,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	{
 		int num							= (int)m_UIPropertiesBox->GetClickedItem()->GetData();
 		::luabind::functor<bool>		funct;
-		ai().script_engine().functor	(*item->cast<CUsable*>()->getAction(num)->action_functor, funct);
+		ai().script_engine().functor	(item->O.getModule<MUsable>()->getAction(num)->action_functor.c_str(), funct);
 		funct							(item->O.lua_game_object(), num);
 		break;
 	}
@@ -784,7 +782,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_ADDON_ATTACH:
 	{
 		auto slot						= static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData());
-		auto addon						= item->cast<CAddon*>();
+		auto addon						= item->O.getModule<MAddon>();
 		addon->attach					(slot);
 		break;
 	}

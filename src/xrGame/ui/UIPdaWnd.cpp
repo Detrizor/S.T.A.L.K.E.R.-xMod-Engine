@@ -173,11 +173,9 @@ void CUIPdaWnd::Update()
 	{
 		PIItem active_item				= actor->inventory().ActiveItem();
 		if (active_item)
-		{
-			CAmountable* aiitem			= active_item->cast<CAmountable*>();
-			if (aiitem && !aiitem->Empty())
-				return;
-		}
+			if (auto aiitem = active_item->O.getModule<MAmountable>())
+				if (!aiitem->Empty())
+					return;
 	}
 
 	HideDialog();
@@ -211,7 +209,7 @@ void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
 		m_pActiveDialog = pUILogsWnd;
 	}
 	
-	luabind::functor<CUIDialogWndEx*> funct;
+	::luabind::functor<CUIDialogWndEx*> funct;
 	if (ai().script_engine().functor("pda.set_active_subdialog", funct))
 	{
 		CUIDialogWndEx* ret = funct((LPCSTR)section.c_str());

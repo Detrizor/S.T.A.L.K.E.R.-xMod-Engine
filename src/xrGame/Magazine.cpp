@@ -6,7 +6,7 @@
 #include "WeaponAmmo.h"
 #include "Weapon.h"
 
-CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
+MMagazine::MMagazine(CGameObject* obj) : CModule(obj)
 {
 	m_Heaps.clear						();
 	m_iNextHeapIdx						= u16_max;
@@ -27,31 +27,31 @@ CMagazine::CMagazine(CGameObject* obj) : CModule(obj)
 	UpdateBulletsVisibility				();
 }
 
-void CMagazine::InvalidateState()
+void MMagazine::InvalidateState()
 {
 	m_SumAmount							= u16_max;
 	m_SumWeight							= flt_max;
 }
 
 shared_str bullets_str					= "bullets";
-void CMagazine::UpdateBulletsVisibility()
+void MMagazine::UpdateBulletsVisibility()
 {
 	if (!m_bullets_visible)
 		return;
 
 	bool vis							= !Empty();
 	O.UpdateBoneVisibility				(bullets_str, vis);
-	cast<PIItem>()->SetInvIconType		((u8)vis);
+	I->SetInvIconType					(static_cast<u8>(vis));
 	UpdateHudBulletsVisibility			();
 }
 
-void CMagazine::UpdateHudBulletsVisibility()
+void MMagazine::UpdateHudBulletsVisibility()
 {
-	if (auto hi = cast<CHudItem*>()->HudItemData())
+	if (auto hi = O.scast<CHudItem*>()->HudItemData())
 		hi->set_bone_visible			(bullets_str, (BOOL)!Empty(), TRUE);
 }
 
-float CMagazine::aboba o$(EEventTypes type, void* data, int param)
+float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -60,7 +60,7 @@ float CMagazine::aboba o$(EEventTypes type, void* data, int param)
 			break;
 		case eOnChild:
 		{
-			CWeaponAmmo* heap			= cast<CWeaponAmmo*>((CObject*)data);
+			CWeaponAmmo* heap			= reinterpret_cast<CObject*>(data)->scast<CWeaponAmmo*>();
 			if (!heap)
 				break;
 
@@ -112,7 +112,7 @@ float CMagazine::aboba o$(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-u16 CMagazine::Amount()
+u16 MMagazine::Amount()
 {
 	if (m_SumAmount == u16_max)
 	{
@@ -126,7 +126,7 @@ u16 CMagazine::Amount()
 	return								m_SumAmount;
 }
 
-bool CMagazine::CanTake(CWeaponAmmo CPC ammo)
+bool MMagazine::CanTake(CWeaponAmmo CPC ammo)
 {
 	if (Full())
 		return							false;
@@ -140,7 +140,7 @@ bool CMagazine::CanTake(CWeaponAmmo CPC ammo)
 	return								false;
 }
 
-void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
+void MMagazine::LoadCartridge(CWeaponAmmo* ammo)
 {
 	CWeaponAmmo* back_heap				= (Empty()) ? NULL : m_Heaps.back();
 	if (back_heap && back_heap->cNameSect() == ammo->cNameSect() && fEqual(back_heap->GetCondition(), ammo->GetCondition()))
@@ -154,7 +154,7 @@ void CMagazine::LoadCartridge(CWeaponAmmo* ammo)
 	InvalidateState						();
 }
 
-bool CMagazine::GetCartridge(CCartridge& destination, bool expend)
+bool MMagazine::GetCartridge(CCartridge& destination, bool expend)
 {
 	if (Empty())
 		return							false;

@@ -31,12 +31,12 @@
 #include "../item_container.h"
 #include "ActorBackpack.h"
 
-using namespace luabind; //Alundaio
+using namespace ::luabind; //Alundaio
 
 bool  CUIActorMenu::AllowItemDrops(EDDListType from, EDDListType to)
 {
 	xr_vector<EDDListType>& v = m_allowed_drops[to];
-	xr_vector<EDDListType>::iterator it = std::find(v.begin(), v.end(), from);
+	xr_vector<EDDListType>::iterator it = ::std::find(v.begin(), v.end(), from);
 
 	return(it!=v.end());
 }
@@ -134,7 +134,7 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	if (old_owner == new_owner)
 	{
 		//Alundaio: Here we export the action of dragging one inventory item ontop of another! 
-		luabind::functor<bool> funct1;
+		functor<bool> funct1;
 		if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemDropped", funct1))
 		{
 			//If list only has 1 item, get it, otherwise try to get item at current drag position
@@ -219,7 +219,7 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	};
 
 	//Alundaio: Here we export the action of dragging one inventory item ontop of another! 
-	luabind::functor<bool> funct1;
+	functor<bool> funct1;
 	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemDropped", funct1))
 	{
 		//If list only has 1 item, get it, otherwise try to get item at current drag position
@@ -350,7 +350,7 @@ bool CUIActorMenu::OnItemFocusReceive(CUICellItem* itm)
 	itm->m_selected = true;
 	set_highlight_item( itm );
 
-	luabind::functor<bool> funct1;
+	functor<bool> funct1;
 	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusReceive", funct1))
 	{
 		PIItem _iitem = (PIItem)itm->m_pData;
@@ -372,7 +372,7 @@ bool CUIActorMenu::OnItemFocusLost(CUICellItem* itm)
 	InfoCurItem( NULL );
 	clear_highlight_lists();
 
-	luabind::functor<bool> funct1;
+	functor<bool> funct1;
 	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusLost", funct1))
 	{
 		PIItem _iitem = (PIItem)itm->m_pData;
@@ -471,7 +471,7 @@ void CUIActorMenu::OnBtnExitClicked(CUIWindow* w, void* d)
 	{
 	case mmTrade:
 	case mmUpgrade:
-		m_pActorInvOwner->O->Cast<CActor*>()->RunTalkDialog(m_pPartnerInvOwner, false);
+		m_pActorInvOwner->O->scast<CActor*>()->RunTalkDialog(m_pPartnerInvOwner, false);
 		break;
 	default:
 		g_btnHint->Discard();

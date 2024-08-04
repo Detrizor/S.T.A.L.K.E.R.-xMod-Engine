@@ -10,7 +10,7 @@ enum EEventTypes
 	//CGameObject
 	eOnChild,
 	eSyncData,
-	//CAddonOwner
+	//MAddonOwner
 	eOnAddon,
 	eTransferAddon,
 	//CInventoryItem
@@ -41,10 +41,4 @@ public:
 
 public:
 	void								Transfer							C$	(u16 id = u16_max);
-	template <typename T, typename C>
-	T								S$	cast									(C c)					{ return CObject::Cast<T>(c); }
-	template <typename T>
-	T									cast								C$	()						{ return (this) ? O.Cast<T>() : nullptr; }
-	template <typename T>
-	T									cast									()						{ return (this) ? O.Cast<T>() : nullptr; }
 };

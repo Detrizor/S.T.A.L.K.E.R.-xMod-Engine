@@ -192,7 +192,7 @@ void CUIHudStatesWnd::UpdateHealth( CActor* actor )
 void CUIHudStatesWnd::UpdateActiveItemInfo(CActor* actor)
 {
 	auto ai								= actor->inventory().ActiveItem();
-	if (auto wpn = (ai) ? ai->cast<CWeaponMagazined*>() : nullptr)
+	if (auto wpn = (ai) ? ai->O.scast<CWeaponMagazined*>() : nullptr)
 	{
 		if (m_b_force_update)
 		{

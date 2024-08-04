@@ -1,10 +1,10 @@
 #pragma once
 #include "module.h"
 
-class CFoldable : public CModule
+class MFoldable : public CModule
 {
 public:
-										CFoldable								(CGameObject* obj) : CModule(obj) {}
+										MFoldable								(CGameObject* obj) : CModule(obj) {}
 
 private:
 	bool								m_status								= false;

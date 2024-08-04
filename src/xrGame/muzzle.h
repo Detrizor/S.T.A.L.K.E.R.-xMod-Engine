@@ -1,10 +1,10 @@
 #pragma once
 #include "module.h"
 
-class CMuzzle : public CModule
+class MMuzzle : public CModule
 {
 public:
-										CMuzzle									(CGameObject* obj, shared_str CR$ section);
+										MMuzzle									(CGameObject* obj, shared_str CR$ section);
 
 private:
 	const Fvector						m_muzzle_point;

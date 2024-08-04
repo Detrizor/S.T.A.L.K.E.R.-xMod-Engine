@@ -35,7 +35,7 @@ private:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	CInventoryContainer*				m_pContainer;
+	MContainer*				m_pContainer;
 };
 
 add_to_type_list(CInventoryBox)

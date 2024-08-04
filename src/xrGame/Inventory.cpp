@@ -806,7 +806,7 @@ bool CInventory::Bag(PIItem item)
 	PIItem ai						= ActiveItem();
 	if (!ai)
 		return						false;
-	CInventoryContainer* container	= ai->cast<CInventoryContainer*>();
+	MContainer* container			= ai->O.getModule<MContainer>();
 	if (!container || !container->CanTakeItem(item))
 		return						false;
 	item->Transfer					(container->O.ID());
@@ -1171,7 +1171,7 @@ bool CInventory::Eat(PIItem pIItem)
 	if (!pItemToEat)
 		return					false;
 
-	CAmountable* amt			= pIItem->cast<CAmountable*>();
+	MAmountable* amt			= pIItem->O.getModule<MAmountable>();
 	if (amt && amt->Empty())
 		return					false;
 
@@ -1552,13 +1552,7 @@ void CInventory::CheckArtefact(PIItem item, bool add)
 		else if (add)
 			m_artefacts.push_back		(artefact);
 	}
-	else
-	{
-		CInventoryContainer* con		= item->cast<CInventoryContainer*>();
-		if (con)
-		{
-			for (auto I : con->Items())
-				CheckArtefact			(I, add);
-		}
-	}
+	else if (auto con = item->O.getModule<MContainer>())
+		for (auto I : con->Items())
+			CheckArtefact				(I, add);
 }

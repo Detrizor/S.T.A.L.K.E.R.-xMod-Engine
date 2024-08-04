@@ -1,10 +1,10 @@
 #pragma once
 #include "inventory_item_object.h"
 
-class CAmountable : public CModule
+class MAmountable : public CModule
 {
 public:
-										CAmountable								(CGameObject* obj);
+										MAmountable								(CGameObject* obj);
 
 private:
 	float								m_net_weight;
@@ -13,7 +13,6 @@ private:
 	float								m_capacity;
 	bool								m_unlimited;
 	float								m_depletion_speed;
-	PIItem								m_item;
 
 	float								m_fAmount;
 

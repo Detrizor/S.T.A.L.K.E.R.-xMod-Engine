@@ -52,17 +52,17 @@ void CWeaponHud::calculateAimOffsets()
 	m_hud_offset[eAim][0].mad			(dir, aim_height);
 }
 
-void CWeaponHud::calculateScopeOffset(CScope* scope) const
+void CWeaponHud::calculateScopeOffset(MScope* scope) const
 {
 	Dvector sight_position				= scope->getSightPosition();
 	Dvector sight_rotation				= dZero;
-	if (auto addon = scope->cast<CAddon*>())
+	if (auto addon = scope->O.getModule<MAddon>())
 	{
 		addon->getLocalTransform().transform_tiny(sight_position);
 		addon->getLocalTransform().getHPB(sight_rotation);
 	}
 
-	if (scope->Type() == CScope::eIS && O.m_align_front.z != dbl_max)
+	if (scope->Type() == MScope::eIS && O.m_align_front.z != dbl_max)
 	{
 		double dx						= O.m_align_front.x - sight_position.x;
 		double dy						= O.m_align_front.y - sight_position.y;
@@ -82,9 +82,9 @@ void CWeaponHud::calculateScopeOffset(CScope* scope) const
 	scope->setHudOffset					(sight_position, sight_rotation);
 }
 
-void CWeaponHud::ProcessGL(CGrenadeLauncher* gl)
+void CWeaponHud::ProcessGL(MGrenadeLauncher* gl)
 {
-	auto addon							= gl->cast<CAddon*>();
+	auto addon							= gl->O.getModule<MAddon>();
 	Dmatrix trans						= (addon) ? addon->getLocalTransform() : Didentity;
 	trans.applyOffset					(gl->getSightOffset());
 	trans.getOffset						(m_hud_offset[eGL]);
@@ -154,8 +154,7 @@ Dvector CP$ CWeaponHud::get_target_hud_offset() const
 	if (HUD().GetCurrentRayQuery().range < O.m_fire_point.z && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
 		return							m_hud_offset[eRelaxed];
 
-	CScope* active_scope				= O.getActiveScope();
-	if (active_scope)
+	if (auto active_scope = O.getActiveScope())
 		return							active_scope->getHudOffset();
 	else
 		return							m_hud_offset[get_target_hud_offset_idx()];
@@ -571,7 +570,7 @@ Fvector CWeaponHud::getTransference(float distance) const
 	Dmatrix								cur_trans;
 	cur_trans.setOffset					(get_target_hud_offset());
 	if (auto scope = O.getActiveScope())
-		if (scope->Type() == CScope::eOptics)
+		if (scope->Type() == MScope::eOptics)
 			cur_trans.translate_sub		(scope->getObjectiveOffset());
 	Fmatrix f_cur_trans					= static_cast<Fmatrix>(cur_trans);
 

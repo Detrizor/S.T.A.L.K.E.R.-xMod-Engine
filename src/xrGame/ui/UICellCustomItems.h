@@ -2,7 +2,7 @@
 #include "UICellItem.h"
 #include "../Weapon.h"
 
-class CAddonOwner;
+class MAddonOwner;
 class CAddonSlot;
 
 struct SIconLayer
@@ -78,13 +78,13 @@ private:
 	typedef ::std::vector<xptr<SUIAddonSlot>> VUISlots;
 
 public:
-										CUIAddonOwnerCellItem					(CAddonOwner* ao);
+										CUIAddonOwnerCellItem					(MAddonOwner* ao);
 										CUIAddonOwnerCellItem					(shared_str CR$ section);
 
 private:
 	VUISlots							m_slots									= {};
 
-	void								process_ao								(CAddonOwner* ao, Fvector2 CR$ forwarded_offset);
+	void								process_ao								(MAddonOwner* ao, Fvector2 CR$ forwarded_offset);
 	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);
 
 public:

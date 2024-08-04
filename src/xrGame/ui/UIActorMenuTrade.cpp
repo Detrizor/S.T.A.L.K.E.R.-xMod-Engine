@@ -361,7 +361,7 @@ void CUIActorMenu::UpdateActor()
 	m_ActorVolume->Show							(status);
 	if (status)
 	{
-		InventoryUtilities::UpdateLabelsValues	(m_ActorWeight, m_ActorVolume, NULL, m_pBag->cast<CInventoryContainer*>());
+		InventoryUtilities::UpdateLabelsValues	(m_ActorWeight, m_ActorVolume, nullptr, m_pBag);
 		//InventoryUtilities::AlighLabels			(m_ActorWeightInfo, m_ActorWeight, m_ActorVolumeInfo, m_ActorVolume);
 	}
 

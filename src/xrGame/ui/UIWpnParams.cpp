@@ -77,7 +77,7 @@ static float get_barrel_length(CUICellItem* itm)
 void CUIWpnParams::SetInfo(CUICellItem* itm)
 {
 	PIItem item							= (PIItem)itm->m_pData;
-	CWeaponMagazined* wpn				= (item) ? item->cast<CWeaponMagazined*>() : NULL;
+	CWeaponMagazined* wpn				= (item) ? item->O.scast<CWeaponMagazined*>() : nullptr;
 
 	float barrel_length					= (wpn) ? wpn->getBarrelLength() : get_barrel_length(itm);
 	shared_str							str;

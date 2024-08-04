@@ -386,7 +386,7 @@ void CWeapon::OnHiddenItem()
 
 void CWeapon::OnH_A_Chield()
 {
-	m_actor = H_Parent()->Cast<CActor*>();
+	m_actor = H_Parent()->scast<CActor*>();
 }
 
 void CWeapon::OnH_B_Chield()

@@ -5,10 +5,10 @@
 
 CUICellItem*	create_cell_item(CInventoryItem* itm)
 {
-	if (auto ammo = itm->cast<CWeaponAmmo*>())
+	if (auto ammo = itm->O.scast<CWeaponAmmo*>())
 		return							xr_new<CUIAmmoCellItem>(ammo);
 
-	if (auto ao = itm->cast<CAddonOwner*>())
+	if (auto ao = itm->O.getModule<MAddonOwner>())
 		return							xr_new<CUIAddonOwnerCellItem>(ao);
 
 	return								xr_new<CUIInventoryCellItem>(itm);

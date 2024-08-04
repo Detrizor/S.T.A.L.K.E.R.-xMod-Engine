@@ -10,12 +10,12 @@
 #include "WeaponMagazined.h"
 #include "item_usable.h"
 
-CAddonOwner::CAddonOwner(CGameObject* obj) : CModule(obj)
+MAddonOwner::MAddonOwner(CGameObject* obj) : CModule(obj)
 {
 	m_base_foreground_draw				= LoadAddonSlots(O.cNameSect(), m_slots, this);
 }
 
-bool CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOwner PC$ parent_ao)
+bool MAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ parent_ao)
 {
 	shared_str							slots_section;
 	if (pSettings->line_exist(section, "slots"))
@@ -31,13 +31,13 @@ bool CAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, CAddonOw
 	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
 }
 
-void CAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hud_sect)
+void MAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hud_sect)
 {
 	for (auto& s : m_slots)
 		s->calculateBoneOffset			(model, hud_sect);
 }
 
-void CAddonOwner::transfer_addon(CAddon CPC addon, bool attach)
+void MAddonOwner::transfer_addon(MAddon CPC addon, bool attach)
 {
 	if (O.Aboba(eTransferAddon, (void*)addon, (int)attach) == flt_max)
 	{
@@ -46,12 +46,12 @@ void CAddonOwner::transfer_addon(CAddon CPC addon, bool attach)
 		else
 		{
 			auto root					= O.H_Root();
-			addon->Transfer				((root->Cast<CInventoryOwner*>()) ? root->ID() : u16_max);
+			addon->Transfer				((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
 		}
 	}
 }
 
-float CAddonOwner::aboba(EEventTypes type, void* data, int param)
+float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
@@ -62,7 +62,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 			break;
 		}
 		case eOnChild:
-			if (auto addon = cast<CAddon*>((CObject*)data))
+			if (auto addon = reinterpret_cast<CObject*>(data)->getModule<MAddon>())
 			{
 				auto slot				= addon->getSlot();
 				if (slot)
@@ -113,7 +113,7 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 			break;
 		case eUpdateSlotsTransform:
 		{
-			attachable_hud_item* hi		= O.Cast<CHudItem*>()->HudItemData();
+			attachable_hud_item* hi		= O.scast<CHudItem*>()->HudItemData();
 			Dvector root_offset			= O.getRootBonePosition().mul(-1.);
 			for (auto& s : m_slots)
 				s->updateAddonsHudTransform(hi->m_model, hi->m_transform, root_offset);
@@ -124,24 +124,24 @@ float CAddonOwner::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-CAddonOwner* CAddonOwner::getParentAO() const
+MAddonOwner* MAddonOwner::getParentAO() const
 {
-	return								(O.H_Parent()) ? O.H_Parent()->Cast<CAddonOwner*>() : nullptr;
+	return								(O.H_Parent()) ? O.H_Parent()->getModule<MAddonOwner>() : nullptr;
 }
 
-void CAddonOwner::RegisterAddon(CAddon PC$ addon, bool attach) const
+void MAddonOwner::RegisterAddon(MAddon PC$ addon, bool attach) const
 {
 	processAddon						(addon, attach);
 	if (auto parent_ao = getParentAO())
 		parent_ao->RegisterAddon		(addon, attach);
 }
 
-void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
+void MAddonOwner::processAddon(MAddon PC$ addon, bool attach) const
 {
 	if (attach)
 		O.Aboba							(eOnAddon, (void*)addon, true);
 
-	if (auto addon_ao = addon->cast<CAddonOwner*>())
+	if (auto addon_ao = addon->O.getModule<MAddonOwner>())
 		for (auto& s : addon_ao->AddonSlots())
 			for (auto a : s->addons)
 				processAddon			(a, attach);
@@ -150,21 +150,21 @@ void CAddonOwner::processAddon(CAddon PC$ addon, bool attach) const
 		O.Aboba							(eOnAddon, (void*)addon, false);
 }
 
-CAddonSlot* CAddonOwner::findAvailableSlot(CAddon CPC addon) const
+CAddonSlot* MAddonOwner::findAvailableSlot(MAddon CPC addon) const
 {
 	for (auto& s : m_slots)
 	{
 		if (s->CanTake(addon))
 			return						s.get();
 		for (auto a : s->addons)
-			if (auto ao = a->cast<CAddonOwner*>())
+			if (auto ao = a->O.getModule<MAddonOwner>())
 				if (auto slot = ao->findAvailableSlot(addon))
 					return				slot;
 	}
 	return								nullptr;
 }
 
-bool CAddonOwner::attachAddon(CAddon* addon)
+bool MAddonOwner::attachAddon(MAddon* addon)
 {
 	CAddonSlot* slot					= nullptr;
 	if (addon->getSlotIdx() == u16_max)
@@ -186,7 +186,7 @@ bool CAddonOwner::attachAddon(CAddon* addon)
 	return								false;
 }
 
-void CAddonOwner::detachAddon(CAddon* addon)
+void MAddonOwner::detachAddon(MAddon* addon)
 {
 	transfer_addon						(addon, false);
 }
@@ -198,7 +198,7 @@ LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
 	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
 }
 
-CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, CAddonOwner PC$ parent) :
+CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent) :
 	parent_ao(parent),
 	idx(_idx)
 {
@@ -278,7 +278,7 @@ void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
 	}
 }
 
-int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
+int CAddonSlot::get_spacing(MAddon CPC left, MAddon CPC right) const
 {
 	if (m_step == 0.)
 		return							0;
@@ -288,20 +288,20 @@ int CAddonSlot::get_spacing(CAddon CPC left, CAddon CPC right) const
 		return							left->getLength(m_step) - 1;
 	if (left->isLowProfile() || right->isLowProfile())
 		return							left->getLength(m_step);
-	return								left->getLength(m_step, CAddon::ProfileFwd) + right->getLength(m_step, CAddon::ProfileBwd);
+	return								left->getLength(m_step, MAddon::ProfileFwd) + right->getLength(m_step, MAddon::ProfileBwd);
 }
 
-CAddon* CAddonSlot::get_next_addon(xr_list<CAddon*>::iterator& I) const
+MAddon* CAddonSlot::get_next_addon(xr_list<MAddon*>::iterator& I) const
 {
 	return								(++I == addons.end()) ? NULL : *I;
 }
 
-CAddon* CAddonSlot::get_prev_addon(xr_list<CAddon*>::iterator& I) const
+MAddon* CAddonSlot::get_prev_addon(xr_list<MAddon*>::iterator& I) const
 {
 	return								(I == addons.begin()) ? NULL : *--I;
 }
 
-void CAddonSlot::attachAddon(CAddon* addon)
+void CAddonSlot::attachAddon(MAddon* addon)
 {
 	addon->setSlot						(this);
 
@@ -354,7 +354,7 @@ void CAddonSlot::attachAddon(CAddon* addon)
 	updateAddonLocalTransform			(addon);
 }
 
-void CAddonSlot::detachAddon(CAddon* addon)
+void CAddonSlot::detachAddon(MAddon* addon)
 {
 	addon->setSlot						(NULL);
 	addon->setSlotIdx					(u16_max);
@@ -364,7 +364,7 @@ void CAddonSlot::detachAddon(CAddon* addon)
 }
 
 #include "../../../xrEngine/xr_input.h"
-void CAddonSlot::shiftAddon(CAddon* addon, int shift)
+void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 {
 	if (pInput->iGetAsyncKeyState(DIK_LSHIFT))
 		shift							*= 64;
@@ -452,13 +452,13 @@ void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent
 		append_bone_trans				(trans, model);
 		trans.translate_mul				(root_offset);
 		addon->updateHudTransform		(trans);
-		if (auto ao = addon->cast<CAddonOwner*>())
+		if (auto ao = addon->O.getModule<MAddonOwner>())
 			for (auto& s : ao->AddonSlots())
 				s->updateAddonsHudTransform(model, parent_trans, root_offset);
 	}
 }
 
-void CAddonSlot::startReloading(CAddon* loading_addon)
+void CAddonSlot::startReloading(MAddon* loading_addon)
 {
 	m_loading_addon						= loading_addon;
 }
@@ -489,7 +489,7 @@ void CAddonSlot::RenderHud() const
 	for (auto addon : addons)
 	{
 		addon->RenderHud				();
-		if (auto ao = addon->cast<CAddonOwner CP$>())
+		if (auto ao = addon->O.getModule<MAddonOwner>())
 			for (auto& s : ao->AddonSlots())
 				s->RenderHud			();
 	}
@@ -511,7 +511,7 @@ void CAddonSlot::calculateBoneOffset(IKinematics* model, shared_str CR$ hud_sect
 	}
 
 	for (auto a : addons)
-		if (auto ao = a->cast<CAddonOwner*>())
+		if (auto ao = a->O.getModule<MAddonOwner>())
 			ao->calculateSlotsBoneOffset(model, hud_sect);
 }
 
@@ -520,7 +520,7 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 	for (auto addon : addons)
 	{
 		addon->RenderWorld				(parent_trans);
-		if (auto ao = addon->cast<CAddonOwner CP$>())
+		if (auto ao = addon->O.getModule<MAddonOwner>())
 			for (auto& s : ao->AddonSlots())
 				s->RenderWorld			(parent_trans);
 	}
@@ -540,9 +540,9 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 	return								false;
 }
 
-bool CAddonSlot::CanTake(CAddon CPC addon) const
+bool CAddonSlot::CanTake(MAddon CPC addon) const
 {
-	auto hi								= parent_ao->cast<CHudItem*>();
+	auto hi								= parent_ao->O.scast<CHudItem*>();
 	if (hi->HudItemData())
 		if (hi->IsPending())
 			return						false;
@@ -565,20 +565,20 @@ bool CAddonSlot::CanTake(CAddon CPC addon) const
 	return								(pos + get_spacing(addon, nullptr) <= steps);
 }
 
-void CAddonSlot::updateAddonLocalTransform(CAddon* addon) const
+void CAddonSlot::updateAddonLocalTransform(MAddon* addon) const
 {
 	if (addon->getSlot() == this)
 	{
 		Dmatrix transform				= model_offset;
 		transform.c.z					+= static_cast<double>(addon->getSlotPos()) * m_step;
-		if (auto parent_addon = parent_ao->cast<CAddon*>())
+		if (auto parent_addon = parent_ao->O.getModule<MAddon>())
 			transform.mulA_43			(parent_addon->getLocalTransform());
 		addon->setLocalTransform		(transform);
 	}
 	else
 		addon->setLocalTransform		(Didentity);
 
-	if (auto ao = addon->cast<CAddonOwner*>())
+	if (auto ao = addon->O.getModule<MAddonOwner>())
 		for (auto& s : ao->AddonSlots())
 			for (auto a : s->addons)
 				s->updateAddonLocalTransform(a);

@@ -7,8 +7,7 @@
 bool CBackpack::install_upgrade_impl(LPCSTR section, bool test)
 {
 	bool result					= inherited::install_upgrade_impl(section, test);
-	CInventoryContainer* cont	= Cast<CInventoryContainer*>();
-	if (cont)
+	if (auto cont = getModule<MContainer>())
 	{
 		float					tmp;
 		bool result2			= process_if_exists(section, "capacity", tmp, test);

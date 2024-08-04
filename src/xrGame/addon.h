@@ -2,9 +2,9 @@
 #include "inventory_item_object.h"
 
 class CAddonSlot;
-class CAddonOwner;
+class MAddonOwner;
 
-class CAddon : public CModule
+class MAddon : public CModule
 {
 public:
 	enum eLengthType
@@ -15,7 +15,7 @@ public:
 	};
 
 public:
-										CAddon									(CGameObject* obj);
+										MAddon									(CGameObject* obj);
 
 private:
 	Dmatrix 							m_local_transform						= Didentity;
@@ -46,7 +46,7 @@ public:
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	
 	void								attach									(CAddonSlot CPC slot);
-	bool								tryAttach								(CAddonOwner CPC ao, u16 slot_idx = u16_max);
+	bool								tryAttach								(MAddonOwner CPC ao, u16 slot_idx = u16_max);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }

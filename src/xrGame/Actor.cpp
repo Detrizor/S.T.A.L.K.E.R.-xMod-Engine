@@ -1301,7 +1301,7 @@ void CActor::shedule_Update(u32 DT)
 		m_pObjectWeLookingAt = game_object;
 		m_pUsableObject = smart_cast<CUsableScriptObject*>(game_object);
 		m_pInvBoxWeLookingAt = smart_cast<CInventoryBox*>(game_object);
-		m_pContainerWeLookingAt = Cast<CInventoryContainer*>(game_object);
+		m_pContainerWeLookingAt = game_object->getModule<MContainer>();
 		m_pPersonWeLookingAt = smart_cast<CInventoryOwner*>(game_object);
 		m_pVehicleWeLookingAt = smart_cast<CHolderCustom*>(game_object);
 		CEntityAlive* pEntityAlive = smart_cast<CEntityAlive*>(game_object);
@@ -1812,7 +1812,7 @@ void CActor::loadStaticVariables()
 	SBoneProtections::loadStaticVariables();
 	CCartridge::loadStaticVariables		();
 	CWeaponHud::loadStaticVariables		();
-	CScope::loadStaticVariables			();
+	MScope::loadStaticVariables			();
 	CWeapon::loadStaticVariables		();
 	CWeaponMagazined::loadStaticVariables();
 }

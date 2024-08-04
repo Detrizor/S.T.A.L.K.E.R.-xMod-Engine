@@ -115,7 +115,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 		if (!m_pInvBox->can_take() || !m_pInvBox->m_pContainer->CanTakeItem(item))
 			return					false;
 
-		luabind::functor<bool>		funct;
+		::luabind::functor<bool>	funct;
 		if (ai().script_engine().functor("_G.CInventoryBox_CanTake", funct))
 			if (funct(m_pInvBox->cast_game_object()->lua_game_object(), item->cast_game_object()->lua_game_object()) == false)
 				return				false;
@@ -136,7 +136,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 void CUIActorMenu::UpdateDeadBodyBag()
 {
-	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->Cast<CInventoryContainer*>() : m_pContainer);
+	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->m_pContainer : m_pContainer);
 	//InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 }
 

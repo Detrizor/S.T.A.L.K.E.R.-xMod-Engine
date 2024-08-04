@@ -93,9 +93,6 @@ void CGameObject::Load(LPCSTR section)
 		// self->spatial.type	|=	STYPE_VISIBLEFORAI;	
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
-
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
-		AddModule<CInventoryContainer>();
 }
 
 void CGameObject::reinit	()

@@ -800,9 +800,9 @@ public:
 			_DECLARE_FUNCTION14(cast_Weapon, CWeapon);
 			_DECLARE_FUNCTION14(cast_EatableItem, CEatableItem);
 			_DECLARE_FUNCTION14(cast_CustomOutfit, CCustomOutfit);
-			_DECLARE_FUNCTION14(cast_Scope, CScope);
+			_DECLARE_FUNCTION14(cast_Scope, MScope);
 			_DECLARE_FUNCTION14(cast_Silencer, CSilencer);
-			_DECLARE_FUNCTION14(cast_GrenadeLauncher, CGrenadeLauncher);
+			_DECLARE_FUNCTION14(cast_GrenadeLauncher, MGrenadeLauncher);
 			_DECLARE_FUNCTION14(cast_WeaponMagazined, CWeaponMagazined);
 			_DECLARE_FUNCTION14(cast_SpaceRestrictor, CSpaceRestrictor);
 			_DECLARE_FUNCTION14(cast_Stalker, CAI_Stalker);
