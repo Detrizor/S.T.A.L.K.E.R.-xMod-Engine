@@ -477,6 +477,8 @@ public:
 	Fvector4 CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
 	Fvector CR$							getRecoilCamDelta					C$	()		{ return m_recoil_cam_delta; }
 	bool								ArmedMode							C$	()		{ return m_bArmedMode; }
+	Fmatrix CR$							getOffset							C$	()		{ return m_Offset; }
+	Fvector CR$							getLoadedFirePoint					C$	()		{ return m_fire_point; }
 	
 	bool								isCamRecoilRelaxed					C$	();
 	float								GetControlInertionFactor			CO$	(bool full = false);

@@ -75,45 +75,38 @@ void weapon::compute_bone	(u32 const bone_id)
 
 	Fmatrix const& mL		= m_local_bones[weapon_bone_id1];
 	Fmatrix const& mR		= m_local_bones[weapon_bone_id0];
-	
-	Fmatrix					offset;
-	Fvector pos				= pSettings->r_fvector3(m_weapon.cNameSect(),"grip_offset");
-	offset.translate_over	(pos);
 
-	Fmatrix					mRes;
 	Fvector					R,D,N;
 	D.sub					(mL.c,mR.c);	
 
-	float const magnitude	= D.magnitude( );
-	if ( !fis_zero( magnitude ) )
-		D.div				( magnitude );
+	float const magnitude	= D.magnitude();
+	if (!fis_zero(magnitude))
+		D.div				(magnitude);
 	else
-		D.set				( 0.f, 0.f, 1.f );
+		D.set				(vForward);
 
 	R.crossproduct			(mR.j,D);	
 
 	N.crossproduct			(D,R);			
 	N.normalize				();
 
+	Fmatrix					mRes;
 	mRes.set				(R,N,D,mR.c);
 	mRes.mulA_43			(m_start_transform);
-
-	Fvector					vLoadedFirePoint = pSettings->r_fvector3(m_weapon.cNameSect(), "muzzle_position");
-	Fmatrix					transform;
-	transform.mul			(mRes, offset);
+	mRes.mulB_43			(m_weapon.getOffset());
 	
-	Fvector					position;
-	transform.transform_tiny( position, vLoadedFirePoint );
+	Fvector position		= m_weapon.getLoadedFirePoint();
+	mRes.transform_tiny		(position);
 
-	Fvector					direction = Fvector( ).set( 0.f, 0.f, 1.f );
-	transform.transform_dir	( direction );
+	Fvector direction		= vForward;
+	mRes.transform_dir		(direction);
 
-	VERIFY				( _valid(m_bones[bone_id]) );
-	VERIFY				( _valid(position) );
-	VERIFY				( _valid(direction) );
+	VERIFY					( _valid(m_bones[bone_id]) );
+	VERIFY					( _valid(position) );
+	VERIFY					( _valid(direction) );
 	aim_at_position			( m_bones[bone_id].c, position, direction, m_result[bone_id] );
-	VERIFY				( _valid(m_result[bone_id]) );
-	VERIFY				( _valid(m_start_transform) );
-	VERIFY				( _valid(Fmatrix(m_start_transform).invert()) );
+	VERIFY					( _valid(m_result[bone_id]) );
+	VERIFY					( _valid(m_start_transform) );
+	VERIFY					( _valid(Fmatrix(m_start_transform).invert()) );
 	m_result[bone_id]		= Fmatrix(m_start_transform).invert().mulB_43(m_result[bone_id]).mulB_43(m_start_transform);
 }
