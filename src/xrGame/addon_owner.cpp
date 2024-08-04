@@ -26,7 +26,7 @@ bool MAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOw
 	shared_str							tmp;
 	u16 i								= 0;
 	while (pSettings->line_exist(slots_section, tmp.printf("type_%d", i)))
-		slots.push_back					(xr_new<CAddonSlot>(slots_section, i++, parent_ao));
+		slots.push_back					(create_xptr<CAddonSlot>(slots_section, i++, parent_ao));
 
 	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
 }
@@ -71,7 +71,7 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 						return			CModule::aboba(type, data, param);
 				}
 				else if (param && addon->getSlotIdx() != u16_max)
-					slot				= m_slots[addon->getSlotIdx()];
+					slot				= m_slots[addon->getSlotIdx()].get();
 
 				if (!slot)
 				{
@@ -173,7 +173,7 @@ bool MAddonOwner::attachAddon(MAddon* addon)
 			addon->setSlotIdx			(slot->idx);
 	}
 	else
-		slot							= m_slots[addon->getSlotIdx()];
+		slot							= m_slots[addon->getSlotIdx()].get();
 
 	if (slot)
 	{

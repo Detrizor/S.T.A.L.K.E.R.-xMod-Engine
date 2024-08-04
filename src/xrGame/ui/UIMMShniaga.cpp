@@ -21,12 +21,12 @@ extern string_path g_last_saved_game;
 
 CUIMMShniaga::CUIMMShniaga()
 {
-	m_sound			= xr_new<CMMSound>();
+	m_sound			= create_xptr<CMMSound>();
 
-	m_background	= xr_new<CUIFrameWindow>();	AttachChild(m_background);
-	m_view			= xr_new<CUIScrollView>();	AttachChild(m_view);
-	m_shniaga		= xr_new<CUIStatic>();	AttachChild(m_shniaga);
-	m_magnifier		= xr_new<CUIStatic>();	m_shniaga->AttachChild(m_magnifier);	m_magnifier->SetPPMode();
+	m_background	= create_xptr<CUIFrameWindow>();		AttachChild(m_background.get());
+	m_view			= create_xptr<CUIScrollView>();			AttachChild(m_view.get());
+	m_shniaga		= create_xptr<CUIStatic>();				AttachChild(m_shniaga.get());
+	m_magnifier		= create_xptr<CUIStatic>();				m_shniaga->AttachChild(m_magnifier.get());		m_magnifier->SetPPMode();
 	m_mag_pos		= 0;
 
 	m_selected		= NULL;
@@ -56,15 +56,15 @@ void CUIMMShniaga::InitShniaga(CUIXml& xml_doc, LPCSTR path)
 	CUIXmlInit::InitWindow(xml_doc, path, 0, this);
 
 	strconcat				(sizeof(_path),_path,path,":background");
-	CUIXmlInit::InitFrameWindow(xml_doc, _path, 0, m_background);
+	CUIXmlInit::InitFrameWindow(xml_doc, _path, 0, m_background.get());
 
 	strconcat				(sizeof(_path),_path,path,":shniaga:magnifire");
-	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_magnifier); 
+	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_magnifier.get());
 	m_mag_pos				= m_magnifier->GetWndPos().x;
 	strconcat				(sizeof(_path),_path,path,":shniaga");
-	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_shniaga);
+	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_shniaga.get());
 	strconcat				(sizeof(_path),_path,path,":buttons_region");
-	CUIXmlInit::InitScrollView(xml_doc, _path,0,m_view);
+	CUIXmlInit::InitScrollView(xml_doc, _path,0,m_view.get());
 	strconcat				(sizeof(_path),_path,path,":shniaga:magnifire:y_offset");
 	m_offset = xml_doc.ReadFlt(_path,0,0);
 

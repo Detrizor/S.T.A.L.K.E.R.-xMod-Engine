@@ -13,13 +13,14 @@ enum eModuleTypes
 
 class CSE_ALifeModule
 {
-public:
-	S$ xptr<CSE_ALifeModule>			createModule							(u16 type, u16 version);
-
 protected:
-	u16									m_version;
+	u16									m_version								= 0;
 
 public:
+	S$ xptr<CSE_ALifeModule>			createModule							(u16 type);
+
+	void								setVersion								(u16 version)		{ m_version = version; }
+
 	void							V$	STATE_Write								(NET_Packet& tNetPacket) = 0;
 	void							V$	STATE_Read								(NET_Packet& tNetPacket) = 0;
 

@@ -297,13 +297,43 @@ DEFINE_VECTOR(AnsiString*, LPAStringVec, LPAStringIt);
 
 // smart pointer
 template <typename T>
-class xptr : public ::std::unique_ptr<T>
+class xptr
 {
-	typedef ::std::unique_ptr<T> inherited;
+public:
+										xptr									()				{ m_data = nullptr; }
+										xptr									(nullptr_t)		{ m_data = nullptr; }
+	explicit							xptr									(T* ptr)		{ m_data = ptr; }
+
+										xptr									(const xptr&)	= delete;
+										xptr									(xptr&& old)	{ m_data = old.release(); }
+
+										~xptr									()				{ xr_delete(m_data); }
+
+private:
+	T*									m_data;
 
 public:
-										xptr									()				{ reset(nullptr); }
-										xptr									(T*&& p)		{ reset(p); }
-	xptr&								operator=								(T*&& p)		{ reset(p); return *this; }
-										operator T*								() const		{ return get(); }
+	xptr&								operator=								(const xptr&)	= delete;
+	xptr&								operator=								(xptr&& old)	{ capture(old.release()); return *this; }
+
+										operator bool							() const		{ return !!m_data; }
+	T*									operator->								() const		{ return m_data; }
+	T&									operator*								() const		{ return *m_data; }
+	T*									get										() const		{ return m_data; }
+
+	void								reset									()				{ xr_delete(m_data); }
+	void								capture									(T* p)			{ reset(); m_data = p; }
+	T*									release									()				{ T* tmp = m_data; m_data = nullptr; return tmp; }
 };
+
+template <typename T, typename... Args>
+xptr<T> create_xptr(Args&&... args)
+{
+	return xptr<T>(xr_new<T>(::std::forward<Args>(args)...));
+}
+
+template <typename T1, typename T2, typename... Args>
+xptr<T1> create_xptr(Args&&... args)
+{
+	return xptr<T1>(xr_new<T2>(::std::forward<Args>(args)...));
+}

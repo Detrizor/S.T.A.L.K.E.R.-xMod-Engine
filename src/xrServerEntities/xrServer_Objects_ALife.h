@@ -355,9 +355,8 @@ public:
 		if (!create_if_absent)
 			return						nullptr;
 
-		M* created						= xr_new<M>();
-		m_modules[created->type()]		= created;
-		return							created;
+		auto created					= create_xptr<CSE_ALifeModule, M>();
+		return							smart_cast<M*>((m_modules[created->type()] = ::std::move(created)).get());
 	}
 };
 

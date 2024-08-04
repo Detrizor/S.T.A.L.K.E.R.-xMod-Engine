@@ -131,7 +131,7 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 	UIBoosterInfo					= xr_new<CUIBoosterInfo>();
 	UIBoosterInfo->InitFromXml		(uiXml);
 	
-	m_addon_info					= xr_new<CUIAddonInfo>();
+	m_addon_info					= create_xptr<CUIAddonInfo>();
 	m_addon_info->initFromXml		(uiXml);
 
 	if (ai().get_alife())
@@ -435,7 +435,7 @@ void CUIItemInfo::tryAddAddonInfo(CUICellItem* itm)
 	if (READ_IF_EXISTS(pSettings, r_bool, itm->m_section, "addon", FALSE) || smart_cast<CUIAddonOwnerCellItem*>(itm))
 	{
 		m_addon_info->setInfo		(itm);
-		UIDesc->AddWindow			(m_addon_info, false);
+		UIDesc->AddWindow			(m_addon_info.get(), false);
 	}
 }
 

@@ -124,7 +124,7 @@ bool MAddon::tryAttach(MAddonOwner CPC ao, u16 slot_idx)
 		auto& slot						= ao->AddonSlots()[slot_idx];
 		if (slot->CanTake(this))
 		{
-			attach						(slot);
+			attach						(slot.get());
 			return						true;
 		}
 	}

@@ -866,11 +866,11 @@ script_layer* player_hud::playBlendAnm(shared_str CR$ name, u8 part, float speed
 			anm->anm->Speed() = speed;
 			anm->m_power = power;
 			anm->active = true;
-			return anm;
+			return anm.get();
 		}
 	}
 
-	m_script_layers.push_back(xr_new<script_layer>(name, part, speed, power, bLooped));
+	m_script_layers.push_back(create_xptr<script_layer>(name, part, speed, power, bLooped));
 	return m_script_layers.back().get();
 }
 

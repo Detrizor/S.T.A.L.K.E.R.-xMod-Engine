@@ -389,8 +389,8 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 		{
 			for (auto addon : S->addons)
 			{
-				m_slots.push_back		(xr_new<SUIAddonSlot>(*S));
-				SUIAddonSlot* s			= m_slots.back();
+				m_slots.push_back		(create_xptr<SUIAddonSlot>(*S));
+				SUIAddonSlot* s			= m_slots.back().get();
 				
 				Dvector					hpb;
 				addon->getLocalTransform().getHPB(hpb);
@@ -411,8 +411,8 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 				s->icon_offset.sub		(addon->getIconOrigin(s->addon_type));
 				s->icon_offset.x		-= s->icon_step * float(addon->getSlotPos());
 
-				s->addon_icon			= xr_new<CUIStatic>();
-				AttachChild				(s->addon_icon);
+				s->addon_icon			= create_xptr<CUIStatic>();
+				AttachChild				(s->addon_icon.get());
 				s->addon_icon->SetTextureColor(GetTextureColor());
 				if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
 					s->addon_icon->setBackgroundDraw(true);
@@ -424,7 +424,7 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 			}
 		}
 		else
-			m_slots.push_back			(xr_new<SUIAddonSlot>(*S));
+			m_slots.push_back			(create_xptr<SUIAddonSlot>(*S));
 	}
 }
 
@@ -462,7 +462,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited
 	VSlots								slots;
 	m_base_foreground_draw				= MAddonOwner::LoadAddonSlots(section, slots);
 	for (auto& slot : slots)
-		m_slots.push_back				(xr_new<SUIAddonSlot>(*slot));
+		m_slots.push_back				(create_xptr<SUIAddonSlot>(*slot));
 }
 
 void CUIAddonOwnerCellItem::Draw()
@@ -481,7 +481,7 @@ void CUIAddonOwnerCellItem::Update()
 		for (auto& s : m_slots)
 		{
 			if (s->addon_icon)
-				InitAddon				(s->addon_icon, *s->addon_section, s->addon_type, s->addon_index, s->icon_offset, Heading());
+				InitAddon				(s->addon_icon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, Heading());
 		}
 	}
 }
@@ -501,7 +501,7 @@ void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 	for (auto& s : m_slots)
 	{
 		if (s->addon_icon)
-			InitAddon					(s->addon_icon, *s->addon_section, s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
+			InitAddon					(s->addon_icon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
 	}
 }
 

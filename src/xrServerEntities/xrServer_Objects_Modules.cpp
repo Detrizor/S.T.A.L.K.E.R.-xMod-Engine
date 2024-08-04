@@ -1,32 +1,23 @@
 #include "stdafx.h"
 #include "xrServer_Objects_Modules.h"
 
-xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type, u16 version)
+xptr<CSE_ALifeModule> CSE_ALifeModule::createModule(u16 type)
 {
-	CSE_ALifeModule* res				= nullptr;
 	switch (type)
 	{
 	case mInventoryItem:
-		res								= xr_new<CSE_ALifeModuleInventoryItem>();
-		break;
+		return							create_xptr<CSE_ALifeModule, CSE_ALifeModuleInventoryItem>();
 	case mAmountable:
-		res								= xr_new<CSE_ALifeModuleAmountable>();
-		break;
+		return							create_xptr<CSE_ALifeModule, CSE_ALifeModuleAmountable>();
 	case mAddon:
-		res								= xr_new<CSE_ALifeModuleAddon>();
-		break;
+		return							create_xptr<CSE_ALifeModule, CSE_ALifeModuleAddon>();
 	case mScope:
-		res								= xr_new<CSE_ALifeModuleScope>();
-		break;
+		return							create_xptr<CSE_ALifeModule, CSE_ALifeModuleScope>();
 	case mFoldable:
-		res								= xr_new<CSE_ALifeModuleFoldable>();
-		break;
+		return							create_xptr<CSE_ALifeModule, CSE_ALifeModuleFoldable>();
+	default:
+		FATAL							("wrong alife module type");
 	}
-
-	if (res)
-		res->m_version					= version;
-
-	return								res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
