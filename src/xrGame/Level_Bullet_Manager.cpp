@@ -273,7 +273,8 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 	if (bullet.pos.x < level_box.x1 || bullet.pos.x > level_box.x2 ||
 		bullet.pos.y < level_box.y1 || //bullet.pos.y > level_box.y2 ||
 		bullet.pos.z < level_box.z1 || bullet.pos.z > level_box.z2 ||
-		bullet.speed < m_min_bullet_speed)
+		bullet.speed < m_min_bullet_speed ||
+		bullet.fly_time > m_max_bullet_fly_time)
 		return							false;
 
 	if (bullet.fly_time >= bullet.flush_time)
@@ -281,8 +282,6 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 		Msg("--xd update_bullet id [%d] speed [%.3f] dir [%.2f,%.2f,%.2f] dist [%.3f] time [%.3f] resist [%.3f]", bullet.id, bullet.speed, bullet.dir.x, bullet.dir.y, bullet.dir.z, bullet.fly_dist, bullet.fly_time, bullet.resist);
 		bullet.flush_time += .1f;
 	}
-
-	R_ASSERT							(bullet.fly_time < m_max_bullet_fly_time);
 
 	bullet_test_callback_data			data;
 	data.pBullet						= &bullet;
