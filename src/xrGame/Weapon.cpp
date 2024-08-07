@@ -391,10 +391,10 @@ void CWeapon::OnH_A_Chield()
 
 void CWeapon::OnH_B_Chield()
 {
-	m_actor = nullptr;
 	m_dwWeaponIndependencyTime = 0;
 	inherited::OnH_B_Chield();
 	setAiming(false);
+	m_actor = nullptr;
 }
 
 extern u32 hud_adj_mode;
@@ -690,7 +690,7 @@ void CWeapon::setAiming(bool mode)
 		SwitchArmedMode					();
 	else if (!mode && ADS())
 		setADS							(0);
-	else
+	else if (m_actor)
 		g_player_hud->OnMovementChanged	();
 }
 
@@ -926,8 +926,10 @@ void CWeapon::setADS(int mode)
 
 	m_iADS = mode;
 	if (m_actor)
+	{
 		m_actor->setZoomADSMode(mode);
-	g_player_hud->OnMovementChanged();
+		g_player_hud->OnMovementChanged();
+	}
 }
 
 void CWeapon::SwitchArmedMode()
@@ -937,7 +939,8 @@ void CWeapon::SwitchArmedMode()
 
 	m_bArmedMode = !m_bArmedMode;
 	playBlendAnm(m_safemode_anm[m_bArmedMode]);
-	g_player_hud->OnMovementChanged();
+	if (m_actor)
+		g_player_hud->OnMovementChanged();
 }
 
 float CWeapon::GetControlInertionFactor C$(bool full)

@@ -288,7 +288,9 @@ int CAddonSlot::get_spacing(MAddon CPC left, MAddon CPC right) const
 		return							left->getLength(m_step) - 1;
 	if (left->isLowProfile() || right->isLowProfile())
 		return							left->getLength(m_step);
-	return								left->getLength(m_step, MAddon::ProfileFwd) + right->getLength(m_step, MAddon::ProfileBwd);
+
+	int spacing_profile					= left->getLength(m_step, MAddon::ProfileFwd) + right->getLength(m_step, MAddon::ProfileBwd);
+	return								max(left->getLength(m_step), spacing_profile);
 }
 
 MAddon* CAddonSlot::get_next_addon(xr_list<MAddon*>::iterator& I) const
