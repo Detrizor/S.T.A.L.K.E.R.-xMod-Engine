@@ -370,3 +370,38 @@ void CWeaponMagazinedWGrenade::process_addon_modules(CGameObject& obj, bool atta
 		process_gl						(gl, attach);
 	inherited::process_addon_modules	(obj, attach);
 }
+
+static CGameObject* process_ao(MAddonOwner* ao, MAddon* ignore)
+{
+	for (auto& s : ao->AddonSlots())
+	{
+		for (auto& a : s->addons)
+		{
+			if (a != ignore)
+			{
+				if (pSettings->line_exist(a->O.cNameSect(), "foregrip_type"))
+					return				&a->O;
+				else if (auto addon_ao = a->O.getModule<MAddonOwner>())
+					if (auto res = process_ao(addon_ao, ignore))
+						return			res;
+			}
+		}
+	}
+	return								nullptr;
+}
+
+void CWeaponMagazinedWGrenade::process_foregrip(CGameObject& obj, shared_str CR$ section, bool attach)
+{
+	if (m_pLauncher)
+	{
+		if (!attach && &obj == &m_pLauncher->O)
+		{
+			if (auto addon = process_ao(getModule<MAddonOwner>(), m_pLauncher->O.getModule<MAddon>()))
+				return					inherited::process_foregrip(*addon, addon->cNameSect(), true);
+		}
+		else
+			return;
+	}
+
+	inherited::process_foregrip			(obj, section, attach);
+}

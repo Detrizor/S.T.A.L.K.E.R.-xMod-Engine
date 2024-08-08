@@ -1084,6 +1084,15 @@ static LPCSTR read_root_type(CObject* obj, LPCSTR part)
 	return								read_root_type(parent, part);
 }
 
+void CWeaponMagazined::process_foregrip(CGameObject& obj, shared_str CR$ section, bool attach)
+{
+	LPCSTR foregrip_type				= (attach) ? pSettings->r_string(section, "foregrip_type") : read_root_type(&obj, "foregrip_type");
+	m_foregrip_recoil_pattern			= readRecoilPattern(foregrip_type);
+	m_foregrip_accuracy_modifier		= readAccuracyModifier(foregrip_type);
+	m_anm_prefix						= pSettings->r_string("anm_prefixes", foregrip_type);
+	PlayAnimIdle						();
+}
+
 void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ section, bool attach)
 {
 	if (pSettings->line_exist(section, "grip_type"))
@@ -1098,19 +1107,13 @@ void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ secti
 
 	if (pSettings->line_exist(section, "stock_type"))
 	{
-		LPCSTR stock_type				= (attach) ? pSettings->r_string(section, "stock_type") : read_root_type(obj.dcast_CObject(), "stock_type");
+		LPCSTR stock_type				= (attach) ? pSettings->r_string(section, "stock_type") : read_root_type(&obj, "stock_type");
 		m_stock_recoil_pattern			= readRecoilPattern(stock_type);
 		m_stock_accuracy_modifier		= readAccuracyModifier(stock_type);
 	}
 	
 	if (pSettings->line_exist(section, "foregrip_type"))
-	{
-		LPCSTR foregrip_type			= (attach) ? pSettings->r_string(section, "foregrip_type") : read_root_type(obj.dcast_CObject(), "foregrip_type");
-		m_foregrip_recoil_pattern		= readRecoilPattern(foregrip_type);
-		m_foregrip_accuracy_modifier	= readAccuracyModifier(foregrip_type);
-		m_anm_prefix					= pSettings->r_string("anm_prefixes", foregrip_type);
-		PlayAnimIdle					();
-	}
+		process_foregrip				(obj, section, attach);
 
 	if (float length = READ_IF_EXISTS(pSettings, r_float, section, "barrel_length", 0.f))
 	{
@@ -1226,7 +1229,7 @@ static MMuzzle* get_parent_muzzle(CObject* obj)
 
 void CWeaponMagazined::process_muzzle(MMuzzle* muzzle, bool attach)
 {
-	if (auto src = (attach) ? muzzle : get_parent_muzzle(muzzle->O.dcast_CObject()))
+	if (auto src = (attach) ? muzzle : get_parent_muzzle(&muzzle->O))
 	{
 		m_muzzle_recoil_pattern			= src->getRecoilPattern();
 		m_fire_point					= src->getFirePoint();

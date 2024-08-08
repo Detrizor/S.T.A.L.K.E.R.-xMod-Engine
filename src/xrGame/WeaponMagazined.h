@@ -235,6 +235,7 @@ protected:
 	void								setADS								O$	(int mode);
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
+	void							V$	process_foregrip						(CGameObject& obj, shared_str CR$ section, bool attach);
 
 public:
 	static float						s_barrel_length_power;
