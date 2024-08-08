@@ -25,7 +25,6 @@ private:
 	int									get_spacing							C$	(MAddon CPC left, MAddon CPC right);
 	MAddon*								get_next_addon						C$	(xr_list<MAddon*>::iterator& I);
 	MAddon*								get_prev_addon						C$	(xr_list<MAddon*>::iterator& I);
-	void								append_bone_trans					C$	(Dmatrix& trans, IKinematics* model);
 
 public:
 	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
@@ -48,7 +47,7 @@ public:
 	void								detachAddon								(MAddon* addon);
 	void								shiftAddon								(MAddon* addon, int shift);
 
-	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset);
+	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset, Dmatrix bone_shift = Didentity);
 
 	void								startReloading							(MAddon* loading_addon);
 	void								loadingDetach							();

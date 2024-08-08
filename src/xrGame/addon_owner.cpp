@@ -269,15 +269,6 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent)
 	m_foreground_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
 }
 
-void CAddonSlot::append_bone_trans(Dmatrix& trans, IKinematics* model) const
-{
-	if (m_bone_id != u16_max)
-	{
-		trans.mulB_43					(static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id)));
-		trans.mulB_43					(m_bone_offset);
-	}
-}
-
 int CAddonSlot::get_spacing(MAddon CPC left, MAddon CPC right) const
 {
 	if (m_step == 0.)
@@ -446,17 +437,20 @@ void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 	}
 }
 
-void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset)
+void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset, Dmatrix bone_shift)
 {
+	if (m_bone_id != u16_max)
+		bone_shift.mul					(static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id)), m_bone_offset);
+
 	for (auto addon : addons)
 	{
 		Dmatrix trans					= parent_trans;
-		append_bone_trans				(trans, model);
+		trans.mulB_43					(bone_shift);
 		trans.translate_mul				(root_offset);
 		addon->updateHudTransform		(trans);
 		if (auto ao = addon->O.getModule<MAddonOwner>())
 			for (auto& s : ao->AddonSlots())
-				s->updateAddonsHudTransform(model, parent_trans, root_offset);
+				s->updateAddonsHudTransform(model, parent_trans, root_offset, bone_shift);
 	}
 }
 
