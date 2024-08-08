@@ -115,7 +115,7 @@ CInventoryItem::~CInventoryItem()
 	}
 #endif // #ifndef MASTER_GOLD
 
-	O.unregisterModule<CInventoryItem>();
+	O.unregisterModule(this);
 }
 
 void CInventoryItem::Load(LPCSTR section)

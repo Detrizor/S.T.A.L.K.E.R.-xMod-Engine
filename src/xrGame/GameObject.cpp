@@ -1265,16 +1265,19 @@ void CGameObject::UpdateBoneVisibility(shared_str CR$ bone_name, bool status)
 float CGameObject::Aboba(EEventTypes type, void* data, int param)
 {
 	float res							= flt_max;
-	for (auto& m : m_modules)
+	if (m_modules)
 	{
-		if (m)
+		for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
 		{
-			float mres					= m->aboba(type, data, param);
-			if (mres != flt_max)
+			if (auto& m = m_modules[i])
 			{
-				if (res == flt_max)
-					res					= 0.f;
-				res						+= mres;
+				float mres				= m->aboba(type, data, param);
+				if (mres != flt_max)
+				{
+					if (res == flt_max)
+						res				= 0.f;
+					res					+= mres;
+				}
 			}
 		}
 	}

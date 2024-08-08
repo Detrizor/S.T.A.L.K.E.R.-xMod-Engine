@@ -667,8 +667,15 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 	m_switch_counter			= u64(-1);
 }
 
+CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
+{
+	clearModules						();
+}
+
 CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
 {
+	if (!m_modules)
+		m_modules						= new xptr<CSE_ALifeModule>[CSE_ALifeModule::mModuleTypesEnd];
 	m_modules[type]						= CSE_ALifeModule::createModule(type);
 	m_modules[type]->setVersion			(m_wVersion);
 	return								m_modules[type].get();
@@ -676,8 +683,11 @@ CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModul
 
 void CSE_ALifeDynamicObject::clearModules()
 {
-	for (auto& m : m_modules)
-		m.reset							();
+	if (m_modules)
+	{
+		delete[]						m_modules;
+		m_modules						= nullptr;
+	}
 }
 
 #ifndef XRGAME_EXPORTS

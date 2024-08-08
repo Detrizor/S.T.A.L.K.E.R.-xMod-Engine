@@ -214,7 +214,7 @@ public:
 
 //xMod added
 protected:
-	xptr<CModule>						m_modules[CModule::mModuleTypesEnd];
+	xptr<CModule>*						m_modules								= nullptr;
 
 public:
 	template <typename T>
@@ -223,8 +223,9 @@ public:
 	template <typename M>
 	M*									getModule								()
 	{
-		if (auto& m = m_modules[M::mid()])
-			return						smart_cast<M*>(m.get());
+		if (m_modules)
+			if (auto& m = m_modules[M::mid()])
+				return					smart_cast<M*>(m.get());
 		return							nullptr;
 	}
 	

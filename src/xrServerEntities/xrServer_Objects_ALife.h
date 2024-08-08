@@ -316,6 +316,7 @@ public:
 	u64								m_switch_counter;
 	
 									CSE_ALifeDynamicObject	(LPCSTR caSection);
+	virtual							~CSE_ALifeDynamicObject	();
 #ifdef XRGAME_EXPORTS
 	virtual void					on_spawn				();
 	virtual void					on_before_register		();
@@ -337,7 +338,7 @@ public:
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
 
 protected:
-	xptr<CSE_ALifeModule>				m_modules[CSE_ALifeModule::mModuleTypesEnd];
+	xptr<CSE_ALifeModule>*				m_modules								= nullptr;
 	
 	CSE_ALifeModule*					add_module								(CSE_ALifeModule::eAlifeModuleTypes type);
 
@@ -347,8 +348,9 @@ public:
 	template <typename M>
 	M*									getModule								(bool create_if_absent)
 	{
-		if (auto& m = m_modules[M::mid()])
-			return						smart_cast<M*>(m.get());
+		if (m_modules)
+			if (auto& m = m_modules[M::mid()])
+				return					smart_cast<M*>(m.get());
 		return							(create_if_absent) ? smart_cast<M*>(add_module(M::mid())) : nullptr;
 	}
 };

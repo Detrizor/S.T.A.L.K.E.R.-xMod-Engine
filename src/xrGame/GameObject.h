@@ -306,7 +306,10 @@ public:
 
 //xMod added
 private:
+	void								check_modules							()		{ if (!m_modules) m_modules = new xptr<CModule>[CModule::mModuleTypesEnd]; }
+	
 	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
+
 public:
 	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max);
 
@@ -318,13 +321,11 @@ public:
 	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f);
 
 	template <typename M, typename... Args>
-	void								addModule								(Args&&... args)	{ m_modules[M::mid()] = create_xptr<CModule, M>(this, ::std::forward<Args>(args)...); }
-
+	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()] = create_xptr<CModule, M>(this, ::std::forward<Args>(args)...); }
 	template <typename M>
-	void								registerModule							(M* p)				{ m_modules[M::mid()] = xptr<CModule>(p); }
-	
+	void								registerModule							(M* p)				{ check_modules(); m_modules[M::mid()].capture(p); }
 	template <typename M>
-	void								unregisterModule						()					{ m_modules[M::mid()].release(); }
+	void								unregisterModule						(M* p)				{ check_modules(); m_modules[M::mid()].release(); }
 
 	float							V$	Aboba									(EEventTypes type, void* data = nullptr, int param = 0);
 };

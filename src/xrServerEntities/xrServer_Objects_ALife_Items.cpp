@@ -224,14 +224,17 @@ void CSE_ALifeItem::STATE_Write(NET_Packet &tNetPacket)
 	inherited2::STATE_Write				(tNetPacket);
 
 	u16 mask							= 0;
-	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-		if (m_modules[t])
-			mask						|= 1u << t;
+	if (m_modules)
+		for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
+			if (m_modules[t])
+				mask					|= (u16(1) << t);
+
 	tNetPacket.w_u16					(mask);
 
-	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-		if (m_modules[t])
-			m_modules[t]->STATE_Write	(tNetPacket);
+	if (m_modules)
+		for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
+			if (m_modules[t])
+				m_modules[t]->STATE_Write(tNetPacket);
 }
 
 void CSE_ALifeItem::STATE_Read(NET_Packet &tNetPacket, u16 size)
@@ -251,7 +254,7 @@ void CSE_ALifeItem::STATE_Read(NET_Packet &tNetPacket, u16 size)
 	u16									mask;
 	tNetPacket.r_u16					(mask);
 	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-		if (mask & (1u << t))
+		if (mask & (u16(1) << t))
 			add_module(static_cast<CSE_ALifeModule::eAlifeModuleTypes>(t))->STATE_Read(tNetPacket);
 }
 
