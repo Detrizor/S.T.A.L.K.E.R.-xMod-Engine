@@ -78,16 +78,18 @@ public:
 	pointer address(reference _Val) const { return (&_Val); }
 	const_pointer address(const_reference _Val) const { return (&_Val); }
 	xalloc() { }
-	xalloc(const xalloc<T>&) { }
+	xalloc(const xalloc<value_type>&) { }
 	template<class _Other> xalloc(const xalloc<_Other>&) { }
-	template<class _Other> xalloc<T>& operator= (const xalloc<_Other>&) { return (*this); }
-	pointer allocate(size_type n, const void* p = 0) const { return xr_alloc<T>((u32)n); }
+	template<class _Other> xalloc<value_type>& operator= (const xalloc<_Other>&) { return (*this); }
+	pointer allocate(size_type n, const void* p = 0) const { return xr_alloc<value_type>((u32)n); }
 	char* _charalloc(size_type n) { return (char*)allocate(n); }
 	void deallocate(pointer p, size_type n) const { xr_free(p); }
 	void deallocate(void* p, size_type n) const { xr_free(p); }
-	void construct(pointer p, const T& _Val) { ::new ((void*)p) T(_Val); }
 	void destroy(pointer p) { p->~T(); }
-	size_type max_size() const { size_type _Count = (size_type)(-1) / sizeof(T); return (0 < _Count ? _Count : 1); }
+	size_type max_size() const { size_type _Count = (size_type)(-1) / sizeof(value_type); return (0 < _Count ? _Count : 1); }
+	
+	template <typename... Args>
+	void construct(pointer p, Args&&... args) { new (p)value_type(_STD forward<Args>(args)...); }
 };
 
 struct xr_allocator
@@ -116,11 +118,11 @@ template<class _Tp1, class _Tp2> inline xalloc<_Tp2> __stl_alloc_create(xalloc<_
 typedef ::std::basic_string<char, ::std::char_traits<char>, xalloc<char> > xr_string;
 
 // vector
-template <typename T, typename allocator = xalloc<T> >
-class xr_vector : public ::std::vector < T, allocator >
+template <typename T, typename allocator = xalloc<T>>
+class xr_vector : public _STD vector <T, allocator>
 {
 private:
-	typedef ::std::vector<T, allocator> inherited;
+	typedef _STD vector<T, allocator> inherited;
 
 public:
 	typedef allocator allocator_type;
@@ -143,6 +145,9 @@ public:
 
 	const_reference operator[] (size_type _Pos) const { {VERIFY2(_Pos < size(), make_string("index is out of range: index requested[%d], size of container[%d]", _Pos, size()).c_str()); } return (*(begin() + _Pos)); }
 	reference operator[] (size_type _Pos) { {VERIFY2(_Pos < size(), make_string("index is out of range: index requested[%d], size of container[%d]", _Pos, size()).c_str()); } return (*(begin() + _Pos)); }
+
+	template <typename... Args>
+	T& emplace_back(Args&&... args) { inherited::emplace_back(_STD forward<Args>(args)...); return back(); }
 };
 
 // vector<bool>
