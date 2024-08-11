@@ -742,6 +742,7 @@
     <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_ALife.cpp" />
     <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_ALife_Items.cpp" />
     <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_ALife_Monsters.cpp" />
+    <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_Modules.cpp" />
     <ClCompile Include="..\..\xrServerEntities\xrServer_Object_Base.cpp" />
     <ClCompile Include="alife_artefact_order.cpp" />
     <ClCompile Include="buffer_vector.cpp" />
@@ -916,6 +917,7 @@
     <ClInclude Include="..\..\xrServerEntities\xrServer_Objects_ALife_All.h" />
     <ClInclude Include="..\..\xrServerEntities\xrServer_Objects_ALife_Items.h" />
     <ClInclude Include="..\..\xrServerEntities\xrServer_Objects_ALife_Monsters.h" />
+    <ClInclude Include="..\..\xrServerEntities\xrServer_Objects_Modules.h" />
     <ClInclude Include="..\..\xrServerEntities\xrServer_Object_Base.h" />
     <ClInclude Include="..\..\xrServerEntities\xrServer_Space.h" />
     <ClInclude Include="..\..\xr_3da\xrLevel.h" />

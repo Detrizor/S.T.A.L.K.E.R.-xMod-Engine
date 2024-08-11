@@ -870,8 +870,7 @@ script_layer* player_hud::playBlendAnm(shared_str CR$ name, u8 part, float speed
 		}
 	}
 
-	m_script_layers.push_back(create_xptr<script_layer>(name, part, speed, power, bLooped));
-	return m_script_layers.back().get();
+	return m_script_layers.emplace_back(name, part, speed, power, bLooped).get();
 }
 
 void player_hud::StopBlendAnm(shared_str CR$ name, bool bForce)

@@ -131,7 +131,6 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 	UIBoosterInfo					= xr_new<CUIBoosterInfo>();
 	UIBoosterInfo->InitFromXml		(uiXml);
 	
-	m_addon_info					= create_xptr<CUIAddonInfo>();
 	m_addon_info->initFromXml		(uiXml);
 
 	if (ai().get_alife())

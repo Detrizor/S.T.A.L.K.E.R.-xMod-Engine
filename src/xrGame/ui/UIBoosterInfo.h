@@ -44,22 +44,19 @@ protected:
 class UIBoosterInfoItem : public CUIWindow
 {
 public:
-				UIBoosterInfoItem	();
-	virtual		~UIBoosterInfoItem();
-		
-		void	Init				( CUIXml& xml, LPCSTR section );
-		void	SetCaption			( LPCSTR name );
-		void	SetValue			( float value );
-		void	SetStrValue			( LPCSTR value );
+	void								Init									(CUIXml& xml, LPCSTR section);
+	void								SetCaption								(LPCSTR name);
+	void								SetValue								(float value);
+	void								SetStrValue								(LPCSTR value);
 	
 private:
-	CUIStatic*	m_caption;
-	CUITextWnd*	m_value;
-	float		m_magnitude;
-	bool		m_show_sign;
-	bool		m_perc_unit;
-	shared_str	m_unit_str;
-	shared_str	m_texture_minus;
-	shared_str	m_texture_plus;
+	CUIStatic*							m_caption								= nullptr;
+	CUITextWnd*							m_value									= nullptr;
+	float								m_magnitude								= 1.f;
+	bool								m_show_sign								= false;
+	bool								m_perc_unit								= false;
+	shared_str							m_unit_str								= "";
+	shared_str							m_texture_minus							= "";
+	shared_str							m_texture_plus							= "";
 
-}; // class UIBoosterInfoItem
+};

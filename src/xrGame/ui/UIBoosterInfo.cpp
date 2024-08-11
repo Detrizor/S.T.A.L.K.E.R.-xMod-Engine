@@ -36,100 +36,83 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	CUIXmlInit::InitWindow	(xml, base, 0, this);
 	xml.SetLocalRoot		(base_node);
 	
-	m_Prop_line							= create_xptr<CUIStatic>();
 	AttachChild							(m_Prop_line.get());
 	CUIXmlInit::InitStatic				(xml, "prop_line", 0, m_Prop_line.get());
 
 	for (u32 i = 0; i < eBoostMaxCount; ++i)
 	{
-		m_boosts[i]						= create_xptr<UIBoosterInfoItem>();
 		m_boosts[i]->Init				(xml, ef_boosters_section_names[i]);
 		LPCSTR name						= *CStringTable().translate(boost_influence_caption[i]);
 		m_boosts[i]->SetCaption			(name);
 		xml.SetLocalRoot				(base_node);
 	}
 
-	m_need_hydration					= create_xptr<UIBoosterInfoItem>();
 	m_need_hydration->Init				(xml, "need_hydration");
 	LPCSTR name							= CStringTable().translate("ui_inv_hydration").c_str();
 	m_need_hydration->SetCaption		(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_need_satiety						= create_xptr<UIBoosterInfoItem>();
 	m_need_satiety->Init				(xml, "need_satiety");
 	name								= CStringTable().translate("ui_inv_satiety").c_str();
 	m_need_satiety->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_health_outer						= create_xptr<UIBoosterInfoItem>();
 	m_health_outer->Init				(xml, "health_outer");
 	name								= CStringTable().translate("ui_inv_health_outer").c_str();
 	m_health_outer->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_health_neural						= create_xptr<UIBoosterInfoItem>();
 	m_health_neural->Init				(xml, "health_neural");
 	name								= CStringTable().translate("ui_inv_health_neural").c_str();
 	m_health_neural->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_power_short						= create_xptr<UIBoosterInfoItem>();
 	m_power_short->Init					(xml, "power_short");
 	name								= CStringTable().translate("ui_inv_power_short").c_str();
 	m_power_short->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_booster_anabiotic					= create_xptr<UIBoosterInfoItem>();
 	m_booster_anabiotic->Init			(xml, "anabiotic");
 	name								= CStringTable().translate("ui_inv_survive_surge").c_str();
 	m_booster_anabiotic->SetCaption		(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_disclaimer						= create_xptr<CUIStatic>();
 	AttachChild							(m_disclaimer.get());
 	CUIXmlInit::InitStatic				(xml, "ammo_disclaimer", 0, m_disclaimer.get());
 
-	m_bullet_speed						= create_xptr<UIBoosterInfoItem>();
 	m_bullet_speed->Init				(xml, "bullet_speed");
 	name								= CStringTable().translate("ui_bullet_speed").c_str();
 	m_bullet_speed->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_bullet_pulse						= create_xptr<UIBoosterInfoItem>();
 	m_bullet_pulse->Init				(xml, "bullet_pulse");
 	name								= CStringTable().translate("ui_bullet_pulse").c_str();
 	m_bullet_pulse->SetCaption			(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_armor_piercing					= create_xptr<UIBoosterInfoItem>();
 	m_armor_piercing->Init				(xml, "armor_piercing");
 	xml.SetLocalRoot					(base_node);
 
-	m_impair							= create_xptr<UIBoosterInfoItem>();
 	m_impair->Init						(xml, "impair");
 	m_impair->SetCaption				(*CStringTable().translate("ui_impair"));
 	xml.SetLocalRoot					(base_node);
 
-	m_ammo_type							= create_xptr<UIBoosterInfoItem>();
 	m_ammo_type->Init					(xml, "ammo_type");
 	name								= CStringTable().translate("ui_ammo_type").c_str();
 	m_ammo_type->SetCaption				(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_capacity							= create_xptr<UIBoosterInfoItem>();
 	m_capacity->Init					(xml, "capacity");
 	name								= CStringTable().translate("ui_capacity").c_str();
 	m_capacity->SetCaption				(name);
 	xml.SetLocalRoot					(base_node);
 
-	m_artefact_isolation				= create_xptr<UIBoosterInfoItem>();
 	m_artefact_isolation->Init			(xml, "artefact_isolation");
 	name								= CStringTable().translate("ui_artefact_isolation").c_str();
 	m_artefact_isolation->SetCaption	(name);
 	m_artefact_isolation->SetStrValue	("");
 	xml.SetLocalRoot					(base_node);
 
-	m_radiation_protection				= create_xptr<UIBoosterInfoItem>();
 	m_radiation_protection->Init		(xml, "radiation_protection");
 	name								= CStringTable().translate("ui_radiation_protection").c_str();
 	m_radiation_protection->SetCaption	(name);
@@ -396,43 +379,27 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 
 /// ----------------------------------------------------------------
 
-UIBoosterInfoItem::UIBoosterInfoItem()
-{
-	m_caption				= NULL;
-	m_value					= NULL;
-	m_magnitude				= 1.0f;
-	m_show_sign				= false;
-	
-	m_unit_str._set			("");
-	m_texture_minus._set	("");
-	m_texture_plus._set		("");
-}
-
-UIBoosterInfoItem::~UIBoosterInfoItem()
-{
-}
-
 void UIBoosterInfoItem::Init(CUIXml& xml, LPCSTR section)
 {
-	CUIXmlInit::InitWindow		(xml, section, 0, this);
-	xml.SetLocalRoot			(xml.NavigateToNode(section));
+	CUIXmlInit::InitWindow				(xml, section, 0, this);
+	xml.SetLocalRoot					(xml.NavigateToNode(section));
 
-	m_caption			= UIHelper::CreateStatic(xml, "caption", this);
-	m_value				= UIHelper::CreateTextWnd(xml, "value", this);
-	m_magnitude			= xml.ReadAttribFlt("value", 0, "magnitude", 1.0f);
-	m_show_sign			= (xml.ReadAttribInt("value", 0, "show_sign", 1) == 1);
+	m_caption							= UIHelper::CreateStatic(xml, "caption", this);
+	m_value								= UIHelper::CreateTextWnd(xml, "value", this);
+	m_magnitude							= xml.ReadAttribFlt("value", 0, "magnitude", 1.0f);
+	m_show_sign							= (xml.ReadAttribInt("value", 0, "show_sign", 1) == 1);
 	
-	m_perc_unit			= (!!xml.ReadAttribInt("value", 0, "perc_unit", 0));
-	LPCSTR unit_str		= xml.ReadAttrib("value", 0, "unit_str", "");
-	m_unit_str._set		(CStringTable().translate(unit_str));
+	m_perc_unit							= (!!xml.ReadAttribInt("value", 0, "perc_unit", 0));
+	LPCSTR unit_str						= xml.ReadAttrib("value", 0, "unit_str", "");
+	m_unit_str._set						(CStringTable().translate(unit_str));
 	
-	LPCSTR texture_minus		= xml.Read("texture_minus", 0, "");
+	LPCSTR texture_minus				= xml.Read("texture_minus", 0, "");
 	if (texture_minus && xr_strlen(texture_minus))
 	{
-		m_texture_minus._set	(texture_minus);
-		LPCSTR texture_plus		= xml.Read("caption:texture", 0, "");
-		m_texture_plus._set		(texture_plus);
-		VERIFY					(m_texture_plus.size());
+		m_texture_minus._set			(texture_minus);
+		LPCSTR texture_plus				= xml.Read("caption:texture", 0, "");
+		m_texture_plus._set				(texture_plus);
+		VERIFY							(m_texture_plus.size());
 	}
 }
 
@@ -443,22 +410,22 @@ void UIBoosterInfoItem::SetCaption(LPCSTR name)
 
 void UIBoosterInfoItem::SetValue(float value)
 {
-	value				*= m_magnitude;
-	shared_str			str;
-	bool format			= (abs(value - float((int)value)) < 0.05f);
-	str.printf			((m_show_sign) ? ((format) ? "%+.0f" : "%+.1f") : ((format) ? "%.0f" : "%.1f"), value);
+	value								*= m_magnitude;
+	shared_str							str;
+	bool format							= (abs(value - float((int)value)) < 0.05f);
+	str.printf							((m_show_sign) ? ((format) ? "%+.0f" : "%+.1f") : ((format) ? "%.0f" : "%.1f"), value);
 	if (m_perc_unit)
-		str.printf("%s%%", *str);
+		str.printf						("%s%%", *str);
 	else if (m_unit_str.size())
-		str.printf		("%s %s", *str, *m_unit_str);
-	m_value->SetText	(*str);
+		str.printf						("%s %s", *str, *m_unit_str);
+	m_value->SetText					(str.c_str());
 
-	m_value->SetTextColor			(color_rgba(170, 170, 170, 255));
+	m_value->SetTextColor				(color_rgba(170, 170, 170, 255));
 	if (m_texture_minus.size())
-		m_caption->InitTexture		((value >= 0.f) ? *m_texture_plus : *m_texture_minus);
+		m_caption->InitTexture			((value >= 0.f) ? *m_texture_plus : *m_texture_minus);
 }
 
 void UIBoosterInfoItem::SetStrValue(LPCSTR value)
 {
-	m_value->SetText(value);
+	m_value->SetText					(value);
 }

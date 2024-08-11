@@ -676,9 +676,9 @@ CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModul
 {
 	if (!m_modules)
 		m_modules						= xr_new<xptr<CSE_ALifeModule>, CSE_ALifeModule::mModuleTypesEnd>(nullptr);
-	m_modules[type]						= CSE_ALifeModule::createModule(type);
-	m_modules[type]->setVersion			(m_wVersion);
-	return								m_modules[type].get();
+	auto& module						= CSE_ALifeModule::createModule(m_modules, type);
+	module->setVersion					(m_wVersion);
+	return								module.get();
 }
 
 void CSE_ALifeDynamicObject::clearModules()

@@ -167,8 +167,6 @@ public:
 
 	//---------------------------------------------------------------------
 	CObject();
-	CObject(const CObject&) = delete;
-	CObject& operator=(const CObject&) = delete;
 	virtual ~CObject();
 
 	virtual void Load(LPCSTR section);
@@ -221,16 +219,13 @@ public:
 	T									scast									()		{ return smart_cast<T>(this); }
 	
 	template <typename M>
-	M*									getModule								()
+	M*									getModule							C$	()
 	{
 		if (m_modules)
 			if (auto& m = m_modules[M::mid()])
 				return					smart_cast<M*>(m.get());
 		return							nullptr;
 	}
-	
-	template <typename M>
-	const M*							getModule							C$	()		{ return getModule<M>(); }
 };
 
 #pragma pack(pop)

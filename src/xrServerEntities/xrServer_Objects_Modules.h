@@ -19,7 +19,7 @@ protected:
 	u16									m_version								= 0;
 
 public:
-	static xptr<CSE_ALifeModule>		createModule							(eAlifeModuleTypes type);
+	static xptr<CSE_ALifeModule>&		createModule							(xptr<CSE_ALifeModule>* destination, eAlifeModuleTypes type);
 
 	void								setVersion								(u16 version)		{ m_version = version; }
 

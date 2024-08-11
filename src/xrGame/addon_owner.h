@@ -5,7 +5,7 @@ class MAddon;
 class MAddonOwner;
 class CAddonSlot;
 
-typedef ::std::vector<xptr<CAddonSlot>> VSlots;
+typedef xr_vector<xptr<CAddonSlot>> VSlots;
 
 class CAddonSlot
 {

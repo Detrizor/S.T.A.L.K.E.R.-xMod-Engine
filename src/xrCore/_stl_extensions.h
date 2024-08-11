@@ -305,40 +305,34 @@ template <typename T>
 class xptr
 {
 public:
-										xptr									()				{ m_data = nullptr; }
-										xptr									(nullptr_t)		{ m_data = nullptr; }
-	explicit							xptr									(T* ptr)		{ m_data = ptr; }
+										template <typename... Args>
+										xptr									(Args&&... args)	{ m_data = xr_new<T>(_STD forward<Args>(args)...); }
+										xptr									(nullptr_t)			{};
 
-										xptr									(const xptr&)	= delete;
-										xptr									(xptr&& old)	{ m_data = old.release(); }
+										xptr									(const xptr&)		= delete;
+										xptr									(xptr&& old)		{ m_data = old.release(); }
 
-										~xptr									()				{ xr_delete(m_data); }
+										~xptr									()					{ xr_delete(m_data); }
 
 private:
-	T*									m_data;
+	T*									m_data									= nullptr;
 
 public:
-	xptr&								operator=								(const xptr&)	= delete;
-	xptr&								operator=								(xptr&& old)	{ capture(old.release()); return *this; }
+	xptr&								operator=								(const xptr&)		= delete;
+	xptr&								operator=								(xptr&& old)		{ capture(old.release()); return *this; }
 
-										operator bool							() const		{ return !!m_data; }
-	T*									operator->								() const		{ return m_data; }
-	T&									operator*								() const		{ return *m_data; }
-	T*									get										() const		{ return m_data; }
+										operator bool							() const			{ return !!m_data; }
+	T*									operator->								() const			{ return m_data; }
+	T&									operator*								() const			{ return *m_data; }
+	T*									get										() const			{ return m_data; }
 
-	void								reset									()				{ xr_delete(m_data); }
-	void								capture									(T* p)			{ reset(); m_data = p; }
-	T*									release									()				{ T* tmp = m_data; m_data = nullptr; return tmp; }
+	void								reset									()					{ xr_delete(m_data); }
+	void								capture									(T* p)				{ reset(); m_data = p; }
+	T*									release									()					{ T* tmp = m_data; m_data = nullptr; return tmp; }
+	
+	template <typename... Args>
+	xptr&								construct								(Args&&... args)	{ return construct<T>(_STD forward<Args>(args)...); }
+
+	template <typename M, typename... Args>
+	xptr&								construct								(Args&&... args)	{ capture(xr_new<M>(_STD forward<Args>(args)...)); return *this; }
 };
-
-template <typename T, typename... Args>
-xptr<T> create_xptr(Args&&... args)
-{
-	return xptr<T>(xr_new<T>(::std::forward<Args>(args)...));
-}
-
-template <typename T1, typename T2, typename... Args>
-xptr<T1> create_xptr(Args&&... args)
-{
-	return xptr<T1>(xr_new<T2>(::std::forward<Args>(args)...));
-}

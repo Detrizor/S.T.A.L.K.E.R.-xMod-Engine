@@ -72,10 +72,10 @@ private:
 		u8								addon_index								= 0;
 		xptr<CUIStatic>					addon_icon								= nullptr;
 
-		SUIAddonSlot					(CAddonSlot CR$ slot);
+		SUIAddonSlot					(xptr<CAddonSlot> CR$ slot);
 	};
 
-	typedef ::std::vector<xptr<SUIAddonSlot>> VUISlots;
+	typedef xr_vector<xptr<SUIAddonSlot>> VUISlots;
 
 public:
 										CUIAddonOwnerCellItem					(MAddonOwner* ao);

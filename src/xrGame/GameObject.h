@@ -321,7 +321,7 @@ public:
 	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f);
 
 	template <typename M, typename... Args>
-	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()] = create_xptr<CModule, M>(this, ::std::forward<Args>(args)...); }
+	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()].construct<M>(this, _STD forward<Args>(args)...); }
 	template <typename M>
 	void								registerModule							(M* p)				{ check_modules(); m_modules[M::mid()].capture(p); }
 	template <typename M>

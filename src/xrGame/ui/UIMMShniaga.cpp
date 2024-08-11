@@ -21,15 +21,14 @@ extern string_path g_last_saved_game;
 
 CUIMMShniaga::CUIMMShniaga()
 {
-	m_sound			= create_xptr<CMMSound>();
-
-	m_background	= create_xptr<CUIFrameWindow>();		AttachChild(m_background.get());
-	m_view			= create_xptr<CUIScrollView>();			AttachChild(m_view.get());
-	m_shniaga		= create_xptr<CUIStatic>();				AttachChild(m_shniaga.get());
-	m_magnifier		= create_xptr<CUIStatic>();				m_shniaga->AttachChild(m_magnifier.get());		m_magnifier->SetPPMode();
+	AttachChild(m_background.get());
+	AttachChild(m_view.get());
+	AttachChild(m_shniaga.get());
+	m_shniaga->AttachChild(m_magnifier.get());
+	m_magnifier->SetPPMode();
 	m_mag_pos		= 0;
 
-	m_selected		= NULL;
+	m_selected		= nullptr;
 
 	m_start_time	= 0;
 	m_origin		= 0;

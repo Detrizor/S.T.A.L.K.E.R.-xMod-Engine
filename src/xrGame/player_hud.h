@@ -284,7 +284,7 @@ private:
 		pose_anms_end
 	};
 	movement_layer						m_movement_layers[move_anms_end][state_anms_end][pose_anms_end];
-	::std::vector<xptr<script_layer>>	m_script_layers;
+	xr_vector<xptr<script_layer>>		m_script_layers;
 
 public:
 	void								updateMovementLayerState				();

@@ -371,14 +371,14 @@ void CUIAmmoCellItem::UpdateItemText()
 	}
 }
 
-CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(CAddonSlot CR$ slot)
+CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(xptr<CAddonSlot> CR$ slot)
 {
-	name								= slot.name;
-	type								= slot.type;
-	icon_offset							= slot.icon_offset;
-	icon_step							= slot.icon_step;
-	icon_background_draw				= slot.getBackgroundDraw();
-	icon_foreground_draw				= slot.getForegroundDraw();
+	name								= slot->name;
+	type								= slot->type;
+	icon_offset							= slot->icon_offset;
+	icon_step							= slot->icon_step;
+	icon_background_draw				= slot->getBackgroundDraw();
+	icon_foreground_draw				= slot->getForegroundDraw();
 }
 
 void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_offset)
@@ -389,8 +389,7 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 		{
 			for (auto addon : S->addons)
 			{
-				m_slots.push_back		(create_xptr<SUIAddonSlot>(*S));
-				SUIAddonSlot* s			= m_slots.back().get();
+				auto& s					= m_slots.emplace_back(S);
 				
 				Dvector					hpb;
 				addon->getLocalTransform().getHPB(hpb);
@@ -411,7 +410,7 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 				s->icon_offset.sub		(addon->getIconOrigin(s->addon_type));
 				s->icon_offset.x		-= s->icon_step * float(addon->getSlotPos());
 
-				s->addon_icon			= create_xptr<CUIStatic>();
+				s->addon_icon.construct	();
 				AttachChild				(s->addon_icon.get());
 				s->addon_icon->SetTextureColor(GetTextureColor());
 				if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
@@ -424,7 +423,7 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 			}
 		}
 		else
-			m_slots.push_back			(create_xptr<SUIAddonSlot>(*S));
+			m_slots.emplace_back		(S);
 	}
 }
 
@@ -462,7 +461,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited
 	VSlots								slots;
 	m_base_foreground_draw				= MAddonOwner::LoadAddonSlots(section, slots);
 	for (auto& slot : slots)
-		m_slots.push_back				(create_xptr<SUIAddonSlot>(*slot));
+		m_slots.emplace_back			(slot);
 }
 
 void CUIAddonOwnerCellItem::Draw()

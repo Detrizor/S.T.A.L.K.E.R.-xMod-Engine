@@ -70,5 +70,5 @@ public:
 	CUIStatic*			UIItemImage;
 
 private:
-	xptr<CUIAddonInfo>					m_addon_info							= nullptr;
+	xptr<CUIAddonInfo>	m_addon_info;
 };
