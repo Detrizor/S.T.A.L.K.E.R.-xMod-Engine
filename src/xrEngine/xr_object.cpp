@@ -182,8 +182,7 @@ CObject::~CObject()
 	cName_set(0);
 	cNameSect_set(0);
 
-	if (m_modules)
-		delete[] m_modules;
+	xr_delete(m_modules);
 }
 
 void CObject::Load(LPCSTR section)

@@ -306,7 +306,7 @@ public:
 
 //xMod added
 private:
-	void								check_modules							()		{ if (!m_modules) m_modules = new xptr<CModule>[CModule::mModuleTypesEnd]; }
+	void								check_modules							()		{ if (!m_modules) m_modules = xr_new<xptr<CModule>, CModule::mModuleTypesEnd>(nullptr); }
 	
 	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
 

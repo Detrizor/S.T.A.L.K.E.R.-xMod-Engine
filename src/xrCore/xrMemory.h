@@ -107,11 +107,11 @@ IC void* xr_malloc(size_t size) { return Memory.mem_alloc(size, "xr_malloc"); }
 IC void* xr_realloc(void* P, size_t size) { return Memory.mem_realloc(P, size, "xr_realloc"); }
 #else // DEBUG_MEMORY_NAME
 template <class T>
-IC T* xr_alloc (u32 count) { return (T*)Memory.mem_alloc(count*sizeof(T)); }
+IC T* xr_alloc (size_t count) { return static_cast<T*>(Memory.mem_alloc(count * sizeof(T))); }
 template <class T>
-IC void xr_free (T*& P) { if (P) { Memory.mem_free((void*)P); P=NULL; }; }
+IC void xr_free (T*& P) { if (P) { Memory.mem_free((void*)P); P = nullptr; }; }
 IC void* xr_malloc (size_t size) { return Memory.mem_alloc(size); }
-IC void* xr_realloc (void* P, size_t size) { return Memory.mem_realloc(P,size); }
+IC void* xr_realloc (void* P, size_t size) { return Memory.mem_realloc(P, size); }
 #endif // DEBUG_MEMORY_NAME
 
 XRCORE_API char* xr_strdup(const char* string);

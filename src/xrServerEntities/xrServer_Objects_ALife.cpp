@@ -675,7 +675,7 @@ CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
 {
 	if (!m_modules)
-		m_modules						= new xptr<CSE_ALifeModule>[CSE_ALifeModule::mModuleTypesEnd];
+		m_modules						= xr_new<xptr<CSE_ALifeModule>, CSE_ALifeModule::mModuleTypesEnd>(nullptr);
 	m_modules[type]						= CSE_ALifeModule::createModule(type);
 	m_modules[type]->setVersion			(m_wVersion);
 	return								m_modules[type].get();
@@ -683,11 +683,7 @@ CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModul
 
 void CSE_ALifeDynamicObject::clearModules()
 {
-	if (m_modules)
-	{
-		delete[]						m_modules;
-		m_modules						= nullptr;
-	}
+	xr_delete(m_modules);
 }
 
 #ifndef XRGAME_EXPORTS
