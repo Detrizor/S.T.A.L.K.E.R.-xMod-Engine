@@ -61,21 +61,6 @@ void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, 
 		if (strstr(Params, "-x_dbganim"))
 			ParamFlags.set(ParamFlag::dbganim, TRUE);
 
-		if (strstr(Params, "-nofpslock"))
-			ParamFlags.set(ParamFlag::nofpslock, TRUE);
-
-		if (strstr(Params, "-fpslock60"))
-			ParamFlags.set(ParamFlag::fpslock60, TRUE);
-
-		if (strstr(Params, "-fpslock120"))
-			ParamFlags.set(ParamFlag::fpslock120, TRUE);
-
-		if (strstr(Params, "-fpslock144"))
-			ParamFlags.set(ParamFlag::fpslock144, TRUE);
-
-		if (strstr(Params, "-fpslock240"))
-			ParamFlags.set(ParamFlag::fpslock240, TRUE);
-
 		// Init COM so we can use CoCreateInstance
         // HRESULT co_res =
         //if (!strstr(Params, "-editor"))
