@@ -387,7 +387,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 		armor							= ea->GetBoneArmor(element);
 		bone_density					= bone.get_param(0);
 
-		if (!bullet->parent_id || R.O && !R.O->ID())
+		if (!bullet->parent_id || !R.O->ID())
 			Msg("--xd CBulletManager::ObjectHit bullet_mass [%f] speed [%f] bullet_ap [%f] bone [%s] armor [%f] inwards [%d] bullet density [%f] bone_density [%f]",
 				bullet->mass, bullet->speed, bullet_ap, V->LL_BoneName_dbg(element), armor, inwards, bullet->density, bone_density);		//--xd отладка
 	}
@@ -400,9 +400,9 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 		armor							= d_density * .25f;
 		k_speed_out = k_speed_in		= 1.f;
 
-		if (!bullet->parent_id)
-			Msg("--xd CBulletManager::ObjectHit bullet_mass [%f] speed [%f] bullet_ap [%f] fShootFactor [%f] inwards [%d] bullet density [%f]",
-				bullet->mass, bullet->speed, bullet_ap, mtl->fShootFactor, inwards, bullet->density);
+		//if (!bullet->parent_id)
+			//Msg("--xd CBulletManager::ObjectHit bullet_mass [%f] speed [%f] bullet_ap [%f] fShootFactor [%f] inwards [%d] bullet density [%f]",
+				//bullet->mass, bullet->speed, bullet_ap, mtl->fShootFactor, inwards, bullet->density);
 	}
 
 	if (fMoreOrEqual(bullet_ap, armor))
@@ -489,7 +489,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 	hit_res->impulse					= m_fBulletHitImpulseScale * bullet->mass * bullet->speed * (1.f - k_speed_out);
 	hit_res->main_damage				= m_fBulletArmorDamageScale * sqrt(bullet->mass * bullet->speed * (1.f - k_speed_in));
 
-	if (!bullet->parent_id || R.O && !R.O->ID())
+	if (ea && (!bullet->parent_id || !R.O->ID()))
 		Msg("--xd CBulletManager::ObjectHit main_damage [%.5f] k_speed_in [%.5f] k_speed_bone [%.5f] k_speed_out [%.5f] pierce [%.5f] ricoshet [%d]",
 		hit_res->main_damage, k_speed_in, k_speed_bone, k_speed_out, pierce, ricoshet);
 
