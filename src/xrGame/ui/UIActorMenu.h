@@ -173,8 +173,8 @@ public:
 	CUIDragDropListEx*							m_pTrashList;
 
 public:
-	void						StartMenuMode				(EMenuMode mode, CInventoryOwner* actor, void* partner = NULL);
-	void						SetMenuMode					(EMenuMode mode, void* partner = NULL, bool forced = false);
+	void						StartMenuMode				(EMenuMode mode, void* partner = nullptr);
+	void						SetMenuMode					(EMenuMode mode, void* partner = nullptr, bool forced = false);
 	EMenuMode					GetMenuMode					() {return m_currMenuMode;};
 
 	void						SetActor					(CInventoryOwner* io);

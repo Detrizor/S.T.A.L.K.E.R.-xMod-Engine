@@ -110,9 +110,8 @@ void CUIActorMenu::SetBag(MContainer* bag)
 	pBagList->Show						(!!m_pBag);
 }
 
-void CUIActorMenu::StartMenuMode(EMenuMode mode, CInventoryOwner* actor, void* partner)
+void CUIActorMenu::StartMenuMode(EMenuMode mode, void* partner)
 {
-	SetActor							(actor);
 	SetMenuMode							(mode, partner);
 	ShowDialog							(true);
 }

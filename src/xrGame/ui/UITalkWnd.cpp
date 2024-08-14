@@ -299,7 +299,6 @@ void CUITalkWnd::AskQuestion()
 
 void CUITalkWnd::SayPhrase(const shared_str& phrase_id)
 {
-
 	AddAnswer(m_pCurrentDialog->GetPhraseText(phrase_id), m_pOurInvOwner->Name());
 	m_pOurDialogManager->SayPhrase(m_pCurrentDialog, phrase_id);
 	//если диалог завершился, перейти в режим выбора темы
@@ -333,7 +332,7 @@ void CUITalkWnd::SwitchToTrade()
 	{
 		if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
 		{
-			pGameSP->StartTrade(m_pOurInvOwner, m_pOthersInvOwner);
+			pGameSP->StartTrade(m_pOthersInvOwner);
 			HideDialog();
 		}
 	}
@@ -343,7 +342,7 @@ void CUITalkWnd::SwitchToUpgrade()
 {
 	if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
 	{
-		pGameSP->StartUpgrade(m_pOurInvOwner, m_pOthersInvOwner);
+		pGameSP->StartUpgrade(m_pOthersInvOwner);
 		HideDialog();
 	}
 }

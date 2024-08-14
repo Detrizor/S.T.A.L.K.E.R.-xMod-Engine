@@ -36,7 +36,7 @@ bool CEatableItem::UseBy(CEntityAlive* entity_alive)
 
 	CInventoryOwner* IO			= smart_cast<CInventoryOwner*>(entity_alive);
 	R_ASSERT					(IO);
-	R_ASSERT					(m_pInventory == IO->m_inventory);
+	R_ASSERT					(m_pInventory == IO->m_inventory.get());
 	R_ASSERT					(H_Parent()->ID() == entity_alive->ID());
 
 	entity_alive->conditions().ApplyInfluence(V, cNameSect());

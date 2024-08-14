@@ -65,8 +65,8 @@ public:
 	CPda* GetPDA		() const;
 
 	// инвентарь
-	CInventory	*m_inventory;			
-	
+	xptr<CInventory> m_inventory{ nullptr };
+
 	////////////////////////////////////
 	//торговля и общение с персонажем
 

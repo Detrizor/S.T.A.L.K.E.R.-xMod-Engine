@@ -150,14 +150,14 @@ void CUIGameSP::Render()
 }
 #endif
 
-void  CUIGameSP::StartTrade(CInventoryOwner* pActorInv, CInventoryOwner* pOtherOwner)
+void  CUIGameSP::StartTrade(CInventoryOwner* pOtherOwner)
 {
-	ActorMenu->StartMenuMode	(mmTrade, pActorInv, (void*)pOtherOwner);
+	ActorMenu->StartMenuMode	(mmTrade, static_cast<void*>(pOtherOwner));
 }
 
-void  CUIGameSP::StartUpgrade(CInventoryOwner* pActorInv, CInventoryOwner* pMech)
+void  CUIGameSP::StartUpgrade(CInventoryOwner* pMech)
 {
-	ActorMenu->StartMenuMode	(mmUpgrade, pActorInv, (void*)pMech);
+	ActorMenu->StartMenuMode	(mmUpgrade, static_cast<void*>(pMech));
 }
 
 void CUIGameSP::StartTalk(bool disable_break)
@@ -169,10 +169,10 @@ void CUIGameSP::StartTalk(bool disable_break)
 	TalkMenu->ShowDialog		(true);
 }
 
-void CUIGameSP::StartCarBody(CInventoryOwner* pActorInv, EMenuMode mode, void* pCarBody)
+void CUIGameSP::StartCarBody(EMenuMode mode, void* pCarBody)
 {
 	if (TopInputReceiver())		return;
-	ActorMenu->StartMenuMode	(mode, pActorInv, pCarBody);
+	ActorMenu->StartMenuMode	(mode, pCarBody);
 }
 
 extern ENGINE_API BOOL bShowPauseString;

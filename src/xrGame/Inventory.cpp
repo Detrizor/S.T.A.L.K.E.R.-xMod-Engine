@@ -58,7 +58,7 @@ bool CInventorySlot::CanBeActivated() const
 	return (m_bAct);
 };
 
-CInventory::CInventory() 
+CInventory::CInventory(CInventoryOwner* owner) : m_pOwner(owner), m_bActors(!!smart_cast<CActor*>(owner))
 {
 	m_iActiveSlot								= NO_ACTIVE_SLOT;
 	m_iNextActiveSlot							= NO_ACTIVE_SLOT;
@@ -131,9 +131,6 @@ void CInventory::Clear()
 
 	for (u8 i = 0; i < m_pockets_count; i++)
 		m_pockets[i].clear();
-
-	m_pOwner							= NULL;
-	m_bActors							= false;
 
 	CalcTotalWeight						();
 	CalcTotalVolume						();
@@ -1186,7 +1183,7 @@ bool CInventory::Eat(PIItem pIItem)
 	CInventory* pInventory = pItemToEat->m_pInventory;
 	if (!pInventory || pInventory != this)
 		return					false;
-	if (pInventory != IO->m_inventory)
+	if (pInventory != IO->m_inventory.get())
 		return					false;
 	if (pItemToEat->H_Parent()->ID() != entity_alive->ID())
 		return					false;
@@ -1201,7 +1198,7 @@ bool CInventory::Eat(PIItem pIItem)
 			return false;
 	}
 	
-	if (Actor()->m_inventory == this)
+	if (Actor()->m_inventory.get() == this)
 	{
 		Actor()->callback(GameObject::eUseObject)((smart_cast<CGameObject*>(pIItem))->lua_game_object());
 		CurrentGameUI()->GetActorMenu().SetCurrentItem(NULL);
@@ -1228,7 +1225,7 @@ bool CInventory::ClientEat(PIItem pIItem)
 	
 	CInventory* pInventory = pItemToEat->m_pInventory;
 	if ( !pInventory || pInventory != this )	return false;
-	if ( pInventory != IO->m_inventory )		return false;
+	if ( pInventory != IO->m_inventory.get() )	return false;
 	if ( pItemToEat->H_Parent()->ID() != entity_alive->ID() )
 		return false;
 	

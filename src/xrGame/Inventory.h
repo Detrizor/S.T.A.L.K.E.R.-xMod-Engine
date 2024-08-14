@@ -37,7 +37,7 @@ typedef xr_vector<TIItemContainer>		TIICArr;
 class CInventory
 {				
 public:
-							CInventory			();
+							CInventory			(CInventoryOwner* owner);
 	virtual					~CInventory			();
 
 	float 					TotalWeight			() const;
@@ -175,8 +175,8 @@ protected:
 	u16 				m_iNextActiveSlot;
 	u16 				m_iPrevActiveSlot;
 
-	CInventoryOwner*	m_pOwner;
-	bool				m_bActors;
+	CInventoryOwner PC$	m_pOwner;
+	const bool			m_bActors;
 
 	//флаг, допускающий использование слотов
 	bool				m_bSlotsUseful;

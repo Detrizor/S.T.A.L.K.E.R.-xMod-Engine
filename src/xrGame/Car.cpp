@@ -74,8 +74,6 @@ CCar::CCar()
 	m_car_sound			=xr_new<SCarSound>	(this);
 
 	//у машины слотов в инвентаре нет
-	inventory			= xr_new<CInventory>();
-	inventory->SetSlotsUseful(false);
 	m_doors_torque_factor = 2.f;
 	m_power_increment_factor=0.5f;
 	m_rpm_increment_factor=0.5f;
@@ -102,7 +100,6 @@ CCar::~CCar(void)
 	xr_delete			(camera[2]);
 	xr_delete			(m_car_sound);
 	ClearExhausts		();
-	xr_delete			(inventory);
 	xr_delete			(m_car_weapon);
 	xr_delete			(m_memory);
  //	xr_delete			(l_tpEntityAction);
@@ -150,7 +147,10 @@ void	CCar::Load					( LPCSTR section )
 	inherited::Load					(section);
 	//CPHSkeleton::Load(section);
 	ISpatial*		self				=	smart_cast<ISpatial*> (this);
-	if (self)		self->spatial.type	|=	STYPE_VISIBLEFORAI;	
+	if (self)		self->spatial.type	|=	STYPE_VISIBLEFORAI;
+
+	inventory.construct(nullptr);
+	inventory->SetSlotsUseful(false);
 }
 
 BOOL	CCar::net_Spawn				(CSE_Abstract* DC)

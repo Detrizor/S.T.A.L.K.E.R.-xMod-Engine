@@ -349,9 +349,9 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 void CUIActorMenu::InitInventoryContents()
 {
 	ClearAllLists						();
-	m_pMouseCapturer					= NULL;
+	m_pMouseCapturer					= nullptr;
 	m_UIPropertiesBox->Hide				();
-	SetCurrentItem						(NULL);
+	SetCurrentItem						(nullptr);
 
 	//Slots
 	for (u8 i = 1; i <= m_slot_count; ++i)

@@ -612,7 +612,7 @@ public:
 	void					SetExplodeTime				(u32 et)	;
 			u32				ExplodeTime					()			;
 	// Inventory for the car	
-	CInventory*						GetInventory						(){return inventory;}
+	CInventory*						GetInventory						(){return inventory.get();}
 		  void						VisualUpdate						(float fov=90.0f);
 
 protected:
@@ -638,7 +638,7 @@ private:
 	IC void fill_doors_map(LPCSTR S,xr_map<u16,SDoor>& doors);
 
 	//Inventory for the car
-	CInventory	*inventory;
+	xptr<CInventory> inventory{ nullptr };
 	
 	virtual	void reinit			();
 	virtual	void reload			(LPCSTR section);

@@ -59,11 +59,6 @@ void ActorMenuSetInvbox_script(CUIActorMenu* menu, CScriptGameObject* GO)
 		menu->SetInvBox(inv_box);
 }
 
-void ActorMenuSetActor_script(CUIActorMenu* menu, CScriptGameObject* GO)
-{
-	menu->SetActor(Actor()->cast_inventory_owner());
-}
-
 CScriptGameObject* ActorMenuGetPartner_script(CUIActorMenu* menu)
 {
 	CInventoryOwner* io = menu->GetPartner();
@@ -306,8 +301,7 @@ void CUIActorMenu::script_register(lua_State *L)
 				.def("GetPartner", &ActorMenuGetPartner_script)
 				.def("GetInvBox", &ActorMenuGetInvbox_script)
 				.def("SetPartner", &ActorMenuSetPartner_script)
-				.def("SetInvBox", &ActorMenuSetInvbox_script)
-				.def("SetActor", &ActorMenuSetActor_script),
+				.def("SetInvBox", &ActorMenuSetInvbox_script),
 				
 			class_< CUIPdaWnd, CUIDialogWnd>("CUIPdaWnd")
 				.def(constructor<>())

@@ -38,6 +38,7 @@ CAI_Trader::~CAI_Trader()
 void CAI_Trader::Load(LPCSTR section)
 {
 	inherited::Load					(section);
+	CInventoryOwner::Load			(section);
 	SetfHealth( pSettings->r_float	(section,"Health") );
 	inventory().CalcTotalWeight();
 	inventory().CalcTotalVolume();

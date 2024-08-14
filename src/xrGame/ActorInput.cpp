@@ -428,7 +428,7 @@ void CActor::ActorUse()
 		CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
 		if (pGameSP && !m_pInvBoxWeLookingAt->closed())
 		{
-			pGameSP->StartCarBody		(this, mmInvBoxSearch, (void*)m_pInvBoxWeLookingAt);
+			pGameSP->StartCarBody		(mmInvBoxSearch, static_cast<void*>(m_pInvBoxWeLookingAt));
 			return;
 		}
 	}
@@ -438,7 +438,7 @@ void CActor::ActorUse()
 		CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
 		if (pGameSP)
 		{
-			pGameSP->StartCarBody		(this, mmContainerSearch, (void*)m_pContainerWeLookingAt);
+			pGameSP->StartCarBody		(mmContainerSearch, static_cast<void*>(m_pContainerWeLookingAt));
 			return;
 		}
 	}
@@ -486,7 +486,7 @@ void CActor::ActorUse()
 			CUIGameSP* pGameSP					= smart_cast<CUIGameSP*>(CurrentGameUI());
 			if (pGameSP && !m_pPersonWeLookingAt->deadbody_closed_status() && pEntityAliveWeLookingAt->AlreadyDie())
 			{
-				pGameSP->StartCarBody			(this, mmDeadBodySearch, (void*)m_pPersonWeLookingAt);
+				pGameSP->StartCarBody			(mmDeadBodySearch, static_cast<void*>(m_pPersonWeLookingAt));
 				return;
 			}
 		}

@@ -35,7 +35,6 @@ CInventoryOwner::CInventoryOwner()
 	m_pTrade = NULL;
 	m_trade_parameters = 0;
 
-	m_inventory = xr_new<CInventory>();
 	m_pCharacterInfo = xr_new<CCharacterInfo>();
 
 	EnableTalk();
@@ -61,7 +60,6 @@ DLL_Pure *CInventoryOwner::_construct()
 
 CInventoryOwner::~CInventoryOwner()
 {
-	xr_delete(m_inventory);
 	xr_delete(m_pTrade);
 	xr_delete(m_pCharacterInfo);
 	xr_delete(m_known_info_registry);
@@ -71,21 +69,13 @@ CInventoryOwner::~CInventoryOwner()
 
 void CInventoryOwner::Load(LPCSTR section)
 {
-	if (pSettings->line_exist(section, "need_osoznanie_mode"))
-	{
-		m_need_osoznanie_mode = pSettings->r_bool(section, "need_osoznanie_mode");
-	}
-	else
-	{
-		m_need_osoznanie_mode = FALSE;
-	}
+	m_need_osoznanie_mode = READ_IF_EXISTS(pSettings, r_bool, section, "need_osoznanie_mode", FALSE);
+	m_inventory.construct(this);
 }
 
 void CInventoryOwner::reload(LPCSTR section)
 {
 	inventory().Clear			();
-	inventory().m_pOwner		= this;
-	inventory().m_bActors		= !!smart_cast<CActor*>(this);
 	inventory().SetSlotsUseful	(true);
 
 	m_money = 0;

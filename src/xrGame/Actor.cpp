@@ -474,6 +474,7 @@ void CActor::Load(LPCSTR section)
 	CurrentHeight = CameraHeight();
 
 	loadStaticData();
+	CurrentGameUI()->GetActorMenu().SetActor(scast<CInventoryOwner*>());
 }
 
 void CActor::PHHit(SHit &H)
