@@ -10,9 +10,15 @@ typedef xr_vector<xptr<CAddonSlot>> VSlots;
 class CAddonSlot
 {
 public:
+	typedef xr_umap<LPCSTR, RStringVec>	exceptions_list;
+
+public:
 										CAddonSlot								(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent);
 
 private:
+	static exceptions_list				slot_exceptions;
+	static exceptions_list				addon_exceptions;
+
 	double								m_step;
 	u16									m_overlaping_slot;
 	bool								m_background_draw;
@@ -29,6 +35,7 @@ private:
 public:
 	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
 	static LPCSTR						getSlotName								(LPCSTR slot_type);
+	static void							loadStaticVariables						();
 
 	MAddonOwner PC$						parent_ao;
 	const u16							idx;

@@ -527,11 +527,11 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 	if (addon_type == slot_type)
 		return							true;
 
-	if (pSettings->line_exist("slot_type_exceptions", slot_type))
-		return							!!strstr(pSettings->r_string("slot_type_exceptions", *slot_type), *addon_type);
-
-	if (pSettings->line_exist("addon_type_exceptions", addon_type))
-		return							!!strstr(pSettings->r_string("addon_type_exceptions", *addon_type), *slot_type);
+	if (slot_exceptions.contains(slot_type.c_str()))
+		return							slot_exceptions[slot_type.c_str()].contains(addon_type);
+	
+	if (addon_exceptions.contains(addon_type.c_str()))
+		return							addon_exceptions[addon_type.c_str()].contains(slot_type);
 
 	return								false;
 }
@@ -578,4 +578,29 @@ void CAddonSlot::updateAddonLocalTransform(MAddon* addon) const
 		for (auto& s : ao->AddonSlots())
 			for (auto a : s->addons)
 				s->updateAddonLocalTransform(a);
+}
+
+CAddonSlot::exceptions_list CAddonSlot::slot_exceptions{};
+CAddonSlot::exceptions_list CAddonSlot::addon_exceptions{};
+
+void CAddonSlot::loadStaticVariables()
+{
+	auto load_exceptions_list = [](LPCSTR type, exceptions_list& dest)
+	{
+		auto& section					= pSettings->r_section(type);
+		for (auto& line : section.Data)
+		{
+			LPCSTR str					= line.second.c_str();
+			string128					item;
+			RStringVec vec				= {};
+			for (int i = 0, count = _GetItemCount(str); i < count; ++i)
+			{
+				_GetItem				(str, i, item);
+				vec.push_back			(item);
+			}
+			dest[line.first.c_str()]	= _STD move(vec);
+		}
+	};
+	load_exceptions_list				("slot_type_exceptions", slot_exceptions);
+	load_exceptions_list				("addon_type_exceptions", addon_exceptions);
 }

@@ -1815,6 +1815,7 @@ void CActor::loadStaticVariables()
 	MScope::loadStaticVariables			();
 	CWeapon::loadStaticVariables		();
 	CWeaponMagazined::loadStaticVariables();
+	CAddonSlot::loadStaticVariables		();
 }
 
 void CActor::cleanStaticVariables()
