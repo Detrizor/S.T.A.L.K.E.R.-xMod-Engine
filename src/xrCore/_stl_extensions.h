@@ -148,6 +148,46 @@ public:
 
 	template <typename... Args>
 	T& emplace_back(Args&&... args) { inherited::emplace_back(_STD forward<Args>(args)...); return back(); }
+
+	const_iterator find(const T& obj) const
+	{
+		return _STD find(inherited::begin(), inherited::end(), obj);
+	}
+
+	iterator find(T& obj)
+	{
+		return _STD find(inherited::begin(), inherited::end(), obj);
+	}
+
+	bool contains(const T& obj) const
+	{
+		return find(obj) != inherited::end();
+	}
+
+	bool contains(T& obj)
+	{
+		return find(obj) != inherited::end();
+	}
+
+	const_iterator find_if(const T& obj) const
+	{
+		return _STD find_if(inherited::begin(), inherited::end(), obj);
+	}
+
+	iterator find_if(const T& obj)
+	{
+		return _STD find_if(inherited::begin(), inherited::end(), obj);
+	}
+
+	bool contains_if(const T& obj) const
+	{
+		return find_if(obj) != inherited::end();
+	}
+
+	bool contains_if(T& obj)
+	{
+		return find_if(obj) != inherited::end();
+	}
 };
 
 // vector<bool>
@@ -335,4 +375,13 @@ public:
 
 	template <typename M, typename... Args>
 	xptr&								construct								(Args&&... args)	{ capture(xr_new<M>(_STD forward<Args>(args)...)); return *this; }
+};
+
+#include <unordered_map>
+template <typename key_type, typename value_type>
+class xr_umap : public _STD unordered_map<key_type, value_type, _STD hash<key_type>, _STD equal_to<key_type>,
+	xalloc<_STD pair<const key_type, value_type>>>
+{
+public:
+	bool								contains								(const key_type& key)		{ return find(key) != end(); }
 };
