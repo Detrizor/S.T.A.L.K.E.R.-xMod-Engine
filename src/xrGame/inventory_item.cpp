@@ -874,11 +874,6 @@ float CInventoryItem::Cost() const
 	return								O.Aboba(eCost);
 }
 
-void CInventoryItem::Transfer(u16 id) const
-{
-	O.transfer							(id);
-}
-
 float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)

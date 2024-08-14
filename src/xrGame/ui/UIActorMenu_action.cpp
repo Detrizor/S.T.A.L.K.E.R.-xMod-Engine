@@ -199,8 +199,8 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 			m_pActorInv->m_iToDropID	= item->object_id();
 		}
 		else
-			item->Transfer				();
-		SetCurrentItem					(NULL);
+			item->O.transfer			();
+		SetCurrentItem					(nullptr);
 		break;
 	case iDeadBodyBag:
 		if (!gear_equipped)
@@ -287,7 +287,7 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 		else if (ToSlot(itm, item->HandSlot()));
 		else if (GetBag() && ToBag(itm, false));
 		else if (item->tryCustomUse());
-		else item->Transfer();
+		else item->O.transfer();
 		break;
 	case iActorBag:
 		if (m_currMenuMode == mmTrade && ToActorTrade(itm, false));

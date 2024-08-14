@@ -809,7 +809,7 @@ bool CInventory::Bag(PIItem item)
 	MContainer* container			= ai->O.getModule<MContainer>();
 	if (!container || !container->CanTakeItem(item))
 		return						false;
-	item->Transfer					(container->O.ID());
+	item->O.transfer				(container->O.ID());
 	return							true;
 }
 
@@ -856,11 +856,11 @@ void CInventory::UpdateDropTasks()
 
 		if (item->object_id() == m_iToDropID)
 		{
-			item->Transfer			();
+			item->O.transfer		();
 			m_iToDropID				= 0;
 		}
 		else if (m_bActors && !ProcessItem(item))
-			item->Transfer			();
+			item->O.transfer		();
 		UpdateDropItem				(item);
 	}
 

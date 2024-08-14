@@ -362,8 +362,6 @@ public:
 	float								Weight								C$	();
 	float								Volume								C$	();
 	float								Cost								C$	();
-
-	void								Transfer							C$	(u16 id = u16_max);
 	
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 };

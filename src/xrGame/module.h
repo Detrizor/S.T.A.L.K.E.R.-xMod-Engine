@@ -54,6 +54,5 @@ protected:
 										CModule									(CGameObject* obj);
 
 public:
-	float							V$	aboba									(EEventTypes type, void* data = NULL, int additional_data = 0)		{ return flt_max; }
-	void								Transfer							C$	(u16 id = u16_max);
+	float							V$	aboba									(EEventTypes type, void* data = nullptr, int additional_data = 0)		{ return flt_max; }
 };

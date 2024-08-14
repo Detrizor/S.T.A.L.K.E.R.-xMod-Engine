@@ -128,7 +128,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 	CUICellItem* i					= old_owner->RemoveItem(itm, old_owner == new_owner);
 	(b_use_cursor_pos)				? new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
 
-	item->Transfer					((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->O.ID()));
+	item->O.transfer				((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->O.ID()));
 	
 	UpdateDeadBodyBag				();
 	return							true;
@@ -149,6 +149,6 @@ void CUIActorMenu::TakeAllFromPartner(CUIWindow* w, void* d)
 void CUIActorMenu::TakeAllFromInventoryBox()
 {
 	if (m_pContainer)
-		m_pContainer->Transfer(m_pActorInvOwner->object_id());
+		m_pContainer->O.transfer	(m_pActorInvOwner->object_id());
 	HideDialog						();
 }

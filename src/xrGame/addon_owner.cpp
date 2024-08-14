@@ -42,11 +42,11 @@ void MAddonOwner::transfer_addon(MAddon CPC addon, bool attach)
 	if (O.Aboba(eTransferAddon, (void*)addon, (int)attach) == flt_max)
 	{
 		if (attach)
-			addon->Transfer				(O.ID());
+			addon->O.transfer			(O.ID());
 		else
 		{
 			auto root					= O.H_Root();
-			addon->Transfer				((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
+			addon->O.transfer			((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
 		}
 	}
 }
@@ -79,7 +79,7 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 					{
 						addon->setSlotIdx(slot->idx);
 						if (slot->parent_ao != this)
-							addon->Transfer(slot->parent_ao->O.ID());
+							addon->O.transfer(slot->parent_ao->O.ID());
 					}
 					
 					if (!slot)
@@ -462,20 +462,20 @@ void CAddonSlot::startReloading(MAddon* loading_addon)
 void CAddonSlot::loadingDetach()
 {
 	for (auto a : addons)
-		a->Transfer						(parent_ao->O.H_Root()->ID());
+		a->O.transfer					(parent_ao->O.H_Root()->ID());
 }
 
 void CAddonSlot::loadingAttach()
 {
 	if (m_loading_addon)
-		m_loading_addon->Transfer		(parent_ao->O.ID());
+		m_loading_addon->O.transfer		(parent_ao->O.ID());
 }
 
 void CAddonSlot::finishLoading(bool interrupted)
 {
 	if (interrupted)
 		for (auto a : addons)
-			a->Transfer					(u16_max);
+			a->O.transfer				(u16_max);
 	if (m_loading_addon)
 		m_loading_addon					= nullptr;
 }

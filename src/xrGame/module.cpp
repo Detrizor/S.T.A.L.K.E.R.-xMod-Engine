@@ -6,8 +6,3 @@
 CModule::CModule(CGameObject* obj) : O(*obj), I(obj->scast<CInventoryItemObject*>())
 {
 }
-
-void CModule::Transfer(u16 id) const
-{
-	O.transfer(id);
-}

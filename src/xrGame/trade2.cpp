@@ -96,7 +96,7 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 	if (pThis.type == TT_TRADER && !bBuying)
 		pPartner.inv_owner->O->giveItem				(*section);
 	else
-		pItem->Transfer								((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
+		pItem->O.transfer							((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
 
 	if (pItem && ((pPartner.type == TT_ACTOR) || (pThis.type == TT_ACTOR)))
 	{

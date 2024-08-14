@@ -733,9 +733,8 @@ bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
 
 void CScriptGameObject::Transfer(u16 id) const
 {
-	PIItem item						= smart_cast<PIItem>(&object());
-	if (item)
-		item->Transfer				(id);
+	if (auto item = smart_cast<PIItem>(&object()))
+		item->O.transfer			(id);
 }
 
 void CScriptGameObject::SetInvIcon(u8 idx)

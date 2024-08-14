@@ -73,13 +73,13 @@ void CUIActorMenu::SendEvent_PickUpItem(PIItem pItem, u16 type, u16 slot_id)
 	pItem->m_ItemCurrPlaceBackup			= pItem->m_ItemCurrPlace;
 	pItem->m_ItemCurrPlaceBackup.type		= type;
 	pItem->m_ItemCurrPlaceBackup.slot_id	= slot_id;
-	pItem->Transfer							(m_pActorInvOwner->object_id());
+	pItem->O.transfer						(m_pActorInvOwner->object_id());
 }
 
 void CUIActorMenu::SendEvent_Item_Eat(PIItem pItem, u16 recipient)
 {
 	if(pItem->parent_id()!=recipient)
-		pItem->Transfer(recipient);
+		pItem->O.transfer			(recipient);
 
 	NET_Packet						P;
 	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM_EAT, recipient);
@@ -94,13 +94,13 @@ void CUIActorMenu::DropAllCurrentItem()
 		u32 const cnt			= CurrentItem()->ChildsCount();
 		for (u32 i = 0; i < cnt; ++i)
 		{
-			CUICellItem* itm	= CurrentItem()->PopChild(NULL);
+			CUICellItem* itm	= CurrentItem()->PopChild(nullptr);
 			PIItem item			= (PIItem)itm->m_pData;
-			item->Transfer		();
+			item->O.transfer	();
 		}
-		CurrentIItem()->Transfer();
+		CurrentIItem()->O.transfer();
 	}
-	SetCurrentItem				(NULL);
+	SetCurrentItem				(nullptr);
 }
 
 bool CUIActorMenu::DropAllItemsFromRuck( bool quest_force )
@@ -119,13 +119,13 @@ bool CUIActorMenu::DropAllItemsFromRuck( bool quest_force )
 		u32 const cnt			= ci->ChildsCount();
 		for (u32 j = 0; j < cnt; ++j)
 		{
-			CUICellItem*		child_ci   = ci->PopChild(NULL);
+			CUICellItem*		child_ci   = ci->PopChild(nullptr);
 			PIItem				child_item = (PIItem)child_ci->m_pData;
-			child_item->Transfer();
+			child_item->O.transfer();
 		}
-		item->Transfer			();
+		item->O.transfer		();
 	}
-	SetCurrentItem				(NULL);
+	SetCurrentItem				(nullptr);
 	return						true;
 }
 
@@ -441,7 +441,7 @@ bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 	(b_use_cursor_pos) ?				new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
 
 	if (!own)
-		item->Transfer					(GetBag()->O.ID());
+		item->O.transfer				(GetBag()->O.ID());
 
 	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
 		ColorizeItem					(itm);
@@ -777,7 +777,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		if (d == (void*)33)
 			DropAllCurrentItem			();
 		else
-			item->Transfer				();
+			item->O.transfer			();
 		}break;
 	case INVENTORY_ADDON_ATTACH:
 	{
