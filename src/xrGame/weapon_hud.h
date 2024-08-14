@@ -54,7 +54,7 @@ private:
 	Dvector CP$							get_target_hud_offset				C$	();
 
 public:
-	static void							loadStaticVariables						();
+	static void							loadStaticData							();
 
 	void								UpdateHudAdditional						(Dmatrix& trans);
 	bool								Action									(u16 cmd, u32 flags);

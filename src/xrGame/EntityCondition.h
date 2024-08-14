@@ -266,5 +266,5 @@ private:
 
 
 public:
-	static void							loadStaticVariables						();
+	static void							loadStaticData							();
 };

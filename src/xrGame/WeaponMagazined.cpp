@@ -1555,7 +1555,7 @@ float CWeaponMagazined::s_recoil_cam_angle_per_delta;
 float CWeaponMagazined::s_recoil_cam_stopping_power_per_impulse;
 float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
 
-void CWeaponMagazined::loadStaticVariables()
+void CWeaponMagazined::loadStaticData()
 {
 	s_ads_shift_step					= pSettings->r_float("weapon_manager", "ads_shift_step");
 	s_ads_shift_max						= pSettings->r_float("weapon_manager", "ads_shift_max");

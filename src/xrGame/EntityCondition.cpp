@@ -756,7 +756,7 @@ void SBooster::Load(const shared_str& sect, EBoostParams type)
 	m_type			= type;
 }
 
-void CEntityCondition::loadStaticVariables()
+void CEntityCondition::loadStaticData()
 {
 	using namespace ALife;
 

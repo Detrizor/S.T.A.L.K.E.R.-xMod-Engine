@@ -3,23 +3,18 @@
 
 class CItemsLibrary
 {
-	typedef xr_vector<shared_str>							DIVISION;
-	typedef associative_vector<shared_str, DIVISION>		SUBCATEGORY;
-	typedef associative_vector<shared_str, SUBCATEGORY>		CATEGORY;
-	typedef associative_vector<shared_str, CATEGORY>		DATA;
+	typedef xr_vector<shared_str>				DIVISION;
+	typedef xr_umap<LPCSTR, DIVISION>			SUBCATEGORY;
+	typedef xr_umap<LPCSTR, SUBCATEGORY>		CATEGORY;
+	typedef xr_umap<LPCSTR, CATEGORY>			DATA;
 
 private:
-	DATA								m_data									= {};
+	static DATA							s_data;
 
 public:
-										CItemsLibrary							();
-
-public:
+	static void							loadStaticData							();
 	static bool							checkSection							(shared_str CR$ section);
-	
-	CATEGORY CR$						getCategory							C$	(shared_str CR$ category);
-	SUBCATEGORY CR$						getSubcategory						C$	(shared_str CR$ category, shared_str CR$ subcategory);
-	DIVISION CR$						getDivision							C$	(shared_str CR$ category, shared_str CR$ subcategory, shared_str CR$ division);
+	static CATEGORY CR$					getCategory								(shared_str CR$ category);
+	static SUBCATEGORY CR$				getSubcategory							(shared_str CR$ category, shared_str CR$ subcategory);
+	static DIVISION CR$					getDivision								(shared_str CR$ category, shared_str CR$ subcategory, shared_str CR$ division);
 };
-
-extern CItemsLibrary* g_items_library;

@@ -80,7 +80,7 @@
 #include "ActorBackpack.h"
 #include "script_hit.h"
 #include "../../xrServerEntities/script_engine.h" 
-using namespace luabind;
+using namespace ::luabind;
 //-Alundaio
 
 const u32		patch_frames = 50;
@@ -93,8 +93,6 @@ extern float cammera_into_collision_shift;
 
 string32		ACTOR_DEFS::g_quick_use_slots[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 //skeleton
-
-
 
 static Fbox		bbStandBox;
 static Fbox		bbCrouchBox;
@@ -256,7 +254,6 @@ CActor::~CActor()
 	xr_delete(m_vehicle_anims);
 #endif
 	//-Alundaio
-	cleanStaticVariables();
 }
 
 void CActor::reinit()
@@ -476,7 +473,7 @@ void CActor::Load(LPCSTR section)
 	// Alex ADD: for smooth crouch fix
 	CurrentHeight = CameraHeight();
 
-	loadStaticVariables();
+	loadStaticData();
 }
 
 void CActor::PHHit(SHit &H)
@@ -590,7 +587,7 @@ void	CActor::Hit(SHit* pHDS)
 			tLuaHit.m_tHitType = HDS.hit_type;
 			tLuaHit.m_tpDraftsman = smart_cast<const CGameObject*>(HDS.who)->lua_game_object();
 
-			luabind::functor<bool>	funct;
+			::luabind::functor<bool>	funct;
 			if (ai().script_engine().functor("_G.CActor__BeforeHitCallback", funct))
 			{
 				if ( !funct(this->lua_game_object(), &tLuaHit, HDS.boneID) )
@@ -1802,23 +1799,18 @@ float g_fov;
 float g_aim_fov;
 float g_aim_fov_tan;
 
-void CActor::loadStaticVariables()
+void CActor::loadStaticData()
 {
 	g_aim_fov							= pSettings->r_float("weapon_manager", "aim_fov");
 	g_aim_fov_tan						= tanf(g_aim_fov * (.5f * PI / 180.f));
-	g_items_library						= xr_new<CItemsLibrary>();
 
-	CEntityCondition::loadStaticVariables();
-	SBoneProtections::loadStaticVariables();
-	CCartridge::loadStaticVariables		();
-	CWeaponHud::loadStaticVariables		();
-	MScope::loadStaticVariables			();
-	CWeapon::loadStaticVariables		();
-	CWeaponMagazined::loadStaticVariables();
-	CAddonSlot::loadStaticVariables		();
-}
-
-void CActor::cleanStaticVariables()
-{
-	xr_delete(g_items_library);
+	CItemsLibrary::loadStaticData		();
+	CEntityCondition::loadStaticData	();
+	SBoneProtections::loadStaticData	();
+	CCartridge::loadStaticData			();
+	CWeaponHud::loadStaticData			();
+	MScope::loadStaticData				();
+	CWeapon::loadStaticData				();
+	CWeaponMagazined::loadStaticData	();
+	CAddonSlot::loadStaticData			();
 }

@@ -803,8 +803,7 @@ private:
 	void								update_accuracy							();
 
 public:
-	static void							loadStaticVariables						();
-	static void							cleanStaticVariables					();
+	static void							loadStaticData							();
 
 	void								VicinityUpdate							();
 

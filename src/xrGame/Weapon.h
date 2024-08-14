@@ -468,7 +468,7 @@ protected:
 	void							V$	setAiming								(bool mode);
 
 public:
-	static void							loadStaticVariables						();
+	static void							loadStaticData							();
 	static Fvector						readRecoilPattern						(LPCSTR section, LPCSTR line);
 	static Fvector						readRecoilPattern						(LPCSTR type);
 

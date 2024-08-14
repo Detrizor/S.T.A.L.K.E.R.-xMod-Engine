@@ -583,7 +583,7 @@ void CAddonSlot::updateAddonLocalTransform(MAddon* addon) const
 CAddonSlot::exceptions_list CAddonSlot::slot_exceptions{};
 CAddonSlot::exceptions_list CAddonSlot::addon_exceptions{};
 
-void CAddonSlot::loadStaticVariables()
+void CAddonSlot::loadStaticData()
 {
 	auto load_exceptions_list = [](LPCSTR type, exceptions_list& dest)
 	{

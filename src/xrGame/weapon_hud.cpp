@@ -109,7 +109,7 @@ float CWeaponHud::s_max_rotate_speed;
 float CWeaponHud::s_rotate_accel_time;
 float CWeaponHud::s_iron_sights_max_angle;
 
-void CWeaponHud::loadStaticVariables()
+void CWeaponHud::loadStaticData()
 {
 	s_recoil_hud_angle_per_shift		= pSettings->r_float("weapon_manager", "recoil_hud_angle_per_shift");
 	s_recoil_hud_roll_per_shift			= pSettings->r_float("weapon_manager", "recoil_hud_roll_per_shift");

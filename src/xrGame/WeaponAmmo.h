@@ -67,7 +67,7 @@ public:
 
 	float								Weight								C$	();
 
-	void							S$	loadStaticVariables						();
+	void							S$	loadStaticData							();
 	float							S$	calcResist								(LPCSTR section);
 };
 

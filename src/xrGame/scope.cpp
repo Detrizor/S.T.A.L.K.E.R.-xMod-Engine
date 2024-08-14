@@ -41,7 +41,7 @@ void createStatic(CUIStatic*& dest, LPCSTR texture, float size, EAlignment al = 
 	dest->SetStretchTexture				(true);
 }
 
-void MScope::loadStaticVariables()
+void MScope::loadStaticData()
 {
 	LPCSTR shadow_far_texture			= pSettings->r_string("scope_manager", "shadow_far_texture");
 	float shadow_far_texture_size		= pSettings->r_float("scope_manager", "shadow_far_texture_size");

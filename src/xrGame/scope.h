@@ -100,7 +100,7 @@ private:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	static void							loadStaticVariables						();
+	static void							loadStaticData							();
 	static void							cleanStaticVariables					();
 
 	void								ZoomChange								(int val);

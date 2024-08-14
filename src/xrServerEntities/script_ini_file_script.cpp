@@ -25,8 +25,7 @@ CScriptIniFile *reload_system_ini()
 	string_path fname;
 	FS.update_path(fname, "$game_config$", "system.ltx");
 	pSettings = xr_new<CInifile>(fname);
-	CActor::cleanStaticVariables();
-	CActor::loadStaticVariables();
+	CActor::loadStaticData();
 	return	((CScriptIniFile*)pSettings);
 }
 

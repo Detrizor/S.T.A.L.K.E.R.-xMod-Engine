@@ -78,7 +78,7 @@ float SBoneProtections::ComputeArmor(float level)
 	return (armor_low + (armor_high - armor_low) * k_level);
 }
 
-void SBoneProtections::loadStaticVariables()
+void SBoneProtections::loadStaticData()
 {
 	LPCSTR str							= pSettings->r_string("damage_manager", "armor_levels");
 	string256							buffer;

@@ -25,7 +25,7 @@ CCartridge::CCartridge(LPCSTR section) : CCartridge()
 	Load								(section);
 }
 
-void CCartridge::loadStaticVariables()
+void CCartridge::loadStaticData()
 {
 	s_resist_factor						= pSettings->r_float("bullet_manager", "resist_factor");
 	s_resist_power						= pSettings->r_float("bullet_manager", "resist_power");

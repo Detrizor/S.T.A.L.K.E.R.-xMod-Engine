@@ -239,7 +239,7 @@ protected:
 
 public:
 	static float						s_barrel_length_power;
-	static void							loadStaticVariables						();
+	static void							loadStaticData							();
 
 	void								loadChamber								(CWeaponAmmo* ammo);
 	void								initReload								(CWeaponAmmo* ammo);

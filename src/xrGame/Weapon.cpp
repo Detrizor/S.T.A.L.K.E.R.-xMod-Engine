@@ -1011,7 +1011,7 @@ float CWeapon::s_recoil_tremble_dispersion;
 float CWeapon::s_recoil_kick_dispersion;
 float CWeapon::s_recoil_roll_dispersion;
 
-void CWeapon::loadStaticVariables()
+void CWeapon::loadStaticData()
 {
 	s_inertion_baseline_weight			= pSettings->r_float("weapon_manager", "inertion_baseline_weight");
 	s_inertion_ads_factor				= pSettings->r_float("weapon_manager", "inertion_ads_factor");
