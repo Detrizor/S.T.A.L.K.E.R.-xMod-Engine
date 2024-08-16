@@ -1055,13 +1055,26 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 
 void CWeaponMagazined::on_firemode_switch()
 {
-	SetPending							(TRUE);
+	bool anim_started					= false;
 	if (HudAnimationExist("anm_firemode"))
+	{
 		PlayHUDMotion					("anm_firemode", TRUE, GetState());
+		anim_started					= true;
+	}
 	if (m_firemode_anm.name.size())
+	{
 		playBlendAnm					(m_firemode_anm, GetState());
-	if (m_sounds_enabled)
-		PlaySound						("sndFiremode", get_LastFP());
+		anim_started					= true;
+	}
+	
+	if (anim_started)
+	{
+		SetPending						(TRUE);
+		if (m_sounds_enabled)
+			PlaySound					("sndFiremode", get_LastFP());
+	}
+	else
+		SwitchState						(eIdle);
 }
 
 void CWeaponMagazined::on_reticle_switch()
