@@ -7,22 +7,16 @@
 #include "level.h"
 #include "actor.h"
 
-CWeaponAutomaticShotgun::CWeaponAutomaticShotgun()
-{
-	m_eSoundClose					= ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING);
-	m_eSoundAddCartridge			= ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING);
-}
-
 void CWeaponAutomaticShotgun::Load(LPCSTR section)
 {
-	inherited::Load					(section);
+	inherited::Load						(section);
 
-	m_bTriStateReload				= !!READ_IF_EXISTS(pSettings, r_bool, section, "tri_state_reload", false);
-	if (m_bTriStateReload)
+	if (m_bTriStateReload = !!READ_IF_EXISTS(pSettings, r_bool, section, "tri_state_reload", FALSE))
 	{
-		m_sounds.LoadSound			(*HudSection(), "snd_open_weapon", "sndOpen", false, m_eSoundOpen);
-		m_sounds.LoadSound			(*HudSection(), "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
-		m_sounds.LoadSound			(*HudSection(), "snd_close_weapon", "sndClose", false, m_eSoundClose);
+		LPCSTR hud_sect					= pSettings->r_string(cNameSect(), "hud");		//in case grip isn't loaded yet and we get hud_unusable instead of real hud from HudSection()
+		m_sounds.LoadSound				(hud_sect, "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
+		m_sounds.LoadSound				(hud_sect, "snd_close_weapon", "sndClose", false, m_eSoundClose);
+		m_sounds.LoadSound				(hud_sect, "snd_open_weapon", "sndOpen", false, m_eSoundOpen);
 	}
 }
 
@@ -31,7 +25,7 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 	if (inherited::Action				(cmd, flags))
 		return							true;
 
-	if (flags & CMD_START && m_bTriStateReload && GetState() == eReload &&
+	if (m_bTriStateReload && flags&CMD_START && GetState() == eReload &&
 		(m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) &&
 		(cmd == kWPN_FIRE || cmd == kWPN_RELOAD))		//остановить перезагрузку
 	{
