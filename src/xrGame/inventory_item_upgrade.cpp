@@ -308,7 +308,7 @@ void CInventoryItem::pre_install_upgrade()
 	if (!O.scast<CWeaponMagazined*>())
 		return;
 
-	Actor()->Discharge					(this, true);
+	Actor()->discharge					(this, true, true);
 
 	if (auto ao = O.getModule<MAddonOwner>())
 		for (auto& slot : ao->AddonSlots())

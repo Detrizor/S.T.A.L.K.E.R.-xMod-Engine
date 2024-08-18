@@ -37,7 +37,7 @@ protected:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 	
 private:
-	bool								Discharge							O$	(CCartridge& destination);
+	bool								discharge							O$	(CCartridge& destination, bool with_chamber);
 };
 add_to_type_list(CWeaponRPG7)
 #undef script_type_list

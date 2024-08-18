@@ -237,7 +237,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	SwitchState							(eReload);
 }
 
-bool CWeaponMagazined::Discharge(CCartridge& destination)
+bool CWeaponMagazined::discharge(CCartridge& destination, bool with_chamber)
 {
 	if (m_actor)
 	{
@@ -247,15 +247,13 @@ bool CWeaponMagazined::Discharge(CCartridge& destination)
 #endif
 	}
 
-	if (m_chamber.capacity())
+	if (with_chamber && m_chamber.size())
 	{
-		if (m_chamber.size())
-		{
-			reload_chamber				(&destination);
-			return						true;
-		}
+		reload_chamber					(&destination);
+		return							true;
 	}
-	else if (m_magazin.capacity())
+
+	if (m_magazin.size())
 	{
 		CCartridge& back_cartridge		= m_magazin.back();
 		destination.m_ammoSect			= back_cartridge.m_ammoSect;
@@ -1132,6 +1130,20 @@ void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ secti
 	{
 		m_barrel_length					+= (attach) ? length : -length;
 		m_barrel_len					= pow(m_barrel_length, s_barrel_length_power);
+	}
+
+	if (size_t mag_size = READ_IF_EXISTS(pSettings, r_u32, section, "ammo_mag_size", 0))
+	{
+		if (attach)
+			m_magazin.reserve			(mag_size);
+		else
+		{
+			if (auto owner = H_Parent()->scast<CInventoryOwner*>())
+				owner->discharge		(getModule<CInventoryItem>(), false, true);
+			else
+				m_magazin.clear			();
+			m_magazin.shrink_to_fit		();
+		}
 	}
 
 	process_align_front					(&obj, attach);

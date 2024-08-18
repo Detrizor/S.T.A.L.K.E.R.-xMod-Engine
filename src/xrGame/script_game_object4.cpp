@@ -714,9 +714,10 @@ u32 CScriptGameObject::Capacity() const
 
 bool CScriptGameObject::Discharge(CScriptGameObject* obj)
 {
-	CInventoryOwner* owner			= smart_cast<CInventoryOwner*>(&object());
-	PIItem item						= smart_cast<PIItem>(&obj->object());
-	return							(owner && item) ? owner->Discharge(item, false) : false;
+	if (auto owner = object().scast<CInventoryOwner*>())
+		if (auto item = obj->object().getModule<CInventoryItem>())
+			return					owner->discharge(item, true);
+	return							false;
 }
 
 bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const

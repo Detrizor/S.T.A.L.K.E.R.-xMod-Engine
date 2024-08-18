@@ -158,7 +158,7 @@ public:
 	CCustomOutfit*	GetOutfit				() const;
 	CHelmet*		GetHelmet				() const;
 
-	bool			Discharge				(PIItem item, bool full = false);
+	bool			discharge				(PIItem item, bool with_chamber = false, bool full = false);
 
 	bool CanPlayShHdRldSounds				() const {return m_play_show_hide_reload_sounds;};
 	void SetPlayShHdRldSounds				(bool play) {m_play_show_hide_reload_sounds = play;};

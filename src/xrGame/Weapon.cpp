@@ -786,6 +786,8 @@ void CWeapon::SetAmmoElapsed(int ammo_count)
 {
 	while (m_magazin.size() > ammo_count)
 		m_magazin.pop_back				();
+	if (ammo_count > m_magazin.capacity())
+		m_magazin.reserve				(ammo_count);
 	while (m_magazin.size() < ammo_count)
 		m_magazin.push_back				(m_cartridge);
 }

@@ -72,9 +72,9 @@ void CWeaponRPG7::OnStateSwitch(u32 S, u32 oldState)
 	UpdateMissileVisibility();
 }
 
-bool CWeaponRPG7::Discharge(CCartridge& destination)
+bool CWeaponRPG7::discharge(CCartridge& destination, bool with_chamber)
 {
-	bool res						= inherited::Discharge(destination);
+	bool res						= inherited::discharge(destination, with_chamber);
 	UpdateMissileVisibility			();
 	return							res;
 }

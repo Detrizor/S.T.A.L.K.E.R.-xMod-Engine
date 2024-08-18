@@ -260,7 +260,7 @@ public:
 
 	void								OnTaken								O$	();
 
-	bool							V$	Discharge								(CCartridge& destination);
+	bool							V$	discharge								(CCartridge& destination, bool with_chamber);
 	bool							V$	canTake								C$	(CWeaponAmmo CPC ammo, bool chamber);
 
 	friend class CWeaponHud;
