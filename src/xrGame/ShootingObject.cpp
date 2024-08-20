@@ -315,7 +315,7 @@ void CShootingObject::FireBullet(const Fvector& pos,
 	Level().BulletManager().AddBullet(
 		pos,
 		dir,
-		m_barrel_len * m_silencer_koef.bullet_speed,
+		m_barrel_len * m_muzzle_koefs.bullet_speed,
 		parent_id, 
 		weapon_id,
 		ALife::eHitTypeFireWound, 0.f,

@@ -27,7 +27,7 @@ float CWeapon::GetFireDispersion(CCartridge* cartridge)
 float CWeapon::GetFireDispersion(float cartridge_k) 
 {
 	//учет базовой дисперсии, состояние оружия и влияение патрона
-	float fire_disp = fireDispersionBase * m_silencer_koef.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
+	float fire_disp = fireDispersionBase * m_muzzle_koefs.fire_dispersion * cartridge_k * GetConditionDispersionFactor();
 	
 	//вычислить дисперсию, вносимую самим стрелком
 	if (H_Parent())

@@ -68,18 +68,11 @@ protected:
 	float					fShotTimeCounter;
 
 public:
-	struct SilencerKoeffs
+	struct SMuzzleKoeffs
 	{
-		float	bullet_speed;
-		float	fire_dispersion;
-
-		SilencerKoeffs() { Reset(); }
-		IC void Reset()
-		{
-			bullet_speed = 1.0f;
-			fire_dispersion = 1.0f;
-		}
-	} m_silencer_koef;
+		float	bullet_speed		= 1.f;
+		float	fire_dispersion		= 1.f;
+	} m_muzzle_koefs;
 
 protected:
 	//для сталкеров, чтоб они знали эффективные границы использования 

@@ -1259,20 +1259,15 @@ void CWeaponMagazined::process_muzzle(MMuzzle* muzzle, bool attach)
 		m_muzzle_recoil_pattern			= src->getRecoilPattern();
 		m_fire_point					= src->getFirePoint();
 		m_flash_hider					= src->isFlashHider();
+		m_muzzle_koefs.fire_dispersion	= src->getDispersionK();
 		m_hud->calculateAimOffsets		();
 	}
 }
 
 void CWeaponMagazined::process_silencer(CSilencer* sil, bool attach)
 {
-	m_silencer							= attach;
-	if (attach)
-	{
-		m_silencer_koef.bullet_speed	= sil->getBulletSpeedK();
-		m_silencer_koef.fire_dispersion	= sil->getFireDispersionBaseK();
-	}
-	else
-		m_silencer_koef.Reset			();
+	if (m_silencer = attach)
+		m_muzzle_koefs.bullet_speed		= (attach) ? sil->getBulletSpeedK() : 1.f;
 	UpdateSndShot						();
 }
 
@@ -1439,7 +1434,7 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 	static_cast<Fmatrix>(hi->m_transform).transform_dir(transference);
 
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);
-	float speed							= m_barrel_len * m_silencer_koef.bullet_speed * c.param_s.bullet_speed_per_barrel_len * air_resistance_correction;
+	float speed							= m_barrel_len * m_muzzle_koefs.bullet_speed * c.param_s.bullet_speed_per_barrel_len * air_resistance_correction;
 
 	Fvector								result[2];
 	TransferenceAndThrowVelToThrowDir	(transference, speed, Level().BulletManager().GravityConst(), result);
