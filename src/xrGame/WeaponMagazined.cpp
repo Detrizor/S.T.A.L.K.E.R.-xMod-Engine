@@ -203,7 +203,7 @@ void CWeaponMagazined::FireStart()
 
 bool CWeaponMagazined::has_ammo_for_reload(int count) const
 {
-	return								(unlimited_ammo()) ? true : (m_current_ammo && m_current_ammo->m_boxSize >= count);
+	return								(unlimited_ammo()) ? true : (m_current_ammo && m_current_ammo->GetAmmoCount() >= count);
 }
 
 void CWeaponMagazined::Reload()

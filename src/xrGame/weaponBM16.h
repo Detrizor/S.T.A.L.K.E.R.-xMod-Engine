@@ -17,6 +17,9 @@ protected:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 	LPCSTR								anmType		 						CO$	();
+	bool								canTake								CO$	(CWeaponAmmo CPC ammo, bool chamber);
+
+	void								ReloadMagazine						O$	();
 };
 
 add_to_type_list(CWeaponBM16)

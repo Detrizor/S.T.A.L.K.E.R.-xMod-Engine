@@ -9,7 +9,7 @@ void CWeaponBM16::Load(LPCSTR section)
 
 void CWeaponBM16::PlayAnimShoot()
 {
-	PlayHUDMotion						((m_magazin.size()) ? "anm_shot" : "anm_shot_1", TRUE, GetState());
+	PlayHUDMotion						((m_magazin.size()) ? "anm_shoot" : "anm_shoot_1", FALSE, GetState());
 }
 
 void CWeaponBM16::PlayAnimReload()
@@ -31,4 +31,24 @@ LPCSTR CWeaponBM16::anmType() const
 	default:
 		return							"";
 	}
+}
+
+void CWeaponBM16::ReloadMagazine()
+{
+	if (m_magazin.size() == m_magazin.capacity())
+	{
+		auto owner						= H_Parent()->scast<CInventoryOwner*>();
+		owner->discharge				(getModule<CInventoryItem>());
+		if (unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() > 1))
+			owner->discharge			(getModule<CInventoryItem>());
+	}
+	inherited::ReloadMagazine			();
+}
+
+bool CWeaponBM16::canTake(CWeaponAmmo CPC ammo, bool chamber) const
+{
+	for (auto& t : m_ammoTypes)
+		if (t == ammo->Section())
+			return						true;
+	return								false;
 }
