@@ -37,7 +37,7 @@ float MUsable::aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnAddon:
 	{
-		auto addon						= reinterpret_cast<MAddon*>(data);
+		auto addon						= static_cast<MAddon*>(data);
 		if (param)
 		{
 			SAction						act;

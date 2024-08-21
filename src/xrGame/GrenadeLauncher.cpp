@@ -30,7 +30,7 @@ float MGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
 	{
 	case eTransferAddon:
 	{
-		auto addon = reinterpret_cast<MAddon*>(data);
+		auto addon						= static_cast<MAddon*>(data);
 		if (addon->O.scast<CWeaponAmmo*>())
 		{
 			m_slot->startReloading		((param) ? addon : nullptr);

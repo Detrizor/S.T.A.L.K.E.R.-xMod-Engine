@@ -59,7 +59,7 @@ float CInventoryBox::Aboba o$(EEventTypes type, void* data, int param)
 {
 	if (type == eOnChild && !param && m_in_use)
 	{
-		CGameObject* GO					= reinterpret_cast<CObject*>(data)->scast<CGameObject*>();
+		CGameObject* GO					= static_cast<CObject*>(data)->scast<CGameObject*>();
 		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
 	}
 

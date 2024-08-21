@@ -1101,7 +1101,6 @@ void CWeaponMagazined::process_foregrip(CGameObject& obj, shared_str CR$ section
 	m_foregrip_recoil_pattern			= readRecoilPattern(foregrip_type);
 	m_foregrip_accuracy_modifier		= readAccuracyModifier(foregrip_type);
 	m_anm_prefix						= pSettings->r_string("anm_prefixes", foregrip_type);
-	PlayAnimIdle						();
 }
 
 void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ section, bool attach)
@@ -1277,14 +1276,14 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnAddon:
 	{
-		process_addon					(reinterpret_cast<MAddon*>(data), !!param);
+		process_addon					(static_cast<MAddon*>(data), !!param);
 		break;
 	}
 	case eWeight:
 		return							inherited::Aboba(type, data, param) + GetMagazineWeight();
 	case eTransferAddon:
 	{
-		auto addon						= reinterpret_cast<MAddon*>(data);
+		auto addon						= static_cast<MAddon*>(data);
 		if (addon->O.getModule<MMagazine>())
 		{
 			m_magazine_slot->startReloading((param) ? addon : nullptr);
@@ -1304,7 +1303,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	case eSyncData:
 	{
 		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= reinterpret_cast<CSE_ALifeDynamicObject*>(data);
+		auto se_obj						= static_cast<CSE_ALifeDynamicObject*>(data);
 		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
 		if (param)
 		{

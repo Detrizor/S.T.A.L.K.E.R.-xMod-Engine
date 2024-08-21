@@ -60,7 +60,7 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 			break;
 		case eOnChild:
 		{
-			CWeaponAmmo* heap			= reinterpret_cast<CObject*>(data)->scast<CWeaponAmmo*>();
+			CWeaponAmmo* heap			= static_cast<CObject*>(data)->scast<CWeaponAmmo*>();
 			if (!heap)
 				break;
 

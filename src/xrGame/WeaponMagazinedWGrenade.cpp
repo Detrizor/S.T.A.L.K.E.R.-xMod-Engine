@@ -287,7 +287,7 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnChild:
 	{
-		CObject* obj					= reinterpret_cast<CObject*>(data);
+		CObject* obj					= static_cast<CObject*>(data);
 		if (auto rocket = obj->scast<CCustomRocket*>())
 		{
 			if (param)
@@ -312,7 +312,7 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	}
 	case eOnAddon:
 	{
-		auto addon						= reinterpret_cast<MAddon*>(data);
+		auto addon						= static_cast<MAddon*>(data);
 		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
 		{
 			m_grenade					= (param) ? grenade : nullptr;

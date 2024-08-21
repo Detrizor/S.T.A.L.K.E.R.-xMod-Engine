@@ -62,7 +62,7 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 			break;
 		}
 		case eOnChild:
-			if (auto addon = reinterpret_cast<CObject*>(data)->getModule<MAddon>())
+			if (auto addon = static_cast<CObject*>(data)->getModule<MAddon>())
 			{
 				auto slot				= addon->getSlot();
 				if (slot)

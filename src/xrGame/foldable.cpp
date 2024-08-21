@@ -15,7 +15,7 @@ float MFoldable::aboba(EEventTypes type, void* data, int param)
 	{
 		case eSyncData:
 		{
-			auto se_obj					= reinterpret_cast<CSE_ALifeDynamicObject*>(data);
+			auto se_obj					= static_cast<CSE_ALifeDynamicObject*>(data);
 			auto m						= se_obj->getModule<CSE_ALifeModuleFoldable>(!!param);
 			if (param)
 				m->m_status				= static_cast<u8>(m_status);

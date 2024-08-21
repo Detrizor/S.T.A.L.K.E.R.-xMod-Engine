@@ -61,7 +61,7 @@ float MContainer::aboba o$(EEventTypes type, void* data, int param)
 	{
 		case eOnChild:
 		{
-			PIItem item					= reinterpret_cast<CObject*>(data)->getModule<CInventoryItem>();
+			PIItem item					= static_cast<CObject*>(data)->getModule<CInventoryItem>();
 			if (!item)
 				break;
 
