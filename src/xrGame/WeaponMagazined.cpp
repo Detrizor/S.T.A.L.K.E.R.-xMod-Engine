@@ -216,7 +216,7 @@ void CWeaponMagazined::Reload()
 
 	if (IsMisfire() || m_actor && m_chamber.capacity())
 	{
-		bool lock						= (!m_locked && m_bolt_catch && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false));
+		bool lock						= m_bolt_catch && !m_locked && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false);
 		StartReload						((lock) ? eSubstateReloadBoltLock : eSubstateReloadBolt);
 	}
 	else if (!m_actor && has_ammo_for_reload())
@@ -228,11 +228,12 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	if (GetState() == eReload)
 		return;
 	
-	if (m_lock_state_reload && !m_locked && isEmptyChamber() &&
-		(m_magazine_slot->getLoadingAddon() && !m_magazine_slot->getLoadingAddon()->O.getModule<MMagazine>()->Empty() || !m_actor))
-		m_sub_state						= eSubstateReloadBoltLock;
-	else
-		m_sub_state						= substate;
+	bool lock							= substate != eSubstateReloadBoltLock && m_lock_state_reload && isEmptyChamber() && !m_locked;
+	if (lock)
+		if (auto mag = m_magazine_slot->getLoadingAddon())
+			if (mag->O.getModule<MMagazine>()->Empty())
+				lock					= false;
+	m_sub_state							= (lock) ? eSubstateReloadBoltLock : substate;
 
 	SwitchState							(eReload);
 }

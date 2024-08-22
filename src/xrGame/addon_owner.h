@@ -85,7 +85,7 @@ private:
 
 	VSlots								m_slots									= {};
 	
-	void								transfer_addon							(MAddon CPC addon, bool attach);
+	void								transfer_addon							(MAddon* addon, bool attach);
 	void								processAddon						C$	(MAddon PC$ addon, bool attach);
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	

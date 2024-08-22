@@ -37,17 +37,25 @@ void MAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hu
 		s->calculateBoneOffset			(model, hud_sect);
 }
 
-void MAddonOwner::transfer_addon(MAddon CPC addon, bool attach)
+void MAddonOwner::transfer_addon(MAddon* addon, bool attach)
 {
-	if (O.Aboba(eTransferAddon, (void*)addon, (int)attach) == flt_max)
+	auto detach_addon = [this](MAddon* addon)
+	{
+		auto root						= O.H_Root();
+		addon->O.transfer				((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
+	};
+
+	if (O.Aboba(eTransferAddon, static_cast<void*>(addon), static_cast<int>(attach)) == flt_max)
 	{
 		if (attach)
-			addon->O.transfer			(O.ID());
-		else
 		{
-			auto root					= O.H_Root();
-			addon->O.transfer			((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
+			auto& slot					= m_slots[addon->getSlotIdx()];
+			if (!slot->steps && slot->addons.size())
+				detach_addon			(slot->addons.front());
+			addon->O.transfer			(O.ID());
 		}
+		else
+			detach_addon				(addon);
 	}
 }
 
@@ -177,8 +185,6 @@ bool MAddonOwner::attachAddon(MAddon* addon)
 
 	if (slot)
 	{
-		if (!slot->steps && slot->addons.size())
-			slot->parent_ao->transfer_addon(slot->addons.front(), false);
 		slot->parent_ao->transfer_addon	(addon, true);
 		return							true;
 	}

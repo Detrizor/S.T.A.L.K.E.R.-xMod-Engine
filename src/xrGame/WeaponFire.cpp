@@ -50,7 +50,7 @@ void random_dir(Fvector& tgt_dir, const Fvector& src_dir, float dispersion)
 float CWeapon::GetWeaponDeterioration	()
 {
 	return conditionDecreasePerShot;
-};
+}
 
 void CWeapon::FireTrace()
 {
@@ -69,7 +69,7 @@ void CWeapon::FireTrace()
 	StartShotParticles					();
 	Light_Start							();
 
-	float shot_speed					= m_barrel_len * m_silencer_koef.bullet_speed * m_shot_cartridge.param_s.bullet_speed_per_barrel_len;
+	float shot_speed					= m_barrel_len * m_muzzle_koefs.bullet_speed * m_shot_cartridge.param_s.bullet_speed_per_barrel_len;
 	float shot_mass						= m_shot_cartridge.param_s.fBulletMass * m_shot_cartridge.param_s.buckShot;
 	appendRecoil						(shot_speed * shot_mass);
 
