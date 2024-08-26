@@ -77,7 +77,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		m_magazine_slot->finishLoading	();
 		if (!m_actor)
 			ReloadMagazine				();
-		if (m_locked)
+		if (m_locked && !m_lock_state_shooting)
 		{
 			if (m_mag_attach_bolt_release)
 				reload_chamber			();

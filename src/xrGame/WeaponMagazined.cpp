@@ -131,6 +131,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
+	m_lock_state_shooting				= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_shooting", FALSE);
 	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_bool, section, "mag_attach_bolt_release", FALSE);
 	m_bolt_catch						= !!READ_IF_EXISTS(pSettings, r_bool, section, "bolt_catch", FALSE);
 
@@ -214,9 +215,9 @@ void CWeaponMagazined::Reload()
 		return;
 	}
 
-	if (IsMisfire() || m_actor && m_chamber.capacity())
+	if (IsMisfire() || m_actor && m_chamber.capacity() && (!m_lock_state_shooting || !m_magazine || m_magazine->Empty()))
 	{
-		bool lock						= m_bolt_catch && !m_locked && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false);
+		bool lock						= !m_locked && (m_lock_state_shooting || m_bolt_catch && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge, false));
 		StartReload						((lock) ? eSubstateReloadBoltLock : eSubstateReloadBolt);
 	}
 	else if (!m_actor && has_ammo_for_reload())
@@ -230,9 +231,11 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	
 	bool lock							= substate != eSubstateReloadBoltLock && m_lock_state_reload && isEmptyChamber() && !m_locked;
 	if (lock)
-		if (auto mag = m_magazine_slot->getLoadingAddon())
-			if (mag->O.getModule<MMagazine>()->Empty())
-				lock					= false;
+	{
+		auto mag						= m_magazine_slot->getLoadingAddon();
+		if (!mag || mag->O.getModule<MMagazine>()->Empty())
+			lock						= false;
+	}
 	m_sub_state							= (lock) ? eSubstateReloadBoltLock : substate;
 
 	SwitchState							(eReload);
@@ -268,7 +271,7 @@ bool CWeaponMagazined::discharge(CCartridge& destination, bool with_chamber)
 
 bool CWeaponMagazined::canTake(CWeaponAmmo CPC ammo, bool chamber) const
 {
-	if (chamber || !m_magazine_slot)
+	if (chamber && !m_lock_state_shooting || !m_magazine_slot)
 	{
 		auto& storage					= (chamber) ? m_chamber : m_magazin;
 		if (storage.size() < storage.capacity())
@@ -290,13 +293,8 @@ void CWeaponMagazined::OnMagazineEmpty()
 		m_actor->callback(GameObject::eOnWeaponMagazineEmpty)(lua_game_object(), AC);
 	}
 #endif
-	if (GetState() == eIdle)
-	{
-		OnEmptyClick();
-		return;
-	}
-
-	inherited::OnMagazineEmpty();
+	
+	OnEmptyClick();
 }
 
 LPCSTR CWeaponMagazined::anmType() const
@@ -318,7 +316,7 @@ CCartridge CWeaponMagazined::getCartridgeToShoot()
 	bool expand							= !(m_actor && m_actor->unlimited_ammo());
 
 	CCartridge							res;
-	if (m_chamber.capacity())
+	if (m_chamber.capacity() && !m_lock_state_shooting)
 	{
 		res								= m_chamber.back();
 		if (expand)
@@ -539,6 +537,11 @@ void CWeaponMagazined::state_Fire(float dt)
 		{
 			if (CheckForMisfire())
 			{
+				if (m_lock_state_shooting)
+				{
+					m_chamber.push_back(getCartridgeToShoot());
+					m_locked = false;
+				}
 				StopShooting();
 				return;
 			}
@@ -609,8 +612,15 @@ void CWeaponMagazined::OnShot()
 void CWeaponMagazined::OnEmptyClick()
 {
 	PlaySound("sndEmptyClick", get_LastFP());
-	PlayHUDMotion("anm_trigger", FALSE, GetState());
 	playBlendAnm(m_empty_click_anm);
+	if (m_lock_state_shooting && m_locked)
+	{
+		m_locked = false;
+		PlaySound("sndBoltRelease", get_LastFP());
+		PlayHUDMotion("anm_shoot", FALSE, GetState());
+		return;
+	}
+	PlayHUDMotion("anm_trigger", FALSE, GetState());
 }
 
 void CWeaponMagazined::switch2_Idle()
@@ -671,17 +681,9 @@ void CWeaponMagazined::switch2_Hiding()
 	
 	SetPending(TRUE);
 
-	if (m_locked)
-	{
-		m_sub_state = eSubstateReloadBolt;
-		PlayAnimReload();
-	}
-	else
-	{
-		m_sub_state = eSubstateReloadBegin;
-		if (m_sounds_enabled)
-			PlaySound("sndHide", get_LastFP());
-	}
+	m_sub_state = eSubstateReloadBegin;
+	if (m_sounds_enabled)
+		PlaySound("sndHide", get_LastFP());
 }
 
 void CWeaponMagazined::switch2_Hidden()
@@ -868,7 +870,9 @@ bool CWeaponMagazined::is_auto_bolt_allowed() const
 
 bool CWeaponMagazined::hasAmmoToShoot() const
 {
-	return (m_chamber.size() || (!m_chamber.capacity() && GetAmmoElapsed()));
+	if (m_lock_state_shooting)
+		return							m_locked && m_magazine && !m_magazine->Empty();
+	return								(m_chamber.size() || !m_chamber.capacity() && GetAmmoElapsed());
 }
 
 bool CWeaponMagazined::is_detaching() const
