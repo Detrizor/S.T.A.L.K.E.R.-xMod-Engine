@@ -1095,14 +1095,14 @@ static LPCSTR read_root_type(CObject* obj, LPCSTR part)
 {
 	auto parent							= obj->H_Parent();
 	R_ASSERT							(parent);
-	if (pSettings->line_exist(parent->cNameSect(), part))
-		return							pSettings->r_string(parent->cNameSect(), part);
+	if (auto type = READ_IF_EXISTS(pSettings, r_string, parent->cNameSect(), part, 0))
+		return							type;
 	return								read_root_type(parent, part);
 }
 
-void CWeaponMagazined::process_foregrip(CGameObject& obj, shared_str CR$ section, bool attach)
+void CWeaponMagazined::process_foregrip(CGameObject& obj, LPCSTR type, bool attach)
 {
-	LPCSTR foregrip_type				= (attach) ? pSettings->r_string(section, "foregrip_type") : read_root_type(&obj, "foregrip_type");
+	LPCSTR foregrip_type				= (attach) ? type : read_root_type(&obj, "foregrip_type");
 	m_foregrip_recoil_pattern			= readRecoilPattern(foregrip_type);
 	m_foregrip_accuracy_modifier		= readAccuracyModifier(foregrip_type);
 	m_anm_prefix						= pSettings->r_string("anm_prefixes", foregrip_type);
@@ -1110,25 +1110,22 @@ void CWeaponMagazined::process_foregrip(CGameObject& obj, shared_str CR$ section
 
 void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ section, bool attach)
 {
-	if (pSettings->line_exist(section, "grip_type"))
+	if (auto type = READ_IF_EXISTS(pSettings, r_string, section, "grip_type", 0))
 	{
 		if (m_grip = attach)
-		{
-			LPCSTR grip_type			= pSettings->r_string(section, "grip_type");
-			m_grip_accuracy_modifier	= readAccuracyModifier(grip_type);
-		}
+			m_grip_accuracy_modifier	= readAccuracyModifier(type);
 		hud_sect						= pSettings->r_string(cNameSect(), (attach) ? "hud" : "hud_unusable");
 	}
 
-	if (pSettings->line_exist(section, "stock_type"))
+	if (auto type = READ_IF_EXISTS(pSettings, r_string, section, "stock_type", 0))
 	{
-		LPCSTR stock_type				= (attach) ? pSettings->r_string(section, "stock_type") : read_root_type(&obj, "stock_type");
+		LPCSTR stock_type				= (attach) ? type : read_root_type(&obj, "stock_type");
 		m_stock_recoil_pattern			= readRecoilPattern(stock_type);
 		m_stock_accuracy_modifier		= readAccuracyModifier(stock_type);
 	}
 	
-	if (pSettings->line_exist(section, "foregrip_type"))
-		process_foregrip				(obj, section, attach);
+	if (auto type = READ_IF_EXISTS(pSettings, r_string, section, "foregrip_type", 0))
+		process_foregrip				(obj, type, attach);
 
 	if (float length = READ_IF_EXISTS(pSettings, r_float, section, "barrel_length", 0.f))
 	{

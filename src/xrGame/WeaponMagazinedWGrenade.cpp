@@ -371,7 +371,7 @@ void CWeaponMagazinedWGrenade::process_addon_modules(CGameObject& obj, bool atta
 	inherited::process_addon_modules	(obj, attach);
 }
 
-static CGameObject* process_ao(MAddonOwner* ao, MAddon* ignore)
+static LPCSTR process_ao(MAddonOwner* ao, MAddon* ignore)
 {
 	for (auto& s : ao->AddonSlots())
 	{
@@ -379,29 +379,29 @@ static CGameObject* process_ao(MAddonOwner* ao, MAddon* ignore)
 		{
 			if (a != ignore)
 			{
-				if (pSettings->line_exist(a->O.cNameSect(), "foregrip_type"))
-					return				&a->O;
+				if (auto type = READ_IF_EXISTS(pSettings, r_string, a->O.cNameSect(), "foregrip_type", 0))
+					return				type;
 				else if (auto addon_ao = a->O.getModule<MAddonOwner>())
 					if (auto res = process_ao(addon_ao, ignore))
 						return			res;
 			}
 		}
 	}
-	return								nullptr;
+	return								0;
 }
 
-void CWeaponMagazinedWGrenade::process_foregrip(CGameObject& obj, shared_str CR$ section, bool attach)
+void CWeaponMagazinedWGrenade::process_foregrip(CGameObject& obj, LPCSTR type, bool attach)
 {
 	if (m_pLauncher)
 	{
 		if (!attach && &obj == &m_pLauncher->O)
 		{
-			if (auto addon = process_ao(getModule<MAddonOwner>(), m_pLauncher->O.getModule<MAddon>()))
-				return					inherited::process_foregrip(*addon, addon->cNameSect(), true);
+			if (auto type = process_ao(getModule<MAddonOwner>(), m_pLauncher->O.getModule<MAddon>()))
+				return					inherited::process_foregrip(obj, type, true);
 		}
 		else
 			return;
 	}
 
-	inherited::process_foregrip			(obj, section, attach);
+	inherited::process_foregrip			(obj, type, attach);
 }

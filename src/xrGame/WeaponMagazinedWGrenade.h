@@ -32,7 +32,7 @@ protected:
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								process_addon_modules				O$	(CGameObject& obj, bool attach);
-	void								process_foregrip					O$	(CGameObject& obj, shared_str CR$ section, bool attach);
+	void								process_foregrip					O$	(CGameObject& obj, LPCSTR type, bool attach);
 
 private:
 	bool								m_bGrenadeMode							= false;
