@@ -200,7 +200,7 @@ private:
 	SScriptAnm							m_empty_click_anm;
 	SScriptAnm							m_firemode_anm;
 
-	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = true);
+	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);
 	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
@@ -211,9 +211,9 @@ private:
 	void								process_silencer						(CSilencer* muzzle, bool attach);
 	void								process_scope							(MScope* scope, bool attach);
 	void								process_align_front						(CGameObject* obj, bool attach);
+	bool								has_ammo_to_shoot						();
 	
 	bool								is_auto_bolt_allowed				C$	();
-	bool								hasAmmoToShoot						C$	();
 	bool								is_detaching						C$	();
 
 	LPCSTR								anmType		 						CO$	();
