@@ -58,8 +58,12 @@ void CWeaponMagazined::PlayAnimReload()
 
 void CWeaponMagazined::OnAnimationEnd(u32 state)
 {
-	if (state != eReload && m_sub_state != eSubstateReloadBolt)
-		return							inherited::OnAnimationEnd(state);
+	if (state != eReload)
+	{
+		if (state != eFire)
+			inherited::OnAnimationEnd	(state);
+		return;
+	}
 
 	switch (m_sub_state)
 	{
@@ -92,10 +96,7 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadBolt:
 		reload_chamber					();
-		if (state == eHiding)
-			switch2_Hiding				();
-		else
-			SwitchState					(eIdle);
+		SwitchState						(eIdle);
 		break;
 	case eSubstateReloadChamber:
 		loadChamber						(m_current_ammo);
