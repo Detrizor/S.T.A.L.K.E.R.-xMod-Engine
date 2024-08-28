@@ -91,7 +91,7 @@ static float IReceived = 0;
 static float ICoincidenced = 0;
 extern float cammera_into_collision_shift;
 
-string32		ACTOR_DEFS::g_quick_use_slots[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+string64		ACTOR_DEFS::g_quick_use_slots[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 //skeleton
 
 static Fbox		bbStandBox;
