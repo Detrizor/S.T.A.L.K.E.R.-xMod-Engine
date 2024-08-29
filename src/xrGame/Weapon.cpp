@@ -910,12 +910,12 @@ void CWeapon::ZoomDec()
 		SwitchArmedMode					();
 }
 
-float CWeapon::readAccuracyModifier(LPCSTR section, LPCSTR line) const
+float CWeapon::readAccuracyModifier(LPCSTR section, LPCSTR line)
 {
 	return readAccuracyModifier(pSettings->r_string(section, line));
 }
 
-float CWeapon::readAccuracyModifier(LPCSTR type) const
+float CWeapon::readAccuracyModifier(LPCSTR type)
 {
 	return READ_IF_EXISTS(pSettings, r_float, "accuracy_modifiers", type, 1.f);
 }
@@ -1016,6 +1016,8 @@ float CWeapon::s_recoil_tremble_dispersion;
 float CWeapon::s_recoil_kick_dispersion;
 float CWeapon::s_recoil_roll_dispersion;
 
+Fvector CWeapon::m_stock_recoil_pattern_absent;
+
 void CWeapon::loadStaticData()
 {
 	s_inertion_baseline_weight			= pSettings->r_float("weapon_manager", "inertion_baseline_weight");
@@ -1032,4 +1034,6 @@ void CWeapon::loadStaticData()
 	s_recoil_tremble_dispersion			= pSettings->r_float("weapon_manager", "recoil_tremble_dispersion");
 	s_recoil_kick_dispersion			= pSettings->r_float("weapon_manager", "recoil_kick_dispersion");
 	s_recoil_roll_dispersion			= pSettings->r_float("weapon_manager", "recoil_roll_dispersion");
+
+	m_stock_recoil_pattern_absent		= readRecoilPattern("absent");
 }

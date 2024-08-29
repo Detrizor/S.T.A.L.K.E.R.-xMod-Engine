@@ -411,12 +411,17 @@ private:
 	static float						s_recoil_tremble_dispersion;
 	static float						s_recoil_kick_dispersion;
 	static float						s_recoil_roll_dispersion;
+
+	static Fvector						m_stock_recoil_pattern_absent;
 	
 	Fvector								m_mechanic_recoil_pattern;
 	Fvector								m_layout_recoil_pattern;
 	SScriptAnm							m_safemode_anm[2];
 
 protected:
+	static float						readAccuracyModifier					(LPCSTR section, LPCSTR line);
+	static float						readAccuracyModifier					(LPCSTR type);
+
 	int									m_iADS									= 0;
 	bool								m_bArmedMode							= false;
 	bool								m_bHasAltAim							= true;
@@ -452,9 +457,6 @@ protected:
 	CCartridge							m_cartridge;
 	
 	void								appendRecoil							(float impulse_magnitude);
-	
-	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
-	float								readAccuracyModifier				C$	(LPCSTR type);
 	int									get_ammo_type						C$	(shared_str CR$ section);
 	float								get_wpn_pos_inertion_factor			C$	();
 	

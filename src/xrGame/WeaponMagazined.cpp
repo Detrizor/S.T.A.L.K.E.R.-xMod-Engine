@@ -1510,7 +1510,8 @@ void CWeaponMagazined::updateRecoil()
 
 	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
 	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
-	accuracy *= m_layout_accuracy_modifier * m_grip_accuracy_modifier * m_stock_accuracy_modifier * m_foregrip_accuracy_modifier;
+	accuracy *= m_layout_accuracy_modifier * m_grip_accuracy_modifier * m_foregrip_accuracy_modifier;
+	accuracy *= (IsZoomed()) ? m_stock_accuracy_modifier : m_stock_accuracy_modifier_absent;
 
 	if (hud_impulse || hud_shift)
 	{
@@ -1577,11 +1578,14 @@ void CWeaponMagazined::updateRecoil()
 float CWeaponMagazined::s_ads_shift_step;
 float CWeaponMagazined::s_ads_shift_max;
 float CWeaponMagazined::s_barrel_length_power;
+
 float CWeaponMagazined::s_recoil_hud_stopping_power_per_shift;
 float CWeaponMagazined::s_recoil_hud_relax_impulse_per_shift;
 float CWeaponMagazined::s_recoil_cam_angle_per_delta;
 float CWeaponMagazined::s_recoil_cam_stopping_power_per_impulse;
 float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
+
+float CWeaponMagazined::m_stock_accuracy_modifier_absent;
 
 void CWeaponMagazined::loadStaticData()
 {
@@ -1594,4 +1598,6 @@ void CWeaponMagazined::loadStaticData()
 	s_recoil_cam_angle_per_delta		= pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta");
 	s_recoil_cam_stopping_power_per_impulse = pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse");
 	s_recoil_cam_relax_impulse_ratio	= pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio");
+	
+	m_stock_accuracy_modifier_absent	= readAccuracyModifier("absent");
 }

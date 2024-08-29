@@ -182,6 +182,8 @@ private:
 	static float						s_recoil_cam_stopping_power_per_impulse;
 	static float						s_recoil_cam_relax_impulse_ratio;
 
+	static float						m_stock_accuracy_modifier_absent;
+
 	MScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<MScope*>					m_attached_scopes						= {};
 	MMagazine*							m_magazine								= nullptr;
