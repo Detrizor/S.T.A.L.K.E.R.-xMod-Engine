@@ -146,7 +146,7 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 			return						eRelaxed;
 	}
 
-	return								(O.GetState() == CHudItem::eHiding) ? eRelaxed : eArmed;
+	return								eArmed;
 }
 
 Dvector CP$ CWeaponHud::get_target_hud_offset() const

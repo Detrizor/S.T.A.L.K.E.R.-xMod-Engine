@@ -175,6 +175,8 @@ public:
 private:
 	SScriptAnm							m_show_anm;
 	SScriptAnm							m_hide_anm;
+	SScriptAnm							m_show_anm_relaxed;
+	SScriptAnm							m_hide_anm_relaxed;
 
 protected:
 	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
@@ -187,6 +189,7 @@ protected:
 	void								playBlendAnm							(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false, float power_k = 1.f);
 
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
+	bool							V$	relaxed_anm							C$	()		{ return false; }
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр

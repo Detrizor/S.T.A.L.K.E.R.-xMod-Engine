@@ -54,12 +54,20 @@ void CHudItem::Load(LPCSTR section)
 		m_show_anm.name					= pSettings->r_string(hud_sect, "show_anm");
 		m_show_anm.speed				= pSettings->r_float(hud_sect, "show_anm_speed");
 		m_show_anm.power				= pSettings->r_float(hud_sect, "show_anm_power");
+		
+		m_show_anm_relaxed.name			= pSettings->r_string(hud_sect, "show_anm_relaxed");
+		m_show_anm_relaxed.speed		= pSettings->r_float(hud_sect, "show_anm_relaxed_speed");
+		m_show_anm_relaxed.power		= pSettings->r_float(hud_sect, "show_anm_relaxed_power");
 	}
 	if (pSettings->line_exist(hud_sect, "hide_anm"))
 	{
 		m_hide_anm.name				= pSettings->r_string(hud_sect, "hide_anm");
 		m_hide_anm.speed				= pSettings->r_float(hud_sect, "hide_anm_speed");
 		m_hide_anm.power				= pSettings->r_float(hud_sect, "hide_anm_power");
+		
+		m_hide_anm_relaxed.name			= pSettings->r_string(hud_sect, "hide_anm_relaxed");
+		m_hide_anm_relaxed.speed		= pSettings->r_float(hud_sect, "hide_anm_relaxed_speed");
+		m_hide_anm_relaxed.power		= pSettings->r_float(hud_sect, "hide_anm_relaxed_power");
 	}
 }
 
@@ -118,7 +126,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		if (HudAnimationExist("anm_show"))
 			PlayHUDMotion("anm_show", FALSE, S);
 		else
-			playBlendAnm(m_show_anm, S, true);
+			playBlendAnm((relaxed_anm()) ? m_show_anm_relaxed : m_show_anm, S, true);
 		break;
 	case eHiding:
 		if (oldState != eHiding)
@@ -127,7 +135,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 			if (HudAnimationExist("anm_hide"))
 				PlayHUDMotion("anm_hide", FALSE, S);
 			else
-				playBlendAnm(m_hide_anm, S);
+				playBlendAnm((relaxed_anm()) ? m_hide_anm_relaxed : m_hide_anm, S);
 		}
 		break;
 	case eIdle:
