@@ -198,6 +198,7 @@ private:
 	bool								m_mag_attach_bolt_release;
 	bool								m_bolt_catch;
 	SScriptAnm							m_empty_click_anm;
+	SScriptAnm							m_bolt_pull_anm;
 	SScriptAnm							m_firemode_anm;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);

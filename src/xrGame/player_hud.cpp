@@ -543,35 +543,6 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 		if (m_attached_items[i])
 			update_bones(m_attached_items[i]->m_model);
 
-	for (auto& anm : m_script_layers)
-	{
-		if (!anm || !anm->anm || (!anm->active && anm->blend_amount == 0.f))
-			continue;
-
-		if (anm->active)
-			anm->blend_amount += Device.fTimeDelta / .4f;
-		else
-			anm->blend_amount -= Device.fTimeDelta / .4f;
-
-		clamp(anm->blend_amount, 0.f, 1.f);
-
-		if (anm->blend_amount > 0.f)
-		{
-			if (anm->anm->bLoop || anm->anm->anim_param().t_current < anm->anm->anim_param().max_t)
-				anm->anm->Update(Device.fTimeDelta);
-			else
-				anm->Stop(false);
-		}
-		else
-		{
-			anm->Stop(true);
-			continue;
-		}
-
-		if (anm->m_part == 0 || anm->m_part == 2)
-			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM()));
-	}
-
 	for (auto& i : m_movement_layers)
 		for (auto& j : i)
 			for (auto& k : j)
@@ -628,6 +599,35 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 			m_transform.mulB_43(pi->m_hands_attach);
 			break;
 		}
+	}
+
+	for (auto& anm : m_script_layers)
+	{
+		if (!anm || !anm->anm || (!anm->active && anm->blend_amount == 0.f))
+			continue;
+
+		if (anm->active)
+			anm->blend_amount += Device.fTimeDelta / .4f;
+		else
+			anm->blend_amount -= Device.fTimeDelta / .4f;
+
+		clamp(anm->blend_amount, 0.f, 1.f);
+
+		if (anm->blend_amount > 0.f)
+		{
+			if (anm->anm->bLoop || anm->anm->anim_param().t_current < anm->anm->anim_param().max_t)
+				anm->anm->Update(Device.fTimeDelta);
+			else
+				anm->Stop(false);
+		}
+		else
+		{
+			anm->Stop(true);
+			continue;
+		}
+
+		if (anm->m_part == 0 || anm->m_part == 2)
+			m_transform.mulB_43(static_cast<Dmatrix>(anm->XFORM()));
 	}
 
 	if (m_attached_items[0])

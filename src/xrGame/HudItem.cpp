@@ -630,13 +630,13 @@ attachable_hud_item* CHudItem::HudItemData() const
 	return NULL;
 }
 
-void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend)
+void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend, float power_k)
 {
 	float								 anim_time;
 	if (HudItemData())
 	{
 		u8 part							= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
-		auto layer						= g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power, false, false);
+		auto layer						= g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power * power_k, false, false);
 		if (full_blend)
 			layer->blend_amount			= 1.f;
 		anim_time						= layer->anm->anim_param().max_t;

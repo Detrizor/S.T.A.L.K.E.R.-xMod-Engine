@@ -333,6 +333,18 @@ int CWeapon::get_ammo_type(shared_str CR$ section) const
 	return								0;
 }
 
+float CWeapon::get_wpn_pos_inertion_factor() const
+{
+	if (ADS())
+		return							s_inertion_ads_factor;
+	else if (IsZoomed())
+		return							s_inertion_aim_factor;
+	else if (ArmedMode())
+		return							s_inertion_armed_factor;
+	else
+		return							s_inertion_relaxed_factor;
+}
+
 void CWeapon::net_Destroy()
 {
 	inherited::net_Destroy();
@@ -949,16 +961,7 @@ float CWeapon::GetControlInertionFactor C$(bool full)
 {
 	float inertion						= sqrt((Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight) - 1.f;
 	if (full)
-	{
-		if (ADS())
-			inertion					*= s_inertion_ads_factor;
-		else if (IsZoomed())
-			inertion					*= s_inertion_aim_factor;
-		else if (ArmedMode())
-			inertion					*= s_inertion_armed_factor;
-		else
-			inertion					*= s_inertion_relaxed_factor;
-	}
+		inertion						*= get_wpn_pos_inertion_factor();
 	return								1.f + inherited::GetControlInertionFactor(full) * inertion;
 }
 

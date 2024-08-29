@@ -18,23 +18,20 @@ void CWeaponMagazined::PlayAnimReload()
 		break;
 	case eSubstateReloadBolt:
 	{
-		bool ex							= HudAnimationExist("anm_bolt_pull");
-		if (m_locked || !ex)
+		if (m_locked)
 		{
 			PlayHUDMotion				("anm_bolt_release", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndBoltRelease", get_LastFP());
 		}
-		else if (ex)
-		{
-			PlayHUDMotion				("anm_bolt_pull", TRUE, GetState());
-			if (m_sounds_enabled)
-				PlaySound				("sndBoltPull", get_LastFP());
-		}
 		else
 		{
-			reload_chamber				();
-			m_pInventory->Ruck			(this);
+			if (HudAnimationExist("anm_bolt_pull"))
+				PlayHUDMotion			("anm_bolt_pull", TRUE, GetState());
+			if (m_bolt_pull_anm.name.size())
+				playBlendAnm			(m_bolt_pull_anm, GetState(), false, (ArmedMode()) ? 1.f / get_wpn_pos_inertion_factor() : 1.f);
+			if (m_sounds_enabled)
+				PlaySound				("sndBoltPull", get_LastFP());
 		}
 		break;
 	}

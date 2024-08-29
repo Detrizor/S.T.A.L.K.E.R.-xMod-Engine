@@ -184,7 +184,7 @@ protected:
 
 	shared_str							m_anm_prefix							= 0;
 
-	void								playBlendAnm							(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false);
+	void								playBlendAnm							(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false, float power_k = 1.f);
 
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 

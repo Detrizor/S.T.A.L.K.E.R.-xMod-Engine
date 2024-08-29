@@ -456,6 +456,7 @@ protected:
 	float								readAccuracyModifier				C$	(LPCSTR section, LPCSTR line);
 	float								readAccuracyModifier				C$	(LPCSTR type);
 	int									get_ammo_type						C$	(shared_str CR$ section);
+	float								get_wpn_pos_inertion_factor			C$	();
 	
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 

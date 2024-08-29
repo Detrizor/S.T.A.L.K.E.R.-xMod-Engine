@@ -153,6 +153,13 @@ void CWeaponMagazined::Load(LPCSTR section)
 		m_empty_click_anm.power			= pSettings->r_float(hud_sect, "empty_click_anm_power");
 	}
 
+	if (pSettings->line_exist(hud_sect, "bolt_pull_anm"))
+	{
+		m_bolt_pull_anm.name			= pSettings->r_string(hud_sect, "bolt_pull_anm");
+		m_bolt_pull_anm.speed			= pSettings->r_float(hud_sect, "bolt_pull_anm_speed");
+		m_bolt_pull_anm.power			= pSettings->r_float(hud_sect, "bolt_pull_anm_power");
+	}
+
 	if (pSettings->line_exist(hud_sect, "firemode_anm"))
 	{
 		m_firemode_anm.name				= pSettings->r_string(hud_sect, "firemode_anm");
@@ -1066,7 +1073,7 @@ void CWeaponMagazined::on_firemode_switch()
 	}
 	if (m_firemode_anm.name.size())
 	{
-		playBlendAnm					(m_firemode_anm, GetState());
+		playBlendAnm					(m_firemode_anm, GetState(), false, 1.f / get_wpn_pos_inertion_factor());
 		anim_started					= true;
 	}
 	
