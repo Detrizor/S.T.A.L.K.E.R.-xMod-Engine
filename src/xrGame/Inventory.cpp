@@ -941,29 +941,25 @@ PIItem CInventory::Same(const PIItem pIItem) const
 }
 
 //ищем вещь для слота 
-PIItem CInventory::SameSlot(const u16 slot, PIItem pIItem) const
+PIItem CInventory::SameSlot(const u16 slot, PIItem pIItem, LPCSTR section) const
 {
 	if (slot == NO_ACTIVE_SLOT)
-		return NULL;
+		return							nullptr;
 
-	for (TIItemContainer::const_iterator it = m_ruck.begin(); m_ruck.end() != it; ++it)
-	{
-		PIItem _pIItem		= *it;
-		if (_pIItem != pIItem && _pIItem->BaseSlot() == slot)
-			return			_pIItem;
-	}
+	for (auto item : m_ruck)
+		if (item->BaseSlot() == slot && item != pIItem && xr_strcmp(item->m_section_id.c_str(), section))
+			return						item;
 
-	for (u8 i = 0; i < m_pockets_count; i++)
+	for (u8 i = 0; i < m_pockets_count; ++i)
 	{
-		for (TIItemContainer::const_iterator it = m_pockets[i].begin(), it_e = m_pockets[i].end(); it != it_e; ++it)
+		for (auto item : m_pockets[i])
 		{
-			const PIItem item		= *it;
-			if (item != pIItem && item->BaseSlot() == slot)
-				return				item;
+			if (item->BaseSlot() == slot && item != pIItem && xr_strcmp(item->m_section_id.c_str(), section))
+				return					item;
 		}
 	}
 
-	return NULL;
+	return								nullptr;
 }
 
 //найти в инвенторе вещь с указанным именем

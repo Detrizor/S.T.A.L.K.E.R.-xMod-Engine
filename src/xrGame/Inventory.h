@@ -95,7 +95,7 @@ public:
 	// »щет на по€се аналогичный IItem
 	PIItem					Same				(const PIItem pIItem) const;
 	// »щет на по€се IItem дл€ указанного слота
-	PIItem					SameSlot			(const u16 slot, PIItem pIItem) const;
+	PIItem					SameSlot			(const u16 slot, PIItem pIItem = nullptr, LPCSTR section = "") const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (cName())
 	PIItem					Get					(LPCSTR name, int pocket_id = -1, bool full = false) const;
 	// »щет на по€се или в рюкзаке IItem с указанным именем (id)

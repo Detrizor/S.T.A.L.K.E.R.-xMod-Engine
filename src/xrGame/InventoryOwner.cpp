@@ -491,27 +491,19 @@ void CInventoryOwner::OnItemSlot(CInventoryItem *inventory_item, const SInvItemP
 
 CCustomOutfit* CInventoryOwner::GetOutfit() const
 {
-	CCustomOutfit* pOutfit;
-	if (smart_cast<const CActor*>(this))
-	{
-		pOutfit = smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT));
-		if (!pOutfit)
-			pOutfit = smart_cast<CCustomOutfit*>(inventory().Get("without_outfit"));
-	}
-	else
-	{
-		PIItem without_outfit = inventory().Get("without_outfit");
-		pOutfit = smart_cast<CCustomOutfit*>(inventory().SameSlot(OUTFIT_SLOT, without_outfit));
-		if (!pOutfit)
-			pOutfit = smart_cast<CCustomOutfit*>(without_outfit);
-	}
+	LPCSTR wo							= "without_outfit";
+	CCustomOutfit* pOutfit				= (smart_cast<const CActor*>(this)) ?
+		smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT)) :
+		smart_cast<CCustomOutfit*>(inventory().SameSlot(OUTFIT_SLOT, nullptr, wo));
 
-	return pOutfit;
+	return								(pOutfit) ? pOutfit : smart_cast<CCustomOutfit*>(inventory().Get(wo));
 }
 
 CHelmet* CInventoryOwner::GetHelmet() const
 {
-	return (smart_cast<const CActor*>(this)) ? smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT)) : smart_cast<CHelmet*>(inventory().SameSlot(HELMET_SLOT, NULL));
+	return								(smart_cast<const CActor*>(this)) ?
+		smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT)) :
+		smart_cast<CHelmet*>(inventory().SameSlot(HELMET_SLOT));
 }
 
 void CInventoryOwner::on_weapon_shot_start(CWeapon *weapon)
