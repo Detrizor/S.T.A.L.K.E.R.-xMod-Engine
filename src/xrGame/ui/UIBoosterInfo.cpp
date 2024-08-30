@@ -270,10 +270,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		h								+= m_bullet_pulse->GetWndSize().y;
 		AttachChild						(m_bullet_pulse.get());
 
-		float muzzle_energy				= cartridge.param_s.fBulletMass * _sqr(bullet_speed) * .5f;
-		float muzzle_ap					= cartridge.param_s.bullet_k_ap * muzzle_energy / cartridge.param_s.fBulletResist;
-		muzzle_ap						*= Level().BulletManager().m_fBulletGlobalAPScale;
-
+		float muzzle_ap					= Level().BulletManager().calculateAP(cartridge.param_s.penetration, bullet_speed);
 		float level						= -1.f;
 		for (int i = 0; i < SBoneProtections::s_armor_levels.size(); i++)
 		{

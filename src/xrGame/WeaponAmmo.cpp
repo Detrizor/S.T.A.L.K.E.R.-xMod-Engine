@@ -12,9 +12,6 @@
 #include "string_table.h"
 #include "WeaponMagazined.h"
 
-float CCartridge::s_resist_factor;
-float CCartridge::s_resist_power;
-
 CCartridge::CCartridge() 
 {
 	m_flags.assign						(cfTracer | cfRicochet);
@@ -25,17 +22,13 @@ CCartridge::CCartridge(LPCSTR section) : CCartridge()
 	Load								(section);
 }
 
+float CCartridge::s_resist_factor;
+float CCartridge::s_resist_power;
+
 void CCartridge::loadStaticData()
 {
 	s_resist_factor						= pSettings->r_float("bullet_manager", "resist_factor");
 	s_resist_power						= pSettings->r_float("bullet_manager", "resist_power");
-}
-
-float CCartridge::calcResist(LPCSTR section)
-{
-	float d								= pSettings->r_float(section, "caliber");
-	float h								= pSettings->r_float(section, "tip_height");
-	return								s_resist_factor * _sqr(d) * pow(d / h, s_resist_power);
 }
 
 void CCartridge::Load(LPCSTR section, float condition)
@@ -54,12 +47,18 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.barrel_len					= pow(param_s.barrel_length, CWeaponMagazined::s_barrel_length_power);
 	param_s.bullet_speed_per_barrel_len = bullet_speed / param_s.barrel_len;
 	param_s.bullet_k_ap					= pSettings->r_float(section, "bullet_k_ap");
-	param_s.fBulletResist				= calcResist(section);
+
 	param_s.fAirResist					= Level().BulletManager().m_fBulletAirResistanceScale * param_s.fBulletResist * .000001f / param_s.fBulletMass;
 	param_s.fAirResistZeroingCorrection	= pow(Level().BulletManager().m_fZeroingAirResistCorrectionK1 * param_s.fAirResist, Level().BulletManager().m_fZeroingAirResistCorrectionK2);
 	param_s.buckShot					= pSettings->r_s32(  section, "buck_shot");
 	param_s.impair						= pSettings->r_float(section, "impair");
 	
+	float d								= pSettings->r_float(section, "caliber");
+	float h								= pSettings->r_float(section, "tip_height");
+	param_s.fBulletResist				= s_resist_factor * _sqr(d) * pow(d / h, s_resist_power);
+	param_s.penetration					= param_s.fBulletMass * param_s.bullet_k_ap;
+	param_s.penetration					*= d * d / (1.91f - .35f * h / d);
+
 	m_flags.set							(cfTracer, pSettings->r_bool(section, "tracer"));
 	m_flags.set							(cfRicochet, pSettings->r_bool(section, "allow_ricochet"));
 	m_flags.set							(cfExplosive, pSettings->r_bool(section, "explosive"));

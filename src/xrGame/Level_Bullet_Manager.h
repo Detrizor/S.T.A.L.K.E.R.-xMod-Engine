@@ -64,6 +64,7 @@ struct SBullet
 	float			wallmark_size		;
 	float			mass				;
 	float			resist				;
+	float			penetration			;
 	float			k_ap				;
 	bool			hollow_point		;
 	//-------------------------------------------------------------------
@@ -228,6 +229,7 @@ private:
 	float								m_min_bullet_speed;
 	float								m_max_bullet_fly_time;
 	Fvector								m_gravity;
+	float								m_global_ap_scale;
 
 public:
 	float								m_fBulletAirResistanceScale;
@@ -237,7 +239,6 @@ public:
 	float								m_fZeroingAirResistCorrectionK2;
 	float								m_fZeroingAirResistCorrectionK3;
 
-	float								m_fBulletGlobalAPScale;
 	float								m_fBulletHollowPointResistFactor;
 	float								m_fBulletAPLossOnPierce;
 
@@ -258,6 +259,7 @@ public:
 	float								GravityConst						C$	()		{ return m_fGravityConst; }
 
 	float								CalcZeroingCorrection				C$	(float k, float z);
+	float								calculateAP							C$	(float penetration, float speed);
 };
 
 struct bullet_test_callback_data

@@ -12,6 +12,7 @@ struct SCartridgeParam
 	float								impair									= 1.f;
 	float								fBulletMass								= 1.f;
 	float								fBulletResist							= 1.f;
+	float								penetration								= 1.f;
 	float								fWMS									= -1.f;
 	float								fAirResist								= 1.f;
 	float								fAirResistZeroingCorrection				= 1000.f;
@@ -43,6 +44,8 @@ private:
 	static float						s_resist_power;
 
 public:
+	static void							loadStaticData							();
+
 	shared_str							m_ammoSect								= 0;
 	float								m_fCondition							= 1.f;
 	u16									bullet_material_idx						= u16_max;
@@ -66,9 +69,6 @@ public:
 	float								light_lifetime;
 
 	float								Weight								C$	();
-
-	void							S$	loadStaticData							();
-	float							S$	calcResist								(LPCSTR section);
 };
 
 class CWeaponAmmo :	public CInventoryItemObject

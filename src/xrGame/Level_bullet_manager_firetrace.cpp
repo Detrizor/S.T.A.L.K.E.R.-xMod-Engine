@@ -372,9 +372,7 @@ bool CBulletManager::ObjectHit(SBullet_Hit* hit_res, SBullet* bullet, const Fvec
 	bool ricoshet			= false;
 	bool inwards			= DOT(hit_normal, bullet->dir) < 0.f;
 
-	float bullet_energy					= bullet->mass * _sqr(bullet->speed) * .5f;
-	float bullet_ap						= m_fBulletGlobalAPScale * bullet->k_ap * bullet_energy / bullet->resist;
-
+	float bullet_ap						= calculateAP(bullet->penetration, bullet->speed);
 	float armor							= 0.f;
 	float bone_density					= 0.f;
 	if (ea)

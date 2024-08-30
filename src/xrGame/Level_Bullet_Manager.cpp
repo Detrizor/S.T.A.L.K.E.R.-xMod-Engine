@@ -74,6 +74,7 @@ void SBullet::Init(const Fvector& position,
 	
 	mass					= cartridge.param_s.fBulletMass;
 	resist					= cartridge.param_s.fBulletResist;
+	penetration				= cartridge.param_s.penetration;
 	hollow_point			= cartridge.param_s.bullet_hollow_point;
 	air_resistance			= cartridge.param_s.fAirResist;
 	k_ap					= cartridge.param_s.bullet_k_ap;
@@ -149,7 +150,7 @@ void CBulletManager::Load		()
 	m_fZeroingAirResistCorrectionK2		= pSettings->r_float(bullet_manager_sect, "zeroing_air_resist_correction_k2");
 	m_fZeroingAirResistCorrectionK3		= pSettings->r_float(bullet_manager_sect, "zeroing_air_resist_correction_k3");
 
-	m_fBulletGlobalAPScale				= pSettings->r_float(bullet_manager_sect, "bullet_global_ap_scale");
+	m_global_ap_scale					= pSettings->r_float(bullet_manager_sect, "global_ap_scale");
 	m_fBulletHollowPointResistFactor	= pSettings->r_float(bullet_manager_sect, "hollow_point_resist_factor");
 	m_fBulletAPLossOnPierce				= pSettings->r_float(bullet_manager_sect, "ap_loss_on_pierce");
 
@@ -565,7 +566,12 @@ void CBulletManager::RegisterEvent			(EventType Type, BOOL _dynamic, SBullet* bu
 	}	
 }
 
-float CBulletManager::CalcZeroingCorrection	C$(float k, float z)
+float CBulletManager::CalcZeroingCorrection(float k, float z) const
 {
 	return								1.f / (1.f + m_fZeroingAirResistCorrectionK3 / (k - z) - m_fZeroingAirResistCorrectionK3 / k);
+}
+
+float CBulletManager::calculateAP(float penetration, float speed) const
+{
+	return								m_global_ap_scale * penetration * logf(1.f + .00000055f * _sqr(speed));
 }
