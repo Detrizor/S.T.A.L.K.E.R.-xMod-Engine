@@ -19,17 +19,17 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 	trader.supplies_list.clear_not_free();
 	for (auto& item : ini_file.r_section(section).Data)
 	{
-		if (CItemsLibrary::checkSection(item.first))
+		if (CItemsLibrary::validSection(item.first))
 		{
 			GiveObject				(owner, item.first);
 			continue;
 		}
 
 		string256					tmp0, tmp1, tmp2;
-		shared_str category			= _GetItem(*item.first, 0, tmp0, '.');
+		LPCSTR category				= _GetItem(*item.first, 0, tmp0, '.');
 		int count					= _GetItemCount(*item.first, '.');
-		shared_str subcategory		= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
-		shared_str division			= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
+		_STD string subcategory		= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
+		_STD string division		= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
 
 		for (auto& subcat : CItemsLibrary::getCategory(category))
 		{

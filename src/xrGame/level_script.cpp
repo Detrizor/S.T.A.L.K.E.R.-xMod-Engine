@@ -739,7 +739,12 @@ void stop_tutorial()
 		g_tutorial->Stop();	
 }
 
-LPCSTR translate_string(LPCSTR str)
+static bool string_exists(LPCSTR str)
+{
+	return CStringTable().exists(str);
+}
+
+static LPCSTR translate_string(LPCSTR str)
 {
 	return *CStringTable().translate(str);
 }
@@ -1073,6 +1078,7 @@ void CLevel::script_register(lua_State *L)
 	def("start_tutorial",		&start_tutorial),
 	def("stop_tutorial",		&stop_tutorial),
 	def("has_active_tutorial",	&has_active_tutotial),
+	def("string_exists",		&string_exists),
 	def("translate_string",		&translate_string),
 	def("reload_language",		&reload_language),
 	def("log_stack_trace",		&LogStackTrace)
