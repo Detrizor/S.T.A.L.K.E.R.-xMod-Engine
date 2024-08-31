@@ -397,11 +397,13 @@ void CUIAddonOwnerCellItem::process_ao(MAddonOwner* ao, Fvector2 CR$ forwarded_o
 				if (addon->I->areInvIconTypesAllowed())
 				{
 					if (abs(hpb.z) >= .75f * PI)
-						s->addon_type	= 1;
-					else if (abs(hpb.z) >= PI_DIV_4)
 						s->addon_type	= 2;
+					else if (hpb.z >= PI_DIV_4)
+						s->addon_type	= 3;
+					else if (hpb.z <= -PI_DIV_4)
+						s->addon_type	= 1;
 					else
-						s->addon_type	= addon->I->GetInvIconType();
+						s->addon_type	= addon->I->getInvIconType();
 				}
 
 				s->addon_section			= addon->O.cNameSect();

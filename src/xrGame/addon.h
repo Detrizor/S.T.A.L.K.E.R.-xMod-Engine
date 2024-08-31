@@ -22,7 +22,7 @@ public:
 private:
 	Dmatrix 							m_local_transform						= Didentity;
 	Dmatrix 							m_hud_transform							= Didentity;
-	CAddonSlot*							m_slot									= NULL;
+	CAddonSlot*							m_slot									= nullptr;
 	u16									m_slot_idx								= u16_max;
 	s16									m_slot_pos								= s16_max;
 

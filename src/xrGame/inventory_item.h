@@ -304,8 +304,9 @@ private:
 	shared_str							m_division;
 	Frect								m_inv_icon;
 	bool								m_inv_icon_types;
+	u8									m_inv_icon_type_default;
 
-	u8									m_inv_icon_type							= 0;
+	u8									m_inv_icon_type							= u8_max;
 	u8									m_inv_icon_index						= 0;
 
 public:
@@ -319,7 +320,8 @@ public:
 
 			void			SetInvIconType			(u8 type);
 			void			SetInvIconIndex			(u8 idx);
-			u8				GetInvIconType			()								const	{ return m_inv_icon_type; }
+			u8				getInvIconType			()								const;
+			u8				getInvIconTypeDefault	()								const	{ return m_inv_icon_type; }
 			u8				GetInvIconIndex			()								const	{ return m_inv_icon_index; }
 
 

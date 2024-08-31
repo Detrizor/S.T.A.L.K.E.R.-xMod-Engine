@@ -165,7 +165,8 @@ void CInventoryItem::Load(LPCSTR section)
 	m_cost								= readBaseCost(section);
 	
 	m_inv_icon_types					= !!READ_IF_EXISTS(pSettings, r_bool, section, "inv_icon_types", FALSE);
-	set_inv_icon							();
+	m_inv_icon_type_default				= READ_IF_EXISTS(pSettings, r_u8, section, "inv_icon_type_default", 0);
+	set_inv_icon						();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
 		O.addModule<MAddonOwner>		();
@@ -808,20 +809,30 @@ void CInventoryItem::SetInvIconType(u8 type)
 {
 	if (m_inv_icon_types)
 	{
-		m_inv_icon_type				= type;
+		m_inv_icon_type					= type;
 		set_inv_icon					();
 	}
 }
 
 void CInventoryItem::SetInvIconIndex(u8 idx)
 {
-	m_inv_icon_index				= idx;
+	m_inv_icon_index					= idx;
 	set_inv_icon						();
+}
+
+u8 CInventoryItem::getInvIconType() const
+{
+	if (m_inv_icon_type != u8_max)
+		return							m_inv_icon_type;
+	if (auto addon = O.getModule<MAddon>())
+		if (addon->getSlot())
+			return						0;
+	return								m_inv_icon_type_default;
 }
 
 void CInventoryItem::set_inv_icon()
 {
-	readIcon						(m_inv_icon, *m_section_id, m_inv_icon_type, m_inv_icon_index);
+	readIcon						(m_inv_icon, *m_section_id, getInvIconType(), m_inv_icon_index);
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)
