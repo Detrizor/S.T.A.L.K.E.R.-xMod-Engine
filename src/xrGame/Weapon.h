@@ -426,7 +426,6 @@ protected:
 	bool								m_bArmedMode							= false;
 	bool								m_bHasAltAim							= true;
 	bool								m_bArmedRelaxedSwitch					= true;
-	bool								m_locked								= false;
 	CActor*								m_actor									= nullptr;
 
 	float								m_grip_accuracy_modifier				= 1.f;

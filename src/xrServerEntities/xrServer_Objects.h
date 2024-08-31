@@ -165,8 +165,9 @@
 // 129 - xMod base
 // 130 - weapon ads shift
 // 131 - current scope reticle
+// 132 - weapon locked and cocked state
 //------------------------------------------------------------------------------
-constexpr u16 SPAWN_VERSION = 131;
+constexpr u16 SPAWN_VERSION = 132;
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

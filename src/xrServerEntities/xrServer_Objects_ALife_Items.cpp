@@ -556,6 +556,8 @@ void CSE_ALifeItemWeaponMagazined::STATE_Write(NET_Packet& P)
 	inherited::STATE_Write(P);
 	P.w_u8(m_u8CurFireMode);
 	P.w_float(m_ads_shift);
+	P.w_bool(m_locked);
+	P.w_bool(m_cocked);
 }
 
 void CSE_ALifeItemWeaponMagazined::STATE_Read(NET_Packet& P, u16 size)
@@ -565,6 +567,11 @@ void CSE_ALifeItemWeaponMagazined::STATE_Read(NET_Packet& P, u16 size)
 		P.r_u8(m_u8CurFireMode);
 	if (m_wVersion >= 130)
 		P.r_float(m_ads_shift);
+	if (m_wVersion >= 132)
+	{
+		P.r_bool(m_locked);
+		P.r_bool(m_cocked);
+	}
 }
 
 #ifndef XRGAME_EXPORTS

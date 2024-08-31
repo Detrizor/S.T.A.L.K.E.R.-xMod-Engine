@@ -306,9 +306,18 @@ void CWeaponMagazined::OnMagazineEmpty()
 
 LPCSTR CWeaponMagazined::anmType() const
 {
+	shared_str							 res;
+	if (!m_cocked)
+		res								= "_empty";
+	else if (m_locked)
+		res								= "_locked";
+	else
+		res								= "";
+
 	if ((m_sub_state == eSubstateReloadBolt || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty())
-		return							"_dummy";
-	return								(m_locked) ? "_empty" : inherited::anmType();
+		res.printf						("%s_dummy", res.c_str());
+
+	return								res.c_str();
 }
 
 u32 CWeaponMagazined::animation_slot() const
@@ -330,6 +339,7 @@ CCartridge CWeaponMagazined::getCartridgeToShoot()
 		{
 			m_chamber.pop_back			();
 			m_shot_shell				= true;
+			m_cocked					= false;
 			if (fOneShotTime != 0.f)
 				reload_chamber			();
 		}
@@ -375,8 +385,9 @@ void CWeaponMagazined::reload_chamber(CCartridge* dest)
 void CWeaponMagazined::load_chamber(bool from_mag)
 {
 	bMisfire							= false;
-	m_locked							= false;
 	m_shot_shell						= false;
+	m_locked							= false;
+	m_cocked							= true;
 
 	if (from_mag && !get_cartridge_from_mag(m_cartridge, true))
 		return;
@@ -618,16 +629,15 @@ void CWeaponMagazined::OnShot()
 
 void CWeaponMagazined::OnEmptyClick()
 {
-	PlaySound("sndEmptyClick", get_LastFP());
 	playBlendAnm(m_empty_click_anm);
-	if (m_lock_state_shooting && m_locked)
-	{
-		m_locked = false;
-		PlaySound("sndBoltRelease", get_LastFP());
-		PlayHUDMotion("anm_shoot", FALSE, GetState());
-		return;
-	}
 	PlayHUDMotion("anm_trigger", FALSE, GetState());
+	if (m_cocked)
+	{
+		m_cocked = false;
+		PlaySound("sndEmptyClick", get_LastFP());
+	}
+	if (m_lock_state_shooting && m_locked)
+		m_locked = false;
 }
 
 void CWeaponMagazined::switch2_Idle()
@@ -1318,12 +1328,16 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		{
 			se_wpn->m_u8CurFireMode		= (u8)m_iCurFireMode;
 			se_wpn->m_ads_shift			= m_ads_shift;
+			se_wpn->m_locked			= m_locked;
+			se_wpn->m_cocked			= m_cocked;
 		}
 		else
 		{
 			m_iCurFireMode				= se_wpn->m_u8CurFireMode;
 			SetQueueSize				(GetCurrentFireMode());
 			m_ads_shift					= se_wpn->m_ads_shift;
+			m_locked					= se_wpn->m_locked;
+			m_cocked					= se_wpn->m_cocked;
 		}
 		return							res;
 	}

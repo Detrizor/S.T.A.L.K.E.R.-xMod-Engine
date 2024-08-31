@@ -193,6 +193,8 @@ private:
 	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
 	float								m_barrel_length							= 0.f;
+	bool								m_locked								= false;
+	bool								m_cocked								= false;
 
 	u32									m_animation_slot_reloading;
 	bool								m_lock_state_reload;
