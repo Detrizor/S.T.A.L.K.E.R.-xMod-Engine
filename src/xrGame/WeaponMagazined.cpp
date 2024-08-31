@@ -306,18 +306,13 @@ void CWeaponMagazined::OnMagazineEmpty()
 
 LPCSTR CWeaponMagazined::anmType() const
 {
-	shared_str							 res;
-	if (!m_cocked)
-		res								= "_empty";
-	else if (m_locked)
-		res								= "_locked";
-	else
-		res								= "";
+	if (m_locked)
+		return							"_locked";
 
 	if ((m_sub_state == eSubstateReloadBolt || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty())
-		res.printf						("%s_dummy", res.c_str());
+		return							(m_cocked) ? "_dummy" : "_dummy_empty";
 
-	return								res.c_str();
+	return								(m_cocked) ? inherited::anmType() : "_empty";
 }
 
 u32 CWeaponMagazined::animation_slot() const
@@ -631,7 +626,7 @@ void CWeaponMagazined::OnEmptyClick()
 {
 	playBlendAnm(m_empty_click_anm);
 	PlayHUDMotion("anm_trigger", FALSE, GetState());
-	if (m_cocked)
+	if (m_cocked && !m_locked)
 	{
 		m_cocked = false;
 		PlaySound("sndEmptyClick", get_LastFP());
