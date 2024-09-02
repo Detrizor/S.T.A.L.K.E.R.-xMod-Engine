@@ -68,7 +68,10 @@ void CWeaponMagazined::Load(LPCSTR section)
 	inherited::Load(section);
 
 	// Sounds
-	m_sounds.LoadSound					(section, "snd_empty", "sndEmptyClick", true, m_eSoundEmptyClick);
+	m_sounds.LoadSound					(pSettings->line_exist(section, "snd_draw") ? section : HudSection().c_str(), "snd_draw", "sndShow", true, m_eSoundShow);
+	m_sounds.LoadSound					(pSettings->line_exist(section, "snd_holster") ? section : HudSection().c_str(), "snd_holster", "sndHide", true, m_eSoundHide);
+	m_sounds.LoadSound					(pSettings->line_exist(section, "snd_empty") ? section : HudSection().c_str(), "snd_empty", "sndEmptyClick", true, m_eSoundEmptyClick);
+	m_sounds.LoadSound					(pSettings->line_exist(section, "snd_firemode") ? section : HudSection().c_str(), "snd_firemode", "sndFiremode", true, m_eSoundFiremode);
 
 	shared_str snd						= "snd_shoot";
 	m_layered_sounds.LoadSound			(section, *snd, "sndShot", false, m_eSoundShot);
@@ -80,15 +83,12 @@ void CWeaponMagazined::Load(LPCSTR section)
 		snd								= "snd_silncer_shot_actor";
 	m_layered_sounds.LoadSound			(section, *snd, "sndSilencerShotActor", false, m_eSoundShot);
 
-	m_sounds.LoadSound					(*HudSection(), "snd_draw", "sndShow", true, m_eSoundShow);
-	m_sounds.LoadSound					(*HudSection(), "snd_holster", "sndHide", true, m_eSoundHide);
-	m_sounds.LoadSound					(*HudSection(), "snd_firemode", "sndFiremode", true, m_eSoundFiremode);
 	m_sounds.LoadSound					(*HudSection(), "snd_reload", "sndReload", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock", "sndBoltLock", true, m_eSoundReload); 
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_load_chamber", "sndLoadChamber", true, m_eSoundReload);
 
 	if (pSettings->line_exist(section, "base_dispersioned_bullets_count"))
