@@ -37,6 +37,18 @@ void MAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hu
 		s->calculateBoneOffset			(model, hud_sect);
 }
 
+bool MAddonOwner::try_transfer(MAddonOwner* ao, void* addon, int attach)
+{
+	if (ao->O.Aboba(eTransferAddon, addon, attach) == flt_max)
+	{
+		if (auto parent_ao = ao->getParentAO())
+			return						try_transfer(parent_ao, addon, attach);
+		else
+			return						false;
+	}
+	return								true;
+}
+
 void MAddonOwner::transfer_addon(MAddon* addon, bool attach)
 {
 	auto detach_addon = [this](MAddon* addon)
@@ -45,7 +57,7 @@ void MAddonOwner::transfer_addon(MAddon* addon, bool attach)
 		addon->O.transfer				((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
 	};
 
-	if (O.Aboba(eTransferAddon, static_cast<void*>(addon), static_cast<int>(attach)) == flt_max)
+	if (!try_transfer(this, static_cast<void*>(addon), static_cast<int>(attach)))
 	{
 		if (attach)
 		{

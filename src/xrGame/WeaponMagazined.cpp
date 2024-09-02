@@ -118,17 +118,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	m_hud								= xr_new<CWeaponHud>(this);
 
-	if (auto ao = getModule<MAddonOwner>())
-	{
-		for (auto& s : ao->AddonSlots())
-		{
-			if (s->attach == "magazine")
-				m_magazine_slot			= s.get();
-			if (s->attach == "muzzle")
-				s->model_offset.translate_add(static_cast<Dvector>(m_fire_point));
-		}
-	}
-
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
 	m_lock_state_shooting				= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_shooting", FALSE);
@@ -1172,6 +1161,18 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 		process_muzzle					(muzzle, attach);
 	if (auto sil = obj.getModule<CSilencer>())
 		process_silencer				(sil, attach);
+	
+	if (auto ao = obj.getModule<MAddonOwner>())
+	{
+		for (auto& s : ao->AddonSlots())
+		{
+			if (s->attach == "magazine")
+			{
+				m_magazine_slot			= (attach) ? s.get() : nullptr;
+				return;
+			}
+		}
+	}
 }
 
 void CWeaponMagazined::process_scope(MScope* scope, bool attach)
