@@ -1114,8 +1114,17 @@ void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ secti
 	if (auto type = READ_IF_EXISTS(pSettings, r_string, section, "grip_type", 0))
 	{
 		if (m_grip = attach)
+		{
 			m_grip_accuracy_modifier	= readAccuracyModifier(type);
-		hud_sect						= pSettings->r_string(cNameSect(), (attach) ? "hud" : "hud_unusable");
+			hud_sect					= pSettings->r_string(cNameSect(), "hud");
+			if (pSettings->line_exist(section, "attached_hud"))
+				hud_sect				= pSettings->r_string(section, "attached_hud");
+			else if (auto addon = obj.getModule<MAddon>())
+				if (pSettings->line_exist(addon->getSlot()->parent_ao->O.cNameSect(), "attached_hud"))
+					hud_sect			= pSettings->r_string(addon->getSlot()->parent_ao->O.cNameSect(), "attached_hud");
+		}
+		else
+			hud_sect					= pSettings->r_string(cNameSect(), "hud_unusable");
 	}
 
 	if (auto type = READ_IF_EXISTS(pSettings, r_string, section, "stock_type", 0))
