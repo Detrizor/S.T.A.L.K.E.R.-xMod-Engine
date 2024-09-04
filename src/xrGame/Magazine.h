@@ -13,18 +13,19 @@ public:
 	static EModuleTypes					mid										()		{ return mMagazine; }
 
 public:
-										MMagazine								(CGameObject* obj);
+										MMagazine								(CGameObject* obj, shared_str CR$ section);
 
 private:
-	xr_vector<CWeaponAmmo*>				m_Heaps;
-	u16									m_iNextHeapIdx;
-	xr_vector<shared_str>				m_ammo_types;
-	u16									m_capacity;
+	const u16							m_capacity;
+	const bool							m_bullets_visible;
+	const shared_str					m_attach_anm;
+	const shared_str					m_detach_anm;
+
+	xr_vector<CWeaponAmmo*>				m_Heaps									= {};
+	u16									m_iNextHeapIdx							= u16_max;
+	xr_vector<shared_str>				m_ammo_types							= {};
 	u16									m_SumAmount;
 	float								m_SumWeight;
-	bool								m_bullets_visible;
-	shared_str							m_attach_anm;
-	shared_str							m_detach_anm;
 
 	void								InvalidateState							();
 	void								UpdateBulletsVisibility					();
@@ -35,9 +36,10 @@ private:
 public:
 	u16									Amount									();
 	bool								CanTake									(CWeaponAmmo CPC ammo);
-	void								loadCartridge							(CCartridge CR$ cartridge);
+	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);
 	void								LoadCartridge							(CWeaponAmmo* ammo);
 	bool								GetCartridge							(CCartridge& destination, bool expend = true);
+	void								setCondition							(float val);
 
 	bool								Full									()		{ return (Amount() == Capacity()); }
 	u16									Capacity							C$	()		{ return m_capacity; };	

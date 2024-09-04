@@ -4,17 +4,18 @@
 void CWeaponBM16::Load(LPCSTR section)
 {
 	inherited::Load						(section);
-	m_sounds.LoadSound					(*HudSection(), "snd_reload_1", "sndReload1", true, m_eSoundReload);
+	m_sounds.LoadSound					(HudSection().c_str(), "snd_reload_1", "sndReload1", true, m_eSoundReload);
+	m_chamber.reserve					(2);
 }
 
 void CWeaponBM16::PlayAnimShoot()
 {
-	PlayHUDMotion						((m_magazin.size()) ? "anm_shoot" : "anm_shoot_1", FALSE, GetState());
+	PlayHUDMotion						((m_chamber.size()) ? "anm_shoot" : "anm_shoot_1", FALSE, GetState());
 }
 
 void CWeaponBM16::PlayAnimReload()
 {
-	bool single							= (m_magazin.size() == 1 || !has_ammo_for_reload(2));
+	bool single							= (m_chamber.size() == 1 || !has_ammo_for_reload(2));
 	PlayHUDMotion						((single) ? "anm_reload_1" : "anm_reload", TRUE, GetState());
 	if (m_sounds_enabled)
 		PlaySound						((single) ? "sndReload1" : "sndReload", get_LastFP());
@@ -22,7 +23,7 @@ void CWeaponBM16::PlayAnimReload()
 
 LPCSTR CWeaponBM16::anmType() const
 {
-	switch (m_magazin.size())
+	switch (m_chamber.size())
 	{
 	case 0:
 		return							"_empty";
@@ -35,14 +36,18 @@ LPCSTR CWeaponBM16::anmType() const
 
 void CWeaponBM16::ReloadMagazine()
 {
-	if (m_magazin.size() == m_magazin.capacity())
+	m_BriefInfo_CalcFrame				= 0;
+
+	if (m_chamber.size() == m_chamber.capacity())
 	{
 		auto owner						= H_Parent()->scast<CInventoryOwner*>();
-		owner->discharge				(getModule<CInventoryItem>());
-		if (unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() > 1))
-			owner->discharge			(getModule<CInventoryItem>());
+		bool full						= unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() > 1);
+		owner->discharge				(getModule<CInventoryItem>(), true, full);
 	}
-	inherited::ReloadMagazine			();
+	
+	int count							= try_consume_ammo(m_chamber.capacity() - m_chamber.size());
+	while (count--)
+		m_chamber.push_back				(m_cartridge);
 }
 
 bool CWeaponBM16::canTake(CWeaponAmmo CPC ammo, bool chamber) const

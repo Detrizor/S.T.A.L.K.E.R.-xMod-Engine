@@ -68,16 +68,16 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 		}
 		break;
 	case eSubstateReloadInProcess:
-		if (m_magazin.size() == m_magazin.capacity() || !has_ammo_for_reload())
-		{
-			m_sub_state					= eSubstateReloadEnd;
-			PlayAnimReload				();
-		}
-		else
+		if (can_load_cartridge())
 		{
 			PlayHUDMotion				("anm_add_cartridge", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndAddCartridge", get_LastFP());
+		}
+		else
+		{
+			m_sub_state					= eSubstateReloadEnd;
+			PlayAnimReload				();
 		}
 		break;
 	case eSubstateReloadEnd:
@@ -95,20 +95,6 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 		else
 			SwitchState					(eIdle);
 		break;
-	case eSubstateReloadBoltLock:
-		if (m_chamber.size())
-		{
-			CCartridge					chamber;
-			unload_chamber				(&chamber);
-			if (m_magazine)
-				m_magazine->loadCartridge(chamber);
-			else
-				m_magazin.push_back		(chamber);
-		}
-		else
-			unload_chamber				();
-		inherited::PlayAnimReload		();
-		break;
 	default:
 		inherited::PlayAnimReload		();
 	}
@@ -124,18 +110,31 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	case eSubstateReloadBegin:
 		m_sub_state						= eSubstateReloadInProcess;
 		PlayAnimReload					();
+		break;
 	case eSubstateReloadBoltLock:
 		m_locked						= true;
+		if (m_chamber.size() && m_magazine)
+		{
+			unload_chamber				(&m_cartridge);
+			m_magazine->loadCartridge	(m_cartridge);
+		}
+		else
+			unload_chamber				();
 		if (!m_actor || m_current_ammo)
 		{
 			m_sub_state					= eSubstateReloadInProcess;
+			PlayAnimReload				();
+		}
+		else if (m_magazine_slot && m_magazine_slot->isLoading())
+		{
+			m_sub_state					= eSubstateReloadAttach;
 			PlayAnimReload				();
 		}
 		else
 			SwitchState					(eIdle);
 		break;
 	case eSubstateReloadInProcess:
-		if (!reloadCartridge())
+		if (!reload_ñartridge())
 			m_sub_state					= eSubstateReloadEnd;
 		PlayAnimReload					();
 		break;
@@ -144,7 +143,7 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadChamber:
 		inherited::OnAnimationEnd		(state);
-		m_sub_state						= (m_magazin.size() != m_magazin.capacity() && has_ammo_for_reload()) ? eSubstateReloadInProcess : eSubstateReloadEnd;
+		m_sub_state						= eSubstateReloadInProcess;
 		PlayAnimReload					();
 		break;
 	default:
@@ -152,33 +151,12 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	}
 }
 
-float CWeaponAutomaticShotgun::Aboba(EEventTypes type, void* data, int param)
+bool CWeaponAutomaticShotgun::can_load_cartridge() const
 {
-	switch (type)
-	{
-	case eSyncData:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= (CSE_ALifeDynamicObject*)data;
-		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponAutoShotGun*>(se_obj);
-		if (param)
-		{
-			se_wpn->m_AmmoIDs.clear		();
-			for (auto& c : m_magazin)
-				se_wpn->m_AmmoIDs.push_back(get_ammo_type(c.m_ammoSect));
-		}
-		else
-		{
-			for (int i = 0; i < se_wpn->m_AmmoIDs.size(); i++)
-			{
-				auto CR$ sect			= m_ammoTypes[se_wpn->m_AmmoIDs[i]];
-				if (m_magazin[i].m_ammoSect != sect)
-					m_magazin[i].Load	(*sect);
-			}
-		}
-		return							res;
-	}
-	}
+	return								m_magazine && !m_magazine->Full() && has_ammo_for_reload();
+}
 
-	return								inherited::Aboba(type, data, param);
+bool CWeaponAutomaticShotgun::is_dummy_anm() const
+{
+	return								!m_shot_shell && (m_sub_state == eSubstateReloadBoltPull && m_chamber.empty() || m_sub_state == eSubstateReloadBoltLock);
 }

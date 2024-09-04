@@ -733,52 +733,6 @@ void game_sv_mp::ChargeAmmo(CSE_ALifeItemWeapon* weapon,
 							game_PlayerState::PLAYER_ITEMS_LIST & playerItems,
 							ammo_diff_t & ammo_diff)
 {
-	int ammoc_count		= _GetItemCount(ammo_string);
-	u16 ammo_magsize	= weapon->get_ammo_magsize();
-	weapon->a_elapsed	= 0;
-
-	string512	temp_ammo_class;
-	for (int i = 0; i < ammoc_count; ++i)
-	{
-		_GetItem(ammo_string, i, temp_ammo_class);
-		u32 const ammo_id = static_cast<u16>(
-			m_strWeaponsData->GetItemIdx(shared_str(temp_ammo_class))
-		);
-		u16 box_size = 0;
-		if (pSettings->line_exist(temp_ammo_class, "box_size"))
-			box_size = pSettings->r_u16(temp_ammo_class, "box_size");
-				
-		game_PlayerState::PLAYER_ITEMS_LIST::iterator temp_iter = std::find(
-			playerItems.begin(), playerItems.end(), ammo_id);
-		
-		while (temp_iter != playerItems.end())
-		{
-			weapon->ammo_type = static_cast<u8>(i);
-			playerItems.erase(temp_iter);
-			if ((ammo_magsize - weapon->a_elapsed) <= box_size)
-			{
-				ammo_diff.first = shared_str(temp_ammo_class);
-				ammo_diff.second = box_size - (ammo_magsize - weapon->a_elapsed);
-				weapon->a_elapsed = ammo_magsize;
-				break;
-			} else
-			{
-				weapon->a_elapsed = weapon->a_elapsed + box_size;
-			}
-			temp_iter = std::find(playerItems.begin(), playerItems.end(), ammo_id);
-		}
-		if (weapon->a_elapsed)
-			break;
-	}
-	if (!weapon->a_elapsed)
-	{
-		_GetItem(ammo_string, 0, temp_ammo_class);
-		weapon->ammo_type = 0;
-		if (CanChargeFreeAmmo(temp_ammo_class))
-		{
-			weapon->a_elapsed = ammo_magsize;
-		}
-	}
 }
 
 void game_sv_mp::ChargeGrenades(CSE_ALifeItemWeapon* weapon, LPCSTR grenade_string, game_PlayerState::PLAYER_ITEMS_LIST & playerItems)

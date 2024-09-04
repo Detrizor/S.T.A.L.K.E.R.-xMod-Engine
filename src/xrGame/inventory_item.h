@@ -160,7 +160,7 @@ public:
 	IC		float				GetCondition		() const					{return m_condition;}
 			float				GetConditionToWork	() const;
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
-	IC		void				SetCondition		(float val)					{m_condition = val;}
+			void				SetCondition		(float val);
 			void				ChangeCondition		(float fDeltaCondition);
 
 			u16					BaseSlot			()  const					{return m_ItemCurrPlace.base_slot_id;}

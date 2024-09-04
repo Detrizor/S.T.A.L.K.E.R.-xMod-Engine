@@ -58,7 +58,6 @@ protected:
 	virtual void	UpdateSounds();
 	
 protected:
-	virtual bool	reloadCartridge		();
 	virtual void	ReloadMagazine		();
 
 	virtual void	state_Fire(float dt);
@@ -161,7 +160,6 @@ protected:
 //xMod altered
 public:
 	bool								IsRotatingToZoom					C$	();
-	float								GetMagazineWeight					C$	();
 
 	void								modify_holder_params				CO$	(float& range, float& fov);
 
@@ -186,7 +184,6 @@ private:
 
 	MScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<MScope*>					m_attached_scopes						= {};
-	CAddonSlot*							m_magazine_slot							= nullptr;
 	float								m_ads_shift								= 0.f;
 	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
@@ -201,7 +198,8 @@ private:
 	SScriptAnm							m_empty_click_anm;
 	SScriptAnm							m_bolt_pull_anm;
 	SScriptAnm							m_firemode_anm;
-
+	
+	bool								is_mag_empty							();
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
@@ -210,18 +208,20 @@ private:
 	void								process_addon							(MAddon* addon, bool attach);
 	void								process_muzzle							(MMuzzle* muzzle, bool attach);
 	void								process_silencer						(CSilencer* muzzle, bool attach);
+	void								process_magazine						(MMagazine* magazine, bool attach);
 	void								process_scope							(MScope* scope, bool attach);
 	void								process_align_front						(CGameObject* obj, bool attach);
 	bool								has_ammo_to_shoot						();
 	
 	bool								is_auto_bolt_allowed				C$	();
-	bool								is_detaching						C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
 
 	CCartridge							getCartridgeToShoot					O$	();
 	void								OnHiddenItem						O$	();
+	
+	bool							V$	is_dummy_anm						C$	();
 
 protected:
 	xptr<CWeaponHud>					m_hud									= nullptr;
@@ -229,12 +229,14 @@ protected:
 	bool								m_locked								= false;
 	bool								m_shot_shell							= false;
 	MMagazine*							m_magazine								= nullptr;
+	CAddonSlot*							m_magazine_slot							= nullptr;
 
 	void								updateRecoil							();
 	void								reload_chamber							(CCartridge* dest = nullptr);
 	void								unload_chamber							(CCartridge* dest = nullptr);
 	void								load_chamber							(bool from_mag);
 	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
+	int									try_consume_ammo						(int count);
 	
 	bool								has_ammo_for_reload					C$	(int count = 1);
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
@@ -243,6 +245,7 @@ protected:
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);
+	bool							V$	reload_ñartridge						();
 
 public:
 	static float						s_barrel_length_power;
@@ -264,6 +267,8 @@ public:
 	void								updateShadersDataAndSVP				C$	(CCameraManager& camera);
 	
 	float								CurrentZoomFactor					CO$	(bool for_actor);
+	int									GetAmmoElapsed						CO$	();
+	int									GetAmmoMagSize						CO$	();
 
 	void								OnTaken								O$	();
 

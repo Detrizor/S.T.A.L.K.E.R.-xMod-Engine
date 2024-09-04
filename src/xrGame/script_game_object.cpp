@@ -346,13 +346,6 @@ u32 CScriptGameObject::GetAmmoElapsed()
 	return			(weapon->GetAmmoElapsed());
 }
 
-void CScriptGameObject::SetAmmoElapsed(int ammo_elapsed)
-{
-	CWeapon	*weapon = smart_cast<CWeapon*>(&object());
-	if (!weapon) return;
-	weapon->SetAmmoElapsed(ammo_elapsed);
-}
-
 //Alundaio
 void CScriptGameObject::SetMainWeaponType(u32 type)
 {

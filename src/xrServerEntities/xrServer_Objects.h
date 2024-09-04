@@ -166,8 +166,9 @@
 // 130 - weapon ads shift
 // 131 - current scope reticle
 // 132 - weapon locked and cocked state
+// 133 - removed ammo elapsed from weapon
 //------------------------------------------------------------------------------
-constexpr u16 SPAWN_VERSION = 132;
+constexpr u16 SPAWN_VERSION = 133;
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

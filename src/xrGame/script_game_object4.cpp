@@ -724,10 +724,10 @@ bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
 {
 	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
 	{
-		if (auto mag = object().getModule<MMagazine>())
-			return					mag->CanTake(ammo);
-		else if (auto wpn = object().scast<CWeaponMagazined*>())
+		if (auto wpn = object().scast<CWeaponMagazined*>())
 			return					wpn->canTake(ammo, chamber);
+		else if (auto mag = object().getModule<MMagazine>())
+			return					mag->CanTake(ammo);
 	}
 	return							false;
 }

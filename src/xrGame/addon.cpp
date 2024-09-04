@@ -11,7 +11,7 @@
 void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
-		O.addModule<MMagazine>			();
+		O.addModule<MMagazine>			(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
 		O.addModule<MScope>				(addon_sect);
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))

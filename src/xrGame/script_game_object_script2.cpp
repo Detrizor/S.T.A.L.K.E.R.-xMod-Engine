@@ -143,7 +143,6 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("patrol",						&CScriptGameObject::GetPatrolPathName)
 
 		.def("get_ammo_in_magazine",		&CScriptGameObject::GetAmmoElapsed)
-		.def("set_ammo_elapsed",			&CScriptGameObject::SetAmmoElapsed)
 		//Alundaio
 		.def("use",							&CScriptGameObject::Use)
 		.def("start_trade",					&CScriptGameObject::StartTrade)

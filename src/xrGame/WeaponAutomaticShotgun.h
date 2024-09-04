@@ -19,8 +19,9 @@ protected:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 	
-protected:
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
+private:
+	bool								can_load_cartridge					C$	();
+	bool								is_dummy_anm						CO$	();
 };
 
 add_to_type_list(CWeaponAutomaticShotgun)

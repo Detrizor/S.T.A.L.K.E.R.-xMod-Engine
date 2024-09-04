@@ -383,21 +383,12 @@ void CSE_ALifeItemTorch::FillProps			(LPCSTR pref, PropItemVec& values)
 ////////////////////////////////////////////////////////////////////////////
 CSE_ALifeItemWeapon::CSE_ALifeItemWeapon	(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
-	a_elapsed					= 0;
-	wpn_flags					= 0;
-	ammo_type					= 0;
-	a_chamber					= 0;
-
 	m_caAmmoSections			= pSettings->r_string(caSection,"ammo_class");
 	if (pSettings->section_exist(caSection) && pSettings->line_exist(caSection,"visual"))
 		set_visual				(pSettings->r_string(caSection,"visual"));
 
 	m_ef_main_weapon_type		= READ_IF_EXISTS(pSettings,r_u32,caSection,"ef_main_weapon_type",u32(-1));
 	m_ef_weapon_type			= READ_IF_EXISTS(pSettings,r_u32,caSection,"ef_weapon_type",u32(-1));
-}
-
-CSE_ALifeItemWeapon::~CSE_ALifeItemWeapon	()
-{
 }
 
 u32	CSE_ALifeItemWeapon::ef_main_weapon_type() const
@@ -415,7 +406,6 @@ u32	CSE_ALifeItemWeapon::ef_weapon_type() const
 void CSE_ALifeItemWeapon::STATE_Write		(NET_Packet	&tNetPacket)
 {
 	inherited::STATE_Write		(tNetPacket);
-	tNetPacket.w_u16			(a_elapsed);
 	tNetPacket.w_u8				(ammo_type);
 	tNetPacket.w_u8				(a_chamber);
 }
@@ -427,7 +417,8 @@ void CSE_ALifeItemWeapon::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 	if (m_wVersion < 129)
 		tNetPacket.r_u16		();
 
-	tNetPacket.r_u16			(a_elapsed);
+	if (m_wVersion < 133)
+		tNetPacket.r_u16		();
 
 	if (m_wVersion < 129)
 		tNetPacket.r_u8			();
@@ -449,24 +440,6 @@ u8	 CSE_ALifeItemWeapon::get_slot			()
 {
 	LPCSTR sl = pSettings->r_string(s_name, "slot");
 	return						pSettings->r_u8("slot_ids", sl);
-}
-
-u16	 CSE_ALifeItemWeapon::get_ammo_elapsed	()
-{
-	return						((u16)a_elapsed);
-}
-
-void CSE_ALifeItemWeapon::set_ammo_elapsed(u16 count)
-{
-	a_elapsed = count;
-}
-
-u16	 CSE_ALifeItemWeapon::get_ammo_magsize	()
-{
-	if (pSettings->line_exist(s_name,"ammo_mag_size"))
-		return					(pSettings->r_u16(s_name,"ammo_mag_size"));
-	else
-		return					0;
 }
 
 BOOL CSE_ALifeItemWeapon::Net_Relevant()
@@ -499,46 +472,17 @@ void CSE_ALifeItemWeapon::FillProps			(LPCSTR pref, PropItemVec& items)
 ////////////////////////////////////////////////////////////////////////////
 // CSE_ALifeItemWeaponAutoShotGun
 ////////////////////////////////////////////////////////////////////////////
-void CSE_ALifeItemWeaponAutoShotGun::STATE_Write(NET_Packet& P)
-{
-	inherited::STATE_Write(P);
-	if (!m_AmmoIDs.empty())
-	{
-		u8 group_type = m_AmmoIDs.front();
-		u8 group_cnt = 1;
-		for (int i = 1; i < m_AmmoIDs.size(); i++)
-		{
-			if (m_AmmoIDs[i] == group_type)
-				group_cnt++;
-			else
-			{
-				P.w_u8(group_type);
-				P.w_u8(group_cnt);
-				group_type = m_AmmoIDs[i];
-				group_cnt = 1;
-			}
-		}
-		P.w_u8(group_type);
-		P.w_u8(group_cnt);
-	}
-	P.w_u8(u8_max);
-}
-
 void CSE_ALifeItemWeaponAutoShotGun::STATE_Read(NET_Packet& P, u16 size)
 {
 	inherited::STATE_Read(P, size);
-	if (m_wVersion < 129)
+	if (m_wVersion < 129 || m_wVersion >= 133)
 		return;
 
-	m_AmmoIDs.clear();
 	while (true)
 	{
-		u8 group_type = P.r_u8();
-		if (group_type == u8_max)
+		if (P.r_u8() == u8_max)
 			break;
-		u8 group_count = P.r_u8();
-		while (group_count--)
-			m_AmmoIDs.push_back(group_type);
+		P.r_u8();
 	}
 }
 

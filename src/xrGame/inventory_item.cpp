@@ -34,6 +34,7 @@
 #include "inventory_item_amountable.h"
 #include "item_usable.h"
 #include "foldable.h"
+#include "magazine.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -191,6 +192,19 @@ float CInventoryItem::GetConditionToWork() const
 {
 	float condition						= m_condition / s_max_repair_condition;
 	return								(condition < 1.f) ? condition : 1.f;
+}
+
+void CInventoryItem::SetCondition(float val)
+{
+	m_condition							= val;
+
+	if (auto ao = O.getModule<MAddonOwner>())
+		for (auto& s : ao->AddonSlots())
+			for (auto a : s->addons)
+				a->I->SetCondition		(val);
+
+	if (auto mag = O.getModule<MMagazine>())
+		mag->setCondition				(val);
 }
 
 void CInventoryItem::ChangeCondition(float fDeltaCondition)

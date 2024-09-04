@@ -16,7 +16,6 @@
 class CEntity;
 class ENGINE_API CMotionDef;
 class CSE_ALifeItemWeapon;
-class CSE_ALifeItemWeaponAmmo;
 class CWeaponMagazined;
 class CParticlesObject;
 
@@ -319,15 +318,13 @@ protected:
 public:
 	virtual int				GetAmmoElapsed()	const
 	{
-		return m_chamber.size() + m_magazin.size();
+		return m_chamber.size();
 	}
-	IC int					GetAmmoMagSize()	const
+	virtual int				GetAmmoMagSize()	const
 	{
-		return m_chamber.capacity() + m_magazin.capacity();
+		return m_chamber.capacity();
 	}
 	int						GetSuitableAmmoTotal	(bool use_item_to_spawn = false) const;
-
-	void					SetAmmoElapsed			(int ammo_count);
 
 	virtual void			OnMagazineEmpty			() {}
 
@@ -452,7 +449,6 @@ protected:
 	u16									m_fire_bone								= u16_max;
 	
 	xr_vector<CCartridge>				m_chamber								= {};
-	xr_vector<CCartridge>				m_magazin								= {};
 	
 	CCartridge							m_cartridge;
 	

@@ -21,8 +21,12 @@ void CWeaponMagazined::PlayAnimReload()
 	}
 	case eSubstateReloadAttach:
 	{
-		m_magazine_slot->loadingAttach	();
-		auto mag						= m_magazine_slot->getLoadingAddon()->O.getModule<MMagazine>();
+		auto mag						= m_magazine;
+		if (auto la = m_magazine_slot->getLoadingAddon())
+		{
+			m_magazine_slot->loadingAttach();
+			mag							= la->O.getModule<MMagazine>();
+		}
 		if (mag->attachAnm().size())
 		{
 			PlayHUDMotion				(mag->attachAnm().c_str(), TRUE, GetState());
@@ -78,7 +82,8 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	switch (m_sub_state)
 	{
 	case eSubstateReloadDetach:
-		m_magazine_slot->loadingDetach	();
+		if (m_actor)
+			m_magazine_slot->loadingDetach();
 		if (m_magazine_slot->isLoading() || !m_actor)
 		{
 			m_sub_state					= eSubstateReloadAttach;

@@ -243,7 +243,6 @@ void CWeapon::Load(LPCSTR section)
 	}
 	
 	m_chamber.reserve(pSettings->r_s32(section, "chamber"));
-	m_magazin.reserve(pSettings->r_s32(section, "ammo_mag_size"));
 
 	////////////////////////////////////////////////////
 	// дисперсия стрельбы
@@ -794,16 +793,6 @@ bool CWeapon::ready_to_kill() const
 		);
 }
 
-void CWeapon::SetAmmoElapsed(int ammo_count)
-{
-	while (m_magazin.size() > ammo_count)
-		m_magazin.pop_back				();
-	if (ammo_count > m_magazin.capacity())
-		m_magazin.reserve				(ammo_count);
-	while (m_magazin.size() < ammo_count)
-		m_magazin.push_back				(m_cartridge);
-}
-
 u32	CWeapon::ef_main_weapon_type() const
 {
 	VERIFY(m_ef_main_weapon_type != u32(-1));
@@ -974,6 +963,13 @@ float CWeapon::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
+	case eWeight:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		for (auto& c : m_chamber)
+			res							+= c.Weight();
+		return							res;
+	}
 	case eSyncData:
 	{
 		float res						= inherited::Aboba(type, data, param);
@@ -983,14 +979,12 @@ float CWeapon::Aboba(EEventTypes type, void* data, int param)
 		{
 			se_wpn->wpn_flags			= (u8)IsUpdating();
 			se_wpn->ammo_type			= get_ammo_type(m_cartridge.m_ammoSect);
-			se_wpn->a_elapsed			= m_magazin.size();
 			se_wpn->a_chamber			= m_chamber.size();
 		}
 		else
 		{
 			m_cartridge.Load			(*m_ammoTypes[se_wpn->ammo_type]);
-			SetAmmoElapsed				(se_wpn->a_elapsed);
-			if (se_wpn->a_chamber)
+			for (int i = 0; i < se_wpn->a_chamber; ++i)
 				m_chamber.push_back		(m_cartridge);
 		}
 		return							res;
@@ -999,7 +993,6 @@ float CWeapon::Aboba(EEventTypes type, void* data, int param)
 
 	return								inherited::Aboba(type, data, param);
 }
-
 
 float CWeapon::s_inertion_baseline_weight;
 float CWeapon::s_inertion_ads_factor;

@@ -6,25 +6,21 @@
 #include "WeaponAmmo.h"
 #include "Weapon.h"
 
-MMagazine::MMagazine(CGameObject* obj) : CModule(obj)
+MMagazine::MMagazine(CGameObject* obj, shared_str CR$ section) :
+	CModule(obj),
+	m_capacity(pSettings->r_u32(section, "capacity")),
+	m_bullets_visible(!!pSettings->r_bool(section, "bullets_visible")),
+	m_attach_anm(pSettings->r_string(section, "attach_anm")),
+	m_detach_anm(pSettings->r_string(section, "detach_anm"))
 {
-	m_Heaps.clear						();
-	m_iNextHeapIdx						= u16_max;
-
-	m_capacity							= pSettings->r_u32(O.cNameSect(), "capacity");
-	LPCSTR S							= pSettings->r_string(O.cNameSect(), "ammo_class");
+	LPCSTR S							= pSettings->r_string(section, "ammo_class");
 	string128							_ammoItem;
 	int count							= _GetItemCount(S);
-	m_ammo_types.clear					();
 	for (int it = 0; it < count; ++it)
 	{
 		_GetItem						(S, it, _ammoItem);
 		m_ammo_types.push_back			(_ammoItem);
 	}
-	m_bullets_visible					= !!pSettings->r_bool(O.cNameSect(), "bullets_visible");
-
-	m_attach_anm						= pSettings->r_string(O.cNameSect(), "attach_anm");
-	m_detach_anm						= pSettings->r_string(O.cNameSect(), "detach_anm");
 	
 	InvalidateState						();
 	UpdateBulletsVisibility				();
@@ -143,14 +139,14 @@ bool MMagazine::CanTake(CWeaponAmmo CPC ammo)
 	return								false;
 }
 
-void MMagazine::loadCartridge(CCartridge CR$ cartridge)
+void MMagazine::loadCartridge(CCartridge CR$ cartridge, int count)
 {
 	CWeaponAmmo* back_heap				= (Empty()) ? nullptr : m_Heaps.back();
 	if (back_heap && back_heap->cNameSect() == cartridge.m_ammoSect && fEqual(back_heap->GetCondition(), cartridge.m_fCondition))
-		back_heap->ChangeAmmoCount		(1);
+		back_heap->ChangeAmmoCount		(count);
 	else
 	{
-		O.giveItem						(cartridge.m_ammoSect.c_str(), cartridge.m_fCondition);
+		O.giveItems						(cartridge.m_ammoSect.c_str(), count, cartridge.m_fCondition);
 		m_iNextHeapIdx					= m_Heaps.size();
 	}
 	InvalidateState						();
@@ -170,4 +166,10 @@ bool MMagazine::GetCartridge(CCartridge& destination, bool expend)
 
 	InvalidateState						();
 	return								m_Heaps.back()->Get(destination, expend);
+}
+
+void MMagazine::setCondition(float val)
+{
+	for (auto h : m_Heaps)
+		h->getModule<CInventoryItem>()->SetCondition(val);
 }

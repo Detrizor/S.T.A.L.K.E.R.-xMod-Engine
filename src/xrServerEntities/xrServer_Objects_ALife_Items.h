@@ -139,10 +139,9 @@ class CSE_ALifeItemWeapon : public CSE_ALifeItem
 typedef CSE_ALifeItem inherited;
 
 public:
-	u8								wpn_flags;
-	u8								ammo_type;
-	u16								a_elapsed;
-	u8								a_chamber;
+	u8								wpn_flags			= 0;
+	u8								ammo_type			= 0;
+	u8								a_chamber			= 0;
 
 	LPCSTR							m_caAmmoSections;
 	u32								m_dwAmmoAvailable;
@@ -150,13 +149,9 @@ public:
 	u32								m_ef_weapon_type;
 
 									CSE_ALifeItemWeapon	(LPCSTR caSection);
-	virtual							~CSE_ALifeItemWeapon();
 	virtual u32						ef_main_weapon_type	() const;
 	virtual u32						ef_weapon_type		() const;
 	u8								get_slot			();
-	u16								get_ammo_elapsed	();
-	void							set_ammo_elapsed	(u16 count);
-	u16								get_ammo_magsize	();
 
 	virtual BOOL					Net_Relevant		();
 
@@ -228,15 +223,10 @@ typedef CSE_ALifeItemWeaponMagazined inherited;
 public:
 	static void script_register(lua_State*);
 	CSE_ALifeItemWeaponAutoShotGun(LPCSTR caSection) : CSE_ALifeItemWeaponMagazined(caSection) {}
-	~CSE_ALifeItemWeaponAutoShotGun() override {}
 	CSE_ALifeItemWeapon* cast_item_weapon() override {return this;}
-
-private:
-	xr_vector<u8> m_AmmoIDs = {};
 
 public:
 	void STATE_Read(NET_Packet& P, u16 size) override;
-	void STATE_Write(NET_Packet& P) override;
 
 	friend class CWeaponAutomaticShotgun;
 };
