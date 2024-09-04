@@ -9,6 +9,7 @@
 
 #include "addon_owner.h"
 #include "scope.h"
+#include "weapon_hud.h"
 
 class ENGINE_API CMotionDef;
 
@@ -65,7 +66,6 @@ protected:
 
 public:
 	CWeaponMagazined(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN);
-	virtual			~CWeaponMagazined();
 
 	virtual void	Load(LPCSTR section);
 
@@ -186,14 +186,11 @@ private:
 
 	MScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<MScope*>					m_attached_scopes						= {};
-	MMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
-	bool								m_shot_shell							= false;
 	float								m_ads_shift								= 0.f;
 	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
 	float								m_barrel_length							= 0.f;
-	bool								m_locked								= false;
 	bool								m_cocked								= false;
 
 	u32									m_animation_slot_reloading;
@@ -206,7 +203,6 @@ private:
 	SScriptAnm							m_firemode_anm;
 
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);
-	void								load_chamber							(bool from_mag);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
@@ -228,11 +224,16 @@ private:
 	void								OnHiddenItem						O$	();
 
 protected:
-	CWeaponHud*							m_hud									= nullptr;
+	xptr<CWeaponHud>					m_hud									= nullptr;
 	CWeaponAmmo*						m_current_ammo							= nullptr;
+	bool								m_locked								= false;
+	bool								m_shot_shell							= false;
+	MMagazine*							m_magazine								= nullptr;
 
 	void								updateRecoil							();
 	void								reload_chamber							(CCartridge* dest = nullptr);
+	void								unload_chamber							(CCartridge* dest = nullptr);
+	void								load_chamber							(bool from_mag);
 	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
 	
 	bool								has_ammo_for_reload					C$	(int count = 1);

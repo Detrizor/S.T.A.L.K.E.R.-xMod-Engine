@@ -197,8 +197,9 @@ MotionID CStalkerAnimationManager::weapon_animation	(u32 slot, const EBodyState 
 					return			(animation[4].A[1]);
 				case CWeapon::eSubstateReloadEnd:
 					return			(animation[4].A[2]);
-				case CWeapon::eSubstateReloadBolt:
+				case CWeapon::eSubstateReloadBoltPull:
 				case CWeapon::eSubstateReloadBoltLock:
+				case CWeapon::eSubstateReloadBoltRelease:
 				case CWeapon::eSubstateReloadChamber:
 					return			(torso().select(animation[0].A));
 

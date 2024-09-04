@@ -139,7 +139,6 @@ void CWeapon::UpdateFireDependencies_internal()
 	{
 		auto hi							= HudItemData();
 		hi->update						(false);
-		Fmatrix ftrans					= static_cast<Fmatrix>(hi->m_transform);
 		
 		Fvector fire_point				= m_fire_point;
 		if (m_fire_bone != u16_max)
@@ -165,6 +164,7 @@ void CWeapon::UpdateFireDependencies_internal()
 			shell_point.sub				(root_mat.c);
 		}
 		
+		Fmatrix ftrans					= static_cast<Fmatrix>(hi->m_transform);
 		ftrans.transform_tiny			(vLastFP, fire_point);
 		ftrans.transform_dir			(vLastFD, vForward);
 		ftrans.transform_tiny			(vLastSP, shell_point);

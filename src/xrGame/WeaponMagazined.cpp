@@ -53,11 +53,6 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_barrel_len = 0.f;
 }
 
-CWeaponMagazined::~CWeaponMagazined()
-{
-	xr_delete(m_hud);
-}
-
 void CWeaponMagazined::net_Destroy()
 {
 	inherited::net_Destroy();
@@ -116,7 +111,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	else
 		m_bHasDifferentFireModes = false;
 
-	m_hud								= xr_new<CWeaponHud>(this);
+	m_hud.construct						(this);
 
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
@@ -200,7 +195,7 @@ void CWeaponMagazined::FireStart()
 
 bool CWeaponMagazined::has_ammo_for_reload(int count) const
 {
-	return								(unlimited_ammo()) ? true : (m_current_ammo && m_current_ammo->GetAmmoCount() >= count);
+	return								unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() >= count);
 }
 
 void CWeaponMagazined::Reload()
@@ -213,8 +208,13 @@ void CWeaponMagazined::Reload()
 
 	if (IsMisfire() || m_actor && m_chamber.capacity() && (!m_lock_state_shooting || !m_magazine || m_magazine->Empty()))
 	{
-		bool lock						= !m_locked && (m_lock_state_shooting || m_bolt_catch && HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge));
-		StartReload						((lock) ? eSubstateReloadBoltLock : eSubstateReloadBolt);
+		m_current_ammo					= false;
+		if (m_locked)
+			StartReload					(eSubstateReloadBoltRelease);
+		else if (m_lock_state_shooting || HudAnimationExist("anm_bolt_lock") && !get_cartridge_from_mag(m_cartridge) && !m_shot_shell)
+			StartReload					(eSubstateReloadBoltLock);
+		else
+			StartReload					(eSubstateReloadBoltPull);
 	}
 	else if (!m_actor && has_ammo_for_reload())
 		StartReload						(HudAnimationExist("anm_detach") ? eSubstateReloadDetach : eSubstateReloadBegin);
@@ -298,7 +298,7 @@ LPCSTR CWeaponMagazined::anmType() const
 	if (m_locked)
 		return							"_locked";
 
-	if ((m_sub_state == eSubstateReloadBolt || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty())
+	if ((m_sub_state == eSubstateReloadBoltPull || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty())
 		return							(m_cocked) ? "_dummy" : "_dummy_empty";
 
 	return								(m_cocked) ? inherited::anmType() : "_empty";
@@ -350,6 +350,12 @@ bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 
 void CWeaponMagazined::reload_chamber(CCartridge* dest)
 {
+	unload_chamber						(dest);
+	load_chamber						(true);
+}
+
+void CWeaponMagazined::unload_chamber(CCartridge* dest)
+{
 	if (!m_chamber.empty())
 	{
 		CCartridge& cartridge			= m_chamber.back();
@@ -362,27 +368,23 @@ void CWeaponMagazined::reload_chamber(CCartridge* dest)
 		}
 		m_chamber.pop_back				();
 	}
-	
-	load_chamber						(true);
+
+	bMisfire							= false;
+	m_shot_shell						= false;
+	m_cocked							= true;
 }
 
 void CWeaponMagazined::load_chamber(bool from_mag)
 {
-	bMisfire							= false;
-	m_shot_shell						= false;
-	m_locked							= false;
-	m_cocked							= true;
-
-	if (from_mag && !get_cartridge_from_mag(m_cartridge, true))
-		return;
-
-	m_chamber.push_back					(m_cartridge);
+	if (m_chamber.empty() && (!from_mag || get_cartridge_from_mag(m_cartridge, true)))
+		m_chamber.push_back				(m_cartridge);
 }
 
 void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
 	if (ammo)
 		ammo->Get						(m_cartridge);
+	unload_chamber						();
 	load_chamber						(false);
 }
 
@@ -489,7 +491,7 @@ void CWeaponMagazined::UpdateCL()
 	updateRecoil();
 
 	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
-		StartReload(eSubstateReloadBolt);
+		StartReload(eSubstateReloadBoltPull);
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -615,13 +617,13 @@ void CWeaponMagazined::OnEmptyClick()
 {
 	playBlendAnm(m_empty_click_anm);
 	PlayHUDMotion("anm_trigger", FALSE, GetState());
-	if (m_cocked && !m_locked)
+	if (m_cocked && (!m_locked || m_lock_state_shooting))
 	{
 		m_cocked = false;
+		if (m_locked)
+			m_locked = false;
 		PlaySound("sndEmptyClick", get_LastFP());
 	}
-	if (m_lock_state_shooting && m_locked)
-		m_locked = false;
 }
 
 void CWeaponMagazined::switch2_Idle()

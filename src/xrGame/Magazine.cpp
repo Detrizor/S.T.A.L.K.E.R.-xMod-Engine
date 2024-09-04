@@ -22,6 +22,9 @@ MMagazine::MMagazine(CGameObject* obj) : CModule(obj)
 		m_ammo_types.push_back			(_ammoItem);
 	}
 	m_bullets_visible					= !!pSettings->r_bool(O.cNameSect(), "bullets_visible");
+
+	m_attach_anm						= pSettings->r_string(O.cNameSect(), "attach_anm");
+	m_detach_anm						= pSettings->r_string(O.cNameSect(), "detach_anm");
 	
 	InvalidateState						();
 	UpdateBulletsVisibility				();
@@ -140,18 +143,24 @@ bool MMagazine::CanTake(CWeaponAmmo CPC ammo)
 	return								false;
 }
 
-void MMagazine::LoadCartridge(CWeaponAmmo* ammo)
+void MMagazine::loadCartridge(CCartridge CR$ cartridge)
 {
-	CWeaponAmmo* back_heap				= (Empty()) ? NULL : m_Heaps.back();
-	if (back_heap && back_heap->cNameSect() == ammo->cNameSect() && fEqual(back_heap->GetCondition(), ammo->GetCondition()))
+	CWeaponAmmo* back_heap				= (Empty()) ? nullptr : m_Heaps.back();
+	if (back_heap && back_heap->cNameSect() == cartridge.m_ammoSect && fEqual(back_heap->GetCondition(), cartridge.m_fCondition))
 		back_heap->ChangeAmmoCount		(1);
 	else
 	{
-		O.giveItem						(*ammo->cNameSect(), ammo->GetCondition());
+		O.giveItem						(cartridge.m_ammoSect.c_str(), cartridge.m_fCondition);
 		m_iNextHeapIdx					= m_Heaps.size();
 	}
-	ammo->ChangeAmmoCount				(-1);
 	InvalidateState						();
+}
+
+void MMagazine::LoadCartridge(CWeaponAmmo* ammo)
+{
+	CCartridge							cartridge;
+	ammo->Get							(cartridge);
+	loadCartridge						(cartridge);
 }
 
 bool MMagazine::GetCartridge(CCartridge& destination, bool expend)

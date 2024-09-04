@@ -101,13 +101,14 @@ public:
 		eSubstateReloadBegin = 0,
 		eSubstateReloadInProcess,
 		eSubstateReloadEnd,
-		eSubstateReloadDetach,
 		eSubstateReloadAttach,
-		eSubstateReloadBolt,
+		eSubstateReloadDetach,
+		eSubstateReloadBoltPull,
+		eSubstateReloadBoltLock,
+		eSubstateReloadBoltRelease,
 		eSubstateReloadChamber,
 		eSubstateReloadAttachG,
 		eSubstateReloadDetachG,
-		eSubstateReloadBoltLock,
 	};
 
 	// Does weapon need's update?
