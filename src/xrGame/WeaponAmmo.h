@@ -99,14 +99,16 @@ private:
 	
 	u16									m_boxCurr								= 0;
 
+public:
+	u16									m_boxSize								= 0;
+	u8									m_mag_pos								= u8_max;
+
 protected:
 	float								Aboba								O$	(EEventTypes type, void* data = NULL, int param = 0);
 
 public:
-	u16									m_boxSize								= 0;
-	
-	float							S$	readBoxSize								(LPCSTR section);
-	
+	static float						readBoxSize								(LPCSTR section);
+
 	u16									GetAmmoCount						C$	()		{ return m_boxCurr; }
 	bool								Useful								CO$ ()		{ return !!m_boxCurr; }
 	Frect								GetIconRect							CO$	();

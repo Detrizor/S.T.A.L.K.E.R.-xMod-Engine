@@ -173,10 +173,20 @@ float CWeaponAmmo::Aboba o$(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eWeight:
-		case eVolume:
-		case eCost:
-			return						inherited::Aboba(type, data, param) * (float)m_boxCurr;
+	case eWeight:
+	case eVolume:
+	case eCost:
+		return							inherited::Aboba(type, data, param) * static_cast<float>(m_boxCurr);
+	case eSyncData:
+	{
+		float res						= inherited::Aboba(type, data, param);
+		auto se_obj						= static_cast<CSE_ALifeDynamicObject*>(data);
+		auto se_ammo					= se_obj->cast_item_ammo();
+		if (param)
+			se_ammo->m_mag_pos			= m_mag_pos;
+		else
+			m_mag_pos					= se_ammo->m_mag_pos;
+	}
 	}
 
 	return								inherited::Aboba(type, data, param);

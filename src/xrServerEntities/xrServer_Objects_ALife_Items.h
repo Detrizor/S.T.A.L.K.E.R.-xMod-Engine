@@ -121,16 +121,30 @@ SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeItemTorch)
 #define script_type_list save_type_list(CSE_ALifeItemTorch)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemAmmo,CSE_ALifeItem)
-	u16								a_elapsed;
-	u16								m_boxSize;
+class CSE_ALifeItemAmmo : public CSE_ALifeItem
+{
+typedef CSE_ALifeItem inherited;
 
+public:
 									CSE_ALifeItemAmmo	(LPCSTR caSection);
-	virtual							~CSE_ALifeItemAmmo	();
-	virtual CSE_ALifeItemAmmo		*cast_item_ammo		()  {return this;};
-	virtual bool					can_switch_online	() const;
-	virtual bool					can_switch_offline	() const;
-SERVER_ENTITY_DECLARE_END
+
+	CSE_ALifeItemAmmo*				cast_item_ammo		() override { return this; };
+
+public:
+	u16								a_elapsed			= 1;
+	u16								m_boxSize			= 1;
+	u8								m_mag_pos			= u8_max;
+
+public:
+	void UPDATE_Read(NET_Packet& P) override;
+	void UPDATE_Write(NET_Packet& P) override;
+	void STATE_Read(NET_Packet& P, u16 size) override;
+	void STATE_Write(NET_Packet& P) override;
+	bool can_switch_offline() const override;
+	
+	static void script_register(lua_State*);
+};
+
 add_to_type_list(CSE_ALifeItemAmmo)
 #define script_type_list save_type_list(CSE_ALifeItemAmmo)
 

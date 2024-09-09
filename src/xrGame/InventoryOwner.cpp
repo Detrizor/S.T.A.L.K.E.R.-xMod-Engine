@@ -641,7 +641,7 @@ bool CInventoryOwner::discharge(PIItem item, bool with_chamber, bool full)
 	CWeaponMagazined* wpn					= item->O.scast<CWeaponMagazined*>();
 	CCartridge								cartridge;
 	bool flag								= false;
-	while ((mag) ? mag->GetCartridge(cartridge) : wpn->discharge(cartridge, with_chamber))
+	while ((mag) ? mag->getCartridge(cartridge) : wpn->discharge(cartridge, with_chamber))
 	{
 		bool given							= false;
 		for (auto I : inventory().m_all)

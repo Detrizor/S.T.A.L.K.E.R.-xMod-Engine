@@ -255,7 +255,7 @@ bool CWeaponMagazined::discharge(CCartridge& destination, bool with_chamber)
 
 	if (m_bTriStateReload && m_magazine && m_magazine->Amount())
 	{
-		m_magazine->GetCartridge		(destination);
+		m_magazine->getCartridge		(destination);
 		return							true;
 	}
 	
@@ -359,7 +359,7 @@ bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
 {
 	if (!is_mag_empty())
 	{
-		m_magazine->GetCartridge		(dest, expand);
+		m_magazine->getCartridge		(dest, expand);
 		return							true;
 	}
 	return								false;

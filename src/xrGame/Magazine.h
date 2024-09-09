@@ -21,29 +21,27 @@ private:
 	const shared_str					m_attach_anm;
 	const shared_str					m_detach_anm;
 
-	xr_vector<CWeaponAmmo*>				m_Heaps									= {};
-	u16									m_iNextHeapIdx							= u16_max;
+	xr_vector<CWeaponAmmo*>				m_heaps									= {};
 	xr_vector<shared_str>				m_ammo_types							= {};
-	u16									m_SumAmount;
-	float								m_SumWeight;
+	u16									m_amount								= 0;
+	float								m_weight								= 0.f;
 
-	void								InvalidateState							();
-	void								UpdateBulletsVisibility					();
-	void								UpdateHudBulletsVisibility				();
+	void								update_bullets_visibility				();
+	void								update_hud_bullets_visibility			();
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	u16									Amount									();
 	bool								CanTake									(CWeaponAmmo CPC ammo);
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);
-	void								LoadCartridge							(CWeaponAmmo* ammo);
-	bool								GetCartridge							(CCartridge& destination, bool expend = true);
+	void								loadCartridge							(CWeaponAmmo* ammo);
+	bool								getCartridge							(CCartridge& destination, bool expend = true);
 	void								setCondition							(float val);
-
-	bool								Full									()		{ return (Amount() == Capacity()); }
+	
+	u16									Amount								C$	()		{ return m_amount; }
 	u16									Capacity							C$	()		{ return m_capacity; };	
-	bool								Empty								C$	()		{ return m_Heaps.empty(); }
+	bool								Empty								C$	()		{ return m_amount == 0; }
+	bool								Full								C$	()		{ return m_amount == m_capacity; }
 	shared_str CR$						attachAnm							C$	()		{ return m_attach_anm; }
 	shared_str CR$						detachAnm							C$	()		{ return m_detach_anm; }
 };

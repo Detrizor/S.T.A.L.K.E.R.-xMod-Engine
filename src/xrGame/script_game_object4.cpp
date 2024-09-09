@@ -424,7 +424,7 @@ void CScriptGameObject::loadCartridge(CScriptGameObject* obj)
 {
 	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
 		if (auto mag = object().getModule<MMagazine>())
-			mag->LoadCartridge			(cartridge);
+			mag->loadCartridge			(cartridge);
 }
 
 void CScriptGameObject::ActorSetHealth(float h)

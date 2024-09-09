@@ -188,6 +188,19 @@ public:
 	{
 		return find_if(obj) != inherited::end();
 	}
+
+	bool erase_data(const T& obj, bool assert = true)
+	{
+		auto it = _STD find(inherited::begin(), inherited::end(), obj);
+		if (it != inherited::end())
+		{
+			erase(it);
+			return true;
+		}
+		else if (assert)
+			FATAL("data not found in vector");
+		return false;
+	}
 };
 
 // vector<bool>
