@@ -225,7 +225,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	if (GetState() == eReload)
 		return;
 	
-	bool lock							= substate != eSubstateReloadBoltLock && m_lock_state_reload && isEmptyChamber() && !m_locked;
+	bool lock							= substate != eSubstateReloadBoltLock && substate != eSubstateReloadBoltPull && m_lock_state_reload && isEmptyChamber() && !m_locked;
 	if (m_actor && lock)
 	{
 		auto mag						= m_magazine_slot->getLoadingAddon();
@@ -314,7 +314,7 @@ u32 CWeaponMagazined::animation_slot() const
 
 int CWeaponMagazined::GetAmmoElapsed() const
 {
-	int res								= m_chamber.size();
+	int res								= (m_lock_state_shooting) ? 0 : m_chamber.size();
 	if (m_magazine)
 		res								+= m_magazine->Amount();
 	return								res;
@@ -322,7 +322,7 @@ int CWeaponMagazined::GetAmmoElapsed() const
 
 int CWeaponMagazined::GetAmmoMagSize() const
 {
-	int res								= m_chamber.capacity();
+	int res								= (m_lock_state_shooting) ? 0 : m_chamber.capacity();
 	if (m_magazine)
 		res								+= m_magazine->Capacity();
 	return								res;
@@ -509,7 +509,7 @@ void CWeaponMagazined::UpdateCL()
 	UpdateSounds();
 	updateRecoil();
 
-	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed())
+	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed() && !m_lock_state_shooting)
 		StartReload(eSubstateReloadBoltPull);
 }
 
@@ -1509,16 +1509,21 @@ int CWeaponMagazined::try_consume_ammo(int count)
 {
 	if (!unlimited_ammo())
 	{
-		for (int i = 0; i < count; ++i)
+		if (m_current_ammo)
 		{
-			if (!m_current_ammo->Get(m_cartridge))
+			for (int i = 0; i < count; ++i)
 			{
-				count					= i;
-				break;
+				if (!m_current_ammo->Get(m_cartridge))
+				{
+					count				= i;
+					break;
+				}
 			}
+			if (m_current_ammo->object_removed())
+				m_current_ammo			= nullptr;
 		}
-		if (m_current_ammo && m_current_ammo->object_removed())
-			m_current_ammo				= nullptr;
+		else
+			count						= 0;
 	}
 	return								count;
 }
