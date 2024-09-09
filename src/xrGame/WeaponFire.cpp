@@ -62,6 +62,12 @@ void CWeapon::FireTrace()
 	float disp							= GetFireDispersion(&m_shot_cartridge);
 	bool SendHit						= SendHitAllowed(H_Parent());
 
+	if (!HudItemData())
+	{
+		auto E							= H_Parent()->scast< CEntity*>();
+		E->g_fireParams					(this, p, d);
+	}
+
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
 	for (int i = 0; i < m_shot_cartridge.param_s.buckShot; ++i)
 		FireBullet						(p, d, disp, m_shot_cartridge, H_Parent()->ID(), ID(), SendHit);
