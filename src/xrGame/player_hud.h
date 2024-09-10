@@ -111,17 +111,16 @@ struct script_layer
 	Fmatrix blend;
 	u8 m_part;
 
-	script_layer(shared_str CR$ name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true)
+	script_layer(shared_str CR$ name, u8 part, float speed = 1.f, float power = 1.f, bool looped = true, bool full_blend = false)
 	{
 		m_name = name;
 		m_part = part;
 		m_power = power;
-		blend.identity();
 		anm = xr_new<CObjectAnimator>();
 		anm->Load(name.c_str());
 		anm->Play(looped);
 		anm->Speed() = speed;
-		blend_amount = 0.f;
+		blend_amount = (full_blend) ? 1.f : 0.f;
 		active = true;
 	}
 
@@ -136,7 +135,6 @@ struct script_layer
 		{
 			anm->Stop();
 			blend_amount = 0.f;
-			blend.identity();
 		}
 
 		active = false;
@@ -145,10 +143,14 @@ struct script_layer
 	const Fmatrix& XFORM()
 	{
 		blend.set(anm->XFORM());
-		blend.mul(blend_amount * m_power);
-		blend.m[0][0] = 1.f;
-		blend.m[1][1] = 1.f;
-		blend.m[2][2] = 1.f;
+		float k = blend_amount * m_power;
+		Fvector hpb;
+		blend.getHPB(hpb);
+		hpb.mul(k);
+		Fvector pos = blend.c;
+		pos.mul(k);
+		blend.setHPBv(hpb);
+		blend.translate_over(pos);
 
 		return blend;
 	}
@@ -288,7 +290,7 @@ private:
 
 public:
 	void								updateMovementLayerState				();
-	script_layer*						playBlendAnm							(shared_str CR$ name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false);
+	script_layer*						playBlendAnm							(shared_str CR$ name, u8 part = 0, float speed = 1.f, float power = 1.f, bool bLooped = true, bool no_restart = false, bool full_blend = false);
 	void								StopBlendAnm							(shared_str CR$ name, bool bForce = false);
 };
 

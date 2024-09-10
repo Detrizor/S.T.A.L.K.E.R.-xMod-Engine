@@ -17,9 +17,12 @@ struct script_layer;
 
 struct SScriptAnm
 {
-	shared_str name = 0;
-	float power = 1.f;
-	float speed = 1.f;
+	shared_str							anm										= 0;
+	float								power									= 1.f;
+	float								speed									= 1.f;
+
+	void								load									(shared_str CR$ section, LPCSTR name);
+	bool								loaded								C$	()		{ return anm.size(); }
 };
 
 class CHUDState
@@ -173,10 +176,13 @@ public:
 private:
 	SScriptAnm							m_show_anm;
 	SScriptAnm							m_hide_anm;
-	SScriptAnm							m_show_anm_relaxed;
-	SScriptAnm							m_hide_anm_relaxed;
+	SScriptAnm							m_draw_anm_primary;
+	SScriptAnm							m_draw_anm_secondary;
+	SScriptAnm							m_holster_anm_primary;
+	SScriptAnm							m_holster_anm_secondary;
 
 	u16									anm_slot								= 0;
+	shared_str							m_current_anm							= 0;
 
 protected:
 	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
@@ -189,13 +195,14 @@ protected:
 	void								playBlendAnm							(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false, float power_k = 1.f);
 
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
-	bool							V$	relaxed_anm							C$	()		{ return false; }
 
 public:
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
 	LPCSTR							V$	anmType								C$	()		{ return ""; }
+
+	bool								motionPartPassed					C$	(float part);
 };
 
 add_to_type_list(CHudItem)

@@ -17,6 +17,32 @@
 #include "script_callback_ex.h"
 #include "script_game_object.h"
 
+void SScriptAnm::load(shared_str CR$ section, LPCSTR name)
+{
+	if (!pSettings->line_exist(section, name))
+		return;
+	
+	LPCSTR S							= pSettings->r_string(section, name);
+	if (S && S[0])
+	{
+		string128						item;
+		_GetItem						(S, 0, item);
+		anm								= item;
+		
+		int count						= _GetItemCount(S);
+		if (count >= 2)
+		{
+			_GetItem					(S, 1, item);
+			speed						= atof(item);
+		}
+		if (count >= 3)
+		{
+			_GetItem					(S, 2, item);
+			power						= atof(item);
+		}
+	}
+}
+
 CHudItem::CHudItem()
 {
 	RenderHud(TRUE);
@@ -49,26 +75,13 @@ void CHudItem::Load(LPCSTR section)
 	m_animation_slot					= pSettings->r_u32(section, "animation_slot");
 	m_sounds.LoadSound					(section, "snd_bore", "sndBore", true);
 	
-	if (pSettings->line_exist(hud_sect, "show_anm"))
-	{
-		m_show_anm.name					= pSettings->r_string(hud_sect, "show_anm");
-		m_show_anm.speed				= pSettings->r_float(hud_sect, "show_anm_speed");
-		m_show_anm.power				= pSettings->r_float(hud_sect, "show_anm_power");
+	m_show_anm.load						(hud_sect, "show_anm");
+	m_hide_anm.load						(hud_sect, "hide_anm");
 		
-		m_show_anm_relaxed.name			= pSettings->r_string(hud_sect, "show_anm_relaxed");
-		m_show_anm_relaxed.speed		= pSettings->r_float(hud_sect, "show_anm_relaxed_speed");
-		m_show_anm_relaxed.power		= pSettings->r_float(hud_sect, "show_anm_relaxed_power");
-	}
-	if (pSettings->line_exist(hud_sect, "hide_anm"))
-	{
-		m_hide_anm.name				= pSettings->r_string(hud_sect, "hide_anm");
-		m_hide_anm.speed				= pSettings->r_float(hud_sect, "hide_anm_speed");
-		m_hide_anm.power				= pSettings->r_float(hud_sect, "hide_anm_power");
-		
-		m_hide_anm_relaxed.name			= pSettings->r_string(hud_sect, "hide_anm_relaxed");
-		m_hide_anm_relaxed.speed		= pSettings->r_float(hud_sect, "hide_anm_relaxed_speed");
-		m_hide_anm_relaxed.power		= pSettings->r_float(hud_sect, "hide_anm_relaxed_power");
-	}
+	m_draw_anm_primary.load				(hud_sect, "draw_anm_primary");
+	m_draw_anm_secondary.load			(hud_sect, "draw_anm_secondary");
+	m_holster_anm_primary.load			(hud_sect, "holster_anm_primary");
+	m_holster_anm_secondary.load		(hud_sect, "holster_anm_secondary");
 }
 
 void CHudItem::PlaySound(LPCSTR alias, const Fvector& position)
@@ -119,23 +132,33 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 {
 	SetState(S);
 
+	bool base_slot = (anm_slot == object().getModule<CInventoryItem>()->BaseSlot());
+
 	switch (S)
 	{
 	case eShowing:
 		SetPending(TRUE);
-		if (HudAnimationExist("anm_show"))
+		if (base_slot && HudAnimationExist("anm_show"))
 			PlayHUDMotion("anm_show", FALSE, S);
+		else if (anm_slot == PRIMARY_SLOT)
+			playBlendAnm(m_draw_anm_primary, S, true);
+		else if (anm_slot == SECONDARY_SLOT)
+			playBlendAnm(m_draw_anm_secondary, S, true);
 		else
-			playBlendAnm((relaxed_anm()) ? m_show_anm_relaxed : m_show_anm, S, true);
+			playBlendAnm(m_show_anm, S, true);
 		break;
 	case eHiding:
 		if (oldState != eHiding)
 		{
 			SetPending(TRUE);
-			if (HudAnimationExist("anm_hide"))
+			if (base_slot && HudAnimationExist("anm_hide"))
 				PlayHUDMotion("anm_hide", FALSE, S);
+			else if (anm_slot == PRIMARY_SLOT)
+				playBlendAnm(m_holster_anm_primary, S);
+			else if (anm_slot == SECONDARY_SLOT)
+				playBlendAnm(m_holster_anm_secondary, S);
 			else
-				playBlendAnm((relaxed_anm()) ? m_hide_anm_relaxed : m_hide_anm, S);
+				playBlendAnm(m_hide_anm, S);
 		}
 		break;
 	case eIdle:
@@ -433,6 +456,8 @@ void CHudItem::UpdateCL()
 		m_dwMotionCurrTm = Device.dwTimeGlobal;
 		if (m_dwMotionCurrTm > m_dwMotionEndTm)
 		{
+			if (m_current_anm.size())
+				g_player_hud->StopBlendAnm(m_current_anm, true);
 			m_current_motion_def = nullptr;
 			m_dwMotionStartTm = 0;
 			m_dwMotionEndTm = 0;
@@ -640,17 +665,15 @@ void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend, floa
 	if (HudItemData())
 	{
 		u8 part							= (object().cast_weapon()->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
-		auto layer						= g_player_hud->playBlendAnm(anm.name, part, anm.speed, anm.power * power_k, false, false);
-		if (full_blend)
-			layer->blend_amount			= 1.f;
-		anim_time						= layer->anm->anim_param().max_t;
+		auto layer						= g_player_hud->playBlendAnm(anm.anm, part, anm.speed, anm.power * power_k, false, false, full_blend);
+		anim_time						= layer->anm->anim_param().max_t / anm.speed;
 	}
 	else
 	{
 		CObjectAnimator					animator;
-		animator.Load					(anm.name.c_str());
+		animator.Load					(anm.anm.c_str());
 		animator.Play					(false);
-		anim_time						= animator.anim_param().max_t;
+		anim_time						= animator.anim_param().max_t / anm.speed;
 	}
 
 	if (state && anim_time > 0)
@@ -660,6 +683,8 @@ void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend, floa
 		m_dwMotionCurrTm				= m_dwMotionStartTm;
 		m_dwMotionEndTm					= m_dwMotionStartTm + anim_time * 1000.f;
 		m_startedMotionState			= state;
+		if (HudItemData())
+			m_current_anm				= anm.anm;
 	}
 }
 
@@ -671,6 +696,13 @@ void CHudItem::UpdateSlotsTransform()
 void CHudItem::UpdateHudBonesVisibility()
 {
 	m_object->Aboba						(eUpdateHudBonesVisibility);
+}
+
+bool CHudItem::motionPartPassed(float part) const
+{
+	float cur							= static_cast<float>(m_dwMotionCurrTm - m_dwMotionStartTm);
+	float full							= static_cast<float>(m_dwMotionEndTm - m_dwMotionStartTm);
+	return								(cur / full >= part);
 }
 
 void CHudItem::render_hud_mode()

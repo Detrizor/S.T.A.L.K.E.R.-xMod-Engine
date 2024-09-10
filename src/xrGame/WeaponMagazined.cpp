@@ -130,26 +130,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 	process_addon_data					(*this, cNameSect(), true);
 	process_addon_modules				(*this, true);
 
-	if (pSettings->line_exist(hud_sect, "empty_click_anm"))
-	{
-		m_empty_click_anm.name			= pSettings->r_string(hud_sect, "empty_click_anm");
-		m_empty_click_anm.speed			= pSettings->r_float(hud_sect, "empty_click_anm_speed");
-		m_empty_click_anm.power			= pSettings->r_float(hud_sect, "empty_click_anm_power");
-	}
-
-	if (pSettings->line_exist(hud_sect, "bolt_pull_anm"))
-	{
-		m_bolt_pull_anm.name			= pSettings->r_string(hud_sect, "bolt_pull_anm");
-		m_bolt_pull_anm.speed			= pSettings->r_float(hud_sect, "bolt_pull_anm_speed");
-		m_bolt_pull_anm.power			= pSettings->r_float(hud_sect, "bolt_pull_anm_power");
-	}
-
-	if (pSettings->line_exist(hud_sect, "firemode_anm"))
-	{
-		m_firemode_anm.name				= pSettings->r_string(hud_sect, "firemode_anm");
-		m_firemode_anm.speed			= pSettings->r_float(hud_sect, "firemode_anm_speed");
-		m_firemode_anm.power			= pSettings->r_float(hud_sect, "firemode_anm_power");
-	}
+	m_empty_click_anm.load				(hud_sect, "empty_click_anm");
+	m_bolt_pull_anm.load				(hud_sect, "bolt_pull_anm");
+	m_firemode_anm.load					(hud_sect, "firemode_anm");
 	
 	hud_sect							= pSettings->r_string(cNameSect(), (m_grip) ? "hud" : "hud_unusable");
 }
@@ -1081,7 +1064,7 @@ void CWeaponMagazined::on_firemode_switch()
 		PlayHUDMotion					("anm_firemode", TRUE, GetState());
 		anim_started					= true;
 	}
-	if (m_firemode_anm.name.size())
+	if (m_firemode_anm.loaded())
 	{
 		playBlendAnm					(m_firemode_anm, GetState(), false, 1.f / get_wpn_pos_inertion_factor());
 		anim_started					= true;

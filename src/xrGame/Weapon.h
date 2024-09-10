@@ -454,8 +454,6 @@ protected:
 	void								appendRecoil							(float impulse_magnitude);
 	int									get_ammo_type						C$	(shared_str CR$ section);
 	float								get_wpn_pos_inertion_factor			C$	();
-	
-	bool								relaxed_anm							CO$	()						{ return !m_bArmedMode; }
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 

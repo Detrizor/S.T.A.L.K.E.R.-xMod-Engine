@@ -41,7 +41,7 @@ void CWeaponMagazined::PlayAnimReload()
 	{
 		if (HudAnimationExist("anm_bolt_pull"))
 			PlayHUDMotion				("anm_bolt_pull", TRUE, GetState());
-		if (m_bolt_pull_anm.name.size())
+		if (m_bolt_pull_anm.loaded())
 			playBlendAnm				(m_bolt_pull_anm, GetState(), false, (ArmedMode()) ? 1.f / get_wpn_pos_inertion_factor() : 1.f);
 		if (m_sounds_enabled)
 			PlaySound					("sndBoltPull", get_LastFP());

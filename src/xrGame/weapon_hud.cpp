@@ -135,7 +135,7 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 		}
 	}
 
-	if (!O.ArmedMode())
+	if (!O.ArmedMode() && O.GetState() != CHudItem::eHiding && (O.GetState() != CHudItem::eShowing || O.motionPartPassed(.5f)))
 	{
 		if (O.HandSlot() == BOTH_HANDS_SLOT)
 			return						eRelaxed;
