@@ -228,15 +228,6 @@ bool CInventoryItem::Useful() const
 	return CanTake();
 }
 
-bool CInventoryItem::ActivateItem()
-{
-	return false;
-}
-
-void CInventoryItem::DeactivateItem()
-{
-}
-
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
 	UpdateXForm();

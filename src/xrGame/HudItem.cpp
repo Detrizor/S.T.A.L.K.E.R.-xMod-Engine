@@ -178,28 +178,24 @@ void CHudItem::PlayAnimBore()
 	PlayHUDMotion("anm_bore", TRUE, GetState());
 }
 
-bool CHudItem::ActivateItem()
+bool CHudItem::ActivateItem(u16 prev_slot)
 {
+	if (prev_slot != u16_max)
+		anm_slot = prev_slot;
 	OnActiveItem();
 	return			true;
 }
 
-void CHudItem::DeactivateItem()
+void CHudItem::DeactivateItem(u16 slot)
 {
+	if (slot != u16_max)
+		anm_slot = slot;
 	OnHiddenItem();
 }
+
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)
 {
 	SwitchState(eHidden);
-}
-
-void CHudItem::SendDeactivateItem()
-{
-	SendHiddenItem();
-}
-void CHudItem::SendHiddenItem()
-{
-	SwitchState(eHiding);
 }
 
 void CHudItem::UpdateHudAdditional(Dmatrix& trans)

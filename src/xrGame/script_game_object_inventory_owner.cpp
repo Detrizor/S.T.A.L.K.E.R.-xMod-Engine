@@ -1087,7 +1087,7 @@ void CScriptGameObject::HideWeapon()
 	{
 		CHudItem* hi					= active_item->cast_hud_item();
 		if (hi)
-			hi->SendDeactivateItem		();
+			hi->DeactivateItem			(0);
 	}
 	PIItem left_item					= inventory_owner->inventory().LeftItem();
 	if (left_item)
@@ -1109,7 +1109,7 @@ void  CScriptGameObject::RestoreWeapon()
 
 	PIItem active_item					= inventory_owner->inventory().ActiveItem();
 	if (active_item)
-		active_item->ActivateItem		();
+		active_item->ActivateItem		(0);
 
 	PIItem left_item					= inventory_owner->inventory().LeftItem();
 	if (left_item)

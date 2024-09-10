@@ -44,9 +44,8 @@ public:
 
 			void			PutNextToSlot						();
 
-	virtual void			DeactivateItem						();
+	void					DeactivateItem						(u16 slot) override;
 
-	virtual void			SendHiddenItem						();	//same as OnHiddenItem but for client... (sends message to a server)...
 protected:
 	ALife::_TIME_ID			m_dwGrenadeRemoveTime;
 	ALife::_TIME_ID			m_dwGrenadeIndependencyTime;

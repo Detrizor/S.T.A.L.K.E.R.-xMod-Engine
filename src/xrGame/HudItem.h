@@ -93,12 +93,10 @@ public:
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
 
-	virtual bool				ActivateItem		();
-	virtual void				DeactivateItem		();
-	virtual void				SendDeactivateItem	();
+	bool						ActivateItem		(u16 prev_slot);
+	void						DeactivateItem		(u16 slot);
 	virtual void				OnActiveItem		()				{ SwitchState(eShowing); }
 	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); }
-	virtual void				SendHiddenItem		();			//same as OnHiddenItem but for client... (sends message to a server)...
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev);
 
 	bool						IsHidden			()	const		{	return GetState() == eHidden;}						// Does weapon is in hidden state
@@ -177,6 +175,8 @@ private:
 	SScriptAnm							m_hide_anm;
 	SScriptAnm							m_show_anm_relaxed;
 	SScriptAnm							m_hide_anm_relaxed;
+
+	u16									anm_slot								= 0;
 
 protected:
 	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]

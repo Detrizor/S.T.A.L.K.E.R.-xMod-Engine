@@ -56,13 +56,14 @@ protected:
 	}
 
 public:
-	void								renderable_Render					O$	()		{ core::renderable_Render(); }
-	bool								ActivateItem						O$	()		{ return core::ActivateItem(); }
-	void								DeactivateItem						O$	()		{ core::DeactivateItem(); }
-	u32									ef_weapon_type						CO$	()		{ return 0; }
-	BOOL								net_SaveRelevant					O$	()		{ return TRUE; }
-	void								activate_physic_shell				O$	()		{ wrap::activate_physic_shell(); }
-	void								on_activate_physic_shell			O$	()		{ core::activate_physic_shell(); }
+	u32									ef_weapon_type						CO$	()					{ return 0; }
+	bool								ActivateItem						O$	(u16 prev_slot)		{ return core::ActivateItem(prev_slot); }
+	void								DeactivateItem						O$	(u16 slot)			{ core::DeactivateItem(slot); }
+	void								renderable_Render					O$	()					{ core::renderable_Render(); }
+	BOOL								net_SaveRelevant					O$	()					{ return TRUE; }
+	void								activate_physic_shell				O$	()					{ wrap::activate_physic_shell(); }
+	void								on_activate_physic_shell			O$	()					{ core::activate_physic_shell(); }
+
 	bool								Action								O$	(u16 cmd, u32 flags)
 	{
 		return (wrap::Action(cmd, flags)) ? true : core::Action(cmd, flags);

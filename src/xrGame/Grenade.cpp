@@ -151,22 +151,6 @@ void CGrenade::DiscardState()
 	}
 }
 
-void CGrenade::SendHiddenItem						()
-{
-	if (GetState()==eThrow)
-	{
-//		Msg("MotionMarks !!![%d][%d]", ID(), Device.dwFrame);
-		Throw				();
-	}
-	CActor* pActor = smart_cast<CActor*>( m_pInventory->GetOwner());
-	if (pActor && (GetState()==eReady || GetState()==eThrow))
-	{
-		return;
-	}
-
-	inherited::SendHiddenItem();
-}
-
 void CGrenade::Throw() 
 {
 	if (m_thrown)
@@ -297,7 +281,7 @@ void CGrenade::net_Relcase(CObject* O )
 	inherited::net_Relcase(O);
 }
 
-void CGrenade::DeactivateItem()
+void CGrenade::DeactivateItem(u16 slot)
 {
 	//Drop grenade if primed
 	StopCurrentAnimWithoutCallback();
@@ -325,5 +309,5 @@ void CGrenade::DeactivateItem()
 		};
 	};
 
-	inherited::DeactivateItem();
+	inherited::DeactivateItem(slot);
 }

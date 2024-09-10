@@ -10,7 +10,6 @@ class CInventorySlot
 {									
 public:
 							CInventorySlot		();
-	virtual					~CInventorySlot		();
 
 	bool					CanBeActivated		() const;
 
@@ -92,6 +91,7 @@ public:
 
 	bool					Action				(u16 cmd, u32 flags);
 	void					Update				();
+	void					update_actors		();
 	// »щет на по€се аналогичный IItem
 	PIItem					Same				(const PIItem pIItem) const;
 	// »щет на по€се IItem дл€ указанного слота
@@ -110,7 +110,7 @@ public:
 	virtual u32				dwfGetGrenadeCount	(LPCSTR caSection, bool SearchAll);	
 	// get all the items with the same object id
 	virtual bool			bfCheckForObject	(ALife::_OBJECT_ID tObjectID);	
-	PIItem					get_object_by_id	(ALife::_OBJECT_ID tObjectID);
+	PIItem					get_item_by_id		(ALife::_OBJECT_ID tObjectID);
 
 	u32						dwfGetObjectCount	();
 	PIItem					tpfGetObjectByIndex	(int iIndex);
