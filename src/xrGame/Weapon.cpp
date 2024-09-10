@@ -299,7 +299,6 @@ void CWeapon::Load(LPCSTR section)
 
 	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_bool, section, "has_alt_aim", TRUE);
 	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
-	m_bArmedMode = !m_bArmedRelaxedSwitch;
 	
 	m_mechanic_recoil_pattern			= readRecoilPattern(section, "mechanic");
 	m_layout_recoil_pattern				= readRecoilPattern(section, "layout");
@@ -937,13 +936,8 @@ void CWeapon::setADS(int mode)
 
 void CWeapon::SwitchArmedMode()
 {
-	if (!m_bArmedRelaxedSwitch)
-		return;
-
-	m_bArmedMode = !m_bArmedMode;
-	playBlendAnm(m_safemode_anm[m_bArmedMode]);
-	if (m_actor)
-		g_player_hud->OnMovementChanged();
+	if (m_actor && m_bArmedRelaxedSwitch)
+		playBlendAnm(m_safemode_anm[m_actor->switchArmedMode()]);
 }
 
 float CWeapon::GetControlInertionFactor C$(bool full)
@@ -956,7 +950,14 @@ float CWeapon::GetControlInertionFactor C$(bool full)
 
 float CWeapon::CurrentZoomFactor C$(bool for_actor)
 {
-	return (float)(!!ADS());
+	return								static_cast<float>(!!ADS());
+}
+
+bool CWeapon::ArmedMode() const
+{
+	if (m_bArmedRelaxedSwitch && m_actor)
+		return							m_actor->getArmedMode();
+	return								true;
 }
 
 float CWeapon::Aboba(EEventTypes type, void* data, int param)

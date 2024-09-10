@@ -1790,6 +1790,12 @@ void CActor::SetPower(float p)
 	conditions().SetPower(p);
 }
 
+bool CActor::switchArmedMode()
+{
+	g_player_hud->OnMovementChanged();
+	return m_armed_mode = !m_armed_mode;
+}
+
 #include "items_library.h"
 #include "EntityCondition.h"
 #include "BoneProtections.h"

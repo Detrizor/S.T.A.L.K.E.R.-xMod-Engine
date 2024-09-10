@@ -801,11 +801,15 @@ DECLARE_SCRIPT_REGISTER_FUNCTION
 private:
 	float 								m_accuracy								= 1.f;
 	void								update_accuracy							();
+	bool								m_armed_mode							= false;
 
 public:
 	static void							loadStaticData							();
 
+	bool								getArmedMode							()		{ return m_armed_mode; }
+
 	void								VicinityUpdate							();
+	bool								switchArmedMode							();
 
 	float								getAccuracy							CO$	()		{ return m_accuracy; }
 };
