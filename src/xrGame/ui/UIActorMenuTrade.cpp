@@ -107,26 +107,16 @@ void CUIActorMenu::InitPartnerInventoryContents()
 	m_pTradePartnerBagList->ClearAll							(true);
 	CAI_Trader* trader											= smart_cast<CAI_Trader*>(m_pPartnerInvOwner);
 	if (trader)
-	{
-		for (xr_vector<shared_str>::iterator it = trader->supplies_list.begin(), it_e = trader->supplies_list.end(); it != it_e; it++)
-		{
-			CUICellItem* itm									= create_cell_item_from_section(*it);
-			m_pTradePartnerBagList->SetItem						(itm);
-		}
-	}
+		for (auto& str : trader->supplies_list)
+			m_pTradePartnerBagList->SetItem						(create_cell_item_from_section(str));
 	else
 	{
 		TIItemContainer											items_list;
 		m_pPartnerInvOwner->inventory().AddAvailableItems		(items_list, true);
-		std::sort												(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
-		for (TIItemContainer::iterator itb = items_list.begin(), ite = items_list.end(); itb != ite; ++itb)
-		{
-			if (!is_item_in_list(m_pTradePartnerList, *itb))
-			{
-				CUICellItem* itm								= create_cell_item(*itb);
-				m_pTradePartnerBagList->SetItem					(itm);
-			}
-		}
+		_STD sort												(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+		for (auto item : items_list)
+			if (!is_item_in_list(m_pTradePartnerList, item))
+				m_pTradePartnerBagList->SetItem					(create_cell_item(item));
 	}
 	m_trade_partner_inventory_state								= m_pPartnerInvOwner->inventory().ModifyFrame();
 }

@@ -12,10 +12,10 @@
 
 MAddonOwner::MAddonOwner(CGameObject* obj) : CModule(obj)
 {
-	m_base_foreground_draw				= LoadAddonSlots(O.cNameSect(), m_slots, this);
+	m_base_foreground_draw				= loadAddonSlots(O.cNameSect(), m_slots, this);
 }
 
-bool MAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ parent_ao)
+bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao)
 {
 	shared_str							slots_section;
 	if (pSettings->line_exist(section, "slots"))
@@ -26,7 +26,7 @@ bool MAddonOwner::LoadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOw
 	shared_str							tmp;
 	u16 i								= 0;
 	while (pSettings->line_exist(slots_section, tmp.printf("type_%d", i)))
-		slots.emplace_back				(slots_section, i++, parent_ao);
+		slots.emplace_back				(slots_section, i++, ao, section.c_str());
 
 	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
 }
@@ -216,7 +216,7 @@ LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
 	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
 }
 
-CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent) :
+CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent, LPCSTR parent_section) :
 	parent_ao(parent),
 	idx(_idx)
 {
@@ -231,14 +231,14 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent)
 	tmp.printf							("step_%d", idx);
 	if (pSettings->line_exist(section, tmp))
 	{
-		m_step							= static_cast<double>(pSettings->r_float(section, *tmp));
-		steps							= static_cast<int>(round(length / m_step));
+		step							= static_cast<double>(pSettings->r_float(section, *tmp));
+		steps							= static_cast<int>(round(length / step));
 	}
 	else
 	{
 		tmp.printf						("steps_%d", idx);
 		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 0);
-		m_step							= length / (static_cast<double>(steps) + .5);
+		step							= length / (static_cast<double>(steps) + .5);
 	}
 
 	tmp.printf							("model_offset_rot_%d", idx);
@@ -262,9 +262,9 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent)
 	if (suffix.size())
 		name.printf						("%s (%s)", *name, *CStringTable().translate(suffix));
 
-	Fvector2 icon_origin				= pSettings->r_fvector2(parent->O.cNameSect(), "inv_icon_origin");
-	float icon_ppm						= pSettings->r_float(parent->O.cNameSect(), "icon_ppm");
-	bool icon_inversed					= !!READ_IF_EXISTS(pSettings, r_bool, parent->O.cNameSect(), "icon_inversed", FALSE);
+	Fvector2 icon_origin				= pSettings->r_fvector2(parent_section, "inv_icon_origin");
+	float icon_ppm						= pSettings->r_float(parent_section, "icon_ppm");
+	bool icon_inversed					= !!READ_IF_EXISTS(pSettings, r_bool, parent_section, "icon_inversed", FALSE);
 
 	icon_offset							= icon_origin;
 	float x_offset						= static_cast<float>(model_offset.c.z) * icon_ppm;
@@ -289,17 +289,17 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent)
 
 int CAddonSlot::get_spacing(MAddon CPC left, MAddon CPC right) const
 {
-	if (m_step == 0.)
+	if (step == 0.)
 		return							0;
 	if (!left)
 		return							-1;
 	if (!right)
-		return							left->getLength(m_step) - 1;
+		return							left->getLength(step) - 1;
 	if (left->isLowProfile() || right->isLowProfile())
-		return							left->getLength(m_step);
+		return							left->getLength(step);
 
-	int spacing_profile					= left->getLength(m_step, MAddon::ProfileFwd) + right->getLength(m_step, MAddon::ProfileBwd);
-	return								max(left->getLength(m_step), spacing_profile);
+	int spacing_profile					= left->getLength(step, MAddon::ProfileFwd) + right->getLength(step, MAddon::ProfileBwd);
+	return								max(left->getLength(step), spacing_profile);
 }
 
 MAddon* CAddonSlot::get_next_addon(xr_list<MAddon*>::iterator& I) const
@@ -362,7 +362,8 @@ void CAddonSlot::attachAddon(MAddon* addon)
 		addons.insert					(I, addon);
 	}
 
-	updateAddonLocalTransform			(addon);
+	auto parent_addon					= parent_ao->O.getModule<MAddon>();
+	updateAddonLocalTransform			(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
 }
 
 void CAddonSlot::detachAddon(MAddon* addon)
@@ -370,8 +371,9 @@ void CAddonSlot::detachAddon(MAddon* addon)
 	addon->setSlot						(NULL);
 	addon->setSlotIdx					(u16_max);
 	addon->setSlotPos					(s16_max);
-	addons.erase						(::std::find(addons.begin(), addons.end(), addon));
-	updateAddonLocalTransform			(addon);
+	addons.erase						(_STD find(addons.begin(), addons.end(), addon));
+	auto parent_addon					= parent_ao->O.getModule<MAddon>();
+	updateAddonLocalTransform			(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
 }
 
 #include "../../../xrEngine/xr_input.h"
@@ -451,7 +453,8 @@ void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 	if (pos != addon->getSlotPos())
 	{
 		addon->setSlotPos				(pos);
-		updateAddonLocalTransform		(addon);
+		auto parent_addon				= parent_ao->O.getModule<MAddon>();
+		updateAddonLocalTransform		(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
 	}
 }
 
@@ -556,10 +559,13 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 
 bool CAddonSlot::CanTake(MAddon CPC addon) const
 {
-	auto hi								= parent_ao->O.scast<CHudItem*>();
-	if (hi->HudItemData())
-		if (hi->IsPending())
-			return						false;
+	if (parent_ao)
+	{
+		auto hi							= parent_ao->O.scast<CHudItem*>();
+		if (hi->HudItemData())
+			if (hi->IsPending())
+				return					false;
+	}
 
 	if (!isCompatible(type, addon->SlotType()))
 		return							false;
@@ -579,23 +585,22 @@ bool CAddonSlot::CanTake(MAddon CPC addon) const
 	return								(pos + get_spacing(addon, nullptr) <= steps);
 }
 
-void CAddonSlot::updateAddonLocalTransform(MAddon* addon) const
+void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CR$ parent_transform) const
 {
 	if (addon->getSlot() == this)
 	{
 		Dmatrix transform				= model_offset;
-		transform.c.z					+= static_cast<double>(addon->getSlotPos()) * m_step;
-		if (auto parent_addon = parent_ao->O.getModule<MAddon>())
-			transform.mulA_43			(parent_addon->getLocalTransform());
+		transform.c.z					+= static_cast<double>(addon->getSlotPos()) * step;
+		transform.mulA_43				(parent_transform);
 		addon->setLocalTransform		(transform);
 	}
 	else
 		addon->setLocalTransform		(Didentity);
 
-	if (auto ao = addon->O.getModule<MAddonOwner>())
-		for (auto& s : ao->AddonSlots())
+	if (addon->slots)
+		for (auto& s : *addon->slots)
 			for (auto a : s->addons)
-				s->updateAddonLocalTransform(a);
+				s->updateAddonLocalTransform(a, addon->getLocalTransform());
 }
 
 CAddonSlot::exceptions_list CAddonSlot::slot_exceptions{};

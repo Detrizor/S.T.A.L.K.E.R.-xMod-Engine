@@ -4,6 +4,8 @@
 class CAddonSlot;
 class MAddonOwner;
 
+typedef xr_vector<xptr<CAddonSlot>> VSlots;
+
 class MAddon : public CModule
 {
 public:
@@ -17,9 +19,11 @@ public:
 	};
 
 public:
-										MAddon									(CGameObject* obj);
+										MAddon									(CGameObject* obj, LPCSTR section);
 
 private:
+	const shared_str					m_section;
+
 	Dmatrix 							m_local_transform						= Didentity;
 	Dmatrix 							m_hud_transform							= Didentity;
 	CAddonSlot*							m_slot									= nullptr;
@@ -38,6 +42,8 @@ private:
 
 public:
 	static void							addAddonModules							(CGameObject& O, shared_str CR$ addon_sect);
+
+	VSlots*								slots									= nullptr;
 
 	void								setSlot									(CAddonSlot* s)			{ m_slot = s; }
 	void								setSlotIdx								(int v)					{ m_slot_idx = (u16)v; }
@@ -58,6 +64,7 @@ public:
 	int									getSlotPos							C$	()		{ return (int)m_slot_pos; }
 	bool								isLowProfile						C$	()		{ return m_low_profile; }
 	bool								isFrontPositioning					C$	()		{ return m_front_positioning; }
+	shared_str CR$						section								C$	()		{ return m_section; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);

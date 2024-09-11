@@ -173,7 +173,7 @@ void CInventoryItem::Load(LPCSTR section)
 		O.addModule<MAddonOwner>		();
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
-		O.addModule<MAddon>				();
+		O.addModule<MAddon>				(section);
 
 	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
 		O.addModule<MAmountable>		();

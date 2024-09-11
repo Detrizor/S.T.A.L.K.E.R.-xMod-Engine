@@ -5,6 +5,8 @@
 class MAddonOwner;
 class CAddonSlot;
 
+typedef xr_vector<xptr<CAddonSlot>> VSlots;
+
 struct SIconLayer
 {
 	LPCSTR m_name;
@@ -83,8 +85,9 @@ public:
 
 private:
 	VUISlots							m_slots									= {};
-
-	void								process_ao								(MAddonOwner* ao, Fvector2 CR$ forwarded_offset);
+	
+	void								calculate_grid							(shared_str CR$ sect);
+	void								process_slots							(VSlots CR$ slots, Fvector2 CR$ forwarded_offset);
 	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);
 
 public:

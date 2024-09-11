@@ -12,13 +12,12 @@ class CAddonSlot
 	typedef xr_umap<LPCSTR, RStringVec>	exceptions_list;
 
 public:
-										CAddonSlot								(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent);
+										CAddonSlot								(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent, LPCSTR parent_section);
 
 private:
 	static exceptions_list				slot_exceptions;
 	static exceptions_list				addon_exceptions;
 
-	double								m_step;
 	u16									m_overlaping_slot;
 	bool								m_background_draw;
 	bool								m_foreground_draw;
@@ -41,6 +40,7 @@ public:
 
 	shared_str							type;
 	shared_str							name;
+	double								step;
 	int									steps;
 	Dmatrix								model_offset;
 	Fvector2							icon_offset;
@@ -69,7 +69,7 @@ public:
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
 	bool								CanTake								C$	(MAddon CPC addon);
-	void								updateAddonLocalTransform			C$	(MAddon* addon);
+	void								updateAddonLocalTransform			C$	(MAddon* addon, Dmatrix CR$ parent_transform);
 };
 
 class MAddonOwner : public CModule
@@ -91,6 +91,8 @@ private:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:
+	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao = nullptr);
+
 	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
 	bool								getBaseForegroundDraw				C$	()		{ return m_base_foreground_draw; }
 
@@ -101,6 +103,4 @@ public:
 	bool								attachAddon								(MAddon* addon);
 	void								detachAddon								(MAddon* addon);
 	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
-
-	bool							S$	LoadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ parent_ao = nullptr);
 };

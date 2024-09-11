@@ -22,20 +22,25 @@ void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 		O.addModule<MGrenadeLauncher>	(addon_sect);
 }
 
-MAddon::MAddon(CGameObject* obj) : CModule(obj)
+MAddon::MAddon(CGameObject* obj, LPCSTR section) : CModule(obj), m_section(section)
 {
-	m_SlotType							= pSettings->r_string(O.cNameSect(), "slot_type");
-	m_icon_origin						= pSettings->r_fvector2(O.cNameSect(), "inv_icon_origin");
-	m_low_profile						= pSettings->r_bool(O.cNameSect(), "low_profile");
-	m_front_positioning					= pSettings->r_bool(O.cNameSect(), "front_positioning");
+	m_SlotType							= pSettings->r_string(m_section, "slot_type");
+	m_icon_origin						= pSettings->r_fvector2(m_section, "inv_icon_origin");
+	m_low_profile						= pSettings->r_bool(m_section, "low_profile");
+	m_front_positioning					= pSettings->r_bool(m_section, "front_positioning");
 	
-	m_mount_length						= pSettings->r_float(O.cNameSect(), "mount_length");
-	m_profile_length					= pSettings->r_fvector2(O.cNameSect(), "profile_length");
+	m_mount_length						= pSettings->r_float(m_section, "mount_length");
+	m_profile_length					= pSettings->r_fvector2(m_section, "profile_length");
 
-	addAddonModules						(O, O.cNameSect());
+	if (obj)
+	{
+		addAddonModules					(O, m_section);
+		if (auto ao = O.getModule<MAddonOwner>())
+			slots						= const_cast<VSlots*>(&ao->AddonSlots());
+	}
 }
 
-MAddonOwner* get_root_addon_owner(MAddonOwner* ao)
+static MAddonOwner* get_root_addon_owner(MAddonOwner* ao)
 {
 	if (ao->O.H_Parent())
 		if (auto ao_parent_ao = ao->O.H_Parent()->getModule<MAddonOwner>())
@@ -67,8 +72,8 @@ Fvector2 MAddon::getIconOrigin(u8 type) const
 	{
 		shared_str						tmp;
 		tmp.printf						("inv_icon_origin_%d", type);
-		if (pSettings->line_exist(O.cNameSect(), *tmp))
-			return						pSettings->r_fvector2(O.cNameSect(), *tmp);
+		if (pSettings->line_exist(m_section, tmp.c_str()))
+			return						pSettings->r_fvector2(m_section, tmp.c_str());
 	}
 	return								m_icon_origin;
 }
