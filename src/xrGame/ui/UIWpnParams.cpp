@@ -57,19 +57,22 @@ void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
 
 static float get_barrel_length(CUICellItem* itm)
 {
-	LPCSTR integrated_addons			= pSettings->r_string(itm->m_section, "integrated_addons");
-	string64							tmp;
-	for (int i = 0, cnt = _GetItemCount(integrated_addons); i < cnt; ++i)
+	LPCSTR integrated_addons			= READ_IF_EXISTS(pSettings, r_string, itm->m_section, "integrated_addons", 0);
+	if (integrated_addons && integrated_addons[0])
 	{
-		_GetItem						(integrated_addons, i, tmp);
-		if (strstr(tmp, "barrel"))
-			return						pSettings->r_float(tmp, "length");
+		string64						tmp;
+		for (int i = 0, cnt = _GetItemCount(integrated_addons); i < cnt; ++i)
+		{
+			_GetItem					(integrated_addons, i, tmp);
+			if (strstr(tmp, "barrel"))
+				return					pSettings->r_float(tmp, "barrel_length");
+		}
 	}
 
 	if (auto ao = smart_cast<CUIAddonOwnerCellItem*>(itm))
 		for (auto& s : ao->Slots())
-			if (strstr(*s->addon_section, "barrel"))
-				return					pSettings->r_float(s->addon_section, "length");
+			if (s->addon_section.size() && strstr(s->addon_section.c_str(), "barrel"))
+				return					pSettings->r_float(s->addon_section, "barrel_length");
 
 	return								0.f;
 }
