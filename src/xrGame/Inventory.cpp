@@ -635,13 +635,16 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			{
 				if (hi->IsHiding())
 					hi->ActivateItem	(u16_max);
-				else if (m_iReturnPlace)
+				else if (!hi->IsHidden())
 				{
-					hi->DeactivateItem	(ret_slot);
-					can_set				= false;
+					if (m_iReturnPlace)
+					{
+						hi->DeactivateItem(ret_slot);
+						can_set			= false;
+					}
+					else
+						Ruck			(active_item);
 				}
-				else
-					Ruck				(active_item);
 			}
 			else if (interferes)
 			{
