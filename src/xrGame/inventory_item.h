@@ -341,7 +341,7 @@ private:
 
 public:
 	static const float					s_max_repair_condition;
-	static u32							readBaseCost							(LPCSTR section);
+	static float						readBaseCost							(LPCSTR section, bool for_sale = false);
 	static void							readIcon								(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
 	static LPCSTR						readName								(shared_str CR$ section);
 	static LPCSTR						readNameShort							(shared_str CR$ section);

@@ -759,16 +759,43 @@ bool CInventoryItem::InHands() const
 	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
 }
 
-u32 CInventoryItem::readBaseCost(LPCSTR section)
+float CInventoryItem::readBaseCost(LPCSTR section, bool for_sale)
 {
 	float							cost;
-	if (pSettings->line_exist("costs", section))
+	bool							from_costs;
+	if (from_costs = pSettings->line_exist("costs", section))
 		cost						= pSettings->r_float("costs", section);
 	else
 		cost						= pSettings->r_float(section, "cost");
+	
+	if (from_costs != for_sale)
+	{
+		auto supplies				= READ_IF_EXISTS(pSettings, r_string, section, "supplies", 0);
+		if (supplies && supplies[0])
+		{
+			if (auto count = READ_IF_EXISTS(pSettings, r_u16, section, "supplies_count", 0))
+			{
+				float scost			= count * readBaseCost(supplies);
+				cost				+= (from_costs) ? -scost : scost;
+			}
+			else
+			{
+				string128			sect;
+				for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
+				{
+					_GetItem		(supplies, i, sect);
+					float scost		= readBaseCost(sect);
+					cost			+= (from_costs) ? -scost : scost;
+				}
+			}
+			R_ASSERT2				(cost > 0.f, section);
+		}
+	}
+
 	if (pSettings->line_exist(section, "cost_factor"))
 		cost						*= pSettings->r_float(section, "cost_factor");
-	return							(u32)round(cost);
+
+	return							cost;
 }
 
 void CInventoryItem::readIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)

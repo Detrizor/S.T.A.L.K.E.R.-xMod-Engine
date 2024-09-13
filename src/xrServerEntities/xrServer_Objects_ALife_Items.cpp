@@ -34,11 +34,7 @@ CSE_ALifeInventoryItem::CSE_ALifeInventoryItem(LPCSTR caSection)
 	m_dwCost					= 0;
 
 	m_fMass						= pSettings->r_float(caSection, "inv_weight");
-	
-	if (pSettings->line_exist("costs", caSection))
-		m_dwCost				= pSettings->r_u32("costs", caSection);
-	else if (pSettings->line_exist(caSection, "cost"))
-		m_dwCost				= pSettings->r_u32(caSection, "cost");
+	m_dwCost					= CInventoryItem::readBaseCost(caSection);
 
 	if (pSettings->line_exist(caSection, "condition"))
 		m_fCondition			= pSettings->r_float(caSection, "condition");

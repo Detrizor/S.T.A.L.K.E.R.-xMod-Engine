@@ -163,6 +163,9 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	float					relation_factor = (attitude == NO_GOODWILL ) ? 0.f : (((float)attitude + 1000.f) / 2000.f);
 	clamp					(relation_factor, 0.f, 1.f);
 
+	// total price calculation
+	float price				= (pItem) ? pItem->Price() : CInventoryItem::readBaseCost(section.c_str(), true);
+
 	// computing action factor
 	float					action_factor;
 	if (friend_factor > enemy_factor)
@@ -171,17 +174,6 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 		action_factor		= friend_factor + (enemy_factor - friend_factor) * relation_factor;
 
 	clamp					(action_factor, _min(enemy_factor, friend_factor), _max(enemy_factor, friend_factor));
-
-	// total price calculation
-	float					price;
-	if (pItem)
-		price				= (float)pItem->Price();
-	else
-	{
-		price				= (float)CInventoryItem::readBaseCost(*section);
-		if (float count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
-			price			+= count * (float)CInventoryItem::readBaseCost(pSettings->r_string(section, "supplies"));
-	}
 	price					*= action_factor;
 
 	// use some script discounts
