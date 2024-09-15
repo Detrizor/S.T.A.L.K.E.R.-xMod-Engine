@@ -44,18 +44,7 @@ CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
 	m_sounds_enabled = true;
 	m_sSndShotCurrent = NULL;
 
-	m_bFireSingleShot = false;
-	m_iShotNum = 0;
-	m_iQueueSize = -1;
-	m_bHasDifferentFireModes = false;
-	m_iCurFireMode = -1;
-
 	m_barrel_len = 0.f;
-}
-
-void CWeaponMagazined::net_Destroy()
-{
-	inherited::net_Destroy();
 }
 
 void CWeaponMagazined::Load(LPCSTR section)
@@ -94,22 +83,20 @@ void CWeaponMagazined::Load(LPCSTR section)
 
 	if (pSettings->line_exist(section, "fire_modes"))
 	{
-		m_bHasDifferentFireModes = true;
-		shared_str FireModesList = pSettings->r_string(section, "fire_modes");
-		int ModesCount = _GetItemCount(FireModesList.c_str());
-		m_aFireModes.clear();
-
-		for (int i = 0; i < ModesCount; i++)
+		shared_str FireModesList		= pSettings->r_string(section, "fire_modes");
+		int ModesCount					= _GetItemCount(FireModesList.c_str());
+		if (ModesCount > 1)
 		{
-			string16 sItem;
-			_GetItem(FireModesList.c_str(), i, sItem);
-			m_aFireModes.push_back((s8) atoi(sItem));
+			m_bHasDifferentFireModes	= true;
+			for (int i = 0; i < ModesCount; i++)
+			{
+				string16				sItem;
+				_GetItem				(FireModesList.c_str(), i, sItem);
+				m_aFireModes.push_back	(static_cast<s8>(atoi(sItem)));
+			}
 		}
-
-		m_iCurFireMode = ModesCount - 1;
+		m_iCurFireMode					= ModesCount - 1;
 	}
-	else
-		m_bHasDifferentFireModes = false;
 
 	m_hud.construct						(this);
 

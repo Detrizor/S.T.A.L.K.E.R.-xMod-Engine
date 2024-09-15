@@ -79,7 +79,6 @@ public:
 			void	StartReload(EWeaponSubStates substate);
 
 	virtual	void	UpdateCL();
-	virtual void	net_Destroy();
 
 	virtual bool	Action			(u16 cmd, u32 flags);
 
@@ -98,22 +97,22 @@ public:
 
 protected:
 	//максимальный размер очереди, которой можно стрельнуть
-	int				m_iQueueSize;
+	int				m_iQueueSize						= -1;
 	//количество реально выстреляных патронов
-	int				m_iShotNum;
+	int				m_iShotNum							= 0;
 	//после какого патрона, при непрерывной стрельбе, начинается отдача (сделано из-за Абакана)
-	int				m_iBaseDispersionedBulletsCount = 0;
-	float			m_base_dispersion_shot_time = 0.f;
+	int				m_iBaseDispersionedBulletsCount		= 0;
+	float			m_base_dispersion_shot_time			= 0.f;
 	//флаг того, что мы остановились после того как выстреляли
 	//ровно столько патронов, сколько было задано в m_iQueueSize
 	bool			m_bStopedAfterQueueFired;
 	//флаг того, что хотя бы один выстрел мы должны сделать
 	//(даже если очень быстро нажали на курок и вызвалось FireEnd)
-	bool			m_bFireSingleShot;
+	bool			m_bFireSingleShot					= false;
 	//режимы стрельбы
-	bool			m_bHasDifferentFireModes;
-	xr_vector<s8>	m_aFireModes;
-	int				m_iCurFireMode;
+	bool			m_bHasDifferentFireModes			= false;
+	xr_vector<s8>	m_aFireModes						= {};
+	int				m_iCurFireMode						= -1;
 
 public:
 	void	OnNextFireMode();
