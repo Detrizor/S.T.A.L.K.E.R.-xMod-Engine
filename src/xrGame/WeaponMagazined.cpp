@@ -833,19 +833,7 @@ bool CWeaponMagazined::install_upgrade_impl(LPCSTR section, bool test)
 
 bool CWeaponMagazined::CanTrade() const
 {
-	if (GetAmmoElapsed())
-		return false;
-
-	if (auto ao = getModule<MAddonOwner>())
-	{
-		for (auto& slot : ao->AddonSlots())
-		{
-			if (!slot->addons.empty())
-				return false;
-		}
-	}
-
-	return true;
+	return !GetAmmoElapsed();
 }
 
 void CWeaponMagazined::OnHiddenItem()

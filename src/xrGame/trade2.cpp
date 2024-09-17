@@ -185,11 +185,11 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	price					*= func(smart_cast<const CGameObject*>(pThis.inv_owner)->ID());
 
 	// smart rounding
-	u32						rounder = 1;
-	float					divider = price * 0.05f;
-	for (u8 multiplier = 1; (float)rounder <= divider; rounder *= multiplier)
-		multiplier			= (multiplier == 5) ? 2 : 5;
+	float rounder			= 1.f;
+	float divider			= price * .01f;
+	for (float multiplier = 1.f; rounder <= divider; rounder *= multiplier)
+		multiplier			= (multiplier == 5.f) ? 2.f : 5.f;
 	rounder					/= multiplier;
 
-	return					(u32)iCeil(price / (float)rounder) * rounder;
+	return					static_cast<u32>(iCeil(price / rounder) * rounder);
 }

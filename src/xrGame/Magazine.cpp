@@ -84,15 +84,7 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 		}
 
 		case eWeight:
-		{
-			if (m_weight == flt_max)
-			{
-				m_weight				= 0.f;
-				for (auto heap : m_heaps)
-					m_weight			+= heap->Weight();
-			}
 			return						m_weight;
-		}
 		case eGetAmount:
 			return						static_cast<float>(Amount());
 		case eGetBar:
