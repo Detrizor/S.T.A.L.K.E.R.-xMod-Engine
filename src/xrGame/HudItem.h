@@ -40,8 +40,11 @@ enum EHudStates {
 private:
 	u32						m_hud_item_state;
 	u32						m_dw_curr_state_time;
+
 protected:
 	u32						m_dw_curr_substate_time;
+	u32						m_next_state								= u32_max;
+
 public:
 							CHUDState			() 						{SetState(eIdle);}
 	IC		u32				GetState			() const				{return		m_hud_item_state;}

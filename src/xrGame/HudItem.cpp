@@ -125,12 +125,13 @@ void CHudItem::renderable_Render()
 
 void CHudItem::SwitchState(u32 S)
 {
-	OnStateSwitch(S, GetState());
+	m_next_state = S;
 }
 
 void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 {
 	SetState(S);
+	m_next_state = u32_max;
 
 	bool base_slot = (anm_slot == object().getModule<CInventoryItem>()->BaseSlot());
 
@@ -466,6 +467,9 @@ void CHudItem::UpdateCL()
 			OnAnimationEnd(m_startedMotionState);
 		}
 	}
+
+	if (m_next_state != u32_max)
+		OnStateSwitch(m_next_state, GetState());
 }
 
 void CHudItem::OnH_A_Chield()
