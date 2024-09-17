@@ -625,19 +625,15 @@ void CActor::SwitchNightVision()
 
 void CActor::SwitchTorch()
 {
-	CTorch* pTorch = smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
-	if (pTorch)
+	if (auto pTorch = inventory().ItemFromSlot(TORCH_SLOT)->O.scast<CTorch*>())
 	{
-		bool flashlight = false;
-		PIItem det_active = inventory().ItemFromSlot(LEFT_HAND_SLOT);
-		if (det_active)
-		{
-			CCustomDetector* det = smart_cast<CCustomDetector*>(det_active);
-			if (det && det->Category("device", "torch") && !det->IsHiding() && !det->IsShowing())
-				flashlight = true;
-		}
-		if (inventory().ItemFromSlot(HEADLAMP_SLOT) || flashlight)
+		if (inventory().ItemFromSlot(HEADLAMP_SLOT))
 			pTorch->Switch();
+		else if (auto left_item = inventory().ItemFromSlot(LEFT_HAND_SLOT))
+			if (left_item->Category("equipment", "device", "torch"))
+				if (auto hi = left_item->O.scast<CHudItem*>())
+					if (!hi->IsHiding() && !hi->IsShowing())
+						pTorch->Switch();
 	}
 }
 
