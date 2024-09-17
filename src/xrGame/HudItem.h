@@ -99,8 +99,11 @@ public:
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
 
-	bool						ActivateItem		(u16 prev_slot);
-	void						DeactivateItem		(u16 slot);
+	bool						activateItem		(u16 prev_slot = u16_max);
+	void						deactivateItem		(u16 slot = u16_max);
+	void						hideItem			();
+	void						restoreItem			();
+
 	virtual void				OnActiveItem		()				{ SwitchState(eShowing); }
 	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); }
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev);
@@ -184,7 +187,7 @@ private:
 	SScriptAnm							m_holster_anm_primary;
 	SScriptAnm							m_holster_anm_secondary;
 
-	u16									anm_slot								= 0;
+	u16									anm_slot								= u16_max;
 	shared_str							m_current_anm							= 0;
 
 protected:

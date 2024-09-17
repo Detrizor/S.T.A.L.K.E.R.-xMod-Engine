@@ -133,13 +133,11 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 	SetState(S);
 	m_next_state = u32_max;
 
-	bool base_slot = (anm_slot == object().getModule<CInventoryItem>()->BaseSlot());
-
 	switch (S)
 	{
 	case eShowing:
 		SetPending(TRUE);
-		if (base_slot && HudAnimationExist("anm_show"))
+		if (anm_slot && HudAnimationExist("anm_show"))
 			PlayHUDMotion("anm_show", FALSE, S);
 		else if (anm_slot == PRIMARY_SLOT)
 			playBlendAnm(m_draw_anm_primary, S, true);
@@ -152,7 +150,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		if (oldState != eHiding)
 		{
 			SetPending(TRUE);
-			if (base_slot && HudAnimationExist("anm_hide"))
+			if (anm_slot && HudAnimationExist("anm_hide"))
 				PlayHUDMotion("anm_hide", FALSE, S);
 			else if (anm_slot == PRIMARY_SLOT)
 				playBlendAnm(m_holster_anm_primary, S);
@@ -202,19 +200,35 @@ void CHudItem::PlayAnimBore()
 	PlayHUDMotion("anm_bore", TRUE, GetState());
 }
 
-bool CHudItem::ActivateItem(u16 prev_slot)
+bool CHudItem::activateItem(u16 prev_slot)
 {
 	if (prev_slot != u16_max)
 		anm_slot = prev_slot;
+	if (!anm_slot)
+		anm_slot = u16_max;
 	OnActiveItem();
 	return			true;
 }
 
-void CHudItem::DeactivateItem(u16 slot)
+void CHudItem::deactivateItem(u16 slot)
 {
 	if (slot != u16_max)
 		anm_slot = slot;
+	if (!anm_slot)
+		anm_slot = u16_max;
 	OnHiddenItem();
+}
+
+void CHudItem::hideItem()
+{
+	anm_slot = 0;
+	OnHiddenItem();
+}
+
+void CHudItem::restoreItem()
+{
+	anm_slot = 0;
+	OnActiveItem();
 }
 
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)

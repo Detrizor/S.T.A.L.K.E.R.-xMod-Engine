@@ -561,12 +561,12 @@ void CInventory::Activate(u16 slot, bool bForce)
 		{
 			CHudItem* tempItem = active_item->cast_hud_item();
 			R_ASSERT2(tempItem, active_item->object().cNameSect().c_str());
-			tempItem->DeactivateItem(0);
+			tempItem->deactivateItem();
 		}
 		else //in case where weapon is going to destroy
 		{
 			if (tmp_item)
-				tmp_item->ActivateItem(0);
+				tmp_item->ActivateItem();
 			m_iActiveSlot = slot;
 		}
 		m_iNextActiveSlot = slot;
@@ -634,12 +634,12 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			if (deactivating)
 			{
 				if (hi->IsHiding())
-					hi->ActivateItem	(u16_max);
+					hi->activateItem	();
 				else if (!hi->IsHidden())
 				{
 					if (m_iReturnPlace)
 					{
-						hi->DeactivateItem(ret_slot);
+						hi->deactivateItem(ret_slot);
 						can_set			= false;
 					}
 					else
@@ -650,7 +650,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			{
 				if (m_iReturnPlace)
 				{
-					hi->DeactivateItem	(ret_slot);
+					hi->deactivateItem	(ret_slot);
 					m_iNextActiveItemID	= u16_max;
 					can_set				= false;
 				}
@@ -783,7 +783,7 @@ void CInventory::Update()
 					if (!hi->IsHidden())
 					{
 						if (hi->GetState() == CHUDState::eIdle)
-							hi->DeactivateItem(active_item->BaseSlot());
+							hi->deactivateItem(active_item->BaseSlot());
 
 						UpdateDropTasks();
 						return;
@@ -811,7 +811,7 @@ void CInventory::Update()
 				m_iActiveSlot = GetNextActiveSlot();
 			}
 			else if ((GetNextActiveSlot() != NO_ACTIVE_SLOT) && ActiveItem() && ActiveItem()->cast_hud_item()->IsHidden())
-				ActiveItem()->ActivateItem(0);
+				ActiveItem()->ActivateItem();
 		}
 	}
 	UpdateDropTasks();

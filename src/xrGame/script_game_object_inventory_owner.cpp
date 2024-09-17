@@ -1075,27 +1075,20 @@ void CScriptGameObject::attachable_item_load_attach(LPCSTR section)
 
 void CScriptGameObject::HideWeapon()
 {
-	CInventoryOwner* inventory_owner	= smart_cast<CInventoryOwner*>(&object());
+	auto inventory_owner				= object().scast<CInventoryOwner*>();
 	if (!inventory_owner)
 	{
 		ai().script_engine().script_log	(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member HideWeapon!");
 		return;
 	}
 
-	PIItem active_item					= inventory_owner->inventory().ActiveItem();
-	if (active_item)
-	{
-		CHudItem* hi					= active_item->cast_hud_item();
-		if (hi)
-			hi->DeactivateItem			(0);
-	}
-	PIItem left_item					= inventory_owner->inventory().LeftItem();
-	if (left_item)
-	{
-		CCustomDetector* det			= smart_cast<CCustomDetector*>(left_item);
-		if (det)
-			det->HideDetector(true);
-	}
+	if (auto active_item = inventory_owner->inventory().ActiveItem())
+		if (auto hi = active_item->O.scast<CHudItem*>())
+			hi->hideItem				();
+
+	if (auto left_item = inventory_owner->inventory().LeftItem())
+		if (auto det = left_item->O.scast<CCustomDetector*>())
+			det->HideDetector			(true);
 }
 
 void  CScriptGameObject::RestoreWeapon()
@@ -1107,17 +1100,13 @@ void  CScriptGameObject::RestoreWeapon()
 		return;
 	}
 
-	PIItem active_item					= inventory_owner->inventory().ActiveItem();
-	if (active_item)
-		active_item->ActivateItem		(0);
+	if (auto active_item = inventory_owner->inventory().ActiveItem())
+		if (auto hi = active_item->O.scast<CHudItem*>())
+			hi->restoreItem				();
 
-	PIItem left_item					= inventory_owner->inventory().LeftItem();
-	if (left_item)
-	{
-		CCustomDetector* det			= smart_cast<CCustomDetector*>(left_item);
-		if (det)
+	if (auto left_item = inventory_owner->inventory().LeftItem())
+		if (auto det = left_item->O.scast<CCustomDetector*>())
 			det->ToggleDetector			(!!g_player_hud->attached_item(0));
-	}
 }
 
 bool CScriptGameObject::Weapon_IsScopeAttached()

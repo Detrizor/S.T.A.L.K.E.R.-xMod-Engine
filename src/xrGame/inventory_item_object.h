@@ -57,8 +57,8 @@ protected:
 
 public:
 	u32									ef_weapon_type						CO$	()					{ return 0; }
-	bool								ActivateItem						O$	(u16 prev_slot)		{ return core::ActivateItem(prev_slot); }
-	void								DeactivateItem						O$	(u16 slot)			{ core::DeactivateItem(slot); }
+	bool								ActivateItem						O$	(u16 prev_slot)		{ return core::activateItem(prev_slot); }
+	void								DeactivateItem						O$	(u16 slot)			{ core::deactivateItem(slot); }
 	void								renderable_Render					O$	()					{ core::renderable_Render(); }
 	BOOL								net_SaveRelevant					O$	()					{ return TRUE; }
 	void								activate_physic_shell				O$	()					{ wrap::activate_physic_shell(); }

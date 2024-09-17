@@ -111,9 +111,9 @@ public:
 
 	virtual EHandDependence		HandDependence		()	const	{return hd1Hand;};
 	virtual bool				IsSingleHanded		()	const	{return true;};	
-	virtual bool				ActivateItem		(u16 prev_slot)		{ return false; }		// !!! Переопределить. (см. в Inventory.cpp)
-	virtual void				DeactivateItem		(u16 slot)			{}						// !!! Переопределить. (см. в Inventory.cpp)
-	virtual bool				Action				(u16 cmd, u32 flags) {return false;}		// true если известная команда, иначе false
+	virtual bool				ActivateItem		(u16 prev_slot = u16_max)		{ return false; }		// !!! Переопределить. (см. в Inventory.cpp)
+	virtual void				DeactivateItem		(u16 slot = u16_max)			{}						// !!! Переопределить. (см. в Inventory.cpp)
+	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}			// true если известная команда, иначе false
 	virtual void				DiscardState		() {};
 
 	virtual void				OnH_B_Chield		();
