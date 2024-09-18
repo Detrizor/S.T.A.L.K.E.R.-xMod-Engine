@@ -119,7 +119,9 @@ float MAddon::aboba(EEventTypes type, void* data, int param)
 void MAddon::attach(CAddonSlot CPC slot)
 {
 	setSlotIdx							(slot->idx);
-	O.getModule<MUsable>()->performAction(2, true, slot->parent_ao->O.ID());
+	if (auto usable = O.getModule<MUsable>())
+		if (auto act = usable->getAction("st_attach"))
+			usable->performAction		(act->num, true, slot->parent_ao->O.ID());
 }
 
 bool MAddon::tryAttach(MAddonOwner CPC ao, u16 slot_idx)

@@ -3,6 +3,7 @@
 
 struct SAction
 {
+	u8									num										= 0;
 	shared_str							title									= 0;
 	shared_str							query_functor							= 0;
 	shared_str							action_functor							= 0;
@@ -20,12 +21,13 @@ public:
 										MUsable									(CGameObject* obj);
 
 private:
-	xr_vector<SAction>					m_actions								= {};
+	xr_vector<xptr<SAction>>			m_actions								= {};
 
 protected:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
 	SAction*							getAction								(int num);
+	SAction*							getAction								(LPCSTR title);
 	bool								performAction							(int num, bool skip_query = false, u16 item_id = u16_max);
 };
