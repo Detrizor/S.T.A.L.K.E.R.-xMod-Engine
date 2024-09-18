@@ -530,7 +530,7 @@ void CHudItem::on_a_hud_attach()
 {
 }
 
-u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
+u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state, bool ignore_anm_type)
 {
 	shared_str							tmp;
 	if (get_anm_prefix())
@@ -546,7 +546,7 @@ u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 		return 0;
 	}
 
-	u32 anim_time = PlayHUDMotion_noCB(name, bMixIn);
+	u32 anim_time = PlayHUDMotion_noCB(name, bMixIn, ignore_anm_type);
 	if (anim_time > 0)
 	{
 		m_bStopAtEndAnimIsRunning = true;
@@ -561,7 +561,7 @@ u32 CHudItem::PlayHUDMotion(shared_str name, BOOL bMixIn, u32 state)
 	return anim_time;
 }
 
-u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn)
+u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn, bool ignore_anm_type)
 {
 	m_current_motion = motion_name;
 
@@ -576,7 +576,7 @@ u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn)
 	}
 	if (HudItemData())
 	{
-		return HudItemData()->anim_play(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx);
+		return HudItemData()->anim_play(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx, ignore_anm_type);
 	}
 	else
 	{

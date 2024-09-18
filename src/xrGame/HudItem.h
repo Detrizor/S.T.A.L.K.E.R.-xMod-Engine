@@ -128,8 +128,8 @@ public:
 
 	virtual	void				UpdateXForm			()						= 0;
 
-	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state);
-	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
+	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state, bool ignore_anm_type = false);
+	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn, bool ignore_anm_type);
 	void						StopCurrentAnimWithoutCallback();
 
 	IC void						RenderHud				(BOOL B)	{ m_huditem_flags.set(fl_renderhud, B);}

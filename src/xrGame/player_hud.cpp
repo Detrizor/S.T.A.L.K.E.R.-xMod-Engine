@@ -289,7 +289,7 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 		);
 }
 
-u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx)
+u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd_idx, bool ignore_anm_type)
 {
 	R_ASSERT				(strstr(anim_name.c_str(),"anm_")== anim_name.c_str());
 
@@ -314,13 +314,14 @@ u32 attachable_hud_item::anim_play(const shared_str& anim_name, BOOL bMixIn, con
 		else
 			item_anm_name = M.name;
 
-		MotionID M2						= ka->ID_Cycle_Safe(shared_str().printf("%s%s", *item_anm_name, m_parent_hud_item->anmType()));
+		LPCSTR anm_type					= (ignore_anm_type) ? "" : m_parent_hud_item->anmType();
+		MotionID M2						= ka->ID_Cycle_Safe(shared_str().printf("%s%s", item_anm_name.c_str(), anm_type));
 		if (!M2.valid())
 		{
 			M2							= ka->ID_Cycle_Safe(item_anm_name);
 			if (!M2.valid())
 			{
-				M2						= ka->ID_Cycle_Safe(shared_str().printf("idle%s", m_parent_hud_item->anmType()));
+				M2						= ka->ID_Cycle_Safe(shared_str().printf("idle%s", anm_type));
 				if (!M2.valid())
 					M2					= ka->ID_Cycle_Safe("idle");
 			}
@@ -704,7 +705,7 @@ void player_hud::attach_item(CHudItem* item)
 		
 		if (pi->m_auto_attach_anm.size())
 		{
-			pi->m_parent_hud_item->PlayHUDMotion(pi->m_auto_attach_anm, FALSE, 0);
+			pi->m_parent_hud_item->PlayHUDMotion(pi->m_auto_attach_anm, FALSE, 0, true);
 			update_bones(m_model->dcast_PKinematics());
 			pi->m_hands_attach = static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]));
 			pi->m_hands_attach.mulB_43(pi->m_item_attach);
