@@ -575,9 +575,11 @@ void CInventory::Activate(u16 slot, bool bForce)
 
 void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 {
+	bool force_deactivating				= false;
 	if (!item)
 	{
 		item							= ActiveItem();
+		force_deactivating				= true;
 		if (!item)
 			return;
 	}
@@ -633,7 +635,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			u16 ret_slot				= (m_iReturnPlace == eItemPlaceSlot) ? m_iReturnSlot : 0;
 			if (deactivating)
 			{
-				if (hi->IsHiding())
+				if (hi->IsHiding() && !force_deactivating)
 					hi->activateItem	();
 				else if (!hi->IsHidden())
 				{

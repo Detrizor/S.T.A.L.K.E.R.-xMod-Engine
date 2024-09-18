@@ -1215,12 +1215,11 @@ void CScriptGameObject::activate_slot(u32 slot_id)
 
 void CScriptGameObject::ActivateItem(CScriptGameObject* obj, u16 return_place, u16 return_slot)
 {
-	CInventoryOwner* inventory_owner		= smart_cast<CInventoryOwner*>(&object());
-	CInventoryItem* item					= smart_cast<CInventoryItem*>(&obj->object());
-	if (!inventory_owner || !item)
-		return;
-
-	inventory_owner->inventory().ActivateItem(item, return_place, return_slot);
+	if (auto inventory_owner = object().scast<CInventoryOwner*>())
+	{
+		CInventoryItem* item = (obj) ? obj->object().scast<CInventoryItem*>() : nullptr;
+		inventory_owner->inventory().ActivateItem(item, return_place, return_slot);
+	}
 }
 
 void CScriptGameObject::Ruck(CScriptGameObject* obj)
