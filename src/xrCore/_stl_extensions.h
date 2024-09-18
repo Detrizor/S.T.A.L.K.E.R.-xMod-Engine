@@ -169,29 +169,8 @@ public:
 		return find(obj) != inherited::end();
 	}
 
-	const_iterator find_if(const T& obj) const
+	bool erase_checked(iterator it, bool assert = true)
 	{
-		return _STD find_if(inherited::begin(), inherited::end(), obj);
-	}
-
-	iterator find_if(const T& obj)
-	{
-		return _STD find_if(inherited::begin(), inherited::end(), obj);
-	}
-
-	bool contains_if(const T& obj) const
-	{
-		return find_if(obj) != inherited::end();
-	}
-
-	bool contains_if(T& obj)
-	{
-		return find_if(obj) != inherited::end();
-	}
-
-	bool erase_data(const T& obj, bool assert = true)
-	{
-		auto it = _STD find(inherited::begin(), inherited::end(), obj);
 		if (it != inherited::end())
 		{
 			erase(it);
@@ -200,6 +179,41 @@ public:
 		else if (assert)
 			FATAL("data not found in vector");
 		return false;
+	}
+
+	bool erase_data(const T& obj, bool assert = true)
+	{
+		return erase_checked(_STD find(inherited::begin(), inherited::end(), obj), assert);
+	}
+
+	template <typename Eval>
+	const_iterator find_if(const Eval& obj) const
+	{
+		return _STD find_if(inherited::begin(), inherited::end(), obj);
+	}
+
+	template <typename Eval>
+	iterator find_if(const Eval& obj)
+	{
+		return _STD find_if(inherited::begin(), inherited::end(), obj);
+	}
+
+	template <typename Eval>
+	bool contains_if(const Eval& obj) const
+	{
+		return find_if(obj) != inherited::end();
+	}
+
+	template <typename Eval>
+	bool contains_if(Eval& obj)
+	{
+		return find_if(obj) != inherited::end();
+	}
+
+	template <typename Eval>
+	bool erase_data_if(const Eval& obj, bool assert = true)
+	{
+		return erase_checked(_STD find_if(inherited::begin(), inherited::end(), obj), assert);
 	}
 };
 
