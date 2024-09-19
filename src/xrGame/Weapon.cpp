@@ -247,7 +247,6 @@ void CWeapon::Load(LPCSTR section)
 	////////////////////////////////////////////////////
 	// дисперсия стрельбы
 
-	m_first_bullet_controller.load(section);
 	fireDispersionConditionFactor = pSettings->r_float(section, "fire_dispersion_condition_factor");
 
 	// modified by Peacemaker [17.10.08]

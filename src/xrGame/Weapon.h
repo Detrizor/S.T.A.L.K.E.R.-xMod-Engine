@@ -9,7 +9,6 @@
 #include "Actor_Flags.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "game_cl_single.h"
-#include "first_bullet_controller.h"
 
 #include "actor.h"
 
@@ -310,9 +309,6 @@ public:
 	};
 
 protected:
-	first_bullet_controller	m_first_bullet_controller;
-
-protected:
 	int						GetAmmoCount(u8 ammo_type) const;
 
 public:
@@ -328,12 +324,7 @@ public:
 
 	virtual void			OnMagazineEmpty			() {}
 
-	float			GetFirstBulletDisp()	const
-	{
-		return m_first_bullet_controller.get_fire_dispertion();
-	};
 protected:
-
 	//для подсчета в GetSuitableAmmoTotal
 	mutable int				m_iAmmoCurrentTotal;
 	mutable u32				m_BriefInfo_CalcFrame;	//кадр на котором просчитали кол-во патронов

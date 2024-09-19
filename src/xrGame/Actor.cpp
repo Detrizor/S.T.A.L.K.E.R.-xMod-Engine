@@ -978,9 +978,6 @@ void CActor::UpdateCL()
 
 		if (current_entity)
 		{
-#ifdef DEBUG
-			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
-#endif
 			HUD().ShowCrosshair(wpn->use_crosshair());
 
 			if (cam_active == eacLookAt && !cam_Active()->m_look_cam_fp_zoom)
