@@ -13,7 +13,7 @@ MGrenadeLauncher::MGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : C
 	auto ao								= O.getModule<MAddonOwner>();
 	for (auto& s : ao->AddonSlots())
 	{
-		if (s->attach == "grenade")
+		if (s->getAttachBone() == "grenade")
 		{
 			m_slot						= s.get();
 			break;

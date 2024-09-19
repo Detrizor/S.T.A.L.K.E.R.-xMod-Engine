@@ -595,8 +595,6 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 		if (auto pi = m_attached_items[i])
 		{
 			pi->m_parent_hud_item->UpdateHudAdditional(m_transform);
-			if (pi->m_auto_attach_anm.size())
-				m_transform.translate_mul(pi->m_parent_hud_item->object().getRootBonePosition());
 			m_transform.mulB_43(pi->m_hands_attach);
 			break;
 		}
@@ -706,16 +704,17 @@ void player_hud::attach_item(CHudItem* item)
 		if (pi->m_auto_attach_anm.size())
 		{
 			pi->m_parent_hud_item->PlayHUDMotion(pi->m_auto_attach_anm, FALSE, 0, true);
-			update_bones(m_model->dcast_PKinematics());
-			pi->m_hands_attach = static_cast<Dmatrix>(m_model->dcast_PKinematics()->LL_GetTransform(m_ancors[pi->m_attach_place_idx]));
-			pi->m_hands_attach.mulB_43(pi->m_item_attach);
-			pi->m_hands_attach.invert();
+			update_bones				(m_model->dcast_PKinematics());
+			update_bones				(pi->m_model);
+
+			u16 anchor_bone_id			= m_ancors[pi->m_attach_place_idx];
+			auto& anchor_trans			= m_model->dcast_PKinematics()->LL_GetTransform(anchor_bone_id);
+			pi->m_hands_attach.mul		(static_cast<Dmatrix>(anchor_trans), pi->m_item_attach);
+			pi->m_hands_attach.mulB_43	(static_cast<Dmatrix>(pi->m_model->LL_GetTransform_R(0)));
+			pi->m_hands_attach.invert	();
 
 			if (auto ao = pi->m_parent_hud_item->object().getModule<MAddonOwner>())
-			{
-				update_bones(pi->m_model);
-				ao->calculateSlotsBoneOffset(pi->m_model, pi->m_hud_section);
-			}
+				ao->calcSlotsBoneOffset	(pi);
 
 			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
 			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);

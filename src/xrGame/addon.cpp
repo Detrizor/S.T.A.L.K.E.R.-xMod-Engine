@@ -78,11 +78,6 @@ Fvector2 MAddon::getIconOrigin(u8 type) const
 	return								m_icon_origin;
 }
 
-void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)
-{
-	m_hud_transform.mul					(parent_trans, m_local_transform);
-}
-
 int MAddon::getLength(float step, eLengthType type) const
 {
 	float len							= 0.f;
@@ -143,4 +138,16 @@ bool MAddon::tryAttach(MAddonOwner CPC ao, u16 slot_idx)
 	}
 
 	return								false;
+}
+
+void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)
+{
+	m_hud_transform.mul					(parent_trans, m_hud_offset);
+}
+
+void MAddon::updateHudOffset(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset)
+{
+	m_hud_offset.invert					(bone_offset);
+	m_hud_offset.mulB_43				(m_local_transform);
+	m_hud_offset.mulB_43				(root_offset);
 }

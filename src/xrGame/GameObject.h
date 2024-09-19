@@ -313,7 +313,6 @@ private:
 public:
 	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max);
 
-	Dvector								getRootBonePosition						();
 	void								UpdateBoneVisibility					(shared_str CR$ bone_name, bool status);
 	
 	void								transfer							C$	(u16 id = u16_max);

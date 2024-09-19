@@ -31,12 +31,6 @@ bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOw
 	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
 }
 
-void MAddonOwner::calculateSlotsBoneOffset(IKinematics* model, shared_str CR$ hud_sect)
-{
-	for (auto& s : m_slots)
-		s->calculateBoneOffset			(model, hud_sect);
-}
-
 bool MAddonOwner::try_transfer(MAddonOwner* ao, void* addon, int attach)
 {
 	if (ao->O.Aboba(eTransferAddon, addon, attach) == flt_max)
@@ -134,9 +128,8 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 		case eUpdateSlotsTransform:
 		{
 			attachable_hud_item* hi		= O.scast<CHudItem*>()->HudItemData();
-			Dvector root_offset			= O.getRootBonePosition().mul(-1.);
 			for (auto& s : m_slots)
-				s->updateAddonsHudTransform(hi->m_model, hi->m_transform, root_offset);
+				s->updateAddonsHudTransform(hi);
 			break;
 		}
 	}
@@ -209,6 +202,13 @@ void MAddonOwner::detachAddon(MAddon* addon)
 	transfer_addon						(addon, false);
 }
 
+void MAddonOwner::calcSlotsBoneOffset(attachable_hud_item* hi)
+{
+	m_root_offset						= static_cast<Dmatrix>(hi->m_model->LL_GetTransform_R(0));
+	for (auto& s : m_slots)
+		s->calcBoneOffset				(hi);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
@@ -276,12 +276,12 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent,
 	tmp.printf							("overlapping_slot_%d", idx);
 	m_overlaping_slot					= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
 	
-	tmp.printf							("attach_%d", idx);
-	attach								= READ_IF_EXISTS(pSettings, r_string, section, *tmp, 0);
+	tmp.printf							("attach_bone_%d", idx);
+	m_attach_bone						= READ_IF_EXISTS(pSettings, r_string, section, tmp.c_str(), "root");
 	
 	tmp.printf							("background_draw_%d", idx);
 	m_background_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
-	m_background_draw					|= (attach == "magazine" || attach == "grenade");
+	m_background_draw					|= (m_attach_bone == "magazine" || m_attach_bone == "grenade");
 	
 	tmp.printf							("foreground_draw_%d", idx);
 	m_foreground_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
@@ -310,6 +310,12 @@ MAddon* CAddonSlot::get_next_addon(xr_list<MAddon*>::iterator& I) const
 MAddon* CAddonSlot::get_prev_addon(xr_list<MAddon*>::iterator& I) const
 {
 	return								(I == addons.begin()) ? NULL : *--I;
+}
+
+void CAddonSlot::update_addon_local_transform(MAddon* addon) const
+{
+	auto parent_addon					= parent_ao->O.getModule<MAddon>();
+	updateAddonLocalTransform			(addon, (parent_addon) ? & parent_addon->getLocalTransform() : nullptr);
 }
 
 void CAddonSlot::attachAddon(MAddon* addon)
@@ -362,8 +368,7 @@ void CAddonSlot::attachAddon(MAddon* addon)
 		addons.insert					(I, addon);
 	}
 
-	auto parent_addon					= parent_ao->O.getModule<MAddon>();
-	updateAddonLocalTransform			(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
+	update_addon_local_transform		(addon);
 }
 
 void CAddonSlot::detachAddon(MAddon* addon)
@@ -372,8 +377,7 @@ void CAddonSlot::detachAddon(MAddon* addon)
 	addon->setSlotIdx					(u16_max);
 	addon->setSlotPos					(s16_max);
 	addons.erase						(_STD find(addons.begin(), addons.end(), addon));
-	auto parent_addon					= parent_ao->O.getModule<MAddon>();
-	updateAddonLocalTransform			(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
+	update_addon_local_transform		(addon);
 }
 
 #include "../../../xrEngine/xr_input.h"
@@ -453,25 +457,20 @@ void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 	if (pos != addon->getSlotPos())
 	{
 		addon->setSlotPos				(pos);
-		auto parent_addon				= parent_ao->O.getModule<MAddon>();
-		updateAddonLocalTransform		(addon, (parent_addon) ? parent_addon->getLocalTransform() : Didentity);
+		update_addon_local_transform	(addon);
 	}
 }
 
-void CAddonSlot::updateAddonsHudTransform(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset, Dmatrix bone_shift)
+void CAddonSlot::updateAddonsHudTransform(attachable_hud_item* hi)
 {
-	if (m_bone_id != u16_max)
-		bone_shift.mul					(static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id)), m_bone_offset);
-
+	static Dmatrix						bone_trans;
+	bone_trans.mul						(hi->m_transform, static_cast<Dmatrix>(hi->m_model->LL_GetTransform(m_attach_bone_id)));
 	for (auto addon : addons)
 	{
-		Dmatrix trans					= parent_trans;
-		trans.mulB_43					(bone_shift);
-		trans.translate_mul				(root_offset);
-		addon->updateHudTransform		(trans);
-		if (auto ao = addon->O.getModule<MAddonOwner>())
-			for (auto& s : ao->AddonSlots())
-				s->updateAddonsHudTransform(model, parent_trans, root_offset, bone_shift);
+		addon->updateHudTransform		(bone_trans);
+		if (addon->slots)
+			for (auto& s : *addon->slots)
+				s->updateAddonsHudTransform(hi);
 	}
 }
 
@@ -510,26 +509,6 @@ void CAddonSlot::RenderHud() const
 			for (auto& s : ao->AddonSlots())
 				s->RenderHud			();
 	}
-}
-
-void CAddonSlot::calculateBoneOffset(IKinematics* model, shared_str CR$ hud_sect)
-{
-	if (attach.size())
-	{
-		shared_str						line;
-		line.printf						("%s_bone_name", *attach);
-		if (pSettings->line_exist(hud_sect, line))
-		{
-			LPCSTR bone_name			= pSettings->r_string(hud_sect, *line);
-			m_bone_id					= model->LL_BoneID(bone_name);
-			m_bone_offset				= static_cast<Dmatrix>(model->LL_GetTransform(m_bone_id));
-			m_bone_offset.invert		();
-		}
-	}
-
-	for (auto a : addons)
-		if (auto ao = a->O.getModule<MAddonOwner>())
-			ao->calculateSlotsBoneOffset(model, hud_sect);
 }
 
 void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
@@ -585,14 +564,16 @@ bool CAddonSlot::CanTake(MAddon CPC addon) const
 	return								(pos + get_spacing(addon, nullptr) <= steps);
 }
 
-void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CR$ parent_transform) const
+void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CPC parent_transform) const
 {
 	if (addon->getSlot() == this)
 	{
 		Dmatrix transform				= model_offset;
 		transform.c.z					+= static_cast<double>(addon->getSlotPos()) * step;
-		transform.mulA_43				(parent_transform);
+		if (parent_transform)
+			transform.mulA_43			(*parent_transform);
 		addon->setLocalTransform		(transform);
+		addon->updateHudOffset			(m_attach_bone_offset, parent_ao->getRootOffset());
 	}
 	else
 		addon->setLocalTransform		(Didentity);
@@ -600,8 +581,24 @@ void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CR$ parent_tra
 	if (addon->slots)
 		for (auto& s : *addon->slots)
 			for (auto a : s->addons)
-				s->updateAddonLocalTransform(a, addon->getLocalTransform());
+				s->updateAddonLocalTransform(a, &addon->getLocalTransform());
 }
+
+void CAddonSlot::calcBoneOffset(attachable_hud_item* hi)
+{
+	shared_str							line;
+	line.printf							("%s_bone_name", m_attach_bone.c_str());
+	LPCSTR bone_name					= pSettings->r_string(hi->m_hud_section, line.c_str());
+	m_attach_bone_id					= hi->m_model->LL_BoneID(bone_name);
+	m_attach_bone_offset				= static_cast<Dmatrix>(hi->m_model->LL_GetTransform(m_attach_bone_id));
+
+	for (auto a : addons)
+	{
+		a->updateHudOffset				(m_attach_bone_offset, parent_ao->getRootOffset());
+		if (auto ao = a->O.getModule<MAddonOwner>())
+			ao->calcSlotsBoneOffset		(hi);
+}
+	}
 
 CAddonSlot::exceptions_list CAddonSlot::slot_exceptions{};
 CAddonSlot::exceptions_list CAddonSlot::addon_exceptions{};

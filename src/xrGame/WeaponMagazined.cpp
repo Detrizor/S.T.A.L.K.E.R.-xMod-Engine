@@ -196,7 +196,7 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 		return;
 	
 	bool lock							= substate != eSubstateReloadBoltLock && substate != eSubstateReloadBoltPull && m_lock_state_reload && isEmptyChamber() && !m_locked;
-	if (m_actor && lock)
+	if (m_actor && lock && m_magazine_slot)
 	{
 		auto mag						= m_magazine_slot->getLoadingAddon();
 		if (!mag || mag->O.getModule<MMagazine>()->Empty())
@@ -1135,7 +1135,7 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 	{
 		for (auto& s : ao->AddonSlots())
 		{
-			if (s->attach == "magazine")
+			if (s->getAttachBone() == "magazine")
 			{
 				m_magazine_slot			= (attach) ? s.get() : nullptr;
 				return;

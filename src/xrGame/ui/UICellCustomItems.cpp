@@ -513,7 +513,7 @@ CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(shared_str CR$ section) : inherited
 		try_insert						(addon.get(), slots);
 	for (auto& slot : slots)
 		for (auto& addon : slot->addons)
-			slot->updateAddonLocalTransform(addon, Didentity);
+			slot->updateAddonLocalTransform(addon);
 
 	process_slots						(slots, vZero2);
 	calculate_grid						(section);

@@ -1232,12 +1232,6 @@ void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to)
 	u_EventSend							(P);
 }
 
-Dvector CGameObject::getRootBonePosition()
-{
-	Fmatrix CR$ root_mat				= Visual()->dcast_PKinematics()->LL_GetTransform(0);
-	return								static_cast<Dvector>(root_mat.c);
-}
-
 void CGameObject::update_bone_visibility(IKinematics* visual, shared_str CR$ bone_name, bool status)
 {
 	u16 bone_id							= visual->LL_BoneID(bone_name);

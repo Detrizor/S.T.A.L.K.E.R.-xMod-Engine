@@ -4,6 +4,7 @@
 class MAddon;
 class MAddonOwner;
 class CAddonSlot;
+struct attachable_hud_item;
 
 typedef xr_vector<xptr<CAddonSlot>> VSlots;
 
@@ -21,14 +22,16 @@ private:
 	u16									m_overlaping_slot;
 	bool								m_background_draw;
 	bool								m_foreground_draw;
+	shared_str							m_attach_bone;
 
 	MAddon*								m_loading_addon							= nullptr;
-	u16									m_bone_id								= u16_max;
-	Dmatrix								m_bone_offset							= Didentity;
+	u16									m_attach_bone_id						= 0;
+	Dmatrix								m_attach_bone_offset					= Didentity;
 
 	int									get_spacing							C$	(MAddon CPC left, MAddon CPC right);
 	MAddon*								get_next_addon						C$	(xr_list<MAddon*>::iterator& I);
 	MAddon*								get_prev_addon						C$	(xr_list<MAddon*>::iterator& I);
+	void								update_addon_local_transform		C$	(MAddon* addon);
 
 public:
 	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
@@ -45,7 +48,6 @@ public:
 	Dmatrix								model_offset;
 	Fvector2							icon_offset;
 	float								icon_step;
-	shared_str							attach;
 
 	xr_list<MAddon*>					addons									= {};
 
@@ -53,23 +55,24 @@ public:
 	void								detachAddon								(MAddon* addon);
 	void								shiftAddon								(MAddon* addon, int shift);
 
-	void								updateAddonsHudTransform				(IKinematics* model, Dmatrix CR$ parent_trans, Dvector CR$ root_offset, Dmatrix bone_shift = Didentity);
+	void								updateAddonsHudTransform				(attachable_hud_item* hi);
 
 	void								startReloading							(MAddon* loading_addon);
 	void								loadingDetach							();
 	void								loadingAttach							();
 	void								finishLoading							(bool interrupted = false);
-	void								calculateBoneOffset						(IKinematics* model, shared_str CR$ hud_sect);
+	void								calcBoneOffset							(attachable_hud_item* hi);
 	
 	bool								getBackgroundDraw					C$	()		{ return m_background_draw; }
 	bool								getForegroundDraw					C$	()		{ return m_foreground_draw; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
 	MAddon CP$							getLoadingAddon						C$	()		{ return m_loading_addon; }
+	shared_str CR$						getAttachBone						C$	()		{ return m_attach_bone; }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
 	bool								CanTake								C$	(MAddon CPC addon);
-	void								updateAddonLocalTransform			C$	(MAddon* addon, Dmatrix CR$ parent_transform);
+	void								updateAddonLocalTransform			C$	(MAddon* addon, Dmatrix CPC parent_transform = nullptr);
 };
 
 class MAddonOwner : public CModule
@@ -84,6 +87,7 @@ private:
 	bool								m_base_foreground_draw;
 
 	VSlots								m_slots									= {};
+	Dmatrix								m_root_offset							= Didentity;
 	
 	static bool							try_transfer							(MAddonOwner* ao, void* addon, int attach);
 	void								transfer_addon							(MAddon* addon, bool attach);
@@ -93,14 +97,15 @@ private:
 public:
 	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao = nullptr);
 
+	bool								attachAddon								(MAddon* addon);
+	void								detachAddon								(MAddon* addon);
+	void								calcSlotsBoneOffset						(attachable_hud_item* hi);
+
 	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
 	bool								getBaseForegroundDraw				C$	()		{ return m_base_foreground_draw; }
+	Dmatrix CR$							getRootOffset						C$	()		{ return m_root_offset; }
 
 	MAddonOwner*						getParentAO							C$	();
 	CAddonSlot*							findAvailableSlot					C$	(MAddon CPC addon);
 	void								RegisterAddon						C$	(MAddon PC$ addon, bool attach);
-
-	bool								attachAddon								(MAddon* addon);
-	void								detachAddon								(MAddon* addon);
-	void								calculateSlotsBoneOffset				(IKinematics* model, shared_str CR$ hud_sect);
 };

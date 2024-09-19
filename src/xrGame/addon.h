@@ -26,6 +26,7 @@ private:
 
 	Dmatrix 							m_local_transform						= Didentity;
 	Dmatrix 							m_hud_transform							= Didentity;
+	Dmatrix 							m_hud_offset							= Didentity;
 	CAddonSlot*							m_slot									= nullptr;
 	u16									m_slot_idx								= u16_max;
 	s16									m_slot_pos								= s16_max;
@@ -50,11 +51,12 @@ public:
 	void								setSlotPos								(int v)					{ m_slot_pos = (s16)v; }
 	void								setLocalTransform						(Dmatrix CR$ trans)		{ m_local_transform = trans; }
 	void								setLowProfile							(bool status)			{ m_low_profile = status; }
-
-	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	
 	void								attach									(CAddonSlot CPC slot);
 	bool								tryAttach								(MAddonOwner CPC ao, u16 slot_idx = u16_max);
+	
+	void								updateHudTransform						(Dmatrix CR$ parent_trans);
+	void								updateHudOffset							(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset);
 
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
