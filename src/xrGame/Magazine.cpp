@@ -118,7 +118,7 @@ void MMagazine::loadCartridge(CCartridge CR$ cartridge, int count)
 {
 	m_amount							+= count;
 	R_ASSERT							(m_amount <= m_capacity);
-	m_weight							+= cartridge.Weight();
+	m_weight							+= count * cartridge.Weight();
 
 	CWeaponAmmo* back_heap				= (m_heaps.empty()) ? nullptr : m_heaps.back();
 	if (back_heap && back_heap->cNameSect() == cartridge.m_ammoSect && fEqual(back_heap->GetCondition(), cartridge.m_fCondition))

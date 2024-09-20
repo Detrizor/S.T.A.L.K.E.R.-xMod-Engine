@@ -319,7 +319,7 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem)
 	}
 
 	if (!in_slot && pIItem->CurrPlace() == eItemPlacePocket)
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem, false);
+		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
 
 	if (m_bActors)
 	{

@@ -273,7 +273,6 @@ public:
 
 	bool	verify_upgrade				( LPCSTR section );
 	bool	install_upgrade				( LPCSTR section );
-	void	pre_install_upgrade			();
 
 #ifdef DEBUG	
 	void	log_upgrades				();

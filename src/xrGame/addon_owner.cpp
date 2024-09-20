@@ -139,7 +139,10 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 
 MAddonOwner* MAddonOwner::getParentAO() const
 {
-	return								(O.H_Parent()) ? O.H_Parent()->getModule<MAddonOwner>() : nullptr;
+	if (auto addon = O.getModule<MAddon>())
+		if (auto slot = addon->getSlot())
+			return						slot->parent_ao;
+	return								nullptr;
 }
 
 void MAddonOwner::RegisterAddon(MAddon PC$ addon, bool attach) const
