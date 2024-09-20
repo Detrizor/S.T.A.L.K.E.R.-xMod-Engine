@@ -149,6 +149,11 @@ void CUIGameCustom::RemoveCustomStatic(const char* id)
 extern CUISequencer* g_tutorial;
 extern CUISequencer* g_tutorial2;
 
+bool CUIGameCustom::ActorMenuIsShown()
+{
+	return ActorMenu->IsShown();
+}
+
 bool CUIGameCustom::ShowActorMenu()
 {
 	if (ActorMenu->IsShown())

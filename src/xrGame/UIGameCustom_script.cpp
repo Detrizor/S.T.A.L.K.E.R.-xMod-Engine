@@ -30,6 +30,7 @@ void CUIGameCustom::script_register(lua_State *L)
 			.def("HideActorMenu",			&CUIGameCustom::HideActorMenu)
 			//Alundaio
 			.def("ShowActorMenu",			&CUIGameCustom::ShowActorMenu)
+			.def("ActorMenuIsShown",		&CUIGameCustom::ActorMenuIsShown)
 			.def("UpdateActorMenu",			&CUIGameCustom::UpdateActorMenu)
 			.def("CurrentItemAtCell",		&CUIGameCustom::CurrentItemAtCell)
 			//-Alundaio

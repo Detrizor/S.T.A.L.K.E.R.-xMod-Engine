@@ -664,13 +664,11 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
 	if (auto usable = item->O.getModule<MUsable>())
 	{
 		int i							= 0;
-		SAction CP$						action;
-		while (action = usable->getAction(++i))
+		while (auto action = usable->getAction(++i))
 		{
-			::luabind::functor<bool>	funct;
-			if (ai().script_engine().functor(*action->query_functor, funct) && funct(item->O.lua_game_object(), i))
+			if (action->performQuery())
 			{
-				m_UIPropertiesBox->AddItem(*action->title, (void*)i, INVENTORY_CUSTOM_ACTION);
+				m_UIPropertiesBox->AddItem(action->title.c_str(), reinterpret_cast<void*>(i), INVENTORY_CUSTOM_ACTION);
 				b_show					= true;
 			}
 		}
@@ -766,10 +764,9 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		break;
 	case INVENTORY_CUSTOM_ACTION:
 	{
-		int num							= (int)m_UIPropertiesBox->GetClickedItem()->GetData();
-		::luabind::functor<bool>		funct;
-		ai().script_engine().functor	(item->O.getModule<MUsable>()->getAction(num)->action_functor.c_str(), funct);
-		funct							(item->O.lua_game_object(), num);
+		int num							= reinterpret_cast<int>(m_UIPropertiesBox->GetClickedItem()->GetData());
+		auto usable						= item->O.getModule<MUsable>();
+		usable->performAction			(num, true);
 		break;
 	}
 	case INVENTORY_DROP_ACTION:{
