@@ -682,24 +682,24 @@ bool player_hud::allow_activation(CHudItem* item)
 
 void player_hud::attach_item(CHudItem* item)
 {
-	attachable_hud_item* pi			= create_hud_item(*item->HudSection(), *item->object().cNameSect());
-	int item_idx					= pi->m_attach_place_idx;
+	attachable_hud_item* pi				= create_hud_item(*item->HudSection(), *item->object().cNameSect());
+	int item_idx						= pi->m_attach_place_idx;
 	
 	if (m_attached_items[item_idx] != pi)
 	{
 		if (m_attached_items[item_idx])
 			m_attached_items[item_idx]->m_parent_hud_item->on_b_hud_detach();
 
-		m_attached_items[item_idx]						= pi;
-		pi->m_parent_hud_item							= item;
+		m_attached_items[item_idx]		= pi;
+		pi->m_parent_hud_item			= item;
 
 		if(item_idx==0 && m_attached_items[1])
 			m_attached_items[1]->m_parent_hud_item->CheckCompatibility(item);
 
-		item->on_a_hud_attach();
+		item->on_a_hud_attach			();
 
-		updateMovementLayerState();
-		item->UpdateHudBonesVisibility();
+		updateMovementLayerState		();
+		item->UpdateHudBonesVisibility	();
 		
 		if (pi->m_auto_attach_anm.size())
 		{
@@ -716,11 +716,12 @@ void player_hud::attach_item(CHudItem* item)
 			if (auto ao = pi->m_parent_hud_item->object().getModule<MAddonOwner>())
 				ao->calcSlotsBoneOffset	(pi);
 
-			auto state = (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
+			auto state					= (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
 			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);
 		}
 	}
-	pi->m_parent_hud_item							= item;
+	else
+		pi->m_parent_hud_item			= item;
 }
 
 void player_hud::detach_item_idx(u16 idx)

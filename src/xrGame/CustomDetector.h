@@ -117,7 +117,7 @@ class CCustomDetector : public CInventoryItemObject
 	typedef	CInventoryItemObject inherited;
 
 protected:
-	CUIArtefactDetectorBase*			m_ui;
+	xptr<CUIArtefactDetectorBase>		m_ui = nullptr;
 	bool			m_bFastAnimMode;
 	bool			m_bNeedActivation;
 
@@ -128,7 +128,6 @@ public:
 	virtual BOOL 	net_Spawn			(CSE_Abstract* DC);
 	virtual void 	Load				(LPCSTR section);
 
-	virtual void 	OnH_A_Chield		();
 	virtual void 	OnH_B_Independent	(bool just_before_destroy);
 
 	virtual void 	shedule_Update		(u32 dt);
@@ -137,13 +136,7 @@ public:
 
 			bool 	IsWorking			();
 
-	virtual void 	OnMoveToSlot		(const SInvItemPlace& prev);
-	virtual void 	OnMoveToRuck		(const SInvItemPlace& prev);
-
-	virtual void	OnActiveItem		() {}
-	virtual void	OnHiddenItem		() {}
 	virtual void	OnStateSwitch		(u32 S, u32 oldState);
-	virtual void	OnAnimationEnd		(u32 state);
 	virtual	void	UpdateXForm			();
 
 	void			ToggleDetector		(bool bFastMode);
@@ -157,9 +150,9 @@ public:
 	float			m_fAfVisRadius;
 
 protected:
+			void 	TurnDetectorInternal		(bool b)		 { m_bWorking = b; }
+
 			bool	CheckCompatibilityInt		(CHudItem* itm, u16* slot_to_activate);
-			void 	TurnDetectorInternal		(bool b);
-	void 			UpdateNightVisionMode		(bool b_off);
 	void			UpdateVisibility			();
 	virtual void	UpfateWork					();
 	virtual void 	UpdateAf					()				{};
@@ -167,10 +160,8 @@ protected:
 	
 	virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
 
-	bool			m_bWorking;
-	float			m_fDecayRate; //Alundaio
-
-	CAfList			m_artefacts;
+	bool			m_bWorking			= false;
+	CAfList			m_artefacts			= {};
 };
 
 class CZoneList : public CDetectList<CCustomZone>

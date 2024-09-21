@@ -63,17 +63,9 @@ bool CCustomDetector::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate
 	return bres;
 }
 
-bool  CCustomDetector::CheckCompatibility(CHudItem* itm)
+bool CCustomDetector::CheckCompatibility(CHudItem* itm)
 {
-	if(!inherited::CheckCompatibility(itm) )	
-		return false;
-
-	if(!CheckCompatibilityInt(itm, NULL))
-	{
-		//HideDetector	(true);
-		return			false;
-	}
-	return true;
+	return (inherited::CheckCompatibility(itm)) ? CheckCompatibilityInt(itm, nullptr) : false;
 }
 
 void CCustomDetector::HideDetector(bool bFastMode)
@@ -107,10 +99,7 @@ void CCustomDetector::ToggleDetector(bool bFastMode)
 				m_bNeedActivation		= true;
 			}
 			else
-			{
 				SwitchState				(eShowing);
-				TurnDetectorInternal	(true);
-			}
 		}
 	}
 	else if (GetState() == eIdle || GetState() == eShowing)
@@ -119,7 +108,7 @@ void CCustomDetector::ToggleDetector(bool bFastMode)
 
 void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
 {
-	CHudItem::OnStateSwitch				(S, oldState);
+	inherited::OnStateSwitch			(S, oldState);
 
 	switch(S)
 	{
@@ -135,29 +124,14 @@ void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
 			m_sounds.PlaySound			("sndHide", Fvector().set(0, 0, 0), this, true, false);
 			PlayHUDMotion				(m_bFastAnimMode ? "anm_hide_fast" : "anm_hide", FALSE/*TRUE*/, GetState());
 			SetPending					(TRUE);
+			TurnDetectorInternal		(false);
 		}
 		break;
-	case eIdle:
-		PlayAnimIdle					();
-		SetPending						(FALSE);
-		break;
-	}
-}
-
-void CCustomDetector::OnAnimationEnd(u32 state)
-{
-	CHudItem::OnAnimationEnd			(state);
-	switch(state)
-	{
-	case eShowing:
-		SwitchState						(eIdle);
-		if (IsUsingCondition() && m_fDecayRate > 0.f)
-			this->SetCondition			(-m_fDecayRate);
-		break;
-	case eHiding:
-		SwitchState						(eHidden);
-		TurnDetectorInternal			(false);
+	case eHidden:
 		g_player_hud->detach_item		(this);
+		break;
+	case eIdle:
+		TurnDetectorInternal			(true);
 		break;
 	}
 }
@@ -169,21 +143,18 @@ void CCustomDetector::UpdateXForm()
 
 CCustomDetector::CCustomDetector() 
 {
-	m_ui				= NULL;
 	m_bFastAnimMode		= false;
 	m_bNeedActivation	= false;
 }
 
 CCustomDetector::~CCustomDetector() 
 {
-	m_artefacts.destroy		();
-	TurnDetectorInternal	(false);
-	xr_delete				(m_ui);
+	m_artefacts.destroy	();
 }
 
 BOOL CCustomDetector::net_Spawn(CSE_Abstract* DC) 
 {
-	TurnDetectorInternal(false);
+	CreateUI			();
 	return		(inherited::net_Spawn(DC));
 }
 
@@ -193,7 +164,6 @@ void CCustomDetector::Load(LPCSTR section)
 
 	m_fAfDetectRadius		= pSettings->r_float(section,"af_radius");
 	m_fAfVisRadius			= pSettings->r_float(section,"af_vis_radius");
-	m_fDecayRate = READ_IF_EXISTS(pSettings, r_float, section, "decay_rate", 0.f); //Alundaio
 	m_artefacts.load		(section, "af");
 
 	m_sounds.LoadSound( section, "snd_draw", "sndShow");
@@ -280,11 +250,6 @@ void CCustomDetector::UpdateCL()
 	UpfateWork				();
 }
 
-void CCustomDetector::OnH_A_Chield() 
-{
-	inherited::OnH_A_Chield		();
-}
-
 void CCustomDetector::OnH_B_Independent(bool just_before_destroy) 
 {
 	inherited::OnH_B_Independent(just_before_destroy);
@@ -297,43 +262,6 @@ void CCustomDetector::OnH_B_Independent(bool just_before_destroy)
 		TurnDetectorInternal(false);
 		SwitchState(eHidden);
 	}
-}
-
-
-void CCustomDetector::OnMoveToRuck(const SInvItemPlace& prev)
-{
-	inherited::OnMoveToRuck	(prev);
-	if(prev.type==eItemPlaceSlot)
-	{
-		SwitchState					(eHidden);
-		g_player_hud->detach_item	(this);
-	}
-	TurnDetectorInternal			(false);
-	StopCurrentAnimWithoutCallback	();
-}
-
-void CCustomDetector::OnMoveToSlot(const SInvItemPlace& prev)
-{
-	inherited::OnMoveToSlot	(prev);
-}
-
-void CCustomDetector::TurnDetectorInternal(bool b)
-{
-	m_bWorking				= b;
-	if(b && m_ui==NULL)
-	{
-		CreateUI			();
-	}else
-	{
-//.		xr_delete			(m_ui);
-	}
-
-	UpdateNightVisionMode	(b);
-}
-
-#include "game_base_space.h"
-void CCustomDetector::UpdateNightVisionMode(bool b_on)
-{
 }
 
 bool CAfList::feel_touch_contact	(CObject* O)

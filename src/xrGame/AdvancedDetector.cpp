@@ -5,25 +5,21 @@
 #include "player_hud.h"
 #include "game_object_space.h"
 
-
 CAdvancedDetector::CAdvancedDetector()
 {
 	m_artefacts.m_af_rank = 2;
 }
 
-CAdvancedDetector::~CAdvancedDetector()
-{}
-
 void CAdvancedDetector::CreateUI()
 {
 	R_ASSERT			(NULL==m_ui);
-	m_ui				= xr_new<CUIArtefactDetectorAdv>();
+	m_ui.construct<CUIArtefactDetectorAdv>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorAdv&  CAdvancedDetector::ui()
 {
-	return *((CUIArtefactDetectorAdv*)m_ui);
+	return *static_cast<CUIArtefactDetectorAdv*>(m_ui.get());
 }
 
 void CAdvancedDetector::UpdateAf()
@@ -103,10 +99,6 @@ void CUIArtefactDetectorAdv::construct(CAdvancedDetector* p)
 	m_curr_ang_speed	= 0.0f;
 	m_cur_y_rot			= 0.0f;
 	m_bid				= u16(-1);
-}
-
-CUIArtefactDetectorAdv::~CUIArtefactDetectorAdv()
-{
 }
 
 void CUIArtefactDetectorAdv::SetValue(const float val1, const Fvector& val2)

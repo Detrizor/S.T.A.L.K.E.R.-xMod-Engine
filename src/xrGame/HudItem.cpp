@@ -125,13 +125,12 @@ void CHudItem::renderable_Render()
 
 void CHudItem::SwitchState(u32 S)
 {
-	m_next_state = S;
+	OnStateSwitch(S, GetState());
 }
 
 void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 {
 	SetState(S);
-	m_next_state = u32_max;
 
 	switch (S)
 	{
@@ -481,9 +480,6 @@ void CHudItem::UpdateCL()
 			OnAnimationEnd(m_startedMotionState);
 		}
 	}
-
-	if (m_next_state != u32_max)
-		OnStateSwitch(m_next_state, GetState());
 }
 
 void CHudItem::OnH_A_Chield()

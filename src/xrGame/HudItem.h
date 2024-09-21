@@ -43,7 +43,6 @@ private:
 
 protected:
 	u32						m_dw_curr_substate_time;
-	u32						m_next_state								= u32_max;
 
 public:
 							CHUDState			() 						{SetState(eIdle);}

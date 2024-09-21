@@ -7,27 +7,21 @@
 #include "ui/UIStatic.h"
 #include "ui/ArtefactDetectorUI.h"
 
-
-
 CEliteDetector::CEliteDetector()
 {
 	m_artefacts.m_af_rank = 3;
 }
 
-CEliteDetector::~CEliteDetector()
-{}
-
-
 void CEliteDetector::CreateUI()
 {
 	R_ASSERT(NULL==m_ui);
-	m_ui				= xr_new<CUIArtefactDetectorElite>();
+	m_ui.construct<CUIArtefactDetectorElite>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorElite&  CEliteDetector::ui()
 {
-	return *((CUIArtefactDetectorElite*)m_ui);
+	return *static_cast<CUIArtefactDetectorElite*>(m_ui.get());
 }
 
 void CEliteDetector::UpdateAf()
