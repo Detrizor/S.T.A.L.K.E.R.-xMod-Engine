@@ -257,16 +257,18 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 		}
 
 		m_slots[pIItem->CurrSlot()].m_pIItem	= nullptr;
+		pIItem->object().processing_deactivate	();
 		break;
 	case eItemPlacePocket:
 	{
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+		auto& pocket							= m_pockets[pIItem->CurrPocket()];
+		pocket.erase_data						(pIItem);
+		pIItem->object().processing_deactivate	();
 		break;
 	}
 	default:
 		NODEFAULT;
 	}
-	pIItem->object().processing_deactivate		();
 
 	m_all.erase_data							(pIItem);
 	pIItem->m_pInventory						= nullptr;
