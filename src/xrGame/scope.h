@@ -124,7 +124,7 @@ public:
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	s8									getSelection						C$	()		{ return m_selection; }
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
-	MScope*								getBackupSight						C$	()		{ return m_backup_sight.get(); }
+	MScope*								getBackupSight						C$	()		{ return (m_backup_sight) ? m_backup_sight.get() : nullptr; }
 
 	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);

@@ -389,9 +389,9 @@ public:
 	xptr&								operator=								(xptr&& old)		{ capture(old.release()); return *this; }
 
 										operator bool							() const			{ return !!m_data; }
-	T*									operator->								() const			{ return m_data; }
-	T&									operator*								() const			{ return *m_data; }
-	T*									get										() const			{ return m_data; }
+	T*									operator->								() const			{ R_ASSERT(m_data); return m_data; }
+	T&									operator*								() const			{ R_ASSERT(m_data); return *m_data; }
+	T*									get										() const			{ R_ASSERT(m_data); return m_data; }
 
 	void								reset									()					{ xr_delete(m_data); }
 	void								capture									(T* p)				{ reset(); m_data = p; }

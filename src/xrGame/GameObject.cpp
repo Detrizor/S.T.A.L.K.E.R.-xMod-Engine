@@ -1210,6 +1210,9 @@ void CGameObject::transfer(u16 id) const
 
 void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to)
 {
+	if (id_from == id_to)
+		return;
+
 	NET_Packet							P;
 	if (id_to == u16_max)
 	{

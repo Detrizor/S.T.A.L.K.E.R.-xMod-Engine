@@ -135,6 +135,8 @@ public:
 	Fvector4 r_fvector4(const shared_str& S, LPCSTR L)const { return r_fvector4(*S, L); }
 	BOOL r_bool(LPCSTR S, LPCSTR L)const;
 	BOOL r_bool(const shared_str& S, LPCSTR L)const { return r_bool(*S, L); }
+	BOOL rbool(LPCSTR S, LPCSTR L) const { return static_cast<bool>(r_bool(S, L)); }
+	BOOL rbool(const shared_str& S, LPCSTR L) const { return rbool(*S, L); }
 	int r_token(LPCSTR S, LPCSTR L, const xr_token* token_list)const;
 	BOOL r_line(LPCSTR S, int L, LPCSTR* N, LPCSTR* V)const;
 	BOOL r_line(const shared_str& S, int L, LPCSTR* N, LPCSTR* V)const;
