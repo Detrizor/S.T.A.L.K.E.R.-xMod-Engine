@@ -187,7 +187,17 @@ void CWeaponMagazined::Reload()
 			StartReload					(eSubstateReloadBoltPull);
 	}
 	else if (!m_actor && has_ammo_for_reload())
-		StartReload						(m_magazine && m_magazine->detachAnm().size() && HudAnimationExist(m_magazine->detachAnm().c_str()) ? eSubstateReloadDetach : eSubstateReloadBegin);
+	{
+		if (m_magazine_slot)
+		{
+			R_ASSERT					(m_magazine);
+			ReloadMagazine				();
+			m_magazine_slot->startReloading(m_magazine->O.getModule<MAddon>());
+			StartReload					(eSubstateReloadDetach);
+		}
+		else
+			StartReload					(eSubstateReloadBegin);
+	}
 }
 
 void CWeaponMagazined::StartReload(EWeaponSubStates substate)
@@ -390,12 +400,10 @@ void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
 
 bool CWeaponMagazined::reload_ñartridge()
 {
-	m_BriefInfo_CalcFrame				= 0;
-	if (!m_magazine->Full() && (unlimited_ammo() || m_current_ammo && m_current_ammo->Get(m_cartridge)))
+	if (!m_magazine->Full() && try_consume_ammo(1))
 	{
+		m_BriefInfo_CalcFrame			= 0;
 		m_magazine->loadCartridge		(m_cartridge);
-		if (m_current_ammo && m_current_ammo->object_removed())
-			m_current_ammo				= nullptr;
 		return							true;
 	}
 	return								false;
@@ -403,9 +411,35 @@ bool CWeaponMagazined::reload_ñartridge()
 
 void CWeaponMagazined::ReloadMagazine()
 {
-	m_BriefInfo_CalcFrame				= 0;
-	int count							= try_consume_ammo(m_magazine->Capacity() - m_magazine->Amount());
-	m_magazine->loadCartridge			(m_cartridge, count);
+	if (int count = try_consume_ammo(m_magazine->Capacity() - m_magazine->Amount()))
+	{
+		m_BriefInfo_CalcFrame			= 0;
+		m_magazine->loadCartridge		(m_cartridge, count);
+	}
+}
+
+int CWeaponMagazined::try_consume_ammo(int count)
+{
+	if (count)
+	{
+		if (m_current_ammo)
+		{
+			for (int i = 0; i < count; ++i)
+			{
+				if (!m_current_ammo->Get(m_cartridge))
+				{
+					if (!unlimited_ammo())
+						count			= i;
+					break;
+				}
+			}
+			if (m_current_ammo->object_removed())
+				m_current_ammo			= nullptr;
+		}
+		else if (!unlimited_ammo())
+			count						= 0;
+	}
+	return								count;
 }
 
 void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
@@ -1461,29 +1495,6 @@ void CWeaponMagazined::setADS(int mode)
 		if (m_actor)
 			m_actor->Cameras().RemoveCamEffector(eCEZoom);
 	}
-}
-
-int CWeaponMagazined::try_consume_ammo(int count)
-{
-	if (!unlimited_ammo())
-	{
-		if (m_current_ammo)
-		{
-			for (int i = 0; i < count; ++i)
-			{
-				if (!m_current_ammo->Get(m_cartridge))
-				{
-					count				= i;
-					break;
-				}
-			}
-			if (m_current_ammo->object_removed())
-				m_current_ammo			= nullptr;
-		}
-		else
-			count						= 0;
-	}
-	return								count;
 }
 
 void CWeaponMagazined::updateRecoil()

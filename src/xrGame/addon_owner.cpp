@@ -485,7 +485,8 @@ void CAddonSlot::startReloading(MAddon* loading_addon)
 void CAddonSlot::loadingDetach()
 {
 	for (auto a : addons)
-		a->O.transfer					(parent_ao->O.H_Root()->ID());
+		if (a != m_loading_addon)
+			a->O.transfer				(parent_ao->O.H_Root()->ID());
 }
 
 void CAddonSlot::loadingAttach()
