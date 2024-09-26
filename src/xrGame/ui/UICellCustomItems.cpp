@@ -485,7 +485,7 @@ static bool try_insert(MAddon* addon, VSlots& slots)
 {
 	for (auto& slot : slots)
 	{
-		if (slot->CanTake(addon))
+		if (slot->canTake(addon))
 		{
 			slot->addons.push_back		(addon);
 			if (slot->steps > 1)

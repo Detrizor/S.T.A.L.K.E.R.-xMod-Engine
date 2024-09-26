@@ -53,7 +53,7 @@ public:
 	void								setLowProfile							(bool status)			{ m_low_profile = status; }
 	
 	void								attach									(CAddonSlot CPC slot);
-	bool								tryAttach								(MAddonOwner CPC ao, u16 slot_idx = u16_max);
+	bool								tryAttach								(MAddonOwner CPC ao);
 	
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	void								updateHudOffset							(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset);

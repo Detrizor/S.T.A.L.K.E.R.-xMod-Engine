@@ -494,6 +494,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 			
 		.def("is_attached",					&CScriptGameObject::isAttached)
 		.def("attach",						&CScriptGameObject::attach)
+		.def("attach",						&CScriptGameObject::attach1)
 		.def("detach",						&CScriptGameObject::detach)
 		.def("shift",						&CScriptGameObject::shift)
 			

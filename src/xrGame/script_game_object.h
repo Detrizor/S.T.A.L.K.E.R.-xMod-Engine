@@ -981,7 +981,8 @@ public:
 	u16									getActionItemID						C$	(int num);
 	
 	bool								isAttached							C$	();
-	bool								attach								C$	(CScriptGameObject* obj);
+	bool								attach								C$	(CScriptGameObject* obj, bool forced);
+	bool								attach1								C$	(CScriptGameObject* obj)		{ return attach(obj, false); }
 	void								detach								C$	();
 	void								shift								C$	(int val);
 	

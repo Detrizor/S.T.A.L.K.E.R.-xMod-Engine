@@ -68,10 +68,11 @@ public:
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }
 	MAddon CP$							getLoadingAddon						C$	()		{ return m_loading_addon; }
 	shared_str CR$						getAttachBone						C$	()		{ return m_attach_bone; }
+	bool								empty								C$	()		{ return addons.empty(); }
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
-	bool								CanTake								C$	(MAddon CPC addon);
+	bool								canTake								C$	(MAddon CPC addon, bool check_pending = true, bool forced = false);
 	void								updateAddonLocalTransform			C$	(MAddon* addon, Dmatrix CPC parent_transform = nullptr);
 };
 
@@ -97,7 +98,7 @@ private:
 public:
 	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao = nullptr);
 
-	bool								attachAddon								(MAddon* addon);
+	bool								attachAddon								(MAddon* addon, bool forced);
 	void								detachAddon								(MAddon* addon);
 	void								calcSlotsBoneOffset						(attachable_hud_item* hi);
 
@@ -106,6 +107,6 @@ public:
 	Dmatrix CR$							getRootOffset						C$	()		{ return m_root_offset; }
 
 	MAddonOwner*						getParentAO							C$	();
-	CAddonSlot*							findAvailableSlot					C$	(MAddon CPC addon);
+	CAddonSlot*							findAvailableSlot					C$	(MAddon CPC addon, bool forced = false);
 	void								RegisterAddon						C$	(MAddon PC$ addon, bool attach);
 };

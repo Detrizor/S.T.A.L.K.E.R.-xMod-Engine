@@ -69,11 +69,11 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eRenderableRender:
-		{
-			for (auto& s : m_slots)
-				s->RenderWorld			(O.XFORM());
-			break;
+	case eRenderableRender:
+	{
+		for (auto& s : m_slots)
+			s->RenderWorld				(O.XFORM());
+		break;
 		}
 		case eOnChild:
 			if (auto addon = static_cast<CObject*>(data)->getModule<MAddon>())
@@ -111,19 +111,19 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 					slot->detachAddon	(addon);
 			}
 			break;
-		case eWeight:
-		case eVolume:
-		case eCost:
-		{
-			float res					= 0.f;
-			for (auto& slot : m_slots)
-				for (auto addon : slot->addons)
-					res					+= addon->O.Aboba(type);
-			return						res;
-		}
-		case eRenderHudMode:
-			for (auto& s : m_slots)
-				s->RenderHud			();
+	case eWeight:
+	case eVolume:
+	case eCost:
+	{
+		float res						= 0.f;
+		for (auto& slot : m_slots)
+			for (auto addon : slot->addons)
+				res						+= addon->O.Aboba(type);
+		return							res;
+	}
+	case eRenderHudMode:
+		for (auto& s : m_slots)
+			s->RenderHud				();
 			break;
 		case eUpdateSlotsTransform:
 		{
@@ -166,26 +166,26 @@ void MAddonOwner::processAddon(MAddon PC$ addon, bool attach) const
 		O.Aboba							(eOnAddon, (void*)addon, false);
 }
 
-CAddonSlot* MAddonOwner::findAvailableSlot(MAddon CPC addon) const
+CAddonSlot* MAddonOwner::findAvailableSlot(MAddon CPC addon, bool forced) const
 {
 	for (auto& s : m_slots)
 	{
-		if (s->CanTake(addon))
+		if (s->canTake(addon, !forced, forced))
 			return						s.get();
 		for (auto a : s->addons)
 			if (auto ao = a->O.getModule<MAddonOwner>())
-				if (auto slot = ao->findAvailableSlot(addon))
+				if (auto slot = ao->findAvailableSlot(addon, forced))
 					return				slot;
 	}
 	return								nullptr;
 }
 
-bool MAddonOwner::attachAddon(MAddon* addon)
+bool MAddonOwner::attachAddon(MAddon* addon, bool forced)
 {
 	CAddonSlot* slot					= nullptr;
 	if (addon->getSlotIdx() == u16_max)
 	{
-		if (slot = findAvailableSlot(addon))
+		if (slot = findAvailableSlot(addon, forced))
 			addon->setSlotIdx			(slot->idx);
 	}
 	else
@@ -540,22 +540,20 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 	return								false;
 }
 
-bool CAddonSlot::CanTake(MAddon CPC addon) const
+bool CAddonSlot::canTake(MAddon CPC addon, bool check_pending, bool forced) const
 {
-	if (parent_ao)
-	{
-		auto hi							= parent_ao->O.scast<CHudItem*>();
-		if (hi->HudItemData())
-			if (hi->IsPending())
-				return					false;
-	}
+	if (check_pending && parent_ao)
+		if (auto hi = parent_ao->O.scast<CHudItem*>())
+			if (hi->HudItemData())
+				if (hi->IsPending())
+					return				false;
 
 	if (!isCompatible(type, addon->SlotType()))
 		return							false;
-	if (m_overlaping_slot != u16_max && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
+	if (m_overlaping_slot != u16_max && parent_ao && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
 		return							false;
 	if (!steps)
-		return							true;
+		return							(addons.empty() || forced);
 
 	int pos								= get_spacing(nullptr, addon);
 	for (auto next : addons)

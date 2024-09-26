@@ -636,7 +636,7 @@ static void process_ao_for_attach(MAddonOwner CPC ao, MAddon CPC addon, CUIPrope
 	shared_str							attach_str;
 	for (auto& s : ao->AddonSlots())
 	{
-		if (s->CanTake(addon))
+		if (s->canTake(addon, false, true))
 		{
 			attach_str.printf			("%s %s", str, *s->name);
 			if (!s->steps && s->addons.size())

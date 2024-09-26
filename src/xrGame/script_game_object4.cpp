@@ -854,11 +854,11 @@ bool CScriptGameObject::isAttached() const
 	return								false;
 }
 
-bool CScriptGameObject::attach(CScriptGameObject* obj) const
+bool CScriptGameObject::attach(CScriptGameObject* obj, bool forced) const
 {
 	if (auto ao = object().getModule<MAddonOwner>())
 		if (auto addon = obj->object().getModule<MAddon>())
-			return						ao->attachAddon(addon);
+			return						ao->attachAddon(addon, forced);
 	return								false;
 }
 

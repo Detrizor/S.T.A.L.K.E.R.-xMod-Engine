@@ -124,22 +124,12 @@ void MAddon::attach(CAddonSlot CPC slot)
 			return;
 		}
 	}
-	slot->parent_ao->attachAddon		(this);
+	slot->parent_ao->attachAddon		(this, true);
 }
 
-bool MAddon::tryAttach(MAddonOwner CPC ao, u16 slot_idx)
+bool MAddon::tryAttach(MAddonOwner CPC ao)
 {
-	if (slot_idx != u16_max)
-	{
-		auto& slot						= ao->AddonSlots()[slot_idx];
-		if (slot->CanTake(this))
-		{
-			attach						(slot.get());
-			return						true;
-		}
-	}
-
-	if (auto slot = ao->findAvailableSlot(this))
+	if (auto slot = ao->findAvailableSlot(this, true))
 	{
 		attach							(slot);
 		return							true;
