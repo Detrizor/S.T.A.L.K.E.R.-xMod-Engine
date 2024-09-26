@@ -979,6 +979,7 @@ public:
 	LPCSTR								getUseFunctor						C$	(int num);
 	float								getActionDuration					C$	(int num);
 	u16									getActionItemID						C$	(int num);
+	void								resetActionItemID					C$	(int num);
 	
 	bool								isAttached							C$	();
 	bool								attach								C$	(CScriptGameObject* obj, bool forced);

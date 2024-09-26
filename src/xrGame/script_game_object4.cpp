@@ -847,6 +847,13 @@ u16 CScriptGameObject::getActionItemID(int num) const
 	return								u16_max;
 }
 
+void CScriptGameObject::resetActionItemID(int num) const
+{
+	if (auto usable = object().getModule<MUsable>())
+		if (auto action = usable->getAction(num))
+			action->item_id				= u16_max;
+}
+
 bool CScriptGameObject::isAttached() const
 {
 	if (auto addon = object().getModule<MAddon>())
