@@ -28,6 +28,7 @@
 #include "player_hud.h"
 #include "CustomDetector.h"
 #include "item_container.h"
+#include "ActorEffector.h"
 
 using namespace InventoryUtilities;
 //Alundaio
@@ -281,19 +282,14 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 
 	OnInventoryAction							(pIItem, false, 0);
 
-	if (smart_cast<CWeapon*>(pObj))
+	if (auto psh = pObj->scast<CPhysicsShellHolder*>())
 	{
-		Fvector dir								= Actor()->Direction();
-		dir.y									= sin(-45.f * PI / 180.f);
-		dir.normalize							();
-		smart_cast<CWeapon*>(pObj)->SetActivationSpeedOverride
-												(dir.mul(7));
-		pObj->H_SetParent						(nullptr, dont_create_shell);
+		Fvector dir						= (m_bActors) ? Actor()->Cameras().Direction() : m_pOwner->O->Direction();
+		psh->setActivationSpeedOverride	(dir.mul(5));
 	}
-	else
-		pObj->H_SetParent						(nullptr, dont_create_shell);
+	pObj->H_SetParent					(nullptr, dont_create_shell);
 
-	return										true;
+	return								true;
 }
 
 //положить вещь в слот

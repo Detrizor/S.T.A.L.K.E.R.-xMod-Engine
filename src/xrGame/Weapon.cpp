@@ -55,16 +55,6 @@ CWeapon::CWeapon()
 	m_can_be_strapped = false;
 	m_ef_main_weapon_type = u32(-1);
 	m_ef_weapon_type = u32(-1);
-	m_activation_speed_is_overriden = false;
-}
-
-CWeapon::~CWeapon()
-{
-}
-
-void CWeapon::Hit(SHit* pHDS)
-{
-	inherited::Hit(pHDS);
 }
 
 void CWeapon::UpdateXForm()
@@ -366,7 +356,6 @@ void CWeapon::OnH_B_Independent(bool just_before_destroy)
 
 	m_strapped_mode = false;
 	m_zoom_params.m_bIsZoomModeNow = false;
-	UpdateXForm();
 }
 
 void CWeapon::OnH_A_Independent()
@@ -374,7 +363,7 @@ void CWeapon::OnH_A_Independent()
 	m_dwWeaponIndependencyTime = Level().timeServer();
 	inherited::OnH_A_Independent();
 	Light_Destroy();
-};
+}
 
 void CWeapon::OnActiveItem()
 {
@@ -663,28 +652,6 @@ void CWeapon::create_physic_shell()
 	CPhysicsShellHolder::create_physic_shell();
 }
 
-bool CWeapon::ActivationSpeedOverriden(Fvector& dest, bool clear_override)
-{
-	if (m_activation_speed_is_overriden)
-	{
-		if (clear_override)
-		{
-			m_activation_speed_is_overriden = false;
-		}
-
-		dest = m_overriden_activation_speed;
-		return							true;
-	}
-
-	return								false;
-}
-
-void CWeapon::SetActivationSpeedOverride(Fvector const& speed)
-{
-	m_overriden_activation_speed = speed;
-	m_activation_speed_is_overriden = true;
-}
-
 void CWeapon::setAiming(bool mode)
 {
 	m_zoom_params.m_bIsZoomModeNow		= mode;
@@ -697,12 +664,6 @@ void CWeapon::setAiming(bool mode)
 		setADS							(0);
 	else if (m_actor)
 		g_player_hud->OnMovementChanged	();
-}
-
-void CWeapon::activate_physic_shell()
-{
-	UpdateXForm();
-	CPhysicsShellHolder::activate_physic_shell();
 }
 
 void CWeapon::setup_physic_shell()

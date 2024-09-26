@@ -595,19 +595,6 @@ bool CInventoryItem::ready_to_kill() const
 	return				(false);
 }
 
-void CInventoryItem::activate_physic_shell()
-{
-	CEntityAlive*	E = smart_cast<CEntityAlive*>(object().H_Parent());
-	if (!E) {
-		on_activate_physic_shell();
-		return;
-	};
-
-	UpdateXForm();
-
-	object().CPhysicsShellHolder::activate_physic_shell();
-}
-
 void CInventoryItem::UpdateXForm()
 {
 	if (0 == object().H_Parent())	return;

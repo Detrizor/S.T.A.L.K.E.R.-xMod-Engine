@@ -26,7 +26,6 @@ private:
 
 public:
 	CWeapon();
-	virtual					~CWeapon();
 
 	// Generic
 	virtual void			Load(LPCSTR section);
@@ -59,11 +58,8 @@ public:
 	virtual void			OnH_B_Independent(bool just_before_destroy);
 	virtual void			OnH_A_Independent();
 
-	virtual	void			Hit(SHit* pHDS);
-
 	virtual void			reload(LPCSTR section);
 	virtual void			create_physic_shell();
-	virtual void			activate_physic_shell();
 	virtual void			setup_physic_shell();
 
 	virtual void			OnActiveItem();
@@ -372,14 +368,7 @@ private:
 public:
 	const float				&hit_probability() const;
 
-private:
-	Fvector					m_overriden_activation_speed;
-	bool					m_activation_speed_is_overriden;
-	virtual bool			ActivationSpeedOverriden(Fvector& dest, bool clear_override);
-
 public:
-	virtual void			SetActivationSpeedOverride(Fvector const& speed);
-
 	virtual shared_str const	GetAnticheatSectionName() const
 	{
 		return cNameSect();

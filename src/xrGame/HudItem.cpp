@@ -482,6 +482,22 @@ void CHudItem::UpdateCL()
 	}
 }
 
+void CHudItem::activate_physic_shell()
+{
+	if (!smart_cast<CEntityAlive*>(object().H_Parent()))
+	{
+		on_activate_physic_shell();
+		return;
+	}
+	
+	if (auto hi = HudItemData())
+		object().XFORM().mul(static_cast<Fmatrix>(HudItemData()->m_transform), hi->m_model->LL_GetTransform_R(0));
+	else
+		UpdateXForm();
+
+	object().CPhysicsShellHolder::activate_physic_shell();
+}
+
 void CHudItem::OnH_A_Chield()
 {}
 
@@ -493,21 +509,6 @@ void CHudItem::OnH_B_Chield()
 void CHudItem::OnH_B_Independent(bool just_before_destroy)
 {
 	m_sounds.StopAllSounds();
-	UpdateXForm();
-
-	// next code was commented
-	/*
-	if(HudItemData() && !just_before_destroy)
-	{
-	object().XFORM().set( HudItemData()->m_transform );
-	}
-
-	if (HudItemData())
-	{
-	g_player_hud->detach_item(this);
-	Msg("---Detaching hud item [%s][%d]", this->HudSection().c_str(), this->object().ID());
-	}*/
-	//SetHudItemData			(NULL);
 }
 
 void CHudItem::OnH_A_Independent()

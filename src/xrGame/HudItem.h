@@ -126,6 +126,8 @@ public:
 	virtual void				UpdateHudAdditional	(Dmatrix&);
 
 	virtual	void				UpdateXForm			()						= 0;
+	virtual void				activate_physic_shell();
+	virtual void				on_activate_physic_shell() { R_ASSERT2(0, "failed call of virtual function!"); }
 
 	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state, bool ignore_anm_type = false);
 	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn, bool ignore_anm_type);

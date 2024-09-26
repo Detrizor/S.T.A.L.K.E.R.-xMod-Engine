@@ -197,7 +197,6 @@ public:
 	virtual void				net_Export			(NET_Packet& P);					// export to server
 
 public:
-	virtual void				activate_physic_shell		();
 	virtual bool				has_network_synchronization	() const;
 
 	virtual ALife::_TIME_ID		TimePassedAfterIndependant	() const;
@@ -230,7 +229,6 @@ public:
 	IC	CPhysicsShellHolder&	object						() const{ VERIFY		(m_object); return		(*m_object);}
 	u16							object_id					() const;
 	u16							parent_id					() const;
-	virtual void				on_activate_physic_shell	() { R_ASSERT2(0, "failed call of virtual function!"); }
 
 public:
 	virtual	void				modify_holder_params		(float &range, float &fov) const {}

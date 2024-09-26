@@ -16,6 +16,8 @@ public:
 public:
 	void								renderable_Render					O$	()		{ wrap::renderable_Render(); }
 	void								on_renderable_Render				O$	()		{ core::renderable_Render(); }
+	void								activate_physic_shell				O$	()		{ wrap::activate_physic_shell(); }
+	void								on_activate_physic_shell			O$	()		{ core::activate_physic_shell(); }
 
 public:
 	WRAP_CONSTRUCT						()
@@ -61,8 +63,6 @@ public:
 	void								DeactivateItem						O$	(u16 slot)			{ core::deactivateItem(slot); }
 	void								renderable_Render					O$	()					{ core::renderable_Render(); }
 	BOOL								net_SaveRelevant					O$	()					{ return TRUE; }
-	void								activate_physic_shell				O$	()					{ wrap::activate_physic_shell(); }
-	void								on_activate_physic_shell			O$	()					{ core::activate_physic_shell(); }
 
 	bool								Action								O$	(u16 cmd, u32 flags)
 	{
