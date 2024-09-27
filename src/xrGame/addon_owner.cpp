@@ -10,12 +10,7 @@
 #include "WeaponMagazined.h"
 #include "item_usable.h"
 
-MAddonOwner::MAddonOwner(CGameObject* obj) : CModule(obj)
-{
-	m_base_foreground_draw				= loadAddonSlots(O.cNameSect(), m_slots, this);
-}
-
-bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao)
+bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner* ao)
 {
 	shared_str							slots_section;
 	if (pSettings->line_exist(section, "slots"))
@@ -26,9 +21,14 @@ bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOw
 	shared_str							tmp;
 	u16 i								= 0;
 	while (pSettings->line_exist(slots_section, tmp.printf("type_%d", i)))
-		slots.emplace_back				(slots_section, i++, ao, section.c_str());
+		slots.emplace_back(i++, ao)->load(slots_section, section);
 
-	return								!!READ_IF_EXISTS(pSettings, r_bool, slots_section, "base_foreground_draw", FALSE);
+	return								pSettings->r_bool_ex(slots_section, "base_foreground_draw", false);
+}
+
+MAddonOwner::MAddonOwner(CGameObject* obj) : CModule(obj)
+{
+	m_base_foreground_draw				= loadAddonSlots(O.cNameSect(), m_slots, this);
 }
 
 bool MAddonOwner::try_transfer(MAddonOwner* ao, void* addon, int attach)
@@ -231,41 +231,36 @@ LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
 	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
 }
 
-CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent, LPCSTR parent_section) :
-	parent_ao(parent),
-	idx(_idx)
+CAddonSlot::CAddonSlot(u16 _idx, MAddonOwner PC$ _parent_ao) : parent_ao(_parent_ao), idx(_idx)
+{
+}
+
+void CAddonSlot::load(shared_str CR$ section, shared_str CR$ parent_section)
 {
 	shared_str							tmp;
 
 	tmp.printf							("type_%d", idx);
-	type								= pSettings->r_string(section, *tmp);
+	pSettings->w_string_ex				(type, section, tmp);
+	name								= getSlotName(type.c_str());
 
 	tmp.printf							("length_%d", idx);
-	double length						= static_cast<double>(READ_IF_EXISTS(pSettings, r_float, section, *tmp, 0.));
+	double length						= static_cast<double>(pSettings->r_double_ex(section, tmp, 0.));
 
 	tmp.printf							("step_%d", idx);
-	if (pSettings->line_exist(section, tmp))
-	{
-		step							= static_cast<double>(pSettings->r_float(section, *tmp));
+	if (pSettings->w_double_ex(step, section, tmp))
 		steps							= static_cast<int>(round(length / step));
-	}
-	else
-	{
-		tmp.printf						("steps_%d", idx);
-		steps							= READ_IF_EXISTS(pSettings, r_s32, section, *tmp, 0);
-		step							= length / (static_cast<double>(steps) + .5);
-	}
 
 	tmp.printf							("model_offset_rot_%d", idx);
-	Fvector model_rot					= READ_IF_EXISTS(pSettings, r_fvector3d2r, section, *tmp, vZero);
-	model_offset.setHPBv				(static_cast<Dvector>(model_rot));
-	tmp.printf							("model_offset_pos_%d", idx);
-	model_offset.translate_over			(static_cast<Dvector>(READ_IF_EXISTS(pSettings, r_fvector3, section, *tmp, vZero)));
+	Fvector model_rot					= vZero;
+	if (pSettings->w_fvector3d2r_ex(model_rot, section, tmp))
+		model_offset.setHPBv			(static_cast<Dvector>(model_rot));
 
-	name								= getSlotName(*type);
+	tmp.printf							("model_offset_pos_%d", idx);
+	pSettings->w_dvector_ex				(model_offset.c, section, tmp);
+
 	tmp.printf							("name_suffix_%d", idx);
-	shared_str suffix					= READ_IF_EXISTS(pSettings, r_string, section, *tmp, "");
-	if (!suffix.size())
+	shared_str suffix					= 0;
+	if (!pSettings->w_string_ex(suffix, section, tmp))
 	{
 		if (abs(model_rot.z) >= PI * .75f)
 			suffix						= "st_bottom";
@@ -274,12 +269,12 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent,
 		else if (model_rot.z >= PI_DIV_4)
 			suffix						= "st_right";
 	}
-	if (suffix.size())
-		name.printf						("%s (%s)", *name, *CStringTable().translate(suffix));
+	if (!!suffix)
+		name.printf						("%s (%s)", name.c_str(), CStringTable().translate(suffix).c_str());
 
 	Fvector2 icon_origin				= pSettings->r_fvector2(parent_section, "inv_icon_origin");
 	float icon_ppm						= pSettings->r_float(parent_section, "icon_ppm");
-	bool icon_inversed					= !!READ_IF_EXISTS(pSettings, r_bool, parent_section, "icon_inversed", FALSE);
+	bool icon_inversed					= READ_IF_EXISTS(pSettings, rbool, parent_section, "icon_inversed", false);
 
 	icon_offset							= icon_origin;
 	float x_offset						= static_cast<float>(model_offset.c.z) * icon_ppm;
@@ -289,17 +284,17 @@ CAddonSlot::CAddonSlot(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent,
 	icon_step							= static_cast<float>(length) * icon_ppm / (static_cast<float>(steps) + .5f);
 
 	tmp.printf							("overlapping_slot_%d", idx);
-	m_overlaping_slot					= READ_IF_EXISTS(pSettings, r_u16, section, *tmp, u16_max);
+	pSettings->w_u16_ex					(m_overlaping_slot, section, tmp);
 	
 	tmp.printf							("attach_bone_%d", idx);
-	m_attach_bone						= READ_IF_EXISTS(pSettings, r_string, section, tmp.c_str(), "root");
+	pSettings->w_string_ex				(m_attach_bone, section, tmp);
 	
 	tmp.printf							("background_draw_%d", idx);
-	m_background_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
-	m_background_draw					|= (m_attach_bone == "magazine" || m_attach_bone == "grenade");
+	pSettings->w_bool_ex				(m_background_draw, section, tmp);
+	m_background_draw					|= (m_attach_bone == "magazine" || m_attach_bone == "grenade" || m_attach_bone == "chamber");
 	
 	tmp.printf							("foreground_draw_%d", idx);
-	m_foreground_draw					= !!READ_IF_EXISTS(pSettings, r_string, section, *tmp, FALSE);
+	pSettings->w_bool_ex				(m_foreground_draw, section, tmp);
 }
 
 int CAddonSlot::get_spacing(MAddon CPC left, MAddon CPC right) const

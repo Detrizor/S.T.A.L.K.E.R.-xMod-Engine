@@ -13,16 +13,17 @@ class CAddonSlot
 	typedef xr_umap<LPCSTR, RStringVec>	exceptions_list;
 
 public:
-										CAddonSlot								(shared_str CR$ section, u16 _idx, MAddonOwner PC$ parent, LPCSTR parent_section);
+										CAddonSlot								(u16 _idx, MAddonOwner PC$ _parent_ao);
+	void								load									(shared_str CR$ section, shared_str CR$ parent_section);
 
 private:
 	static exceptions_list				slot_exceptions;
 	static exceptions_list				addon_exceptions;
 
-	u16									m_overlaping_slot;
-	bool								m_background_draw;
-	bool								m_foreground_draw;
-	shared_str							m_attach_bone;
+	u16									m_overlaping_slot						= u16_max;
+	bool								m_background_draw						= false;
+	bool								m_foreground_draw						= false;
+	shared_str							m_attach_bone							= "root";
 
 	MAddon*								m_loading_addon							= nullptr;
 	u16									m_attach_bone_id						= 0;
@@ -37,17 +38,18 @@ public:
 	static bool							isCompatible							(shared_str CR$ slot_type, shared_str CR$ addon_type);
 	static LPCSTR						getSlotName								(LPCSTR slot_type);
 	static void							loadStaticData							();
-
-	MAddonOwner PC$						parent_ao;
+	
 	const u16							idx;
+	MAddonOwner PC$						parent_ao;
 
-	shared_str							type;
-	shared_str							name;
-	double								step;
-	int									steps;
-	Dmatrix								model_offset;
-	Fvector2							icon_offset;
-	float								icon_step;
+	shared_str							type									= 0;
+	shared_str							name									= 0;
+
+	double								step									= 0.;
+	int									steps									= 0;
+	Dmatrix								model_offset							= Didentity;
+	Fvector2							icon_offset								= vZero2;
+	float								icon_step								= 0.f;
 
 	xr_list<MAddon*>					addons									= {};
 
@@ -85,19 +87,20 @@ public:
 										MAddonOwner								(CGameObject* obj);
 
 private:
+	static bool							try_transfer							(MAddonOwner* ao, void* addon, int attach);
+
 	bool								m_base_foreground_draw;
 
 	VSlots								m_slots									= {};
 	Dmatrix								m_root_offset							= Didentity;
 	
-	static bool							try_transfer							(MAddonOwner* ao, void* addon, int attach);
 	void								transfer_addon							(MAddon* addon, bool attach);
 	void								detach_addon							(MAddon* addon);
 	void								processAddon						C$	(MAddon PC$ addon, bool attach, bool recurrent = false);
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:
-	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner PC$ ao = nullptr);
+	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);
 
 	bool								attachAddon								(MAddon* addon, bool forced);
 	void								detachAddon								(MAddon* addon);
