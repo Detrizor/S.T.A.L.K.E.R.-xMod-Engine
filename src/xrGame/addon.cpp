@@ -176,6 +176,6 @@ void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)
 void MAddon::updateHudOffset(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset)
 {
 	m_hud_offset.invert					(bone_offset);
-	m_hud_offset.mulB_43				(m_local_transform);
 	m_hud_offset.mulB_43				(root_offset);
+	m_hud_offset.mulB_43				(m_local_transform);
 }
