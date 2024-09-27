@@ -7,6 +7,13 @@
 class CInifile;
 struct xr_token;
 
+#define DEFINE_EX_METHODS(type, r_name, w_name, def_name)\
+type r_name(LPCSTR S, LPCSTR L, type const& default_value) const { return (line_exist(S, L)) ? def_name(S, L) : default_value; }\
+type r_name(shared_str const& S, LPCSTR L, type const& default_value) const { return r_name(S.c_str(), L, default_value); }\
+type r_name(shared_str const& S, shared_str const& L, type const& default_value) const { return r_name(S.c_str(), L.c_str(), default_value); }\
+bool w_name(type& D, LPCSTR S, LPCSTR L) const { if (line_exist(S, L)) { D = def_name(S, L); return true; } return false; }\
+bool w_name(type& D, shared_str const& S, LPCSTR L) const { return w_name(D, S.c_str(), L); }\
+bool w_name(type& D, shared_str const& S, shared_str const& L) const { return w_name(D, S.c_str(), L.c_str()); }
 
 class XRCORE_API CInifile
 {
@@ -114,6 +121,8 @@ public:
 	s64 r_s64(LPCSTR S, LPCSTR L)const;
 	float r_float(LPCSTR S, LPCSTR L)const;
 	float r_float(const shared_str& S, LPCSTR L)const { return r_float(*S, L); }
+	double r_double(LPCSTR S, LPCSTR L)const;
+	double r_double(const shared_str& S, LPCSTR L)const { return r_double(*S, L); }
 	Fcolor r_fcolor(LPCSTR S, LPCSTR L)const;
 	Fcolor r_fcolor(const shared_str& S, LPCSTR L)const { return r_fcolor(*S, L); }
 	u32 r_color(LPCSTR S, LPCSTR L)const;
@@ -162,6 +171,23 @@ public:
 	void w_bool(LPCSTR S, LPCSTR L, BOOL V, LPCSTR comment = 0);
 
 	void remove_line(LPCSTR S, LPCSTR L);
+	
+	DEFINE_EX_METHODS(bool, r_bool_ex, w_bool_ex, rbool)
+	DEFINE_EX_METHODS(u8, r_u8_ex, w_u8_ex, r_u8)
+	DEFINE_EX_METHODS(s8, r_s8_ex, w_s8_ex, r_s8)
+	DEFINE_EX_METHODS(u16, r_u16_ex, w_u16_ex, r_u16)
+	DEFINE_EX_METHODS(s16, r_s16_ex, w_s16_ex, r_s16)
+	DEFINE_EX_METHODS(u32, r_u32_ex, w_u32_ex, r_u32)
+	DEFINE_EX_METHODS(int, r_int_ex, w_int_ex, r_s32)
+	DEFINE_EX_METHODS(float, r_float_ex, w_float_ex, r_float)
+	DEFINE_EX_METHODS(double, r_double_ex, w_double_ex, r_double)
+	DEFINE_EX_METHODS(LPCSTR, r_string_ex, w_string_ex, r_string)
+	DEFINE_EX_METHODS(shared_str, r_string_ex, w_string_ex, r_string)
+		
+	DEFINE_EX_METHODS(Fvector2, r_fvector2_ex, w_fvector2_ex, r_fvector2)
+	DEFINE_EX_METHODS(Fvector, r_fvector3_ex, w_fvector_ex, r_fvector3)
+	DEFINE_EX_METHODS(Fvector, r_fvector3d2r_ex, w_fvector3d2r_ex, r_fvector3d2r)
+	DEFINE_EX_METHODS(Dvector, r_dvector3_ex, w_dvector_ex, r_dvector3)
 };
 
 // Main configuration file
