@@ -82,21 +82,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	}
 
 	if (pSettings->line_exist(section, "fire_modes"))
-	{
-		shared_str FireModesList		= pSettings->r_string(section, "fire_modes");
-		int ModesCount					= _GetItemCount(FireModesList.c_str());
-		if (ModesCount > 1)
-		{
-			m_bHasDifferentFireModes	= true;
-			for (int i = 0; i < ModesCount; i++)
-			{
-				string16				sItem;
-				_GetItem				(FireModesList.c_str(), i, sItem);
-				m_aFireModes.push_back	(static_cast<s8>(atoi(sItem)));
-			}
-		}
-		m_iCurFireMode					= ModesCount - 1;
-	}
+		load_firemodes					(pSettings->r_string(section, "fire_modes"));
 
 	m_hud.construct						(this);
 
@@ -114,14 +100,27 @@ void CWeaponMagazined::Load(LPCSTR section)
 		MAddon::addAddonModules			(*this, addon_sect);
 		process_addon_data				(*this, addon_sect, true);
 	}
-	process_addon_data					(*this, cNameSect(), true);
+	process_addon_data					(*this, section, true);
 	process_addon_modules				(*this, true);
 
 	m_empty_click_anm.load				(hud_sect, "empty_click_anm");
 	m_bolt_pull_anm.load				(hud_sect, "bolt_pull_anm");
 	m_firemode_anm.load					(hud_sect, "firemode_anm");
 	
-	hud_sect							= pSettings->r_string(cNameSect(), (m_grip) ? "hud" : "hud_unusable");
+	hud_sect							= pSettings->r_string(section, (m_grip) ? "hud" : "hud_unusable");
+}
+
+void CWeaponMagazined::load_firemodes(LPCSTR str)
+{
+	int ModesCount						= _GetItemCount(str);
+	m_bHasDifferentFireModes			= (ModesCount > 1);
+	for (int i = 0; i < ModesCount; ++i)
+	{
+		string16						sItem;
+		_GetItem						(str, i, sItem);
+		m_aFireModes.push_back			(atoi(sItem));
+	}
+	set_firemode						(ModesCount - 1);
 }
 
 void CWeaponMagazined::FireStart()
@@ -752,7 +751,7 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	case kWPN_FIREMODE_PREV:
 		if (flags&CMD_START)
 		{
-			OnPrevFireMode();
+			switch_firemode(-1);
 			return true;
 		}
 		break;
@@ -760,7 +759,7 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	case kWPN_FIREMODE_NEXT:
 		if (flags&CMD_START)
 		{
-			OnNextFireMode();
+			switch_firemode(1);
 			return true;
 		}
 		break;
@@ -768,27 +767,42 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-void CWeaponMagazined::OnNextFireMode()
+void CWeaponMagazined::switch_firemode(int val)
 {
-	if (!m_bHasDifferentFireModes) return;
-	if (GetState() != eIdle) return;
-	m_iCurFireMode = (m_iCurFireMode + 1 + m_aFireModes.size()) % m_aFireModes.size();
-	SetQueueSize(GetCurrentFireMode());
-	SwitchState(eFiremode);
+	if (m_bHasDifferentFireModes && GetState() == eIdle)
+	{
+		set_firemode((m_iCurFireMode + val + m_aFireModes.size()) % m_aFireModes.size());
+		SwitchState(eFiremode);
+	}
 }
 
-void CWeaponMagazined::OnPrevFireMode()
+void CWeaponMagazined::set_firemode(int val)
 {
-	if (!m_bHasDifferentFireModes) return;
-	if (GetState() != eIdle) return;
-	m_iCurFireMode = (m_iCurFireMode - 1 + m_aFireModes.size()) % m_aFireModes.size();
-	SetQueueSize(GetCurrentFireMode());
-	SwitchState(eFiremode);
+	m_iCurFireMode = val;
+	SetQueueSize();
 }
 
 void CWeaponMagazined::SetQueueSize(int size)
 {
-	m_iQueueSize = size;
+	if (size)
+	{
+		for (auto mode : m_aFireModes)
+		{
+			if (mode == size || mode == -1)
+			{
+				m_iQueueSize = size;
+				return;
+			}
+		}
+	}
+	else if (m_aFireModes.size())
+		m_iQueueSize = m_aFireModes[m_iCurFireMode];
+}
+
+void CWeaponMagazined::OnH_B_Chield()
+{
+	inherited::OnH_B_Chield();
+	SetQueueSize();
 }
 
 float CWeaponMagazined::GetWeaponDeterioration()
@@ -821,15 +835,10 @@ void CWeaponMagazined::GetBriefInfo(SWpnBriefInfo& info)
 	else
 		info.magnification				= "";
 
-	if (HasFireModes())
-	{
-		if (m_iQueueSize < 0)
-			info.fire_mode				= "A";
-		else
-			info.fire_mode.printf		("%d", m_iQueueSize);
-	}
+	if (m_iQueueSize < 0)
+		info.fire_mode					= "A";
 	else
-		info.fire_mode					= "";
+		info.fire_mode.printf			("%d", m_iQueueSize);
 
 	if (m_pInventory->ModifyFrame() <= m_BriefInfo_CalcFrame)
 		return;
@@ -844,17 +853,7 @@ bool CWeaponMagazined::install_upgrade_impl(LPCSTR section, bool test)
 	LPCSTR str;
 	bool result2 = process_if_exists(section, "fire_modes", str, test);
 	if (result2 && !test)
-	{
-		int ModesCount = _GetItemCount(str);
-		m_aFireModes.clear();
-		for (int i = 0; i < ModesCount; ++i)
-		{
-			string16 sItem;
-			_GetItem(str, i, sItem);
-			m_aFireModes.push_back((s8) atoi(sItem));
-		}
-		m_iCurFireMode = ModesCount - 1;
-	}
+		load_firemodes(str);
 	result |= result2;
 
 	result |= process_if_exists(section, "base_dispersioned_bullets_count", m_iBaseDispersionedBulletsCount, test);
@@ -1336,15 +1335,14 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
 		if (param)
 		{
-			se_wpn->m_u8CurFireMode		= (u8)m_iCurFireMode;
+			se_wpn->m_u8CurFireMode		= static_cast<u8>(m_iCurFireMode);
 			se_wpn->m_ads_shift			= m_ads_shift;
 			se_wpn->m_locked			= m_locked;
 			se_wpn->m_cocked			= m_cocked;
 		}
 		else
 		{
-			m_iCurFireMode				= se_wpn->m_u8CurFireMode;
-			SetQueueSize				(GetCurrentFireMode());
+			set_firemode				(static_cast<int>(se_wpn->m_u8CurFireMode));
 			m_ads_shift					= se_wpn->m_ads_shift;
 			m_locked					= se_wpn->m_locked;
 			m_cocked					= se_wpn->m_cocked;

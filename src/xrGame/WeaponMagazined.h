@@ -85,7 +85,7 @@ public:
 	void			GetBriefInfo(SWpnBriefInfo& info);
 
 public:
-	virtual void	SetQueueSize(int size);
+	virtual void	SetQueueSize(int size = 0);
 	virtual bool	StopedAfterQueueFired()
 	{
 		return m_bStopedAfterQueueFired;
@@ -97,7 +97,7 @@ public:
 
 protected:
 	//максимальный размер очереди, которой можно стрельнуть
-	int				m_iQueueSize						= -1;
+	int				m_iQueueSize						= 1;
 	//количество реально выстреляных патронов
 	int				m_iShotNum							= 0;
 	//после какого патрона, при непрерывной стрельбе, начинается отдача (сделано из-за Абакана)
@@ -111,25 +111,19 @@ protected:
 	bool			m_bFireSingleShot					= false;
 	//режимы стрельбы
 	bool			m_bHasDifferentFireModes			= false;
-	xr_vector<s8>	m_aFireModes						= {};
-	int				m_iCurFireMode						= -1;
+	xr_vector<int>	m_aFireModes						= {};
+	int				m_iCurFireMode						= 0;
+	
+	void			switch_firemode						(int val);
+	void			set_firemode						(int val);
 
 public:
-	void	OnNextFireMode();
-	void	OnPrevFireMode();
-	bool	HasFireModes()
-	{
-		return m_bHasDifferentFireModes;
-	};
 	virtual	int		GetCurrentFireMode()
 	{
-		//AVO: fixed crash due to original GSC assumption that CWeaponMagazined will always have firemodes specified in configs.
-		//return m_aFireModes[m_iCurFireMode];
-		if (HasFireModes())
-			return m_aFireModes[m_iCurFireMode];
-		else
-			return 1;
+		return (m_aFireModes.size()) ? m_aFireModes[m_iCurFireMode] : 1;
 	};
+
+	void			OnH_B_Chield						() override;
 
 protected:
 	virtual bool	install_upgrade_impl	(LPCSTR section, bool test);
@@ -200,6 +194,7 @@ private:
 	
 	bool								is_mag_empty							();
 	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);
+	void								load_firemodes							(LPCSTR str);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
 	void								on_firemode_switch						();
