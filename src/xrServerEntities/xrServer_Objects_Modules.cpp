@@ -48,13 +48,13 @@ void CSE_ALifeModuleAmountable::STATE_Read(NET_Packet& tNetPacket)
 
 void CSE_ALifeModuleAddon::STATE_Write(NET_Packet& tNetPacket)
 {
-	tNetPacket.w_u16					(m_slot_idx);
+	tNetPacket.w_s16					(m_slot_idx);
 	tNetPacket.w_s16					(m_slot_pos);
 }
 
 void CSE_ALifeModuleAddon::STATE_Read(NET_Packet& tNetPacket)
 {
-	tNetPacket.r_u16					(m_slot_idx);
+	tNetPacket.r_s16					(m_slot_idx);
 	tNetPacket.r_s16					(m_slot_pos);
 }
 

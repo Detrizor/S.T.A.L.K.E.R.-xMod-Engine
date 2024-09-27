@@ -61,11 +61,14 @@ public:
 	static eAlifeModuleTypes			mid										()		{ return mAddon; }
 
 private:
-	u16									m_slot_idx								= u16_max;
+	s16									m_slot_idx								= s16_max;
 	s16									m_slot_pos								= s16_max;
 
 	void								STATE_Write							O$	(NET_Packet& tNetPacket);
 	void								STATE_Read							O$	(NET_Packet& tNetPacket);
+
+public:
+	void								setSlotIdx								(s16 idx)		{ m_slot_idx = idx; }
 
 	friend class MAddon;
 };

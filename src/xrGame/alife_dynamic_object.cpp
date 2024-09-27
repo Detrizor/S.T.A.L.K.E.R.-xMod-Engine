@@ -29,10 +29,19 @@ void CSE_ALifeDynamicObject::on_spawn()
 			else
 			{
 				string128				sect;
-				for (int i = 0, e = _GetItemCount(supplies); i < e; i++)
+				for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
 				{
 					_GetItem			(supplies, i, sect);
-					alife().spawn_item	(sect, o_Position, m_tNodeID, m_tGraphID, ID);
+					auto abstract		= alife().create_item(sect);
+
+					if (READ_IF_EXISTS(pSettings, rbool, sect, "addon", false))
+					{
+						auto se_item	= smart_cast<CSE_ALifeItem*>(abstract);
+						auto addon		= se_item->getModule<CSE_ALifeModuleAddon>(true);
+						addon->setSlotIdx(-1);
+					}
+
+					alife().register_item(abstract, o_Position, m_tNodeID, m_tGraphID, ID);
 				}
 			}
 		}

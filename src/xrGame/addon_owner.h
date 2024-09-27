@@ -72,7 +72,7 @@ public:
 
 	void								RenderHud							C$	();
 	void								RenderWorld							C$	(Fmatrix CR$ parent_trans);
-	bool								canTake								C$	(MAddon CPC addon, bool check_pending = true, bool forced = false);
+	bool								canTake								C$	(MAddon CPC addon, bool forced = false);
 	void								updateAddonLocalTransform			C$	(MAddon* addon, Dmatrix CPC parent_transform = nullptr);
 };
 
@@ -92,7 +92,8 @@ private:
 	
 	static bool							try_transfer							(MAddonOwner* ao, void* addon, int attach);
 	void								transfer_addon							(MAddon* addon, bool attach);
-	void								processAddon						C$	(MAddon PC$ addon, bool attach);
+	void								detach_addon							(MAddon* addon);
+	void								processAddon						C$	(MAddon PC$ addon, bool attach, bool recurrent = false);
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:

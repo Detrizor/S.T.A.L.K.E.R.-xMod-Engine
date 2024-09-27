@@ -311,19 +311,23 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 		return							res;
 	}
 	case eOnAddon:
-	{
-		auto addon						= static_cast<MAddon*>(data);
-		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
+		if (m_pLauncher)
 		{
-			m_grenade					= (param) ? grenade : nullptr;
-			if (m_grenade && !getRocketCount())
+			auto addon					= static_cast<MAddon*>(data);
+			if (addon->getSlot() == m_pLauncher->m_slot)
 			{
-				shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
-				CRocketLauncher::SpawnRocket(fake_grenade_name, this);
+				if (auto grenade = addon->O.scast<CWeaponAmmo*>())
+				{
+					m_grenade			= (param > 0) ? grenade : nullptr;
+					if (m_grenade && !getRocketCount())
+					{
+						shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
+						CRocketLauncher::SpawnRocket(fake_grenade_name, this);
+					}
+				}
 			}
 		}
 		break;
-	}
 	}
 
 	return								inherited::Aboba(type, data, param);

@@ -99,13 +99,27 @@ float MAddon::aboba(EEventTypes type, void* data, int param)
 		auto m							= se_obj->getModule<CSE_ALifeModuleAddon>(!!param);
 		if (param)
 		{
-			m->m_slot_idx				= m_slot_idx;
-			m->m_slot_pos				= m_slot_pos;
+			if (m_slot_status == attached)
+			{
+				m->m_slot_idx			= static_cast<s16>(m_slot_idx);
+				m->m_slot_pos			= static_cast<s16>(m_slot_pos);
+			}
+			else
+			{
+				m->m_slot_idx			= s16_max;
+				m->m_slot_pos			= s16_max;
+			}
 		}
 		else if (m)
 		{
-			m_slot_idx					= m->m_slot_idx;
-			m_slot_pos					= m->m_slot_pos;
+			if (m->m_slot_idx == -1)
+				m_slot_status			= need_to_attach;
+			else if (m->m_slot_idx != s16_max)
+			{
+				m_slot_status			= attached;
+				m_slot_idx				= static_cast<int>(m->m_slot_idx);
+				m_slot_pos				= static_cast<int>(m->m_slot_pos);
+			}
 		}
 	}
 	
@@ -114,7 +128,8 @@ float MAddon::aboba(EEventTypes type, void* data, int param)
 
 void MAddon::attach(CAddonSlot CPC slot)
 {
-	setSlotIdx							(slot->idx);
+	m_slot_status						= attaching;
+	m_slot_idx							= slot->idx;
 	if (auto usable = O.getModule<MUsable>())
 	{
 		if (auto act = usable->getAction(transfer_str))
@@ -136,6 +151,21 @@ bool MAddon::tryAttach(MAddonOwner CPC ao)
 	}
 
 	return								false;
+}
+
+void MAddon::setSlot(CAddonSlot* slot)
+{
+	m_slot_status						= attached;
+	m_slot								= slot;
+	m_slot_idx							= slot->idx;
+}
+
+void MAddon::resetSlot()
+{
+	m_slot_status						= free;
+	m_slot								= nullptr;
+	m_slot_idx							= no_idx;
+	m_slot_pos							= no_idx;
 }
 
 void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)

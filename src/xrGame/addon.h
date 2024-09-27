@@ -18,27 +18,39 @@ public:
 		ProfileBwd
 	};
 
+	enum eSlotStatus
+	{
+		free,
+		attached,
+		attaching,
+		need_to_attach,
+		finishing_attaching
+	};
+
+	static const int					no_idx									= int_max;
+
 public:
 										MAddon									(CGameObject* obj, LPCSTR section);
 
 private:
 	const shared_str					m_section;
 
-	Dmatrix 							m_local_transform						= Didentity;
-	Dmatrix 							m_hud_transform							= Didentity;
-	Dmatrix 							m_hud_offset							= Didentity;
-	CAddonSlot*							m_slot									= nullptr;
-	u16									m_slot_idx								= u16_max;
-	s16									m_slot_pos								= s16_max;
-
 	shared_str							m_SlotType;
 	Fvector2							m_icon_origin;
 	bool								m_low_profile;
 	bool								m_front_positioning;
-	
 	float								m_mount_length;
 	Fvector2							m_profile_length;
-	
+
+	Dmatrix 							m_local_transform						= Didentity;
+	Dmatrix 							m_hud_transform							= Didentity;
+	Dmatrix 							m_hud_offset							= Didentity;
+	CAddonSlot*							m_slot									= nullptr;
+
+	eSlotStatus							m_slot_status							= free;
+	int									m_slot_idx								= no_idx;
+	int									m_slot_pos								= no_idx;
+
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
@@ -46,14 +58,16 @@ public:
 
 	VSlots*								slots									= nullptr;
 
-	void								setSlot									(CAddonSlot* s)			{ m_slot = s; }
-	void								setSlotIdx								(int v)					{ m_slot_idx = (u16)v; }
-	void								setSlotPos								(int v)					{ m_slot_pos = (s16)v; }
+	void								setSlotStatus							(eSlotStatus v)			{ m_slot_status = v; }
+	void								setSlotIdx								(int v)					{ m_slot_idx = v; }
+	void								setSlotPos								(int v)					{ m_slot_pos = v; }
 	void								setLocalTransform						(Dmatrix CR$ trans)		{ m_local_transform = trans; }
 	void								setLowProfile							(bool status)			{ m_low_profile = status; }
 	
 	void								attach									(CAddonSlot CPC slot);
 	bool								tryAttach								(MAddonOwner CPC ao);
+	void								setSlot									(CAddonSlot* slot);
+	void								resetSlot								();
 	
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	void								updateHudOffset							(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset);
@@ -61,9 +75,10 @@ public:
 	shared_str CR$						SlotType							C$	()		{ return m_SlotType; }
 	Dmatrix CR$							getLocalTransform					C$	()		{ return m_local_transform; }
 	Dmatrix CR$							getHudTransform						C$	()		{ return m_hud_transform; }
+	eSlotStatus							getSlotStatus						C$	()		{ return m_slot_status; }
 	CAddonSlot*							getSlot								C$	()		{ return m_slot; }
-	int									getSlotIdx							C$	()		{ return (int)m_slot_idx; }
-	int									getSlotPos							C$	()		{ return (int)m_slot_pos; }
+	int									getSlotIdx							C$	()		{ return m_slot_idx; }
+	int									getSlotPos							C$	()		{ return m_slot_pos; }
 	bool								isLowProfile						C$	()		{ return m_low_profile; }
 	bool								isFrontPositioning					C$	()		{ return m_front_positioning; }
 	shared_str CR$						section								C$	()		{ return m_section; }

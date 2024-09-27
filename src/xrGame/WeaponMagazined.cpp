@@ -1304,7 +1304,7 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	{
 	case eOnAddon:
 	{
-		process_addon					(static_cast<MAddon*>(data), !!param);
+		process_addon					(static_cast<MAddon*>(data), param > 0);
 		break;
 	}
 	case eTransferAddon:
