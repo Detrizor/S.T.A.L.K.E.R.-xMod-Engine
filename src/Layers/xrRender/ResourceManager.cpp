@@ -390,14 +390,14 @@ void CResourceManager::DeferredUpload()
 
 	Msg("texture loading time: %d", timer.GetElapsed_ms());
 }
-/*
+
 void	CResourceManager::DeferredUnload	()
 {
 	if (!RDEVICE.b_is_Ready)				return;
 	for (map_TextureIt t=m_textures.begin(); t!=m_textures.end(); t++)
 		t->second->Unload();
 }
-*/
+
 #ifdef _EDITOR
 void	CResourceManager::ED_UpdateTextures(AStringVec* names)
 {

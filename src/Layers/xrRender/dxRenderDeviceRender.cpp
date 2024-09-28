@@ -62,7 +62,14 @@ void  dxRenderDeviceRender::Reset( HWND hWnd, u32 &dwWidth, u32 &dwHeight, float
 
 	Resources->reset_begin	();
 	Memory.mem_compact		();
-	HW.Reset				(hWnd);
+
+#if R_R2 >= RENDER
+	ResourcesDeferredUnload	();
+#endif
+	HW.Reset(hWnd);
+#if R_R2 >= RENDER
+	ResourcesDeferredUpload();
+#endif
 
 #if defined(USE_DX10) || defined(USE_DX11)
 	dwWidth					= HW.m_ChainDesc.BufferDesc.Width;
@@ -242,6 +249,11 @@ void dxRenderDeviceRender::DeferredLoad(BOOL E)
 void dxRenderDeviceRender::ResourcesDeferredUpload()
 {
 	Resources->DeferredUpload();
+}
+
+void dxRenderDeviceRender::ResourcesDeferredUnload()
+{
+	Resources->DeferredUnload();
 }
 
 void dxRenderDeviceRender::ResourcesGetMemoryUsage(u32& m_base, u32& c_base, u32& m_lmaps, u32& c_lmaps)
