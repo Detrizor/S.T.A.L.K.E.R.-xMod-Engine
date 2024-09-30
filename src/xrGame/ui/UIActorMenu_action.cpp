@@ -417,13 +417,11 @@ bool CUIActorMenu::OnMouseAction( float x, float y, EUIMessages mouse_action )
 
 bool CUIActorMenu::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 {
-	InfoCurItem( NULL );
-	if ( is_binded(kSPRINT_TOGGLE, dik) )
+	InfoCurItem(nullptr);
+	if (is_binded(kSPRINT_TOGGLE, dik))
 	{
-		if ( WINDOW_KEY_PRESSED == keyboard_action )
-		{
+		if (WINDOW_KEY_PRESSED == keyboard_action)
 			OnPressUserKey();
-		}
 		return true;
 	}
 
@@ -467,16 +465,8 @@ void CUIActorMenu::OnPressUserKey()
 
 void CUIActorMenu::OnBtnExitClicked(CUIWindow* w, void* d)
 {
-	switch (m_currMenuMode)
-	{
-	case mmTrade:
-	case mmUpgrade:
-		m_pActorInvOwner->O->scast<CActor*>()->RunTalkDialog(m_pPartnerInvOwner, false);
-		break;
-	default:
-		g_btnHint->Discard();
-		HideDialog();
-	}
+	g_btnHint->Discard();
+	HideDialog();
 }
 
 void CUIActorMenu::OnMesBoxYes( CUIWindow*, void* )

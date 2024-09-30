@@ -230,7 +230,8 @@ void CUITalkWnd::Update()
 
 void CUITalkWnd::Draw()
 {
-	inherited::Draw				();
+	if (GetHolder()->TopInputReceiver() == this)
+		inherited::Draw();
 }
 
 void CUITalkWnd::Show(bool status)
@@ -329,22 +330,14 @@ void CUITalkWnd::AddAnswer(const shared_str& text, LPCSTR SpeakerName)
 void CUITalkWnd::SwitchToTrade()
 {
 	if (m_pOurInvOwner->IsTradeEnabled() && m_pOthersInvOwner->IsTradeEnabled())
-	{
 		if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
-		{
 			pGameSP->StartTrade(m_pOthersInvOwner);
-			HideDialog();
-		}
-	}
 }
 
 void CUITalkWnd::SwitchToUpgrade()
 {
 	if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
-	{
 		pGameSP->StartUpgrade(m_pOthersInvOwner);
-		HideDialog();
-	}
 }
 
 bool CUITalkWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
