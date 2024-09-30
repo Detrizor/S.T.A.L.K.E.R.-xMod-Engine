@@ -982,9 +982,10 @@ public:
 	void								resetActionItemID					C$	(int num);
 	
 	bool								isAttached							C$	();
-	bool								attach								C$	(CScriptGameObject* obj, bool forced);
-	bool								attach1								C$	(CScriptGameObject* obj)		{ return attach(obj, false); }
-	void								detach								C$	();
+	bool								tryAttach							C$	(CScriptGameObject* obj);
+	bool								tryTransfer							C$	(CScriptGameObject* obj, bool attach);
+	void								attachFinish						C$	(CScriptGameObject* obj);
+	void								detachFinish						C$	();
 	void								shift								C$	(int val);
 	
 	void								fold								C$	();

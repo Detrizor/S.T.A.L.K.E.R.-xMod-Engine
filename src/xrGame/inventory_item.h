@@ -343,8 +343,6 @@ public:
 	static LPCSTR						readName								(shared_str CR$ section);
 	static LPCSTR						readNameShort							(shared_str CR$ section);
 
-	bool								tryCustomUse							();
-
 	LPCSTR								getName								C$	()		{ return m_name.c_str(); }
 	LPCSTR								getNameShort						C$	()		{ return m_name_short.c_str(); }
 	LPCSTR								ItemDescription						C$	()		{ return m_description.c_str(); }
@@ -353,6 +351,7 @@ public:
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
+	bool								tryCustomUse						C$	();
 
 	float								GetAmount							C$	();
 	float								GetFill								C$	();

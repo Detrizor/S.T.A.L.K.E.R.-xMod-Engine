@@ -936,7 +936,7 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-bool CInventoryItem::tryCustomUse()
+bool CInventoryItem::tryCustomUse() const
 {
 	if (auto usable = O.getModule<MUsable>())
 	{
@@ -949,7 +949,7 @@ bool CInventoryItem::tryCustomUse()
 	if (auto addon = O.getModule<MAddon>())
 		if (auto active_item = Actor()->inventory().ActiveItem())
 			if (auto ao = active_item->O.getModule<MAddonOwner>())
-				if (addon->tryAttach(ao))
+				if (ao->tryAttach(addon, true))
 					return				true;
 
 	return								false;

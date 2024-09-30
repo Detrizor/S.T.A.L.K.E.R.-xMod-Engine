@@ -494,9 +494,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("reset_action_item_id",		&CScriptGameObject::resetActionItemID)
 			
 		.def("is_attached",					&CScriptGameObject::isAttached)
-		.def("attach",						&CScriptGameObject::attach)
-		.def("attach",						&CScriptGameObject::attach1)
-		.def("detach",						&CScriptGameObject::detach)
+		.def("try_attach",					&CScriptGameObject::tryAttach)
+		.def("try_transfer",				&CScriptGameObject::tryTransfer)
+		.def("attach_finish",				&CScriptGameObject::attachFinish)
+		.def("detach_finish",				&CScriptGameObject::detachFinish)
 		.def("shift",						&CScriptGameObject::shift)
 			
 		.def("fold",						&CScriptGameObject::fold)

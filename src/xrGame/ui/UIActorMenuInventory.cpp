@@ -778,9 +778,9 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		}break;
 	case INVENTORY_ADDON_ATTACH:
 	{
-		auto slot						= static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData());
 		auto addon						= item->O.getModule<MAddon>();
-		addon->attach					(slot);
+		auto slot						= static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData());
+		addon->startAttaching			(slot);
 		break;
 	}
 	case INVENTORY_REPAIR:

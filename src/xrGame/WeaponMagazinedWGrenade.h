@@ -52,12 +52,12 @@ private:
 	void								launch_grenade							();
 	void								process_gl								(MGrenadeLauncher* gl, bool attach);
 	Fvector CR$							fire_point_gl							();
+	
+	bool								tryTransfer							O$	(MAddon* addon, bool attach);
 
 protected:
 	LPCSTR								get_anm_prefix						CO$	();
 
 public:
 	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
-
-	friend class MGrenadeLauncher;
 };

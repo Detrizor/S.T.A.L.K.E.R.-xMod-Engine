@@ -8,8 +8,6 @@
 #include "addon_owner.h"
 #include "WeaponMagazined.h"
 
-const shared_str transfer_str = "st_attach";
-
 void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
 	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
@@ -32,6 +30,7 @@ MAddon::MAddon(CGameObject* obj, LPCSTR section) : CModule(obj), m_section(secti
 	m_front_positioning					= pSettings->r_bool(m_section, "front_positioning");
 	m_mount_length						= pSettings->r_float(m_section, "mount_length");
 	m_profile_length					= pSettings->r_fvector2(m_section, "profile_length");
+	m_attach_action						= pSettings->r_string(m_section, "attach_action");
 
 	if (obj)
 	{
@@ -39,6 +38,12 @@ MAddon::MAddon(CGameObject* obj, LPCSTR section) : CModule(obj), m_section(secti
 		if (auto ao = O.getModule<MAddonOwner>())
 			slots						= const_cast<VSlots*>(&ao->AddonSlots());
 	}
+}
+
+SAction* MAddon::get_attach_action() const
+{
+	auto usable							= O.getModule<MUsable>();
+	return								usable->getAction(m_attach_action);
 }
 
 static MAddonOwner* get_root_addon_owner(MAddonOwner* ao)
@@ -126,46 +131,34 @@ float MAddon::aboba(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-void MAddon::attach(CAddonSlot CPC slot)
+void MAddon::startAttaching(CAddonSlot CPC slot)
 {
-	m_slot_status						= attaching;
 	m_slot_idx							= slot->idx;
-	if (auto usable = O.getModule<MUsable>())
-	{
-		if (auto act = usable->getAction(transfer_str))
-		{
-			act->item_id				= slot->parent_ao->O.ID();
-			act->performAction			();
-			return;
-		}
-	}
-	slot->parent_ao->attachAddon		(this, true);
+	auto act							= get_attach_action();
+	act->item_id						= slot->parent_ao->O.ID();
+	act->performActionFunctor			();
 }
 
-bool MAddon::tryAttach(MAddonOwner CPC ao)
-{
-	if (auto slot = ao->findAvailableSlot(this, true))
-	{
-		attach							(slot);
-		return							true;
-	}
-
-	return								false;
-}
-
-void MAddon::setSlot(CAddonSlot* slot)
+void MAddon::onAttach(CAddonSlot* slot)
 {
 	m_slot_status						= attached;
 	m_slot								= slot;
 	m_slot_idx							= slot->idx;
+	get_attach_action()->item_id		= u16_max;
 }
 
-void MAddon::resetSlot()
+void MAddon::onDetach(bool transfer)
 {
 	m_slot_status						= free;
 	m_slot								= nullptr;
 	m_slot_idx							= no_idx;
 	m_slot_pos							= no_idx;
+
+	if (transfer)
+	{
+		auto root						= O.H_Root();
+		O.transfer						((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
+	}
 }
 
 void MAddon::updateHudTransform(Dmatrix CR$ parent_trans)

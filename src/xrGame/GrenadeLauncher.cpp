@@ -20,27 +20,3 @@ MGrenadeLauncher::MGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : C
 		}
 	}
 }
-
-float MGrenadeLauncher::aboba(EEventTypes type, void* data, int param)
-{
-	if (!m_wpn)
-		return							CModule::aboba(type, data, param);
-
-	switch (type)
-	{
-	case eTransferAddon:
-	{
-		auto addon						= static_cast<MAddon*>(data);
-		if (addon->O.scast<CWeaponAmmo*>())
-		{
-			m_slot->startReloading		((param) ? addon : nullptr);
-			m_wpn->m_sub_state			= (m_slot->addons.empty()) ? CWeapon::eSubstateReloadAttachG : CWeapon::eSubstateReloadDetachG;
-			m_wpn->SwitchState			(CWeapon::eReload);
-			return						1.f;
-		}
-		break;
-	}
-	}
-
-	return								CModule::aboba(type, data, param);
-}

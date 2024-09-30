@@ -12,7 +12,6 @@ enum EEventTypes
 	eSyncData,
 	//MAddonOwner
 	eOnAddon,
-	eTransferAddon,
 	//CInventoryItem
 	eGetAmount,
 	eGetFill,

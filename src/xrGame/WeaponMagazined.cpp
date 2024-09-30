@@ -1306,20 +1306,6 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 		process_addon					(static_cast<MAddon*>(data), param > 0);
 		break;
 	}
-	case eTransferAddon:
-	{
-		auto addon						= static_cast<MAddon*>(data);
-		if (auto mag = addon->O.getModule<MMagazine>())
-		{
-			if (mag->attachAnm().size())
-			{
-				m_magazine_slot->startReloading((param) ? addon : nullptr);
-				StartReload				((m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
-				return					1.f;
-			}
-		}
-		break;
-	}
 	case eUpdateSlotsTransform:
 	{
 		float res						= inherited::Aboba(type, data, param);
@@ -1352,6 +1338,20 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 	}
 
 	return								inherited::Aboba(type, data, param);
+}
+
+bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)
+{
+	if (auto mag = addon->O.getModule<MMagazine>())
+	{
+		if (mag->attachAnm().size() && m_grip)
+		{
+			m_magazine_slot->startReloading((attach) ? addon : nullptr);
+			StartReload					((m_magazine_slot->empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
+			return						true;
+		}
+	}
+	return								false;
 }
 
 void CWeaponMagazined::UpdateSndShot()

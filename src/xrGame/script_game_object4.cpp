@@ -861,18 +861,32 @@ bool CScriptGameObject::isAttached() const
 	return								false;
 }
 
-bool CScriptGameObject::attach(CScriptGameObject* obj, bool forced) const
+bool CScriptGameObject::tryAttach(CScriptGameObject* obj) const
 {
 	if (auto ao = object().getModule<MAddonOwner>())
 		if (auto addon = obj->object().getModule<MAddon>())
-			return						ao->attachAddon(addon, forced);
+			return						ao->tryAttach(addon, false);
 	return								false;
 }
 
-void CScriptGameObject::detach() const
+bool CScriptGameObject::tryTransfer(CScriptGameObject* obj, bool attach) const
+{
+	if (auto wpn = object().scast<CWeaponMagazined*>())
+		return wpn->tryTransfer			(obj->object().getModule<MAddon>(), attach);
+	return								false;
+}
+
+void CScriptGameObject::attachFinish(CScriptGameObject* obj) const
+{
+	if (auto ao = object().getModule<MAddonOwner>())
+		if (auto addon = obj->object().getModule<MAddon>())
+			ao->finishAttaching			(addon);
+}
+
+void CScriptGameObject::detachFinish() const
 {
 	if (auto addon = object().getModule<MAddon>())
-		addon->getSlot()->parent_ao->detachAddon(addon);
+		addon->getSlot()->parent_ao->finishDetaching(addon);
 }
 
 void CScriptGameObject::shift(int val) const

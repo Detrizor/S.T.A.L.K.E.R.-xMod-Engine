@@ -3,6 +3,7 @@
 
 class CAddonSlot;
 class MAddonOwner;
+struct SAction;
 
 typedef xr_vector<xptr<CAddonSlot>> VSlots;
 
@@ -22,9 +23,7 @@ public:
 	{
 		free,
 		attached,
-		attaching,
-		need_to_attach,
-		finishing_attaching
+		need_to_attach
 	};
 
 	static const int					no_idx									= int_max;
@@ -41,6 +40,7 @@ private:
 	bool								m_front_positioning;
 	float								m_mount_length;
 	Fvector2							m_profile_length;
+	shared_str							m_attach_action;
 
 	Dmatrix 							m_local_transform						= Didentity;
 	Dmatrix 							m_hud_transform							= Didentity;
@@ -50,6 +50,8 @@ private:
 	eSlotStatus							m_slot_status							= free;
 	int									m_slot_idx								= no_idx;
 	int									m_slot_pos								= no_idx;
+
+	SAction*							get_attach_action					C$	();
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
@@ -64,10 +66,9 @@ public:
 	void								setLocalTransform						(Dmatrix CR$ trans)		{ m_local_transform = trans; }
 	void								setLowProfile							(bool status)			{ m_low_profile = status; }
 	
-	void								attach									(CAddonSlot CPC slot);
-	bool								tryAttach								(MAddonOwner CPC ao);
-	void								setSlot									(CAddonSlot* slot);
-	void								resetSlot								();
+	void								startAttaching							(CAddonSlot CPC slot);
+	void								onAttach								(CAddonSlot* slot);
+	void								onDetach								(bool transfer = true);
 	
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	void								updateHudOffset							(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset);

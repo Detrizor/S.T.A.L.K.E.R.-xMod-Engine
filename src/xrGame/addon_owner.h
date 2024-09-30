@@ -54,7 +54,7 @@ public:
 	xr_list<MAddon*>					addons									= {};
 
 	void								attachAddon								(MAddon* addon);
-	void								detachAddon								(MAddon* addon);
+	void								detachAddon								(MAddon* addon, bool transfer);
 	void								shiftAddon								(MAddon* addon, int shift);
 
 	void								updateAddonsHudTransform				(attachable_hud_item* hi);
@@ -87,30 +87,27 @@ public:
 										MAddonOwner								(CGameObject* obj);
 
 private:
-	static bool							try_transfer							(MAddonOwner* ao, void* addon, int attach);
-
 	bool								m_base_foreground_draw;
 
 	VSlots								m_slots									= {};
 	Dmatrix								m_root_offset							= Didentity;
 	
-	void								transfer_addon							(MAddon* addon, bool attach);
-	void								detach_addon							(MAddon* addon);
-	void								processAddon						C$	(MAddon PC$ addon, bool attach, bool recurrent = false);
+	void								process_addon						C$	(MAddon PC$ addon, bool attach, bool recurrent = false);
+	CAddonSlot*							find_available_slot					C$	(MAddon CPC addon, bool forced = false);
+	void								register_addon						C$	(MAddon PC$ addon, bool attach);
+
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
 public:
 	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);
 
-	bool								attachAddon								(MAddon* addon, bool forced);
-	void								detachAddon								(MAddon* addon);
 	void								calcSlotsBoneOffset						(attachable_hud_item* hi);
 
 	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
 	bool								getBaseForegroundDraw				C$	()		{ return m_base_foreground_draw; }
 	Dmatrix CR$							getRootOffset						C$	()		{ return m_root_offset; }
 
-	MAddonOwner*						getParentAO							C$	();
-	CAddonSlot*							findAvailableSlot					C$	(MAddon CPC addon, bool forced = false);
-	void								RegisterAddon						C$	(MAddon PC$ addon, bool attach);
+	bool								tryAttach							C$	(MAddon* addon, bool forced);
+	void								finishAttaching						C$	(MAddon* addon, CAddonSlot* slot = nullptr);
+	void								finishDetaching						C$	(MAddon* addon, bool transfer = true);
 };

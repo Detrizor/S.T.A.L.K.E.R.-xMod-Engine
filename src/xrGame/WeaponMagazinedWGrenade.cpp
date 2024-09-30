@@ -253,13 +253,12 @@ void CWeaponMagazinedWGrenade::process_gl(MGrenadeLauncher* gl, bool attach)
 		switch_mode						();
 
 	m_pLauncher							= (attach) ? gl : nullptr;
-	gl->m_wpn							= (attach) ? this : nullptr;
 
 	if (attach)
 	{
 		m_hud->ProcessGL				(gl);
-		m_fLaunchSpeed					= gl->GetGrenadeVel();
-		m_flame_particles_gl_name		= gl->FlameParticles();
+		m_fLaunchSpeed					= gl->m_fGrenadeVel;
+		m_flame_particles_gl_name		= gl->m_sFlameParticles;
 		m_sounds.LoadSound				(*gl->O.cNameSect(), "snd_shoot_grenade", "sndShotG", true, m_eSoundShot);
 
 		Dmatrix trans					= gl->m_slot->model_offset;
@@ -331,6 +330,17 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	}
 
 	return								inherited::Aboba(type, data, param);
+}
+
+bool CWeaponMagazinedWGrenade::tryTransfer(MAddon* addon, bool attach)
+{
+	if (m_pLauncher && addon->O.scast<CWeaponAmmo*>())
+	{
+		m_pLauncher->m_slot->startReloading((attach) ? addon : nullptr);
+		StartReload						((m_pLauncher->m_slot->empty()) ? eSubstateReloadAttachG : eSubstateReloadDetachG);
+		return							true;
+	}
+	return								inherited::tryTransfer(addon, attach);
 }
 
 bool CWeaponMagazinedWGrenade::HasAltAim() const
