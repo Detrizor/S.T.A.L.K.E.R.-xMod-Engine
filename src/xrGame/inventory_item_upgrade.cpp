@@ -271,13 +271,7 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 	bool result2			= false;
 	if ( BaseSlot() != NO_ACTIVE_SLOT )
 	{
-		BOOL value			= m_flags.test(FRuckDefault);
-		result2				= process_if_exists(section, "default_to_ruck", value, test);
-		if (result2 && !test)
-			m_flags.set		(FRuckDefault, value);
-		result				|= result2;
-
-		value				= m_flags.test(FAllowSprint);
+		BOOL value			= m_flags.test(FAllowSprint);
 		result2				= process_if_exists(section, "sprint_allowed", value, test);
 		if (result2 && !test)
 			m_flags.set(FAllowSprint, value);

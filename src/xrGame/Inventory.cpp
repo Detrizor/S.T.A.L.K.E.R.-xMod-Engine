@@ -197,8 +197,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	}
 
 	if (pIItem->CurrPlace() == eItemPlaceUndefined)
-		if (pIItem->RuckDefault() || !m_pOwner->is_alive() || !Slot(pIItem->BaseSlot(), pIItem))
-			Ruck						(pIItem, strict_placement);
+		Ruck							(pIItem, strict_placement);
 	
 	m_pOwner->OnItemTake				(pIItem);
 	pIItem->OnTaken						();

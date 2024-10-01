@@ -80,16 +80,15 @@ protected:
 								FCanTrade			=(1<<2),
 								Fbelt				=(1<<3),
 								Fruck				=(1<<4),
-								FRuckDefault		=(1<<5),
-								FUsingCondition		=(1<<6),
-								FAllowSprint		=(1<<7),
-								Fuseful_for_NPC		=(1<<8),
-								FInInterpolation	=(1<<9),
-								FInInterpolate		=(1<<10),
-								FIsQuestItem		=(1<<11),
-								FIsHelperItem		=(1<<12),
-								FCanStack			=(1<<13),
-								FShowFullCondition	=(1<<14)
+								FUsingCondition		=(1<<5),
+								FAllowSprint		=(1<<6),
+								Fuseful_for_NPC		=(1<<7),
+								FInInterpolation	=(1<<8),
+								FInInterpolate		=(1<<9),
+								FIsQuestItem		=(1<<10),
+								FIsHelperItem		=(1<<11),
+								FCanStack			=(1<<12),
+								FShowFullCondition	=(1<<13)
 	};
 
 	Flags16						m_flags;
@@ -173,7 +172,6 @@ public:
 
 			bool				Ruck				()							{return !!m_flags.test(Fruck);}
 			void				Ruck				(bool on_ruck)				{m_flags.set(Fruck,on_ruck);}
-			bool				RuckDefault			()							{return !!m_flags.test(FRuckDefault);}
 			
 	virtual bool				CanTake				() const					{return !!m_flags.test(FCanTake);}
 			bool				CanTrade			() const;

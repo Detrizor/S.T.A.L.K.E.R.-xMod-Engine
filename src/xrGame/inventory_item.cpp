@@ -68,7 +68,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 {
 	m_net_updateData = NULL;
 	m_flags.set(Fruck, TRUE);
-	m_flags.set(FRuckDefault, TRUE);
 	m_pInventory = NULL;
 
 	SetDropManual(FALSE);
@@ -121,36 +120,32 @@ CInventoryItem::~CInventoryItem()
 
 void CInventoryItem::Load(LPCSTR section)
 {
-	CHitImmunity::LoadImmunities	(pSettings->r_string(section, "immunities_sect"), pSettings);
+	CHitImmunity::LoadImmunities		(pSettings->r_string(section, "immunities_sect"), pSettings);
 
-	ISpatial*						self = smart_cast<ISpatial*> (this);
-	if (self)						self->spatial.type |= STYPE_VISIBLEFORAI;
+	ISpatial*							self = smart_cast<ISpatial*> (this);
+	if (self)							self->spatial.type |= STYPE_VISIBLEFORAI;
 
-	m_section_id._set				(section);
+	m_section_id._set					(section);
 
-	LPCSTR sl						= pSettings->r_string(section, "slot");
-	m_ItemCurrPlace.base_slot_id	= pSettings->r_u16("slot_ids", sl);
-	sl								= READ_IF_EXISTS(pSettings, r_string, section, "hand_slot", "none");
-	m_ItemCurrPlace.hand_slot_id	= pSettings->r_u16("slot_ids", sl);
+	LPCSTR sl							= pSettings->r_string(section, "slot");
+	m_ItemCurrPlace.base_slot_id		= pSettings->r_u16("slot_ids", sl);
+	sl									= pSettings->r_string(section, "hand_slot");
+	m_ItemCurrPlace.hand_slot_id		= pSettings->r_u16("slot_ids", sl);
 
-	m_can_trade						= READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
-	m_flags.set						(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
-	m_flags.set						(FCanTrade, m_can_trade);
-	m_flags.set						(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
-	m_flags.set						(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
+	m_can_trade							= READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
+	m_flags.set							(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
+	m_flags.set							(FCanTrade, m_can_trade);
+	m_flags.set							(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
+	m_flags.set							(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set						(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
-	m_flags.set						(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
+	m_flags.set							(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
+	m_flags.set							(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
 
-	m_highlight_equipped			= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
-	m_icon_name						= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
+	m_highlight_equipped				= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
+	m_icon_name							= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
 
-	if (BaseSlot() != NO_ACTIVE_SLOT || HandSlot() != NO_ACTIVE_SLOT)
-	{
-		m_flags.set					(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
-		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
-		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
-	}
+	m_flags.set							(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
+	m_fControlInertionFactor			= pSettings->r_float(section, "control_inertion_factor");
 
 	m_category							= pSettings->r_string(section, "category");
 	m_subcategory						= pSettings->r_string(section, "subcategory");
