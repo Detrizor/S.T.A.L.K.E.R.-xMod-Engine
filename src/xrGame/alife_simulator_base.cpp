@@ -118,45 +118,103 @@ CSE_Abstract* CALifeSimulatorBase::create_item(LPCSTR section, float condition) 
 	xr_strcat							(s_name_replace,itoa(abstract->ID,S1,10));
 	abstract->set_name_replace			(s_name_replace);
 
-	CSE_ALifeInventoryItem* se_item		= smart_cast<CSE_ALifeInventoryItem*>(abstract);
-	if (se_item)
+	if (auto se_item = smart_cast<CSE_ALifeInventoryItem*>(abstract))
 		se_item->m_fCondition			= condition;
 
 	return								abstract;
 }
 
-void CALifeSimulatorBase::register_item(CSE_Abstract* item, Fvector CR$ position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id)
+void CALifeSimulatorBase::register_item(
+	CSE_Abstract*& item,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	u16 parent_id,
+	bool straight)
 {
 	auto dynamic_object					= smart_cast<CSE_ALifeDynamicObject*>(item);
-	VERIFY								(dynamic_object);
+	dynamic_object->ID_Parent			= parent_id;
 	dynamic_object->o_Position			= position;
 	dynamic_object->m_tNodeID			= level_vertex_id;
 	dynamic_object->m_tGraphID			= game_vertex_id;
 	dynamic_object->m_tSpawnID			= u16(-1);
-
-	register_object						(dynamic_object, true);
-	if (parent_id != u16_max)
+	
+	auto parent							= (parent_id != u16_max) ? objects().object(parent_id) : nullptr;
+	if (parent && parent->m_bOnline || !parent && straight)
 	{
-		dynamic_object->ID_Parent		= parent_id;
-		auto parent						= objects().object(parent_id);
-		R_ASSERT						(parent);
-		parent->children.push_back		(dynamic_object->ID);
-		if (parent->m_bOnline)
-			dynamic_object->switch_online();
+		NET_Packet						packet;
+		packet.w_begin					(M_SPAWN);
+		packet.w_stringZ				(item->s_name);
+
+		item->Spawn_Write				(packet, FALSE);
+		server().FreeID					(item->ID, 0);
+		F_entity_Destroy				(item);
+
+		u16								dummy;
+		packet.r_begin					(dummy);
+		VERIFY							(dummy == M_SPAWN);
+		item							= server().Process_spawn(packet, ClientID(0xffff), straight);
+		dynamic_object					= smart_cast<CSE_ALifeDynamicObject*>(item);
 	}
+	else
+		register_object					(dynamic_object, true);
 
 	dynamic_object->spawn_supplies		();
 	dynamic_object->on_spawn			();
+	spawn_supplies						(dynamic_object, straight);
 }
 
-CSE_Abstract* CALifeSimulatorBase::spawn_item(LPCSTR section, Fvector CR$ position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, float condition)
+void CALifeSimulatorBase::spawn_supplies(CSE_ALifeDynamicObject* object, bool straight)
+{
+	LPCSTR supplies						= pSettings->r_string_ex(object->s_name, "supplies", 0);
+	if (supplies && supplies[0])
+	{
+		if (u16 count = pSettings->r_u16_ex(object->s_name, "supplies_count", 0))
+			spawn_items					(supplies, object->o_Position, object->m_tNodeID, object->m_tGraphID, object->ID, count, straight);
+		else
+		{
+			string128					sect;
+			for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
+			{
+				_GetItem				(supplies, i, sect);
+				auto abstract			= create_item(sect);
+
+				if (pSettings->r_bool_ex(sect, "addon", false))
+				{
+					auto se_item		= smart_cast<CSE_ALifeItem*>(abstract);
+					auto addon			= se_item->getModule<CSE_ALifeModuleAddon>(true);
+					addon->setSlotIdx	(-1);
+				}
+
+				register_item			(abstract, object->o_Position, object->m_tNodeID, object->m_tGraphID, object->ID, straight);
+			}
+		}
+	}
+}
+
+CSE_Abstract* CALifeSimulatorBase::spawn_item(
+	LPCSTR section,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	u16 parent_id,
+	float condition,
+	bool straight)
 {
 	auto item							= create_item(section, condition);
-	register_item						(item, position, level_vertex_id, game_vertex_id, parent_id);
+	register_item						(item, position, level_vertex_id, game_vertex_id, parent_id, straight);
 	return								item;
 }
 
-CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, u16 count, float condition)
+CSE_Abstract* CALifeSimulatorBase::spawn_items(
+	LPCSTR section,
+	const Fvector& position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	u16 parent_id,
+	u16 count,
+	float condition,
+	bool straight)
 {
 	while (true)
 	{
@@ -175,7 +233,7 @@ CSE_Abstract* CALifeSimulatorBase::spawn_items(LPCSTR section, const Fvector& po
 				count					= 1;
 			count--;
 		}
-		register_item					(item, position, level_vertex_id, game_vertex_id, parent_id);
+		register_item					(item, position, level_vertex_id, game_vertex_id, parent_id, straight);
 		if (count <= 0)
 			return						item;
 	}

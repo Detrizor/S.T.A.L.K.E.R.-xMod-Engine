@@ -318,8 +318,8 @@ public:
 									CSE_ALifeDynamicObject	(LPCSTR caSection);
 	virtual							~CSE_ALifeDynamicObject	();
 #ifdef XRGAME_EXPORTS
-	virtual void					on_spawn				();
-	virtual void					on_before_register		();
+	virtual void					on_spawn				() {}
+	virtual void					on_before_register		() {}
 	virtual void					on_register				();
 	virtual void					on_unregister			();
 	virtual	bool					synchronize_location	();

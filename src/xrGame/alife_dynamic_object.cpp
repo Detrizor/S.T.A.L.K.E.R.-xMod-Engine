@@ -17,37 +17,6 @@
 #include "game_graph.h"
 #include "xrServer.h"
 
-void CSE_ALifeDynamicObject::on_spawn()
-{
-	if (pSettings->line_exist(s_name, "supplies"))
-	{
-		LPCSTR supplies					= pSettings->r_string(s_name, "supplies");
-		if (supplies)
-		{
-			if (u16 count = READ_IF_EXISTS(pSettings, r_u16, s_name, "supplies_count", 0))
-				alife().spawn_items		(supplies, o_Position, m_tNodeID, m_tGraphID, ID, count);
-			else
-			{
-				string128				sect;
-				for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
-				{
-					_GetItem			(supplies, i, sect);
-					auto abstract		= alife().create_item(sect);
-
-					if (READ_IF_EXISTS(pSettings, rbool, sect, "addon", false))
-					{
-						auto se_item	= smart_cast<CSE_ALifeItem*>(abstract);
-						auto addon		= se_item->getModule<CSE_ALifeModuleAddon>(true);
-						addon->setSlotIdx(-1);
-					}
-
-					alife().register_item(abstract, o_Position, m_tNodeID, m_tGraphID, ID);
-				}
-			}
-		}
-	}
-}
-
 void CSE_ALifeDynamicObject::on_register			()
 {
 	CSE_ALifeObject		*object = this;
@@ -58,11 +27,6 @@ void CSE_ALifeDynamicObject::on_register			()
 
 	if (!alife().graph().level().object(object->ID,true))
 		clear_client_data();
-}
-
-void CSE_ALifeDynamicObject::on_before_register		()
-{
-
 }
 
 #include "level.h"
