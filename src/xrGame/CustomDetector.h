@@ -138,10 +138,9 @@ public:
 
 	virtual void	OnStateSwitch		(u32 S, u32 oldState);
 	virtual	void	UpdateXForm			();
-
-	void			ToggleDetector		(bool bFastMode);
-	void			HideDetector		(bool bFastMode);
-	void			ShowDetector		(bool bFastMode);
+	
+			void	OnActiveItem		() override;
+			void	OnHiddenItem		() override;
 	virtual bool	CheckCompatibility	(CHudItem* itm);
 
 	virtual u32		ef_detector_type	() const	{return 1;};
@@ -162,6 +161,11 @@ protected:
 
 	bool			m_bWorking			= false;
 	CAfList			m_artefacts			= {};
+
+private:
+	bool toggle(bool status, bool bFastMode);
+	void hide(bool bFastMode);
+	void show(bool bFastMode);
 };
 
 class CZoneList : public CDetectList<CCustomZone>

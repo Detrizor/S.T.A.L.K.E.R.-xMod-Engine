@@ -68,24 +68,34 @@ bool CCustomDetector::CheckCompatibility(CHudItem* itm)
 	return (inherited::CheckCompatibility(itm)) ? CheckCompatibilityInt(itm, nullptr) : false;
 }
 
-void CCustomDetector::HideDetector(bool bFastMode)
+void CCustomDetector::OnActiveItem()
 {
-	if (GetState() == eIdle || GetState() == eShowing)
-		ToggleDetector(bFastMode);
+	show(!!g_player_hud->attached_item(0));
 }
 
-void CCustomDetector::ShowDetector(bool bFastMode)
+void CCustomDetector::OnHiddenItem()
 {
-	if (GetState() == eHidden || GetState() == eHiding)
-		ToggleDetector(bFastMode);
+	hide(!!g_player_hud->attached_item(0));
 }
 
-void CCustomDetector::ToggleDetector(bool bFastMode)
+void CCustomDetector::show(bool bFastMode)
+{
+	if (toggle(true, bFastMode))
+		inherited::OnActiveItem();
+}
+
+void CCustomDetector::hide(bool bFastMode)
+{
+	if (toggle(false, bFastMode))
+		inherited::OnHiddenItem();
+}
+
+bool CCustomDetector::toggle(bool status, bool bFastMode)
 {
 	m_bNeedActivation					= false;
 	m_bFastAnimMode						= bFastMode;
 
-	if (GetState() == eHidden || GetState() == eHiding)
+	if (status)
 	{
 		PIItem iitem					= m_pInventory->ActiveItem();
 		CHudItem* itm					= (iitem)?iitem->cast_hud_item():NULL;
@@ -99,11 +109,11 @@ void CCustomDetector::ToggleDetector(bool bFastMode)
 				m_bNeedActivation		= true;
 			}
 			else
-				SwitchState				(eShowing);
+				return					true;
 		}
 	}
-	else if (GetState() == eIdle || GetState() == eShowing)
-		SwitchState						(eHiding);
+	else
+		return							true;
 }
 
 void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
@@ -126,9 +136,6 @@ void CCustomDetector::OnStateSwitch(u32 S, u32 oldState)
 			SetPending					(TRUE);
 			TurnDetectorInternal		(false);
 		}
-		break;
-	case eHidden:
-		g_player_hud->detach_item		(this);
 		break;
 	case eIdle:
 		TurnDetectorInternal			(true);
@@ -208,7 +215,7 @@ void CCustomDetector::UpdateVisibility()
 		bool bClimb			= ( (Actor()->MovingState()&mcClimb) != 0 );
 		if(bClimb)
 		{
-			HideDetector		(true);
+			hide				(true);
 			m_bNeedActivation	= true;
 		}else
 		{
@@ -218,7 +225,7 @@ void CCustomDetector::UpdateVisibility()
 				u32 state			= wpn->GetState();
 				if(wpn->IsZoomed() || state==CWeapon::eReload || state==CWeapon::eSwitch)
 				{
-					HideDetector		(true);
+					hide				(true);
 					m_bNeedActivation	= true;
 				}
 			}
@@ -234,7 +241,7 @@ void CCustomDetector::UpdateVisibility()
 			bool bChecked			= !huditem || CheckCompatibilityInt(huditem, 0);
 			
 			if(	bChecked )
-				ShowDetector		(true);
+				show				(true);
 		}
 	}
 }
@@ -253,15 +260,8 @@ void CCustomDetector::UpdateCL()
 void CCustomDetector::OnH_B_Independent(bool just_before_destroy) 
 {
 	inherited::OnH_B_Independent(just_before_destroy);
-	
 	m_artefacts.clear			();
-
-	if (GetState() != eHidden)
-	{
-		// Detaching hud item and animation stop in OnH_A_Independent
-		TurnDetectorInternal(false);
-		SwitchState(eHidden);
-	}
+	TurnDetectorInternal		(false);
 }
 
 bool CAfList::feel_touch_contact	(CObject* O)

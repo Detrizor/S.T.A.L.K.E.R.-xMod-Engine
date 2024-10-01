@@ -1087,8 +1087,8 @@ void CScriptGameObject::HideWeapon()
 			hi->hideItem				();
 
 	if (auto left_item = inventory_owner->inventory().LeftItem())
-		if (auto det = left_item->O.scast<CCustomDetector*>())
-			det->HideDetector			(true);
+		if (auto hi = left_item->O.scast<CHudItem*>())
+			hi->hideItem				();
 }
 
 void  CScriptGameObject::RestoreWeapon()
@@ -1105,8 +1105,8 @@ void  CScriptGameObject::RestoreWeapon()
 			hi->restoreItem				();
 
 	if (auto left_item = inventory_owner->inventory().LeftItem())
-		if (auto det = left_item->O.scast<CCustomDetector*>())
-			det->ToggleDetector			(!!g_player_hud->attached_item(0));
+		if (auto hi = left_item->O.scast<CHudItem*>())
+			hi->restoreItem				();
 }
 
 bool CScriptGameObject::Weapon_IsScopeAttached()

@@ -26,7 +26,6 @@
 #include "clsid_game.h"
 #include "static_cast_checked.hpp"
 #include "player_hud.h"
-#include "CustomDetector.h"
 #include "item_container.h"
 #include "ActorEffector.h"
 
@@ -180,8 +179,10 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	switch(pIItem->m_ItemCurrPlace.type)
 	{
 	case eItemPlaceSlot:
-		if (slot_id == LEFT_HAND_SLOT || slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
-			ActivateItem						(pIItem);
+		if (slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
+			m_iNextActiveItemID					= pIItem->object_id();
+		else if (slot_id == LEFT_HAND_SLOT)
+			m_iNextLeftItemID					= pIItem->object_id();
 		else if (!Slot(slot_id, pIItem))
 			pIItem->m_ItemCurrPlace.type		= eItemPlaceUndefined;
 		break;
@@ -196,10 +197,8 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	}
 
 	if (pIItem->CurrPlace() == eItemPlaceUndefined)
-	{
 		if (pIItem->RuckDefault() || !m_pOwner->is_alive() || !Slot(pIItem->BaseSlot(), pIItem))
 			Ruck						(pIItem, strict_placement);
-	}
 	
 	m_pOwner->OnItemTake				(pIItem);
 	pIItem->OnTaken						();
@@ -256,6 +255,8 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 			else
 				m_iNextActiveSlot				= NO_ACTIVE_SLOT;
 		}
+		else if (pIItem == LeftItem())
+			m_iNextLeftItemID					= u16_max;
 
 		m_slots[pIItem->CurrSlot()].m_pIItem	= nullptr;
 		pIItem->object().processing_deactivate	();
@@ -321,10 +322,8 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem)
 
 	if (m_bActors)
 	{
-		if (slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
+		if (slot_id == BOTH_HANDS_SLOT || slot_id == RIGHT_HAND_SLOT || slot_id == LEFT_HAND_SLOT)
 			pIItem->ActivateItem(pIItem->CurrSlot());
-		else if (slot_id == LEFT_HAND_SLOT)
-			smart_cast<CCustomDetector*>(pIItem)->ToggleDetector(!!g_player_hud->attached_item(0));
 		else
 			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
 	}
@@ -619,12 +618,26 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			else
 			{
 				m_iReturnPlace			= 0;
+				auto section			= item->Section(true);
 				for (int i = 0; i < m_pockets_count; ++i)
 				{
-					if (CanPutInPocket(active_item, i))
+					if (section == ACTOR_DEFS::g_quick_use_slots[i] && CanPutInPocket(item, i))
 					{
 						m_iReturnPlace	= eItemPlacePocket;
 						m_iReturnSlot	= i;
+						break;
+					}
+				}
+				if (!m_iReturnPlace)
+				{
+					for (int i = 0; i < m_pockets_count; ++i)
+					{
+						if (CanPutInPocket(active_item, i))
+						{
+							m_iReturnPlace = eItemPlacePocket;
+							m_iReturnSlot = i;
+							break;
+						}
 					}
 				}
 			}
@@ -662,18 +675,18 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 	
 	if (auto left_item = LeftItem())
 	{
-		auto det						= left_item->O.scast<CCustomDetector*>();
+		auto hi							= left_item->O.scast<CHudItem*>();
 		if (item == left_item)
 		{
-			if (det->IsHiding())
-				det->ShowDetector		(!!g_player_hud->attached_item(0));
-			else if (!det->IsHidden())
-				det->HideDetector		(!!g_player_hud->attached_item(0));
+			if (hi->IsHiding())
+				hi->activateItem		();
+			else if (!hi->IsHidden())
+				hi->deactivateItem		();
 			can_set						= false;
 		}
 		else if (hand != RIGHT_HAND_SLOT)
 		{
-			det->HideDetector			(!!g_player_hud->attached_item(0));
+			hi->deactivateItem			();
 			m_iNextLeftItemID			= u16_max;
 			can_set						= false;
 		}
@@ -739,12 +752,10 @@ void CInventory::update_actors()
 
 	if (left_item && (left_swap || (next_active_item && next_active_item->HandSlot() == BOTH_HANDS_SLOT)))
 	{
-		CCustomDetector* det			= smart_cast<CCustomDetector*>(left_item);
-		if (det->IsHidden())
+		auto hi							= left_item->O.scast<CHudItem*>();
+		if (hi->IsHidden())
 		{
-			if (m_iReturnPlace == eItemPlacePocket && Pocket(left_item, m_iReturnSlot));
-			else if (m_iReturnSlot == eItemPlaceSlot && Slot(m_iReturnSlot, left_item));
-			else
+			if (m_iReturnSlot != eItemPlaceSlot || !Slot(m_iReturnSlot, left_item))
 				Ruck					(left_item);
 			m_iReturnPlace				= 0;
 			m_iReturnSlot				= 0;
@@ -757,13 +768,8 @@ void CInventory::update_actors()
 	{
 		if (active_swap && next_active_item)
 			Slot						(next_active_item->HandSlot(), next_active_item);
-
 		if (left_swap && next_left_item)
 			Slot						(LEFT_HAND_SLOT, next_left_item);
-					
-		CalcTotalWeight					();
-		CalcTotalVolume					();
-		InvalidateState					();
 	}
 }
 
