@@ -253,10 +253,10 @@ void CWeapon::Load(LPCSTR section)
 	eHandDependence = EHandDependence(pSettings->r_s32(section, "hand_dependence"));
 	m_bIsSingleHanded = true;
 	if (pSettings->line_exist(section, "single_handed"))
-		m_bIsSingleHanded = !!pSettings->r_bool(section, "single_handed");
+		m_bIsSingleHanded = !!pSettings->r_BOOL(section, "single_handed");
 	//
 
-	m_zoom_params.m_bZoomEnabled = !!pSettings->r_bool(section, "zoom_enabled");
+	m_zoom_params.m_bZoomEnabled = !!pSettings->r_BOOL(section, "zoom_enabled");
 
 	if (pSettings->line_exist(section, "weapon_remove_time"))
 		m_dwWeaponRemoveTime = pSettings->r_u32(section, "weapon_remove_time");
@@ -264,7 +264,7 @@ void CWeapon::Load(LPCSTR section)
 		m_dwWeaponRemoveTime = WEAPON_REMOVE_TIME;
 
 	if (pSettings->line_exist(section, "auto_spawn_ammo"))
-		m_bAutoSpawnAmmo = pSettings->r_bool(section, "auto_spawn_ammo");
+		m_bAutoSpawnAmmo = pSettings->r_BOOL(section, "auto_spawn_ammo");
 	else
 		m_bAutoSpawnAmmo = TRUE;
 
@@ -276,14 +276,14 @@ void CWeapon::Load(LPCSTR section)
 	}
 
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set( FUsingCondition, READ_IF_EXISTS( pSettings, r_bool, section, "use_condition", TRUE ));
+	m_flags.set( FUsingCondition, READ_IF_EXISTS( pSettings, r_BOOL, section, "use_condition", TRUE ));
 
 	// Rezy safemode blend anms
 	m_safemode_anm[0].load(hud_sect, "safemode_anm");
 	m_safemode_anm[1].load(hud_sect, "safemode_anm2");
 
-	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_bool, section, "has_alt_aim", TRUE);
-	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_bool, section, "armed_relaxed_switch", TRUE);
+	m_bHasAltAim = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "has_alt_aim", TRUE);
+	m_bArmedRelaxedSwitch = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "armed_relaxed_switch", TRUE);
 	
 	m_mechanic_recoil_pattern			= readRecoilPattern(section, "mechanic");
 	m_layout_recoil_pattern				= readRecoilPattern(section, "layout");

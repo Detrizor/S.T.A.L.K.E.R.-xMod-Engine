@@ -132,19 +132,19 @@ void CInventoryItem::Load(LPCSTR section)
 	sl									= pSettings->r_string(section, "hand_slot");
 	m_ItemCurrPlace.hand_slot_id		= pSettings->r_u16("slot_ids", sl);
 
-	m_can_trade							= READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
-	m_flags.set							(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
+	m_can_trade							= READ_IF_EXISTS(pSettings, r_BOOL, section, "can_trade", TRUE);
+	m_flags.set							(FCanTake, READ_IF_EXISTS(pSettings, r_BOOL, section, "can_take", TRUE));
 	m_flags.set							(FCanTrade, m_can_trade);
-	m_flags.set							(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
-	m_flags.set							(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
+	m_flags.set							(FIsQuestItem, READ_IF_EXISTS(pSettings, r_BOOL, section, "quest_item", FALSE));
+	m_flags.set							(FCanStack, READ_IF_EXISTS(pSettings, r_BOOL, section, "can_stack", TRUE));
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set							(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
-	m_flags.set							(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
+	m_flags.set							(FUsingCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "use_condition", FALSE));
+	m_flags.set							(FShowFullCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "show_full_condition", FALSE));
 
-	m_highlight_equipped				= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
+	m_highlight_equipped				= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "highlight_equipped", FALSE);
 	m_icon_name							= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
 
-	m_flags.set							(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
+	m_flags.set							(FAllowSprint, pSettings->r_BOOL(section, "sprint_allowed"));
 	m_fControlInertionFactor			= pSettings->r_float(section, "control_inertion_factor");
 
 	m_category							= pSettings->r_string(section, "category");
@@ -160,26 +160,26 @@ void CInventoryItem::Load(LPCSTR section)
 	R_ASSERT							(m_volume >= 0.f);
 	m_cost								= readBaseCost(section);
 	
-	m_inv_icon_types					= !!READ_IF_EXISTS(pSettings, r_bool, section, "inv_icon_types", FALSE);
+	m_inv_icon_types					= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "inv_icon_types", FALSE);
 	m_inv_icon_type_default				= READ_IF_EXISTS(pSettings, r_u8, section, "inv_icon_type_default", 0);
 	set_inv_icon						();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon_owner", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "addon_owner", FALSE))
 		O.addModule<MAddonOwner>		();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "addon", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "addon", FALSE))
 		O.addModule<MAddon>				(section);
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "amountable", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "amountable", FALSE))
 		O.addModule<MAmountable>		();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "usable", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "usable", FALSE))
 		O.addModule<MUsable>			();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "foldable", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "foldable", FALSE))
 		O.addModule<MFoldable>			();
 
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE))
 		O.addModule<MContainer>			();
 }
 

@@ -519,7 +519,7 @@ void CAI_Stalker::Load				(LPCSTR section)
 	// skeleton physics
 	m_pPhysics_support->in_Load		(section);
 
-	m_can_select_items				= !!pSettings->r_bool(section,"can_select_items");
+	m_can_select_items				= !!pSettings->r_BOOL(section,"can_select_items");
 }
 
 BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)

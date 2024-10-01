@@ -87,10 +87,10 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_hud.construct						(this);
 
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
-	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_reload", FALSE);
-	m_lock_state_shooting				= !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_state_shooting", FALSE);
-	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_bool, section, "mag_attach_bolt_release", FALSE);
-	m_bolt_catch						= !!READ_IF_EXISTS(pSettings, r_bool, section, "bolt_catch", FALSE);
+	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "lock_state_reload", FALSE);
+	m_lock_state_shooting				= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "lock_state_shooting", FALSE);
+	m_mag_attach_bolt_release			= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "mag_attach_bolt_release", FALSE);
+	m_bolt_catch						= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "bolt_catch", FALSE);
 
 	LPCSTR integrated_addons			= READ_IF_EXISTS(pSettings, r_string, section, "integrated_addons", 0);
 	for (int i = 0, cnt = _GetItemCount(integrated_addons); i < cnt; i++)

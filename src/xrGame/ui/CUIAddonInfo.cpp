@@ -25,7 +25,7 @@ void CUIAddonInfo::setInfo(CUICellItem* itm)
 {
 	float h								= 0.f;
 
-	bool addon							= READ_IF_EXISTS(pSettings, r_bool, itm->m_section, "addon", FALSE);
+	bool addon							= READ_IF_EXISTS(pSettings, r_BOOL, itm->m_section, "addon", FALSE);
 	m_compatible_slots_cap.SetVisible	(!!addon);
 	m_compatible_slots_value.SetVisible	(!!addon);
 	if (addon)

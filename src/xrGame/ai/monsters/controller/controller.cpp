@@ -241,7 +241,7 @@ void CController::Load(LPCSTR section)
 	particles_fire		= pSettings->r_string(section,"Control_Hit");
 	
 	m_tube_damage		= pSettings->r_float(section,"tube_damage");
-	m_tube_at_once		= !!pSettings->r_bool(section,"tube_at_once");
+	m_tube_at_once		= !!pSettings->r_BOOL(section,"tube_at_once");
 
 	LPCSTR tube_see_duration_line           = "tube_condition_see_duration";
 	LPCSTR tube_condition_min_delay_line    = "tube_condition_min_delay";

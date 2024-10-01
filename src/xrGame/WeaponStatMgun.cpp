@@ -74,14 +74,14 @@ void CWeaponStatMgun::Load(LPCSTR section)
 	camRelaxSpeed		= pSettings->r_float		(section,"cam_relax_speed"	); 
 	camRelaxSpeed		= _abs( deg2rad				(camRelaxSpeed) );
 
-	m_overheat_enabled = pSettings->line_exist(section, "overheat_enabled") ? !!pSettings->r_bool(section, "overheat_enabled") : false;
+	m_overheat_enabled = pSettings->line_exist(section, "overheat_enabled") ? !!pSettings->r_BOOL(section, "overheat_enabled") : false;
 	m_overheat_time_quant = READ_IF_EXISTS(pSettings, r_float, section, "overheat_time_quant", 0.025f);
 	m_overheat_decr_quant = READ_IF_EXISTS(pSettings, r_float, section, "overheat_decr_quant", 0.002f);
 	m_overheat_threshold = READ_IF_EXISTS(pSettings, r_float, section, "overheat_threshold", 110.f);
 	m_overheat_particles = READ_IF_EXISTS(pSettings, r_string, section, "overheat_particles", "damage_fx\\burn_creatures00");
 	
-	m_bEnterLocked = !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_enter", false);
-	m_bExitLocked = !!READ_IF_EXISTS(pSettings, r_bool, section, "lock_exit", false);
+	m_bEnterLocked = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "lock_enter", false);
+	m_bExitLocked = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "lock_exit", false);
 
 	VERIFY( !fis_zero(camMaxAngle) );
 	VERIFY( !fis_zero(camRelaxSpeed) );

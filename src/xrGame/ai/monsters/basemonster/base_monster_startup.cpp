@@ -92,7 +92,7 @@ void CBaseMonster::Load(LPCSTR section)
 //	} else m_spawn_probability			= 0.f;
 
 	m_melee_rotation_factor			= READ_IF_EXISTS(pSettings,r_float,section,"Melee_Rotation_Factor", 1.5f);
-	berserk_always					= !!READ_IF_EXISTS(pSettings,r_bool,section,"berserk_always", false);
+	berserk_always					= !!READ_IF_EXISTS(pSettings,r_BOOL,section,"berserk_always", false);
 
 	m_feel_enemy_who_just_hit_max_distance	=	READ_IF_EXISTS(pSettings, r_float, section, 
 												"feel_enemy_who_just_hit_max_distance", 
@@ -151,7 +151,7 @@ void CBaseMonster::PostLoad (LPCSTR section)
 	//------------------------------------
 	attack_on_move_params_t& aom			=	m_attack_on_move_params;
 
-	aom.enabled								=	(READ_IF_EXISTS(pSettings, r_bool, section, 
+	aom.enabled								=	(READ_IF_EXISTS(pSettings, r_BOOL, section, 
 												"aom_enabled", FALSE)) != 0;
 	aom.far_radius							=	READ_IF_EXISTS(pSettings, r_float, section, 
 												"aom_far_radius", detail::base_monster::aom_far_radius);

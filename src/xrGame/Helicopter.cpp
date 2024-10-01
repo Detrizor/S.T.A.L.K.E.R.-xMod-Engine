@@ -132,14 +132,14 @@ void CHelicopter::Load(LPCSTR section)
 	m_sRocketSection					= pSettings->r_string	(section,"rocket_class");
 
 
-	m_use_rocket_on_attack				= !!pSettings->r_bool(section,"use_rocket");
-	m_use_mgun_on_attack				= !!pSettings->r_bool(section,"use_mgun");
+	m_use_rocket_on_attack				= !!pSettings->r_BOOL(section,"use_rocket");
+	m_use_mgun_on_attack				= !!pSettings->r_BOOL(section,"use_mgun");
 	m_min_rocket_dist					= pSettings->r_float(section,"min_rocket_attack_dist");
 	m_max_rocket_dist					= pSettings->r_float(section,"max_rocket_attack_dist");
 	m_min_mgun_dist						= pSettings->r_float(section,"min_mgun_attack_dist");
 	m_max_mgun_dist						= pSettings->r_float(section,"max_mgun_attack_dist");
 	m_time_between_rocket_attack		= pSettings->r_u32(section,"time_between_rocket_attack");
-	m_syncronize_rocket					= !!pSettings->r_bool(section,"syncronize_rocket");
+	m_syncronize_rocket					= !!pSettings->r_BOOL(section,"syncronize_rocket");
 	m_barrel_dir_tolerance				= pSettings->r_float(section,"barrel_dir_tolerance");
 
 //lighting & sounds

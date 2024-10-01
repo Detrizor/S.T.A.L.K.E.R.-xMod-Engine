@@ -195,8 +195,8 @@ void CAI_Rat::Load(LPCSTR section)
 	SetMaxHealth					(pSettings->r_float (section,"MaxHealthValue"));
 	m_fSoundThreshold				= pSettings->r_float (section,"SoundThreshold");
 
-	m_bEatMemberCorpses				= pSettings->r_bool  (section,"EatMemberCorpses");
-	m_bCannibalism					= pSettings->r_bool  (section,"Cannibalism");
+	m_bEatMemberCorpses				= pSettings->r_BOOL  (section,"EatMemberCorpses");
+	m_bCannibalism					= pSettings->r_BOOL  (section,"Cannibalism");
 	m_dwEatCorpseInterval			= pSettings->r_s32   (section,"EatCorpseInterval");
 
 	m_fNullASpeed					= pSettings->r_float (section,"AngularStandSpeed")/180.f*PI;//PI_MUL_2

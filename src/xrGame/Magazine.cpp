@@ -9,7 +9,7 @@
 MMagazine::MMagazine(CGameObject* obj, shared_str CR$ section) :
 	CModule(obj),
 	m_capacity(pSettings->r_u32(section, "capacity")),
-	m_bullets_visible(!!pSettings->r_bool(section, "bullets_visible")),
+	m_bullets_visible(!!pSettings->r_BOOL(section, "bullets_visible")),
 	m_attach_anm(pSettings->r_string(section, "attach_anm")),
 	m_detach_anm(pSettings->r_string(section, "detach_anm"))
 {

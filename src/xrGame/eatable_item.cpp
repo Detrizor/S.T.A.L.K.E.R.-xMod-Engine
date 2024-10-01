@@ -29,7 +29,7 @@ void CEatableItem::OnH_B_Independent(bool just_before_destroy)
 bool CEatableItem::UseBy(CEntityAlive* entity_alive)
 {
 	MAmountable* ai				= getModule<MAmountable>();
-	float deprate				= (ai && READ_IF_EXISTS(pSettings, r_bool, m_section_id, "use1_continuous", FALSE)) ? ai->GetDepletionRate() : 1.f;
+	float deprate				= (ai && READ_IF_EXISTS(pSettings, r_BOOL, m_section_id, "use1_continuous", FALSE)) ? ai->GetDepletionRate() : 1.f;
 
 	SMedicineInfluenceValues	V;
 	V.Load						(cNameSect(), deprate);

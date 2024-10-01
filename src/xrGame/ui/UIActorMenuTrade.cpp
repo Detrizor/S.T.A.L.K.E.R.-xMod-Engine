@@ -234,7 +234,7 @@ float CUIActorMenu::CalcItemsWeight(CUIDragDropListEx* pList)
 float CUIActorMenu::CalcItemVolume(LPCSTR section)
 {
 	float res					= pSettings->r_float(section, "inv_volume") + READ_IF_EXISTS(pSettings, r_float, section, "net_volume", 0.f);
-	if (READ_IF_EXISTS(pSettings, r_bool, section, "content_volume_scale", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "content_volume_scale", FALSE))
 		if (float supplies_count = READ_IF_EXISTS(pSettings, r_float, section, "supplies_count", 0.f))
 			res					+= supplies_count * pSettings->r_float(pSettings->r_string(section, "supplies"), "inv_volume");
 	return						res;

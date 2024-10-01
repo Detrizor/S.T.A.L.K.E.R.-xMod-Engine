@@ -36,7 +36,7 @@ struct XRCORE_API IIniFileStream
 	virtual void __stdcall r_s16(s16&) = 0;
 	virtual void __stdcall r_s32(s32&) = 0;
 	virtual void __stdcall r_s64(s64&) = 0;
-	virtual void __stdcall r_bool(bool&) = 0;
+	virtual void __stdcall r_BOOL(bool&) = 0;
 
 	virtual void __stdcall r_string(LPSTR dest, u32 dest_size) = 0;
 	// virtual void __stdcall r_tell () = 0;
@@ -241,7 +241,7 @@ public:
 	void r_s16(s16& A);
 	void r_u8(u8& A);
 	void r_s8(s8& A);
-	void r_bool(bool& A);
+	void r_BOOL(bool& A);
 
 	// IReader compatibility
 	Fvector r_vec3();
@@ -257,7 +257,7 @@ public:
 	s16 r_s16();
 	u8 r_u8();
 	s8 r_s8();
-	bool r_bool();
+	bool r_BOOL();
 
 	void r_float_q16(float& A, float min, float max);
 	void r_float_q8(float& A, float min, float max);

@@ -297,7 +297,7 @@ void  CCustomRocket::reload		(LPCSTR section)
 	inherited::reload	(section);
 	m_eState = eInactive;
 
-	m_bEnginePresent = !!pSettings->r_bool(section, "engine_present");
+	m_bEnginePresent = !!pSettings->r_BOOL(section, "engine_present");
 	if(m_bEnginePresent)
 	{
 		m_dwEngineWorkTime = pSettings->r_u32(section, "engine_work_time");
@@ -306,7 +306,7 @@ void  CCustomRocket::reload		(LPCSTR section)
 	}
 
 
-	m_bLightsEnabled = !!pSettings->r_bool(section, "lights_enabled");
+	m_bLightsEnabled = !!pSettings->r_BOOL(section, "lights_enabled");
 	if(m_bLightsEnabled)
 	{
 		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", 

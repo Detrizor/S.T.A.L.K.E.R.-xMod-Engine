@@ -25,7 +25,7 @@ void CExplosiveItem::Load(LPCSTR section)
 	CExplosive::Load						(section);
 
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set( FUsingCondition, READ_IF_EXISTS( pSettings, r_bool, section, "use_condition", TRUE ));
+	m_flags.set( FUsingCondition, READ_IF_EXISTS( pSettings, r_BOOL, section, "use_condition", TRUE ));
 
 	CDelayedActionFuse::Initialize			(pSettings->r_float(section,"time_to_explode"),pSettings->r_float(section,"condition_to_explode"));
 	VERIFY(pSettings->line_exist			(section,"set_timer_particles"));

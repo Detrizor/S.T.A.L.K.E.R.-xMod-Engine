@@ -10,15 +10,15 @@
 
 void MAddon::addAddonModules(CGameObject& O, shared_str CR$ addon_sect)
 {
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "magazine", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, addon_sect, "magazine", FALSE))
 		O.addModule<MMagazine>			(addon_sect);
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "scope", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, addon_sect, "scope", FALSE))
 		O.addModule<MScope>				(addon_sect);
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "muzzle", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, addon_sect, "muzzle", FALSE))
 		O.addModule<MMuzzle>			(addon_sect);
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "silencer", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, addon_sect, "silencer", FALSE))
 		O.addModule<CSilencer>			(addon_sect);
-	if (READ_IF_EXISTS(pSettings, r_bool, addon_sect, "grenade_launcher", FALSE))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, addon_sect, "grenade_launcher", FALSE))
 		O.addModule<MGrenadeLauncher>	(addon_sect);
 }
 
@@ -26,8 +26,8 @@ MAddon::MAddon(CGameObject* obj, LPCSTR section) : CModule(obj), m_section(secti
 {
 	m_SlotType							= pSettings->r_string(m_section, "slot_type");
 	m_icon_origin						= pSettings->r_fvector2(m_section, "inv_icon_origin");
-	m_low_profile						= pSettings->r_bool(m_section, "low_profile");
-	m_front_positioning					= pSettings->r_bool(m_section, "front_positioning");
+	m_low_profile						= pSettings->r_BOOL(m_section, "low_profile");
+	m_front_positioning					= pSettings->r_BOOL(m_section, "front_positioning");
 	m_mount_length						= pSettings->r_float(m_section, "mount_length");
 	m_profile_length					= pSettings->r_fvector2(m_section, "profile_length");
 	m_attach_action						= pSettings->r_string(m_section, "attach_action");

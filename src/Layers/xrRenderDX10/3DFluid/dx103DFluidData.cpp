@@ -201,8 +201,8 @@ void dx103DFluidData::ParseProfile(const xr_string &Profile)
 		
 		Emitter.m_fDensity = ini.r_float(EmitterSectionName, "Density");
 
-		Emitter.m_bApplyDensity = ini.r_bool(EmitterSectionName, "ApplyDensity") ? true : false;
-		Emitter.m_bApplyImpulse = ini.r_bool(EmitterSectionName, "ApplyImpulse") ? true : false;
+		Emitter.m_bApplyDensity = ini.r_BOOL(EmitterSectionName, "ApplyDensity") ? true : false;
+		Emitter.m_bApplyImpulse = ini.r_BOOL(EmitterSectionName, "ApplyImpulse") ? true : false;
 
 		switch (Emitter.m_eType)
 		{

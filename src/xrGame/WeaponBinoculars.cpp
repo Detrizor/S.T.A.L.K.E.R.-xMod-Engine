@@ -27,7 +27,7 @@ void CWeaponBinoculars::Load	(LPCSTR section)
 	// Sounds
 	m_sounds.LoadSound(section, "snd_zoomin",  "sndZoomIn",		false, SOUND_TYPE_ITEM_USING);
 	m_sounds.LoadSound(section, "snd_zoomout", "sndZoomOut",	false, SOUND_TYPE_ITEM_USING);
-	m_bVision = !!pSettings->r_bool(section,"vision_present");
+	m_bVision = !!pSettings->r_BOOL(section,"vision_present");
 }
 
 

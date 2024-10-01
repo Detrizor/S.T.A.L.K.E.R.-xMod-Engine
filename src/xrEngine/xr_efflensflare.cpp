@@ -70,16 +70,16 @@ return R;
 void CLensFlareDescriptor::load(CInifile* pIni, LPCSTR sect)
 {
     section = sect;
-    m_Flags.set(flSource, pIni->r_bool(sect, "sun"));
+    m_Flags.set(flSource, pIni->r_BOOL(sect, "sun"));
     if (m_Flags.is(flSource))
     {
         LPCSTR S = pIni->r_string(sect, "sun_shader");
         LPCSTR T = pIni->r_string(sect, "sun_texture");
         float r = pIni->r_float(sect, "sun_radius");
-        BOOL i = pIni->r_bool(sect, "sun_ignore_color");
+        BOOL i = pIni->r_BOOL(sect, "sun_ignore_color");
         SetSource(r, i, T, S);
     }
-    m_Flags.set(flFlare, pIni->r_bool(sect, "flares"));
+    m_Flags.set(flFlare, pIni->r_BOOL(sect, "flares"));
     if (m_Flags.is(flFlare))
     {
         LPCSTR S = pIni->r_string(sect, "flare_shader");

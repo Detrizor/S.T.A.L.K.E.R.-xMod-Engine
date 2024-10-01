@@ -57,7 +57,7 @@ void CIKFoot::Create		(  IKinematics	*K, LPCSTR section, u16 bones[4] )
 	//load settings	
 	if( section )
 	{
-		if( !!K->LL_UserData()->r_bool( section, "align_toe" ))
+		if( !!K->LL_UserData()->r_BOOL( section, "align_toe" ))
 			m_ref_bone = 3;
 		m_foot_normal.bone		= m_ref_bone;
 		m_foot_direction.bone	= m_ref_bone;

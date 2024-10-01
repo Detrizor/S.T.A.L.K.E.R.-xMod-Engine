@@ -139,7 +139,7 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 	m_bHideInExplosion = TRUE;
 	if (ini->line_exist(section, "hide_in_explosion"))
 	{
-		m_bHideInExplosion = ini->r_bool(section, "hide_in_explosion");
+		m_bHideInExplosion = ini->r_BOOL(section, "hide_in_explosion");
 		m_fExplodeHideDurationMax = 0;
 		if (ini->line_exist(section, "explode_hide_duration"))
 		{
@@ -149,7 +149,7 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 
 	m_bDynamicParticles	 = FALSE;
 	if (ini->line_exist(section, "dynamic_explosion_particles"))
-		m_bDynamicParticles = ini->r_bool(section, "dynamic_explosion_particles");
+		m_bDynamicParticles = ini->r_BOOL(section, "dynamic_explosion_particles");
 }
 
 void CExplosive::net_Destroy	()

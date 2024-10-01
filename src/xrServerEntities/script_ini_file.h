@@ -22,7 +22,7 @@ public:
 			bool		line_exist			(LPCSTR S, LPCSTR L);
 			bool		section_exist		(LPCSTR S);
 			int			r_clsid				(LPCSTR S, LPCSTR L);
-			bool		r_bool				(LPCSTR S, LPCSTR L);
+			bool		r_BOOL				(LPCSTR S, LPCSTR L);
 			int			r_token				(LPCSTR S, LPCSTR L, const CScriptTokenList &token_list);
 			LPCSTR		r_string_wb			(LPCSTR S, LPCSTR L);
 			LPCSTR		update				(LPCSTR file_name);

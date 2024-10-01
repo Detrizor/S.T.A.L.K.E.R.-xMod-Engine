@@ -153,12 +153,12 @@ void NET_Packet::r_s8(s8& A)
 		inistream->r_s8(A);
 } // byte (1b)
 
-void NET_Packet::r_bool(bool& A)
+void NET_Packet::r_BOOL(bool& A)
 {
 	if (!inistream)
 		r(&A, sizeof(bool));
 	else
-		inistream->r_bool(A);
+		inistream->r_BOOL(A);
 } //
 
 // IReader compatibility
@@ -253,10 +253,10 @@ s8 NET_Packet::r_s8()
 	return (A);
 }
 
-bool NET_Packet::r_bool()
+bool NET_Packet::r_BOOL()
 {
 	bool A;
-	r_bool(A);
+	r_BOOL(A);
 	return (A);
 }
 

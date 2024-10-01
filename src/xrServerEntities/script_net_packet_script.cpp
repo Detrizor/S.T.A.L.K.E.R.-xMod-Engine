@@ -28,7 +28,7 @@ void w_bool(NET_Packet *self, bool value)
 	self->w_u8		(value ? 1 : 0);
 }
 
-bool r_bool(NET_Packet *self)
+bool r_BOOL(NET_Packet *self)
 {
 	return			(!!self->r_u8());
 }
@@ -105,7 +105,7 @@ void CScriptNetPacket::script_register(lua_State *L)
 			.def("r_s16",			(void (NET_Packet::*)(s16&	))(&NET_Packet::r_s16		))
 			.def("r_u8",			(void (NET_Packet::*)(u8&)	)(&NET_Packet::r_u8			))
 			.def("r_s8",			(void (NET_Packet::*)(s8&)	)(&NET_Packet::r_s8			))
-			.def("r_bool",			&r_bool						)
+			.def("r_bool",			&r_BOOL						)
 			.def("r_float",			(float	(NET_Packet::*)()	)(&NET_Packet::r_float		))
 			.def("r_u64",			(u64	(NET_Packet::*)()	)(&NET_Packet::r_u64		))
 			.def("r_s64",			(s64	(NET_Packet::*)()	)(&NET_Packet::r_s64		))

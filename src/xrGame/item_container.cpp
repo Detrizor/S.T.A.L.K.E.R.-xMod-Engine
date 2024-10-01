@@ -11,8 +11,8 @@ MContainer::MContainer(CGameObject* obj) : CModule(obj)
 
 	if (I)
 	{
-		m_content_volume_scale			= !!pSettings->r_bool(O.cNameSect(), "content_volume_scale");
-		m_ArtefactIsolation				= !!pSettings->r_bool(O.cNameSect(), "artefact_isolation");
+		m_content_volume_scale			= !!pSettings->r_BOOL(O.cNameSect(), "content_volume_scale");
+		m_ArtefactIsolation				= !!pSettings->r_BOOL(O.cNameSect(), "artefact_isolation");
 		m_RadiationProtection			= pSettings->r_float(O.cNameSect(), "radiation_protection");
 	}
 	else

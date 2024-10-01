@@ -142,7 +142,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 
 			m_Reticle					= pSettings->r_string(section, "reticle");
 			m_reticle_texture_size		= pSettings->r_float(section, "reticle_texture_size");
-			m_is_FFP					= !!pSettings->r_bool(section, "first_focal_plane");
+			m_is_FFP					= !!pSettings->r_BOOL(section, "first_focal_plane");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
 

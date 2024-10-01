@@ -6,7 +6,7 @@
 MMuzzle::MMuzzle(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_muzzle_point(pSettings->r_fvector3(section, "muzzle_point")),
 m_recoil_pattern(CWeapon::readRecoilPattern(section.c_str(), "muzzle_type")),
-m_flash_hider(pSettings->r_bool(section, "flash_hider")),
+m_flash_hider(pSettings->r_BOOL(section, "flash_hider")),
 m_dispersion_k(pSettings->r_float(section, "dispersion_k"))
 {
 }

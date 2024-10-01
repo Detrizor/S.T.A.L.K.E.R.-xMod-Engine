@@ -83,7 +83,7 @@ void CTorch::Load(LPCSTR section)
 	light_trace_bone		= pSettings->r_string(section,"light_trace_bone");
 
 
-	m_bNightVisionEnabled = !!pSettings->r_bool(section,"night_vision");
+	m_bNightVisionEnabled = !!pSettings->r_BOOL(section,"night_vision");
 }
 
 void CTorch::SwitchNightVision()

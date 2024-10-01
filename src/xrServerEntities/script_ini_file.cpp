@@ -45,9 +45,9 @@ int	 CScriptIniFile::r_clsid(LPCSTR S, LPCSTR L)
     return		(object_factory().script_clsid(inherited::r_clsid(S, L)));
 }
 
-bool CScriptIniFile::r_bool(LPCSTR S, LPCSTR L)
+bool CScriptIniFile::r_BOOL(LPCSTR S, LPCSTR L)
 {
-    return		(!!inherited::r_bool(S, L));
+    return		(!!inherited::r_BOOL(S, L));
 }
 
 int	 CScriptIniFile::r_token(LPCSTR S, LPCSTR L, const CScriptTokenList &token_list)

@@ -69,7 +69,7 @@ CInventoryOwner::~CInventoryOwner()
 
 void CInventoryOwner::Load(LPCSTR section)
 {
-	m_need_osoznanie_mode = READ_IF_EXISTS(pSettings, r_bool, section, "need_osoznanie_mode", FALSE);
+	m_need_osoznanie_mode = READ_IF_EXISTS(pSettings, r_BOOL, section, "need_osoznanie_mode", FALSE);
 	m_inventory.construct(this);
 }
 
@@ -213,7 +213,7 @@ bool CInventoryOwner::CanPutInSlot(PIItem item, u32 slot)
 	{
 		shared_str			slot_ai;
 		slot_ai.printf		("slot_ai_%d", slot);
-		return				!READ_IF_EXISTS(pSettings, r_bool, "inventory", *slot_ai, FALSE);
+		return				!READ_IF_EXISTS(pSettings, r_BOOL, "inventory", *slot_ai, FALSE);
 	}
 	else if (slot == LEFT_HAND_SLOT || slot == RIGHT_HAND_SLOT || slot == BOTH_HANDS_SLOT)
 		return				false;

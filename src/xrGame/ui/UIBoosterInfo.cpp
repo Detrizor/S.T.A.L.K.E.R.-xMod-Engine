@@ -314,7 +314,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 
 	if (ItemCategory(section, "magazine"))
 	{
-		if (READ_IF_EXISTS(pSettings, r_bool, section, "can_be_discharged", TRUE))
+		if (READ_IF_EXISTS(pSettings, r_BOOL, section, "can_be_discharged", TRUE))
 		{
 			LPCSTR ammo_class				= pSettings->r_string(section, "ammo_class");
 			string128						buffer;
@@ -340,7 +340,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 
 	auto item							= PIItem(itm->m_pData);
 	auto cont							= (item) ? item->O.getModule<MContainer>() : nullptr;
-	if ((cont || READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE)) && !pSettings->r_string(section, "supplies"))
+	if ((cont || READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE)) && !pSettings->r_string(section, "supplies"))
 	{
 		float capacity					= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
 		m_capacity->SetValue			(capacity);
@@ -350,7 +350,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		h								+= m_capacity->GetWndSize().y;
 		AttachChild						(m_capacity.get());
 
-		if ((cont) ? cont->ArtefactIsolation(true) : pSettings->r_bool(section, "artefact_isolation"))
+		if ((cont) ? cont->ArtefactIsolation(true) : pSettings->r_BOOL(section, "artefact_isolation"))
 		{
 			pos.set						(m_artefact_isolation->GetWndPos());
 			pos.y						= h;

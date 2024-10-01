@@ -766,7 +766,7 @@ void CCar::ParseDefinitions()
 		m_exhaust_particles =ini->r_string("car_definition","exhaust_particles");
 	}
 			
-	b_auto_switch_transmission= !!ini->r_bool("car_definition","auto_transmission");
+	b_auto_switch_transmission= !!ini->r_BOOL("car_definition","auto_transmission");
 
 	InitParabola		();
 

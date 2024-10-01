@@ -11,7 +11,7 @@ void CWeaponAutomaticShotgun::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 
-	if (m_bTriStateReload = !!READ_IF_EXISTS(pSettings, r_bool, section, "tri_state_reload", FALSE))
+	if (m_bTriStateReload = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "tri_state_reload", FALSE))
 	{
 		LPCSTR hud_sect					= pSettings->r_string(cNameSect(), "hud");		//in case grip isn't loaded yet and we get hud_unusable instead of real hud from HudSection()
 		m_sounds.LoadSound				(hud_sect, "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);

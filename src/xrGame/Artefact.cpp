@@ -57,7 +57,7 @@ void CArtefact::Load(LPCSTR section)
 	if (pSettings->line_exist(section, "particles"))
 		m_sParticlesName							= pSettings->r_string(section, "particles");
 
-	m_bLightsEnabled								= !!pSettings->r_bool(section, "lights_enabled");
+	m_bLightsEnabled								= !!pSettings->r_BOOL(section, "lights_enabled");
 	if (m_bLightsEnabled)
 	{
 		sscanf										(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
@@ -81,7 +81,7 @@ void CArtefact::Load(LPCSTR section)
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
 {
-	if(pSettings->r_bool(cNameSect(),"can_be_controlled") )
+	if(pSettings->r_BOOL(cNameSect(),"can_be_controlled") )
 		m_detectorObj				= xr_new<SArtefactDetectorsSupport>(this);
 
 	BOOL result						= inherited::net_Spawn(DC);
@@ -241,7 +241,7 @@ void CArtefact::StartLights()
 
 	VERIFY						(m_pTrailLight == NULL);
 	m_pTrailLight				= ::Render->light_create();
-	bool const b_light_shadow	= !!pSettings->r_bool(cNameSect(), "idle_light_shadow");
+	bool const b_light_shadow	= !!pSettings->r_BOOL(cNameSect(), "idle_light_shadow");
 
 	m_pTrailLight->set_shadow	(b_light_shadow);
 

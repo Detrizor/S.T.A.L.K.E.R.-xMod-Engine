@@ -275,7 +275,7 @@ void CAI_Stalker::update_sell_info					()
 
 bool CAI_Stalker::can_sell							(CInventoryItem* item)
 {
-	if (READ_IF_EXISTS(pSettings, r_bool, cNameSect(), "is_trader", false))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, cNameSect(), "is_trader", false))
 		return				(tradable_item(item, ID()));
 
 	update_sell_info		();
@@ -424,7 +424,7 @@ void CAI_Stalker::on_after_take						(const CGameObject *object)
 	if (!g_Alive())
 		return;
 
-	if (!READ_IF_EXISTS(pSettings,r_bool,cNameSect(),"use_single_item_rule",true))
+	if (!READ_IF_EXISTS(pSettings,r_BOOL,cNameSect(),"use_single_item_rule",true))
 		return;
 
 	const CWeapon				*new_weapon = smart_cast<const CWeapon*>(object);

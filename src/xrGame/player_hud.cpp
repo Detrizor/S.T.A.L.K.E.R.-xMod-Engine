@@ -229,8 +229,8 @@ void hud_item_measures::load(LPCSTR hud_section, IKinematics* K)
 	m_strafe_offset[1][1] = READ_IF_EXISTS(pSettings, r_fvector3, hud_section, "strafe_aim_hud_offset_rot", vDefStrafeValue);
 
 	//--> ֿאנאלוענû סענויפא
-	bool bStrafeEnabled = READ_IF_EXISTS(pSettings, r_bool, hud_section, "strafe_enabled", false);
-	bool bStrafeEnabled_aim = READ_IF_EXISTS(pSettings, r_bool, hud_section, "strafe_aim_enabled", false);
+	bool bStrafeEnabled = READ_IF_EXISTS(pSettings, r_BOOL, hud_section, "strafe_enabled", false);
+	bool bStrafeEnabled_aim = READ_IF_EXISTS(pSettings, r_BOOL, hud_section, "strafe_aim_enabled", false);
 	float fFullStrafeTime = READ_IF_EXISTS(pSettings, r_float, hud_section, "strafe_transition_time", .5f);
 	float fFullStrafeTime_aim = READ_IF_EXISTS(pSettings, r_float, hud_section, "strafe_aim_transition_time", .5f);
 	float fStrafeCamLFactor = READ_IF_EXISTS(pSettings, r_float, hud_section, "strafe_cam_limit_factor", 0.5f);

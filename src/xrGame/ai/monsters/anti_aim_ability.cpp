@@ -178,7 +178,7 @@ void   anti_aim_ability::start_camera_effector ()
 
 	if ( pSettings->line_exist(effector_name, "cam_eff_hud_affect") )
 	{
-		cam_eff->SetHudAffect			( !!pSettings->r_bool(effector_name, "cam_eff_hud_affect") );
+		cam_eff->SetHudAffect			( !!pSettings->r_BOOL(effector_name, "cam_eff_hud_affect") );
 	}
 
 	LPCSTR fn = pSettings->r_string		(effector_name,"cam_eff_name");

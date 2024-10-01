@@ -40,7 +40,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 
 	param_s.kDisp						= pSettings->r_float(section, "k_disp");
 	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * 0.001f;
-	param_s.bullet_hollow_point			= !!pSettings->r_bool(section, "hollow_point");
+	param_s.bullet_hollow_point			= !!pSettings->r_BOOL(section, "hollow_point");
 	param_s.u8ColorID					= pSettings->r_u8(section, "tracer_color_ID");
 	float bullet_speed					= pSettings->r_float(section, "bullet_speed") * pSettings->r_float(section, "k_bullet_speed");
 	param_s.barrel_length				= pSettings->r_float(section, "reference_barrel_length");
@@ -59,10 +59,10 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.buckShot					= pSettings->r_s32(  section, "buck_shot");
 	param_s.impair						= pSettings->r_float(section, "impair");
 
-	m_flags.set							(cfTracer, pSettings->r_bool(section, "tracer"));
-	m_flags.set							(cfRicochet, pSettings->r_bool(section, "allow_ricochet"));
-	m_flags.set							(cfExplosive, pSettings->r_bool(section, "explosive"));
-	m_flags.set							(cfMagneticBeam, pSettings->r_bool(section, "magnetic_beam_shot"));
+	m_flags.set							(cfTracer, pSettings->r_BOOL(section, "tracer"));
+	m_flags.set							(cfRicochet, pSettings->r_BOOL(section, "allow_ricochet"));
+	m_flags.set							(cfExplosive, pSettings->r_BOOL(section, "explosive"));
+	m_flags.set							(cfMagneticBeam, pSettings->r_BOOL(section, "magnetic_beam_shot"));
 
 	shell_particles						= pSettings->r_string(section, "shell_particles");
 	flame_particles						= pSettings->r_string(section, "flame_particles");
@@ -72,7 +72,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	flame_particles_flash_hider			= pSettings->r_string(section, "flame_particles_flash_hider");
 	smoke_particles_silencer			= pSettings->r_string(section, "smoke_particles_silencer");
 	
-	if (light_enabled = !pSettings->r_bool(section, "light_disabled"))
+	if (light_enabled = !pSettings->r_BOOL(section, "light_disabled"))
 	{
 		Fvector clr						= pSettings->r_fvector3(section, "light_color");
 		light_base_color.set			(clr.x, clr.y, clr.z, 1);
@@ -194,7 +194,7 @@ float CWeaponAmmo::Aboba o$(EEventTypes type, void* data, int param)
 
 float CWeaponAmmo::readBoxSize(LPCSTR section)
 {
-	bool can_heap						= pSettings->r_bool(section, "heap");
+	bool can_heap						= pSettings->r_BOOL(section, "heap");
 	return								(can_heap) ? (u16)iFloor(.5f / pSettings->r_float(section, "inv_volume")) : 1;
 }
 

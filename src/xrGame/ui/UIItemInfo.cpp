@@ -262,7 +262,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 			{
 				LPCSTR title					= *CStringTable().translate(pSettings->r_string(amount_display_type, "title"));
 				LPCSTR unit						= pSettings->r_string(amount_display_type, "unit");
-				bool empty_cont					= READ_IF_EXISTS(pSettings, r_bool, section, "container", FALSE) && (pSettings->r_u16(section, "supplies_count") == 0);
+				bool empty_cont					= READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE) && (pSettings->r_u16(section, "supplies_count") == 0);
 				float amount					= (pInvItem)	? pInvItem->GetAmount()		: (empty_cont) ? 0.f : pSettings->r_float(section, "capacity");
 				float fill						= (pInvItem)	? pInvItem->GetFill()		: (empty_cont) ? 0.f : 1.f;
 				if (!xr_strcmp(unit, "percent"))
@@ -290,7 +290,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 				{
 					amount						*= pSettings->r_float(amount_display_type, "factor");
 					LPCSTR unit_str				= *CStringTable().translate(unit);
-					bool integer				= !!pSettings->r_bool(amount_display_type, "integer");
+					bool integer				= !!pSettings->r_BOOL(amount_display_type, "integer");
 					if (!xr_strcmp(unit, "none"))
 						if (integer)
 							amount_str.printf	("%s: %d", title, (u32)round(amount));
@@ -431,7 +431,7 @@ void CUIItemInfo::TryAddBoosterInfo(CUICellItem* itm)
 
 void CUIItemInfo::tryAddAddonInfo(CUICellItem* itm)
 {
-	if (READ_IF_EXISTS(pSettings, r_bool, itm->m_section, "addon", FALSE) || smart_cast<CUIAddonOwnerCellItem*>(itm))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, itm->m_section, "addon", FALSE) || smart_cast<CUIAddonOwnerCellItem*>(itm))
 	{
 		m_addon_info->setInfo		(itm);
 		UIDesc->AddWindow			(m_addon_info.get(), false);

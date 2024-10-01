@@ -678,7 +678,7 @@ Fvector4 CInifile::r_fvector4(LPCSTR S, LPCSTR L)const
 	return V;
 }
 
-BOOL CInifile::r_bool(LPCSTR S, LPCSTR L)const
+BOOL CInifile::r_BOOL(LPCSTR S, LPCSTR L)const
 {
 	LPCSTR C = r_string(S, L);
 	VERIFY2(

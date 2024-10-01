@@ -509,8 +509,8 @@ void CSE_ALifeItemWeaponMagazined::STATE_Read(NET_Packet& P, u16 size)
 		P.r_float(m_ads_shift);
 	if (m_wVersion >= 132)
 	{
-		P.r_bool(m_locked);
-		P.r_bool(m_cocked);
+		P.r_BOOL(m_locked);
+		P.r_BOOL(m_cocked);
 	}
 }
 

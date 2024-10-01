@@ -213,7 +213,7 @@ void CAddonSlot::load(shared_str CR$ section, shared_str CR$ parent_section)
 
 	Fvector2 icon_origin				= pSettings->r_fvector2(parent_section, "inv_icon_origin");
 	float icon_ppm						= pSettings->r_float(parent_section, "icon_ppm");
-	bool icon_inversed					= READ_IF_EXISTS(pSettings, rbool, parent_section, "icon_inversed", false);
+	bool icon_inversed					= READ_IF_EXISTS(pSettings, r_bool, parent_section, "icon_inversed", false);
 
 	icon_offset							= icon_origin;
 	float x_offset						= static_cast<float>(model_offset.c.z) * icon_ppm;

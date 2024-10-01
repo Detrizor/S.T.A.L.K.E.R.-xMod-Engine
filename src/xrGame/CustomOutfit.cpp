@@ -74,10 +74,10 @@ void CCustomOutfit::Load(LPCSTR section)
 
 	m_BonesProtectionSect		= READ_IF_EXISTS(pSettings, r_string, section, "bones_koeff_protection",  "");
 	m_fArmorLevel				= READ_IF_EXISTS(pSettings, r_float, section, "armor_level",  0.f);
-	bIsHelmetAvaliable			= !!READ_IF_EXISTS(pSettings, r_bool, section, "helmet_available", true);
+	bIsHelmetAvaliable			= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "helmet_available", true);
 
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set					(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", TRUE));
+	m_flags.set					(FUsingCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "use_condition", TRUE));
 
 	m_fHealth					= pSettings->r_float(section, "health");
 }

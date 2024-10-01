@@ -142,10 +142,10 @@ public:
 	Dvector3 r_dvector3(const shared_str& S, LPCSTR L)const { return r_dvector3(*S, L); }
 	Fvector4 r_fvector4(LPCSTR S, LPCSTR L)const;
 	Fvector4 r_fvector4(const shared_str& S, LPCSTR L)const { return r_fvector4(*S, L); }
-	BOOL r_bool(LPCSTR S, LPCSTR L)const;
-	BOOL r_bool(const shared_str& S, LPCSTR L)const { return r_bool(*S, L); }
-	BOOL rbool(LPCSTR S, LPCSTR L) const { return static_cast<bool>(r_bool(S, L)); }
-	BOOL rbool(const shared_str& S, LPCSTR L) const { return rbool(*S, L); }
+	BOOL r_BOOL(LPCSTR S, LPCSTR L)const;
+	BOOL r_BOOL(const shared_str& S, LPCSTR L)const { return r_BOOL(*S, L); }
+	bool r_bool(LPCSTR S, LPCSTR L) const { return static_cast<bool>(r_BOOL(S, L)); }
+	bool r_bool(const shared_str& S, LPCSTR L) const { return r_bool(*S, L); }
 	int r_token(LPCSTR S, LPCSTR L, const xr_token* token_list)const;
 	BOOL r_line(LPCSTR S, int L, LPCSTR* N, LPCSTR* V)const;
 	BOOL r_line(const shared_str& S, int L, LPCSTR* N, LPCSTR* V)const;
@@ -172,7 +172,7 @@ public:
 
 	void remove_line(LPCSTR S, LPCSTR L);
 	
-	DEFINE_EX_METHODS(bool, r_bool_ex, w_bool_ex, rbool)
+	DEFINE_EX_METHODS(bool, r_bool_ex, w_bool_ex, r_bool)
 	DEFINE_EX_METHODS(u8, r_u8_ex, w_u8_ex, r_u8)
 	DEFINE_EX_METHODS(s8, r_s8_ex, w_s8_ex, r_s8)
 	DEFINE_EX_METHODS(u16, r_u16_ex, w_u16_ex, r_u16)

@@ -77,8 +77,8 @@ CInventory::CInventory(CInventoryOwner* owner) : m_pOwner(owner), m_bActors(!!sm
 		
 		m_slots.resize(k+1); //slot+1 because [0] is the inactive slot
 		
-		m_slots[k].m_bPersistent = !!pSettings->r_bool("inventory",slot_persistent);
-		m_slots[k].m_bAct = !!pSettings->r_bool("inventory",slot_active);
+		m_slots[k].m_bPersistent = !!pSettings->r_BOOL("inventory",slot_persistent);
+		m_slots[k].m_bAct = !!pSettings->r_BOOL("inventory",slot_active);
 		
 		k++;
 

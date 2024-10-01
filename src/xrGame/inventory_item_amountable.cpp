@@ -6,7 +6,7 @@ MAmountable::MAmountable(CGameObject* obj) : CModule(obj)
 {
 	m_net_weight						= pSettings->r_float(O.cNameSect(), "net_weight");
 	m_net_volume						= pSettings->r_float(O.cNameSect(), "net_volume");
-	m_unlimited							= !!pSettings->r_bool(O.cNameSect(), "unlimited");
+	m_unlimited							= !!pSettings->r_BOOL(O.cNameSect(), "unlimited");
 	m_depletion_speed					= pSettings->r_float(O.cNameSect(), "depletion_speed");
 	m_capacity							= pSettings->r_float(O.cNameSect(), "capacity");
 	m_fAmount							= m_capacity;
