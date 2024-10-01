@@ -103,7 +103,7 @@ public:
 	void						hideItem			();
 	void						restoreItem			();
 
-	virtual void				OnActiveItem		()				{ SwitchState(eShowing); }
+	virtual void				OnActiveItem		();
 	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); }
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev);
 

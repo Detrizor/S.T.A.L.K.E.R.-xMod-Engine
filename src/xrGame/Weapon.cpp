@@ -347,13 +347,8 @@ BOOL CWeapon::IsUpdating()
 void CWeapon::OnH_B_Independent(bool just_before_destroy)
 {
 	RemoveShotEffector();
-
 	inherited::OnH_B_Independent(just_before_destroy);
-
 	FireEnd();
-	SetPending(FALSE);
-	SwitchState(eHidden);
-
 	m_strapped_mode = false;
 	m_zoom_params.m_bIsZoomModeNow = false;
 }

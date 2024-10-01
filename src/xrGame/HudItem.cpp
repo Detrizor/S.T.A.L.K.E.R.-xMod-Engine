@@ -164,14 +164,15 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		break;
 	case eBore:
 		SetPending(FALSE);
-
 		PlayAnimBore();
 		if (HudItemData())
 		{
 			Fvector P = static_cast<Fvector>(HudItemData()->m_transform.c);
 			m_sounds.PlaySound("sndBore", P, object().H_Root(), !!GetHUDmode(), false, m_started_rnd_anim_idx);
 		}
-
+		break;
+	case eHidden:
+		g_player_hud->detach_item(this);
 		break;
 	}
 }
@@ -228,6 +229,14 @@ void CHudItem::restoreItem()
 {
 	anm_slot = 0;
 	OnActiveItem();
+}
+
+void CHudItem::OnActiveItem()
+{
+	if (object().H_Parent()->scast<CActor*>())
+		g_player_hud->attach_item(this);
+
+	SwitchState(eShowing);
 }
 
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)
@@ -508,13 +517,15 @@ void CHudItem::OnH_B_Chield()
 
 void CHudItem::OnH_B_Independent(bool just_before_destroy)
 {
+	if (GetState() != eHidden)
+		OnHiddenItem();
+	SetPending(FALSE);
+	SwitchState(eHidden);
 	m_sounds.StopAllSounds();
 }
 
 void CHudItem::OnH_A_Independent()
 {
-	if (HudItemData())
-		g_player_hud->detach_item(this);
 	StopCurrentAnimWithoutCallback();
 }
 

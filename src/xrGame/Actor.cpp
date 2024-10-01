@@ -1066,34 +1066,11 @@ void CActor::set_state_box(u32	mstate)
 	else
 		character_physics_support()->movement()->ActivateBox(0, true);
 }
+
 void CActor::shedule_Update(u32 DT)
 {
 	setSVU(OnServer());
 	//.	UpdateInventoryOwner			(DT);
-
-	if (IsFocused())
-	{
-		BOOL bHudView = HUDview();
-		if (bHudView)
-		{
-			CInventoryItem* pInvItem = inventory().ActiveItem();
-			if (pInvItem)
-			{
-				CHudItem* pHudItem = smart_cast<CHudItem*>(pInvItem);
-				if (pHudItem)
-				{
-					if (pHudItem->IsHidden())
-						g_player_hud->detach_item(pHudItem);
-					else
-						g_player_hud->attach_item(pHudItem);
-				}
-			}
-			else
-				g_player_hud->detach_item_idx(0);
-		}
-		else
-			g_player_hud->detach_all_items();
-	}
 
 	if (m_holder || !getEnabled() || !Ready())
 	{
