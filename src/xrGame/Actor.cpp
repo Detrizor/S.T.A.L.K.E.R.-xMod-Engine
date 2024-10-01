@@ -1650,6 +1650,18 @@ void CActor::SetMissileOffset		(const Fvector &vNewOffset)
 	m_vMissileOffset.set(vNewOffset);
 }
 
+void CActor::setZoomAimingMode(bool val)
+{
+	m_bZoomAimingMode = val;
+	g_player_hud->OnMovementChanged();
+}
+
+void CActor::setZoomADSMode(bool val)
+{
+	m_bZoomADSMode = val;
+	g_player_hud->OnMovementChanged();
+}
+
 void CActor::spawn_supplies()
 {
 	inherited::spawn_supplies();

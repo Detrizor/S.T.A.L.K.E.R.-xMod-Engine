@@ -662,8 +662,6 @@ void CWeapon::setAiming(bool mode)
 		SwitchArmedMode					();
 	else if (!mode && ADS())
 		setADS							(0);
-	else if (m_actor)
-		g_player_hud->OnMovementChanged	();
 }
 
 void CWeapon::setup_physic_shell()
@@ -881,13 +879,9 @@ void CWeapon::setADS(int mode)
 
 	if (!mode)
 		ResetSubStateTime();
-
 	m_iADS = mode;
 	if (m_actor)
-	{
 		m_actor->setZoomADSMode(mode);
-		g_player_hud->OnMovementChanged();
-	}
 }
 
 void CWeapon::SwitchArmedMode()

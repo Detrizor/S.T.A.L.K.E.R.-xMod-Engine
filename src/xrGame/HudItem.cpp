@@ -650,11 +650,8 @@ bool CHudItem::HudAnimationExist(LPCSTR anim_name)
 
 void CHudItem::onMovementChanged()
 {
-	if (GetState() == eIdle && !m_bStopAtEndAnimIsRunning)
-	{
-		ResetSubStateTime();
-		PlayAnimIdle();
-	}
+	if (!m_bStopAtEndAnimIsRunning)
+		PlayHUDMotion("anm_idle", TRUE, GetState());
 }
 
 attachable_hud_item* CHudItem::HudItemData() const
@@ -683,6 +680,7 @@ void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend, floa
 		u8 part							= (weapon && weapon->IsZoomed()) ? 2 : ((g_player_hud->attached_item(1)) ? 0 : 2);
 		auto layer						= g_player_hud->playBlendAnm(anm.anm, part, anm.speed, anm.power * power_k, false, false, full_blend);
 		anim_time						= layer->anm->anim_param().max_t / anm.speed;
+		onMovementChanged				();
 	}
 	else
 	{

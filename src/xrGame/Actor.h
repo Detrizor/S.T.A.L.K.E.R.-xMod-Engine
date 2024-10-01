@@ -491,8 +491,8 @@ public:
 	Fvector								GetMissileOffset	() const;
 	void								SetMissileOffset	(const Fvector &vNewOffset);
 	
-	void								setZoomAimingMode	(bool val)	{ m_bZoomAimingMode = val; }
-	void								setZoomADSMode		(bool val)	{ m_bZoomADSMode = val; }
+	void								setZoomAimingMode	(bool val);
+	void								setZoomADSMode		(bool val);
 
 protected:
 	//косточки используемые при стрельбе
