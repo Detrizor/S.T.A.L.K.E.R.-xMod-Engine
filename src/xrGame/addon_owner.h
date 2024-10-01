@@ -23,7 +23,7 @@ private:
 	u16									m_overlaping_slot						= u16_max;
 	bool								m_background_draw						= false;
 	bool								m_foreground_draw						= false;
-	shared_str							m_attach_bone							= "root";
+	shared_str							m_attach_bone							= 0;
 
 	MAddon*								m_loading_addon							= nullptr;
 	u16									m_attach_bone_id						= 0;

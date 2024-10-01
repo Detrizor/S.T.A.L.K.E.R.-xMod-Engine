@@ -531,10 +531,16 @@ void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CPC parent_tra
 
 void CAddonSlot::calcBoneOffset(attachable_hud_item* hi)
 {
-	shared_str							line;
-	line.printf							("%s_bone_name", m_attach_bone.c_str());
-	LPCSTR bone_name					= pSettings->r_string(hi->m_hud_section, line.c_str());
-	m_attach_bone_id					= hi->m_model->LL_BoneID(bone_name);
+	if (!!m_attach_bone)
+	{
+		shared_str						line;
+		line.printf						("%s_bone_name", m_attach_bone.c_str());
+		if (pSettings->line_exist(hi->m_hud_section, line))
+		{
+			LPCSTR bone_name			= pSettings->r_string(hi->m_hud_section, line.c_str());
+			m_attach_bone_id			= hi->m_model->LL_BoneID(bone_name);
+		}
+	}
 	m_attach_bone_offset				= static_cast<Dmatrix>(hi->m_model->LL_GetTransform(m_attach_bone_id));
 
 	for (auto a : addons)

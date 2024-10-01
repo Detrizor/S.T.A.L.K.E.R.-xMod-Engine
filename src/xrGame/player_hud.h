@@ -195,7 +195,7 @@ struct attachable_hud_item
 	shared_str						m_object_section;
 	IKinematics*					m_model;
 	u16								m_attach_place_idx;
-	shared_str						m_auto_attach_anm;
+	bool							m_auto_attach;
 	hud_item_measures				m_measures;
 
 	//runtime positioning

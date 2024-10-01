@@ -276,13 +276,13 @@ void attachable_hud_item::load(LPCSTR hud_section, LPCSTR object_section)
 	m_model						= smart_cast<IKinematics*>(::Render->model_Create(visual_name));
 
 	m_attach_place_idx			= pSettings->r_u16(hud_section, "attach_place_idx");
-	m_auto_attach_anm			= pSettings->r_string(hud_section, "auto_attach_anm");
+	m_auto_attach				= pSettings->r_bool_ex(hud_section, "auto_hands_attach", false);
 	m_measures.load				(hud_section, m_model);
 	
 	m_item_attach.setHPBv				(static_cast<Dvector>(pSettings->r_fvector3d2r(hud_section, "item_orientation")));
 	m_item_attach.translate_over		(static_cast<Dvector>(pSettings->r_fvector3(hud_section, "item_position")));
 	
-	if (!m_auto_attach_anm.size())
+	if (!m_auto_attach)
 		m_hands_attach.setOffset(
 			static_cast<Dvector>(pSettings->r_fvector3(hud_section, "hands_position")),
 			static_cast<Dvector>(pSettings->r_fvector3d2r(hud_section, "hands_orientation"))
@@ -700,25 +700,26 @@ void player_hud::attach_item(CHudItem* item)
 
 		updateMovementLayerState		();
 		item->UpdateHudBonesVisibility	();
-		
-		if (pi->m_auto_attach_anm.size())
-		{
-			pi->m_parent_hud_item->PlayHUDMotion(pi->m_auto_attach_anm, FALSE, 0, true);
-			update_bones				(m_model->dcast_PKinematics());
-			update_bones				(pi->m_model);
 
+		auto ao							= pi->m_parent_hud_item->object().getModule<MAddonOwner>();
+		if (pi->m_auto_attach || ao)
+		{
+			pi->m_parent_hud_item->PlayHUDMotion("anm_idle", FALSE, 0, true);
+			update_bones				(pi->m_model);
+		}
+
+		if (pi->m_auto_attach)
+		{
+			update_bones				(m_model->dcast_PKinematics());
 			u16 anchor_bone_id			= m_ancors[pi->m_attach_place_idx];
 			auto& anchor_trans			= m_model->dcast_PKinematics()->LL_GetTransform(anchor_bone_id);
 			pi->m_hands_attach.mul		(static_cast<Dmatrix>(anchor_trans), pi->m_item_attach);
 			pi->m_hands_attach.mulB_43	(static_cast<Dmatrix>(pi->m_model->LL_GetTransform_R(0)));
 			pi->m_hands_attach.invert	();
-
-			if (auto ao = pi->m_parent_hud_item->object().getModule<MAddonOwner>())
-				ao->calcSlotsBoneOffset	(pi);
-
-			auto state					= (pi->m_parent_hud_item->IsShowing()) ? CHudItem::eShowing : CHudItem::eIdle;
-			pi->m_parent_hud_item->OnStateSwitch(state, CHudItem::eIdle);
 		}
+
+		if (ao)
+			ao->calcSlotsBoneOffset		(pi);
 	}
 	else
 		pi->m_parent_hud_item			= item;
