@@ -94,6 +94,7 @@ public:
 	// Utilities
 	static void				u_EventGen			(NET_Packet& P, u32 type, u32 dest	);
 	static void				u_EventSend			(NET_Packet& P, u32 dwFlags = DPNSEND_GUARANTEED	);
+	static void				sendEvent			(u16 type, u16 dest, u16 additional, bool straight);
 	
 	// Methods
 	virtual void			Load				(LPCSTR section);
@@ -130,7 +131,7 @@ public:
 	virtual bool			IsVisibleForZones	() { return true; }
 ///////////////////////////////////////////////////////////////////////
 	virtual bool			NeedToDestroyObject	() const;
-	virtual void			DestroyObject		();
+	void					DestroyObject		(bool straight = false);
 ///////////////////////////////////////////////////////////////////////
 
 	// Position stack
@@ -309,13 +310,13 @@ private:
 	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
 
 public:
-	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max);
+	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max, bool straight = false);
 
 	void								UpdateBoneVisibility					(shared_str CR$ bone_name, bool status);
 	
-	void								transfer							C$	(u16 id = u16_max);
-	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f);
-	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f);
+	void								transfer							C$	(u16 id = u16_max, bool straight = false);
+	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f, bool straight = false);
+	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f, bool straight = false);
 
 	template <typename M, typename... Args>
 	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()].construct<M>(this, _STD forward<Args>(args)...); }

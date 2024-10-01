@@ -832,18 +832,14 @@ bool CGameObject::NeedToDestroyObject()	const
 	return false;
 }
 
-void CGameObject::DestroyObject()			
+void CGameObject::DestroyObject(bool straight)
 {
 	if(m_bObjectRemoved)	return;
 	m_bObjectRemoved		= true;
 	if (getDestroy())		return;
 
 	if (Local())
-	{	
-		NET_Packet		P;
-		u_EventGen		(P,GE_DESTROY,ID());
-		u_EventSend		(P);
-	}
+		sendEvent			(GE_DESTROY, ID(), xrServer::release, straight);
 }
 
 void CGameObject::shedule_Update	(u32 dt)
@@ -1061,18 +1057,19 @@ void CGameObject::on_matrix_change	(const Fmatrix &previous)
 	obstacle().on_move				();
 }
 
-CSE_Abstract* CGameObject::giveItem(LPCSTR section, float condition) const
+CSE_Abstract* CGameObject::giveItem(LPCSTR section, float condition, bool straight) const
 {
 	return const_cast<CALifeSimulator&>(ai().alife()).spawn_item(section,
 		Position(),
 		ai_location().level_vertex_id(),
 		ai_location().game_vertex_id(),
 		ID(),
-		condition
+		condition,
+		straight
 	);
 }
 
-CSE_Abstract* CGameObject::giveItems(LPCSTR section, u16 count, float condition) const
+CSE_Abstract* CGameObject::giveItems(LPCSTR section, u16 count, float condition, bool straight) const
 {
 	return const_cast<CALifeSimulator&>(ai().alife()).spawn_items(section,
 		Position(),
@@ -1080,7 +1077,8 @@ CSE_Abstract* CGameObject::giveItems(LPCSTR section, u16 count, float condition)
 		ai_location().game_vertex_id(),
 		ID(),
 		count,
-		condition
+		condition,
+		straight
 	);
 }
 
@@ -1195,36 +1193,37 @@ void CGameObject::OnRender			()
 }
 #endif // DEBUG
 
-void CGameObject::transfer(u16 id) const
+void CGameObject::transfer(u16 id, bool straight) const
 {
-	transfer							((Parent) ? Parent->ID() : u16_max, ID(), id);
+	transfer							((Parent) ? Parent->ID() : u16_max, ID(), id, straight);
 }
 
-void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to)
+void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to, bool straight)
 {
 	if (id_from == id_to)
 		return;
 
-	NET_Packet							P;
 	if (id_to == u16_max)
-	{
-		u_EventGen						(P, GE_OWNERSHIP_REJECT, id_from);
-		P.w_u16							(id_what);
-	}
+		sendEvent						(GE_OWNERSHIP_REJECT, id_from, id_what, straight);
 	else if (id_from != u16_max)
 	{
-		u_EventGen						(P, GE_TRADE_SELL, id_from);
-		P.w_u16							(id_what);
-		u_EventSend						(P);
-		u_EventGen						(P, GE_TRADE_BUY, id_to);
-		P.w_u16							(id_what);
+		sendEvent						(GE_TRADE_SELL, id_from, id_what, straight);
+		sendEvent						(GE_TRADE_BUY, id_to, id_what, straight);
 	}
 	else
-	{
-		u_EventGen						(P,GE_OWNERSHIP_TAKE, id_to);
-		P.w_u16							(id_what);
-	}
-	u_EventSend							(P);
+		sendEvent						(GE_OWNERSHIP_TAKE, id_to, id_what, straight);
+}
+
+void CGameObject::sendEvent(u16 type, u16 dest, u16 additional, bool straight)
+{
+	NET_Packet							packet;
+	packet.w_begin						(M_EVENT);
+	packet.w_u32						(0);
+	packet.w_u16						(type);
+	packet.w_u16						(dest);
+	packet.w_u16						(additional);
+	packet.r_u16						();
+	Level().Server->Process_event		(packet, ClientID(1), straight);
 }
 
 void CGameObject::update_bone_visibility(IKinematics* visual, shared_str CR$ bone_name, bool status)
