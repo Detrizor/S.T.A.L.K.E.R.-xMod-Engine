@@ -811,7 +811,7 @@ LPCSTR CScriptGameObject::getQueryFunctor(int num) const
 {
 	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
-			return						*action->query_functor;
+			return						action->query_functor_str.c_str();
 	return								nullptr;
 }
 
@@ -819,7 +819,7 @@ LPCSTR CScriptGameObject::getActionFunctor(int num) const
 {
 	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
-			return						*action->action_functor;
+			return						action->action_functor_str.c_str();
 	return								nullptr;
 }
 
@@ -827,7 +827,7 @@ LPCSTR CScriptGameObject::getUseFunctor(int num) const
 {
 	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
-			return						*action->use_functor;
+			return						action->use_functor_str.c_str();
 	return								nullptr;
 }
 

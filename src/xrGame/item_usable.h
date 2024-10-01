@@ -1,5 +1,6 @@
 #pragma once
 #include "module.h"
+#include "script_game_object.h"
 
 class MAddon;
 class CAddonSlot;
@@ -15,16 +16,21 @@ struct SAction
 	const bool							manage_action;
 
 	shared_str							title									= 0;
-	shared_str							query_functor							= 0;
-	shared_str							action_functor							= 0;
-	shared_str							use_functor								= 0;
 	float								duration								= 0.f;
 	u16									item_id									= u16_max;
+	
+	shared_str							query_functor_str;
+	shared_str							action_functor_str;
+	shared_str							use_functor_str							= 0;
+	
+	xptr<::luabind::functor<bool>>		query_functor;
+	xptr<::luabind::functor<bool>>		action_functor;
+	xptr<::luabind::functor<bool>>		use_functor								= nullptr;
 
-	bool								performQuery							()		{ return perform(query_functor); }
-	bool								performAction							()		{ return perform(action_functor); }
+	bool								performQueryFunctor						()		{ return perform(*query_functor); }
+	bool								performActionFunctor					()		{ return perform(*action_functor); }
 
-	bool								perform									(shared_str CR$ functor);
+	bool								perform									(::luabind::functor<bool>& functor);
 };
 
 class MUsable : public CModule

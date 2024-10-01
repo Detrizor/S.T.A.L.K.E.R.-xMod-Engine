@@ -666,7 +666,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
 		int i							= 0;
 		while (auto action = usable->getAction(++i))
 		{
-			if (action->performQuery())
+			if (action->performQueryFunctor())
 			{
 				m_UIPropertiesBox->AddItem(action->title.c_str(), reinterpret_cast<void*>(i), INVENTORY_CUSTOM_ACTION);
 				b_show					= true;

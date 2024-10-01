@@ -13,34 +13,37 @@ SAction::SAction(CGameObject& _obj, u8 _num, bool manage) :
 {
 }
 
-bool SAction::perform(shared_str CR$ functor)
+bool SAction::perform(::luabind::functor<bool>& functor)
 {
-	::luabind::functor<bool>			funct;
-	if (ai().script_engine().functor(functor.c_str(), funct))
-		return							funct(obj.lua_game_object(), num);
-	return								false;
+	return								functor(obj.lua_game_object(), num);
 }
 
 MUsable::MUsable(CGameObject* obj) : CModule(obj)
 {
 	int i								= 0;
-	shared_str							line;
-	while (line.printf("use%d_title", ++i), pSettings->line_exist(O.cNameSect(), line))
+	shared_str							str;
+	while (str.printf("use%d_title", ++i), pSettings->line_exist(O.cNameSect(), str))
 	{
 		auto& act						= m_actions.emplace_back(O, i);
-		act->title						= pSettings->r_string(O.cNameSect(), *line);
+		act->title						= pSettings->r_string(O.cNameSect(), str.c_str());
 		
-		line.printf						("use%d_query_functor", i);
-		act->query_functor				= pSettings->r_string(O.cNameSect(), *line);
+		str.printf						("use%d_query_functor", i);
+		act->query_functor_str			= pSettings->r_string(O.cNameSect(), str.c_str());
+		R_ASSERT						(ai().script_engine().functor(act->query_functor_str.c_str(), *act->query_functor));
 		
-		line.printf						("use%d_action_functor", i);
-		act->action_functor				= pSettings->r_string(O.cNameSect(), *line);
+		str.printf						("use%d_action_functor", i);
+		act->action_functor_str			= pSettings->r_string(O.cNameSect(), str.c_str());
+		R_ASSERT						(ai().script_engine().functor(act->action_functor_str.c_str(), *act->action_functor));
 		
-		line.printf						("use%d_functor", i);
-		act->use_functor					= READ_IF_EXISTS(pSettings, r_string, O.cNameSect(), *line, 0);
+		str.printf						("use%d_functor", i);
+		if (pSettings->w_string_ex(act->use_functor_str, O.cNameSect(), str) && str.size())
+		{
+			act->use_functor.construct	();
+			R_ASSERT					(ai().script_engine().functor(act->use_functor_str.c_str(), *act->use_functor));
+		}
 		
-		line.printf						("use%d_duration", i);
-		act->duration					= READ_IF_EXISTS(pSettings, r_float, O.cNameSect(), *line, 0.f);
+		str.printf						("use%d_duration", i);
+		pSettings->w_float_ex			(act->duration, O.cNameSect(), str);
 	}
 }
 
@@ -69,8 +72,11 @@ void MUsable::emplace_manage_action(MAddon* addon, int nesting_level)
 	while (nesting_level--)
 		act->title.printf				("%s>", act->title.c_str());
 	act->title.printf					("%s %s", act->title.c_str(), addon->I->getNameShort());
-	act->query_functor					= pSettings->r_string(O.cNameSect(), "manage_addon_query_functor");
-	act->action_functor					= pSettings->r_string(O.cNameSect(), "manage_addon_action_functor");
+
+	act->query_functor_str				= pSettings->r_string(O.cNameSect(), "manage_addon_query_functor");
+	R_ASSERT							(ai().script_engine().functor(act->query_functor_str.c_str(), *act->query_functor));
+	act->action_functor_str				= pSettings->r_string(O.cNameSect(), "manage_addon_action_functor");
+	R_ASSERT							(ai().script_engine().functor(act->action_functor_str.c_str(), *act->action_functor));
 	act->item_id						= addon->O.ID();
 }
 
@@ -140,9 +146,9 @@ bool MUsable::performAction(int num, bool skip_query, u16 item_id)
 	auto& action						= m_actions[num - 1];
 	if (item_id != u16_max)
 		action->item_id					= item_id;
-	if (skip_query || action->performQuery())
+	if (skip_query || action->performQueryFunctor())
 	{
-		action->performAction			();
+		action->performActionFunctor	();
 		return							true;
 	}
 	return								false;
