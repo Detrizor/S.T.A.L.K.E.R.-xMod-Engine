@@ -491,8 +491,8 @@ void CUIActorMenu::ToRuck(PIItem item)
 
 CUIDragDropListEx* CUIActorMenu::GetSlotList(u16 slot_idx)
 {
-	if ( slot_idx == NO_ACTIVE_SLOT )
-		return NULL;
+	if (slot_idx == NO_ACTIVE_SLOT || slot_idx >= m_pInvList.size())
+		return nullptr;
 
 	if (m_pInvList[slot_idx])
 		return m_pInvList[slot_idx];

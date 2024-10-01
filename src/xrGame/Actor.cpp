@@ -1778,8 +1778,9 @@ void CActor::SetPower(float p)
 
 bool CActor::switchArmedMode()
 {
+	m_armed_mode = !m_armed_mode;
 	g_player_hud->OnMovementChanged();
-	return m_armed_mode = !m_armed_mode;
+	return m_armed_mode;
 }
 
 #include "items_library.h"
