@@ -125,8 +125,6 @@ public:
 	//игровое имя объекта
 	virtual LPCSTR			Name                () const;
 	
-	//virtual void			OnH_A_Independent	();
-	virtual void			OnH_B_Chield		();
 	virtual void			OnH_B_Independent	(bool just_before_destroy);
 
 	virtual bool			IsVisibleForZones	() { return true; }

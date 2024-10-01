@@ -155,18 +155,10 @@ void CGameObject::net_Destroy	()
 
 	xr_delete								(m_lua_game_object);
 	m_spawned								= false;
-
-	if (auto se_obj = ai().alife().objects().object(ID()))
-		Aboba(eSyncData, (void*)se_obj, 1);
 }
 
 void CGameObject::OnEvent(NET_Packet& P, u16 type)
 {
-	u16 id								= u16_max;
-	CObject* obj						= NULL;
-	bool dont_create_shell				= false;
-	bool take							= false;
-
 	switch (type)
 	{
 	case GE_HIT:
@@ -196,6 +188,13 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 			break;
 		}
 		setDestroy						(TRUE);
+
+		if (!P.r_eof() && P.r_u16() == xrServer::offline_switch)
+		{
+			auto se_obj					= ai().alife().objects().object(ID());
+			Aboba						(eSyncData, static_cast<void*>(se_obj), 1);
+		}
+
 		break;
 	}
 
@@ -206,17 +205,13 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 	{
 	case GE_TRADE_BUY:
 	case GE_OWNERSHIP_TAKE:
-		take							= true;
 	case GE_TRADE_SELL:
 	case GE_OWNERSHIP_REJECT:
-		P.r_u16							(id);
-		obj								= Level().Objects.net_Find(id);
-		dont_create_shell				= (type == GE_TRADE_SELL) || (!P.r_eof() && P.r_u8());
-	}
-
-	if (obj)
 	{
-		if (take)
+		u16 id							= P.r_u16();
+		auto obj						= Level().Objects.net_Find(id);
+
+		if (type == GE_TRADE_BUY || type == GE_OWNERSHIP_TAKE)
 		{
 			obj->H_SetParent			(this);
 			obj->setVisible				(FALSE);
@@ -225,9 +220,13 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 		}
 		else
 		{
-			Aboba						(eOnChild, static_cast<void*>(obj), 0);
-			obj->H_SetParent			(nullptr, dont_create_shell);
+			u8 destroy_type				= (P.r_eof()) ? 0 : P.r_u8();
+			if (destroy_type != xrServer::sls_clear && destroy_type != xrServer::offline_switch)
+				Aboba					(eOnChild, static_cast<void*>(obj), 0);
+			obj->H_SetParent			(nullptr, (type == GE_TRADE_SELL || destroy_type));
 		}
+	}
+	break;
 	}
 }
 
@@ -437,8 +436,8 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 
 	if (auto se_obj = smart_cast<CSE_ALifeDynamicObject*>(O))
 	{
-		Aboba							(eSyncData, (void*)se_obj, 0);
-		se_obj->clearModules			();
+		Aboba					(eSyncData, static_cast<void*>(se_obj), 0);
+		se_obj->clearModules	();
 	}
 
 #ifdef DEBUG
@@ -489,7 +488,7 @@ void CGameObject::net_Save		(NET_Packet &net_packet)
 	net_packet.w_chunk_close16	(position);
 
 	if (auto se_obj = ai().alife().objects().object(ID()))
-		Aboba(eSyncData, (void*)se_obj, 1);
+		Aboba					(eSyncData, static_cast<void*>(se_obj), 1);
 }
 
 void CGameObject::net_Load		(IReader &ireader)
@@ -752,13 +751,6 @@ void CGameObject::u_EventGen(NET_Packet& P, u32 type, u32 dest)
 void CGameObject::u_EventSend(NET_Packet& P, u32 dwFlags )
 {
 	Level().Send(P, dwFlags);
-}
-
-#include "bolt.h"
-void CGameObject::OnH_B_Chield()
-{
-	inherited::OnH_B_Chield();
-	///PHSetPushOut();????
 }
 
 void CGameObject::OnH_B_Independent(bool just_before_destroy)
