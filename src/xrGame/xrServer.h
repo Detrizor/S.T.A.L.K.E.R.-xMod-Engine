@@ -82,6 +82,15 @@ class server_info_uploader;
 
 class xrServer	: public IPureServer  
 {
+public:
+	enum EDestroyType
+	{
+		none = 0,
+		release,
+		sls_clear,
+		offline_switch
+	};
+
 private:
 	xrS_entities				entities;
 	xr_multiset<svs_respawn>	q_respawn;
@@ -177,16 +186,17 @@ public:
 
 	void					Perform_connect_spawn	(CSE_Abstract* E, xrClientData* to, NET_Packet& P);
 	void					Perform_transfer		(NET_Packet &PR, NET_Packet &PT, CSE_Abstract* what, CSE_Abstract* from, CSE_Abstract* to);
-	void					Perform_reject			(CSE_Abstract* what, CSE_Abstract* from, int delta);
-	void					Perform_destroy			(CSE_Abstract* tpSE_Abstract, u32 mode);
+	void					Perform_reject			(u16 id_from, u16 id_what, EDestroyType destroy_type, bool straight = false);
+	void					Perform_release			(u16 id, bool straight = false);
+	void					Perform_destroy			(CSE_Abstract* object, EDestroyType destroy_type, bool straight = false);
 
-	CSE_Abstract*			Process_spawn			(NET_Packet& P, ClientID sender, BOOL bSpawnWithClientsMainEntityAsParent=FALSE, CSE_Abstract* tpExistedEntity=0);
+	CSE_Abstract*			Process_spawn			(NET_Packet& P, ClientID sender, bool bSpawnWithClientsMainEntityAsParent = false, CSE_Abstract* tpExistedEntity = nullptr, bool straight = false);
 	void					Process_update			(NET_Packet& P, ClientID sender);
 	void					Process_save			(NET_Packet& P, ClientID sender);
-	void					Process_event			(NET_Packet& P, ClientID sender);
-	void					Process_event_ownership	(NET_Packet& P, ClientID sender, u32 time, u16 ID, BOOL bForced = FALSE);
-	bool					Process_event_reject	(NET_Packet& P, const ClientID sender, const u32 time, const u16 id_parent, const u16 id_entity, bool send_message = true);
-	void					Process_event_destroy	(NET_Packet& P, ClientID sender, u32 time, u16 ID, NET_Packet* pEPack);
+	void					Process_event			(NET_Packet& P, ClientID sender, bool straight = false);
+	void					Process_event_ownership	(NET_Packet& P, u16 id_parent, u16 id_entity, bool straight = false);
+	bool					Process_event_reject	(NET_Packet& P, u16 id_parent, u16 id_entity, bool straight = false);
+	void					Process_event_destroy	(NET_Packet& P, u16 id_dest, bool straight = false);
 	void					Process_event_activate	(NET_Packet& P, const ClientID sender, const u32 time, const u16 id_parent, const u16 id_entity, bool send_message = true);
 	
 	xrClientData*			SelectBestClientToMigrateTo		(CSE_Abstract* E, BOOL bForceAnother=FALSE);
@@ -235,6 +245,8 @@ public:
 	virtual void			SendTo_LL			(ClientID ID, void* data, u32 size, u32 dwFlags=DPNSEND_GUARANTEED, u32 dwTimeout=0);
 			void			SecureSendTo		(xrClientData* xrCL, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED, u32 dwTimeout=0);
 	virtual	void			SendBroadcast		(ClientID exclude, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED);
+			void			emitEvent			(NET_Packet& P, bool straight = false);
+			void			emitSpawn			(NET_Packet& P);
 			void			GetPooledState			(xrClientData* xrCL);
 			void			ClearDisconnectedPool	() { m_disconnected_clients.Clear(); };
 
@@ -278,13 +290,11 @@ public:
 	virtual void			GetServerInfo		( CServerInfo* si );
 			void			SendPlayersInfo		(ClientID const & to_client);
 public:
-	xr_string				ent_name_safe		(u16 eid);
 #ifdef DEBUG
 			bool			verify_entities		() const;
 			void			verify_entity		(const CSE_Abstract *entity) const;
 #endif
 };
-
 
 #ifdef DEBUG
 		enum e_dbg_net_Draw_Flags

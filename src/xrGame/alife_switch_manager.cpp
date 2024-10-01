@@ -87,7 +87,7 @@ void CALifeSwitchManager::remove_online(CSE_ALifeDynamicObject *object, bool upd
 		);
 	}
 
-	server().Perform_destroy	(object,net_flags(TRUE,TRUE));
+	server().Perform_destroy	(object, xrServer::offline_switch);
 	VERIFY						(object->children.empty());
 	object->ID					= server().PerformIDgen(object->ID);
 	object->add_offline			(m_saved_chidren,update_registries);

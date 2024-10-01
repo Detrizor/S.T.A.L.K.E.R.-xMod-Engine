@@ -1579,7 +1579,7 @@ BOOL	game_sv_Deathmatch::OnTouch			(u16 eid_who, u16 eid_what, BOOL bForced)
 								u_EventGen			(P,GE_OWNERSHIP_REJECT,e_what->ID);
 								P.w_u16				(e_child_item->ID);
 
-								m_server->Process_event_reject	(P,m_server->GetServerClient()->ID,0,e_what->ID,e_child_item->ID);
+								m_server->Process_event_reject	(P, e_what->ID ,e_child_item->ID);
 								continue;
 							}
 						}

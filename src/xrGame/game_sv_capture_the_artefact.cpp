@@ -790,11 +790,8 @@ void game_sv_CaptureTheArtefact::OnRoundEnd()
 			game_PlayerState* ps	= l_pC->ps;
 			if (!ps)				return;
 			if (ps->IsSkip())		return;
-			if (l_pC->owner &&
-				smart_cast<CActor*>(Level().Objects.net_Find(l_pC->owner->ID)))
-			{
-				m_server->Perform_destroy(l_pC->owner, net_flags(TRUE, TRUE));
-			}
+			if (l_pC->owner && smart_cast<CActor*>(Level().Objects.net_Find(l_pC->owner->ID)))
+				m_server->Perform_destroy(l_pC->owner, xrServer::sls_clear);
 			m_owner->SpawnPlayer(l_pC->ID, "spectator");
 		};
 	};
@@ -1535,9 +1532,7 @@ void game_sv_CaptureTheArtefact::DropArtefact(CSE_ActorMP *aOwner, CSE_ALifeItem
 		P.w_u8(0);
 		P.w_vec3(*dropPosition);
 	}
-	//m_server->SendBroadcast(BroadcastCID, P, net_flags(TRUE, TRUE));*/
-	m_server->Process_event_reject(P, m_server->GetServerClient()->ID, 0,
-		aOwner->ID, artefact->ID, true);
+	m_server->Process_event_reject(P, aOwner->ID, artefact->ID);
 }
 
 void game_sv_CaptureTheArtefact::ProcessPlayerDeath(game_PlayerState *playerState)
@@ -1733,7 +1728,7 @@ BOOL game_sv_CaptureTheArtefact::OnTouchItem(CSE_ActorMP *actor, CSE_Abstract *i
 						u_EventGen(P,GE_OWNERSHIP_REJECT, item->ID);
 						P.w_u16(e_child_item->ID);
 
-						m_server->Process_event_reject(P, m_server->GetServerClient()->ID, 0, item->ID, e_child_item->ID);
+						m_server->Process_event_reject(P, item->ID, e_child_item->ID);
 						continue;
 					}
 				}
