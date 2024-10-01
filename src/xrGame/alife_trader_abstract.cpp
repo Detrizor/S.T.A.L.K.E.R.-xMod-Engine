@@ -127,31 +127,37 @@ void CSE_ALifeDynamicObject::attach	(CSE_ALifeInventoryItem *tpALifeInventoryIte
 	children.push_back	(tpALifeInventoryItem->base()->ID);
 }
 
-void CSE_ALifeDynamicObject::detach(CSE_ALifeInventoryItem *tpALifeInventoryItem, ALife::OBJECT_IT *I, bool bALifeRequest, bool bRemoveChildren)
+void CSE_ALifeDynamicObject::detach(CSE_ALifeInventoryItem* tpALifeInventoryItem, ALife::OBJECT_IT* I, bool bALifeRequest, bool bRemoveChildren)
 {
-	CSE_ALifeDynamicObject					*l_tpALifeDynamicObject1 = smart_cast<CSE_ALifeDynamicObject*>(tpALifeInventoryItem);
-	R_ASSERT2								(l_tpALifeDynamicObject1,"Invalid children objects");
-	l_tpALifeDynamicObject1->o_Position		= o_Position;
-	l_tpALifeDynamicObject1->m_tNodeID		= m_tNodeID;
-	l_tpALifeDynamicObject1->m_tGraphID		= m_tGraphID;
-	l_tpALifeDynamicObject1->m_fDistance	= m_fDistance;
+	auto root							= this;
+	if (!bALifeRequest)
+		while (root->ID_Parent != u16_max)
+			root						= ai().alife().objects().object(root->ID_Parent);
+	
+	VERIFY								(bALifeRequest ||
+		ai().game_graph().vertex(root->m_tGraphID)->level_id() == alife().graph().level().level_id()
+	);
+
+	auto l_tpALifeDynamicObject1		= smart_cast<CSE_ALifeDynamicObject*>(tpALifeInventoryItem);
+	R_ASSERT2							(l_tpALifeDynamicObject1, "Invalid children objects");
+	l_tpALifeDynamicObject1->o_Position	= root->o_Position;
+	l_tpALifeDynamicObject1->m_tNodeID	= root->m_tNodeID;
+	l_tpALifeDynamicObject1->m_tGraphID	= root->m_tGraphID;
+	l_tpALifeDynamicObject1->m_fDistance= root->m_fDistance;
 
 	if (!bALifeRequest)
 		return;
 
 	tpALifeInventoryItem->base()->ID_Parent	= 0xffff;
 
-	if (I) {
-		children.erase			(*I);
+	if (I)
+	{
+		children.erase					(*I);
 		return;
 	}
 
-	if (!bRemoveChildren)
-		return;
-
-	ALife::OBJECT_IT			i = std::find(children.begin(),children.end(),tpALifeInventoryItem->base()->ID);
-	R_ASSERT2					(children.end() != i,"Can't detach an item which is not on my own");
-	children.erase				(i);
+	if (bRemoveChildren)
+		children.erase_data				(tpALifeInventoryItem->base()->ID);
 }
 
 void CSE_ALifeDynamicObject::add_online(const bool &update_registries)
