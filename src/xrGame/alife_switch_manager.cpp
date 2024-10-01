@@ -42,55 +42,40 @@ struct remove_non_savable_predicate {
 	}
 };
 
-CALifeSwitchManager::~CALifeSwitchManager	()
-{
-}
-
 void CALifeSwitchManager::add_online(CSE_ALifeDynamicObject *object, bool update_registries)
 {
-	START_PROFILE("ALife/switch/add_online")
-	VERIFY							((ai().game_graph().vertex(object->m_tGraphID)->level_id() == graph().level().level_id()));
+	START_PROFILE						("ALife/switch/add_online")
+	VERIFY								((ai().game_graph().vertex(object->m_tGraphID)->level_id() == graph().level().level_id()));
 
-	object->m_bOnline				= true;
+	object->m_bOnline					= true;
+	CSE_Abstract* l_tpAbstract			= smart_cast<CSE_Abstract*>(object);
+	server().entity_Destroy				(l_tpAbstract);
+	object->s_flags.or					(M_SPAWN_UPDATE);
+	server().Process_spawn				(NET_Packet(), ClientID(), false, l_tpAbstract);
+	object->s_flags.and					(u16(-1) ^ M_SPAWN_UPDATE);
+	object->add_online					(update_registries);
 
-	NET_Packet						tNetPacket;
-	CSE_Abstract					*l_tpAbstract = smart_cast<CSE_Abstract*>(object);
-	server().entity_Destroy			(l_tpAbstract);
-	object->s_flags.or				(M_SPAWN_UPDATE);
-	ClientID						clientID;
-	clientID.set					(server().GetServerClient() ? server().GetServerClient()->ID.value() : 0);
-	server().Process_spawn			(tNetPacket,clientID,FALSE,l_tpAbstract);
-	object->s_flags.and				(u16(-1) ^ M_SPAWN_UPDATE);
-
-	//Alundaio: Workaround for crash with corpses that end up outside AI map
-	//R_ASSERT2(!object->used_ai_locations() || ai().level_graph().valid_vertex_id(object->m_tNodeID), make_string("Invalid vertex for object %s", object->name_replace()));
-
-	object->add_online				(update_registries);
 	STOP_PROFILE
 }
 
 void CALifeSwitchManager::remove_online(CSE_ALifeDynamicObject *object, bool update_registries)
 {
-	START_PROFILE("ALife/switch/remove_online")
-	object->m_bOnline			= false;
-	
-	m_saved_chidren				= object->children;
-	CSE_ALifeTraderAbstract		*inventory_owner = smart_cast<CSE_ALifeTraderAbstract*>(object);
-	if (inventory_owner) {
-		m_saved_chidren.erase	(
-			std::remove_if(
-				m_saved_chidren.begin(),
-				m_saved_chidren.end(),
-				remove_non_savable_predicate(&server())
-			),
-			m_saved_chidren.end()
-		);
-	}
+	START_PROFILE						("ALife/switch/remove_online")
 
-	server().Perform_destroy	(object, xrServer::offline_switch);
-	VERIFY						(object->children.empty());
-	object->ID					= server().PerformIDgen(object->ID);
-	object->add_offline			(m_saved_chidren,update_registries);
+	object->m_bOnline					= false;
+	OBJECT_VECTOR saved_chidren			= object->children;
+	while (!object->children.empty())
+	{
+		CSE_Abstract* child				= server().game->get_entity_from_eid(object->children.back());
+		R_ASSERT2						(child, make_string("child registered but not found [%d]", object->children.back()));
+		server().Perform_reject			(object->ID, child->ID, xrServer::offline_switch);
+		remove_online					(smart_cast<CSE_ALifeDynamicObject*>(child), false);
+	}
+	server().Perform_destroy			(object, xrServer::offline_switch);
+	VERIFY								(object->children.empty());
+	object->ID							= server().PerformIDgen(object->ID);
+	object->add_offline					(saved_chidren, update_registries);
+
 	STOP_PROFILE
 }
 

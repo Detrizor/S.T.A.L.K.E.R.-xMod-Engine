@@ -177,18 +177,18 @@ void CSE_ALifeDynamicObject::add_online(const bool &update_registries)
 
 		child->o_Position				= o_Position;
 		child->m_tNodeID				= m_tNodeID;
-		alife().server().Process_spawn	(tNetPacket, clientID, FALSE, child_abstract);
+		alife().server().Process_spawn	(tNetPacket, clientID, false, child_abstract);
 		child->s_flags.and				(u16(-1) ^ M_SPAWN_UPDATE);
 		child->m_bOnline				= true;
 
-		child->add_online				(update_registries);
+		child->add_online				(false);
 	}
 
-	if (!update_registries)
-		return;
-
-	alife().scheduled().remove			(this);
-	alife().graph().remove				(this, m_tGraphID, false);
+	if (update_registries)
+	{
+		alife().scheduled().remove		(this);
+		alife().graph().remove			(this, m_tGraphID, false);
+	}
 }
 
 void CSE_ALifeDynamicObject::add_offline(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
@@ -198,27 +198,24 @@ void CSE_ALifeDynamicObject::add_offline(const xr_vector<ALife::_OBJECT_ID> &sav
 		auto child						= ai().alife().objects().object(id, true);
 		R_ASSERT						(child);
 
-		child->m_bOnline				= false;
-		child->ID						= alife().server().PerformIDgen(child->ID);
-
 		if (!child->can_save())
 		{
 			alife().release				(child);
 			continue;
 		}
+
 		child->clear_client_data		();
 		alife().graph().add				(child, child->m_tGraphID, false);
 //		alife().graph().attach			(*object,inventory_item,child->m_tGraphID,true);
 		alife().graph().remove			(child, child->m_tGraphID);
+
 		children.push_back				(child->ID);
 		child->ID_Parent				= ID;
-
-		child->add_offline				(child->children, update_registries);
 	}
 
-	if (!update_registries)
-		return;
-
-	alife().scheduled().add				(this);
-	alife().graph().add					(this, m_tGraphID,false);
+	if (update_registries)
+	{
+		alife().scheduled().add			(this);
+		alife().graph().add				(this, m_tGraphID, false);
+	}
 }

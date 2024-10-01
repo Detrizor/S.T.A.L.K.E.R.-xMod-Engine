@@ -40,16 +40,13 @@ void CSE_ALifeDynamicObject::on_unregister()
 void CSE_ALifeDynamicObject::switch_online			()
 {
 	R_ASSERT					(!m_bOnline);
-	m_bOnline					= true;
 	alife().add_online			(this);
 }
 
 void CSE_ALifeDynamicObject::switch_offline			()
 {
 	R_ASSERT					(m_bOnline);
-	m_bOnline					= false;
 	alife().remove_online		(this);
-
 	clear_client_data();
 }
 

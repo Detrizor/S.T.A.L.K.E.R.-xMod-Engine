@@ -10,7 +10,8 @@
 
 #include "alife_simulator_base.h"
 
-class CALifeSwitchManager : public virtual CALifeSimulatorBase, CRandom {
+class CALifeSwitchManager : public virtual CALifeSimulatorBase, CRandom
+{
 protected:
 	typedef CALifeSimulatorBase				inherited;
 	typedef ALife::OBJECT_VECTOR			OBJECT_VECTOR;
@@ -20,9 +21,6 @@ protected:
 	float			m_switch_factor;
 	float			m_online_distance;
 	float			m_offline_distance;
-
-private:
-	OBJECT_VECTOR	m_saved_chidren;
 
 protected:
 			bool	synchronize_location	(CSE_ALifeDynamicObject	*object);
@@ -37,7 +35,6 @@ public:
 
 public:
 	IC				CALifeSwitchManager		(xrServer *server, LPCSTR section);
-	virtual			~CALifeSwitchManager	();
 			void	switch_object			(CSE_ALifeDynamicObject	*object);
 	IC		float	online_distance			() const;
 	IC		float	offline_distance		() const;
