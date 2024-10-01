@@ -1312,9 +1312,10 @@ bool CInventory::PocketPresent(u16 pocket_id) const
 
 void CInventory::EmptyPockets()
 {
-	for (u8 i = 0; i < m_pockets_count; i++)
-		while (m_pockets[i].size())
-			Ruck(m_pockets[i].back());
+	for (auto& pocket : m_pockets)
+		for (auto item : pocket)
+			if (!ProcessItem(item))
+				item->O.transfer(u16_max);
 }
 
 u32	CInventory::dwfGetObjectCount()
