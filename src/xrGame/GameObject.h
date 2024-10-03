@@ -316,7 +316,7 @@ public:
 	
 	void								transfer							C$	(u16 id = u16_max, bool straight = false);
 	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f, bool straight = false);
-	CSE_Abstract*						giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f, bool straight = false);
+	xr_vector<CSE_Abstract*>			giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f, bool straight = false);
 
 	template <typename M, typename... Args>
 	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()].construct<M>(this, _STD forward<Args>(args)...); }

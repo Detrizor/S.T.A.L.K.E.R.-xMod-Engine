@@ -153,7 +153,7 @@ void CALifeSimulatorBase::register_item(
 		u16								dummy;
 		packet.r_begin					(dummy);
 		VERIFY							(dummy == M_SPAWN);
-		item							= server().Process_spawn(packet, ClientID(0xffff), straight);
+		item							= server().Process_spawn(packet, ClientID(0xffff), false, nullptr, straight);
 		dynamic_object					= smart_cast<CSE_ALifeDynamicObject*>(item);
 	}
 	else
@@ -206,7 +206,7 @@ CSE_Abstract* CALifeSimulatorBase::spawn_item(
 	return								item;
 }
 
-CSE_Abstract* CALifeSimulatorBase::spawn_items(
+xr_vector<CSE_Abstract*> CALifeSimulatorBase::spawn_items(
 	LPCSTR section,
 	const Fvector& position,
 	u32 level_vertex_id,
@@ -216,6 +216,7 @@ CSE_Abstract* CALifeSimulatorBase::spawn_items(
 	float condition,
 	bool straight)
 {
+	xr_vector<CSE_Abstract*> res		= {};
 	while (true)
 	{
 		auto item						= create_item(section, condition);
@@ -234,8 +235,9 @@ CSE_Abstract* CALifeSimulatorBase::spawn_items(
 			count--;
 		}
 		register_item					(item, position, level_vertex_id, game_vertex_id, parent_id, straight);
+		res.push_back					(item);
 		if (count <= 0)
-			return						item;
+			return						res;
 	}
 }
 

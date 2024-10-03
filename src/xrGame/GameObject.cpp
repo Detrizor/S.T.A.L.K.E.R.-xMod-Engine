@@ -1069,7 +1069,7 @@ CSE_Abstract* CGameObject::giveItem(LPCSTR section, float condition, bool straig
 	);
 }
 
-CSE_Abstract* CGameObject::giveItems(LPCSTR section, u16 count, float condition, bool straight) const
+xr_vector<CSE_Abstract*> CGameObject::giveItems(LPCSTR section, u16 count, float condition, bool straight) const
 {
 	return const_cast<CALifeSimulator&>(ai().alife()).spawn_items(section,
 		Position(),

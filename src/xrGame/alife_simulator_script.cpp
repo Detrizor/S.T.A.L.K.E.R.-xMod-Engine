@@ -127,22 +127,44 @@ CSE_ALifeDynamicObject *CALifeSimulator__create	(CALifeSimulator *self, ALife::_
 	return								(object);
 }
 
-CSE_Abstract* CALifeSimulator__spawn_items(CALifeSimulator* self, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, float condition, u16 count)
+CSE_Abstract* CALifeSimulator__spawn_items(CALifeSimulator* self,
+	LPCSTR section,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	ALife::_OBJECT_ID id_parent,
+	float condition,
+	u16 count)
 {
-	return								self->spawn_items(section, position, level_vertex_id, game_vertex_id, id_parent, count, condition);
+	return								self->spawn_items(section, position, level_vertex_id, game_vertex_id, id_parent, count, condition).back();
 }
 
-CSE_Abstract* CALifeSimulator__spawn_items1(CALifeSimulator* self, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent, float condition)
+CSE_Abstract* CALifeSimulator__spawn_items1(CALifeSimulator* self,
+	LPCSTR section,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	ALife::_OBJECT_ID id_parent,
+	float condition)
 {
 	return								CALifeSimulator__spawn_items(self, section, position, level_vertex_id, game_vertex_id, id_parent, condition, u16_max);
 }
 
-CSE_Abstract* CALifeSimulator__spawn_items2(CALifeSimulator* self, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, ALife::_OBJECT_ID id_parent)
+CSE_Abstract* CALifeSimulator__spawn_items2(CALifeSimulator* self,
+	LPCSTR section,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id,
+	ALife::_OBJECT_ID id_parent)
 {
 	return								CALifeSimulator__spawn_items1(self, section, position, level_vertex_id, game_vertex_id, id_parent, 1.f);
 }
 
-CSE_Abstract* CALifeSimulator__spawn_items3(CALifeSimulator* self, LPCSTR section, const Fvector& position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id)
+CSE_Abstract* CALifeSimulator__spawn_items3(CALifeSimulator* self,
+	LPCSTR section,
+	Fvector CR$ position,
+	u32 level_vertex_id,
+	GameGraph::_GRAPH_ID game_vertex_id)
 {
 	return								CALifeSimulator__spawn_items2(self, section, position, level_vertex_id, game_vertex_id, u16_max);
 }
