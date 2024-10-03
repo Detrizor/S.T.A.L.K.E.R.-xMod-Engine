@@ -31,6 +31,8 @@ class CPurchaseList;
 class CWeapon;
 class CCustomOutfit;
 class CHelmet;
+class CCartridge;
+class MMagazine;
 
 class CInventoryOwner : public CAttachmentOwner
 {
@@ -158,7 +160,8 @@ public:
 	CCustomOutfit*	GetOutfit				() const;
 	CHelmet*		GetHelmet				() const;
 
-	bool			discharge				(PIItem item, bool with_chamber = false, bool full = false);
+	bool			pushCartridge			(CCartridge& cartridge) const;
+	bool			discharge				(MMagazine* mag) const;
 
 	bool CanPlayShHdRldSounds				() const {return m_play_show_hide_reload_sounds;};
 	void SetPlayShHdRldSounds				(bool play) {m_play_show_hide_reload_sounds = play;};

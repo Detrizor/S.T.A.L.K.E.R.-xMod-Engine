@@ -216,31 +216,6 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	SwitchState							(eReload);
 }
 
-bool CWeaponMagazined::discharge(CCartridge& destination, bool with_chamber)
-{
-	if (m_actor)
-	{
-#ifdef	EXTENDED_WEAPON_CALLBACKS
-		int	AC = GetSuitableAmmoTotal();
-		m_actor->callback(GameObject::eOnWeaponMagazineEmpty)(lua_game_object(), AC);
-#endif
-	}
-
-	if (with_chamber && m_chamber.size())
-	{
-		reload_chamber					(&destination);
-		return							true;
-	}
-
-	if (m_bTriStateReload && m_magazine && m_magazine->Amount())
-	{
-		m_magazine->getCartridge		(destination);
-		return							true;
-	}
-	
-	return								false;
-}
-
 bool CWeaponMagazined::canTake(CWeaponAmmo CPC ammo, bool chamber) const
 {
 	if (chamber && m_chamber.capacity() && !m_lock_state_shooting || !chamber && m_bTriStateReload)
@@ -1291,10 +1266,8 @@ void CWeaponMagazined::process_magazine(MMagazine* magazine, bool attach)
 {
 	m_magazine							= (attach) ? magazine : nullptr;
 	if (!attach && !magazine->attachAnm().size())
-	{
 		if (auto owner = H_Parent()->scast<CInventoryOwner*>())
-			owner->discharge			(magazine->O.getModule<CInventoryItem>(), false, true);
-	}
+			owner->discharge			(magazine);
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)

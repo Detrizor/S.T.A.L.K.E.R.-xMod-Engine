@@ -29,6 +29,7 @@
 #include "Bolt.h"
 #include "Magazine.h"
 #include "item_container.h"
+#include "addon.h"
 
 CInventoryOwner::CInventoryOwner()
 {
@@ -635,36 +636,36 @@ void CInventoryOwner::deadbody_closed(bool status)
 	CGameObject::u_EventSend(P);
 }
 
-bool CInventoryOwner::discharge(PIItem item, bool with_chamber, bool full)
+bool CInventoryOwner::pushCartridge(CCartridge& cartridge) const
 {
-	MMagazine* mag							= item->O.getModule<MMagazine>();
-	CWeaponMagazined* wpn					= item->O.scast<CWeaponMagazined*>();
-	CCartridge								cartridge;
-	bool flag								= false;
-	while ((mag) ? mag->getCartridge(cartridge) : wpn->discharge(cartridge, with_chamber))
+	for (auto& pocket : inventory().m_pockets)
 	{
-		bool given							= false;
-		for (auto I : inventory().m_all)
+		for (auto I : pocket)
 		{
-			CWeaponAmmo* heap				= smart_cast<CWeaponAmmo*>(I);
+			auto heap					= I->O.scast<CWeaponAmmo*>();
 			if (heap && heap->GetAmmoCount() < heap->m_boxSize &&
 				heap->m_section_id == cartridge.m_ammoSect &&
 				fEqual(heap->GetCondition(), cartridge.m_fCondition))
 			{
-				heap->ChangeAmmoCount		(1);
-				given						= true;
-				break;
+				heap->ChangeAmmoCount	(1);
+				return					true;
 			}
 		}
-		if (!given)
-			O->giveItem						(*cartridge.m_ammoSect, cartridge.m_fCondition);
+	}
+	return								false;
+}
 
-		if (!full)
-			return							true;
-		flag								= true;
+bool CInventoryOwner::discharge(MMagazine* mag) const
+{
+	CCartridge							cartridge;
+	if (mag->getCartridge(cartridge))
+	{
+		if (!pushCartridge(cartridge))
+			O->giveItem					(cartridge.m_ammoSect.c_str(), cartridge.m_fCondition);
+		return							true;
 	}
 
-	return									flag;
+	return								false;
 }
 
 float CInventoryOwner::GetProtection(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const

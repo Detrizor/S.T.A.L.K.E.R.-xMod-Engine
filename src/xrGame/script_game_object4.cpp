@@ -715,8 +715,8 @@ u32 CScriptGameObject::Capacity() const
 bool CScriptGameObject::Discharge(CScriptGameObject* obj)
 {
 	if (auto owner = object().scast<CInventoryOwner*>())
-		if (auto item = obj->object().getModule<CInventoryItem>())
-			return					owner->discharge(item, true);
+		if (auto mag = obj->object().getModule<MMagazine>())
+			return					owner->discharge(mag);
 	return							false;
 }
 

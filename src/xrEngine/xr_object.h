@@ -217,6 +217,8 @@ protected:
 public:
 	template <typename T>
 	T									scast									()		{ return smart_cast<T>(this); }
+	template <typename T>
+	T const*							scast								C$	()		{ return smart_cast<T const*>(this); }
 	
 	template <typename M>
 	M*									getModule							C$	()

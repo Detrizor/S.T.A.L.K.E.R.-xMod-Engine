@@ -266,7 +266,6 @@ public:
 
 	void								OnTaken								O$	();
 
-	virtual	bool						discharge								(CCartridge& destination, bool with_chamber);
 	virtual	bool						tryTransfer								(MAddon* addon, bool attach);
 	virtual	bool						canTake								C$	(CWeaponAmmo CPC ammo, bool chamber);
 

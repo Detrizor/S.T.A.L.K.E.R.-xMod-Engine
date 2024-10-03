@@ -37,13 +37,6 @@ LPCSTR CWeaponBM16::anmType() const
 void CWeaponBM16::ReloadMagazine()
 {
 	m_BriefInfo_CalcFrame				= 0;
-
-	if (m_chamber.size() == m_chamber.capacity())
-	{
-		auto owner						= H_Parent()->scast<CInventoryOwner*>();
-		bool full						= unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() > 1);
-		owner->discharge				(getModule<CInventoryItem>(), true, full);
-	}
 	
 	int count							= try_consume_ammo(m_chamber.capacity() - m_chamber.size());
 	while (count--)
