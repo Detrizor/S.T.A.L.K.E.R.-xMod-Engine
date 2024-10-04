@@ -5,23 +5,17 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "WeaponAmmo.h"
 #include "Weapon.h"
+#include "addon_owner.h"
+#include "addon.h"
 
 MMagazine::MMagazine(CGameObject* obj, shared_str CR$ section) :
 	CModule(obj),
 	m_capacity(pSettings->r_u32(section, "capacity")),
 	m_bullets_visible(!!pSettings->r_BOOL(section, "bullets_visible")),
 	m_attach_anm(pSettings->r_string(section, "attach_anm")),
-	m_detach_anm(pSettings->r_string(section, "detach_anm"))
+	m_detach_anm(pSettings->r_string(section, "detach_anm")),
+	m_ammo_slot_type(pSettings->r_string(section, "ammo_slot_type"))
 {
-	LPCSTR S							= pSettings->r_string(section, "ammo_class");
-	string128							_ammoItem;
-	int count							= _GetItemCount(S);
-	for (int it = 0; it < count; ++it)
-	{
-		_GetItem						(S, it, _ammoItem);
-		m_ammo_types.push_back			(_ammoItem);
-	}
-	
 	update_bullets_visibility			();
 }
 
@@ -100,18 +94,13 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 	return								CModule::aboba(type, data, param);
 }
 
-bool MMagazine::CanTake(CWeaponAmmo CPC ammo)
+bool MMagazine::canTake(CWeaponAmmo CPC ammo) const
 {
 	if (Full())
 		return							false;
 
-	for (auto& I : m_ammo_types)
-	{
-		if (I == ammo->m_section_id)
-			return						true;
-	}
-
-	return								false;
+	auto addon							= ammo->getModule<MAddon>();
+	return								CAddonSlot::isCompatible(m_ammo_slot_type, addon->SlotType());
 }
 
 void MMagazine::loadCartridge(CCartridge CR$ cartridge, int count)

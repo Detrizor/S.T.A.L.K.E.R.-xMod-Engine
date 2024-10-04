@@ -314,28 +314,22 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 
 	if (ItemCategory(section, "magazine"))
 	{
-		if (READ_IF_EXISTS(pSettings, r_BOOL, section, "can_be_discharged", TRUE))
-		{
-			LPCSTR ammo_class				= pSettings->r_string(section, "ammo_class");
-			string128						buffer;
-			LPCSTR ammo_type				= _GetItem(ammo_class, 0, buffer);
-			m_ammo_type->SetStrValue		(CInventoryItem::readNameShort(ammo_type));
-			pos.set							(m_ammo_type->GetWndPos());
-			pos.y							= h;
-			m_ammo_type->SetWndPos			(pos);
-			h								+= m_ammo_type->GetWndSize().y;
-			AttachChild						(m_ammo_type.get());
-		}
-		else
-			m_ammo_type->SetStrValue		("");
+		LPCSTR ammo_slot_type			= pSettings->r_string(section, "ammo_slot_type");
+		LPCSTR slot_name				= CAddonSlot::getSlotName(ammo_slot_type);
+		m_ammo_type->SetStrValue		(CStringTable().translate(slot_name).c_str());
+		pos.set							(m_ammo_type->GetWndPos());
+		pos.y							= h;
+		m_ammo_type->SetWndPos			(pos);
+		h								+= m_ammo_type->GetWndSize().y;
+		AttachChild						(m_ammo_type.get());
 
-		float capacity						= pSettings->r_float(section, "capacity");
-		m_capacity->SetValue				(capacity);
-		pos.set								(m_capacity->GetWndPos());
-		pos.y								= h;
-		m_capacity->SetWndPos				(pos);
-		h									+= m_capacity->GetWndSize().y;
-		AttachChild							(m_capacity.get());
+		float capacity					= pSettings->r_float(section, "capacity");
+		m_capacity->SetValue			(capacity);
+		pos.set							(m_capacity->GetWndPos());
+		pos.y							= h;
+		m_capacity->SetWndPos			(pos);
+		h								+= m_capacity->GetWndSize().y;
+		AttachChild						(m_capacity.get());
 	}
 
 	auto item							= PIItem(itm->m_pData);

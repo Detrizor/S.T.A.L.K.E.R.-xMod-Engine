@@ -20,9 +20,9 @@ private:
 	const bool							m_bullets_visible;
 	const shared_str					m_attach_anm;
 	const shared_str					m_detach_anm;
+	const shared_str					m_ammo_slot_type;
 
 	xr_vector<CWeaponAmmo*>				m_heaps									= {};
-	xr_vector<shared_str>				m_ammo_types							= {};
 	u16									m_amount								= 0;
 	float								m_weight								= 0.f;
 
@@ -32,11 +32,12 @@ private:
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
 public:
-	bool								CanTake									(CWeaponAmmo CPC ammo);
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);
 	void								loadCartridge							(CWeaponAmmo* ammo);
 	bool								getCartridge							(CCartridge& destination, bool expend = true);
 	void								setCondition							(float val);
+	
+	bool								canTake								C$	(CWeaponAmmo CPC ammo);
 	
 	u16									Amount								C$	()		{ return m_amount; }
 	u16									Capacity							C$	()		{ return m_capacity; };	
