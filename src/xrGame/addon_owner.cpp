@@ -165,9 +165,32 @@ void MAddonOwner::calcSlotsBoneOffset(attachable_hud_item* hi)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
+LPCSTR get_base_slot_name(LPCSTR slot_type)
 {
 	return								CStringTable().translate(shared_str().printf("st_addon_slot_%s", slot_type)).c_str();
+}
+
+LPCSTR CAddonSlot::getSlotName(LPCSTR slot_type)
+{
+	auto process_exceptions = [slot_type](RStringVec& vec, LPCSTR divider)
+	{
+		shared_str res					= 0;
+		for (auto& ex : vec)
+		{
+			LPCSTR slot_name			= get_base_slot_name(ex.c_str());
+			if (!res)
+				res						= slot_name;
+			else
+				res.printf				("%s%s%s", res.c_str(), divider, slot_name);
+		}
+		return							res.c_str();
+	};
+
+	if (slot_exceptions.contains(slot_type))
+		return							process_exceptions(slot_exceptions[slot_type], " / ");
+	else if (addon_exceptions.contains(slot_type))
+		return							process_exceptions(addon_exceptions[slot_type], ", ");
+	return								get_base_slot_name(slot_type);
 }
 
 CAddonSlot::CAddonSlot(u16 _idx, MAddonOwner PC$ _parent_ao) : parent_ao(_parent_ao), idx(_idx)
