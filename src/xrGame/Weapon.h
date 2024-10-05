@@ -100,7 +100,6 @@ public:
 		eSubstateReloadBoltPull,
 		eSubstateReloadBoltLock,
 		eSubstateReloadBoltRelease,
-		eSubstateReloadChamber,
 		eSubstateReloadAttachG,
 		eSubstateReloadDetachG,
 	};

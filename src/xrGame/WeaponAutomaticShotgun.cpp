@@ -46,12 +46,7 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	switch (m_sub_state)
 	{
 	case eSubstateReloadBegin:
-		if (!m_chamber.loaded() && HudAnimationExist("anm_load_chamber"))
-		{
-			m_sub_state					= eSubstateReloadChamber;
-			PlayAnimReload				();
-		}
-		else if (HudAnimationExist("anm_open"))
+		if (HudAnimationExist("anm_open"))
 		{
 			PlayHUDMotion				("anm_open", TRUE, GetState());
 			if (m_sounds_enabled)
@@ -128,11 +123,6 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadEnd:
 		SwitchState						(eIdle);
-		break;
-	case eSubstateReloadChamber:
-		inherited::OnAnimationEnd		(state);
-		m_sub_state						= eSubstateReloadInProcess;
-		PlayAnimReload					();
 		break;
 	default:
 		inherited::OnAnimationEnd		(state);

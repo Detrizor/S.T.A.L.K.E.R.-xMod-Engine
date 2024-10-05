@@ -207,6 +207,7 @@ private:
 
 	bool								has_ammo_to_shoot					C$	();
 	bool								is_auto_bolt_allowed				C$	();
+	bool								need_loaded_anm						C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();

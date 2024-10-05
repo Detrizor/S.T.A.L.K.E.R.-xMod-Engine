@@ -71,9 +71,9 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock", "sndBoltLock", true, m_eSoundReload); 
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock", "sndBoltLock", true, m_eSoundReload);
+	m_sounds.LoadSound					(*HudSection(), "snd_bolt_lock_loaded", "sndBoltLockLoaded", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_release", "sndBoltRelease", true, m_eSoundReload);
-	m_sounds.LoadSound					(*HudSection(), "snd_load_chamber", "sndLoadChamber", true, m_eSoundReload);
 
 	if (pSettings->line_exist(section, "base_dispersioned_bullets_count"))
 	{
@@ -454,7 +454,7 @@ void CWeaponMagazined::UpdateSounds()
 	m_sounds.SetPosition("sndBoltPull", P);
 	m_sounds.SetPosition("sndBoltRelease", P);
 	m_sounds.SetPosition("sndBoltLock", P);
-	m_sounds.SetPosition("sndLoadChamber", P);
+	m_sounds.SetPosition("sndBoltLockLoaded", P);
 }
 
 void CWeaponMagazined::state_Fire(float dt)
