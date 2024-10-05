@@ -406,27 +406,6 @@ void CScriptGameObject::SetHealthEx(float hp)
 }
 //-AVO
 
-void CScriptGameObject::initReload(CScriptGameObject* obj)
-{
-	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
-		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
-			wpn->initReload				(ammo);
-}
-
-void CScriptGameObject::loadChamber(CScriptGameObject* obj)
-{
-	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
-		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
-			wpn->loadChamber			(cartridge);
-}
-
-void CScriptGameObject::loadCartridge(CScriptGameObject* obj)
-{
-	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
-		if (auto mag = object().getModule<MMagazine>())
-			mag->loadCartridge			(cartridge);
-}
-
 void CScriptGameObject::ActorSetHealth(float h)
 {
 	CActor* actor = smart_cast<CActor*>(&object());
@@ -720,13 +699,16 @@ bool CScriptGameObject::Discharge(CScriptGameObject* obj)
 	return							false;
 }
 
-bool CScriptGameObject::CanTake(CScriptGameObject* obj, bool chamber) const
+bool CScriptGameObject::CanTake(CScriptGameObject* obj)
 {
-	if (auto ammo = smart_cast<CWeaponAmmo*>(&obj->object()))
+	if (auto ammo = obj->object().scast<CWeaponAmmo*>())
 	{
-		if (auto wpn = object().scast<CWeaponMagazined*>())
-			return					wpn->canTake(ammo, chamber);
-		else if (auto mag = object().getModule<MMagazine>())
+		auto mag					= object().getModule<MMagazine>();
+		if (!mag)
+			if (auto wpn = object().scast<CWeaponMagazined*>())
+				if (wpn->IsTriStateReload())
+					mag				= wpn->getMagazine();
+		if (mag)
 			return					mag->canTake(ammo);
 	}
 	return							false;
@@ -752,13 +734,6 @@ u8 CScriptGameObject::GetInvIconIndex() const
 		return						item->GetInvIconIndex();
 
 	return							0;
-}
-
-bool CScriptGameObject::isEmptyChamber() const
-{
-	if (auto wpn = object().scast<CWeaponMagazined*>())
-		return							wpn->isEmptyChamber();
-	return								false;
 }
 
 float CScriptGameObject::Power() const
@@ -911,6 +886,35 @@ bool CScriptGameObject::isFolded() const
 {
 	if (auto foldable = object().getModule<MFoldable>())
 		return							foldable->getStatus();
+}
+
+void CScriptGameObject::loadChamber(CScriptGameObject* obj) const
+{
+	if (auto cartridge = smart_cast<CWeaponAmmo*>(&obj->object()))
+		if (auto wpn = smart_cast<CWeaponMagazined*>(&object()))
+			wpn->loadChamber			(cartridge);
+}
+
+void CScriptGameObject::unloadChamber(CScriptGameObject* obj) const
+{
+	if (auto addon = obj->object().getModule<MAddon>())
+		if (auto wpn = object().scast<CWeaponMagazined*>())
+			wpn->unloadChamber			(addon);
+}
+
+bool CScriptGameObject::tryChargeMagazine(CScriptGameObject* obj) const
+{
+	if (auto wpn = object().scast<CWeaponMagazined*>())
+		if (auto ammo = obj->object().scast<CWeaponAmmo*>())
+			return						wpn->tryChargeMagazine(ammo);
+	return								false;
+}
+
+void CScriptGameObject::chargeMagazine(CScriptGameObject* obj) const
+{
+	if (auto cartridge = obj->object().scast<CWeaponAmmo*>())
+		if (auto mag = object().getModule<MMagazine>())
+			mag->loadCartridge			(cartridge);
 }
 
 #define SPECIFIC_CAST(A,B)\

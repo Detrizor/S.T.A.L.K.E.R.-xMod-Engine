@@ -399,13 +399,6 @@ u32	CSE_ALifeItemWeapon::ef_weapon_type() const
 	return	(m_ef_weapon_type);
 }
 
-void CSE_ALifeItemWeapon::STATE_Write		(NET_Packet	&tNetPacket)
-{
-	inherited::STATE_Write		(tNetPacket);
-	tNetPacket.w_u8				(ammo_type);
-	tNetPacket.w_u8				(a_chamber);
-}
-
 void CSE_ALifeItemWeapon::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 {
 	inherited::STATE_Read		(tNetPacket, size);
@@ -422,14 +415,14 @@ void CSE_ALifeItemWeapon::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 	if (m_wVersion > 40 && m_wVersion < 129)
 		tNetPacket.r_u8			();
 
-	if (m_wVersion > 46)
-		tNetPacket.r_u8			(ammo_type);
+	if (m_wVersion > 46 && m_wVersion < 135)
+		tNetPacket.r_u8			();
 	
 	if (m_wVersion > 122 && m_wVersion < 129)
 		tNetPacket.r_u8			();
 
-	if (m_wVersion >= 129)
-		tNetPacket.r_u8			(a_chamber);
+	if (m_wVersion >= 129 && m_wVersion < 135)
+		tNetPacket.r_u8			();
 }
 
 u8	 CSE_ALifeItemWeapon::get_slot			()

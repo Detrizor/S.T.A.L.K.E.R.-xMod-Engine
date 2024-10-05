@@ -54,12 +54,12 @@ float CWeapon::GetWeaponDeterioration	()
 
 void CWeapon::FireTrace()
 {
-	m_shot_cartridge					= getCartridgeToShoot();
-	VERIFY								(m_shot_cartridge.bullet_material_idx != u16_max);
+	prepare_cartridge_to_shoot			();
+	VERIFY								(m_cartridge.bullet_material_idx != u16_max);
 
 	Fvector p							= get_LastFP();
-	Fvector d							= getFullFireDirection(m_shot_cartridge);
-	float disp							= GetFireDispersion(&m_shot_cartridge);
+	Fvector d							= getFullFireDirection(m_cartridge);
+	float disp							= GetFireDispersion();
 	bool SendHit						= SendHitAllowed(H_Parent());
 
 	if (!HudItemData())
@@ -69,17 +69,18 @@ void CWeapon::FireTrace()
 	}
 
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
-	for (int i = 0; i < m_shot_cartridge.param_s.buckShot; ++i)
-		FireBullet						(p, d, disp, m_shot_cartridge, H_Parent()->ID(), ID(), SendHit);
+	for (int i = 0; i < m_cartridge.param_s.buckShot; ++i)
+		FireBullet						(p, d, disp, m_cartridge, H_Parent()->ID(), ID(), SendHit);
 
 	StartShotParticles					();
 	Light_Start							();
 
-	float shot_speed					= m_barrel_len * m_muzzle_koefs.bullet_speed * m_shot_cartridge.param_s.bullet_speed_per_barrel_len;
-	float shot_mass						= m_shot_cartridge.param_s.fBulletMass * m_shot_cartridge.param_s.buckShot;
+	float shot_speed					= m_barrel_len * m_muzzle_koefs.bullet_speed * m_cartridge.param_s.bullet_speed_per_barrel_len;
+	float shot_mass						= m_cartridge.param_s.fBulletMass * m_cartridge.param_s.buckShot;
 	appendRecoil						(shot_speed * shot_mass);
 
-	ChangeCondition						(-GetWeaponDeterioration() * l_cartridge.param_s.impair);
+	if (!unlimited_ammo())
+		ChangeCondition					(-GetWeaponDeterioration() * m_cartridge.param_s.impair);
 }
 
 void CWeapon::StopShooting()

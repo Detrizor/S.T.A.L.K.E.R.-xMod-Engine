@@ -421,9 +421,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		//xMod functions
 		.def("volume",						&CScriptGameObject::Volume)
 		.def("get_total_volume",			&CScriptGameObject::GetTotalVolume)
-		.def("load_cartridge",				&CScriptGameObject::loadCartridge)
-		.def("load_chamber",				&CScriptGameObject::loadChamber)
-		.def("init_reload",					&CScriptGameObject::initReload)
 		.def("set_health",					&CScriptGameObject::ActorSetHealth)
 		.def("set_power",					&CScriptGameObject::ActorSetPower)
 		.def("set_speed_scale",				&CScriptGameObject::ActorSetSpeedScale)
@@ -472,8 +469,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("amount",						&CScriptGameObject::Amount)
 		.def("capacity",					&CScriptGameObject::Capacity)
 		.def("discharge",					&CScriptGameObject::Discharge)
-		.def("can_take",					&CScriptGameObject::CanTakeNoChamber)
-		.def("can_take_to_chamber",			&CScriptGameObject::CanTakeToChamber)
+		.def("can_take",					&CScriptGameObject::CanTake)
 		.def("transfer",					&CScriptGameObject::Transfer)
 		.def("set_inv_icon",				&CScriptGameObject::SetInvIcon)
 		.def("get_inv_icon_index",			&CScriptGameObject::GetInvIconIndex)
@@ -481,7 +477,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("artefact_radiation",			&CScriptGameObject::Radiation)
 		.def("absorbation",					&CScriptGameObject::Absorbation)
 		.def("aiming",						&CScriptGameObject::Aiming)
-		.def("is_empty_chamber",			&CScriptGameObject::isEmptyChamber)
 		.def("inv_name",					&CScriptGameObject::getInvName)
 		.def("inv_name_short",				&CScriptGameObject::getInvNameShort)
 			
@@ -503,6 +498,12 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("fold",						&CScriptGameObject::fold)
 		.def("unfold",						&CScriptGameObject::unfold)
 		.def("is_folded",					&CScriptGameObject::isFolded)
+			
+		.def("load_chamber",				&CScriptGameObject::loadChamber)
+		.def("unload_chamber",				&CScriptGameObject::unloadChamber)
+
+		.def("try_charge_magazine",			&CScriptGameObject::tryChargeMagazine)
+		.def("charge_magazine",				&CScriptGameObject::chargeMagazine)
 #endif
 
 

@@ -6,6 +6,7 @@
 #include "inventory.h"
 #include "level.h"
 #include "actor.h"
+#include "addon.h"
 
 void CWeaponAutomaticShotgun::Load(LPCSTR section)
 {
@@ -29,7 +30,7 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 		(m_sub_state == eSubstateReloadInProcess || m_sub_state == eSubstateReloadBegin) &&
 		(cmd == kWPN_FIRE || cmd == kWPN_RELOAD))		//остановить перезагрузку
 	{
-		m_sub_state						= (cmd == kWPN_RELOAD && isEmptyChamber() && !m_locked) ? eSubstateReloadBoltPull : eSubstateReloadEnd;
+		m_sub_state						= (cmd == kWPN_RELOAD && uncharged() && !m_locked) ? eSubstateReloadBoltPull : eSubstateReloadEnd;
 		m_sounds.StopAllSounds			();
 		PlayAnimReload					();
 		return							true;
@@ -45,7 +46,7 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	switch (m_sub_state)
 	{
 	case eSubstateReloadBegin:
-		if (isEmptyChamber() && HudAnimationExist("anm_load_chamber"))
+		if (!m_chamber.loaded() && HudAnimationExist("anm_load_chamber"))
 		{
 			m_sub_state					= eSubstateReloadChamber;
 			PlayAnimReload				();
@@ -68,7 +69,7 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 		}
 		break;
 	case eSubstateReloadInProcess:
-		if (can_load_cartridge())
+		if (m_magazine && !m_magazine->Full() && has_ammo_for_reload())
 		{
 			PlayHUDMotion				("anm_add_cartridge", TRUE, GetState());
 			if (m_sounds_enabled)
@@ -112,29 +113,16 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadBoltLock:
-		m_locked						= true;
-		if (m_chamber.size() && m_magazine)
-		{
-			unload_chamber				(&m_cartridge);
-			m_magazine->loadCartridge	(m_cartridge);
-		}
-		else
-			unload_chamber				();
-		if (!m_actor || m_current_ammo)
+		if (!on_bolt_lock() && m_current_ammo)
 		{
 			m_sub_state					= eSubstateReloadInProcess;
-			PlayAnimReload				();
-		}
-		else if (m_magazine_slot && m_magazine_slot->isLoading())
-		{
-			m_sub_state					= eSubstateReloadAttach;
 			PlayAnimReload				();
 		}
 		else
 			SwitchState					(eIdle);
 		break;
 	case eSubstateReloadInProcess:
-		if (!reload_сartridge())
+		if (!reload_cartridge())
 			m_sub_state					= eSubstateReloadEnd;
 		PlayAnimReload					();
 		break;
@@ -149,14 +137,4 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 	default:
 		inherited::OnAnimationEnd		(state);
 	}
-}
-
-bool CWeaponAutomaticShotgun::can_load_cartridge() const
-{
-	return								m_magazine && !m_magazine->Full() && has_ammo_for_reload();
-}
-
-bool CWeaponAutomaticShotgun::is_dummy_anm() const
-{
-	return								!m_shot_shell && (m_sub_state == eSubstateReloadBoltPull && m_chamber.empty() || m_sub_state == eSubstateReloadBoltLock);
 }

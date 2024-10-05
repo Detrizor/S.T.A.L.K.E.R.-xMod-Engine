@@ -154,8 +154,6 @@ typedef CSE_ALifeItem inherited;
 
 public:
 	u8								wpn_flags			= 0;
-	u8								ammo_type			= 0;
-	u8								a_chamber			= 0;
 
 	LPCSTR							m_caAmmoSections;
 	u32								m_dwAmmoAvailable;
@@ -173,7 +171,6 @@ public:
 
 public:
 	void STATE_Read(NET_Packet& P, u16 size) override;
-	void STATE_Write(NET_Packet& P) override;
 
 	static void script_register(lua_State*);
 };

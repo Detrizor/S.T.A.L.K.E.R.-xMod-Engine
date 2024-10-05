@@ -18,10 +18,6 @@ protected:
 	ESoundTypes		m_eSoundOpen					= SOUND_TYPE_WEAPON_RECHARGING;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
-	
-private:
-	bool								can_load_cartridge					C$	();
-	bool								is_dummy_anm						CO$	();
 };
 
 add_to_type_list(CWeaponAutomaticShotgun)

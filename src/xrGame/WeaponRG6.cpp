@@ -10,17 +10,12 @@
 #	include "phdebug.h"
 #endif
 
-
-CWeaponRG6::~CWeaponRG6()
-{
-}
-
 BOOL	CWeaponRG6::net_Spawn				(CSE_Abstract* DC)
 {
 	BOOL l_res = inheritedSG::net_Spawn(DC);
 	if (!l_res) return l_res;
 
-	if (m_chamber.size() && !getCurrentRocket())
+	/*if (m_chamber.size() && !getCurrentRocket())		--xd to reimplement in the future
 	{
 		shared_str grenade_name = m_ammoTypes[0];
 		shared_str fake_grenade_name = pSettings->r_string(grenade_name, "fake_grenade_name");
@@ -35,7 +30,7 @@ BOOL	CWeaponRG6::net_Spawn				(CSE_Abstract* DC)
 			}
 		}
 //			inheritedRL::SpawnRocket(*fake_grenade_name, this);
-	}
+	}*/ 
 	
 
 	
@@ -135,9 +130,9 @@ void CWeaponRG6::FireStart ()
 	}
 }
 
-bool CWeaponRG6::reload_ñartridge()
+bool CWeaponRG6::reload_cartridge()
 {
-	if (inheritedSG::reload_ñartridge())
+	if (inheritedSG::reload_cartridge())
 	{
 		inheritedRL::SpawnRocket	(pSettings->r_string(m_cartridge.m_ammoSect, "fake_grenade_name"), this);
 		return						true;

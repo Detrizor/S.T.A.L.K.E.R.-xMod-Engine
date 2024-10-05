@@ -33,7 +33,7 @@
 
 ENGINE_API	bool	g_dedicated_server;
 
-CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : CWeapon()
+CWeaponMagazined::CWeaponMagazined(ESoundTypes eSoundType) : m_chamber(this)
 {
 	m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
 	m_eSoundHide = ESoundTypes(SOUND_TYPE_ITEM_HIDING | eSoundType);
@@ -175,17 +175,30 @@ void CWeaponMagazined::Reload()
 		return;
 	}
 
-	if (IsMisfire() || m_actor && m_chamber.capacity() && (!m_lock_state_shooting || is_mag_empty()))
+	if (IsMisfire())
+		StartReload						((m_lock_state_shooting) ? eSubstateReloadBoltLock : eSubstateReloadBoltPull);
+	else if (m_actor)
 	{
-		m_current_ammo					= false;
-		if (m_locked)
-			StartReload					(eSubstateReloadBoltRelease);
-		else if (m_lock_state_shooting || m_chamber.empty() && !m_shot_shell && HudAnimationExist("anm_bolt_lock") && is_mag_empty())
-			StartReload					(eSubstateReloadBoltLock);
-		else
-			StartReload					(eSubstateReloadBoltPull);
+		if (m_lock_state_shooting)
+		{
+			if (!m_locked)
+				StartReload				(eSubstateReloadBoltLock);
+		}
+		else if (m_chamber)
+		{
+			m_current_ammo				= nullptr;
+			if (m_locked)
+				StartReload				(eSubstateReloadBoltRelease);
+			else if (HudAnimationExist("anm_bolt_lock") && m_chamber.empty() && !has_mag_with_ammo())
+				StartReload				(eSubstateReloadBoltLock);
+			else
+				StartReload				(eSubstateReloadBoltPull);
+		}
+
+		if (m_actor->unlimited_ammo() && m_magazine && !GetAmmoElapsed())
+			ReloadMagazine				();
 	}
-	else if (!m_actor && has_ammo_for_reload())
+	else if (has_ammo_for_reload())
 	{
 		if (m_magazine_slot)
 		{
@@ -203,9 +216,9 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 {
 	if (GetState() == eReload)
 		return;
-	
-	bool lock							= substate != eSubstateReloadBoltLock && substate != eSubstateReloadBoltPull && m_lock_state_reload && isEmptyChamber() && !m_locked;
-	if (m_actor && lock && m_magazine_slot)
+
+	bool lock							= (substate != eSubstateReloadBoltLock) && (substate != eSubstateReloadBoltPull) && m_lock_state_reload && !m_chamber.loaded() && !m_locked;
+	if (lock && m_magazine_slot)
 	{
 		auto mag						= m_magazine_slot->getLoadingAddon();
 		if (!mag || mag->O.getModule<MMagazine>()->Empty())
@@ -214,20 +227,6 @@ void CWeaponMagazined::StartReload(EWeaponSubStates substate)
 	m_sub_state							= (lock) ? eSubstateReloadBoltLock : substate;
 
 	SwitchState							(eReload);
-}
-
-bool CWeaponMagazined::canTake(CWeaponAmmo CPC ammo, bool chamber) const
-{
-	if (chamber && m_chamber.capacity() && !m_lock_state_shooting || !chamber && m_bTriStateReload)
-	{
-		if (chamber && m_chamber.size() < m_chamber.capacity() || !chamber && m_magazine && !m_magazine->Full())
-		{
-			for (auto& t : m_ammoTypes)
-				if (t == ammo->Section())
-					return				true;
-		}
-	}
-	return								false;
 }
 
 void CWeaponMagazined::OnMagazineEmpty()
@@ -240,22 +239,13 @@ void CWeaponMagazined::OnMagazineEmpty()
 	}
 #endif
 	
-	OnEmptyClick();
-}
-
-bool CWeaponMagazined::is_dummy_anm() const
-{
-	return								(m_sub_state == eSubstateReloadBoltPull || m_sub_state == eSubstateReloadBoltLock) && !m_shot_shell && m_chamber.empty();
+	OnEmptyClick						();
 }
 
 LPCSTR CWeaponMagazined::anmType() const
 {
 	if (m_locked)
 		return							"_locked";
-
-	if (is_dummy_anm())
-		return							(m_cocked) ? "_dummy" : "_dummy_empty";
-
 	return								(m_cocked) ? inherited::anmType() : "_empty";
 }
 
@@ -268,95 +258,41 @@ u32 CWeaponMagazined::animation_slot() const
 
 int CWeaponMagazined::GetAmmoElapsed() const
 {
-	int res								= (m_lock_state_shooting) ? 0 : m_chamber.size();
+	int res								= static_cast<int>(!m_lock_state_shooting && charged());
 	if (m_magazine)
-		res								+= m_magazine->Amount();
+		res								+= static_cast<int>(m_magazine->Amount());
 	return								res;
 }
 
 int CWeaponMagazined::GetAmmoMagSize() const
 {
-	int res								= (m_lock_state_shooting) ? 0 : m_chamber.capacity();
+	int res								= static_cast<int>(!m_lock_state_shooting && m_chamber);
 	if (m_magazine)
 		res								+= m_magazine->Capacity();
 	return								res;
 }
 
-CCartridge CWeaponMagazined::getCartridgeToShoot()
+void CWeaponMagazined::prepare_cartridge_to_shoot()
 {
-	bool expand							= !(m_actor && m_actor->unlimited_ammo());
-
-	CCartridge							res;
-	if (m_chamber.capacity() && !m_lock_state_shooting)
-	{
-		res								= m_chamber.back();
-		if (expand)
-		{
-			m_chamber.pop_back			();
-			m_shot_shell				= true;
-			m_cocked					= false;
-			if (fOneShotTime != 0.f)
-				reload_chamber			();
-		}
-	}
+	if (m_chamber && !m_lock_state_shooting)
+		m_chamber.consume				();
 	else
-		get_cartridge_from_mag			(res, expand);
-	return								res;
+		get_cartridge_from_mag			();
 }
 
-bool CWeaponMagazined::is_mag_empty()
+bool CWeaponMagazined::get_cartridge_from_mag()
 {
-	return								!m_magazine || m_magazine->Empty();
+	return								(m_magazine) ? m_magazine->getCartridge(m_cartridge) : false;
 }
 
-bool CWeaponMagazined::get_cartridge_from_mag(CCartridge& dest, bool expand)
+void CWeaponMagazined::unloadChamber(MAddon* chamber)
 {
-	if (!is_mag_empty())
-	{
-		m_magazine->getCartridge		(dest, expand);
-		return							true;
-	}
-	return								false;
-}
-
-void CWeaponMagazined::reload_chamber(CCartridge* dest)
-{
-	unload_chamber						(dest);
-	load_chamber						(true);
-}
-
-void CWeaponMagazined::unload_chamber(CCartridge* dest)
-{
-	if (!m_chamber.empty())
-	{
-		CCartridge& cartridge			= m_chamber.back();
-		if (dest)
-			*dest						= cartridge;
-		else
-		{
-			CInventoryOwner* IO			= Parent->scast<CInventoryOwner*>();
-			IO->O->giveItem				(*cartridge.m_ammoSect, cartridge.m_fCondition);
-		}
-		m_chamber.pop_back				();
-	}
-
-	bMisfire							= false;
-	m_shot_shell						= false;
-	m_cocked							= true;
-}
-
-void CWeaponMagazined::load_chamber(bool from_mag)
-{
-	if (m_chamber.empty() && (!from_mag || get_cartridge_from_mag(m_cartridge, true)))
-		m_chamber.push_back				(m_cartridge);
+	m_chamber.unload					(CWeaponChamber::eInventory);
 }
 
 void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
-	if (ammo)
-		ammo->Get						(m_cartridge);
-	unload_chamber						();
-	load_chamber						(false);
+	m_chamber.load_from					(ammo);
 }
 
 void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
@@ -372,7 +308,7 @@ void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
 	process_align_front					(&foldable->O, !new_status);
 }
 
-bool CWeaponMagazined::reload_ñartridge()
+bool CWeaponMagazined::reload_cartridge()
 {
 	if (!m_magazine->Full() && try_consume_ammo(1))
 	{
@@ -472,6 +408,20 @@ void CWeaponMagazined::UpdateCL()
 	{
 		fShotTimeCounter -= dt;
 		clamp(fShotTimeCounter, 0.0f, flt_max);
+
+		if (is_auto_bolt_allowed())
+		{
+			switch (m_lock_state_shooting)
+			{
+			case true:
+				if (!m_locked)
+					StartReload(eSubstateReloadBoltLock);
+				break;
+			case false:
+				if (uncharged())
+					StartReload(eSubstateReloadBoltPull);
+			}
+		}
 		break;
 	}
 	case eFire:
@@ -486,9 +436,6 @@ void CWeaponMagazined::UpdateCL()
 
 	UpdateSounds();
 	updateRecoil();
-
-	if (isEmptyChamber() && fIsZero(m_recoil_hud_impulse.magnitude()) && GetAmmoElapsed() && GetState() == eIdle && is_auto_bolt_allowed() && !m_lock_state_shooting)
-		StartReload(eSubstateReloadBoltPull);
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -538,9 +485,11 @@ void CWeaponMagazined::state_Fire(float dt)
 		{
 			if (CheckForMisfire())
 			{
+				m_cocked = false;
 				if (m_lock_state_shooting)
 				{
-					m_chamber.push_back(getCartridgeToShoot());
+					get_cartridge_from_mag();
+					m_chamber.load();
 					m_locked = false;
 				}
 				StopShooting();
@@ -853,19 +802,21 @@ void CWeaponMagazined::OnHiddenItem()
 
 bool CWeaponMagazined::is_auto_bolt_allowed() const
 {
-	return !m_actor;
+	if (m_actor)
+		return							false;
+	return								has_mag_with_ammo() && fIsZero(m_recoil_hud_impulse.magnitude(), .01f);
 }
 
-bool CWeaponMagazined::has_ammo_to_shoot()
+bool CWeaponMagazined::has_mag_with_ammo() const
+{
+	return								(m_magazine && !m_magazine->Empty());
+}
+
+bool CWeaponMagazined::has_ammo_to_shoot() const
 {
 	if (m_lock_state_shooting)
-		return							(m_locked || !m_actor) && !is_mag_empty();
-	return								(m_chamber.capacity()) ? m_chamber.size() : !is_mag_empty();
-}
-
-bool CWeaponMagazined::isEmptyChamber() const
-{
-	return								(m_chamber.capacity() && m_chamber.empty());
+		return							m_locked && has_mag_with_ammo();
+	return								(m_chamber) ? m_chamber.loaded() : has_mag_with_ammo();
 }
 
 void CWeaponMagazined::modify_holder_params C$(float& range, float& fov)
@@ -1144,10 +1095,9 @@ void CWeaponMagazined::process_addon_modules(CGameObject& obj, bool attach)
 		for (auto& s : ao->AddonSlots())
 		{
 			if (s->getAttachBone() == "magazine")
-			{
 				m_magazine_slot			= (attach) ? s.get() : nullptr;
-				return;
-			}
+			if (s->getAttachBone() == "chamber")
+				m_chamber.setSlot		((attach) ? s.get() : nullptr);
 		}
 	}
 }
@@ -1323,6 +1273,16 @@ bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)
 			StartReload					((m_magazine_slot->empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
 			return						true;
 		}
+	}
+	return								false;
+}
+
+bool CWeaponMagazined::tryChargeMagazine(CWeaponAmmo* ammo)
+{
+	if (m_grip)
+	{
+		initReload						(ammo);
+		return							true;
 	}
 	return								false;
 }

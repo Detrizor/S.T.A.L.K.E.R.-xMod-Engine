@@ -10,6 +10,7 @@
 #include "addon_owner.h"
 #include "scope.h"
 #include "weapon_hud.h"
+#include "weapon_chamber.h"
 
 class ENGINE_API CMotionDef;
 
@@ -178,7 +179,6 @@ private:
 	MScope*								m_selected_scopes[2]					= { NULL, NULL };
 	xr_vector<MScope*>					m_attached_scopes						= {};
 	float								m_ads_shift								= 0.f;
-	bool								m_grip									= false;
 	Dvector								m_align_front							= dZero;
 	float								m_barrel_length							= 0.f;
 	bool								m_cocked								= false;
@@ -192,8 +192,7 @@ private:
 	SScriptAnm							m_bolt_pull_anm;
 	SScriptAnm							m_firemode_anm;
 	
-	bool								is_mag_empty							();
-	bool								get_cartridge_from_mag					(CCartridge& dest, bool expand = false);
+	bool								get_cartridge_from_mag					();
 	void								load_firemodes							(LPCSTR str);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
@@ -205,59 +204,65 @@ private:
 	void								process_magazine						(MMagazine* magazine, bool attach);
 	void								process_scope							(MScope* scope, bool attach);
 	void								process_align_front						(CGameObject* obj, bool attach);
-	bool								has_ammo_to_shoot						();
-	
+
+	bool								has_ammo_to_shoot					C$	();
 	bool								is_auto_bolt_allowed				C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
 
-	CCartridge							getCartridgeToShoot					O$	();
+	void								prepare_cartridge_to_shoot			O$	();
 	void								OnHiddenItem						O$	();
 	
-	bool							V$	is_dummy_anm						C$	();
+	virtual bool						has_mag_with_ammo					C$	();
 
 protected:
+	CWeaponChamber						m_chamber;
+
 	xptr<CWeaponHud>					m_hud									= nullptr;
 	CWeaponAmmo*						m_current_ammo							= nullptr;
 	bool								m_locked								= false;
-	bool								m_shot_shell							= false;
 	MMagazine*							m_magazine								= nullptr;
 	CAddonSlot*							m_magazine_slot							= nullptr;
+	bool								m_grip									= false;
 
 	void								updateRecoil							();
-	void								reload_chamber							(CCartridge* dest = nullptr);
-	void								unload_chamber							(CCartridge* dest = nullptr);
-	void								load_chamber							(bool from_mag);
 	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
 	int									try_consume_ammo						(int count);
+	bool								on_bolt_lock							();
 	
 	bool								has_ammo_for_reload					C$	(int count = 1);
+
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								setADS								O$	(int mode);
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);
-	bool							V$	reload_ñartridge						();
+	bool							V$	reload_cartridge						();
 
 public:
 	static float						s_barrel_length_power;
 	static void							loadStaticData							();
 
-	void								loadChamber								(CWeaponAmmo* ammo);
+	MMagazine*							getMagazine								()		{ return m_magazine; }
+	
+	void								unloadChamber							(MAddon* chamber = nullptr);
+	void								loadChamber								(CWeaponAmmo* ammo = nullptr);
 	void								initReload								(CWeaponAmmo* ammo);
 	void								onFold									(MFoldable CP$ foldable, bool new_status);
+	bool								tryChargeMagazine						(CWeaponAmmo* ammo);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }
 	float								getBarrelLength						C$	()		{ return m_barrel_length; }
 	float								getBarrelLen						C$	()		{ return m_barrel_len; }
+	float								charged								C$	()		{ return m_chamber && m_chamber.loaded(); }
+	float								uncharged							C$	()		{ return m_chamber && !m_chamber.loaded(); }
 
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
 	MScope*								getActiveScope						C$	();
-	bool								isEmptyChamber 						C$	();
 	void								updateShadersDataAndSVP				C$	(CCameraManager& camera);
 	
 	float								CurrentZoomFactor					CO$	(bool for_actor);
@@ -267,7 +272,7 @@ public:
 	void								OnTaken								O$	();
 
 	virtual	bool						tryTransfer								(MAddon* addon, bool attach);
-	virtual	bool						canTake								C$	(CWeaponAmmo CPC ammo, bool chamber);
 
 	friend class CWeaponHud;
+	friend class CWeaponChamber;
 };

@@ -63,7 +63,7 @@ void CShootingObject::LoadFireParams( LPCSTR section )
 
 void CShootingObject::Light_Start()
 {
-	if (m_silencer || !m_shot_cartridge.light_enabled)
+	if (m_silencer || !m_cartridge.light_enabled)
 		return;
 
 	if (!light_render)
@@ -72,21 +72,21 @@ void CShootingObject::Light_Start()
 	if (Device.dwFrame	!= light_frame)
 	{
 		light_frame					= Device.dwFrame;
-		light_time					= m_shot_cartridge.light_lifetime;
+		light_time					= m_cartridge.light_lifetime;
 		
 		light_build_color.set		(
-			Random.randFs(m_shot_cartridge.light_var_color, m_shot_cartridge.light_base_color.r),
-			Random.randFs(m_shot_cartridge.light_var_color, m_shot_cartridge.light_base_color.g),
-			Random.randFs(m_shot_cartridge.light_var_color, m_shot_cartridge.light_base_color.b),
+			Random.randFs(m_cartridge.light_var_color, m_cartridge.light_base_color.r),
+			Random.randFs(m_cartridge.light_var_color, m_cartridge.light_base_color.g),
+			Random.randFs(m_cartridge.light_var_color, m_cartridge.light_base_color.b),
 			1
 		);
-		light_build_range			= Random.randFs(m_shot_cartridge.light_var_range, m_shot_cartridge.light_base_range);
+		light_build_range			= Random.randFs(m_cartridge.light_var_range, m_cartridge.light_base_range);
 	}
 }
 
 void CShootingObject::Light_Render(const Fvector& P)
 {
-	float light_scale			= light_time / m_shot_cartridge.light_lifetime;
+	float light_scale			= light_time / m_cartridge.light_lifetime;
 	R_ASSERT(light_render);
 
 	light_render->set_position	(P);
@@ -153,10 +153,10 @@ void CShootingObject::UpdateParticles (CParticlesObject*& pParticles,
 
 void CShootingObject::OnShellDrop(const Fvector& play_pos, const Fvector& parent_vel)
 {
-	if(!m_shot_cartridge.shell_particles) return;
+	if(!m_cartridge.shell_particles) return;
 	if( Device.vCameraPosition.distance_to_sqr(play_pos)>2*2 ) return;
 
-	CParticlesObject* pShellParticles	= CParticlesObject::Create(m_shot_cartridge.shell_particles.c_str(), TRUE);
+	CParticlesObject* pShellParticles	= CParticlesObject::Create(m_cartridge.shell_particles.c_str(), TRUE);
 
 	Fmatrix particles_pos; 
 	particles_pos.set		(get_ParticlesXFORM());
@@ -177,7 +177,7 @@ void CShootingObject::OnShellDrop(const Fvector& play_pos, const Fvector& parent
 void CShootingObject::StartSmokeParticles(const Fvector& play_pos, const Fvector& parent_vel)
 {
 	CParticlesObject* pSmokeParticles = nullptr;
-	shared_str CR$ smoke_particles = (m_silencer) ? m_shot_cartridge.smoke_particles_silencer : m_shot_cartridge.smoke_particles;
+	shared_str CR$ smoke_particles = (m_silencer) ? m_cartridge.smoke_particles_silencer : m_cartridge.smoke_particles;
 	StartParticles(pSmokeParticles, smoke_particles.c_str(), play_pos, parent_vel, true);
 }
 
@@ -185,7 +185,7 @@ void CShootingObject::StartFlameParticles	()
 {
 	if (m_silencer)
 		return;
-	shared_str CR$ flame_particles = (m_flash_hider) ? m_shot_cartridge.flame_particles_flash_hider : m_shot_cartridge.flame_particles;
+	shared_str CR$ flame_particles = (m_flash_hider) ? m_cartridge.flame_particles_flash_hider : m_cartridge.flame_particles;
 	if (!flame_particles.size())
 		return;
 
@@ -337,5 +337,5 @@ void CShootingObject::FireEnd	()
 void CShootingObject::StartShotParticles	()
 {
 	CParticlesObject* pSmokeParticles = nullptr;
-	StartParticles(pSmokeParticles, m_shot_cartridge.shot_particles.c_str(), m_vCurrentShootPos, m_vCurrentShootDir, true);
+	StartParticles(pSmokeParticles, m_cartridge.shot_particles.c_str(), m_vCurrentShootPos, m_vCurrentShootDir, true);
 }

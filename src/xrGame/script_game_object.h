@@ -906,9 +906,6 @@ public:
 //xMod functions
 	float				Volume					() const;
 	float				GetTotalVolume			() const;
-	void				initReload				(CScriptGameObject* obj);
-	void				loadChamber				(CScriptGameObject* obj);
-	void				loadCartridge			(CScriptGameObject* obj);
 	void				ActorSetHealth			(float h);
 	void				ActorSetPower			(float p);
 	void				ActorSetSpeedScale		(float p);
@@ -958,13 +955,10 @@ public:
 	u32					Amount					() const;
 	u32					Capacity				() const;
 	bool				Discharge				(CScriptGameObject* obj);
-	bool				CanTake				C$	(CScriptGameObject* obj, bool chamber);
-	bool				CanTakeNoChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, false); };
-	bool				CanTakeToChamber	C$	(CScriptGameObject* obj)															{ return CanTake(obj, true); };
+	bool				CanTake					(CScriptGameObject* obj);
 	void				Transfer				(u16 id) const;
 	void				SetInvIcon				(u8 idx);
 	u8					GetInvIconIndex			() const;
-	bool				isEmptyChamber			() const;
 
 	float								Radiation							C$	();
 	float								Absorbation							C$	(int hit_type);
@@ -991,6 +985,11 @@ public:
 	void								fold								C$	();
 	void								unfold								C$	();
 	bool								isFolded							C$	();
+	
+	void								loadChamber							C$	(CScriptGameObject* obj);
+	void								unloadChamber						C$	(CScriptGameObject* obj);
+	bool								tryChargeMagazine					C$	(CScriptGameObject* obj);
+	void								chargeMagazine						C$	(CScriptGameObject* obj);
 };
 
 add_to_type_list(CScriptGameObject)

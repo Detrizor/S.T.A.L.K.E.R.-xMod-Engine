@@ -262,7 +262,7 @@ protected:
 	virtual	void			StopShotEffector();
 
 public:
-	float					GetFireDispersion(CCartridge* cartridge);
+	float					GetFireDispersion();
 	float					GetFireDispersion(float cartridge_k);
 	virtual	int				ShotsFired()
 	{
@@ -308,16 +308,9 @@ protected:
 	int						GetAmmoCount(u8 ammo_type) const;
 
 public:
-	virtual int				GetAmmoElapsed()	const
-	{
-		return m_chamber.size();
-	}
-	virtual int				GetAmmoMagSize()	const
-	{
-		return m_chamber.capacity();
-	}
+	virtual int				GetAmmoElapsed			()	const { return 0; }
+	virtual int				GetAmmoMagSize			()	const { return 0; }
 	int						GetSuitableAmmoTotal	(bool use_item_to_spawn = false) const;
-
 	virtual void			OnMagazineEmpty			() {}
 
 protected:
@@ -328,7 +321,7 @@ protected:
 	virtual bool			IsNecessaryItem(const shared_str& item_sect);
 
 public:
-	xr_vector<shared_str>	m_ammoTypes;
+	xr_vector<shared_str>	m_ammoTypes{};
 
 	bool					unlimited_ammo() const;
 	IC	bool				can_be_strapped() const
@@ -427,23 +420,19 @@ protected:
 	u16									m_shell_bone							= u16_max;
 	u16									m_fire_bone								= u16_max;
 	
-	xr_vector<CCartridge>				m_chamber								= {};
-	
-	CCartridge							m_cartridge;
-	
 	void								appendRecoil							(float impulse_magnitude);
-	int									get_ammo_type						C$	(shared_str CR$ section);
 	float								get_wpn_pos_inertion_factor			C$	();
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 
 	//with zeroing
-	Fvector							V$	getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }
-	CCartridge						V$	getCartridgeToShoot						()						{ return m_chamber.back(); }
-	bool							V$	HasAltAim							C$	()						{ return m_bHasAltAim; }
+	virtual Fvector						getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }
+	virtual void						prepare_cartridge_to_shoot				()						{}
+
+	virtual bool						HasAltAim							C$	()						{ return m_bHasAltAim; }
 	
-	void							V$	setADS									(int mode);
-	void							V$	setAiming								(bool mode);
+	virtual void						setADS									(int mode);
+	virtual void						setAiming								(bool mode);
 
 public:
 	static void							loadStaticData							();

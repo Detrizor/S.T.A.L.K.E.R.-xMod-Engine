@@ -8,7 +8,20 @@ class CWeaponBM16 :public CWeaponAutomaticShotgun
 	typedef CWeaponAutomaticShotgun inherited;
 
 public:
+										CWeaponBM16								() : m_chamber_second(this) {}
+
 	void								Load								O$	(LPCSTR section);
+
+private:
+	CWeaponChamber							m_chamber_second;
+	
+	bool								is_full_reload						C$	();
+	
+	int									GetAmmoMagSize						CO$	()		{ return 2; }
+
+	bool								has_mag_with_ammo					CO$	();
+	int									GetAmmoElapsed						CO$	();
+	void								prepare_cartridge_to_shoot			O$	();
 
 protected:
 	void								PlayAnimShoot						O$	();
@@ -17,9 +30,9 @@ protected:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 	LPCSTR								anmType		 						CO$	();
-	bool								canTake								CO$	(CWeaponAmmo CPC ammo, bool chamber);
 
 	void								ReloadMagazine						O$	();
+	bool								tryTransfer							O$	(MAddon* addon, bool attach);
 };
 
 add_to_type_list(CWeaponBM16)

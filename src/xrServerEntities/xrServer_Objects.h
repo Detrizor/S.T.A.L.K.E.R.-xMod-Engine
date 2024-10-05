@@ -168,8 +168,9 @@
 // 132 - weapon locked and cocked state
 // 133 - removed ammo elapsed from weapon
 // 134 - added ammo mag position
+// 135 - removed chamber and ammo type
 //------------------------------------------------------------------------------
-constexpr u16 SPAWN_VERSION = 134;
+constexpr u16 SPAWN_VERSION = 135;
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

@@ -219,20 +219,17 @@ void CWeapon::Load(LPCSTR section)
 	CShootingObject::Load(section);
 
 	// load ammo classes
-	m_ammoTypes.clear();
-	LPCSTR				S = pSettings->r_string(section, "ammo_class");
+	LPCSTR S							= pSettings->r_string(section, "ammo_class");
 	if (S && S[0])
 	{
-		string128		_ammoItem;
-		int				count = _GetItemCount(S);
-		for (int it = 0; it < count; ++it)
+		string128						_ammoItem;
+		for (int it = 0, count = _GetItemCount(S); it < count; ++it)
 		{
-			_GetItem(S, it, _ammoItem);
-			m_ammoTypes.push_back(_ammoItem);
+			_GetItem					(S, it, _ammoItem);
+			m_ammoTypes.emplace_back	(_ammoItem);
 		}
+		m_cartridge.Load				(m_ammoTypes[0].c_str());
 	}
-	
-	m_chamber.reserve(pSettings->r_s32(section, "chamber"));
 
 	////////////////////////////////////////////////////
 	// дисперсия стрельбы
@@ -306,14 +303,6 @@ BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
 	m_dwWeaponIndependencyTime		= 0;
 	cNameVisual_set					(shared_str().printf("_w_%s", *cNameVisual()));
 	return							bResult;
-}
-
-int CWeapon::get_ammo_type(shared_str CR$ section) const
-{
-	for (u8 i = 0, i_e = u8(m_ammoTypes.size()); i < i_e; ++i)
-		if (m_ammoTypes[i] == section)
-			return						i;
-	return								0;
 }
 
 float CWeapon::get_wpn_pos_inertion_factor() const
@@ -909,30 +898,13 @@ float CWeapon::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-	case eWeight:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		for (auto& c : m_chamber)
-			res							+= c.Weight();
-		return							res;
-	}
 	case eSyncData:
 	{
 		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= (CSE_ALifeDynamicObject*)data;
+		auto se_obj						= static_cast<CSE_ALifeDynamicObject*>(data);
 		auto se_wpn						= smart_cast<CSE_ALifeItemWeapon*>(se_obj);
 		if (param)
-		{
-			se_wpn->wpn_flags			= (u8)IsUpdating();
-			se_wpn->ammo_type			= get_ammo_type(m_cartridge.m_ammoSect);
-			se_wpn->a_chamber			= m_chamber.size();
-		}
-		else
-		{
-			m_cartridge.Load			(*m_ammoTypes[se_wpn->ammo_type]);
-			for (int i = 0; i < se_wpn->a_chamber; ++i)
-				m_chamber.push_back		(m_cartridge);
-		}
+			se_wpn->wpn_flags			= static_cast<u8>(IsUpdating());
 		return							res;
 	}
 	}

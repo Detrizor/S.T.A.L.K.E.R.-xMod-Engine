@@ -135,6 +135,5 @@ protected:
 	float								m_barrel_len							= 1.f;
 	bool								m_silencer								= false;
 	bool								m_flash_hider							= false;
-
-	CCartridge							m_shot_cartridge;
+	CCartridge							m_cartridge;
 };

@@ -18,9 +18,9 @@ float CWeapon::GetConditionDispersionFactor() const
 	return (1.f + fireDispersionConditionFactor * (1.f - GetConditionToWork()));
 }
 
-float CWeapon::GetFireDispersion(CCartridge* cartridge)
+float CWeapon::GetFireDispersion()
 {
-	return GetFireDispersion(cartridge->param_s.kDisp);
+	return GetFireDispersion(m_cartridge.param_s.kDisp);
 }
 
 //текущая дисперсия (в радианах) оружия с учетом используемого патрона

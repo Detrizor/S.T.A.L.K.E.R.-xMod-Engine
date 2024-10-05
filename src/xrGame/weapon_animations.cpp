@@ -8,12 +8,10 @@ void CWeaponMagazined::PlayAnimReload()
 	switch (m_sub_state)
 	{
 	case eSubstateReloadDetach:
-	{
 		PlayHUDMotion					(m_magazine->detachAnm().c_str(), TRUE, GetState());
 		if (m_sounds_enabled)
 			PlaySound					("sndDetach", get_LastFP());
 		break;
-	}
 	case eSubstateReloadAttach:
 	{
 		m_magazine_slot->loadingAttach	();
@@ -25,7 +23,6 @@ void CWeaponMagazined::PlayAnimReload()
 		break;
 	}
 	case eSubstateReloadBoltPull:
-	{
 		if (HudAnimationExist("anm_bolt_pull"))
 			PlayHUDMotion				("anm_bolt_pull", TRUE, GetState());
 		if (m_bolt_pull_anm.loaded())
@@ -85,9 +82,9 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 			if (m_mag_attach_bolt_release)
 			{
 				m_locked				= false;
-				load_chamber			(true);
+				m_chamber.load_from_mag	();
 			}
-			else if (m_magazine && !m_magazine->Empty())
+			else if (has_mag_with_ammo())
 			{
 				m_sub_state				= eSubstateReloadBoltRelease;
 				PlayAnimReload			();
@@ -97,26 +94,19 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 		SwitchState						(eIdle);
 		break;
 	case eSubstateReloadBoltPull:
-		reload_chamber					();
+		m_chamber.reload				(false);
 		SwitchState						(eIdle);
 		break;
 	case eSubstateReloadChamber:
 		loadChamber						(m_current_ammo);
 		break;
 	case eSubstateReloadBoltLock:
-		m_locked						= true;
-		unload_chamber					();
-		if (m_lock_state_reload && m_magazine_slot && m_magazine_slot->isLoading())
-		{
-			m_sub_state					= (m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach;
-			PlayAnimReload				();
-		}
-		else
+		if (!on_bolt_lock())
 			SwitchState					(eIdle);
 		break;
 	case eSubstateReloadBoltRelease:
 		m_locked						= false;
-		load_chamber					(true);
+		m_chamber.load_from_mag			();
 		SwitchState						(eIdle);
 		break;
 	default:
@@ -126,9 +116,22 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	}
 }
 
+bool CWeaponMagazined::on_bolt_lock()
+{
+	m_locked							= true;
+	m_chamber.unload					(CWeaponChamber::eDrop);
+	
+	if (m_lock_state_reload && m_magazine_slot && m_magazine_slot->isLoading())
+	{
+		m_sub_state						= (m_magazine_slot->addons.empty()) ? eSubstateReloadAttach : eSubstateReloadDetach;
+		PlayAnimReload					();
+		return							true;
+	}
+
+	return								false;
+}
+
 void CWeaponMagazined::PlayAnimShoot()
 {
-	if (isEmptyChamber() && m_bolt_catch)
-		m_locked						= true;
 	PlayHUDMotion						("anm_shoot", FALSE, GetState());
 }

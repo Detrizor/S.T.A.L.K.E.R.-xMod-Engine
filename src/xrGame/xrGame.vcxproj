@@ -2369,6 +2369,7 @@
     <ClInclude Include="WeaponVal.h" />
     <ClInclude Include="WeaponVintorez.h" />
     <ClInclude Include="WeaponWalther.h" />
+    <ClInclude Include="weapon_chamber.h" />
     <ClInclude Include="Wound.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
@@ -4661,6 +4662,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="weapon_animations.cpp" />
+    <ClCompile Include="weapon_chamber.cpp" />
     <ClCompile Include="Wound.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />
