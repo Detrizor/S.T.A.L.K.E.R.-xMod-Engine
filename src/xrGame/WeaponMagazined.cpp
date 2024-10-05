@@ -1135,11 +1135,11 @@ void CWeaponMagazined::process_scope(MScope* scope, bool attach)
 			cycle_scope					(0);
 		else if (m_selected_scopes[1] == scope)
 			cycle_scope					(1);
-		m_attached_scopes.erase			(::std::find(m_attached_scopes.begin(), m_attached_scopes.end(), scope));
+		m_attached_scopes.erase_data	(scope);
 	}
 
-	if (scope->getBackupSight())
-		process_scope					(scope->getBackupSight(), attach);
+	if (auto bs = scope->getBackupSight())
+		process_scope					(bs, attach);
 }
 
 static void check_addons(MAddonOwner* ao, CGameObject* obj, Dvector& align_front)
@@ -1217,7 +1217,7 @@ void CWeaponMagazined::process_magazine(MMagazine* magazine, bool attach)
 	m_magazine							= (attach) ? magazine : nullptr;
 	if (!attach && !magazine->attachAnm().size())
 		if (auto owner = H_Parent()->scast<CInventoryOwner*>())
-			owner->discharge			(magazine);
+			while (owner->discharge(magazine));
 }
 
 float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
@@ -1265,15 +1265,19 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 
 bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)
 {
+	if (!m_grip)
+		return							false;
+
 	if (auto mag = addon->O.getModule<MMagazine>())
 	{
-		if (mag->attachAnm().size() && m_grip)
+		if (mag->attachAnm().size())
 		{
 			m_magazine_slot->startReloading((attach) ? addon : nullptr);
 			StartReload					((m_magazine_slot->empty()) ? eSubstateReloadAttach : eSubstateReloadDetach);
 			return						true;
 		}
 	}
+
 	return								false;
 }
 

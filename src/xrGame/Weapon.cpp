@@ -498,6 +498,9 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 
 int CWeapon::GetSuitableAmmoTotal(bool use_item_to_spawn) const
 {
+	if (unlimited_ammo())
+		return int_max;
+
 	int ae_count = GetAmmoElapsed();
 	if (!m_pInventory)
 		return ae_count;
