@@ -385,6 +385,9 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 {
 	for (auto& S : slots)
 	{
+		if (!S->type || !S->getIconDraw())
+			continue;
+
 		if (S->addons.size())
 		{
 			for (auto addon : S->addons)

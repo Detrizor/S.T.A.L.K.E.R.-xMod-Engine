@@ -21,6 +21,7 @@ private:
 	static exceptions_list				addon_exceptions;
 
 	u16									m_overlaping_slot						= u16_max;
+	bool								m_icon_draw								= false;
 	bool								m_background_draw						= false;
 	bool								m_foreground_draw						= false;
 	shared_str							m_attach_bone							= 0;
@@ -65,6 +66,7 @@ public:
 	void								finishLoading							(bool interrupted = false);
 	void								calcBoneOffset							(attachable_hud_item* hi);
 	
+	bool								getIconDraw							C$	()		{ return m_icon_draw; }
 	bool								getBackgroundDraw					C$	()		{ return m_background_draw; }
 	bool								getForegroundDraw					C$	()		{ return m_foreground_draw; }
 	bool								isLoading							C$	()		{ return !!m_loading_addon; }

@@ -251,6 +251,9 @@ void CAddonSlot::load(shared_str CR$ section, shared_str CR$ parent_section)
 	tmp.printf							("attach_bone_%d", idx);
 	pSettings->w_string_ex				(m_attach_bone, section, tmp);
 	
+	tmp.printf							("draw_icon_%d", idx);
+	m_icon_draw							= pSettings->r_bool_ex(section, tmp, (m_attach_bone != "chamber"));
+	
 	tmp.printf							("background_draw_%d", idx);
 	pSettings->w_bool_ex				(m_background_draw, section, tmp);
 	m_background_draw					|= (m_attach_bone == "magazine" || m_attach_bone == "grenade" || m_attach_bone == "chamber");
