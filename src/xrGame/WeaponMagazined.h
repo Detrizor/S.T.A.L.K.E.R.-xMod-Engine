@@ -213,7 +213,6 @@ private:
 	u32									animation_slot						CO$	();
 
 	void								prepare_cartridge_to_shoot			O$	();
-	void								OnHiddenItem						O$	();
 	
 	virtual bool						has_mag_with_ammo					C$	();
 
@@ -237,10 +236,10 @@ protected:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								setADS								O$	(int mode);
+	void								OnHiddenItem						O$	();
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);
-	bool							V$	reload_cartridge						();
 
 public:
 	static float						s_barrel_length_power;

@@ -2,6 +2,8 @@
 #include "WeaponMagazined.h"
 #include "script_export_space.h"
 
+class CAddonSlot;
+
 class CWeaponAutomaticShotgun :	public CWeaponMagazined
 {
 	typedef CWeaponMagazined inherited;
@@ -18,6 +20,13 @@ protected:
 	ESoundTypes		m_eSoundOpen					= SOUND_TYPE_WEAPON_RECHARGING;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	CAddonSlot*							m_loading_slot							= nullptr;
+
+	void								drop_loading							(bool destroy);
+	
+	void								OnHiddenItem						O$	();
 };
 
 add_to_type_list(CWeaponAutomaticShotgun)

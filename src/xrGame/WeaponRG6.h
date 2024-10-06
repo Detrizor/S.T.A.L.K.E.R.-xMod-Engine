@@ -17,7 +17,6 @@ public:
 
 protected:
 	virtual void	FireStart				();
-			bool	reload_cartridge		() override;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

@@ -12,12 +12,17 @@ void CWeaponAutomaticShotgun::Load(LPCSTR section)
 {
 	inherited::Load						(section);
 
-	if (m_bTriStateReload = !!READ_IF_EXISTS(pSettings, r_BOOL, section, "tri_state_reload", FALSE))
+	if (m_bTriStateReload = pSettings->r_bool_ex(section, "tri_state_reload", false))
 	{
 		LPCSTR hud_sect					= pSettings->r_string(cNameSect(), "hud");		//in case grip isn't loaded yet and we get hud_unusable instead of real hud from HudSection()
 		m_sounds.LoadSound				(hud_sect, "snd_add_cartridge", "sndAddCartridge", false, m_eSoundAddCartridge);
 		m_sounds.LoadSound				(hud_sect, "snd_close_weapon", "sndClose", false, m_eSoundClose);
 		m_sounds.LoadSound				(hud_sect, "snd_open_weapon", "sndOpen", false, m_eSoundOpen);
+
+		auto ao							= getModule<MAddonOwner>();
+		m_loading_slot					= ao->emplaceSlot();
+		m_loading_slot->setAttachBone	("loading");
+		m_loading_slot->model_offset.c	= pSettings->r_dvector3(section, "loading_point");
 	}
 }
 
@@ -32,6 +37,7 @@ bool CWeaponAutomaticShotgun::Action(u16 cmd, u32 flags)
 	{
 		m_sub_state						= (cmd == kWPN_RELOAD && uncharged() && !m_locked) ? eSubstateReloadBoltPull : eSubstateReloadEnd;
 		m_sounds.StopAllSounds			();
+		drop_loading					(false);
 		PlayAnimReload					();
 		return							true;
 	}
@@ -66,12 +72,25 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	case eSubstateReloadInProcess:
 		if (m_magazine && !m_magazine->Full() && has_ammo_for_reload())
 		{
+			if (m_current_ammo)
+			{
+				if (m_loading_slot->empty())
+				{
+					auto se_ammo		= giveItem(m_current_ammo->cNameSect().c_str(), m_current_ammo->GetCondition(), true);
+					auto ammo			= Level().Objects.net_Find(se_ammo->ID);
+					m_loading_slot->attachAddon(ammo->getModule<MAddon>());
+				}
+				m_current_ammo->ChangeAmmoCount(-1);
+				if (m_current_ammo->object_removed())
+					m_current_ammo		= nullptr;
+			}
 			PlayHUDMotion				("anm_add_cartridge", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndAddCartridge", get_LastFP());
 		}
 		else
 		{
+			drop_loading				(true);
 			m_sub_state					= eSubstateReloadEnd;
 			PlayAnimReload				();
 		}
@@ -117,14 +136,34 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 			SwitchState					(eIdle);
 		break;
 	case eSubstateReloadInProcess:
-		if (!reload_cartridge())
-			m_sub_state					= eSubstateReloadEnd;
+	{
+		auto ammo						= m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>();
+		ammo->Get						(m_cartridge, false);
+		m_magazine->loadCartridge		(m_cartridge);
 		PlayAnimReload					();
 		break;
+	}
 	case eSubstateReloadEnd:
 		SwitchState						(eIdle);
 		break;
 	default:
 		inherited::OnAnimationEnd		(state);
 	}
+}
+
+void CWeaponAutomaticShotgun::drop_loading(bool destroy)
+{
+	if (!m_loading_slot->empty())
+	{
+		auto loading					= m_loading_slot->addons.front();
+		m_loading_slot->detachAddon		(loading, !destroy);
+		if (destroy)
+			loading->O.DestroyObject		();
+	}
+}
+
+void CWeaponAutomaticShotgun::OnHiddenItem()
+{
+	drop_loading						(false);
+	inherited::OnHiddenItem				();
 }

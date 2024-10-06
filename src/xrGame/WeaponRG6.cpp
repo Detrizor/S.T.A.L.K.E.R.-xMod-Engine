@@ -130,16 +130,6 @@ void CWeaponRG6::FireStart ()
 	}
 }
 
-bool CWeaponRG6::reload_cartridge()
-{
-	if (inheritedSG::reload_cartridge())
-	{
-		inheritedRL::SpawnRocket	(pSettings->r_string(m_cartridge.m_ammoSect, "fake_grenade_name"), this);
-		return						true;
-	}
-	return							false;
-}
-
 void CWeaponRG6::OnEvent(NET_Packet& P, u16 type) 
 {
 	inheritedSG::OnEvent(P,type);

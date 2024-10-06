@@ -308,17 +308,6 @@ void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
 	process_align_front					(&foldable->O, !new_status);
 }
 
-bool CWeaponMagazined::reload_cartridge()
-{
-	if (!m_magazine->Full() && try_consume_ammo(1))
-	{
-		m_BriefInfo_CalcFrame			= 0;
-		m_magazine->loadCartridge		(m_cartridge);
-		return							true;
-	}
-	return								false;
-}
-
 void CWeaponMagazined::ReloadMagazine()
 {
 	if (int count = try_consume_ammo(m_magazine->Capacity() - m_magazine->Amount()))

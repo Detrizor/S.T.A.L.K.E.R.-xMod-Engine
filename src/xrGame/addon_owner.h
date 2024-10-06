@@ -53,6 +53,8 @@ public:
 	float								icon_step								= 0.f;
 
 	xr_list<MAddon*>					addons									= {};
+	
+	void								setAttachBone							(LPCSTR val)		{ m_attach_bone = val; }
 
 	void								attachAddon								(MAddon* addon);
 	void								detachAddon								(MAddon* addon, bool transfer);
@@ -102,6 +104,8 @@ private:
 	
 public:
 	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);
+
+	CAddonSlot*							emplaceSlot								()		{ return m_slots.emplace_back(m_slots.size(), this).get(); }
 
 	void								calcSlotsBoneOffset						(attachable_hud_item* hi);
 
