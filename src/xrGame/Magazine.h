@@ -28,7 +28,7 @@ private:
 
 	void								update_bullets_visibility				();
 	void								update_hud_bullets_visibility			();
-	void								register_heap							(CWeaponAmmo* heap, u8 idx = u8_max);
+	void								register_heap							(CWeaponAmmo* heap);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 

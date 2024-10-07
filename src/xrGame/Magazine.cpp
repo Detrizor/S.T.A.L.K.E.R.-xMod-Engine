@@ -37,13 +37,13 @@ void MMagazine::update_hud_bullets_visibility()
 		hi->set_bone_visible			(bullets_str, (BOOL)!Empty(), TRUE);
 }
 
-void MMagazine::register_heap(CWeaponAmmo* heap, u8 idx)
+void MMagazine::register_heap(CWeaponAmmo* heap)
 {
-	if (idx == u8_max)
-		idx								= m_heaps.size();
-	if (m_heaps.size() <= idx)
-		m_heaps.resize					(idx + 1, nullptr);
-	m_heaps[idx]						= heap;
+	if (heap->m_mag_pos == u8_max)
+		heap->m_mag_pos					= m_heaps.size();
+	if (m_heaps.size() <= heap->m_mag_pos)
+		m_heaps.resize					(heap->m_mag_pos + 1, nullptr);
+	m_heaps[heap->m_mag_pos]			= heap;
 }
 
 float MMagazine::aboba o$(EEventTypes type, void* data, int param)
@@ -65,7 +65,7 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 				{
 					m_amount			+= heap->GetAmmoCount();
 					m_weight			+= heap->Weight();
-					register_heap		(heap, heap->m_mag_pos);
+					register_heap		(heap);
 				}
 			}
 			else
