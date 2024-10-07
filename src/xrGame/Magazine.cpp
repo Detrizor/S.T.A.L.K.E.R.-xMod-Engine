@@ -16,6 +16,7 @@ MMagazine::MMagazine(CGameObject* obj, shared_str CR$ section) :
 	m_detach_anm(pSettings->r_string(section, "detach_anm")),
 	m_ammo_slot_type(pSettings->r_string(section, "ammo_slot_type"))
 {
+	m_vis								= m_bullets_visible;
 	update_bullets_visibility			();
 }
 
@@ -26,9 +27,13 @@ void MMagazine::update_bullets_visibility()
 		return;
 
 	bool vis							= !Empty();
-	O.UpdateBoneVisibility				(bullets_str, vis);
-	I->SetInvIconType					(static_cast<u8>(vis));
-	update_hud_bullets_visibility		();
+	if (vis != m_vis)
+	{
+		m_vis							= vis;
+		O.UpdateBoneVisibility			(bullets_str, vis);
+		I->SetInvIconType				(static_cast<u8>(vis));
+		update_hud_bullets_visibility	();
+	}
 }
 
 void MMagazine::update_hud_bullets_visibility()
@@ -37,13 +42,19 @@ void MMagazine::update_hud_bullets_visibility()
 		hi->set_bone_visible			(bullets_str, (BOOL)!Empty(), TRUE);
 }
 
-void MMagazine::register_heap(CWeaponAmmo* heap)
+void MMagazine::register_heap(CWeaponAmmo* heap, bool insert)
 {
-	if (heap->m_mag_pos == u8_max)
-		heap->m_mag_pos					= m_heaps.size();
-	if (m_heaps.size() <= heap->m_mag_pos)
-		m_heaps.resize					(heap->m_mag_pos + 1, nullptr);
-	m_heaps[heap->m_mag_pos]			= heap;
+	if (insert)
+	{
+		if (heap->m_mag_pos == u8_max)
+			heap->m_mag_pos				= m_heaps.size();
+		if (m_heaps.size() <= heap->m_mag_pos)
+			m_heaps.resize				(heap->m_mag_pos + 1, nullptr);
+		m_heaps[heap->m_mag_pos]		= heap;
+	}
+	else
+		m_heaps.erase_data				(heap);
+	update_bullets_visibility			();
 }
 
 float MMagazine::aboba o$(EEventTypes type, void* data, int param)
@@ -56,28 +67,13 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 		case eOnChild:
 		{
 			CWeaponAmmo* heap			= static_cast<CObject*>(data)->scast<CWeaponAmmo*>();
-			if (!heap)
-				break;
-
-			if (param)
+			if (heap && heap->m_mag_pos != u8_max)
 			{
-				if (heap->m_mag_pos != u8_max)
-				{
-					m_amount			+= heap->GetAmmoCount();
-					m_weight			+= heap->Weight();
-					register_heap		(heap);
-				}
+				int sign				= (param) ? 1 : -1;
+				m_amount				+= sign * heap->GetAmmoCount();
+				m_weight				+= sign * heap->Weight();
+				register_heap			(heap, !!param);
 			}
-			else
-			{
-				m_heaps.erase_data		(heap);
-				m_amount				-= heap->GetAmmoCount();
-				m_weight				-= heap->Weight();
-			}
-
-			if (!O.scast<CWeapon*>())
-				update_bullets_visibility();
-
 			break;
 		}
 
@@ -126,7 +122,7 @@ void MMagazine::loadCartridge(CCartridge CR$ cartridge, int count)
 		for (auto heap : vec)
 		{
 			auto obj					= Level().Objects.net_Find(heap->ID);
-			register_heap				(obj->scast<CWeaponAmmo*>());
+			register_heap				(obj->scast<CWeaponAmmo*>(), true);
 		}
 	}
 }

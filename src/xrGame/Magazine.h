@@ -26,9 +26,11 @@ private:
 	u16									m_amount								= 0;
 	float								m_weight								= 0.f;
 
+	bool								m_vis;
+
 	void								update_bullets_visibility				();
 	void								update_hud_bullets_visibility			();
-	void								register_heap							(CWeaponAmmo* heap);
+	void								register_heap							(CWeaponAmmo* heap, bool insert);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
