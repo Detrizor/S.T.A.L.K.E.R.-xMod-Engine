@@ -25,16 +25,20 @@ void CUIAddonInfo::setInfo(CUICellItem* itm)
 {
 	float h								= 0.f;
 
-	bool addon							= READ_IF_EXISTS(pSettings, r_BOOL, itm->m_section, "addon", FALSE);
-	m_compatible_slots_cap.SetVisible	(!!addon);
-	m_compatible_slots_value.SetVisible	(!!addon);
+	bool addon							= pSettings->r_bool_ex(itm->m_section, "addon", false);
+	m_compatible_slots_cap.SetVisible	(addon);
+	m_compatible_slots_value.SetVisible	(addon);
 	if (addon)
 	{
-		m_compatible_slots_cap.SetY		(h);
-		m_compatible_slots_value.SetY	(h);
-		m_compatible_slots_value.SetText(CAddonSlot::getSlotName(pSettings->r_string(itm->m_section, "slot_type")));
-		m_compatible_slots_value.AdjustHeightToText();
-		h								+= m_compatible_slots_value.GetHeight();
+		auto slot_type					= pSettings->r_string(itm->m_section, "slot_type");
+		if (slot_type && slot_type[0])
+		{
+			m_compatible_slots_cap.SetY	(h);
+			m_compatible_slots_value.SetY(h);
+			m_compatible_slots_value.SetText(CAddonSlot::getSlotName(slot_type));
+			m_compatible_slots_value.AdjustHeightToText();
+			h							+= m_compatible_slots_value.GetHeight();
+		}
 	}
 
 	auto uiao							= smart_cast<CUIAddonOwnerCellItem*>(itm);

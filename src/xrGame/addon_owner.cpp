@@ -497,7 +497,7 @@ void CAddonSlot::RenderWorld(Fmatrix CR$ parent_trans) const
 
 bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_type)
 {
-	if (addon_type == slot_type)
+	if (slot_type.size() && addon_type == slot_type)
 		return							true;
 
 	if (slot_exceptions.contains(slot_type.c_str()))

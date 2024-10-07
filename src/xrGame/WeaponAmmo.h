@@ -94,10 +94,11 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	CCartridge							m_cartridge;
-	bool								m_can_heap;
-	
+	bool								m_can_heap								= false;
 	u16									m_boxCurr								= 0;
+	shared_str							m_shell_section							= 0;
+
+	CCartridge							m_cartridge;
 
 public:
 	u16									m_boxSize								= 0;
@@ -110,6 +111,8 @@ public:
 	static float						readBoxSize								(LPCSTR section);
 
 	u16									GetAmmoCount						C$	()		{ return m_boxCurr; }
+	LPCSTR								getShellSection						C$	()		{ return m_shell_section.c_str(); }
+
 	bool								Useful								CO$ ()		{ return !!m_boxCurr; }
 	Frect								GetIconRect							CO$	();
 };

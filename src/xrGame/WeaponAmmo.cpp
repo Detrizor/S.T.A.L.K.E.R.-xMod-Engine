@@ -96,6 +96,7 @@ void CWeaponAmmo::Load(LPCSTR section)
 	m_boxSize							= readBoxSize(section);
 	m_can_heap							= (m_boxSize > 1);
 	m_boxCurr							= m_boxSize;
+	pSettings->w_string_ex				(m_shell_section, section, "shell_section");
 }
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 

@@ -19,8 +19,16 @@ void CWeaponChamber::drop(MAddon* chamber) const
 
 void CWeaponChamber::create_shell(CWeaponAmmo* ammo) const
 {
+	CSE_Abstract* se_shell				= nullptr;
+	if (ammo->getShellSection())
+		se_shell						= O.giveItem(ammo->getShellSection(), ammo->GetCondition(), true);
 	ammo->DestroyObject					(true);
-	//--xd to be implemented
+	if (se_shell)
+	{
+		auto shell						= Level().Objects.net_Find(se_shell->ID);
+		auto addon						= shell->getModule<MAddon>();
+		m_slot->parent_ao->finishAttaching(addon, m_slot);
+	}
 }
 
 CWeaponAmmo* CWeaponChamber::getAmmo() const
