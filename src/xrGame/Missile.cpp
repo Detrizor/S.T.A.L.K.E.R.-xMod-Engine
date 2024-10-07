@@ -270,20 +270,8 @@ void CMissile::State(u32 state, u32 old_state)
 			}
 		} break;
 	case eHidden:
-		{
-			
-			if (1 /*GetHUD()*/) 
-			{
-				StopCurrentAnimWithoutCallback	();
-			};
-			
-			if (H_Parent())
-			{				
-				setVisible(FALSE);
-				setEnabled(FALSE);				
-			};
-			SetPending			(FALSE);
-		} break;
+		StopCurrentAnimWithoutCallback();
+		break;
 	case eThrowStart:
 		{
 			SetPending			(TRUE);
