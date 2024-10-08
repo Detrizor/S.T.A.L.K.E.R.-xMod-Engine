@@ -102,7 +102,7 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 			if (m_sounds_enabled)
 				PlaySound				("sndClose", get_LastFP());
 		}
-		else if (HudAnimationExist("anm_bolt_release"))
+		else if (m_locked && HudAnimationExist("anm_bolt_release"))
 		{
 			m_sub_state					= eSubstateReloadBoltRelease;
 			inherited::PlayAnimReload	();

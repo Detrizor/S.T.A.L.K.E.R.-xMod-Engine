@@ -195,7 +195,7 @@ void CWeaponMagazined::Reload()
 				StartReload				(eSubstateReloadBoltPull);
 		}
 
-		if (m_actor->unlimited_ammo() && m_magazine && !GetAmmoElapsed())
+		if (m_actor->unlimited_ammo() && m_magazine && m_magazine->Empty() && (!m_chamber || m_chamber.empty()))
 			ReloadMagazine				();
 	}
 	else if (has_ammo_for_reload())

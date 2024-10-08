@@ -385,7 +385,7 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 {
 	for (auto& S : slots)
 	{
-		if (!S->type || !S->getIconDraw())
+		if (!S->type)
 			continue;
 
 		if (S->addons.size())
@@ -393,35 +393,38 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 			for (auto addon : S->addons)
 			{
 				auto& s					= m_slots.emplace_back(S);
-				
-				Dvector					hpb;
-				addon->getLocalTransform().getHPB(hpb);
-
-				if (addon->I && addon->I->areInvIconTypesAllowed())
-				{
-					if (abs(hpb.z) >= .75f * PI)
-						s->addon_type	= 2;
-					else if (hpb.z >= PI_DIV_4)
-						s->addon_type	= 3;
-					else if (hpb.z <= -PI_DIV_4)
-						s->addon_type	= 1;
-					else
-						s->addon_type	= addon->I->getInvIconType();
-				}
-
 				s->addon_section		= addon->section();
-				s->addon_index			= (addon->I) ? addon->I->GetInvIconIndex() : 0;
-				s->icon_offset.add		(forwarded_offset);
-				s->icon_offset.sub		(addon->getIconOrigin(s->addon_type));
-				s->icon_offset.x		-= s->icon_step * static_cast<float>(addon->getSlotPos());
+				
+				if (S->getIconDraw())
+				{
+					Dvector				hpb;
+					addon->getLocalTransform().getHPB(hpb);
 
-				s->addon_icon.construct	();
-				AttachChild				(s->addon_icon.get());
-				s->addon_icon->SetTextureColor(GetTextureColor());
-				if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
-					s->addon_icon->setBackgroundDraw(true);
-				else if (s->icon_foreground_draw)
-					s->addon_icon->setForegroundDraw(true);
+					if (addon->I && addon->I->areInvIconTypesAllowed())
+					{
+						if (abs(hpb.z) >= .75f * PI)
+							s->addon_type	= 2;
+						else if (hpb.z >= PI_DIV_4)
+							s->addon_type	= 3;
+						else if (hpb.z <= -PI_DIV_4)
+							s->addon_type	= 1;
+						else
+							s->addon_type	= addon->I->getInvIconType();
+					}
+
+					s->addon_index		= (addon->I) ? addon->I->GetInvIconIndex() : 0;
+					s->icon_offset.add	(forwarded_offset);
+					s->icon_offset.sub	(addon->getIconOrigin(s->addon_type));
+					s->icon_offset.x	-= s->icon_step * static_cast<float>(addon->getSlotPos());
+
+					s->addon_icon.construct	();
+					AttachChild			(s->addon_icon.get());
+					s->addon_icon->SetTextureColor(GetTextureColor());
+					if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
+						s->addon_icon->setBackgroundDraw(true);
+					else if (s->icon_foreground_draw)
+						s->addon_icon->setForegroundDraw(true);
+				}
 
 				if (addon->slots)
 					process_slots		(*addon->slots, s->icon_offset);
