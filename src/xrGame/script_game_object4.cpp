@@ -814,12 +814,13 @@ float CScriptGameObject::getActionDuration(int num) const
 	return								0.f;
 }
 
-u16 CScriptGameObject::getActionItemID(int num) const
+CScriptGameObject* CScriptGameObject::getActionItem(int num) const
 {
 	if (auto usable = object().getModule<MUsable>())
 		if (auto action = usable->getAction(num))
-			return						action->item_id;
-	return								u16_max;
+			if (action->item_id != u16_max)
+				return					Level().Objects.net_Find(action->item_id)->scast<CGameObject*>()->lua_game_object();
+	return								nullptr;
 }
 
 void CScriptGameObject::resetActionItemID(int num) const
@@ -840,7 +841,8 @@ bool CScriptGameObject::tryAttach(CScriptGameObject* obj) const
 {
 	if (auto ao = object().getModule<MAddonOwner>())
 		if (auto addon = obj->object().getModule<MAddon>())
-			return						ao->tryAttach(addon, false);
+			if (!addon->O.scast<CWeaponAmmo*>())
+				return					ao->tryAttach(addon, false);
 	return								false;
 }
 

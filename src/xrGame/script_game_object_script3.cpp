@@ -485,7 +485,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("action_functor",				&CScriptGameObject::getActionFunctor)
 		.def("use_functor",					&CScriptGameObject::getUseFunctor)
 		.def("action_duration",				&CScriptGameObject::getActionDuration)
-		.def("get_action_item_id",			&CScriptGameObject::getActionItemID)
+		.def("get_action_item",				&CScriptGameObject::getActionItem)
 		.def("reset_action_item_id",		&CScriptGameObject::resetActionItemID)
 			
 		.def("is_attached",					&CScriptGameObject::isAttached)
