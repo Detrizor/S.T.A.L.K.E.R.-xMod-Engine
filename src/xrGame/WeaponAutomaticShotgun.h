@@ -22,9 +22,12 @@ protected:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
+	void								drop_loading							(bool destroy);
+
+protected:
 	CAddonSlot*							m_loading_slot							= nullptr;
 
-	void								drop_loading							(bool destroy);
+	void								attach_loading							(CAddonSlot* slot);
 	
 	void								OnHiddenItem						O$	();
 };

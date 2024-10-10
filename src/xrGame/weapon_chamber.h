@@ -33,6 +33,7 @@ public:
 	
 										operator bool						C$	()		{ return !!m_slot; }
 	bool								loaded								C$	()		{ return !!getAmmo(); }
+	CAddonSlot CP$						getSlot								C$	()		{ return m_slot; }
 	
 	CWeaponAmmo*						getAmmo								C$	();
 	bool								empty								C$	();

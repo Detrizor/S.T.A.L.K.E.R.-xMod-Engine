@@ -77,7 +77,7 @@ public:
 	virtual void	SetDefaults();
 	virtual void	FireStart();
 	virtual void	Reload();
-			void	StartReload(EWeaponSubStates substate);
+	virtual void	StartReload(EWeaponSubStates substate);
 
 	virtual	void	UpdateCL();
 
@@ -205,7 +205,6 @@ private:
 	void								process_scope							(MScope* scope, bool attach);
 	void								process_align_front						(CGameObject* obj, bool attach);
 
-	bool								has_ammo_to_shoot					C$	();
 	bool								is_auto_bolt_allowed				C$	();
 	bool								need_loaded_anm						C$	();
 
@@ -214,6 +213,7 @@ private:
 
 	void								prepare_cartridge_to_shoot			O$	();
 	
+	virtual bool						has_ammo_to_shoot					C$	();
 	virtual bool						has_mag_with_ammo					C$	();
 
 protected:
@@ -230,8 +230,7 @@ protected:
 	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
 	int									try_consume_ammo						(int count);
 	bool								on_bolt_lock							();
-	
-	bool								has_ammo_for_reload					C$	(int count = 1);
+	bool								has_ammo_for_reload						(int count = 1);
 
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
@@ -249,7 +248,6 @@ public:
 	
 	void								unloadChamber							(MAddon* chamber = nullptr);
 	void								loadChamber								(CWeaponAmmo* ammo = nullptr);
-	void								initReload								(CWeaponAmmo* ammo);
 	void								onFold									(MFoldable CP$ foldable, bool new_status);
 	bool								tryChargeMagazine						(CWeaponAmmo* ammo);
 

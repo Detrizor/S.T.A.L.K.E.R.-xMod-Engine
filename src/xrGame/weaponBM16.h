@@ -13,26 +13,30 @@ public:
 	void								Load								O$	(LPCSTR section);
 
 private:
-	CWeaponChamber							m_chamber_second;
-	
-	bool								is_full_reload						C$	();
+	CWeaponChamber						m_chamber_second;
+	CAddonSlot*							m_loading_slot_second				= nullptr;
+	int									m_reloading_chamber					= -1;
 	
 	int									GetAmmoMagSize						CO$	()		{ return 2; }
 
-	bool								has_mag_with_ammo					CO$	();
 	int									GetAmmoElapsed						CO$	();
+	bool								has_ammo_to_shoot					CO$	();
 	void								prepare_cartridge_to_shoot			O$	();
+	void								OnAnimationEnd						O$	(u32 state);
+	void								OnHiddenItem						O$	();
+	void								StartReload							O$	(EWeaponSubStates substate);
 
 protected:
-	void								PlayAnimShoot						O$	();
 	void								PlayAnimReload						O$	();
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 	LPCSTR								anmType		 						CO$	();
 
-	void								ReloadMagazine						O$	();
 	bool								tryTransfer							O$	(MAddon* addon, bool attach);
+
+public:
+	bool								checkSecondChamber					C$	(CAddonSlot* slot);
 };
 
 add_to_type_list(CWeaponBM16)

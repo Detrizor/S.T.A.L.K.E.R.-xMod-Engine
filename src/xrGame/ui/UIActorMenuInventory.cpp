@@ -15,6 +15,8 @@
 #include "UIListBoxItem.h"
 #include "UIMainIngameWnd.h"
 #include "UIGameCustom.h"
+#include "weaponBM16.h"
+#include "WeaponAmmo.h"
 
 #include "../grenadelauncher.h"
 #include "../Artefact.h"
@@ -643,6 +645,19 @@ static void process_ao_for_attach(MAddonOwner CPC ao, MAddon CPC addon, CUIPrope
 				attach_str.printf		("%s (%s %s)", attach_str.c_str(), CStringTable().translate("st_swap").c_str(), s->addons.front()->I->getNameShort());
 			pb->AddItem					(*attach_str, static_cast<void*>(s.get()), INVENTORY_ADDON_ATTACH);
 			b_show						= true;
+
+			if (auto wpn = ao->O.scast<CWeaponBM16*>())
+			{
+				if (wpn->checkSecondChamber(s.get()))
+				{
+					auto ammo			= addon->O.scast<CWeaponAmmo*>();
+					if (ammo->GetAmmoCount() >= 2)
+					{
+						attach_str.printf("%s %s", str, CStringTable().translate("st_both_chambers").c_str());
+						pb->AddItem		(attach_str.c_str(), static_cast<void*>(s.get()), INVENTORY_ADDON_ATTACH_BOTH_CHAMBERS);
+					}
+				}
+			}
 		}
 		
 		for (auto a : s->addons)
@@ -730,7 +745,8 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	if (!m_UIPropertiesBox->GetClickedItem() || !item || !cell_item || !cell_item->OwnerList())
 		return;
 
-	switch (m_UIPropertiesBox->GetClickedItem()->GetTAG())
+	auto tag							= m_UIPropertiesBox->GetClickedItem()->GetTAG();
+	switch (tag)
 	{
 	case INVENTORY_TO_HANDS_ACTION:
 		ToSlot							(cell_item, item->HandSlot());
@@ -769,18 +785,24 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		usable->performAction			(num, true);
 		break;
 	}
-	case INVENTORY_DROP_ACTION:{
+	case INVENTORY_DROP_ACTION:
+	{
 		void* d							= m_UIPropertiesBox->GetClickedItem()->GetData();
 		if (d == (void*)33)
 			DropAllCurrentItem			();
 		else
 			item->O.transfer			();
-		}break;
+		break;
+	}
 	case INVENTORY_ADDON_ATTACH:
+	case INVENTORY_ADDON_ATTACH_BOTH_CHAMBERS:
 	{
 		auto addon						= item->O.getModule<MAddon>();
-		auto slot						= static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData());
-		addon->startAttaching			(slot);
+		addon->startAttaching			(
+			(tag == INVENTORY_ADDON_ATTACH_BOTH_CHAMBERS) ?
+			nullptr :
+			static_cast<CAddonSlot*>(m_UIPropertiesBox->GetClickedItem()->GetData())
+		);
 		break;
 	}
 	case INVENTORY_REPAIR:

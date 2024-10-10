@@ -49,11 +49,6 @@ void CWeaponMagazined::PlayAnimReload()
 		if (m_sounds_enabled)
 			PlaySound					("sndBoltRelease", get_LastFP());
 		break;
-	default:
-		PlayHUDMotion					("anm_reload", TRUE, GetState());
-		if (m_sounds_enabled)
-			PlaySound					("sndReload", get_LastFP());
-		break;
 	}
 }
 
@@ -107,10 +102,6 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 	case eSubstateReloadBoltRelease:
 		m_locked						= false;
 		m_chamber.load_from_mag			();
-		SwitchState						(eIdle);
-		break;
-	default:
-		ReloadMagazine					();
 		SwitchState						(eIdle);
 		break;
 	}

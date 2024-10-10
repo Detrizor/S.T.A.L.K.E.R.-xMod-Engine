@@ -72,18 +72,7 @@ void CWeaponAutomaticShotgun::PlayAnimReload()
 	case eSubstateReloadInProcess:
 		if (m_magazine && !m_magazine->Full() && has_ammo_for_reload())
 		{
-			if (m_current_ammo)
-			{
-				if (m_loading_slot->empty())
-				{
-					auto se_ammo		= giveItem(m_current_ammo->cNameSect().c_str(), m_current_ammo->GetCondition(), true);
-					auto ammo			= Level().Objects.net_Find(se_ammo->ID);
-					m_loading_slot->attachAddon(ammo->getModule<MAddon>());
-				}
-				m_current_ammo->ChangeAmmoCount(-1);
-				if (m_current_ammo->object_removed())
-					m_current_ammo		= nullptr;
-			}
+			attach_loading				(m_loading_slot);
 			PlayHUDMotion				("anm_add_cartridge", TRUE, GetState());
 			if (m_sounds_enabled)
 				PlaySound				("sndAddCartridge", get_LastFP());
@@ -137,8 +126,12 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadInProcess:
 	{
-		auto ammo						= m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>();
-		ammo->Get						(m_cartridge, false);
+		if (!m_loading_slot->empty())
+		{
+			auto loading				= m_loading_slot->addons.front();
+			auto ammo					= loading->O.scast<CWeaponAmmo*>();
+			ammo->Get					(m_cartridge, false);
+		}
 		m_magazine->loadCartridge		(m_cartridge);
 		PlayAnimReload					();
 		break;
@@ -158,12 +151,26 @@ void CWeaponAutomaticShotgun::drop_loading(bool destroy)
 		auto loading					= m_loading_slot->addons.front();
 		m_loading_slot->detachAddon		(loading, !destroy);
 		if (destroy)
-			loading->O.DestroyObject		();
+			loading->O.DestroyObject	();
 	}
+	m_current_ammo						= nullptr;
 }
 
 void CWeaponAutomaticShotgun::OnHiddenItem()
 {
 	drop_loading						(false);
 	inherited::OnHiddenItem				();
+}
+
+void CWeaponAutomaticShotgun::attach_loading(CAddonSlot* slot)
+{
+	if (slot->empty())
+	{
+		auto se_ammo					= giveItem(m_current_ammo->cNameSect().c_str(), m_current_ammo->GetCondition(), true);
+		auto ammo						= Level().Objects.net_Find(se_ammo->ID);
+		slot->attachAddon				(ammo->getModule<MAddon>());
+	}
+	m_current_ammo->ChangeAmmoCount		(-1);
+	if (m_current_ammo->object_removed())
+		m_current_ammo					= nullptr;
 }

@@ -120,7 +120,9 @@ public:
 	}
 	EWeaponSubStates		GetReloadState() const
 	{
-		return (EWeaponSubStates) m_sub_state;
+		if (m_sub_state <= eSubstateReloadEnd && !m_bTriStateReload)
+			return eSubstateReloadBegin;
+		return static_cast<EWeaponSubStates>(m_sub_state);
 	}
 protected:
 	bool					m_bTriStateReload;

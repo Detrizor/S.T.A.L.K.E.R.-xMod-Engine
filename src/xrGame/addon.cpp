@@ -133,9 +133,9 @@ float MAddon::aboba(EEventTypes type, void* data, int param)
 
 void MAddon::startAttaching(CAddonSlot CPC slot)
 {
-	m_slot_idx							= slot->idx;
+	m_slot_idx							= (slot) ? slot->idx : no_idx;
 	auto act							= get_attach_action();
-	act->item_id						= slot->parent_ao->O.ID();
+	act->item_id						= (slot) ? slot->parent_ao->O.ID() : u16_max;
 	act->performActionFunctor			();
 }
 

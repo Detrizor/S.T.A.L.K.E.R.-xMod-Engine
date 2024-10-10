@@ -67,7 +67,6 @@ void CWeaponMagazined::Load(LPCSTR section)
 		snd								= "snd_silncer_shot_actor";
 	m_layered_sounds.LoadSound			(section, *snd, "sndSilencerShotActor", false, m_eSoundShot);
 
-	m_sounds.LoadSound					(*HudSection(), "snd_reload", "sndReload", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_attach", "sndAttach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_detach", "sndDetach", true, m_eSoundReload);
 	m_sounds.LoadSound					(*HudSection(), "snd_bolt_pull", "sndBoltPull", true, m_eSoundReload);
@@ -162,8 +161,17 @@ void CWeaponMagazined::FireStart()
 	}
 }
 
-bool CWeaponMagazined::has_ammo_for_reload(int count) const
+bool CWeaponMagazined::has_ammo_for_reload(int count)
 {
+	if (unlimited_ammo() && !m_magazine_slot && !m_current_ammo)
+	{
+		int box_size					= CWeaponAmmo::readBoxSize(m_cartridge.m_ammoSect.c_str());
+		int count						= min(GetAmmoMagSize() - GetAmmoElapsed(), box_size);
+		auto go							= Parent->scast<CGameObject*>();
+		auto vec						= go->giveItems(m_cartridge.m_ammoSect.c_str(), count, 1, true);
+		auto obj						= Level().Objects.net_Find(vec.front()->ID);
+		m_current_ammo					= obj->scast<CWeaponAmmo*>();
+	}
 	return								unlimited_ammo() || (m_current_ammo && m_current_ammo->GetAmmoCount() >= count);
 }
 
@@ -186,7 +194,6 @@ void CWeaponMagazined::Reload()
 		}
 		else if (m_chamber)
 		{
-			m_current_ammo				= nullptr;
 			if (m_locked)
 				StartReload				(eSubstateReloadBoltRelease);
 			else if (HudAnimationExist("anm_bolt_lock") && m_chamber.empty() && !has_mag_with_ammo())
@@ -293,12 +300,6 @@ void CWeaponMagazined::unloadChamber(MAddon* chamber)
 void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
 	m_chamber.load_from					(ammo);
-}
-
-void CWeaponMagazined::initReload(CWeaponAmmo* ammo)
-{
-	m_current_ammo						= ammo;
-	StartReload							(eSubstateReloadBegin);
 }
 
 void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
@@ -437,7 +438,6 @@ void CWeaponMagazined::UpdateSounds()
 	Fvector P = get_LastFP();
 	m_sounds.SetPosition("sndShow", P);
 	m_sounds.SetPosition("sndHide", P);
-	m_sounds.SetPosition("sndReload", P);
 	m_sounds.SetPosition("sndDetach", P);
 	m_sounds.SetPosition("sndAttach", P);
 	m_sounds.SetPosition("sndBoltPull", P);
@@ -1274,7 +1274,8 @@ bool CWeaponMagazined::tryChargeMagazine(CWeaponAmmo* ammo)
 {
 	if (m_grip)
 	{
-		initReload						(ammo);
+		m_current_ammo					= ammo;
+		StartReload						(eSubstateReloadBegin);
 		return							true;
 	}
 	return								false;
