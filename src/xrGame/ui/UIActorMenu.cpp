@@ -557,47 +557,46 @@ void CUIActorMenu::set_highlight_item(CUICellItem* cell_item)
 	m_highlight_clear = false;
 }
 
-extern void FillVector(xr_vector<shared_str>&, LPCSTR, LPCSTR);
 void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx* ddlist)
 {
 	ddlist->clear_select_armament();
 
-	CUIAddonOwnerCellItem* ao			= smart_cast<CUIAddonOwnerCellItem*>(cell_item);
-	bool wpn_with_ammo					= ItemCategory(cell_item->m_section, "weapon") && !ItemSubcategory(cell_item->m_section, "melee") && !ItemSubcategory(cell_item->m_section, "grenade");
 	bool ammo							= ItemCategory(cell_item->m_section, "ammo");
-	bool addon							= ItemCategory(cell_item->m_section, "addon") || ItemCategory(cell_item->m_section, "magazine");
-	if (!ao && !wpn_with_ammo && !ammo && !addon)
+	bool addon							= ItemCategory(cell_item->m_section, "addon");
+	bool magazine						= ItemCategory(cell_item->m_section, "magazine");
+	bool addonable						= ammo || addon || magazine;
+	auto ao								= smart_cast<CUIAddonOwnerCellItem*>(cell_item);
+	if (!addonable && !ao)
 		return;
 
-	xr_vector<shared_str>				ammo_types;
-	if (wpn_with_ammo)
+	auto get_slot_type = [](shared_str CR$ section)
 	{
-		PIItem itm						= (PIItem)cell_item->m_pData;
-		CWeapon* wpn					= smart_cast<CWeapon*>(itm);
-		if (wpn)
-			ammo_types					= wpn->m_ammoTypes;
-		else
-			FillVector					(ammo_types, *cell_item->m_section, "ammo_class");
-	}
+		LPCSTR addon_section			= (pSettings->line_exist(section, "supplies")) ?
+			pSettings->r_string(section, "supplies") :
+			section.c_str();
+		return							pSettings->r_string(addon_section, "slot_type");
+	};
 
-	shared_str							ammo_section;
-	if (ammo)
-		ammo_section					= pSettings->line_exist(cell_item->m_section, "supplies") ? pSettings->r_string(cell_item->m_section, "supplies") : cell_item->m_section;
-
-	shared_str							slot_type;
-	if (addon)
-		slot_type						= pSettings->r_string(cell_item->m_section, "slot_type");
+	shared_str slot_type				= (addonable) ? get_slot_type(cell_item->m_section) : 0;
+	shared_str ammo_slot_type			= (magazine) ? pSettings->r_string(cell_item->m_section, "ammo_slot_type") : 0;
 
 	for (u32 i = 0, cnt = ddlist->ItemsCount(); i < cnt; ++i)
 	{
 		CUICellItem* ci					= ddlist->GetItemIdx(i);
+		bool ci_ammo					= ItemCategory(ci->m_section, "ammo");
+		bool ci_addon					= ItemCategory(ci->m_section, "addon");
+		bool ci_magazine				= ItemCategory(ci->m_section, "magazine");
+		bool ci_addonable				= ci_ammo || ci_addon || ci_magazine;
+		auto ci_ao						= smart_cast<CUIAddonOwnerCellItem*>(ci);
+		if (!ci_addonable && !ci_ao)
+			continue;
 
-		if (ao && (ItemCategory(ci->m_section, "addon") || ItemCategory(ci->m_section, "magazine")))
+		if (ao && ci_addonable)
 		{
-			LPCSTR tmp					= pSettings->r_string(ci->m_section, "slot_type");
+			shared_str ci_slot_type		= (ci_addonable) ? get_slot_type(ci->m_section) : 0;
 			for (auto& s : ao->Slots())
 			{
-				if (CAddonSlot::isCompatible(s->type, tmp))
+				if (CAddonSlot::isCompatible(s->type, ci_slot_type))
 				{
 					ci->m_select_armament = true;
 					break;
@@ -605,12 +604,11 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 			}
 		}
 
-		if (wpn_with_ammo && ItemCategory(ci->m_section, "ammo"))
+		if (addonable && ci_ao)
 		{
-			LPCSTR tmp					= pSettings->line_exist(ci->m_section, "supplies") ? pSettings->r_string(ci->m_section, "supplies") : *ci->m_section;
-			for (auto& I : ammo_types)
+			for (auto& s : ci_ao->Slots())
 			{
-				if (I == tmp)
+				if (CAddonSlot::isCompatible(s->type, slot_type))
 				{
 					ci->m_select_armament = true;
 					break;
@@ -618,38 +616,18 @@ void CUIActorMenu::highlight_armament(CUICellItem* cell_item, CUIDragDropListEx*
 			}
 		}
 
-		if (ammo && ItemCategory(ci->m_section, "weapon"))
+		if (magazine && ci_ammo)
 		{
-			xr_vector<shared_str>		tmp;
-			PIItem itm					= (PIItem)ci->m_pData;
-			CWeapon* wpn				= smart_cast<CWeapon*>(itm);
-			if (wpn)
-				tmp						= wpn->m_ammoTypes;
-			else
-				FillVector				(tmp, *ci->m_section, "ammo_class");
-			for (auto& I : tmp)
-			{
-				if (I == ammo_section)
-				{
-					ci->m_select_armament = true;
-					break;
-				}
-			}
+			shared_str ci_slot_type		= get_slot_type(ci->m_section);
+			if (CAddonSlot::isCompatible(ammo_slot_type, ci_slot_type))
+				ci->m_select_armament	= true;
 		}
 
-		if (addon)
+		if (ammo && ci_magazine)
 		{
-			if (auto tmp = smart_cast<CUIAddonOwnerCellItem*>(ci))
-			{
-				for (auto& s : tmp->Slots())
-				{
-					if (CAddonSlot::isCompatible(s->type, slot_type))
-					{
-						ci->m_select_armament = true;
-						break;
-					}
-				}
-			}
+			shared_str ci_ammo_slot_type = pSettings->r_string(ci->m_section, "ammo_slot_type");
+			if (CAddonSlot::isCompatible(ci_ammo_slot_type, slot_type))
+				ci->m_select_armament	= true;
 		}
 	}
 }
