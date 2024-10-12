@@ -57,6 +57,7 @@ protected:
 	// Weapon fires now
 	bool					bWorking;
 	float					fOneShotTime;
+	float					m_rpm;
 
 	//максимальное расстояние стрельбы
 	float					fireDistance;

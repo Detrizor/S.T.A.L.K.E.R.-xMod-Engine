@@ -141,7 +141,7 @@ public:
 		m_BriefInfo_CalcFrame = 0;
 	}
 
-	float	GetRPM				() const		{ return 60.f / fOneShotTime; }
+	float	GetRPM				() const		{ return m_rpm; }
 
 protected:
 	struct SZoomParams

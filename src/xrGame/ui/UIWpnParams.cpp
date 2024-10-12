@@ -87,9 +87,13 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	str.printf							("%.0f %s", barrel_length, *CStringTable().translate("st_mm"));
 	m_text_barrel_length_value.SetText	(*str);
 
-	float rpm							= (wpn) ? wpn->GetRPM() : pSettings->r_float(itm->m_section, "rpm");
-	str.printf							("%.0f %s", rpm, *CStringTable().translate("st_rpm"));
-	m_textRPMValue.SetText				(*str);
+	if (float rpm = (wpn) ? wpn->GetRPM() : pSettings->r_float(itm->m_section, "rpm"))
+	{
+		str.printf						("%.0f %s", rpm, CStringTable().translate("st_rpm").c_str());
+		m_textRPMValue.SetText			(str.c_str());
+	}
+	else
+		m_textRPMValue.SetText			("---");
 
 	xr_vector<shared_str>				ammo_types;
 	if (wpn)

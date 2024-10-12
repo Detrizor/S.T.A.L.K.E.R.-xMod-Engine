@@ -34,12 +34,12 @@ CShootingObject::CShootingObject(void)
 	light_render					= 0;
 }
 
-void CShootingObject::Load	(LPCSTR section)
+void CShootingObject::Load(LPCSTR section)
 {
 	//время затрачиваемое на выстрел
-	float rpm = pSettings->r_float(section,"rpm");
-	fOneShotTime = (fIsZero(rpm)) ? 0.f : 60.f / rpm;
-	LoadFireParams		(section);
+	m_rpm								= pSettings->r_float(section, "rpm");
+	fOneShotTime						= (m_rpm) ? 60.f / m_rpm : 0.f;
+	LoadFireParams						(section);
 }
 
 void CShootingObject::Light_Create		()
