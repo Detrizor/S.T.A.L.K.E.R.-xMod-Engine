@@ -105,6 +105,12 @@ void CWeaponBM16::PlayAnimReload()
 		}
 		break;
 	case eSubstateReloadEnd:
+		if (!m_loading_slot->empty())
+			m_chamber.load_from			(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
+		if (!m_loading_slot_second->empty())
+			m_chamber_second.load_from	(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
+		m_reloading_chamber				= -1;
+		m_current_ammo					= nullptr;
 		PlayHUDMotion					("anm_close", TRUE, GetState());
 		if (m_sounds_enabled)
 				PlaySound				("sndClose", get_LastFP());
@@ -153,12 +159,6 @@ void CWeaponBM16::OnAnimationEnd(u32 state)
 		PlayAnimReload					();
 		break;
 	case eSubstateReloadEnd:
-		if (!m_loading_slot->empty())
-			m_chamber.load_from			(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
-		if (!m_loading_slot_second->empty())
-			m_chamber_second.load_from	(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
-		m_reloading_chamber				= -1;
-		m_current_ammo					= nullptr;
 		SwitchState						(eIdle);
 		break;
 	default:
@@ -183,9 +183,15 @@ void CWeaponBM16::StartReload(EWeaponSubStates substate)
 		return;
 
 	if (substate != eSubstateReloadBegin)
+	{
 		substate						= eSubstateReloadBegin;
-
-	if (m_reloading_chamber == -1)
+		if (m_actor && m_actor->unlimited_ammo())
+		{
+			m_chamber.load				();
+			m_chamber_second.load		();
+		}
+	}
+	else if (m_reloading_chamber == -1)
 		m_reloading_chamber				= 2;
 	
 	m_sub_state							= substate;
