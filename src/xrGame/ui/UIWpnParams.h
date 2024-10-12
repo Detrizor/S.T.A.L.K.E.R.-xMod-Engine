@@ -22,8 +22,6 @@ protected:
 	CUITextWnd				m_text_barrel_length_value;
 	CUITextWnd				m_textRPM;
 	CUITextWnd				m_textRPMValue;
-	CUITextWnd				m_textAmmoTypes;
-	CUITextWnd				m_textAmmoTypesValue;
 	CUIStatic				m_Prop_line;
 };
 

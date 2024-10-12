@@ -21,9 +21,6 @@ CUIWpnParams::CUIWpnParams()
 	AttachChild		(&m_text_barrel_length_value);
 	AttachChild		(&m_textRPM);
 	AttachChild		(&m_textRPMValue);
-
-	AttachChild		(&m_textAmmoTypes);
-	AttachChild		(&m_textAmmoTypesValue);
 }
 
 void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
@@ -37,22 +34,6 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_barrel_length_value",		0, &m_text_barrel_length_value);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm",						0, &m_textRPM);
 	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_rpm_value",				0, &m_textRPMValue);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",				0, &m_textAmmoTypes);
-	CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types_value",		0, &m_textAmmoTypesValue);
-}
-
-void FillVector(xr_vector<shared_str>& vector, LPCSTR section, LPCSTR line)
-{
-	LPCSTR str					= READ_IF_EXISTS(pSettings, r_string, section, line, 0);
-	if (str && str[0])
-	{
-		string128				tmp;
-		for (int it = 0, count = _GetItemCount(str); it < count; ++it)
-		{
-			_GetItem			(str, it, tmp);
-			vector.push_back	(tmp);
-		}
-	}
 }
 
 static float get_barrel_length(CUICellItem* itm)
@@ -94,25 +75,6 @@ void CUIWpnParams::SetInfo(CUICellItem* itm)
 	}
 	else
 		m_textRPMValue.SetText			("---");
-
-	xr_vector<shared_str>				ammo_types;
-	if (wpn)
-		ammo_types						= wpn->m_ammoTypes;
-	else
-		FillVector						(ammo_types, *itm->m_section, "ammo_class");
-	shared_str name_s					= CInventoryItem::readNameShort(ammo_types[0]);
-	if (name_s.size())
-	{
-		str								= name_s;
-		for (u32 i = 1, i_e = ammo_types.size(); i < i_e; i++)
-		{
-			name_s						= CInventoryItem::readNameShort(ammo_types[i]);
-			str.printf					("%s, %s", str.c_str(), CStringTable().translate(name_s).c_str());
-		}
-	}
-	else
-		str								= "---";
-	m_textAmmoTypesValue.SetText		(str.c_str());
 }
 
 // -------------------------------------------------------------------------------------------------
