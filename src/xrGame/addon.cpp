@@ -147,17 +147,24 @@ void MAddon::onAttach(CAddonSlot* slot)
 	get_attach_action()->item_id		= u16_max;
 }
 
-void MAddon::onDetach(bool transfer)
+void MAddon::onDetach(int transfer)
 {
 	m_slot_status						= free;
 	m_slot								= nullptr;
 	m_slot_idx							= no_idx;
 	m_slot_pos							= no_idx;
 
-	if (transfer)
+	switch (transfer)
+	{
+	case 1:
 	{
 		auto root						= O.H_Root();
 		O.transfer						((root->scast<CInventoryOwner*>()) ? root->ID() : u16_max);
+		break;
+	}
+	case 2:
+		O.DestroyObject					();
+		break;
 	}
 }
 

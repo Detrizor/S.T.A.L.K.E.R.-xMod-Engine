@@ -105,10 +105,6 @@ void CWeaponBM16::PlayAnimReload()
 		}
 		break;
 	case eSubstateReloadEnd:
-		if (!m_loading_slot->empty())
-			m_chamber.load_from			(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
-		if (!m_loading_slot_second->empty())
-			m_chamber_second.load_from	(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
 		m_reloading_chamber				= -1;
 		m_current_ammo					= nullptr;
 		PlayHUDMotion					("anm_close", TRUE, GetState());
@@ -146,6 +142,10 @@ void CWeaponBM16::OnAnimationEnd(u32 state)
 		break;
 	case eSubstateReloadAttach:
 	{
+		if (!m_loading_slot->empty())
+			m_chamber.load_from			(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
+		if (!m_loading_slot_second->empty())
+			m_chamber_second.load_from	(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
 		m_sub_state						= eSubstateReloadEnd;
 		PlayAnimReload					();
 		break;
@@ -168,11 +168,7 @@ void CWeaponBM16::OnAnimationEnd(u32 state)
 
 void CWeaponBM16::OnHiddenItem()
 {
-	if (!m_loading_slot_second->empty())
-	{
-		auto loading					= m_loading_slot_second->addons.front();
-		m_loading_slot_second->detachAddon(loading, true);
-	}
+	detach_loading						(m_loading_slot_second, false);
 	m_reloading_chamber					= -1;
 	inherited::OnHiddenItem				();
 }

@@ -146,14 +146,14 @@ void CWeaponAutomaticShotgun::OnAnimationEnd(u32 state)
 
 void CWeaponAutomaticShotgun::drop_loading(bool destroy)
 {
-	if (!m_loading_slot->empty())
+	if (m_bTriStateReload)
+		detach_loading					(m_loading_slot, destroy);
+	if (m_current_ammo)
 	{
-		auto loading					= m_loading_slot->addons.front();
-		m_loading_slot->detachAddon		(loading, !destroy);
-		if (destroy)
-			loading->O.DestroyObject	();
+		if (!m_actor && unlimited_ammo())
+			m_current_ammo->DestroyObject();
+		m_current_ammo					= nullptr;
 	}
-	m_current_ammo						= nullptr;
 }
 
 void CWeaponAutomaticShotgun::OnHiddenItem()
@@ -173,4 +173,13 @@ void CWeaponAutomaticShotgun::attach_loading(CAddonSlot* slot)
 	m_current_ammo->ChangeAmmoCount		(-1);
 	if (m_current_ammo->object_removed())
 		m_current_ammo					= nullptr;
+}
+
+void CWeaponAutomaticShotgun::detach_loading(CAddonSlot* slot, bool destroy)
+{
+	if (!slot->empty())
+	{
+		auto loading					= slot->addons.front();
+		slot->detachAddon				(loading, (destroy || !m_actor && unlimited_ammo()) ? 2 : 1);
+	}
 }

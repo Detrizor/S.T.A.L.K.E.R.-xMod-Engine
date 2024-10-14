@@ -737,8 +737,8 @@ bool CWeapon::IsNecessaryItem(const shared_str& item_sect)
 
 bool CWeapon::unlimited_ammo() const
 {
-	if (m_pInventory)
-		return inventory_owner().unlimited_ammo();
+	if (auto io = Parent->scast<CInventoryOwner*>())
+		return io->unlimited_ammo();
 	return false;
 }
 

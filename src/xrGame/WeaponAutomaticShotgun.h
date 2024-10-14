@@ -28,6 +28,7 @@ protected:
 	CAddonSlot*							m_loading_slot							= nullptr;
 
 	void								attach_loading							(CAddonSlot* slot);
+	void								detach_loading							(CAddonSlot* slot, bool destroy);
 	
 	void								OnHiddenItem						O$	();
 };

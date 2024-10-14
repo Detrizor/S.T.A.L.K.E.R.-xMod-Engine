@@ -145,7 +145,7 @@ void MAddonOwner::finishAttaching(MAddon* addon, CAddonSlot* slot) const
 void MAddonOwner::finishDetaching(MAddon* addon, bool transfer) const
 {
 	register_addon						(addon, false);
-	addon->getSlot()->detachAddon		(addon, transfer);
+	addon->getSlot()->detachAddon		(addon, static_cast<int>(transfer));
 }
 
 CAddonSlot* MAddonOwner::find_available_slot(MAddon CPC addon, bool forced) const
@@ -352,7 +352,7 @@ void CAddonSlot::attachAddon(MAddon* addon)
 	update_addon_local_transform		(addon);
 }
 
-void CAddonSlot::detachAddon(MAddon* addon, bool transfer)
+void CAddonSlot::detachAddon(MAddon* addon, int transfer)
 {
 	addon->onDetach						(transfer);
 	addons.erase						(_STD find(addons.begin(), addons.end(), addon));

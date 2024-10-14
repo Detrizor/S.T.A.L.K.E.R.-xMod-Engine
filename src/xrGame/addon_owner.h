@@ -57,7 +57,7 @@ public:
 	void								setAttachBone							(LPCSTR val)		{ m_attach_bone = val; }
 
 	void								attachAddon								(MAddon* addon);
-	void								detachAddon								(MAddon* addon, bool transfer);
+	void								detachAddon								(MAddon* addon, int transfer);
 	void								shiftAddon								(MAddon* addon, int shift);
 
 	void								updateAddonsHudTransform				(attachable_hud_item* hi);

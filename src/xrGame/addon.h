@@ -68,7 +68,7 @@ public:
 	
 	void								startAttaching							(CAddonSlot CPC slot);
 	void								onAttach								(CAddonSlot* slot);
-	void								onDetach								(bool transfer = true);
+	void								onDetach								(int transfer = 1);
 	
 	void								updateHudTransform						(Dmatrix CR$ parent_trans);
 	void								updateHudOffset							(Dmatrix CR$ bone_offset, Dmatrix CR$ root_offset);
