@@ -431,19 +431,21 @@ CTexture* CResourceManager::_CreateTexture	(LPCSTR _Name)
 #endif	//	DEBUG
 
 	// ***** first pass - search already loaded texture
-	LPSTR N			= LPSTR(Name);
-	map_TextureIt I = m_textures.find	(N);
-	if (I!=m_textures.end())	return	I->second;
-	else
-	{
-		CTexture *	T		=	xr_new<CTexture>();
-		T->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
-		m_textures.insert	(mk_pair(T->set_name(Name),T));
-		T->Preload			();
-		if (RDEVICE.b_is_Ready && !bDeferredLoad) T->Load();
-		return		T;
-	}
+	
+	map_TextureIt I						= m_textures.find(Name);
+	if (I != m_textures.end())
+		return							I->second;
+	
+	CTexture* T							= xr_new<CTexture>();
+	T->dwFlags							|= xr_resource_flagged::RF_REGISTERED;
+	m_textures.emplace					(T->set_name(Name), T);
+	
+	T->Preload							();
+	m_parallel_tex_loader.run			([T]{ while (!Device.b_is_Ready) _STD this_thread::yield(); T->Load(); });
+
+	return								T;
 }
+
 void	CResourceManager::_DeleteTexture		(const CTexture* T)
 {
 	// DBG_VerifyTextures	();

@@ -42,7 +42,7 @@
 		DestroyShader(DS);
 	}
 
-    SCS*	CResourceManager::_CreateCS			(LPCSTR Name)
+	SCS*	CResourceManager::_CreateCS			(LPCSTR Name)
 	{
 		return CreateShader<SCS>(Name);
 	}
@@ -574,29 +574,31 @@ void		CResourceManager::DeleteGeom		(const SGeometry* Geom)
 }
 
 //--------------------------------------------------------------------------------------------------------------
-CTexture* CResourceManager::_CreateTexture	(LPCSTR _Name)
+CTexture* CResourceManager::_CreateTexture(LPCSTR _Name)
 {
 	// DBG_VerifyTextures	();
 	if (0==xr_strcmp(_Name,"null"))	return 0;
-    //Msg("texture %s", _Name);
+	//Msg("texture %s", _Name);
 	R_ASSERT		(_Name && _Name[0]);
 	string_path		Name;
 	xr_strcpy			(Name,_Name); //. andy if (strext(Name)) *strext(Name)=0;
 	fix_texture_name (Name);
 	// ***** first pass - search already loaded texture
-	LPSTR N			= LPSTR(Name);
-	map_TextureIt I = m_textures.find	(N);
-	if (I!=m_textures.end())	return	I->second;
-	else
-	{
-		CTexture *	T		=	xr_new<CTexture>();
-		T->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
-		m_textures.insert	(mk_pair(T->set_name(Name),T));
-		T->Preload			();
-		if (Device.b_is_Ready && !bDeferredLoad) T->Load();
-		return		T;
-	}
+
+	map_TextureIt I						= m_textures.find(Name);
+	if (I != m_textures.end())
+		return							I->second;
+	
+	CTexture* T							= xr_new<CTexture>();
+	T->dwFlags							|= xr_resource_flagged::RF_REGISTERED;
+	m_textures.emplace					(T->set_name(Name), T);
+
+	T->Preload							();
+	m_parallel_tex_loader.run			([T]{ while (!Device.b_is_Ready) _STD this_thread::yield(); T->Load(); });
+
+	return								T;
 }
+
 void	CResourceManager::_DeleteTexture		(const CTexture* T)
 {
 	// DBG_VerifyTextures	();

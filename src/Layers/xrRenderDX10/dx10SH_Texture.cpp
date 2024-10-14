@@ -23,6 +23,7 @@ void resptrcode_texture::create(LPCSTR _name)
 	_set(DEV->_CreateTexture(_name));
 }
 
+xrCriticalSection lock;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -78,18 +79,18 @@ void					CTexture::surface_set	(ID3DBaseTexture* surf )
 			}
 			else
 			{
-            if(desc.SampleDesc.Count <= 1 )
-            {
-			      ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+			if(desc.SampleDesc.Count <= 1 )
+			{
+				  ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 				   ViewDesc.Texture2D.MostDetailedMip = 0;
-   			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
-            }
-            else
-            {
-			      ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
-               ViewDesc.Texture2D.MostDetailedMip = 0;
-   			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
-            }
+			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
+			}
+			else
+			{
+				  ViewDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+			   ViewDesc.Texture2D.MostDetailedMip = 0;
+			   ViewDesc.Texture2D.MipLevels = desc.MipLevels;
+			}
 			}			
 
 			ViewDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -104,12 +105,12 @@ void					CTexture::surface_set	(ID3DBaseTexture* surf )
 				break;
 			}
 
-         // this would be supported by DX10.1 but is not needed for stalker
-        // if( ViewDesc.Format != DXGI_FORMAT_R24_UNORM_X8_TYPELESS )
+		 // this would be supported by DX10.1 but is not needed for stalker
+		// if( ViewDesc.Format != DXGI_FORMAT_R24_UNORM_X8_TYPELESS )
 				if( (desc.SampleDesc.Count <= 1) || (ViewDesc.Format != DXGI_FORMAT_R24_UNORM_X8_TYPELESS) )         
 					CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, &ViewDesc, &m_pSRView));
-        else
-           m_pSRView = 0;
+		else
+		   m_pSRView = 0;
 		}
 		else
 			CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
@@ -305,7 +306,8 @@ void CTexture::apply_theora(u32 dwStage)
 	}
 	Apply(dwStage);
 	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
-};
+}
+
 void CTexture::apply_avi	(u32 dwStage)	
 {
 	if (pAVI->NeedUpdate()){
@@ -334,8 +336,12 @@ void CTexture::apply_avi	(u32 dwStage)
 	}
 	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
 	Apply(dwStage);
-};
-void CTexture::apply_seq	(u32 dwStage)	{
+}
+
+void CTexture::apply_seq(u32 dwStage)
+{
+	xrCriticalSection::raii mt{ &lock };
+
 	// SEQ
 	u32	frame		= Device.dwTimeContinual/seqMSPF; //Device.dwTimeGlobal
 	u32	frame_data	= seqDATA.size();
@@ -352,10 +358,12 @@ void CTexture::apply_seq	(u32 dwStage)	{
 	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
 	Apply(dwStage);
 };
-void CTexture::apply_normal	(u32 dwStage)	{
+
+void CTexture::apply_normal	(u32 dwStage)
+{
 	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
 	Apply(dwStage);
-};
+}
 
 void CTexture::Preload	()
 {
@@ -383,15 +391,19 @@ void CTexture::Load		()
 
 	// Check for OGM
 	string_path			fn;
-	if (FS.exist(fn,"$game_textures$",*cName,".ogm")){
+	if (FS.exist(fn,"$game_textures$",*cName,".ogm"))
+	{
 		// AVI
 		pTheora		= xr_new<CTheoraSurface>();
 		m_play_time	= 0xFFFFFFFF;
 
-		if (!pTheora->Load(fn)) {
+		if (!pTheora->Load(fn))
+		{
 			xr_delete(pTheora);
 			FATAL				("Can't open video stream");
-		} else {
+		}
+		else
+		{
 			flags.MemoryUsage	= pTheora->Width(true)*pTheora->Height(true)*4;
 			pTheora->Play		(TRUE,Device.dwTimeContinual);
 
@@ -431,115 +443,121 @@ void CTexture::Load		()
 			}
 
 		}
-	} else
-		if (FS.exist(fn,"$game_textures$",*cName,".avi")){
-			// AVI
-			pAVI = xr_new<CAviPlayerCustom>();
+	}
+	else if (FS.exist(fn,"$game_textures$",*cName,".avi"))
+	{
+		// AVI
+		pAVI = xr_new<CAviPlayerCustom>();
 
-			if (!pAVI->Load(fn)) {
-				xr_delete(pAVI);
-				FATAL				("Can't open video stream");
-			} else {
-				flags.MemoryUsage	= pAVI->m_dwWidth*pAVI->m_dwHeight*4;
+		if (!pAVI->Load(fn))
+		{
+			xr_delete(pAVI);
+			FATAL				("Can't open video stream");
+		}
+		else
+		{
+			flags.MemoryUsage	= pAVI->m_dwWidth*pAVI->m_dwHeight*4;
 
-				// Now create texture
-				ID3DTexture2D*	pTexture = 0;
-				//HRESULT hrr = HW.pDevice->CreateTexture(
-				//pAVI->m_dwWidth,pAVI->m_dwHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,
-				//	&pTexture,NULL
-				//	);
-				D3D_TEXTURE2D_DESC	desc;
-				desc.Width = pAVI->m_dwWidth;
-				desc.Height = pAVI->m_dwHeight;
-				desc.MipLevels = 1;
-				desc.ArraySize = 1;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.SampleDesc.Count = 1;
-				desc.SampleDesc.Quality = 0;
-				desc.Usage = D3D_USAGE_DYNAMIC;
-				desc.BindFlags = D3D_BIND_SHADER_RESOURCE;
-				desc.CPUAccessFlags = D3D_CPU_ACCESS_WRITE;
-				desc.MiscFlags = 0;
-				HRESULT hrr = HW.pDevice->CreateTexture2D(&desc, 0, &pTexture);
+			// Now create texture
+			ID3DTexture2D*	pTexture = 0;
+			//HRESULT hrr = HW.pDevice->CreateTexture(
+			//pAVI->m_dwWidth,pAVI->m_dwHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,
+			//	&pTexture,NULL
+			//	);
+			D3D_TEXTURE2D_DESC	desc;
+			desc.Width = pAVI->m_dwWidth;
+			desc.Height = pAVI->m_dwHeight;
+			desc.MipLevels = 1;
+			desc.ArraySize = 1;
+			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.SampleDesc.Count = 1;
+			desc.SampleDesc.Quality = 0;
+			desc.Usage = D3D_USAGE_DYNAMIC;
+			desc.BindFlags = D3D_BIND_SHADER_RESOURCE;
+			desc.CPUAccessFlags = D3D_CPU_ACCESS_WRITE;
+			desc.MiscFlags = 0;
+			HRESULT hrr = HW.pDevice->CreateTexture2D(&desc, 0, &pTexture);
 
-				pSurface	= pTexture;
-				if (FAILED(hrr))
-				{
-					FATAL		("Invalid video stream");
-					R_CHK		(hrr);
-					xr_delete	(pAVI);
-					pSurface = 0;
-					m_pSRView	= 0;
-				}
-				else
-				{
-					CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, 0, &m_pSRView));
-				}
-
-			}
-		} else
-			if (FS.exist(fn,"$game_textures$",*cName,".seq"))
+			pSurface	= pTexture;
+			if (FAILED(hrr))
 			{
-				// Sequence
-				string256 buffer;
-				IReader* _fs		= FS.r_open(fn);
-
-				flags.seqCycles	= FALSE;
-				_fs->r_string	(buffer,sizeof(buffer));
-				if (0==stricmp	(buffer,"cycled"))
-				{
-					flags.seqCycles	= TRUE;
-					_fs->r_string	(buffer,sizeof(buffer));
-				}
-				u32 fps	= atoi(buffer);
-				seqMSPF		= 1000/fps;
-
-				while (!_fs->eof())
-				{
-					_fs->r_string(buffer,sizeof(buffer));
-					_Trim		(buffer);
-					if (buffer[0])	
-					{
-						// Load another texture
-						u32	mem  = 0;
-						pSurface = ::RImplementation.texture_load	(buffer,mem);
-						if (pSurface)	
-						{
-							// pSurface->SetPriority	(PRIORITY_LOW);
-							seqDATA.push_back(pSurface);
-							m_seqSRView.push_back(0);
-							HW.pDevice->CreateShaderResourceView(seqDATA.back(), NULL, & m_seqSRView.back());
-							flags.MemoryUsage		+= mem;
-						}
-					}
-				}
-				pSurface	= 0;
-				FS.r_close	(_fs);
-			} 
+				FATAL		("Invalid video stream");
+				R_CHK		(hrr);
+				xr_delete	(pAVI);
+				pSurface = 0;
+				m_pSRView	= 0;
+			}
 			else
 			{
-				// Normal texture
-				u32	mem  = 0;
-				//pSurface = ::RImplementation.texture_load	(*cName,mem);
-				pSurface = ::RImplementation.texture_load	(*cName,mem, true);
-
-				if (GetUsage() == D3D_USAGE_STAGING)
-				{
-					flags.bLoadedAsStaging = TRUE;
-					bCreateView = false;
-				}
-
-				// Calc memory usage and preload into vid-mem
-				if (pSurface) 
-				{
-					// pSurface->SetPriority	(PRIORITY_NORMAL);
-					flags.MemoryUsage		=	mem;
-				}
+				CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, 0, &m_pSRView));
 			}
 
-			if (pSurface && bCreateView)
-				CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
-			PostLoad	()		;
+		}
+	}
+	else if (FS.exist(fn,"$game_textures$",*cName,".seq"))
+	{
+		xrCriticalSection::raii mt{ &lock };
+
+		// Sequence
+		string256 buffer;
+		IReader* _fs		= FS.r_open(fn);
+
+		flags.seqCycles	= FALSE;
+		_fs->r_string	(buffer,sizeof(buffer));
+		if (0==stricmp	(buffer,"cycled"))
+		{
+			flags.seqCycles	= TRUE;
+			_fs->r_string	(buffer,sizeof(buffer));
+		}
+		u32 fps	= atoi(buffer);
+		seqMSPF		= 1000/fps;
+
+		while (!_fs->eof())
+		{
+			_fs->r_string(buffer,sizeof(buffer));
+			_Trim		(buffer);
+			if (buffer[0])	
+			{
+				// Load another texture
+				u32	mem  = 0;
+				pSurface = ::RImplementation.texture_load	(buffer,mem);
+				if (pSurface)	
+				{
+					// pSurface->SetPriority	(PRIORITY_LOW);
+					seqDATA.push_back(pSurface);
+					m_seqSRView.push_back(0);
+					HW.pDevice->CreateShaderResourceView(seqDATA.back(), NULL, & m_seqSRView.back());
+					flags.MemoryUsage		+= mem;
+				}
+			}
+		}
+		pSurface	= 0;
+		FS.r_close	(_fs);
+	}
+	else
+	{
+		// Normal texture
+		u32	mem  = 0;
+		//pSurface = ::RImplementation.texture_load	(*cName,mem);
+		pSurface = ::RImplementation.texture_load	(*cName,mem, true);
+
+		if (GetUsage() == D3D_USAGE_STAGING)
+		{
+			flags.bLoadedAsStaging = TRUE;
+			bCreateView = false;
+		}
+
+		// Calc memory usage and preload into vid-mem
+		if (pSurface) 
+		{
+			// pSurface->SetPriority	(PRIORITY_NORMAL);
+			flags.MemoryUsage		=	mem;
+		}
+	}
+
+	if (pSurface && bCreateView)
+		CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
+	PostLoad	()		;
 }
 
 void CTexture::Unload	()
