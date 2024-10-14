@@ -311,7 +311,7 @@ protected:
 public:
 	virtual int				GetAmmoElapsed			()	const { return 0; }
 	virtual int				GetAmmoMagSize			()	const { return 0; }
-	int						GetSuitableAmmoTotal	(bool use_item_to_spawn = false) const;
+	int						GetSuitableAmmoTotal	() const;
 	virtual void			OnMagazineEmpty			() {}
 
 protected:

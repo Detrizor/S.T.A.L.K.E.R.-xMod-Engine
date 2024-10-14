@@ -22,20 +22,15 @@
 
 CWeapon	*CAI_Stalker::GetCurrentWeapon() const
 {
-	return			(smart_cast<CWeapon*>(inventory().ActiveItem()));
+	return (smart_cast<CWeapon*>(inventory().ActiveItem()));
 }
 
 u32 CAI_Stalker::GetWeaponAmmo() const
 {
-	if (!GetCurrentWeapon())
-		return		(0);
-	return			(GetCurrentWeapon()->GetSuitableAmmoTotal(true));	
+	if (auto wpn = GetCurrentWeapon())
+		return wpn->GetSuitableAmmoTotal();
+	return 0;
 }
-
-//CInventoryItem *CAI_Stalker::GetCurrentEquipment() const
-//{
-//    return inventory().ItemFromSlot(OUTFIT_SLOT);
-//}
 
 CInventoryItem *CAI_Stalker::GetMedikit() const
 {

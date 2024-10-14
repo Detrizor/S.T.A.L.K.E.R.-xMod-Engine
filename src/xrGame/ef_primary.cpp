@@ -140,16 +140,17 @@ float CPersonalWeaponTypeFunction::ffGetTheBestWeapon()
 	if (ef_storage().non_alife().member() && ef_storage().non_alife().member_item())
 		return			(float(dwfGetWeaponType()));
 
-	if (ef_storage().non_alife().member()) {
-		const CInventoryOwner *tpInventoryOwner = smart_cast<const CInventoryOwner*>(ef_storage().non_alife().member());
-		if (tpInventoryOwner) {
-			u16 I = tpInventoryOwner->inventory().FirstSlot();
-			u16 E = tpInventoryOwner->inventory().LastSlot();
-			for ( ; I <= E; ++I) {
-				PIItem iitem = tpInventoryOwner->inventory().ItemFromSlot(I);
-				if (iitem) {
+	if (ef_storage().non_alife().member())
+	{
+		if (auto io = smart_cast<const CInventoryOwner*>(ef_storage().non_alife().member()))
+		{
+			for (u16 I = io->inventory().FirstSlot(), E = io->inventory().LastSlot(); I <= E; ++I)
+			{
+				if (auto iitem = io->inventory().ItemFromSlot(I))
+				{
 					CWeapon *tpCustomWeapon = smart_cast<CWeapon*>(iitem);
-					if (tpCustomWeapon && (tpCustomWeapon->GetSuitableAmmoTotal(true) > tpCustomWeapon->GetAmmoMagSize()/10)) {
+					if (tpCustomWeapon && (tpCustomWeapon->GetSuitableAmmoTotal() > tpCustomWeapon->GetAmmoMagSize()/10))
+					{
 						ef_storage().non_alife().member_item()	= tpCustomWeapon;
 						u32 dwCurrentBestWeapon = dwfGetWeaponType();
 						if (dwCurrentBestWeapon > dwBestWeapon)
@@ -160,13 +161,14 @@ float CPersonalWeaponTypeFunction::ffGetTheBestWeapon()
 			}
 		}	
 	}
-	else {
+	else
+	{
 		if (!ef_storage().alife().member() || !ef_storage().alife().member()->m_tpCurrentBestWeapon)
 			return(0);
 		ef_storage().alife().member_item()	= ef_storage().alife().member()->m_tpCurrentBestWeapon;
 		dwBestWeapon			= dwfGetWeaponType();
 	}
-	return(float(dwBestWeapon));
+	return static_cast<float>(dwBestWeapon);
 }
 
 float CPersonalWeaponTypeFunction::ffGetValue()

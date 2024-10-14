@@ -496,7 +496,7 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 	return false;
 }
 
-int CWeapon::GetSuitableAmmoTotal(bool use_item_to_spawn) const
+int CWeapon::GetSuitableAmmoTotal() const
 {
 	if (unlimited_ammo())
 		return int_max;
@@ -514,19 +514,7 @@ int CWeapon::GetSuitableAmmoTotal(bool use_item_to_spawn) const
 
 	m_iAmmoCurrentTotal = 0;
 	for (u8 i = 0; i < u8(m_ammoTypes.size()); ++i)
-	{
 		m_iAmmoCurrentTotal += GetAmmoCount_forType(m_ammoTypes[i]);
-
-		if (!use_item_to_spawn)
-		{
-			continue;
-		}
-		if (!inventory_owner().item_to_spawn())
-		{
-			continue;
-		}
-		m_iAmmoCurrentTotal += inventory_owner().ammo_in_box_to_spawn();
-	}
 	return ae_count + m_iAmmoCurrentTotal;
 }
 
@@ -668,10 +656,7 @@ ALife::_TIME_ID	 CWeapon::TimePassedAfterIndependant()	const
 
 bool CWeapon::can_kill() const
 {
-	if (GetSuitableAmmoTotal(true) || m_ammoTypes.empty())
-		return				(true);
-
-	return					(false);
+	return (GetSuitableAmmoTotal() || m_ammoTypes.empty());
 }
 
 CInventoryItem *CWeapon::can_kill(CInventory *inventory) const

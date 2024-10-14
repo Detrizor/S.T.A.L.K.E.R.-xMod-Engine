@@ -51,7 +51,6 @@ public:
 	virtual void		net_Destroy				();
 			void		Init					();
 	virtual void		Load					(LPCSTR section);
-	virtual void		reinit					();
 	virtual void		reload					(LPCSTR section);
 	virtual void		OnEvent					(NET_Packet& P, u16 type);
 
@@ -204,14 +203,6 @@ public:
 	virtual void			OnItemDropUpdate		();
 	virtual bool			use_bolts				() const {return(true);}
 	virtual	void			spawn_supplies			();
-
-protected:
-	shared_str					m_item_to_spawn;
-	u32							m_ammo_in_box_to_spawn;
-
-public:
-	IC		const shared_str	&item_to_spawn			() const {return m_item_to_spawn;}
-	IC		const u32			&ammo_in_box_to_spawn	() const {return m_ammo_in_box_to_spawn;}
 
 public:
 	virtual bool				unlimited_ammo			()	= 0;
