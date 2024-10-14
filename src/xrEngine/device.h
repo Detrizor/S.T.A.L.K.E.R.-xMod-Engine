@@ -342,8 +342,12 @@ private:
 	engine_impl* m_engine;
 #endif // #ifdef INGAME_EDITOR
 
+private:
 	void d_SVPRender();
 	bool ActiveMain() const;
+
+public:
+	float timeGlobal(float k = 1000.f) const { return TimerGlobal.GetElapsed_sec() * k; }
 };
 
 extern ENGINE_API CRenderDevice Device;
@@ -372,5 +376,37 @@ public:
 	bool b_need_user_input;
 };
 extern ENGINE_API CLoadScreenRenderer load_screen_renderer;
+
+class ENGINE_API xBench
+{
+public:
+	xBench(LPCSTR tag_) : tag(tag_) {}
+
+	void finish();
+	void finish(LPCSTR info);
+
+private:
+	const shared_str tag;
+	float start_time = 0.f;
+	float last_time = 0.f;
+	float avg_time = 0.f;
+	float sum = 0.f;
+	u32 count = 0;
+
+	void flush();
+
+public:
+	void start();
+};
+
+#define BENCH_IN xBench bench(__FUNCTION__); bench.start()
+#define BENCH_OUT bench.finish()
+#define BENCH_OUT1(info) bench.finish(info)
+
+#define BENCH(func) { xBench b(#func); b.start(); func; b.finish(); }
+#define BENCH1(func, tag) { xBench b(tag); b.start(); func; b.finish(); }
+#define BENCHR(func) [&]{ xBench b(#func); b.start(); auto res = func; b.finish(); return res; }()
+#define BENCHR1(func, tag) [&]{ xBench b(tag); b.start(); auto res = func; b.finish(); return res; }()
+#define BENCHR2(func, tag, info) [&]{ xBench b(tag); b.start(); auto res = func; b.finish(info); return res; }()
 
 #endif

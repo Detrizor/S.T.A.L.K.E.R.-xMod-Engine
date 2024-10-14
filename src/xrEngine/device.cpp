@@ -639,3 +639,28 @@ void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+
 	if (g_pGamePersistent)
 		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)m_active;
 }
+
+void xBench::start()
+{
+	start_time = Device.timeGlobal();
+}
+
+void xBench::flush()
+{
+	last_time = Device.timeGlobal() - start_time;
+	sum += last_time;
+	++count;
+	avg_time = sum / static_cast<float>(count);
+}
+
+void xBench::finish()
+{
+	flush();
+	Msg("--benchmark %s avg [%.3f] last [%.3f] sum [%.3f] cnt [%d]", tag.c_str(), avg_time, last_time, sum, count);
+}
+
+void xBench::finish(LPCSTR info)
+{
+	flush();
+	Msg("--benchmark %s (%s) avg [%.3f] last [%.3f] sum [%.3f] cnt [%d]", tag.c_str(), info, avg_time, last_time, sum, count);
+}
