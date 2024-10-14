@@ -455,7 +455,7 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 	switch (cmd)
 	{
 	case kWPN_FIRE:
-		if (IsPending())
+		if (IsPending() && GetState() != eFire)
 			return false;
 
 		if (flags&CMD_START)

@@ -39,7 +39,8 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 	case eRenderableRender:
 	{
 		for (auto& s : m_slots)
-			s->RenderWorld				(O.XFORM());
+			if (s->getIconDraw())
+				s->RenderWorld			(O.XFORM());
 		break;
 	}
 	case eOnChild:

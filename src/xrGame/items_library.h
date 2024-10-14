@@ -1,5 +1,4 @@
 #pragma once
-#include "associative_vector.h"
 
 class CItemsLibrary
 {

@@ -882,7 +882,7 @@ void CInventory::UpdateDropTasks()
 			m_iToDropID				= 0;
 		}
 		else if (m_bActors && !ProcessItem(item))
-			item->O.transfer		();
+			item->O.transfer		(u16_max, true);
 		UpdateDropItem				(item);
 	}
 
