@@ -9,6 +9,7 @@
 #include	"shader.h"
 #include	"tss_def.h"
 #include	"TextureDescrManager.h"
+#include	"oneapi\tbb.h"
 // refs
 struct		lua_State;
 
@@ -156,7 +157,7 @@ public:
 	SDS*							_CreateDS			(LPCSTR Name);
 	void							_DeleteDS			(const SDS*	DS	);
 
-    SCS*							_CreateCS			(LPCSTR Name);
+	SCS*							_CreateCS			(LPCSTR Name);
 	void							_DeleteCS			(const SCS*	CS	);
 #endif	//	USE_DX10
 
@@ -236,6 +237,9 @@ private:
 	void DestroyShader(const T* sh);
 
 #endif	//	USE_DX10
+
+private:
+	tbb::task_group m_parallel_tex_loader;
 };
 
 #endif //ResourceManagerH
