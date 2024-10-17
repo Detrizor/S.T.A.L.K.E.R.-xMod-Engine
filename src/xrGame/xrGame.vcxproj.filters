@@ -7356,6 +7356,7 @@
     <ClInclude Include="foldable.h" />
     <ClInclude Include="weapon_chamber.h" />
     <ClInclude Include="module_owner.h" />
+    <ClInclude Include="signal_processor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">

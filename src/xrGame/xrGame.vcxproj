@@ -1406,6 +1406,7 @@
     <ClInclude Include="cta_game_artefact_activation.h" />
     <ClInclude Include="foldable.h" />
     <ClInclude Include="module_owner.h" />
+    <ClInclude Include="signal_processor.h" />
     <ClInclude Include="ui\CUIAddonInfo.h" />
     <ClInclude Include="item_usable.h" />
     <ClInclude Include="CustomDetector.h" />

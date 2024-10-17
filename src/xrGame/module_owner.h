@@ -1,7 +1,7 @@
 #pragma once
 #include "module.h"
 
-class CModuleOwner
+class CModuleOwner : virtual public CSignalProcessor
 {
 	CGameObject* const					obj;
 

@@ -1,32 +1,10 @@
 #pragma once
+#include "signal_processor.h"
 
 class CGameObject;
 class CInventoryItemObject;
 
-enum EEventTypes
-{
-	//CObject
-	eRenderableRender,
-	//CGameObject
-	eOnChild,
-	eSyncData,
-	//MAddonOwner
-	eOnAddon,
-	//CInventoryItem
-	eGetAmount,
-	eGetFill,
-	eGetBar,
-	eWeight,
-	eVolume,
-	eCost,
-	eInstallUpgrade,
-	//CHudItem
-	eUpdateHudBonesVisibility,
-	eRenderHudMode,
-	eUpdateSlotsTransform
-};
-
-class CModule
+class CModule : virtual public CSignalProcessor
 {
 public:
 	enum EModuleTypes
