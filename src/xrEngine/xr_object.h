@@ -211,23 +211,13 @@ public:
 	virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 //xMod added
-protected:
-	xptr<CModule>*						m_modules								= nullptr;
-
 public:
 	template <typename T>
 	T									scast									()		{ return smart_cast<T>(this); }
 	template <typename T>
 	T const*							scast								C$	()		{ return smart_cast<T const*>(this); }
-	
 	template <typename M>
-	M*									getModule							C$	()
-	{
-		if (m_modules)
-			if (auto& m = m_modules[M::mid()])
-				return					smart_cast<M*>(m.get());
-		return							nullptr;
-	}
+	M*									getModule							C$	()		{ if (auto go = smart_cast<CGameObject const*>(this)) return go->getModule_<M>(); return nullptr; }
 };
 
 #pragma pack(pop)

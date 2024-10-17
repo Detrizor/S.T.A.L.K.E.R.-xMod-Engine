@@ -7355,6 +7355,7 @@
     </ClInclude>
     <ClInclude Include="foldable.h" />
     <ClInclude Include="weapon_chamber.h" />
+    <ClInclude Include="module_owner.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11010,6 +11011,7 @@
     </ClCompile>
     <ClCompile Include="foldable.cpp" />
     <ClCompile Include="weapon_chamber.cpp" />
+    <ClCompile Include="module_owner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

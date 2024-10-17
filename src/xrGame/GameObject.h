@@ -7,6 +7,7 @@
 #include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
+#include "module_owner.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
@@ -46,7 +47,8 @@ enum EEventTypes;
 class CGameObject :
 	public CObject, 
 	public CUsableScriptObject,
-	public CScriptBinder
+	public CScriptBinder,
+	public CModuleOwner
 {
 	typedef CObject inherited;
 	bool							m_spawned;
@@ -305,25 +307,14 @@ public:
 
 //xMod added
 private:
-	void								check_modules							()		{ if (!m_modules) m_modules = xr_new<xptr<CModule>, CModule::mModuleTypesEnd>(nullptr); }
-	
 	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
 
 public:
-	void							S$	transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max, bool straight = false);
+	static void							transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max, bool straight = false);
 
 	void								UpdateBoneVisibility					(shared_str CR$ bone_name, bool status);
 	
 	void								transfer							C$	(u16 id = u16_max, bool straight = false);
 	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f, bool straight = false);
 	xr_vector<CSE_Abstract*>			giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f, bool straight = false);
-
-	template <typename M, typename... Args>
-	void								addModule								(Args&&... args)	{ check_modules(); m_modules[M::mid()].construct<M>(this, _STD forward<Args>(args)...); }
-	template <typename M>
-	void								registerModule							(M* p)				{ check_modules(); m_modules[M::mid()].capture(p); }
-	template <typename M>
-	void								unregisterModule						(M* p)				{ check_modules(); m_modules[M::mid()].release(); }
-
-	float							V$	Aboba									(EEventTypes type, void* data = nullptr, int param = 0);
 };

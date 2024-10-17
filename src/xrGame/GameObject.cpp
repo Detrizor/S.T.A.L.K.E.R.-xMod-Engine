@@ -32,9 +32,9 @@
 #include "magic_box3.h"
 #include "animation_movement_controller.h"
 #include "../xrengine/xr_collide_form.h"
-#include "module.h"
 #include "../../alife_simulator.h"
 #include "../../alife_object_registry.h"
+
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 #pragma warning(push)
@@ -49,7 +49,7 @@ extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 ENGINE_API bool g_dedicated_server;
 
-CGameObject::CGameObject		()
+CGameObject::CGameObject		() : CModuleOwner(this)
 {
 	m_ai_obstacle				= 0;
 
@@ -1248,26 +1248,4 @@ void CGameObject::UpdateBoneVisibility(shared_str CR$ bone_name, bool status)
 	update_bone_visibility				(visual, bone_name, status);
 	visual->CalculateBones_Invalidate	();
 	visual->CalculateBones				(TRUE);
-}
-
-float CGameObject::Aboba(EEventTypes type, void* data, int param)
-{
-	float res							= flt_max;
-	if (m_modules)
-	{
-		for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-		{
-			if (auto& m = m_modules[i])
-			{
-				float mres				= m->aboba(type, data, param);
-				if (mres != flt_max)
-				{
-					if (res == flt_max)
-						res				= 0.f;
-					res					+= mres;
-				}
-			}
-		}
-	}
-	return								res;
 }
