@@ -32,10 +32,10 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
+	void								sOnChild							O$	(CGameObject* obj, bool take);
 
 public:
-	MContainer*				m_pContainer;
+	MContainer*							m_pContainer;
 };
 
 add_to_type_list(CInventoryBox)

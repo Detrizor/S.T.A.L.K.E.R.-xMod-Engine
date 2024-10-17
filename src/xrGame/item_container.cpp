@@ -59,23 +59,6 @@ float MContainer::aboba o$(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-		case eOnChild:
-		{
-			PIItem item					= static_cast<CObject*>(data)->mcast<CInventoryItem>();
-			if (!item)
-				break;
-
-			if (param)
-				m_Items.push_back		(item);
-			else
-				m_Items.erase			(::std::find(m_Items.begin(), m_Items.end(), item));
-			OnInventoryAction			(item, (bool)param);
-			InvalidateState				();
-			ParentCheck					(item, !!param);
-
-			break;
-		}
-
 		case eVolume:
 			if (!m_content_volume_scale)
 				break;
@@ -96,6 +79,21 @@ float MContainer::aboba o$(EEventTypes type, void* data, int param)
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void MContainer::sOnChild(CGameObject* obj, bool take)
+{
+	PIItem item							= obj->getModule<CInventoryItem>();
+	if (!item)
+		return;
+
+	if (take)
+		m_Items.push_back				(item);
+	else
+		m_Items.erase_data				(item);
+	OnInventoryAction					(item, take);
+	InvalidateState						();
+	ParentCheck							(item, take);
 }
 
 void MContainer::ParentCheck C$(PIItem item, bool add)

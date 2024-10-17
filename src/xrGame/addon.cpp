@@ -96,39 +96,33 @@ int MAddon::getLength(float step, eLengthType type) const
 	return								static_cast<int>(ceil(len / step));
 }
 
-float MAddon::aboba(EEventTypes type, void* data, int param)
+void MAddon::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	if (type == eSyncData)
+	auto m								= se_obj->getModule<CSE_ALifeModuleAddon>(save);
+	if (save)
 	{
-		auto se_obj						= (CSE_ALifeDynamicObject*)data;
-		auto m							= se_obj->getModule<CSE_ALifeModuleAddon>(!!param);
-		if (param)
+		if (m_slot_status == attached)
 		{
-			if (m_slot_status == attached)
-			{
-				m->m_slot_idx			= static_cast<s16>(m_slot_idx);
-				m->m_slot_pos			= static_cast<s16>(m_slot_pos);
-			}
-			else
-			{
-				m->m_slot_idx			= s16_max;
-				m->m_slot_pos			= s16_max;
-			}
+			m->m_slot_idx				= static_cast<s16>(m_slot_idx);
+			m->m_slot_pos				= static_cast<s16>(m_slot_pos);
 		}
-		else if (m)
+		else
 		{
-			if (m->m_slot_idx == -1)
-				m_slot_status			= need_to_attach;
-			else if (m->m_slot_idx != s16_max)
-			{
-				m_slot_status			= attached;
-				m_slot_idx				= static_cast<int>(m->m_slot_idx);
-				m_slot_pos				= static_cast<int>(m->m_slot_pos);
-			}
+			m->m_slot_idx				= s16_max;
+			m->m_slot_pos				= s16_max;
 		}
 	}
-	
-	return								CModule::aboba(type, data, param);
+	else if (m)
+	{
+		if (m->m_slot_idx == -1)
+			m_slot_status				= need_to_attach;
+		else if (m->m_slot_idx != s16_max)
+		{
+			m_slot_status				= attached;
+			m_slot_idx					= static_cast<int>(m->m_slot_idx);
+			m_slot_pos					= static_cast<int>(m->m_slot_pos);
+		}
+	}
 }
 
 void MAddon::startAttaching(CAddonSlot CPC slot)

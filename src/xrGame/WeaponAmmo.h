@@ -106,6 +106,8 @@ public:
 
 protected:
 	float								Aboba								O$	(EEventTypes type, void* data = NULL, int param = 0);
+	
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static float						readBoxSize								(LPCSTR section);

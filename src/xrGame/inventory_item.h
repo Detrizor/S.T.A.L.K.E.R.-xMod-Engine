@@ -334,6 +334,9 @@ private:
 	
 	void								set_inv_icon							();
 
+protected:
+	void								sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save);
+
 public:
 	static const float					s_max_repair_condition;
 	static float						readBaseCost							(LPCSTR section, bool for_sale = false);

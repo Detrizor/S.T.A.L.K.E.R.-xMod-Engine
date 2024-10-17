@@ -3,9 +3,6 @@
 #include "module.h"
 #include "inventory_space.h"
 
-class CGameObject;
-class CInventoryItem;
-
 class MContainer : public CModule
 {
 public:
@@ -30,6 +27,8 @@ private:
 	void								OnInventoryAction					C$	(PIItem item, bool take);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
+
+	void								sOnChild							O$	(CGameObject* obj, bool take);
 
 public:
 	float								GetWeight								()		{ return Get(eWeight); }

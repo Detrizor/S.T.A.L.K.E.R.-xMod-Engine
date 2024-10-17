@@ -423,8 +423,8 @@ protected:
 	
 	void								appendRecoil							(float impulse_magnitude);
 	float								get_wpn_pos_inertion_factor			C$	();
-
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
+	
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 	//with zeroing
 	virtual Fvector						getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }

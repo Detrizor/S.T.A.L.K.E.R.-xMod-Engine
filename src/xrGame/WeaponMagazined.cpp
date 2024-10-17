@@ -1226,30 +1226,29 @@ float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
 				scope->updateCameraLenseOffset();
 		return							res;
 	}
-	case eSyncData:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= static_cast<CSE_ALifeDynamicObject*>(data);
-		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
-		if (param)
-		{
-			se_wpn->m_u8CurFireMode		= static_cast<u8>(m_iCurFireMode);
-			se_wpn->m_ads_shift			= m_ads_shift;
-			se_wpn->m_locked			= m_locked;
-			se_wpn->m_cocked			= m_cocked;
-		}
-		else
-		{
-			set_firemode				(static_cast<int>(se_wpn->m_u8CurFireMode));
-			m_ads_shift					= se_wpn->m_ads_shift;
-			m_locked					= se_wpn->m_locked;
-			m_cocked					= se_wpn->m_cocked;
-		}
-		return							res;
-	}
 	}
 
 	return								inherited::Aboba(type, data, param);
+}
+
+void CWeaponMagazined::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
+	if (save)
+	{
+		se_wpn->m_u8CurFireMode			= static_cast<u8>(m_iCurFireMode);
+		se_wpn->m_ads_shift				= m_ads_shift;
+		se_wpn->m_locked				= m_locked;
+		se_wpn->m_cocked				= m_cocked;
+	}
+	else
+	{
+		set_firemode					(static_cast<int>(se_wpn->m_u8CurFireMode));
+		m_ads_shift						= se_wpn->m_ads_shift;
+		m_locked						= se_wpn->m_locked;
+		m_cocked						= se_wpn->m_cocked;
+	}
 }
 
 bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)

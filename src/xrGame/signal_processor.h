@@ -2,11 +2,6 @@
 
 enum EEventTypes
 {
-	//CGameObject
-	eOnChild,
-	eSyncData,
-	eRenderableRender,
-
 	//MAddonOwner
 	eOnAddon,
 
@@ -25,6 +20,14 @@ enum EEventTypes
 	eUpdateSlotsTransform
 };
 
+class CGameObject;
+class CSE_ALifeDynamicObject;
+
 class CSignalProcessor
 {
+public:
+	//CGameObject
+	virtual void						sOnChild								(CGameObject* obj, bool take)					{}
+	virtual void						sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save)		{}
+	virtual void						sRenderableRender						()												{}
 };

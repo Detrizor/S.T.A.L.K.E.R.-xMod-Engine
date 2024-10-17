@@ -882,22 +882,11 @@ bool CWeapon::ArmedMode() const
 	return								true;
 }
 
-float CWeapon::Aboba(EEventTypes type, void* data, int param)
+void CWeapon::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	switch (type)
-	{
-	case eSyncData:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= static_cast<CSE_ALifeDynamicObject*>(data);
-		auto se_wpn						= smart_cast<CSE_ALifeItemWeapon*>(se_obj);
-		if (param)
-			se_wpn->wpn_flags			= static_cast<u8>(IsUpdating());
-		return							res;
-	}
-	}
-
-	return								inherited::Aboba(type, data, param);
+	inherited::sSyncData				(se_obj, save);
+	if (save)
+		smart_cast<CSE_ALifeItemWeapon*>(se_obj)->wpn_flags = static_cast<u8>(IsUpdating());
 }
 
 float CWeapon::s_inertion_baseline_weight;

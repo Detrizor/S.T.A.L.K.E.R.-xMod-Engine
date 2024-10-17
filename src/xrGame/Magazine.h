@@ -33,6 +33,8 @@ private:
 	void								register_heap							(CWeaponAmmo* heap, bool insert);
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
+	
+	void								sOnChild							O$	(CGameObject* obj, bool take);
 
 public:
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);

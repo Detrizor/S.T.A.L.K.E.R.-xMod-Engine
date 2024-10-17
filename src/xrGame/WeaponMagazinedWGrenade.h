@@ -33,6 +33,9 @@ protected:
 	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	void								process_addon_modules				O$	(CGameObject& obj, bool attach);
 	void								process_foregrip					O$	(CGameObject& obj, LPCSTR type, bool attach);
+	
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 private:
 	bool								m_bGrenadeMode							= false;

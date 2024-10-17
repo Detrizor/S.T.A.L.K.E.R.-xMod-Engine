@@ -188,30 +188,30 @@ float MScope::aboba(EEventTypes type, void* data, int param)
 			}
 			return						(result) ? 1.f : flt_max;
 		}
-		case eSyncData:
-		{
-			auto se_obj					= (CSE_ALifeDynamicObject*)data;
-			auto m						= se_obj->getModule<CSE_ALifeModuleScope>(!!param);
-			if (param)
-			{
-				m->m_magnification		= m_Magnificaion.current;
-				m->m_zeroing			= m_Zeroing.current;
-				m->m_selection			= m_selection;
-				m->m_current_reticle	= m_current_reticle;
-			}
-			else if (m)
-			{
-				m_Magnificaion.current	= m->m_magnification;
-				m_Zeroing.current		= m->m_zeroing;
-				m_selection				= m->m_selection;
-				m_current_reticle		= m->m_current_reticle;
-			}
-			if (!param)
-				init_marks				();
-		}
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void MScope::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleScope>(save);
+	if (save)
+	{
+		m->m_magnification				= m_Magnificaion.current;
+		m->m_zeroing					= m_Zeroing.current;
+		m->m_selection					= m_selection;
+		m->m_current_reticle			= m_current_reticle;
+	}
+	else if (m)
+	{
+		m_Magnificaion.current			= m->m_magnification;
+		m_Zeroing.current				= m->m_zeroing;
+		m_selection						= m->m_selection;
+		m_current_reticle				= m->m_current_reticle;
+	}
+	if (!save)
+		init_marks						();
 }
 
 void MScope::init_visors()

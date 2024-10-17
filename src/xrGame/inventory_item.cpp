@@ -904,31 +904,31 @@ float CInventoryItem::aboba(EEventTypes type, void* data, int param)
 	switch (type)
 	{
 	case eWeight:
-		return						m_weight;
+		return							m_weight;
 	case eVolume:
-		return						m_volume;
+		return							m_volume;
 	case eCost:
-		return						m_cost;
-	case eSyncData:
-	{
-		auto se_obj					= (CSE_ALifeDynamicObject*)data;
-		auto m						= se_obj->getModule<CSE_ALifeModuleInventoryItem>(!!param);
-		auto se_item				= smart_cast<CSE_ALifeItem*>(se_obj);
-		if (param)
-		{
-			se_item->m_fCondition	= m_condition;
-			m->m_icon_index			= m_inv_icon_index;
-		}
-		else
-		{
-			m_condition				= se_item->m_fCondition;
-			if (m)
-				SetInvIconIndex		(m->m_icon_index);
-		}
-	}
+		return							m_cost;
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void CInventoryItem::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleInventoryItem>(save);
+	auto se_item						= smart_cast<CSE_ALifeItem*>(se_obj);
+	if (save)
+	{
+		se_item->m_fCondition			= m_condition;
+		m->m_icon_index					= m_inv_icon_index;
+	}
+	else
+	{
+		m_condition						= se_item->m_fCondition;
+		if (m)
+			SetInvIconIndex				(m->m_icon_index);
+	}
 }
 
 bool CInventoryItem::tryCustomUse() const

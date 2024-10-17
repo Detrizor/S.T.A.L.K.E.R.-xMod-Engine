@@ -99,4 +99,5 @@ public:
 	WRAP_VIRTUAL_METHOD0				(void, make_Interpolation, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, PH_A_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD1				(void, OnMoveToRuck, , ;, SInvItemPlace CR$)
+	WRAP_VIRTUAL_METHOD2				(void, sSyncData, , ;, CSE_ALifeDynamicObject*, bool)
 };

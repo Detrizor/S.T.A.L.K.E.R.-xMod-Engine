@@ -55,13 +55,9 @@ void CInventoryBox::set_closed(bool status, LPCSTR reason)
 	SE_update_status					();
 }
 
-float CInventoryBox::Aboba o$(EEventTypes type, void* data, int param)
+void CInventoryBox::sOnChild(CGameObject* obj, bool take)
 {
-	if (type == eOnChild && !param && m_in_use)
-	{
-		CGameObject* GO					= static_cast<CObject*>(data)->scast<CGameObject*>();
-		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), GO->lua_game_object());
-	}
-
-	return								inherited::Aboba(type, data, param);
+	inherited::sOnChild					(obj, take);
+	if (!take && m_in_use)
+		Actor()->callback				(GameObject::eInvBoxItemTake)(lua_game_object(), obj->lua_game_object());
 }

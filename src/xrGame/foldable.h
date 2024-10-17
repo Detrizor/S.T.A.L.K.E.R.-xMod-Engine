@@ -13,8 +13,8 @@ private:
 	bool								m_status								= false;
 	
 	void								on_status_change					C$	(bool new_status);
-
-	float								aboba								O$	(EEventTypes type, void* data, int param);
+	
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	void								setStatus								(bool status);

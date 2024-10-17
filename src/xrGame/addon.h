@@ -53,7 +53,7 @@ private:
 
 	SAction*							get_attach_action					C$	();
 
-	float								aboba								O$	(EEventTypes type, void* data, int param);
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static void							addAddonModules							(CGameObject& O, shared_str CR$ addon_sect);

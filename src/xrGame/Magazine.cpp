@@ -64,19 +64,6 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 		case eUpdateHudBonesVisibility:
 			update_hud_bullets_visibility();
 			break;
-		case eOnChild:
-		{
-			CWeaponAmmo* heap			= static_cast<CObject*>(data)->scast<CWeaponAmmo*>();
-			if (heap && heap->m_mag_pos != u8_max)
-			{
-				int sign				= (param) ? 1 : -1;
-				m_amount				+= sign * heap->GetAmmoCount();
-				m_weight				+= sign * heap->Weight();
-				register_heap			(heap, !!param);
-			}
-			break;
-		}
-
 		case eWeight:
 			return						m_weight;
 		case eGetAmount:
@@ -92,6 +79,18 @@ float MMagazine::aboba o$(EEventTypes type, void* data, int param)
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void MMagazine::sOnChild(CGameObject* obj, bool take)
+{
+	CWeaponAmmo* heap			= obj->scast<CWeaponAmmo*>();
+	if (heap && heap->m_mag_pos != u8_max)
+	{
+		int sign				= (take) ? 1 : -1;
+		m_amount				+= sign * heap->GetAmmoCount();
+		m_weight				+= sign * heap->Weight();
+		register_heap			(heap, take);
+	}
 }
 
 bool MMagazine::canTake(CWeaponAmmo CPC ammo) const

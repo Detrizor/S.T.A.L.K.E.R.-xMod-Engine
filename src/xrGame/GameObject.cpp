@@ -192,7 +192,7 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 		if (!P.r_eof() && P.r_u16() == xrServer::offline_switch)
 		{
 			auto se_obj					= ai().alife().objects().object(ID());
-			Aboba						(eSyncData, static_cast<void*>(se_obj), 1);
+			emitSignal					(sSyncData(se_obj, true));
 		}
 
 		break;
@@ -216,13 +216,13 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 			obj->H_SetParent			(this);
 			obj->setVisible				(FALSE);
 			obj->setEnabled				(FALSE);
-			Aboba						(eOnChild, static_cast<void*>(obj), 1);
+			emitSignal					(sOnChild(obj->scast<CGameObject*>(), true));
 		}
 		else
 		{
 			u8 destroy_type				= (P.r_eof()) ? 0 : P.r_u8();
 			if (destroy_type != xrServer::sls_clear && destroy_type != xrServer::offline_switch)
-				Aboba					(eOnChild, static_cast<void*>(obj), 0);
+				emitSignal				(sOnChild(obj->scast<CGameObject*>(), false));
 			obj->H_SetParent			(nullptr, (type == GE_TRADE_SELL || destroy_type));
 		}
 	}
@@ -436,7 +436,7 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 
 	if (auto se_obj = smart_cast<CSE_ALifeDynamicObject*>(O))
 	{
-		Aboba					(eSyncData, static_cast<void*>(se_obj), 0);
+		emitSignal				(sSyncData(se_obj, false));
 		se_obj->clearModules	();
 	}
 
@@ -488,7 +488,7 @@ void CGameObject::net_Save		(NET_Packet &net_packet)
 	net_packet.w_chunk_close16	(position);
 
 	if (auto se_obj = ai().alife().objects().object(ID()))
-		Aboba					(eSyncData, static_cast<void*>(se_obj), 1);
+		emitSignal				(sSyncData(se_obj, true));
 }
 
 void CGameObject::net_Load		(IReader &ireader)
@@ -722,7 +722,7 @@ void CGameObject::renderable_Render	()
 	::Render->add_Visual		(Visual());
 	Visual()->getVisData().hom_frame = Device.dwFrame;
 
-	Aboba(eRenderableRender);
+	emitSignal(sRenderableRender());
 }
 
 /*

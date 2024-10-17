@@ -98,6 +98,8 @@ private:
 	void								init_visors								();
 	void								init_marks								();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
+	
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static void							loadStaticData							();

@@ -9,22 +9,13 @@
 shared_str folded_str					= "folded";
 shared_str unfolded_str					= "unfolded";
 
-float MFoldable::aboba(EEventTypes type, void* data, int param)
+void MFoldable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	switch (type)
-	{
-		case eSyncData:
-		{
-			auto se_obj					= static_cast<CSE_ALifeDynamicObject*>(data);
-			auto m						= se_obj->getModule<CSE_ALifeModuleFoldable>(!!param);
-			if (param)
-				m->m_status				= static_cast<u8>(m_status);
-			else
-				setStatus				((m) ? !!m->m_status : m_status);
-		}
-	}
-
-	return								CModule::aboba(type, data, param);
+	auto m								= se_obj->getModule<CSE_ALifeModuleFoldable>(save);
+	if (save)
+		m->m_status						= static_cast<u8>(m_status);
+	else
+		setStatus						((m) ? !!m->m_status : m_status);
 }
 
 void MFoldable::on_status_change(bool new_status) const

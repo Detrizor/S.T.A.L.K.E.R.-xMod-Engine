@@ -284,31 +284,8 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-	case eOnChild:
-	{
-		CObject* obj					= static_cast<CObject*>(data);
-		if (auto rocket = obj->scast<CCustomRocket*>())
-		{
-			if (param)
-				AttachRocket			(obj->ID(), this);
-			else
-				DetachRocket			(obj->ID(), false);
-		}
-		break;
-	}
 	case eWeight:
 		return							inherited::Aboba(type, data, param);		//--xd need implement grenade weight when reworking underbarrel gls
-	case eSyncData:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		auto se_obj						= (CSE_ALifeDynamicObject*)data;
-		auto se_wpn						= smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(se_obj);
-		if (param)
-			se_wpn->m_bGrenadeMode		= (u8)m_bGrenadeMode;
-		else
-			m_bGrenadeMode				= !!se_wpn->m_bGrenadeMode;
-		return							res;
-	}
 	case eOnAddon:
 		if (m_pLauncher)
 		{
@@ -330,6 +307,28 @@ float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
 	}
 
 	return								inherited::Aboba(type, data, param);
+}
+
+void CWeaponMagazinedWGrenade::sOnChild(CGameObject* obj, bool take)
+{
+	inherited::sOnChild					(obj, take);
+	if (auto rocket = obj->scast<CCustomRocket*>())
+	{
+		if (take)
+			AttachRocket				(obj->ID(), this);
+		else
+			DetachRocket				(obj->ID(), false);
+	}
+}
+
+void CWeaponMagazinedWGrenade::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(se_obj);
+	if (save)
+		se_wpn->m_bGrenadeMode			= static_cast<u8>(m_bGrenadeMode);
+	else
+		m_bGrenadeMode					= !!se_wpn->m_bGrenadeMode;
 }
 
 bool CWeaponMagazinedWGrenade::tryTransfer(MAddon* addon, bool attach)

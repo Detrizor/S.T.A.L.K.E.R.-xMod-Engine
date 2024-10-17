@@ -52,18 +52,18 @@ float MAmountable::aboba(EEventTypes type, void* data, int param)
 			return						m_net_volume * Fill();
 		case eCost:
 			return						m_net_cost * (Fill() - 1.f);
-		case eSyncData:
-		{
-			auto se_obj					= (CSE_ALifeDynamicObject*)data;
-			auto m						= se_obj->getModule<CSE_ALifeModuleAmountable>(!!param);
-			if (param)
-				m->m_amount				= m_fAmount;
-			else if (m)
-				m_fAmount				= m->m_amount;
-		}
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void MAmountable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(save);
+	if (save)
+		m->m_amount						= m_fAmount;
+	else if (m)
+		m_fAmount						= m->m_amount;
 }
 
 void MAmountable::SetAmount(float val)

@@ -36,37 +36,6 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 {
 	switch (type)
 	{
-	case eRenderableRender:
-	{
-		for (auto& s : m_slots)
-			if (s->getIconDraw())
-				s->RenderWorld			(O.XFORM());
-		break;
-	}
-	case eOnChild:
-		if (auto addon = static_cast<CObject*>(data)->mcast<MAddon>())
-		{
-			if (param && !addon->getSlot())
-			{
-				if (addon->getSlotStatus() == MAddon::attached)
-				{
-					if (addon->getSlotIdx() < m_slots.size() && m_slots[addon->getSlotIdx()]->canTake(addon))
-						finishAttaching	(addon, m_slots[addon->getSlotIdx()].get());
-					else
-						addon->onDetach	();
-				}
-				else if (addon->getSlotStatus() == MAddon::need_to_attach)
-				{
-					if (auto slot = find_available_slot(addon))
-						slot->parent_ao->finishAttaching(addon, slot);
-					else
-						addon->onDetach	();
-				}
-			}
-			else if (!param && addon->getSlot() && addon->getSlot()->parent_ao == this)
-				finishDetaching			(addon, false);
-		}
-		break;
 	case eWeight:
 	case eVolume:
 	case eCost:
@@ -91,6 +60,39 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 	}
 
 	return								CModule::aboba(type, data, param);
+}
+
+void MAddonOwner::sRenderableRender()
+{
+	for (auto& s : m_slots)
+		if (s->getIconDraw())
+			s->RenderWorld				(O.XFORM());
+}
+
+void MAddonOwner::sOnChild(CGameObject* obj, bool take)
+{
+	if (auto addon = obj->getModule<MAddon>())
+	{
+		if (take && !addon->getSlot())
+		{
+			if (addon->getSlotStatus() == MAddon::attached)
+			{
+				if (addon->getSlotIdx() < m_slots.size() && m_slots[addon->getSlotIdx()]->canTake(addon))
+					finishAttaching		(addon, m_slots[addon->getSlotIdx()].get());
+				else
+					addon->onDetach		();
+			}
+			else if (addon->getSlotStatus() == MAddon::need_to_attach)
+			{
+				if (auto slot = find_available_slot(addon))
+					slot->parent_ao->finishAttaching(addon, slot);
+				else
+					addon->onDetach		();
+			}
+		}
+		else if (!take && addon->getSlot() && addon->getSlot()->parent_ao == this)
+			finishDetaching				(addon, false);
+	}
 }
 
 void MAddonOwner::register_addon(MAddon PC$ addon, bool attach) const

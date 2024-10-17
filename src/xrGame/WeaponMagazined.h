@@ -237,6 +237,8 @@ protected:
 	void								setADS								O$	(int mode);
 	void								OnHiddenItem						O$	();
 	
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);
 

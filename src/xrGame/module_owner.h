@@ -33,4 +33,16 @@ public:
 	void								unregisterModule						(M* p)				{ check_modules(); m_modules[M::mid()].release(); }
 
 	virtual float						Aboba									(EEventTypes type, void* data = nullptr, int param = 0);
+	
+	template <typename T>
+	void								emitSignal_(T&& functor)
+	{
+		if (m_modules)
+			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
+				if (auto& m = m_modules[i])
+					functor				(m.get());
+		functor							(this);
+	}
 };
+
+#define emitSignal(signal) emitSignal_([&](CSignalProcessor* p) { p->signal; })

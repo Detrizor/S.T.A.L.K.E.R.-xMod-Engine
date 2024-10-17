@@ -25,6 +25,8 @@ private:
 	bool								Useful								C$	();
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+
 public:
 	void								SetDepletionSpeed						(float val)		{ m_depletion_speed = val; }
 	void								Deplete									()				{ ChangeAmount(-m_depletion_speed); }
