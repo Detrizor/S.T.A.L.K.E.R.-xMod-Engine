@@ -48,7 +48,7 @@ private:
 	void								fill_manage_actions						(VSlots CR$ slots, MAddon* ignore, int nesting_level);
 
 protected:
-	float								aboba								O$	(EEventTypes type, void* data, int param);
+	void								sOnAddon							O$	(MAddon* addon, int attach_type);
 
 public:
 	SAction*							getAction								(int num);

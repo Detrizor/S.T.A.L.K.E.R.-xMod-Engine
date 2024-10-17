@@ -1209,28 +1209,6 @@ void CWeaponMagazined::process_magazine(MMagazine* magazine, bool attach)
 			while (owner->discharge(magazine));
 }
 
-float CWeaponMagazined::Aboba(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-	case eOnAddon:
-	{
-		process_addon					(static_cast<MAddon*>(data), param > 0);
-		break;
-	}
-	case eUpdateSlotsTransform:
-	{
-		float res						= inherited::Aboba(type, data, param);
-		if (auto scope = getActiveScope())
-			if (scope->Type() == MScope::eOptics)
-				scope->updateCameraLenseOffset();
-		return							res;
-	}
-	}
-
-	return								inherited::Aboba(type, data, param);
-}
-
 void CWeaponMagazined::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
 	inherited::sSyncData				(se_obj, save);
@@ -1249,6 +1227,20 @@ void CWeaponMagazined::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 		m_locked						= se_wpn->m_locked;
 		m_cocked						= se_wpn->m_cocked;
 	}
+}
+
+void CWeaponMagazined::sOnAddon(MAddon* addon, int attach_type)
+{
+	inherited::sOnAddon					(addon, attach_type);
+	process_addon						(addon, attach_type > 0);
+}
+
+void CWeaponMagazined::sUpdateSlotsTransform()
+{
+	inherited::sUpdateSlotsTransform	();
+	if (auto scope = getActiveScope())
+		if (scope->Type() == MScope::eOptics)
+			scope->updateCameraLenseOffset();
 }
 
 bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)

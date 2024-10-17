@@ -46,17 +46,6 @@ float MAddonOwner::aboba(EEventTypes type, void* data, int param)
 				res						+= addon->O.Aboba(type);
 		return							res;
 	}
-	case eRenderHudMode:
-		for (auto& s : m_slots)
-			s->RenderHud				();
-		break;
-	case eUpdateSlotsTransform:
-	{
-		attachable_hud_item* hi			= O.scast<CHudItem*>()->HudItemData();
-		for (auto& s : m_slots)
-			s->updateAddonsHudTransform	(hi);
-		break;
-	}
 	}
 
 	return								CModule::aboba(type, data, param);
@@ -67,6 +56,19 @@ void MAddonOwner::sRenderableRender()
 	for (auto& s : m_slots)
 		if (s->getIconDraw())
 			s->RenderWorld				(O.XFORM());
+}
+
+void MAddonOwner::sRenderHudMode()
+{
+	for (auto& s : m_slots)
+		s->RenderHud					();
+}
+
+void MAddonOwner::sUpdateSlotsTransform()
+{
+	attachable_hud_item* hi				= O.scast<CHudItem*>()->HudItemData();
+	for (auto& s : m_slots)
+		s->updateAddonsHudTransform		(hi);
 }
 
 void MAddonOwner::sOnChild(CGameObject* obj, bool take)
@@ -107,7 +109,7 @@ void MAddonOwner::register_addon(MAddon PC$ addon, bool attach) const
 void MAddonOwner::process_addon(MAddon PC$ addon, bool attach, bool recurrent) const
 {
 	if (attach)
-		O.Aboba							(eOnAddon, static_cast<void*>(addon), (recurrent) ? 2 : 1);
+		O.emitSignal					(sOnAddon(addon, (recurrent) ? 2 : 1));
 
 	if (auto addon_ao = addon->O.getModule<MAddonOwner>())
 		for (auto& s : addon_ao->AddonSlots())
@@ -115,7 +117,7 @@ void MAddonOwner::process_addon(MAddon PC$ addon, bool attach, bool recurrent) c
 				process_addon			(a, attach, true);
 
 	if (!attach)
-		O.Aboba							(eOnAddon, static_cast<void*>(addon), (recurrent) ? -1 : 0);
+		O.emitSignal					(sOnAddon(addon, (recurrent) ? -1 : 0));
 }
 
 bool MAddonOwner::tryAttach(MAddon* addon, bool forced) const

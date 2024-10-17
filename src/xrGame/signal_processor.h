@@ -2,9 +2,6 @@
 
 enum EEventTypes
 {
-	//MAddonOwner
-	eOnAddon,
-
 	//CInventoryItem
 	eGetAmount,
 	eGetFill,
@@ -13,13 +10,9 @@ enum EEventTypes
 	eVolume,
 	eCost,
 	eInstallUpgrade,
-
-	//CHudItem
-	eUpdateHudBonesVisibility,
-	eRenderHudMode,
-	eUpdateSlotsTransform
 };
 
+class MAddon;
 class CGameObject;
 class CSE_ALifeDynamicObject;
 
@@ -30,4 +23,12 @@ public:
 	virtual void						sOnChild								(CGameObject* obj, bool take)					{}
 	virtual void						sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save)		{}
 	virtual void						sRenderableRender						()												{}
+
+	//MAddonOwner
+	virtual void						sOnAddon								(MAddon* addon, int attach_type)		{}
+
+	//CHudItem
+	virtual void						sUpdateHudBonesVisibility				()		{}
+	virtual void						sRenderHudMode							()		{}
+	virtual void						sUpdateSlotsTransform					()		{}
 };

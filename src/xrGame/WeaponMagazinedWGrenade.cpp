@@ -280,35 +280,6 @@ Fvector CR$ CWeaponMagazinedWGrenade::fire_point_gl()
 	return								m_fire_point_gl;
 }
 
-float CWeaponMagazinedWGrenade::Aboba(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-	case eWeight:
-		return							inherited::Aboba(type, data, param);		//--xd need implement grenade weight when reworking underbarrel gls
-	case eOnAddon:
-		if (m_pLauncher)
-		{
-			auto addon					= static_cast<MAddon*>(data);
-			if (addon->getSlot() == m_pLauncher->m_slot)
-			{
-				if (auto grenade = addon->O.scast<CWeaponAmmo*>())
-				{
-					m_grenade			= (param > 0) ? grenade : nullptr;
-					if (m_grenade && !getRocketCount())
-					{
-						shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
-						CRocketLauncher::SpawnRocket(fake_grenade_name, this);
-					}
-				}
-			}
-		}
-		break;
-	}
-
-	return								inherited::Aboba(type, data, param);
-}
-
 void CWeaponMagazinedWGrenade::sOnChild(CGameObject* obj, bool take)
 {
 	inherited::sOnChild					(obj, take);
@@ -329,6 +300,23 @@ void CWeaponMagazinedWGrenade::sSyncData(CSE_ALifeDynamicObject* se_obj, bool sa
 		se_wpn->m_bGrenadeMode			= static_cast<u8>(m_bGrenadeMode);
 	else
 		m_bGrenadeMode					= !!se_wpn->m_bGrenadeMode;
+}
+
+void CWeaponMagazinedWGrenade::sOnAddon(MAddon* addon, int attach_type)
+{
+	if (m_pLauncher && addon->getSlot() == m_pLauncher->m_slot)
+	{
+		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
+		{
+			m_grenade					= (attach_type > 0) ? grenade : nullptr;
+			if (m_grenade && !getRocketCount())
+			{
+				shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
+				CRocketLauncher::SpawnRocket(fake_grenade_name, this);
+			}
+		}
+	}
+	inherited::sOnAddon(addon, attach_type);
 }
 
 bool CWeaponMagazinedWGrenade::tryTransfer(MAddon* addon, bool attach)

@@ -96,38 +96,28 @@ void MUsable::fill_manage_actions(VSlots CR$ slots, MAddon* ignore, int nesting_
 	}
 }
 
-float MUsable::aboba(EEventTypes type, void* data, int param)
+void MUsable::sOnAddon(MAddon* addon, int attach_type)
 {
-	switch (type)
+	int nesting_level					= 0;
+	if (check_last_addon(addon, O.getModule<MAddonOwner>()->AddonSlots(), nesting_level))
 	{
-	case eOnAddon:
+		if (attach_type > 0)
+			emplace_manage_action		(addon, nesting_level);
+		else
+			m_actions.erase_data_if		([addon](xptr<SAction> CR$ action) { return (action->item_id == addon->O.ID()); });
+	}
+	else if (attach_type == 0 || attach_type == 1)
 	{
-		auto addon						= static_cast<MAddon*>(data);
-		int nesting_level				= 0;
-		if (check_last_addon(addon, O.getModule<MAddonOwner>()->AddonSlots(), nesting_level))
+		for (auto it = m_actions.begin(), it_e = m_actions.end(); it != it_e; ++it)
 		{
-			if (param > 0)
-				emplace_manage_action	(addon, nesting_level);
-			else
-				m_actions.erase_data_if	([addon](xptr<SAction> CR$ action) { return (action->item_id == addon->O.ID()); });
-		}
-		else if (param == 0 || param == 1)
-		{
-			for (auto it = m_actions.begin(), it_e = m_actions.end(); it != it_e; ++it)
+			if ((*it)->manage_action)
 			{
-				if ((*it)->manage_action)
-				{
-					m_actions.erase		(it, it_e);
-					break;
-				}
+				m_actions.erase			(it, it_e);
+				break;
 			}
-			fill_manage_actions			(O.getModule<MAddonOwner>()->AddonSlots(), (param > 0) ? nullptr : addon, 0);
 		}
-		break;
+		fill_manage_actions				(O.getModule<MAddonOwner>()->AddonSlots(), (attach_type > 0) ? nullptr : addon, 0);
 	}
-	}
-
-	return								CModule::aboba(type, data, param);
 }
 
 SAction* MUsable::getAction(int num)

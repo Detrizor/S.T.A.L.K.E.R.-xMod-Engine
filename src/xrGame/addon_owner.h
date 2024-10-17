@@ -102,8 +102,10 @@ private:
 
 	float								aboba								O$	(EEventTypes type, void* data, int param);
 	
-	void								sRenderableRender					O$	();
 	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sRenderableRender					O$	();
+	void								sRenderHudMode						O$	();
+	void								sUpdateSlotsTransform				O$	();
 	
 public:
 	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);

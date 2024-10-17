@@ -232,12 +232,13 @@ protected:
 	bool								on_bolt_lock							();
 	bool								has_ammo_for_reload						(int count = 1);
 
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								setADS								O$	(int mode);
 	void								OnHiddenItem						O$	();
 	
 	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	void								sOnAddon							O$	(MAddon* addon, int attach_type);
+	void								sUpdateSlotsTransform				O$	();
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);
