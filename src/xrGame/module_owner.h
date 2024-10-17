@@ -17,7 +17,7 @@ protected:
 
 public:
 	template <typename M>
-	M*									getModule_							C$	()
+	M*									getModule							C$	()
 	{
 		if (m_modules)
 			if (auto& m = m_modules[M::mid()])

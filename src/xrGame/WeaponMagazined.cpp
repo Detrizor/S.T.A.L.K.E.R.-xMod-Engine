@@ -1177,7 +1177,7 @@ static MMuzzle* get_parent_muzzle(CObject* obj)
 	auto parent							= obj->H_Parent();
 	if (!parent)
 		return							nullptr;
-	if (auto muzzle = parent->getModule<MMuzzle>())
+	if (auto muzzle = parent->mcast<MMuzzle>())
 		return							muzzle;
 	return								get_parent_muzzle(parent);
 }

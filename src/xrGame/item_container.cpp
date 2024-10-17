@@ -61,7 +61,7 @@ float MContainer::aboba o$(EEventTypes type, void* data, int param)
 	{
 		case eOnChild:
 		{
-			PIItem item					= static_cast<CObject*>(data)->getModule<CInventoryItem>();
+			PIItem item					= static_cast<CObject*>(data)->mcast<CInventoryItem>();
 			if (!item)
 				break;
 
@@ -105,7 +105,7 @@ void MContainer::ParentCheck C$(PIItem item, bool add)
 		if (auto io = O.H_Parent()->scast<CInventoryOwner*>())
 			io->inventory().CheckArtefact(item, add);
 		else
-			O.H_Parent()->getModule<MContainer>()->ParentCheck(item, add);
+			O.H_Parent()->mcast<MContainer>()->ParentCheck(item, add);
 	}
 }
 
@@ -132,7 +132,7 @@ bool MContainer::ArtefactIsolation(bool own) const
 
 	if (!own && O.H_Parent())
 	{
-		if (auto cont = O.H_Parent()->getModule<MContainer>())
+		if (auto cont = O.H_Parent()->mcast<MContainer>())
 			return						cont->ArtefactIsolation();
 	}
 
@@ -145,7 +145,7 @@ float MContainer::RadiationProtection(bool own) const
 
 	if (!own && O.H_Parent())
 	{
-		if (auto cont = O.H_Parent()->getModule<MContainer>())
+		if (auto cont = O.H_Parent()->mcast<MContainer>())
 			res							*= cont->RadiationProtection();
 	}
 

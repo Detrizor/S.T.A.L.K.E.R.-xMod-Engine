@@ -168,7 +168,7 @@ void CWeaponAutomaticShotgun::attach_loading(CAddonSlot* slot)
 	{
 		auto se_ammo					= giveItem(m_current_ammo->cNameSect().c_str(), m_current_ammo->GetCondition(), true);
 		auto ammo						= Level().Objects.net_Find(se_ammo->ID);
-		slot->attachAddon				(ammo->getModule<MAddon>());
+		slot->attachAddon				(ammo->mcast<MAddon>());
 	}
 	m_current_ammo->ChangeAmmoCount		(-1);
 	if (m_current_ammo->object_removed())

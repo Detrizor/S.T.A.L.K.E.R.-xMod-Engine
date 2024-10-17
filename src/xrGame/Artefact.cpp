@@ -521,7 +521,7 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 float CArtefact::Power() const
 {
 	if (Parent)
-		if (auto cont = Parent->getModule<MContainer>())
+		if (auto cont = Parent->mcast<MContainer>())
 			if (cont->ArtefactIsolation())
 				return					0.f;
 
@@ -536,7 +536,7 @@ float CArtefact::Radiation() const
 {
 	float res							= m_fRadiation * Power();
 	if (Parent)
-		if (auto cont = Parent->getModule<MContainer>())
+		if (auto cont = Parent->mcast<MContainer>())
 			res							*= cont->RadiationProtection();
 
 	return								res;

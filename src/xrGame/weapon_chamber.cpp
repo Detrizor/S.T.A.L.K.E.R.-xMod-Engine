@@ -26,7 +26,7 @@ void CWeaponChamber::create_shell(CWeaponAmmo* ammo) const
 	if (se_shell)
 	{
 		auto shell						= Level().Objects.net_Find(se_shell->ID);
-		auto addon						= shell->getModule<MAddon>();
+		auto addon						= shell->mcast<MAddon>();
 		m_slot->parent_ao->finishAttaching(addon, m_slot);
 	}
 }
@@ -50,7 +50,7 @@ void CWeaponChamber::load() const
 
 	auto se_obj							= O.giveItem(O.m_cartridge.m_ammoSect.c_str(), O.m_cartridge.m_fCondition, true);
 	auto object							= Level().Objects.net_Find(se_obj->ID);
-	auto addon							= object->getModule<MAddon>();
+	auto addon							= object->mcast<MAddon>();
 	m_slot->parent_ao->finishAttaching	(addon, m_slot);
 }
 

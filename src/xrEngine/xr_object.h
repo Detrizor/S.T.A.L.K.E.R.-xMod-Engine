@@ -217,7 +217,7 @@ public:
 	template <typename T>
 	T const*							scast								C$	()		{ return smart_cast<T const*>(this); }
 	template <typename M>
-	M*									getModule							C$	()		{ if (auto go = smart_cast<CGameObject const*>(this)) return go->getModule_<M>(); return nullptr; }
+	M*									mcast								C$	()		{ if (auto go = smart_cast<CGameObject const*>(this)) return go->getModule<M>(); return nullptr; }
 };
 
 #pragma pack(pop)

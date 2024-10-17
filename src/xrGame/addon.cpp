@@ -49,7 +49,7 @@ SAction* MAddon::get_attach_action() const
 static MAddonOwner* get_root_addon_owner(MAddonOwner* ao)
 {
 	if (ao->O.H_Parent())
-		if (auto ao_parent_ao = ao->O.H_Parent()->getModule<MAddonOwner>())
+		if (auto ao_parent_ao = ao->O.H_Parent()->mcast<MAddonOwner>())
 			return						get_root_addon_owner(ao_parent_ao);
 	return								ao;
 }
@@ -58,7 +58,7 @@ void MAddon::RenderHud() const
 {
 	if (Device.SVP.isRendering())
 		if (auto scope = O.getModule<MScope>())
-			if (auto wpn = get_root_addon_owner(O.H_Parent()->getModule<MAddonOwner>())->O.scast<CWeaponMagazined*>())
+			if (auto wpn = get_root_addon_owner(O.H_Parent()->mcast<MAddonOwner>())->O.scast<CWeaponMagazined*>())
 				if (wpn->getActiveScope() == scope)
 					return;
 
