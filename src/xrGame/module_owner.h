@@ -1,7 +1,7 @@
 #pragma once
 #include "module.h"
 
-class CModuleOwner : virtual public CSignalProcessor
+class CModuleOwner : public CSignalProcessor
 {
 	CGameObject* const					obj;
 
@@ -21,11 +21,6 @@ public:
 		check_modules();
 		m_modules[M::mid()].construct<M>(obj, _STD forward<Args>(args)...);
 	}
-
-	template <typename M>
-	void								registerModule							(M* p)				{ check_modules(); m_modules[M::mid()].capture(p); }
-	template <typename M>
-	void								unregisterModule						(M* p)				{ check_modules(); m_modules[M::mid()].release(); }
 
 	template <typename M>
 	M*									getModule							C$	()

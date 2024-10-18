@@ -17,7 +17,6 @@
 #include "xrserver_objects_alife.h"
 #include "xrserver_objects_alife_items.h"
 #include "script_export_space.h"
-#include "module.h"
 
 bool	ItemCategory		(const shared_str& section, LPCSTR cmp);
 bool	ItemSubcategory		(const shared_str& section, LPCSTR cmp);
@@ -62,17 +61,15 @@ struct net_updateInvData
 };
 
 class CInventoryItem : public CAttachableItem,
-	public CHitImmunity,
-	public CModule
+public CHitImmunity
 #ifdef DEBUG
 	, public pureRender
 #endif
 {
-public:
-	static EModuleTypes					mid										()		{ return mInventoryItem; }
-
-private:
 	typedef CAttachableItem inherited;
+
+public:
+	CGameObject& O;
 
 protected:
 	enum EIIFlags{				FdropManual			=(1<<0),

@@ -461,7 +461,7 @@ void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_TextureMargin, res_rect);
 }
 
-CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(MAddonOwner* ao) : inherited(ao->O.getModule<CInventoryItem>())
+CUIAddonOwnerCellItem::CUIAddonOwnerCellItem(MAddonOwner* ao) : inherited(ao->O.scast<CInventoryItem*>())
 {
 	process_slots						(ao->AddonSlots(), vZero2);
 	m_base_foreground_draw				= ao->getBaseForegroundDraw();

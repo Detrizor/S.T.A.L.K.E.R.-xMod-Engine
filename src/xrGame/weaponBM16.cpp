@@ -203,7 +203,7 @@ bool CWeaponBM16::tryTransfer(MAddon* addon, bool attach)
 {
 	if (m_grip)
 	{
-		auto ammo						= addon->O.getModule<CWeaponAmmo>();
+		auto ammo						= addon->O.scast<CWeaponAmmo*>();
 		auto shell						= addon->O.scast<CMissile*>();
 		if (ammo || shell)
 		{

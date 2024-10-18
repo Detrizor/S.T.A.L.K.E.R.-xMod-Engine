@@ -66,7 +66,7 @@ net_updateInvData* CInventoryItem::NetSync()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
+CInventoryItem::CInventoryItem(CGameObject* obj) : O(*obj)
 {
 	m_net_updateData = NULL;
 	m_flags.set(Fruck, TRUE);
@@ -91,8 +91,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 	m_section_id = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
-
-	O.registerModule(this);
 }
 
 CInventoryItem::~CInventoryItem()
@@ -116,8 +114,6 @@ CInventoryItem::~CInventoryItem()
 			Device.dwFrame);
 	}
 #endif // #ifndef MASTER_GOLD
-
-	O.unregisterModule(this);
 }
 
 void CInventoryItem::Load(LPCSTR section)

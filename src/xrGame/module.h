@@ -4,7 +4,7 @@
 class CGameObject;
 class CInventoryItemObject;
 
-class CModule : virtual public CSignalProcessor
+class CModule : public CSignalProcessor
 {
 public:
 	enum EModuleTypes
@@ -21,7 +21,6 @@ public:
 		mLauncher,
 		mMagazine,
 		mFoldable,
-		mInventoryItem,
 		mModuleTypesEnd
 	};
 

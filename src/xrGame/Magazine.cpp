@@ -153,5 +153,5 @@ bool MMagazine::getCartridge(CCartridge& destination, bool expend)
 void MMagazine::setCondition(float val)
 {
 	for (auto h : m_heaps)
-		h->getModule<CInventoryItem>()->SetCondition(val);
+		h->SetCondition					(val);
 }
