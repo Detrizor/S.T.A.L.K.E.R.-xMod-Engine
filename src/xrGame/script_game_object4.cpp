@@ -943,9 +943,6 @@ CEatableItem* CScriptGameObject::cast_EatableItem()
 	return object().scast<CEatableItem*>();
 }
 SPECIFIC_CAST(CScriptGameObject::cast_CustomOutfit, CCustomOutfit);
-SPECIFIC_CAST(CScriptGameObject::cast_Scope, MScope);
-SPECIFIC_CAST(CScriptGameObject::cast_Silencer, CSilencer);
-SPECIFIC_CAST(CScriptGameObject::cast_GrenadeLauncher, MGrenadeLauncher);
 SPECIFIC_CAST(CScriptGameObject::cast_WeaponMagazined, CWeaponMagazined);
 SPECIFIC_CAST(CScriptGameObject::cast_SpaceRestrictor, CSpaceRestrictor);
 SPECIFIC_CAST(CScriptGameObject::cast_Stalker, CAI_Stalker);
