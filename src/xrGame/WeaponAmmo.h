@@ -93,6 +93,10 @@ public:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+protected:
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	float								sSumItemData						O$	(EItemDataTypes type);
+
 private:
 	bool								m_can_heap								= false;
 	u16									m_boxCurr								= 0;
@@ -103,11 +107,6 @@ private:
 public:
 	u16									m_boxSize								= 0;
 	u8									m_mag_pos								= u8_max;
-
-protected:
-	float								Aboba								O$	(EEventTypes type, void* data = NULL, int param = 0);
-	
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static float						readBoxSize								(LPCSTR section);

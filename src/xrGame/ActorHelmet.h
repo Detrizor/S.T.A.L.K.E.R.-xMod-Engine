@@ -41,13 +41,13 @@ protected:
 
 protected:
 	virtual bool			install_upgrade_impl	( LPCSTR section, bool test );
+	
+protected:
+	xoptional<float>					sGetBar								O$	()		{ return (fLess(GetCondition(), 1.f)) ? GetCondition() : -1.f; }
 
 private:
 	float								m_fHealth;
 
-protected:
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
-
 public:
-	float								Health								C$	()	{ return m_fHealth; }
+	float								Health								C$	()		{ return m_fHealth; }
 };

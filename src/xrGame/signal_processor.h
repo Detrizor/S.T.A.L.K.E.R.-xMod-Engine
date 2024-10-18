@@ -1,20 +1,11 @@
 #pragma once
 
-enum EEventTypes
-{
-	//CInventoryItem
-	eGetAmount,
-	eGetFill,
-	eGetBar,
-	eWeight,
-	eVolume,
-	eCost,
-	eInstallUpgrade,
-};
-
 class MAddon;
 class CGameObject;
+class CUICellItem;
 class CSE_ALifeDynamicObject;
+
+enum EItemDataTypes;
 
 class CSignalProcessor
 {
@@ -29,6 +20,14 @@ public:
 
 	//CHudItem
 	virtual void						sUpdateHudBonesVisibility				()		{}
-	virtual void						sRenderHudMode							()		{}
 	virtual void						sUpdateSlotsTransform					()		{}
+	virtual void						sRenderHudMode							()		{}
+
+	//CInventoryItem
+	virtual bool						sInstallUpgrade							(LPCSTR section, bool test)		{ return false;}
+	virtual float						sSumItemData							(EItemDataTypes type)			{ return 0.f; }
+	virtual xoptional<float>			sGetAmount								()								{ return xoptional<float>(); }
+	virtual xoptional<float>			sGetFill								()								{ return xoptional<float>(); }
+	virtual xoptional<float>			sGetBar									()								{ return xoptional<float>(); }
+	virtual xoptional<CUICellItem*>		sCreateIcon								()								{ return xoptional<CUICellItem*>(); }
 };

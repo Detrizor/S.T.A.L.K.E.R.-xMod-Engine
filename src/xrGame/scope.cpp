@@ -169,29 +169,7 @@ MScope::~MScope()
 	xr_delete							(m_pNight_vision);
 }
 
-float MScope::aboba(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-		case eInstallUpgrade:
-		{
-			bool result					= false;
-			LPCSTR section				= (LPCSTR)data;
-			bool test					= !!param;
-			if (Type() == eOptics)
-			{
-				result					|= CInventoryItem::process_if_exists(section, "reticle", m_Reticle, test);
-				result					|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
-				result					|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
-				if (result)
-					init_visors			();
-			}
-			return						(result) ? 1.f : flt_max;
-		}
-	}
-
-	return								CModule::aboba(type, data, param);
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MScope::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
@@ -213,6 +191,22 @@ void MScope::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 	if (!save)
 		init_marks						();
 }
+
+bool MScope::sInstallUpgrade(LPCSTR section, bool test)
+{
+	bool result							= false;
+	if (Type() == eOptics)
+	{
+		result							|= CInventoryItem::process_if_exists(section, "reticle", m_Reticle, test);
+		result							|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
+		result							|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
+		if (result)
+			init_visors					();
+	}
+	return								result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MScope::init_visors()
 {

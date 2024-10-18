@@ -64,6 +64,8 @@ net_updateInvData* CInventoryItem::NetSync()
 	return m_net_updateData;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 CInventoryItem::CInventoryItem(CGameObject* obj) : CModule(obj)
 {
 	m_net_updateData = NULL;
@@ -182,6 +184,27 @@ void CInventoryItem::Load(LPCSTR section)
 	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE))
 		O.addModule<MContainer>			();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CInventoryItem::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleInventoryItem>(save);
+	auto se_item						= smart_cast<CSE_ALifeItem*>(se_obj);
+	if (save)
+	{
+		se_item->m_fCondition			= m_condition;
+		m->m_icon_index					= m_inv_icon_index;
+	}
+	else
+	{
+		m_condition						= se_item->m_fCondition;
+		if (m)
+			SetInvIconIndex				(m->m_icon_index);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float CInventoryItem::GetConditionToWork() const
 {
@@ -866,69 +889,53 @@ float CInventoryItem::Price() const
 	return								Cost() * sqrt(GetCondition()) + m_upgrades_cost;
 }
 
-float CInventoryItem::GetAmount() const
+float CInventoryItem::getData(EItemDataTypes type) const
 {
-	float res							= O.Aboba(eGetAmount);
-	return								(res != flt_max) ? res : 1.f;
-}
-
-float CInventoryItem::GetFill() const
-{
-	float res							= O.Aboba(eGetFill);
-	return								(res != flt_max) ? res : 1.f;
-}
-
-float CInventoryItem::GetBar() const
-{
-	float res							= O.Aboba(eGetBar);
-	return								(res != flt_max) ? res : (fLess(GetCondition(), 1.f) ? GetCondition() : -1.f);
+	float res							= O.emitSignalSum(sSumItemData(type));
+	switch (type)
+	{
+	case eWeight:
+		return							res + m_weight;
+	case eVolume:
+		return							res + m_volume;
+	case eCost:
+		return							res + m_cost;
+	default:
+		FATAL							("wrong item data type");
+	}
 }
 
 float CInventoryItem::Weight() const
 {
-	return								O.Aboba(eWeight);
+	return								getData(eWeight);
 }
 
 float CInventoryItem::Volume() const
 {
-	return								O.Aboba(eVolume);
+	return								getData(eVolume);
 }
 
 float CInventoryItem::Cost() const
 {
-	return								O.Aboba(eCost);
+	return								getData(eCost);
 }
 
-float CInventoryItem::aboba(EEventTypes type, void* data, int param)
+float CInventoryItem::GetAmount() const
 {
-	switch (type)
-	{
-	case eWeight:
-		return							m_weight;
-	case eVolume:
-		return							m_volume;
-	case eCost:
-		return							m_cost;
-	}
-
-	return								CModule::aboba(type, data, param);
+	auto res							= O.emitSignalGet(sGetAmount());
+	return								(res) ? res.get() : 1.f;
 }
 
-void CInventoryItem::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+float CInventoryItem::GetFill() const
 {
-	auto m								= se_obj->getModule<CSE_ALifeModuleInventoryItem>(save);
-	auto se_item						= smart_cast<CSE_ALifeItem*>(se_obj);
-	if (save)
-	{
-		se_item->m_fCondition			= m_condition;
-		m->m_icon_index					= m_inv_icon_index;
-	}
-	else
-	{
-		m_condition						= se_item->m_fCondition;
-		if (m)
-			SetInvIconIndex				(m->m_icon_index);
-	}
+	auto res							= O.emitSignalGet(sGetFill());
+	return								(res) ? res.get() : 1.f;
+}
+
+float CInventoryItem::GetBar() const
+{
+	auto res							= O.emitSignalGet(sGetBar());
+	return								(res) ? res.get() : (fLess(GetCondition(), 1.f) ? GetCondition() : -1.f);
 }
 
 bool CInventoryItem::tryCustomUse() const

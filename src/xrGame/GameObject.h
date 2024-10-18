@@ -42,8 +42,6 @@ class IKinematics;
 template <typename _return_type>
 class CScriptCallbackEx;
 
-enum EEventTypes;
-
 class CGameObject :
 	public CObject, 
 	public CUsableScriptObject,

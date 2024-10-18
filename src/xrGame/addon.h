@@ -32,6 +32,9 @@ public:
 										MAddon									(CGameObject* obj, LPCSTR section);
 
 private:
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+
+private:
 	const shared_str					m_section;
 
 	shared_str							m_SlotType;
@@ -52,8 +55,6 @@ private:
 	int									m_slot_pos								= no_idx;
 
 	SAction*							get_attach_action					C$	();
-
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static void							addAddonModules							(CGameObject& O, shared_str CR$ addon_sect);

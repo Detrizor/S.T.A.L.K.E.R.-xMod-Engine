@@ -57,6 +57,17 @@ CWeapon::CWeapon()
 	m_ef_weapon_type = u32(-1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CWeapon::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	if (save)
+		smart_cast<CSE_ALifeItemWeapon*>(se_obj)->wpn_flags = static_cast<u8>(IsUpdating());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CWeapon::UpdateXForm()
 {
 	if (Device.dwFrame == dwXF_Frame)
@@ -882,12 +893,6 @@ bool CWeapon::ArmedMode() const
 	return								true;
 }
 
-void CWeapon::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
-{
-	inherited::sSyncData				(se_obj, save);
-	if (save)
-		smart_cast<CSE_ALifeItemWeapon*>(se_obj)->wpn_flags = static_cast<u8>(IsUpdating());
-}
 
 float CWeapon::s_inertion_baseline_weight;
 float CWeapon::s_inertion_ads_factor;

@@ -175,14 +175,3 @@ void CHelmet::AddBonesProtection(LPCSTR bones_section, float value)
 	if (parent && parent->Visual() && m_BonesProtectionSect.size())
 		m_boneProtection->add		(bones_section, smart_cast<IKinematics*>(parent->Visual()), value);
 }
-
-float CHelmet::Aboba o$(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-		case eGetBar:
-			return						(fLess(GetCondition(), 1.f)) ? GetCondition() : -1.f;
-	}
-
-	return								inherited::Aboba(type, data, param);
-}

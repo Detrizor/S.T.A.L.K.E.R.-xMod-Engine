@@ -3120,7 +3120,6 @@
     <ClCompile Include="cta_game_artefact.cpp" />
     <ClCompile Include="cta_game_artefact_activation.cpp" />
     <ClCompile Include="foldable.cpp" />
-    <ClCompile Include="module_owner.cpp" />
     <ClCompile Include="ui\CUIAddonInfo.cpp" />
     <ClCompile Include="item_usable.cpp" />
     <ClCompile Include="CustomDetector.cpp" />

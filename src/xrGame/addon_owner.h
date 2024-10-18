@@ -88,7 +88,17 @@ public:
 	static EModuleTypes					mid										()		{ return mAddonOwner; }
 	
 public:
+	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);
+
+public:
 										MAddonOwner								(CGameObject* obj);
+
+private:
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sRenderableRender					O$	();
+	void								sUpdateSlotsTransform				O$	();
+	void								sRenderHudMode						O$	();
+	float								sSumItemData						O$	(EItemDataTypes type);
 
 private:
 	bool								m_base_foreground_draw;
@@ -100,16 +110,7 @@ private:
 	CAddonSlot*							find_available_slot					C$	(MAddon CPC addon, bool forced = false);
 	void								register_addon						C$	(MAddon PC$ addon, bool attach);
 
-	float								aboba								O$	(EEventTypes type, void* data, int param);
-	
-	void								sOnChild							O$	(CGameObject* obj, bool take);
-	void								sRenderableRender					O$	();
-	void								sRenderHudMode						O$	();
-	void								sUpdateSlotsTransform				O$	();
-	
 public:
-	static bool							loadAddonSlots							(shared_str CR$ section, VSlots& slots, MAddonOwner* ao = nullptr);
-
 	CAddonSlot*							emplaceSlot								()		{ return m_slots.emplace_back(m_slots.size(), this).get(); }
 
 	void								calcSlotsBoneOffset						(attachable_hud_item* hi);

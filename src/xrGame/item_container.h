@@ -12,23 +12,26 @@ public:
 										MContainer								(CGameObject* obj);
 
 private:
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	float								sSumItemData						O$	(EItemDataTypes type);
+	xoptional<float>					sGetAmount							O$	();
+	xoptional<float>					sGetFill							O$	();
+	xoptional<float>					sGetBar								O$	();
+
+private:
 	TIItemContainer						m_Items;
 	float								m_Capacity;
-	float								m_Sum[3];
+	float								m_Sum[eItemDataTypesSize];
 	bool								m_ArtefactIsolation;
 	float								m_RadiationProtection;
 	bool								m_content_volume_scale;
 
-	float&								Sum										(int type)		{ return m_Sum[type-eWeight]; }
+	float&								Sum										(int type)		{ return m_Sum[type]; }
 
 	void								InvalidateState							();
-	float								Get										(EEventTypes type);
+	float								Get										(EItemDataTypes type);
 
 	void								OnInventoryAction					C$	(PIItem item, bool take);
-
-	float								aboba								O$	(EEventTypes type, void* data, int param);
-
-	void								sOnChild							O$	(CGameObject* obj, bool take);
 
 public:
 	float								GetWeight								()		{ return Get(eWeight); }

@@ -30,6 +30,49 @@ void CWeaponMagazinedWGrenade::Load(LPCSTR section)
 	m_sounds.LoadSound					(*HudSection(), "snd_switch", "sndSwitch", true, m_eSoundReload);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CWeaponMagazinedWGrenade::sOnChild(CGameObject* obj, bool take)
+{
+	inherited::sOnChild					(obj, take);
+	if (auto rocket = obj->scast<CCustomRocket*>())
+	{
+		if (take)
+			AttachRocket				(obj->ID(), this);
+		else
+			DetachRocket				(obj->ID(), false);
+	}
+}
+
+void CWeaponMagazinedWGrenade::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(se_obj);
+	if (save)
+		se_wpn->m_bGrenadeMode			= static_cast<u8>(m_bGrenadeMode);
+	else
+		m_bGrenadeMode					= !!se_wpn->m_bGrenadeMode;
+}
+
+void CWeaponMagazinedWGrenade::sOnAddon(MAddon* addon, int attach_type)
+{
+	inherited::sOnAddon					(addon, attach_type);
+	if (m_pLauncher && addon->getSlot() == m_pLauncher->m_slot)
+	{
+		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
+		{
+			m_grenade					= (attach_type > 0) ? grenade : nullptr;
+			if (m_grenade && !getRocketCount())
+			{
+				shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
+				CRocketLauncher::SpawnRocket(fake_grenade_name, this);
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CWeaponMagazinedWGrenade::net_Destroy()
 {
 	inherited::net_Destroy				();
@@ -278,45 +321,6 @@ Fvector CR$ CWeaponMagazinedWGrenade::fire_point_gl()
 		m_fire_point_gl_update_frame	= Device.dwFrame;
 	}
 	return								m_fire_point_gl;
-}
-
-void CWeaponMagazinedWGrenade::sOnChild(CGameObject* obj, bool take)
-{
-	inherited::sOnChild					(obj, take);
-	if (auto rocket = obj->scast<CCustomRocket*>())
-	{
-		if (take)
-			AttachRocket				(obj->ID(), this);
-		else
-			DetachRocket				(obj->ID(), false);
-	}
-}
-
-void CWeaponMagazinedWGrenade::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
-{
-	inherited::sSyncData				(se_obj, save);
-	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazinedWGL*>(se_obj);
-	if (save)
-		se_wpn->m_bGrenadeMode			= static_cast<u8>(m_bGrenadeMode);
-	else
-		m_bGrenadeMode					= !!se_wpn->m_bGrenadeMode;
-}
-
-void CWeaponMagazinedWGrenade::sOnAddon(MAddon* addon, int attach_type)
-{
-	if (m_pLauncher && addon->getSlot() == m_pLauncher->m_slot)
-	{
-		if (auto grenade = addon->O.scast<CWeaponAmmo*>())
-		{
-			m_grenade					= (attach_type > 0) ? grenade : nullptr;
-			if (m_grenade && !getRocketCount())
-			{
-				shared_str fake_grenade_name = pSettings->r_string(m_grenade->cNameSect(), "fake_grenade_name");
-				CRocketLauncher::SpawnRocket(fake_grenade_name, this);
-			}
-		}
-	}
-	inherited::sOnAddon(addon, attach_type);
 }
 
 bool CWeaponMagazinedWGrenade::tryTransfer(MAddon* addon, bool attach)

@@ -10,22 +10,24 @@ public:
 										MAmountable								(CGameObject* obj);
 
 private:
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	float								sSumItemData						O$	(EItemDataTypes type);
+	xoptional<float>					sGetAmount							O$	()		{ return m_fAmount; }
+	xoptional<float>					sGetFill							O$	()		{ return get_fill(); }
+	xoptional<float>					sGetBar								O$	()		{ return Full() ? -1.f : get_fill(); }
+
+private:
 	float								m_net_weight;
 	float								m_net_volume;
 	float								m_net_cost;
 	float								m_capacity;
 	bool								m_unlimited;
 	float								m_depletion_speed;
-
 	float								m_fAmount;
-
-	float								Fill								C$	()		{ return m_fAmount / m_capacity; }
-
+	
 	void								OnAmountChange							();
+	float								get_fill							C$	()		{ return m_fAmount / m_capacity; }
 	bool								Useful								C$	();
-	float								aboba								O$	(EEventTypes type, void* data, int param);
-
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	void								SetDepletionSpeed						(float val)		{ m_depletion_speed = val; }
@@ -41,5 +43,4 @@ public:
 	float								GetDepletionRate					C$	()		{ return GetDepletionSpeed() / Capacity(); }
 	bool								Empty								C$	()		{ return fIsZero(m_fAmount); }
 	bool								Full								C$	()		{ return fEqual(m_fAmount, m_capacity); }
-	float								getAmount							C$	()		{ return m_fAmount; }
 };

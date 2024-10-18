@@ -109,6 +109,44 @@ void CWeaponMagazined::Load(LPCSTR section)
 	hud_sect							= pSettings->r_string(section, (m_grip) ? "hud" : "hud_unusable");
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CWeaponMagazined::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
+	if (save)
+	{
+		se_wpn->m_u8CurFireMode			= static_cast<u8>(m_iCurFireMode);
+		se_wpn->m_ads_shift				= m_ads_shift;
+		se_wpn->m_locked				= m_locked;
+		se_wpn->m_cocked				= m_cocked;
+	}
+	else
+	{
+		set_firemode					(static_cast<int>(se_wpn->m_u8CurFireMode));
+		m_ads_shift						= se_wpn->m_ads_shift;
+		m_locked						= se_wpn->m_locked;
+		m_cocked						= se_wpn->m_cocked;
+	}
+}
+
+void CWeaponMagazined::sOnAddon(MAddon* addon, int attach_type)
+{
+	inherited::sOnAddon					(addon, attach_type);
+	process_addon						(addon, attach_type > 0);
+}
+
+void CWeaponMagazined::sUpdateSlotsTransform()
+{
+	inherited::sUpdateSlotsTransform	();
+	if (auto scope = getActiveScope())
+		if (scope->Type() == MScope::eOptics)
+			scope->updateCameraLenseOffset();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CWeaponMagazined::load_firemodes(LPCSTR str)
 {
 	int ModesCount						= _GetItemCount(str);
@@ -1207,40 +1245,6 @@ void CWeaponMagazined::process_magazine(MMagazine* magazine, bool attach)
 	if (!attach && !magazine->attachAnm().size())
 		if (auto owner = H_Parent()->scast<CInventoryOwner*>())
 			while (owner->discharge(magazine));
-}
-
-void CWeaponMagazined::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
-{
-	inherited::sSyncData				(se_obj, save);
-	auto se_wpn							= smart_cast<CSE_ALifeItemWeaponMagazined*>(se_obj);
-	if (save)
-	{
-		se_wpn->m_u8CurFireMode			= static_cast<u8>(m_iCurFireMode);
-		se_wpn->m_ads_shift				= m_ads_shift;
-		se_wpn->m_locked				= m_locked;
-		se_wpn->m_cocked				= m_cocked;
-	}
-	else
-	{
-		set_firemode					(static_cast<int>(se_wpn->m_u8CurFireMode));
-		m_ads_shift						= se_wpn->m_ads_shift;
-		m_locked						= se_wpn->m_locked;
-		m_cocked						= se_wpn->m_cocked;
-	}
-}
-
-void CWeaponMagazined::sOnAddon(MAddon* addon, int attach_type)
-{
-	inherited::sOnAddon					(addon, attach_type);
-	process_addon						(addon, attach_type > 0);
-}
-
-void CWeaponMagazined::sUpdateSlotsTransform()
-{
-	inherited::sUpdateSlotsTransform	();
-	if (auto scope = getActiveScope())
-		if (scope->Type() == MScope::eOptics)
-			scope->updateCameraLenseOffset();
 }
 
 bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)

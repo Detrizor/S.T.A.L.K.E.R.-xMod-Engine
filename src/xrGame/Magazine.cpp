@@ -20,6 +20,44 @@ MMagazine::MMagazine(CGameObject* obj, shared_str CR$ section) :
 	update_bullets_visibility			();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MMagazine::sOnChild(CGameObject* obj, bool take)
+{
+	CWeaponAmmo* heap					= obj->scast<CWeaponAmmo*>();
+	if (heap && heap->m_mag_pos != u8_max)
+	{
+		int sign						= (take) ? 1 : -1;
+		m_amount						+= sign * heap->GetAmmoCount();
+		m_weight						+= sign * heap->Weight();
+		register_heap					(heap, take);
+	}
+}
+
+void MMagazine::sUpdateHudBonesVisibility()
+{
+	update_hud_bullets_visibility		();
+}
+
+float MMagazine::sSumItemData(EItemDataTypes type)
+{
+	switch (type)
+	{
+	case eWeight:
+		return							m_weight;
+	default:
+		return							0.f;
+	}
+}
+
+xoptional<float> MMagazine::sGetBar()
+{
+	float fill							= static_cast<float>(m_amount) / static_cast<float>(m_capacity);
+	return								(fill < 1.f) ? fill : -1.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 shared_str bullets_str					= "bullets";
 void MMagazine::update_bullets_visibility()
 {
@@ -55,42 +93,6 @@ void MMagazine::register_heap(CWeaponAmmo* heap, bool insert)
 	else
 		m_heaps.erase_data				(heap);
 	update_bullets_visibility			();
-}
-
-float MMagazine::aboba o$(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-		case eWeight:
-			return						m_weight;
-		case eGetBar:
-		case eGetFill:
-		{
-			float fill					= static_cast<float>(Amount()) / static_cast<float>(Capacity());
-			if (type == eGetBar)
-				return					(fLess(fill, 1.f)) ? fill : -1.f;
-			return						fill;
-		}
-	}
-
-	return								CModule::aboba(type, data, param);
-}
-
-void MMagazine::sOnChild(CGameObject* obj, bool take)
-{
-	CWeaponAmmo* heap					= obj->scast<CWeaponAmmo*>();
-	if (heap && heap->m_mag_pos != u8_max)
-	{
-		int sign						= (take) ? 1 : -1;
-		m_amount						+= sign * heap->GetAmmoCount();
-		m_weight						+= sign * heap->Weight();
-		register_heap					(heap, take);
-	}
-}
-
-void MMagazine::sUpdateHudBonesVisibility()
-{
-	update_hud_bullets_visibility		();
 }
 
 bool MMagazine::canTake(CWeaponAmmo CPC ammo) const

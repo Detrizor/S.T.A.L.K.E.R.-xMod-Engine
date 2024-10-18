@@ -13,9 +13,14 @@ class CWeaponMagazinedWGrenade :
 public:
 										CWeaponMagazinedWGrenade				(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN) {}
 
-protected:
 	void								Load								O$	(LPCSTR section);
 
+protected:
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	void								sOnAddon							O$	(MAddon* addon, int attach_type);
+
+protected:
 	void								net_Destroy							O$	();
 	void								UpdateCL							O$	();
 	void								OnEvent								O$	(NET_Packet& P, u16 type);
@@ -32,10 +37,6 @@ protected:
 
 	void								process_addon_modules				O$	(CGameObject& obj, bool attach);
 	void								process_foregrip					O$	(CGameObject& obj, LPCSTR type, bool attach);
-	
-	void								sOnChild							O$	(CGameObject* obj, bool take);
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
-	void								sOnAddon							O$	(MAddon* addon, int attach_type);
 
 private:
 	bool								m_bGrenadeMode							= false;

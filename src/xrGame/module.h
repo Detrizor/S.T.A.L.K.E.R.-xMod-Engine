@@ -29,7 +29,4 @@ public:
 
 protected:
 										CModule									(CGameObject* obj);
-
-public:
-	float							V$	aboba									(EEventTypes type, void* data = nullptr, int additional_data = 0)		{ return flt_max; }
 };

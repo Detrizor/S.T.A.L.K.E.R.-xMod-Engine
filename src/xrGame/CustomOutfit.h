@@ -67,14 +67,14 @@ protected:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+protected:
+	xoptional<float>					sGetBar								O$	()		{ return (fLess(GetCondition(), 1.f)) ? GetCondition() : -1.f; }
+
 private:
 	float								m_fHealth;
 
-protected:
-	float								Aboba								O$	(EEventTypes type, void* data, int param);
-
 public:
-	float								Health								C$	()	{ return m_fHealth; }
+	float								Health								C$	()		{ return m_fHealth; }
 };
 
 add_to_type_list(CCustomOutfit)

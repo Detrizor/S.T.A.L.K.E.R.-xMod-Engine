@@ -16,6 +16,14 @@ public:
 										MMagazine								(CGameObject* obj, shared_str CR$ section);
 
 private:
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sUpdateHudBonesVisibility			O$	();
+	float								sSumItemData						O$	(EItemDataTypes type);
+	xoptional<float>					sGetAmount							O$	()		{ return static_cast<float>(m_amount); }
+	xoptional<float>					sGetFill							O$	()		{ return static_cast<float>(m_amount) / static_cast<float>(m_capacity); }
+	xoptional<float>					sGetBar								O$	();
+
+private:
 	const u16							m_capacity;
 	const bool							m_bullets_visible;
 	const shared_str					m_attach_anm;
@@ -31,11 +39,6 @@ private:
 	void								update_bullets_visibility				();
 	void								update_hud_bullets_visibility			();
 	void								register_heap							(CWeaponAmmo* heap, bool insert);
-
-	float								aboba								O$	(EEventTypes type, void* data, int param);
-	
-	void								sOnChild							O$	(CGameObject* obj, bool take);
-	void								sUpdateHudBonesVisibility			O$	();
 
 public:
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);

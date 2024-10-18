@@ -88,6 +88,10 @@ float CCartridge::Weight() const
 	return								(m_ammoSect.size()) ? pSettings->r_float(m_ammoSect, "inv_weight") : 0.f;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CWeaponAmmo::Load(LPCSTR section) 
 {
 	inherited::Load						(section);
@@ -98,6 +102,25 @@ void CWeaponAmmo::Load(LPCSTR section)
 	m_boxCurr							= m_boxSize;
 	pSettings->w_string_ex				(m_shell_section, section, "shell_section");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CWeaponAmmo::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	inherited::sSyncData				(se_obj, save);
+	auto se_ammo						= se_obj->cast_item_ammo();
+	if (save)
+		se_ammo->m_mag_pos				= m_mag_pos;
+	else
+		m_mag_pos						= se_ammo->m_mag_pos;
+}
+
+float CWeaponAmmo::sSumItemData(EItemDataTypes type)
+{
+	return								inherited::sSumItemData(type) * static_cast<float>(m_boxCurr);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
 {
@@ -168,29 +191,6 @@ void CWeaponAmmo::SetAmmoCount(u16 val)
 void CWeaponAmmo::ChangeAmmoCount(int val)
 {
 	SetAmmoCount						(u16((int)m_boxCurr + val));
-}
-
-float CWeaponAmmo::Aboba o$(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-	case eWeight:
-	case eVolume:
-	case eCost:
-		return							inherited::Aboba(type, data, param) * static_cast<float>(m_boxCurr);
-	}
-
-	return								inherited::Aboba(type, data, param);
-}
-
-void CWeaponAmmo::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
-{
-	inherited::sSyncData				(se_obj, save);
-	auto se_ammo						= se_obj->cast_item_ammo();
-	if (save)
-		se_ammo->m_mag_pos				= m_mag_pos;
-	else
-		m_mag_pos						= se_ammo->m_mag_pos;
 }
 
 float CWeaponAmmo::readBoxSize(LPCSTR section)

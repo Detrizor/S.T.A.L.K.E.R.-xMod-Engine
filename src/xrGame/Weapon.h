@@ -367,6 +367,9 @@ public:
 	{
 		return cNameSect();
 	};
+	
+protected:
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 private:
 	static float						s_inertion_baseline_weight;
@@ -423,8 +426,6 @@ protected:
 	
 	void								appendRecoil							(float impulse_magnitude);
 	float								get_wpn_pos_inertion_factor			C$	();
-	
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 	//with zeroing
 	virtual Fvector						getFullFireDirection					(CCartridge CR$ c)		{ return get_LastFD(); }

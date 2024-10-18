@@ -61,3 +61,11 @@ extern u16	INV_STATE_CAR;
 extern u16	INV_STATE_BLOCK_ALL;
 extern u16	INV_STATE_INV_WND;
 extern u16	INV_STATE_BUY_MENU;
+
+enum EItemDataTypes
+{
+	eWeight,
+	eVolume,
+	eCost,
+	eItemDataTypesSize
+};

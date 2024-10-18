@@ -165,6 +165,11 @@ public:
 	void								ZoomDec								O$	();
 
 //xMod added
+protected:
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	void								sOnAddon							O$	(MAddon* addon, int attach_type);
+	void								sUpdateSlotsTransform				O$	();
+
 private:
 	static float						s_ads_shift_step;
 	static float						s_ads_shift_max;
@@ -235,10 +240,6 @@ protected:
 	Fvector								getFullFireDirection				O$	(CCartridge CR$ c);
 	void								setADS								O$	(int mode);
 	void								OnHiddenItem						O$	();
-	
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
-	void								sOnAddon							O$	(MAddon* addon, int attach_type);
-	void								sUpdateSlotsTransform				O$	();
 	
 	void							V$	process_addon_modules					(CGameObject& obj, bool attach);
 	void							V$	process_foregrip						(CGameObject& obj, LPCSTR type, bool attach);

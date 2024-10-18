@@ -11012,7 +11012,6 @@
     </ClCompile>
     <ClCompile Include="foldable.cpp" />
     <ClCompile Include="weapon_chamber.cpp" />
-    <ClCompile Include="module_owner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

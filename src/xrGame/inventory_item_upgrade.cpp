@@ -261,27 +261,27 @@ bool CInventoryItem::process_if_exists(LPCSTR section, LPCSTR name, LPCSTR& valu
 
 bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 {
-	u32 tmp_cost			= m_cost;
-	bool result				= process_if_exists(section,	"cost",				tmp_cost,			test);
+	u32 tmp_cost						= m_cost;
+	bool result							= process_if_exists(section,	"cost",				tmp_cost,			test);
 	if (result)
-		m_upgrades_cost		+= tmp_cost - m_cost;
-	result					|= process_if_exists(section,	"inv_weight",		m_weight,		test);
-	result					|= process_if_exists(section,	"inv_volume",		m_volume,		test);
+		m_upgrades_cost					+= tmp_cost - m_cost;
+	result								|= process_if_exists(section,	"inv_weight",		m_weight,		test);
+	result								|= process_if_exists(section,	"inv_volume",		m_volume,		test);
 
-	bool result2			= false;
+	bool result2						= false;
 	if ( BaseSlot() != NO_ACTIVE_SLOT )
 	{
-		BOOL value			= m_flags.test(FAllowSprint);
-		result2				= process_if_exists(section, "sprint_allowed", value, test);
+		BOOL value						= m_flags.test(FAllowSprint);
+		result2							= process_if_exists(section, "sprint_allowed", value, test);
 		if (result2 && !test)
-			m_flags.set(FAllowSprint, value);
-		result				|= result2;
+			m_flags.set					(FAllowSprint, value);
+		result							|= result2;
 
-		float inertion						= m_fControlInertionFactor - 1.f;
-		result2								|= process_if_exists(section, "control_inertion_factor", inertion, test);
+		float inertion					= m_fControlInertionFactor - 1.f;
+		result2							|= process_if_exists(section, "control_inertion_factor", inertion, test);
 		if (result2)
-			m_fControlInertionFactor		= inertion + 1.f;
-		result								|= result2;
+			m_fControlInertionFactor	= inertion + 1.f;
+		result							|= result2;
 	}
 
 	LPCSTR								str;
@@ -292,7 +292,6 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 	if (result2 && !test)
 		CHitImmunity::AddImmunities		(str, pSettings);
 
-	result |= O.Aboba(eInstallUpgrade, (void*)section, (int)test) != flt_max;
-
-	return result;
+	result								|= O.emitSignalDis(sInstallUpgrade(section, test));
+	return								result;
 }

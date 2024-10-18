@@ -22,19 +22,69 @@ MContainer::MContainer(CGameObject* obj) : CModule(obj)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MContainer::sOnChild(CGameObject* obj, bool take)
+{
+	if (auto item = obj->scast<CInventoryItem*>())
+	{
+		if (take)
+			m_Items.push_back			(item);
+		else
+			m_Items.erase_data			(item);
+
+		OnInventoryAction				(item, take);
+		InvalidateState					();
+		ParentCheck						(item, take);
+	}
+}
+
+float MContainer::sSumItemData(EItemDataTypes type)
+{
+	switch (type)
+	{
+	case eVolume:
+		if (!m_content_volume_scale)
+			return						0.f;
+	case eWeight:
+	case eCost:
+		return							Get(type);
+	default:
+		FATAL							("wrong item data type");
+	}
+}
+
+xoptional<float> MContainer::sGetAmount()
+{
+	return Get(eVolume);
+}
+
+xoptional<float> MContainer::sGetFill()
+{
+	return Get(eVolume) / m_Capacity;
+}
+
+xoptional<float> MContainer::sGetBar()
+{
+	float fill							= Get(eVolume) / m_Capacity;
+	return								(fLess(fill, 1.f)) ? fill : -1.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void MContainer::InvalidateState()
 {
 	for (int i = eWeight; i <= eCost; i++)
 		Sum(i)							= flt_max;
 }
 
-float MContainer::Get(EEventTypes type)
+float MContainer::Get(EItemDataTypes type)
 {
 	if (Sum(type) == flt_max)
 	{
 		Sum(type)						= 0.f;
 		for (auto I : m_Items)
-			Sum(type)					+= I->O.Aboba(type);
+			Sum(type)					+= I->getData(type);
 	}
 	return								Sum(type);
 }
@@ -53,47 +103,6 @@ void MContainer::OnInventoryAction C$(PIItem item, bool take)
 		if (res_zone > 0)
 			actor_menu->OnInventoryAction(item, take, res_zone);
 	}
-}
-
-float MContainer::aboba o$(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-		case eVolume:
-			if (!m_content_volume_scale)
-				break;
-		case eWeight:
-		case eCost:
-			return						Get(type);
-
-		case eGetAmount:
-			return						Get(eVolume);
-		case eGetBar:
-		case eGetFill:
-		{
-			float fill					= Get(eVolume) / m_Capacity;
-			if (type == eGetBar)
-				return					(fLess(fill, 1.f)) ? fill : -1.f;
-			return						fill;
-		}
-	}
-
-	return								CModule::aboba(type, data, param);
-}
-
-void MContainer::sOnChild(CGameObject* obj, bool take)
-{
-	PIItem item							= obj->getModule<CInventoryItem>();
-	if (!item)
-		return;
-
-	if (take)
-		m_Items.push_back				(item);
-	else
-		m_Items.erase_data				(item);
-	OnInventoryAction					(item, take);
-	InvalidateState						();
-	ParentCheck							(item, take);
 }
 
 void MContainer::ParentCheck C$(PIItem item, bool add)

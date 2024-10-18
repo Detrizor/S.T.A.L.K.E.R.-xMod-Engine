@@ -27,49 +27,14 @@ bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOw
 	return								pSettings->r_bool_ex(slots_section, "base_foreground_draw", false);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 MAddonOwner::MAddonOwner(CGameObject* obj) : CModule(obj)
 {
 	m_base_foreground_draw				= loadAddonSlots(O.cNameSect(), m_slots, this);
 }
 
-float MAddonOwner::aboba(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-	case eWeight:
-	case eVolume:
-	case eCost:
-	{
-		float res						= 0.f;
-		for (auto& slot : m_slots)
-			for (auto addon : slot->addons)
-				res						+= addon->O.Aboba(type);
-		return							res;
-	}
-	}
-
-	return								CModule::aboba(type, data, param);
-}
-
-void MAddonOwner::sRenderableRender()
-{
-	for (auto& s : m_slots)
-		if (s->getIconDraw())
-			s->RenderWorld				(O.XFORM());
-}
-
-void MAddonOwner::sRenderHudMode()
-{
-	for (auto& s : m_slots)
-		s->RenderHud					();
-}
-
-void MAddonOwner::sUpdateSlotsTransform()
-{
-	attachable_hud_item* hi				= O.scast<CHudItem*>()->HudItemData();
-	for (auto& s : m_slots)
-		s->updateAddonsHudTransform		(hi);
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MAddonOwner::sOnChild(CGameObject* obj, bool take)
 {
@@ -96,6 +61,37 @@ void MAddonOwner::sOnChild(CGameObject* obj, bool take)
 			finishDetaching				(addon, false);
 	}
 }
+
+void MAddonOwner::sRenderableRender()
+{
+	for (auto& s : m_slots)
+		if (s->getIconDraw())
+			s->RenderWorld				(O.XFORM());
+}
+
+void MAddonOwner::sUpdateSlotsTransform()
+{
+	attachable_hud_item* hi				= O.scast<CHudItem*>()->HudItemData();
+	for (auto& s : m_slots)
+		s->updateAddonsHudTransform		(hi);
+}
+
+void MAddonOwner::sRenderHudMode()
+{
+	for (auto& s : m_slots)
+		s->RenderHud					();
+}
+
+float MAddonOwner::sSumItemData(EItemDataTypes type)
+{
+	float res							= 0.f;
+	for (auto& slot : m_slots)
+		for (auto addon : slot->addons)
+			res							+= addon->I->getData(type);
+	return								res;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MAddonOwner::register_addon(MAddon PC$ addon, bool attach) const
 {

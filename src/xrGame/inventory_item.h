@@ -322,6 +322,9 @@ public:
 
 	virtual	void			OnTaken					()										{}
 
+protected:
+	void								sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save);
+
 private:
 	float								m_weight								= 0.f;
 	float								m_volume								= 0.f;
@@ -333,9 +336,6 @@ private:
 	shared_str							m_description							= 0;
 	
 	void								set_inv_icon							();
-
-protected:
-	void								sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save);
 
 public:
 	static const float					s_max_repair_condition;
@@ -354,15 +354,14 @@ public:
 	float								Price								C$	();
 	bool								tryCustomUse						C$	();
 
-	float								GetAmount							C$	();
-	float								GetFill								C$	();
-	float								GetBar								C$	();
-
+	float								getData								C$	(EItemDataTypes type);
 	float								Weight								C$	();
 	float								Volume								C$	();
 	float								Cost								C$	();
-	
-	float								aboba								O$	(EEventTypes type, void* data, int param);
+
+	float								GetAmount							C$	();
+	float								GetFill								C$	();
+	float								GetBar								C$	();
 };
 
 #include "inventory_item_inline.h"

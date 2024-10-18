@@ -15,6 +15,34 @@ MAmountable::MAmountable(CGameObject* obj) : CModule(obj)
 	m_net_cost							= (net_cost == -1.f) ? CInventoryItem::readBaseCost(*O.cNameSect()): net_cost;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MAmountable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(save);
+	if (save)
+		m->m_amount						= m_fAmount;
+	else if (m)
+		m_fAmount						= m->m_amount;
+}
+
+float MAmountable::sSumItemData(EItemDataTypes type)
+{
+	switch (type)
+	{
+	case eWeight:
+		return							m_net_weight * get_fill();
+	case eVolume:
+		return							m_net_volume * get_fill();
+	case eCost:
+		return							m_net_cost * (get_fill() - 1.f);
+	default:
+		FATAL							("wrong item data type");
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void MAmountable::OnAmountChange()
 {
 	if (m_fAmount < 0.f)
@@ -34,36 +62,6 @@ bool MAmountable::Useful() const
 	bool res							= I->Useful();
 	res									&= !Empty() || fMore(I->Weight(), 0.f) || fMore(I->Volume(), 0.f);
 	return								res;
-}
-
-float MAmountable::aboba(EEventTypes type, void* data, int param)
-{
-	switch (type)
-	{
-		case eGetAmount:
-			return						m_fAmount;
-		case eGetFill:
-			return						Fill();
-		case eGetBar:
-			return						Full() ? -1.f : Fill();
-		case eWeight:
-			return						m_net_weight * Fill();
-		case eVolume:
-			return						m_net_volume * Fill();
-		case eCost:
-			return						m_net_cost * (Fill() - 1.f);
-	}
-
-	return								CModule::aboba(type, data, param);
-}
-
-void MAmountable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
-{
-	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(save);
-	if (save)
-		m->m_amount						= m_fAmount;
-	else if (m)
-		m_fAmount						= m->m_amount;
 }
 
 void MAmountable::SetAmount(float val)

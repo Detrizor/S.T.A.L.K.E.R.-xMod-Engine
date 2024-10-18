@@ -713,14 +713,19 @@ void CHudItem::playBlendAnm(SScriptAnm CR$ anm, u32 state, bool full_blend, floa
 	}
 }
 
+void CHudItem::UpdateHudBonesVisibility()
+{
+	m_object->emitSignal				(sUpdateHudBonesVisibility());
+}
+
 void CHudItem::UpdateSlotsTransform()
 {
 	m_object->emitSignal				(sUpdateSlotsTransform());
 }
 
-void CHudItem::UpdateHudBonesVisibility()
+void CHudItem::render_hud_mode()
 {
-	m_object->emitSignal				(sUpdateHudBonesVisibility());
+	m_object->emitSignal				(sRenderHudMode());
 }
 
 bool CHudItem::motionPartPassed(float part) const
@@ -728,9 +733,4 @@ bool CHudItem::motionPartPassed(float part) const
 	float cur							= static_cast<float>(m_dwMotionCurrTm - m_dwMotionStartTm);
 	float full							= static_cast<float>(m_dwMotionEndTm - m_dwMotionStartTm);
 	return								(cur / full >= part);
-}
-
-void CHudItem::render_hud_mode()
-{
-	m_object->emitSignal				(sRenderHudMode());
 }
