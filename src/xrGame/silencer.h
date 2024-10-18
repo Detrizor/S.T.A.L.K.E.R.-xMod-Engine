@@ -6,6 +6,9 @@ class CGameObject;
 class CSilencer : public MMuzzle
 {
 public:
+	static EModuleTypes					mid										()		{ return mSilencer; }
+
+public:
 										CSilencer								(CGameObject* obj, shared_str CR$ section);
 
 private:

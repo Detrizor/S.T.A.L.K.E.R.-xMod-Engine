@@ -10,17 +10,18 @@ public:
 	enum EModuleTypes
 	{
 		mModuleTypesBegin,
-		mAddon = mModuleTypesBegin,
-		mAddonOwner,
-		mFoldable,
-		mLauncher,
-		mInventoryItem,
-		mAmountable,
+		mAmountable = mModuleTypesBegin,
 		mContainer,
 		mUsable,
-		mMagazine,
-		mMuzzle,
+		mAddonOwner,
+		mAddon,
 		mScope,
+		mMuzzle,
+		mSilencer,
+		mLauncher,
+		mMagazine,
+		mFoldable,
+		mInventoryItem,
 		mModuleTypesEnd
 	};
 

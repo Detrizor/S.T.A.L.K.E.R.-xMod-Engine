@@ -32,7 +32,7 @@ public:
 	{
 		if (m_modules)
 			if (auto& m = m_modules[M::mid()])
-				return					smart_cast<M*>(m.get());
+				return					static_cast<M*>(m.get());
 		return							nullptr;
 	}
 	
