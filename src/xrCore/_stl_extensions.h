@@ -412,3 +412,17 @@ class xr_umap : public _STD unordered_map<key_type, value_type, _STD hash<key_ty
 public:
 	bool								contains								(const key_type& key)		{ return find(key) != end(); }
 };
+
+template <typename T>
+class xoptional
+{
+	bool m_status;
+	T m_data;
+
+public:
+	xoptional() { m_status = false; }
+	xoptional(T const& data) { m_data = data; m_status = true; }
+	xoptional(T&& data) { m_data = data; m_status = true; }
+	operator bool() const { return m_status; }
+	T&& get() { R_ASSERT(m_status); m_status = false; return _STD move(m_data); }
+};
