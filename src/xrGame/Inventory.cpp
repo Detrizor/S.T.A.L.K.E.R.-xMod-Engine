@@ -108,7 +108,6 @@ CInventory::CInventory(CInventoryOwner* owner) : m_pOwner(owner), m_bActors(!!sm
 
 	m_change_after_deactivate	= false;
 	m_bBoltPickUp				= false;
-	m_iToDropID					= u16_max;
 	m_iRuckBlockID				= u16_max;
 }
 
@@ -176,7 +175,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 		pIItem->m_ItemCurrPlace					= pIItem->m_ItemCurrPlaceBackup;
 		pIItem->m_ItemCurrPlaceBackup.type		= eItemPlaceUndefined;
 	}
-	
+
 	u16 slot_id									= pIItem->m_ItemCurrPlace.slot_id;
 	switch(pIItem->m_ItemCurrPlace.type)
 	{
@@ -185,8 +184,8 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 			m_iNextActiveItemID					= pIItem->object_id();
 		else if (slot_id == LEFT_HAND_SLOT)
 			m_iNextLeftItemID					= pIItem->object_id();
-		else if (!Slot(slot_id, pIItem))
-			pIItem->m_ItemCurrPlace.type		= eItemPlaceUndefined;
+		else
+			Slot								(slot_id, pIItem);
 		break;
 	case eItemPlacePocket:
 		if (!Pocket(pIItem, slot_id, true))
@@ -198,7 +197,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 		break;
 	}
 
-	if (pIItem->CurrPlace() == eItemPlaceUndefined)
+	if (pIItem->CurrPlace() == eItemPlaceUndefined && !process_item(pIItem, false))
 		Ruck							(pIItem, strict_placement);
 	
 	m_pOwner->OnItemTake				(pIItem);
@@ -294,115 +293,110 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	return								true;
 }
 
-//положить вещь в слот
-bool CInventory::Slot(u16 slot_id, PIItem pIItem) 
+bool CInventory::trySlot(u16 slot_id, PIItem item)
 {
-	VERIFY(pIItem);
-
-	if (slot_id == NO_ACTIVE_SLOT || ItemFromSlot(slot_id) == pIItem)
-		return false;
-
-	if (!CanPutInSlot(pIItem, slot_id))
-		return false;
-
-	m_slots[slot_id].m_pIItem = pIItem;
-	
-	//удалить из инвентаря
-	m_ruck.erase_data(pIItem, false);
-
-	bool in_slot = InSlot(pIItem);
-	if (in_slot && (pIItem->CurrSlot() != slot_id))
+	if (CanPutInSlot(item, slot_id))
 	{
-		if (GetActiveSlot() == pIItem->CurrSlot())
-			Activate(NO_ACTIVE_SLOT);
-		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		Slot							(slot_id, item);
+		return							true;
+	}
+	return								false;
+}
+
+void CInventory::Slot(u16 slot_id, PIItem pIItem)
+{
+	switch (pIItem->CurrPlace())
+	{
+	case eItemPlaceSlot:
+		if (pIItem->CurrSlot() != slot_id)
+		{
+			if (GetActiveSlot() == pIItem->CurrSlot())
+				Activate				(NO_ACTIVE_SLOT);
+			m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		}
+		break;
+	case eItemPlacePocket:
+		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+		break;
+	case eItemPlaceRuck:
+		m_ruck.erase_data				(pIItem);
+		break;
 	}
 
-	if (!in_slot && pIItem->CurrPlace() == eItemPlacePocket)
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+	m_slots[slot_id].m_pIItem			= pIItem;
 
 	if (m_bActors)
 	{
 		if (slot_id == BOTH_HANDS_SLOT || slot_id == RIGHT_HAND_SLOT || slot_id == LEFT_HAND_SLOT)
-			pIItem->ActivateItem(pIItem->CurrSlot());
+			pIItem->ActivateItem		(pIItem->CurrSlot());
 		else
 			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
 	}
 
-	SInvItemPlace p							= pIItem->m_ItemCurrPlace;
-	m_pOwner->OnItemSlot					(pIItem, pIItem->m_ItemCurrPlace);
-	pIItem->m_ItemCurrPlace.type			= eItemPlaceSlot;
-	pIItem->m_ItemCurrPlace.slot_id			= slot_id;
-	pIItem->OnMoveToSlot					(p);
+	SInvItemPlace p						= pIItem->m_ItemCurrPlace;
+	m_pOwner->OnItemSlot				(pIItem, pIItem->m_ItemCurrPlace);
+	pIItem->m_ItemCurrPlace.type		= eItemPlaceSlot;
+	pIItem->m_ItemCurrPlace.slot_id		= slot_id;
+	pIItem->OnMoveToSlot				(p);
 	
-	pIItem->object().processing_activate	();
+	pIItem->object().processing_activate();
 
-	OnInventoryAction						(pIItem);
-
-	return true;
+	OnInventoryAction					(pIItem);
 }
 
 bool CInventory::Ruck(PIItem pIItem, bool strict_placement) 
 {
-	if(!strict_placement && !CanPutInRuck(pIItem)) return false;
-
-	bool in_slot = InSlot(pIItem);
-	if (in_slot) 
+	if (!strict_placement && !CanPutInRuck(pIItem))
+		return							false;
+	
+	switch (pIItem->CurrPlace())
 	{
-		if(GetActiveSlot() == pIItem->CurrSlot()) 
-			Activate(NO_ACTIVE_SLOT);
-
-		m_slots[pIItem->CurrSlot()].m_pIItem = NULL;
-	}
-
-	if (!in_slot && pIItem->CurrPlace() == eItemPlacePocket)
-	{
-		TIItemContainer& pocket				= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator it		= ::std::find(pocket.begin(), pocket.end(), pIItem);
-		if (it != pocket.end())
-			pocket.erase(it);
+	case eItemPlaceSlot:
+		if (GetActiveSlot() == pIItem->CurrSlot())
+			Activate					(NO_ACTIVE_SLOT);
+		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		break;
+	case eItemPlacePocket:
+		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+		break;
 	}
 	
-	m_ruck.insert									(m_ruck.end(), pIItem); 
+	m_ruck.insert						(m_ruck.end(), pIItem); 
 	
-	CalcTotalWeight									();
-	CalcTotalVolume									();
-	InvalidateState									();
+	CalcTotalWeight						();
+	CalcTotalVolume						();
+	InvalidateState						();
 
-	m_pOwner->OnItemRuck							(pIItem, pIItem->m_ItemCurrPlace);
-	SInvItemPlace prev_place						= pIItem->m_ItemCurrPlace;
-	pIItem->m_ItemCurrPlace.type					= eItemPlaceRuck;
-	pIItem->OnMoveToRuck							(prev_place);
+	m_pOwner->OnItemRuck				(pIItem, pIItem->m_ItemCurrPlace);
+	SInvItemPlace prev_place			= pIItem->m_ItemCurrPlace;
+	pIItem->m_ItemCurrPlace.type		= eItemPlaceRuck;
+	pIItem->OnMoveToRuck				(prev_place);
 
-	if (in_slot)
-		pIItem->object().processing_deactivate		();
+	if (InSlot(pIItem))
+		pIItem->object().processing_deactivate();
 
-	return true;
+	return								true;
 }
 
-bool CInventory::Pocket(PIItem pIItem, u16 pocket_id, bool forced) 
+bool CInventory::Pocket(PIItem pIItem, u16 pocket_id, bool forced)
 {
 	if (!forced && !CanPutInPocket(pIItem, pocket_id))
-		return false;
-
-	bool in_slot									= InSlot(pIItem);
-	if (in_slot) 
-		m_slots[pIItem->CurrSlot()].m_pIItem		= NULL;
-	else if (pIItem->CurrPlace() == eItemPlacePocket)
+		return							false;
+	
+	switch (pIItem->CurrPlace())
 	{
-		TIItemContainer& pocket				= m_pockets[pIItem->CurrPocket()];
-		TIItemContainer::iterator it		= ::std::find(pocket.begin(), pocket.end(), pIItem);
-		if (it != pocket.end())
-			pocket.erase(it);
-	}
-	else
-	{
-		TIItemContainer::iterator it				= ::std::find(m_ruck.begin(), m_ruck.end(), pIItem); 
-		if (m_ruck.end() != it) 
-			m_ruck.erase							(it);
+	case eItemPlaceSlot:
+		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		break;
+	case eItemPlacePocket:
+		m_pockets[pIItem->CurrPocket()].erase_data(pIItem, !forced);
+		break;
+	case eItemPlaceRuck:
+		m_ruck.erase_data				(pIItem);
+		break;
 	}
 	
-	m_pockets[pocket_id].push_back(pIItem);
+	m_pockets[pocket_id].push_back		(pIItem);
 
 	CalcTotalWeight						();
 	CalcTotalVolume						();
@@ -414,21 +408,21 @@ bool CInventory::Pocket(PIItem pIItem, u16 pocket_id, bool forced)
 	m_pOwner->OnItemRuck				(pIItem, p);
 	pIItem->OnMoveToRuck				(p);
 
-	if (in_slot)
-		pIItem->object().processing_deactivate	();
-	pIItem->object().processing_activate		();
+	if (InSlot(pIItem))
+		pIItem->object().processing_deactivate();
+	pIItem->object().processing_activate();
 
 	if (m_bActors)
-		CurrentGameUI()->GetActorMenu().PlaySnd	(eItemToRuck);
+		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
 
-	OnInventoryAction							(pIItem);
+	OnInventoryAction					(pIItem);
 
-	return true;
+	return								true;
 }
 
 PIItem CInventory::ItemFromSlot(u16 slot) const
 {
-	return (slot == NO_ACTIVE_SLOT) ? NULL : m_slots[slot].m_pIItem;
+	return								(slot == NO_ACTIVE_SLOT) ? nullptr : m_slots[slot].m_pIItem;
 }
 
 void CInventory::SendActionEvent(u16 cmd, u32 flags) 
@@ -599,8 +593,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			PIItem next_active_item		= (deactivating) ? nullptr : item;
 			u16 next_item_cur_slot		= (next_active_item) ? next_active_item->CurrSlot() : 0;
 
-			if (m_iReturnPlace == eItemPlacePocket && CanPutInPocket(active_item, m_iReturnSlot));
-			else if (m_iReturnPlace == eItemPlaceSlot && CanPutInSlot(active_item, m_iReturnSlot));
+			if (m_iReturnPlace);
 			else if (CanPutInSlot(active_item, active_item_base_slot))
 			{
 				m_iReturnPlace			= eItemPlaceSlot;
@@ -756,8 +749,10 @@ void CInventory::update_actors()
 		auto hi							= left_item->O.scast<CHudItem*>();
 		if (hi->IsHidden())
 		{
-			if (m_iReturnSlot != eItemPlaceSlot || !Slot(m_iReturnSlot, left_item))
-				Ruck					(left_item);
+			if (m_iReturnPlace == eItemPlaceSlot)
+				Slot					(m_iReturnSlot, left_item);
+			else
+				Pocket					(active_item, m_iReturnSlot);
 			m_iReturnPlace				= 0;
 			m_iReturnSlot				= 0;
 		}
@@ -871,60 +866,57 @@ void CInventory::UpdateDropTasks()
 {
 	for (u16 i = FirstSlot(); i <= LastSlot(); ++i)
 		if (auto itm = ItemFromSlot(i))
-			UpdateDropItem			(itm);
+			UpdateDropItem				(itm);
 	
 	for (auto item : m_ruck)
-	{
-		if (!item->Weight())
-			continue;
-
-		if (item->object_id() == m_iToDropID)
-		{
-			item->O.transfer		();
-			m_iToDropID				= 0;
-		}
-		else if (m_bActors && !ProcessItem(item))
-			item->O.transfer		(u16_max, true);
-		UpdateDropItem				(item);
-	}
+		if (!process_item(item, true))
+			UpdateDropItem				(item);
 
 	if (m_drop_last_frame)
 	{
-		m_drop_last_frame			= false;
-		m_pOwner->OnItemDropUpdate	();
+		m_drop_last_frame				= false;
+		m_pOwner->OnItemDropUpdate		();
 	}
 }
 
-bool CInventory::ProcessItem(PIItem item)
+bool CInventory::process_item(PIItem item, bool allow_external)
 {
-	for (u8 i = 0; i < m_pockets_count; i++)
-	{
+	if (!item->Weight())
+		return							false;
+
+	if (trySlot(item->BaseSlot(), item))
+		return							true;
+
+	if (!m_bActors)
+		return							false;
+
+	for (u8 i = 0; i < m_pockets_count; ++i)
 		if (item->Section(true) == ACTOR_DEFS::g_quick_use_slots[i] && Pocket(item, i))
-			return		true;
-	}
+			return						true;
 
-	if (item->BaseSlot() != OUTFIT_SLOT && item->BaseSlot() != HELMET_SLOT && item->BaseSlot() != BACKPACK_SLOT && Slot(item->BaseSlot(), item))
-		return			true;
+	if (item->BaseSlot() == PRIMARY_SLOT && trySlot(SECONDARY_SLOT, item))
+		return							true;
 
-	if (item->BaseSlot() == PRIMARY_SLOT && Slot(SECONDARY_SLOT, item))
-		return			true;
+	if (allow_external && Bag(item))
+		return							true;
 
-	if (Bag(item))
-		return			true;
-
-	for (u8 i = 0; i < m_pockets_count; i++)
-	{
+	for (u8 i = 0; i < m_pockets_count; ++i)
 		if (Pocket(item, i))
-			return		true;
-	}
+			return						true;
 
 	if (CanPutInSlot(item, item->HandSlot()) && item->object_id() != m_iNextActiveItemID && item->object_id() != m_iNextLeftItemID)
 	{
-		ActivateItem	(item);
-		return			true;
+		ActivateItem					(item);
+		return							true;
 	}
 
-	return				false;
+	if (allow_external)
+	{
+		item->O.transfer				(u16_max, true);
+		return							true;
+	}
+
+	return								false;
 }
 
 void CInventory::UpdateDropItem(PIItem pIItem)
@@ -1269,25 +1261,24 @@ bool CInventory::InRuck(const CInventoryItem* pIItem) const
 
 bool CInventory::CanPutInSlot(PIItem pIItem, u16 slot_id) const
 {
-	if (!m_bSlotsUseful)
+	if (!m_bSlotsUseful || slot_id == NO_ACTIVE_SLOT || ItemFromSlot(slot_id))
 		return						false;
 
 	if (!GetOwner()->CanPutInSlot(pIItem, slot_id))
 		return						false;
 	
 	if (slot_id == HELMET_SLOT)
-	{
-		CCustomOutfit* pOutfit		= m_pOwner->GetOutfit();
-		if (pOutfit && !pOutfit->bIsHelmetAvaliable)
-			return					false;
-	}
+		if (auto outfit = m_pOwner->GetOutfit())
+			if (!outfit->bIsHelmetAvaliable)
+				return				false;
 
 	if ((slot_id == LEFT_HAND_SLOT || slot_id == RIGHT_HAND_SLOT) && ItemFromSlot(BOTH_HANDS_SLOT))
 		return						false;
+
 	if (slot_id == BOTH_HANDS_SLOT && (ItemFromSlot(LEFT_HAND_SLOT) || ItemFromSlot(RIGHT_HAND_SLOT)))
 		return						false;
 
-	return							(slot_id != NO_ACTIVE_SLOT && !ItemFromSlot(slot_id));
+	return							true;
 }
 
 //проверяет можем ли поместить вещь в рюкзак,
@@ -1299,30 +1290,28 @@ bool CInventory::CanPutInRuck(PIItem pIItem) const
 
 bool CInventory::CanPutInPocket(PIItem pIItem, u16 pocket_id) const
 {
-	if (!PocketPresent(pocket_id) || !m_bActors)
-		return false;
+	if (!m_bActors || !PocketPresent(pocket_id))
+		return							false;
 
-	const TIItemContainer& pocket		= m_pockets[pocket_id];
 	float volume						= 0.f;
-	for (TIItemContainer::const_iterator it = pocket.begin(); pocket.end() != it; ++it)
-		volume							+= (*it)->Volume();
+	for (auto& item : m_pockets[pocket_id])
+		volume							+= item->Volume();
 	float max_volume					= m_pOwner->GetOutfit()->m_pockets[pocket_id];
 
-	return (volume < max_volume && volume + pIItem->Volume() < max_volume + 0.1f);
+	return								(volume < max_volume && volume + pIItem->Volume() < max_volume + .1f);
 }
 
 bool CInventory::PocketPresent(u16 pocket_id) const
 {
-	CCustomOutfit* outfit		= m_pOwner->GetOutfit();
-	return						(outfit && pocket_id < outfit->m_pockets.size());
+	CCustomOutfit* outfit				= m_pOwner->GetOutfit();
+	return								(outfit && pocket_id < outfit->m_pockets.size());
 }
 
-void CInventory::EmptyPockets()
+void CInventory::emptyPockets()
 {
 	for (auto& pocket : m_pockets)
 		for (auto item : pocket)
-			if (!ProcessItem(item))
-				item->O.transfer(u16_max);
+			process_item				(item, true);
 }
 
 u32	CInventory::dwfGetObjectCount()

@@ -54,7 +54,8 @@ public:
 	IC u16					FirstSlot			() const {return 1;}
 	IC u16					LastSlot			() const {return m_last_slot;} // not "end"
 	IC bool					SlotIsPersistent	(u16 slot_id) const {return m_slots[slot_id].m_bPersistent;}
-	bool					Slot				(u16 slot_id, PIItem pIItem);
+	bool					trySlot				(u16 slot_id, PIItem item);
+	void					Slot				(u16 slot_id, PIItem pIItem);
 	bool					Pocket				(PIItem pIItem, u16 pocket_id, bool forced = false);
 	bool					Bag					(PIItem item);
 	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
@@ -66,9 +67,6 @@ public:
 	bool 					CanPutInRuck		(PIItem pIItem) const;
 	bool 					CanPutInPocket		(PIItem pIItem, u16 pocket_id) const;
 	bool					PocketPresent		(u16 pocket_id) const;
-	
-	bool					ProcessItem			(PIItem item);
-	void					EmptyPockets		();
 
 	bool					CanTakeItem			(CInventoryItem *inventory_item) const;
 
@@ -161,8 +159,7 @@ public:
 	u16 				m_iReturnSlot;
 	u16					m_iNextActiveItemID;
 	u16					m_iNextLeftItemID;
-	
-	u16					m_iToDropID;
+
 	u16					m_iRuckBlockID;
 
 protected:
@@ -170,7 +167,7 @@ protected:
 	void				UpdateDropItem				(PIItem pIItem);
 
 	// Активный слот и слот который станет активным после смены
-    //значения совпадают в обычном состоянии (нет смены слотов)
+	//значения совпадают в обычном состоянии (нет смены слотов)
 	u16 				m_iActiveSlot;
 	u16 				m_iNextActiveSlot;
 	u16 				m_iPrevActiveSlot;
@@ -210,7 +207,11 @@ private:
 	void				TryActivatePrevSlot		();
 	void				TryDeactivateActiveSlot	();
 
+private:
+	bool								process_item							(PIItem item, bool allow_external);
+
 public:
+	void								emptyPockets							();
 	void								CheckArtefact							(PIItem item, bool add = false);
 	void								OnInventoryAction						(PIItem item, bool take = true, u8 zone = 1);
 };

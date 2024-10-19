@@ -195,7 +195,7 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 		if (t_old == iDeadBodyBag || t_old == iActorBag)
 		{
 			ToRuck						(item);
-			m_pActorInv->m_iToDropID	= item->object_id();
+			item->O.transfer			(u16_max, true);
 		}
 		else
 			item->O.transfer			();

@@ -74,7 +74,7 @@ void CUIActorMenu::SendEvent_PickUpItem(PIItem pItem, u16 type, u16 slot_id)
 	pItem->m_ItemCurrPlaceBackup			= pItem->m_ItemCurrPlace;
 	pItem->m_ItemCurrPlaceBackup.type		= type;
 	pItem->m_ItemCurrPlaceBackup.slot_id	= slot_id;
-	pItem->O.transfer						(m_pActorInvOwner->object_id());
+	pItem->O.transfer						(m_pActorInvOwner->object_id(), true);
 }
 
 void CUIActorMenu::SendEvent_Item_Eat(PIItem pItem, u16 recipient)

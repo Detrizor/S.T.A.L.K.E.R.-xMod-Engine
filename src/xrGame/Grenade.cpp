@@ -232,7 +232,7 @@ void CGrenade::PutNextToSlot()
 
 		VERIFY								(pNext != this);
 
-		if(pNext && m_pInventory->Slot(pNext->BaseSlot(),pNext) )
+		if (pNext && m_pInventory->trySlot(pNext->BaseSlot(),pNext))
 		{
 			pNext->u_EventGen				(P, GEG_PLAYER_ITEM2SLOT, pNext->H_Parent()->ID());
 			P.w_u16							(pNext->ID());

@@ -123,7 +123,7 @@ PIItem CInventory::GetNextItemInActiveSlot(u8 const priority_value, bool ignore_
 		return GetNextItemInActiveSlot(0, true);
 	}
 	return GetNextItemInActiveSlot(next_priority_group, ignore_ammo);
-};
+}
 
 bool CInventory::ActivateNextItemInActiveSlot()
 {
@@ -159,7 +159,7 @@ bool CInventory::ActivateNextItemInActiveSlot()
 		current_item->object().u_EventSend	(P);
 	}
 
-	res = Slot							(m_iActiveSlot, new_item);
+	res									= trySlot(m_iActiveSlot, new_item);
 	R_ASSERT							(res);
 	new_item->object().u_EventGen		(P, GEG_PLAYER_ITEM2SLOT, new_item->object().H_Parent()->ID());
 	P.w_u16								(new_item->object().ID());
@@ -174,7 +174,6 @@ bool CInventory::ActivateNextItemInActiveSlot()
 //	Msg( "Weapon change" );
 	return true;
 }
-
 
 priority_group & CInventory::GetPriorityGroup	(u8 const priority_value, u16 slot)
 {

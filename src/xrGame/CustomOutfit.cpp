@@ -146,7 +146,7 @@ void CCustomOutfit::OnMoveToSlot(const SInvItemPlace& prev)
 
 			if (prev.type == eItemPlaceSlot && prev.slot_id == BaseSlot() && prev.slot_id != CurrSlot())
 			{
-				m_pInventory->EmptyPockets									();
+				m_pInventory->emptyPockets									();
 				CurrentGameUI()->GetActorMenu().UpdatePocketsPresence		();
 			}
 
