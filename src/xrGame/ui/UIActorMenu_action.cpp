@@ -99,7 +99,6 @@ void CUIActorMenu::OnDragItemOnPocket(CUIDragItem* di, bool b_receive)
 
 bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 {
-	InfoCurItem							(NULL);
 	CUIDragDropListEx* old_owner		= itm->OwnerList();
 	CUIDragDropListEx* new_owner		= CUIDragDropListEx::m_drag_item->BackList();
 	
@@ -253,7 +252,6 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 
 bool CUIActorMenu::OnItemStartDrag(CUICellItem* itm)
 {
-	InfoCurItem( NULL );
 	return false; //default behaviour
 }
 
@@ -327,86 +325,52 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 
 bool CUIActorMenu::OnItemSelected(CUICellItem* itm)
 {
-	SetCurrentItem		(itm);
-	InfoCurItem			(NULL);
-	m_item_info_view	= false;
-	return				false;
+	SetCurrentItem			(itm);
+	InfoCurItem				(itm);
+	return					false;
 }
 
 bool CUIActorMenu::OnItemRButtonClick(CUICellItem* itm)
 {
-	SetCurrentItem( itm );
-	InfoCurItem( NULL );
-	ActivatePropertiesBox();
-	m_item_info_view = false;
-	return false;
+	InfoCurItem				(nullptr);
+	if (itm != m_pCurrentCellItem)
+		SetCurrentItem		(itm);
+	ActivatePropertiesBox	();
+	return					false;
 }
 
 bool CUIActorMenu::OnItemFocusReceive(CUICellItem* itm)
 {
-	InfoCurItem( NULL );
-	m_item_info_view = true;
+	itm->m_selected			= true;
+	set_highlight_item		(itm);
 
-	itm->m_selected = true;
-	set_highlight_item( itm );
+	functor<bool>			funct;
+	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusReceive", funct))
+		if (auto iitem = static_cast<PIItem>(itm->m_pData))
+			funct			(iitem->O.lua_game_object());
 
-	functor<bool> funct1;
-	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusReceive", funct1))
-	{
-		PIItem _iitem = (PIItem)itm->m_pData;
-
-		CGameObject* GO = _iitem ? smart_cast<CGameObject*>(_iitem) : NULL;
-		if (GO)
-			funct1(GO->lua_game_object());
-	}
-
-	return true;
+	return					true;
 }
 
 bool CUIActorMenu::OnItemFocusLost(CUICellItem* itm)
 {
-	if ( itm )
-	{
-		itm->m_selected = false;
-	}
-	InfoCurItem( NULL );
-	clear_highlight_lists();
+	InfoCurItem				(nullptr);
+	itm->m_selected			= false;
+	clear_highlight_lists	();
 
-	functor<bool> funct1;
-	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusLost", funct1))
-	{
-		PIItem _iitem = (PIItem)itm->m_pData;
+	functor<bool> funct;
+	if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemFocusLost", funct))
+		if (auto iitem = static_cast<PIItem>(itm->m_pData))
+			funct			(iitem->O.lua_game_object());
 
-		CGameObject* GO = _iitem ? smart_cast<CGameObject*>(_iitem) : NULL;
-		if (GO)
-			funct1(GO->lua_game_object());
-	}
-
-	return true;
+	return					true;
 }
 
 bool CUIActorMenu::OnItemFocusedUpdate(CUICellItem* itm)
 {
-	if ( itm )
-	{
-		itm->m_selected = true;
-		if ( m_highlight_clear )
-		{
-			set_highlight_item( itm );
-		}
-	}
-	VERIFY( m_ItemInfo );
-	if ( Device.dwTimeGlobal < itm->FocusReceiveTime() + m_ItemInfo->delay )
-	{
-		return true; //false
-	}
-	if ( CUIDragDropListEx::m_drag_item || m_UIPropertiesBox->IsShown() || !m_item_info_view )
-	{
-		return true;
-	}	
-
-	InfoCurItem( itm );
-	return true;
+	if (itm && m_highlight_clear)
+		set_highlight_item				(itm);
+	return								true;
 }
 
 bool CUIActorMenu::OnMouseAction( float x, float y, EUIMessages mouse_action )

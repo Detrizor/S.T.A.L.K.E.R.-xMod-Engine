@@ -178,6 +178,7 @@ void CUIItemInfo::InitItemInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
 
 void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_tip)
 {
+	m_itm								= pCellItem;
 	if (!pCellItem)
 	{
 		Enable							(false);

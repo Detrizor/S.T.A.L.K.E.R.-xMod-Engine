@@ -72,4 +72,8 @@ private:
 	xptr<CUIFrameWindow>				m_frame									= {};
 	xptr<CUIStatic>						m_background							= {};
 	xptr<CUIAddonInfo>					m_addon_info							= {};
+	CUICellItem*						m_itm									= nullptr;
+
+public:
+	CUICellItem*						getItem								C$	()		{ return m_itm; }
 };

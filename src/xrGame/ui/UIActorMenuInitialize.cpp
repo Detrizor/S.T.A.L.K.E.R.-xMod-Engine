@@ -280,16 +280,17 @@ void CUIActorMenu::Construct()
 	m_allowed_drops[iDeadBodyBag].push_back(iTrashSlot);
 	m_allowed_drops[iDeadBodyBag].push_back(iDeadBodyBag);
 
-	m_upgrade_selected				= NULL;
-	SetCurrentItem					(NULL);
-	SetActor						(NULL);
-	SetPartner						(NULL);
-	SetInvBox						(NULL);
-	SetContainer					(NULL);
-	SetBag							(NULL);
+	m_upgrade_selected				= nullptr;
+	InfoCurItem						(nullptr);
+	SetCurrentItem					(nullptr);
+	SetActor						(nullptr);
+	SetPartner						(nullptr);
+	SetInvBox						(nullptr);
+	SetContainer					(nullptr);
+	SetBag							(nullptr);
 
-	m_actor_trade					= NULL;
-	m_partner_trade					= NULL;
+	m_actor_trade					= nullptr;
+	m_partner_trade					= nullptr;
 	m_repair_mode					= false;
 	m_item_info_view				= false;
 	m_highlight_clear				= true;

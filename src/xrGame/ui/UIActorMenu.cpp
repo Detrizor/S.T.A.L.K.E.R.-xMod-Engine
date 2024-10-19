@@ -406,27 +406,20 @@ void CUIActorMenu::SetCurrentItem(CUICellItem* itm)
 {
 	m_repair_mode = false;
 	m_pCurrentCellItem = itm;
-	if ( !itm )
-	{
-		InfoCurItem( NULL );
-	}
 	TryHidePropertiesBox();
-
-	if ( m_currMenuMode == mmUpgrade )
-	{
+	if (m_currMenuMode == mmUpgrade)
 		SetupUpgradeItem();
-	}
 }
 
-void CUIActorMenu::InfoCurItem( CUICellItem* cell_item )
+void CUIActorMenu::InfoCurItem(CUICellItem* cell_item)
 {
-	if (!cell_item)
+	if (!cell_item || cell_item == m_ItemInfo->getItem())
 	{
-		m_ItemInfo->InitItem	(NULL);
+		m_ItemInfo->InitItem			(nullptr);
 		return;
 	}
 
-	PIItem current_item					= (PIItem)cell_item->m_pData;
+	PIItem current_item					= static_cast<PIItem>(cell_item->m_pData);
 	if (GetMenuMode() == mmTrade)
 	{
 		CInventoryOwner* item_owner		= (current_item && current_item->m_pInventory) ? smart_cast<CInventoryOwner*>(current_item->m_pInventory->GetOwner()) : NULL;
