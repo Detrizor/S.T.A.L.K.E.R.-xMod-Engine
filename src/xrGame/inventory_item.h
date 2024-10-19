@@ -144,8 +144,6 @@ public:
 	bool						m_highlight_equipped;
 
 	SInvItemPlace				m_ItemCurrPlace;
-	SInvItemPlace				m_ItemCurrPlaceBackup;
-
 
 	virtual void				OnMoveToSlot		(const SInvItemPlace& prev) {};
 	virtual void				OnMoveToBelt		(const SInvItemPlace& prev) {};

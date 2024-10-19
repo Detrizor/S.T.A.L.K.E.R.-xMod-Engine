@@ -69,14 +69,6 @@ void CUIActorMenu::DeInitInventoryMode()
 {
 }
 
-void CUIActorMenu::SendEvent_PickUpItem(PIItem pItem, u16 type, u16 slot_id)
-{
-	pItem->m_ItemCurrPlaceBackup			= pItem->m_ItemCurrPlace;
-	pItem->m_ItemCurrPlaceBackup.type		= type;
-	pItem->m_ItemCurrPlaceBackup.slot_id	= slot_id;
-	pItem->O.transfer						(m_pActorInvOwner->object_id(), true);
-}
-
 void CUIActorMenu::SendEvent_Item_Eat(PIItem pItem, u16 recipient)
 {
 	if(pItem->parent_id()!=recipient)
@@ -390,7 +382,7 @@ bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative
 				if (own)
 					m_pActorInv->Slot	(slot_id, item);
 				else
-					SendEvent_PickUpItem(item, eItemPlaceSlot, slot_id);
+					pickup_item			(item, eItemPlaceSlot, slot_id);
 			}
 		}
 
@@ -465,7 +457,7 @@ bool CUIActorMenu::ToPocket(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_
 		if (item->parent_id() == m_pActorInvOwner->object_id())
 			m_pActorInv->Pocket			(item, pocket_id);
 		else
-			SendEvent_PickUpItem		(item, eItemPlacePocket, pocket_id);
+			pickup_item					(item, eItemPlacePocket, pocket_id);
 	}
 
 	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
@@ -479,7 +471,7 @@ void CUIActorMenu::ToRuck(PIItem item)
 	if (item->parent_id() == m_pActorInvOwner->object_id())
 		m_pActorInv->Ruck				(item);
 	else
-		SendEvent_PickUpItem			(item, eItemPlaceRuck);
+		pickup_item						(item, eItemPlaceRuck);
 }
 
 CUIDragDropListEx* CUIActorMenu::GetSlotList(u16 slot_idx)
@@ -761,9 +753,6 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_TO_BAG_ACTION:
 		ToRuck							(item);
 		break;
-	case INVENTORY_PICK_UP_ACTION:
-		SendEvent_PickUpItem			(item);
-		break;
 	case INVENTORY_DONATE_ACTION:
 		DonateCurrentItem				(cell_item);
 		break;
@@ -839,4 +828,15 @@ void CUIActorMenu::RefreshCurrentItemCell()
 			invlist->SetItem(parent, GetUICursor().GetCursorPosition());
 		}
 	}
+}
+
+void CUIActorMenu::pickup_item(PIItem item, eItemPlace type, u16 slot_id)
+{
+	u16 parent_id						= item->parent_id();
+	if (parent_id != u16_max)
+		CGameObject::sendEvent			(GE_TRADE_SELL, parent_id, item->object_id(), true);
+
+	item->m_ItemCurrPlace.type			= type;
+	item->m_ItemCurrPlace.slot_id		= slot_id;
+	item->O.transfer					(m_pActorInvOwner->object_id(), true);
 }

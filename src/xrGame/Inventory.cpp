@@ -169,15 +169,10 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	m_all.push_back						(pIItem);
 	
 	if (!strict_placement)
-		pIItem->m_ItemCurrPlace.type			= eItemPlaceUndefined;
-	if (pIItem->m_ItemCurrPlaceBackup.type)
-	{
-		pIItem->m_ItemCurrPlace					= pIItem->m_ItemCurrPlaceBackup;
-		pIItem->m_ItemCurrPlaceBackup.type		= eItemPlaceUndefined;
-	}
+		pIItem->m_ItemCurrPlace.type	= eItemPlaceUndefined;
+	u16 slot_id							= pIItem->m_ItemCurrPlace.slot_id;
 
-	u16 slot_id									= pIItem->m_ItemCurrPlace.slot_id;
-	switch(pIItem->m_ItemCurrPlace.type)
+	switch (pIItem->m_ItemCurrPlace.type)
 	{
 	case eItemPlaceSlot:
 		if (slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
@@ -727,13 +722,8 @@ void CInventory::update_actors()
 			if (m_iReturnPlace == eItemPlaceSlot)
 			{
 				if (next_active_item && next_active_item->CurrSlot() == m_iReturnSlot)
-				{
-					active_item->m_ItemCurrPlaceBackup.type = eItemPlaceSlot;
-					active_item->m_ItemCurrPlaceBackup.slot_id = m_iReturnSlot;
-					Ruck				(active_item);
-				}
-				else
-					Slot				(m_iReturnSlot, active_item);
+					Ruck				(next_active_item);
+				Slot					(m_iReturnSlot, active_item);
 			}
 			else
 				Pocket					(active_item, m_iReturnSlot);

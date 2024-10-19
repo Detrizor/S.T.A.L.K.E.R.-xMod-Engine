@@ -87,8 +87,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : O(*obj)
 	m_ItemCurrPlace.hand_slot_id = NO_ACTIVE_SLOT;
 	m_ItemCurrPlace.slot_id = NO_ACTIVE_SLOT;
 
-	m_ItemCurrPlaceBackup.type = eItemPlaceUndefined;
-
 	m_section_id = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
@@ -733,7 +731,7 @@ u16 CInventoryItem::object_id()const
 
 u16 CInventoryItem::parent_id() const
 {
-	return (object().H_Parent()) ? object().H_Parent()->ID() : u16(-1);
+	return (object().H_Parent()) ? object().H_Parent()->ID() : u16_max;
 }
 
 void CInventoryItem::SetDropManual(BOOL val)

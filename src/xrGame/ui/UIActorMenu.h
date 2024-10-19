@@ -282,7 +282,6 @@ protected:
 	bool						ToPartnerTradeBag			(CUICellItem* itm, bool b_use_cursor_pos);
 	bool						ToDeadBodyBag				(CUICellItem* itm, bool b_use_cursor_pos);
 	
-	void						SendEvent_PickUpItem		(PIItem	pItem, u16 place = eItemPlaceUndefined, u16 idx = 0);
 	void						SendEvent_Item_Eat			(PIItem	pItem, u16 parent);
 	void						DropAllCurrentItem			();
 	void						OnPressUserKey				();
@@ -356,6 +355,9 @@ public:
 	//-AxelDominator && Alundaio consumable use condition
 	void DonateCurrentItem(CUICellItem* cell_item); //Alundaio: Donate item via context menu while in trade menu
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	void								pickup_item								(PIItem	item, eItemPlace place = eItemPlaceUndefined, u16 idx = 0);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)
