@@ -4,6 +4,7 @@
 #include "inventoryOwner.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
+
 void CInventoryItemObject::UpdateXForm o$()
 {
 	if (Device.dwFrame != dwXF_Frame)

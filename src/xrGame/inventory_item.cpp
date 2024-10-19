@@ -245,7 +245,6 @@ bool CInventoryItem::Useful() const
 
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
-	UpdateXForm();
 	m_ItemCurrPlace.type = eItemPlaceUndefined;
 }
 
