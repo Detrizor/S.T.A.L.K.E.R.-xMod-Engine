@@ -367,8 +367,17 @@ DEFINE_VECTOR(AnsiString, AStringVec, AStringIt);
 DEFINE_VECTOR(AnsiString*, LPAStringVec, LPAStringIt);
 #endif
 
+template <class T>
+struct default_deleter
+{
+	void operator()(T* ptr) const
+	{
+		xr_delete(ptr);
+	}
+};
+
 // smart pointer
-template <typename T>
+template <typename T, typename D = default_deleter<T>>
 class xptr
 {
 public:
@@ -379,7 +388,7 @@ public:
 										xptr									(const xptr&)		= delete;
 										xptr									(xptr&& old)		{ m_data = old.release(); }
 
-										~xptr									()					{ xr_delete(m_data); }
+										~xptr									()					{ reset(); }
 
 private:
 	T*									m_data									= nullptr;
@@ -393,7 +402,7 @@ public:
 	T&									operator*								() const			{ R_ASSERT(m_data); return *m_data; }
 	T*									get										() const			{ R_ASSERT(m_data); return m_data; }
 
-	void								reset									()					{ xr_delete(m_data); }
+	void								reset									()					{ D()(m_data); }
 	void								capture									(T* p)				{ reset(); m_data = p; }
 	T*									release									()					{ T* tmp = m_data; m_data = nullptr; return tmp; }
 	
