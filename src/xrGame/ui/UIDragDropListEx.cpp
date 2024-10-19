@@ -136,66 +136,61 @@ void CUIDragDropListEx::CreateDragItem(CUICellItem* itm)
 
 void CUIDragDropListEx::DestroyDragItem()
 {
-	if(m_selected_item && m_drag_item && m_drag_item->ParentItem()==m_selected_item)
+	if (m_selected_item && m_drag_item && m_drag_item->ParentItem() == m_selected_item)
 	{
-		VERIFY(GetParent()->GetMouseCapturer()==m_drag_item);
-		GetParent()->SetCapture				(NULL, false);
+		VERIFY							(GetParent()->GetMouseCapturer() == m_drag_item);
+		GetParent()->SetCapture			(nullptr, false);
 
-		delete_data							(m_drag_item);
+		delete_data						(m_drag_item);
 	}
 }
 
 Fvector2 CUIDragDropListEx::GetDragItemPosition()
 {	//Alun: More accurate then Left-Top of dragged icon
-	return GetUICursor().GetCursorPosition(); //m_drag_item->GetPosition();
+	return								GetUICursor().GetCursorPosition();//m_drag_item->GetPosition();
 }
-
 
 void CUIDragDropListEx::OnDragEvent(CUIDragItem* drag_item, bool b_receive)
 {
-	if(m_f_drag_event)
-		m_f_drag_event(drag_item, b_receive);
+	if (m_f_drag_event)
+		m_f_drag_event					(drag_item, b_receive);
 }
 
 void CUIDragDropListEx::OnItemStartDragging(CUIWindow* w, void* pData)
 {
-	OnItemSelected						(w, pData);
-	CUICellItem* itm		= smart_cast<CUICellItem*>(w);
-
-	if(itm!=m_selected_item)	return;
-	
-	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) return;
-
-	CreateDragItem						(itm);
+	CUICellItem* itm					= smart_cast<CUICellItem*>(w);
+	if (itm != m_selected_item)
+		OnItemSelected					(w, pData);
+	if (!m_f_item_start_drag || !m_f_item_start_drag(itm))
+		CreateDragItem					(itm);
 }
 
 void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
 {
-	OnItemSelected						(w, pData);
-	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
+	CUICellItem* itm					= smart_cast<CUICellItem*>(w);
+	if (itm != m_selected_item)
+		OnItemSelected(w, pData);
 	VERIFY								(itm->OwnerList() == itm->OwnerList());
 
-	if(m_f_item_drop && m_f_item_drop(itm)){
-		DestroyDragItem						();
+	if (m_f_item_drop && m_f_item_drop(itm))
+	{
+		DestroyDragItem					();
 		return;
 	}
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	CUIDragDropListEx*	new_owner		= m_drag_item->BackList();
-
-	bool b				= (old_owner==new_owner)&&!GetCustomPlacement();
-
-	if(old_owner&&new_owner && !b)
+	if (old_owner && new_owner && old_owner != new_owner || GetCustomPlacement())
 	{
 		CUICellItem* i					= old_owner->RemoveItem(itm, (old_owner==new_owner) );
 		if (new_owner->CanSetItem(i))
 		{
 			while(i->ChildsCount())
 			{
-				CUICellItem* _chld				= i->PopChild(NULL);
-				new_owner->SetItem				(_chld, old_owner->GetDragItemPosition());
+				CUICellItem* _chld		= i->PopChild(NULL);
+				new_owner->SetItem		(_chld, old_owner->GetDragItemPosition());
 			}
-			new_owner->SetItem				(i,old_owner->GetDragItemPosition());
+			new_owner->SetItem			(i,old_owner->GetDragItemPosition());
 		}
 	}
 	DestroyDragItem						();
@@ -203,30 +198,31 @@ void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
 
 void CUIDragDropListEx::OnItemDBClick(CUIWindow* w, void* pData)
 {
-	OnItemSelected						(w, pData);
-	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
+	CUICellItem* itm					= smart_cast<CUICellItem*>(w);
+	if (itm != m_selected_item)
+		OnItemSelected					(w, pData);
 
 	if (m_f_item_db_click)
 	{
 		if (Level().IR_GetKeyState(DIK_LCONTROL))
 		{
-			u32 size = itm->ChildsCount();
+			u32 size					= itm->ChildsCount();
 			for (u32 j = 0; j < size; j++)
-				m_f_item_db_click(itm);
+				m_f_item_db_click		(itm);
 		}
 
 		if (m_f_item_db_click(itm))
 		{
-			DestroyDragItem();
+			DestroyDragItem				();
 			return;
 		}
 	}
 
-	CUIDragDropListEx*	old_owner		= itm->OwnerList();
-	VERIFY								(m_drag_item==NULL);
+	CUIDragDropListEx* old_owner		= itm->OwnerList();
+	VERIFY								(!m_drag_item);
 	VERIFY								(old_owner == this);
 
-	if(old_owner&&old_owner->GetCustomPlacement())
+	if (old_owner && old_owner->GetCustomPlacement())
 	{
 		CUICellItem* i					= old_owner->RemoveItem(itm, true);
 		old_owner->SetItem				(i);
@@ -240,12 +236,12 @@ void CUIDragDropListEx::OnItemSelected(CUIWindow* w, void* pData)
 	m_selected_item						= smart_cast<CUICellItem*>(w);
 	VERIFY								(m_selected_item);
 	if(m_f_item_selected)
-		m_f_item_selected(m_selected_item);
+		m_f_item_selected				(m_selected_item);
 }
 
-void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
+void CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
 {
-	if(m_f_item_focus_received)
+	if (m_f_item_focus_received)
 	{
 		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
 		m_f_item_focus_received			(itm);
@@ -254,16 +250,16 @@ void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
 
 void  CUIDragDropListEx::OnItemFocusLost(CUIWindow* w, void* pData)
 {
-	if(m_f_item_focus_lost)
+	if (m_f_item_focus_lost)
 	{
 		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
 		m_f_item_focus_lost				(itm);
 	}
 }
 
-void  CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
+void CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
 {
-	if(m_f_item_focused_update)
+	if (m_f_item_focused_update)
 	{
 		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
 		m_f_item_focused_update			(itm);
@@ -272,25 +268,23 @@ void  CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
 
 void CUIDragDropListEx::OnItemRButtonClick(CUIWindow* w, void* pData)
 {
-//*	OnItemSelected						(w, pData); // instead call function "SetCurrentItem(itm)";
-	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
-	if(m_f_item_rbutton_click) 
-		m_f_item_rbutton_click(itm);
+	CUICellItem* itm					= smart_cast<CUICellItem*>(w);
+	if (m_f_item_rbutton_click) 
+		m_f_item_rbutton_click			(itm);
 }
 
 void CUIDragDropListEx::OnItemLButtonClick(CUIWindow* w, void* pData)
 {
-	//*	OnItemSelected						(w, pData); // instead call function "SetCurrentItem(itm)";
-	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
-	if(m_f_item_lbutton_click) 
-		m_f_item_lbutton_click(itm);
+	CUICellItem* itm					= smart_cast<CUICellItem*>(w);
+	if (m_f_item_lbutton_click) 
+		m_f_item_lbutton_click			(itm);
 }
 
 void CUIDragDropListEx::GetClientArea(Frect& r)
 {
-	GetAbsoluteRect				(r);
-	if(m_vScrollBar->GetVisible() || m_flags.test(flAlwaysShowScroll))
-		r.x2 -= m_vScrollBar->GetWidth	();
+	GetAbsoluteRect						(r);
+	if (m_vScrollBar->GetVisible() || m_flags.test(flAlwaysShowScroll))
+		r.x2							-= m_vScrollBar->GetWidth();
 }
 
 void CUIDragDropListEx::ClearAll(bool bDestroy)
