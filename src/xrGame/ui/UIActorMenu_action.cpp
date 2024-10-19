@@ -162,15 +162,14 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	}
 
 	PIItem item							= CurrentIItem();
-	bool gear							= smart_cast<CCustomOutfit*>(item) || smart_cast<CHelmet*>(item) || smart_cast<CBackpack*>(item);
-	bool gear_equipped					= gear && item->CurrSlot() == item->BaseSlot();
+	bool gear_equipped					= item->isGear(true);
 	switch(t_new)
 	{
 	case iActorSlot:
 		u16								slot_to_place;
 		if (CanSetItemToList(item, new_owner, slot_to_place))
 		{
-			if (gear_equipped && slot_to_place == item->HandSlot() || gear && slot_to_place == item->BaseSlot())
+			if (gear_equipped && slot_to_place == item->HandSlot() || item->isGear() && slot_to_place == item->BaseSlot())
 				item->tryCustomUse();
 			else if (!ToSlot(itm, slot_to_place) && (slot_to_place == item->HandSlot()))
 				item->tryCustomUse();
@@ -268,7 +267,7 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 	case iActorSlot:
 	{
 		u16 slot_id					= item->CurrSlot();
-		if ((slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || slot_id == BACKPACK_SLOT) && item->tryCustomUse());
+		if (item->isGear() && item->tryCustomUse());
 		else if (m_currMenuMode == mmTrade && ToActorTrade(itm, false));
 		else if (m_currMenuMode == mmDeadBodySearch && ToDeadBodyBag(itm, false));
 		else if (slot_id == item->HandSlot() && ToSlot(itm, item->BaseSlot(), true));

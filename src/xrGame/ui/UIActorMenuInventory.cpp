@@ -365,9 +365,6 @@ void CUIActorMenu::InitInventoryContents()
 bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative)
 {
 	PIItem item							= (PIItem)itm->m_pData;
-	if (slot_id == NO_ACTIVE_SLOT || slot_id == OUTFIT_SLOT || slot_id == HELMET_SLOT || item->CurrSlot() == OUTFIT_SLOT || item->CurrSlot() == HELMET_SLOT)
-		return							false;
-	
 	PIItem item_in_slot					= m_pActorInv->ItemFromSlot(slot_id);
 	bool own							= (item->parent_id() == m_pActorInvOwner->object_id());
 	bool activated						= (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem());
@@ -536,7 +533,6 @@ u16 CUIActorMenu::GetPocketIdx(CUIDragDropListEx* pocket)
 	return 0;
 }
 
-u16 ho_equipped, ho;
 void CUIActorMenu::ActivatePropertiesBox()
 {
 	TryHidePropertiesBox();
@@ -551,9 +547,7 @@ void CUIActorMenu::ActivatePropertiesBox()
 	m_UIPropertiesBox->RemoveAll();
 	bool b_show = false;
 	
-	ho									= (smart_cast<CCustomOutfit*>(item) || smart_cast<CHelmet*>(item));
-	ho_equipped							= (ho && item->CurrSlot() == item->BaseSlot());
-	if (m_currMenuMode != mmTrade && m_pActorInv->CanPutInSlot(item, item->HandSlot()) && !ho_equipped)
+	if (m_currMenuMode != mmTrade && m_pActorInv->CanPutInSlot(item, item->HandSlot()))
 	{
 		m_UIPropertiesBox->AddItem		("st_to_hands", NULL, INVENTORY_TO_HANDS_ACTION);
 		b_show							= true;
@@ -614,13 +608,13 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 {
 	u16 base_slot					= item->BaseSlot();
 
-	if (!ho && base_slot != NO_ACTIVE_SLOT && m_pActorInv->CanPutInSlot(item, base_slot))
+	if (m_pActorInv->CanPutInSlot(item, base_slot))
 	{
 		m_UIPropertiesBox->AddItem		("st_move_to_slot", NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show							= true;
 	}
 
-	if (item->Ruck() && m_pActorInv->CanPutInRuck(item) && (item->CurrSlot() != NO_ACTIVE_SLOT || m_currMenuMode == mmDeadBodySearch) && !ho_equipped)
+	if (item->Ruck() && m_pActorInv->CanPutInRuck(item) && (item->CurrSlot() != NO_ACTIVE_SLOT || m_currMenuMode == mmDeadBodySearch) && !item->isGear(true))
 	{
 		m_UIPropertiesBox->AddItem		("st_move_to_ruck", NULL, INVENTORY_TO_BAG_ACTION);
 		b_show							= true;
@@ -656,7 +650,7 @@ static void process_ao_for_attach(MAddonOwner CPC ao, MAddon CPC addon, CUIPrope
 		
 		for (auto a : s->addons)
 			if (auto addon_ao = a->O.getModule<MAddonOwner>())
-				process_ao_for_attach	(addon_ao, addon, pb, b_show, *shared_str().printf("%s %s -", str, a->I->getNameShort()));
+				process_ao_for_attach	(addon_ao, addon, pb, b_show, shared_str().printf("%s %s -", str, a->I->getNameShort()).c_str());
 	}
 }
 
@@ -665,7 +659,8 @@ void CUIActorMenu::PropertiesBoxForAddon(PIItem item, bool& b_show)
 	if (auto addon = item->O.getModule<MAddon>())
 		if (auto active_item = m_pActorInv->ActiveItem())
 			if (auto ao = active_item->O.getModule<MAddonOwner>())
-				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show, *shared_str().printf("%s %s -", *CStringTable().translate("st_attach_to"), active_item->getNameShort()));
+				process_ao_for_attach	(ao, addon, m_UIPropertiesBox, b_show,
+					shared_str().printf("%s %s -", CStringTable().translate("st_attach_to").c_str(), active_item->getNameShort()).c_str());
 }
 
 void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
@@ -691,23 +686,23 @@ void CUIActorMenu::PropertiesBoxForPlaying(PIItem item, bool& b_show)
 		return;
 
 	LPCSTR act_str = "st_play";
-	m_UIPropertiesBox->AddItem(act_str,  NULL, INVENTORY_PLAY_ACTION);
+	m_UIPropertiesBox->AddItem(act_str, NULL, INVENTORY_PLAY_ACTION);
 	b_show = true;
 }
 
-void CUIActorMenu::PropertiesBoxForDrop( CUICellItem* cell_item, PIItem item, bool& b_show )
+void CUIActorMenu::PropertiesBoxForDrop(CUICellItem* cell_item, PIItem item, bool& b_show)
 {
-	if (!ho_equipped)
+	if (!item->isGear(true))
 	{
 		if (item->parent_id() == m_pActorInvOwner->object_id())
 		{
-			m_UIPropertiesBox->AddItem("st_drop", NULL, INVENTORY_DROP_ACTION);
+			m_UIPropertiesBox->AddItem	("st_drop", NULL, INVENTORY_DROP_ACTION);
 			if (cell_item->ChildsCount())
 				m_UIPropertiesBox->AddItem("st_drop_all", (void*)33, INVENTORY_DROP_ACTION);
 		}
 		else
-			m_UIPropertiesBox->AddItem("st_take", NULL, INVENTORY_TO_BAG_ACTION);
-		b_show = true;
+			m_UIPropertiesBox->AddItem	("st_take", NULL, INVENTORY_TO_BAG_ACTION);
+		b_show							= true;
 	}
 }
 
@@ -734,34 +729,37 @@ void CUIActorMenu::PropertiesBoxForDonate(PIItem item, bool& b_show)
 
 void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 {
-	PIItem			item		= CurrentIItem();
-	CUICellItem*	cell_item	= CurrentItem();
+	PIItem item							= CurrentIItem();
+	CUICellItem* cell_item				= CurrentItem();
 	if (!m_UIPropertiesBox->GetClickedItem() || !item || !cell_item || !cell_item->OwnerList())
 		return;
 
-	auto tag							= m_UIPropertiesBox->GetClickedItem()->GetTAG();
-	switch (tag)
+	switch (auto tag = m_UIPropertiesBox->GetClickedItem()->GetTAG())
 	{
 	case INVENTORY_TO_HANDS_ACTION:
 		ToSlot							(cell_item, item->HandSlot());
 		break;
-	case INVENTORY_TO_QUICK_ACTION:{
+	case INVENTORY_TO_QUICK_ACTION:
+	{
 		u16 idx							= GetPocketIdx(cell_item->OwnerList());
 		xr_strcpy						(ACTOR_DEFS::g_quick_use_slots[idx], *item->Section(true));
 		m_pInvPocket[idx]->ClearAll		(true);
 		InitPocket						(idx);
-		}break;
-	case INVENTORY_FROM_QUICK_ACTION:{
+		break;
+	}
+	case INVENTORY_FROM_QUICK_ACTION:
+	{
 		u16 idx							= GetPocketIdx(cell_item->OwnerList());
 		xr_strcpy						(ACTOR_DEFS::g_quick_use_slots[GetPocketIdx(cell_item->OwnerList())], "");
 		m_pInvPocket[idx]->ClearAll		(true);
 		InitPocket						(idx);
-		}break;
+		break;
+	}
 	case INVENTORY_TO_SLOT_ACTION:
 		ToSlot							(cell_item, item->BaseSlot(), true);
 		break;
 	case INVENTORY_TO_BAG_ACTION:
-		ToBag							(cell_item, false);
+		ToRuck							(item);
 		break;
 	case INVENTORY_PICK_UP_ACTION:
 		SendEvent_PickUpItem			(item);
@@ -802,15 +800,14 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 	case INVENTORY_REPAIR:
 		TryRepairItem					(this, 0);
 		break;
-	case INVENTORY_PLAY_ACTION:{
-		CPda* pPda						= smart_cast<CPda*>(item);
-		if (pPda)
+	case INVENTORY_PLAY_ACTION:
+		if (CPda* pPda = smart_cast<CPda*>(item))
 			pPda->PlayScriptFunction	();
-		}break;
+		break;
 	}
 
-	UpdateItemsPlace();
-	UpdateConditionProgressBars();
+	UpdateItemsPlace					();
+	UpdateConditionProgressBars			();
 }
 
 void CUIActorMenu::UpdateOutfit()

@@ -203,16 +203,7 @@ void CInventoryOwner::UpdateInventoryOwner(u32 deltaT)
 
 bool CInventoryOwner::CanPutInSlot(PIItem item, u32 slot)
 {
-	if (smart_cast<const CActor*>(this))
-	{
-		shared_str			slot_ai;
-		slot_ai.printf		("slot_ai_%d", slot);
-		return				!READ_IF_EXISTS(pSettings, r_BOOL, "inventory", *slot_ai, FALSE);
-	}
-	else if (slot == LEFT_HAND_SLOT || slot == RIGHT_HAND_SLOT || slot == BOTH_HANDS_SLOT)
-		return				false;
-
-	return true;
+	return (slot != LEFT_HAND_SLOT && slot != RIGHT_HAND_SLOT && slot != BOTH_HANDS_SLOT);
 }
 
 //достать PDA из специального слота инвентаря
@@ -485,19 +476,14 @@ void CInventoryOwner::OnItemSlot(CInventoryItem *inventory_item, const SInvItemP
 
 CCustomOutfit* CInventoryOwner::GetOutfit() const
 {
-	LPCSTR wo							= "without_outfit";
-	CCustomOutfit* pOutfit				= (smart_cast<const CActor*>(this)) ?
-		smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT)) :
-		smart_cast<CCustomOutfit*>(inventory().SameSlot(OUTFIT_SLOT, nullptr, wo));
-
-	return								(pOutfit) ? pOutfit : smart_cast<CCustomOutfit*>(inventory().Get(wo));
+	if (auto outfit = smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT)))
+		return							outfit;
+	return								smart_cast<CCustomOutfit*>(inventory().SameSlot(OUTFIT_SLOT, nullptr));
 }
 
 CHelmet* CInventoryOwner::GetHelmet() const
 {
-	return								(smart_cast<const CActor*>(this)) ?
-		smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT)) :
-		smart_cast<CHelmet*>(inventory().SameSlot(HELMET_SLOT));
+	return								smart_cast<CHelmet*>(inventory().ItemFromSlot(HELMET_SLOT));
 }
 
 void CInventoryOwner::on_weapon_shot_start(CWeapon *weapon)

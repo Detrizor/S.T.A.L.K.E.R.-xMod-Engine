@@ -1783,6 +1783,16 @@ bool CActor::switchArmedMode()
 	return m_armed_mode;
 }
 
+bool CActor::CanPutInSlot(PIItem item, u32 slot)
+{
+	if (item->isGear() && (slot == item->BaseSlot()) || item->isGear(true))
+		return							false;
+
+	shared_str							slot_ai;
+	slot_ai.printf						("slot_ai_%d", slot);
+	return								!pSettings->r_bool_ex("inventory", slot_ai, false);
+}
+
 #include "items_library.h"
 #include "EntityCondition.h"
 #include "BoneProtections.h"

@@ -981,3 +981,11 @@ bool CInventoryItem::tryCustomUse() const
 
 	return								false;
 }
+
+bool CInventoryItem::isGear(bool check_equipped) const
+{
+	bool res							= (BaseSlot() == OUTFIT_SLOT || BaseSlot() == HELMET_SLOT || BaseSlot() == BACKPACK_SLOT);
+	if (res && check_equipped)
+		res								&= (CurrSlot() == BaseSlot() && parent_id() == Actor()->ID());
+	return								res;
+}

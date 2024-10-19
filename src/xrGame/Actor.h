@@ -802,6 +802,8 @@ private:
 	float 								m_accuracy								= 1.f;
 	void								update_accuracy							();
 	bool								m_armed_mode							= false;
+	
+	bool								CanPutInSlot						O$	(PIItem item, u32 slot);
 
 public:
 	static void							loadStaticData							();

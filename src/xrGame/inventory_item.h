@@ -364,6 +364,7 @@ public:
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
 	bool								tryCustomUse						C$	();
+	bool								isGear								C$	(bool check_equipped = false);
 
 	float								getData								C$	(EItemDataTypes type);
 	float								Weight								C$	();
