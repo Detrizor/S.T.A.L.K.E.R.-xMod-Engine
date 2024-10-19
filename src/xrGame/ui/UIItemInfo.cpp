@@ -50,7 +50,6 @@ CUIItemInfo::CUIItemInfo()
 	UIBoosterInfo				= NULL;
 	UIArtefactParams			= NULL;
 	UIName						= NULL;
-	UIBackground				= NULL;
 	m_b_FitToHeight				= false;
 }
 
@@ -73,11 +72,13 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 	xml_init.InitWindow				(uiXml, "main_frame", 0, this);
 	delay							= uiXml.ReadAttribInt("main_frame", 0, "delay", 500);
 
+	AttachChild						(m_frame.get());
 	uiXml.NavigateToNode			("background_frame", 0);
-	UIBackground					= xr_new<CUIFrameWindow>();
-	UIBackground->SetAutoDelete		(true);
-	AttachChild						(UIBackground);
-	xml_init.InitFrameWindow		(uiXml, "background_frame", 0,	UIBackground);
+	xml_init.InitFrameWindow		(uiXml, "background_frame", 0, m_frame.get());
+
+	AttachChild						(m_background.get());
+	uiXml.NavigateToNode			("background", 0);
+	xml_init.InitStatic				(uiXml, "background", 0, m_background.get());
 
 	uiXml.NavigateToNode			("static_name", 0);
 	UIName							= xr_new<CUITextWnd>();	 
@@ -172,7 +173,7 @@ void CUIItemInfo::InitItemInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
 {
 	inherited::SetWndPos	(pos);
 	inherited::SetWndSize	(size);
-    InitItemInfo			(xml_name);
+	InitItemInfo			(xml_name);
 }
 
 void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_tip)
@@ -354,8 +355,8 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 			UIDesc->SetHeight					(UIDesc->GetPadSize().y);
 			float new_height					= UIDesc->GetWndPos().y + UIDesc->GetWndSize().y + UIName->GetWndPos().y;
 			SetHeight							(new_height);
-			if (UIBackground)
-				UIBackground->SetHeight			(new_height);
+			m_frame->SetHeight					(new_height);
+			m_background->SetHeight				(new_height);
 		}
 
 		UIDesc->ScrollToBegin					();

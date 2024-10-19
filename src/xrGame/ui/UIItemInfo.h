@@ -50,7 +50,6 @@ public:
 	bool				m_b_FitToHeight;
 	u32					delay;
 	
-	CUIFrameWindow*		UIBackground;
 	CUITextWnd*			UIName;
 	CUITextWnd*			UIWeight;
 	CUITextWnd*			UIVolume;
@@ -70,5 +69,7 @@ public:
 	CUIStatic*			UIItemImage;
 
 private:
-	xptr<CUIAddonInfo>	m_addon_info;
+	xptr<CUIFrameWindow>				m_frame									= {};
+	xptr<CUIStatic>						m_background							= {};
+	xptr<CUIAddonInfo>					m_addon_info							= {};
 };
