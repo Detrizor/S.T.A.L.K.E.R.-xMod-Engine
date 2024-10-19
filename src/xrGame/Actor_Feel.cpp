@@ -19,8 +19,6 @@
 #include "hudmanager.h"
 #include "ui/UIActorMenu.h"
 #include "ui/UIDragDropListEx.h"
-#include "ui/UICellItemFactory.h"
-#include "ui/UICellItem.h"
 #include "ui/UICellCustomItems.h"
 #include "item_container.h"
 
@@ -110,8 +108,8 @@ bool CheckCellVicinity(Fvector cam, float radius, CUIDragDropListEx* vicinity, C
 	PIItem(ci->m_pData)->object().Center	(A);
 	if (A.distance_to(cam) <= radius)
 		return								true;
-	CUICellItem* dying_cell					= vicinity->RemoveItem(ci, false);
-	xr_delete								(dying_cell);
+	CUICellItem* removed_cell				= vicinity->RemoveItem(ci, false);
+	removed_cell->destroy					();
 	return									false;
 }
 
@@ -162,7 +160,7 @@ void CActor::VicinityUpdate()
 		CInventoryItem* item				= smart_cast<CInventoryItem*>(obj);
 		CUICellItem* ci						= NULL;
 		if ((A.distance_to(cam_Active()->vPosition) <= m_fVicinityRadius) && !FindItemInList(vicinity, item, ci))
-			vicinity->SetItem				(create_cell_item(item));
+			vicinity->SetItem				(item->getIcon());
 	}
 }
 

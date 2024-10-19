@@ -5,7 +5,6 @@
 #include "UIInventoryUtilities.h"
 #include "UI3tButton.h"
 #include "UICellItem.h"
-#include "UICellItemFactory.h"
 #include "UIFrameLineWnd.h"
 
 #include "xrMessages.h"
@@ -57,12 +56,9 @@ void CUIActorMenu::InitDeadBodySearchMode()
 	else
 		m_pContainer->AddAvailableItems	(items_list);
 
-	std::sort							(items_list.begin(), items_list.end(),InventoryUtilities::GreaterRoomInRuck);
-	for (TIItemContainer::iterator it = items_list.begin(), it_e = items_list.end(); it != it_e; ++it)
-	{
-		CUICellItem* itm				= create_cell_item	(*it);
-		m_pDeadBodyBagList->SetItem		(itm);
-	}
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	for (auto& item : items_list)
+		m_pDeadBodyBagList->SetItem		(item->getIcon());
 
 	CBaseMonster* monster				= smart_cast<CBaseMonster*>(m_pPartnerInvOwner);
 	

@@ -25,6 +25,7 @@
 #include "ai_object_location.h"
 #include "object_broker.h"
 #include "../xrEngine/igame_persistent.h"
+#include "ui\UICellCustomItems.h"
 
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
@@ -838,6 +839,12 @@ LPCSTR CInventoryItem::readNameShort(shared_str CR$ section)
 	return							readName(section);
 }
 
+void CInventoryItem::swapIcon(PIItem item)
+{
+	_STD swap						(m_icon, item->m_icon);
+	_STD swap						(m_icon->m_pData, item->m_icon->m_pData);
+}
+
 void CInventoryItem::SetInvIconType(u8 type)
 {
 	if (m_inv_icon_types)
@@ -865,7 +872,29 @@ u8 CInventoryItem::getInvIconType() const
 
 void CInventoryItem::set_inv_icon()
 {
-	readIcon						(m_inv_icon, *m_section_id, getInvIconType(), m_inv_icon_index);
+	readIcon							(m_inv_icon, *m_section_id, getInvIconType(), m_inv_icon_index);
+	invalidateIcon						();
+}
+
+void CInventoryItem::setup_icon()
+{
+	if (m_icon && m_pInventory)
+		m_pInventory->OnInventoryAction	(this, false);
+
+	if (auto icon = O.emitSignalGet(sCreateIcon()))
+		m_icon.capture					(icon.get());
+	else
+		m_icon.capture					(xr_new<CUIInventoryCellItem>(this));
+	m_icon_valid						= true;
+
+	if (m_pInventory)
+		m_pInventory->OnInventoryAction	(this, true);
+}
+
+void CInventoryItem::shedule_Update(u32 T)
+{
+	if (!m_icon_valid)
+		setup_icon						();
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)

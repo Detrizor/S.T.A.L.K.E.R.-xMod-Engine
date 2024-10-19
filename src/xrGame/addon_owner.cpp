@@ -9,6 +9,7 @@
 #include "../xrEngine/CameraManager.h"
 #include "WeaponMagazined.h"
 #include "weaponBM16.h"
+#include "ui/UICellCustomItems.h"
 #include "item_usable.h"
 
 bool MAddonOwner::loadAddonSlots(shared_str CR$ section, VSlots& slots, MAddonOwner* ao)
@@ -91,10 +92,18 @@ float MAddonOwner::sSumItemData(EItemDataTypes type)
 	return								res;
 }
 
+xoptional<CUICellItem*> MAddonOwner::sCreateIcon()
+{
+	return								xr_new<CUIAddonOwnerCellItem>(this);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MAddonOwner::register_addon(MAddon PC$ addon, bool attach) const
 {
+	if (addon->getSlot()->getIconDraw())
+		O.scast<CInventoryItem*>()->invalidateIcon();
+
 	process_addon						(addon, attach);
 	if (auto self_addon = O.getModule<MAddon>())
 		if (auto slot = self_addon->getSlot())

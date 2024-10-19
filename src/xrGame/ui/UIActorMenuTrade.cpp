@@ -9,7 +9,8 @@
 #include "UIFrameLineWnd.h"
 #include "UICellItem.h"
 #include "UIInventoryUtilities.h"
-#include "UICellItemFactory.h"
+#include "UITalkWnd.h"
+#include "UICellCustomItems.h"
 
 #include "../InventoryOwner.h"
 #include "../Inventory.h"
@@ -24,8 +25,14 @@
 #include "../ai_space.h"
 #include "../../xrServerEntities/script_engine.h"
 #include "../UIGameSP.h"
-#include "UITalkWnd.h"
 #include "../item_container.h"
+
+static CUICellItem* create_cell_item_from_section(shared_str CR$ section)
+{
+	return								(pSettings->r_bool_ex(section, "addon_owner", false)) ?
+		xr_new<CUIAddonOwnerCellItem>(section) :
+		xr_new<CUIInventoryCellItem>(section);
+}
 
 // -------------------------------------------------
 
@@ -104,21 +111,21 @@ bool is_item_in_list(CUIDragDropListEx* pList, PIItem item)
 
 void CUIActorMenu::InitPartnerInventoryContents()
 {
-	m_pTradePartnerBagList->ClearAll							(true);
-	CAI_Trader* trader											= smart_cast<CAI_Trader*>(m_pPartnerInvOwner);
+	m_pTradePartnerBagList->ClearAll	(true);
+	CAI_Trader* trader					= smart_cast<CAI_Trader*>(m_pPartnerInvOwner);
 	if (trader)
 		for (auto& str : trader->supplies_list)
-			m_pTradePartnerBagList->SetItem						(create_cell_item_from_section(str));
+			m_pTradePartnerBagList->SetItem(create_cell_item_from_section(str));
 	else
 	{
-		TIItemContainer											items_list;
-		m_pPartnerInvOwner->inventory().AddAvailableItems		(items_list, true);
-		_STD sort												(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+		TIItemContainer					items_list;
+		m_pPartnerInvOwner->inventory().AddAvailableItems(items_list, true);
+		_STD sort						(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
 		for (auto item : items_list)
 			if (!is_item_in_list(m_pTradePartnerList, item))
-				m_pTradePartnerBagList->SetItem					(create_cell_item(item));
+				m_pTradePartnerBagList->SetItem(item->getIcon());
 	}
-	m_trade_partner_inventory_state								= m_pPartnerInvOwner->inventory().ModifyFrame();
+	m_trade_partner_inventory_state		= m_pPartnerInvOwner->inventory().ModifyFrame();
 }
 
 void CUIActorMenu::ColorizeItem(CUICellItem* itm)
@@ -192,8 +199,12 @@ bool CUIActorMenu::ToPartnerTrade(CUICellItem* itm, bool b_use_cursor_pos)
 
 	CUIDragDropListEx* old_owner		= itm->OwnerList();
 	CUIDragDropListEx* new_owner		= (b_use_cursor_pos) ? CUIDragDropListEx::m_drag_item->BackList() : m_pTradePartnerList;
-	CUICellItem* citem					= (item) ? create_cell_item(item) : create_cell_item_from_section(itm->m_section);
-	(b_use_cursor_pos)					? new_owner->SetItem(citem, old_owner->GetDragItemPosition()) : new_owner->SetItem(citem);
+	CUICellItem* citem					= (item) ? item->getIcon() : create_cell_item_from_section(itm->m_section);
+	if (b_use_cursor_pos)
+		new_owner->SetItem				(citem, old_owner->GetDragItemPosition());
+	else
+		new_owner->SetItem				(citem);
+
 	UpdatePrices						();
 
 	return								true;
@@ -201,9 +212,9 @@ bool CUIActorMenu::ToPartnerTrade(CUICellItem* itm, bool b_use_cursor_pos)
 
 bool CUIActorMenu::ToPartnerTradeBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	CUICellItem* dying_cell				= itm->OwnerList()->RemoveItem(itm, false);
-	xr_delete							(dying_cell);
-	return true;
+	CUICellItem* removed_cell			= itm->OwnerList()->RemoveItem(itm, false);
+	removed_cell->destroy				();
+	return								true;
 }
 
 float CUIActorMenu::CalcItemWeight(LPCSTR section)
@@ -500,7 +511,7 @@ void CUIActorMenu::TransferItems(CUIDragDropListEx* pSellList, CUIDragDropListEx
 		CUICellItem* cell_item				= pSellList->RemoveItem(pSellList->GetItemIdx(0), false);
 		pTrade->TransferItem				(cell_item, bBuying);
 		if (trader && !bBuying)
-			xr_delete						(cell_item);
+			cell_item->destroy				();
 		else
 			pBuyList->SetItem				(cell_item);
 	}

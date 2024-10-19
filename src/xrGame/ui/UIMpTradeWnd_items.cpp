@@ -18,8 +18,6 @@ DLL_Pure*	__cdecl xrFactory_Create		(CLASS_ID clsid);
 extern "C"
 void	__cdecl xrFactory_Destroy		(DLL_Pure* O);
 
-CUICellItem*	create_cell_item(CInventoryItem* item);
-
 SBuyItemInfo::SBuyItemInfo()
 {
 	m_item_state = e_undefined;
@@ -27,9 +25,8 @@ SBuyItemInfo::SBuyItemInfo()
 
 SBuyItemInfo::~SBuyItemInfo()
 {
-	CInventoryItem*			iitem = (CInventoryItem*)m_cell_item->m_pData;
-	xrFactory_Destroy		(&iitem->object());
-	delete_data				(m_cell_item);
+	CInventoryItem* iitem = static_cast<CInventoryItem*>(m_cell_item->m_pData);
+	xrFactory_Destroy(&iitem->object());
 }
 
 void SBuyItemInfo::SetState	(const EItmState& s)
@@ -113,7 +110,7 @@ SBuyItemInfo* CUIMpTradeWnd::CreateItem(const shared_str& name_sect, SBuyItemInf
 	m_all_items.push_back		( iinfo );
 	iinfo->m_name_sect			= name_sect;
 	iinfo->SetState				(type);
-	iinfo->m_cell_item			= create_cell_item(CreateItem_internal(name_sect));
+	iinfo->m_cell_item			= CreateItem_internal(name_sect)->getIcon();
 	iinfo->m_cell_item->m_b_destroy_childs = false;
 	return						iinfo;
 }

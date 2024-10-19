@@ -5,7 +5,6 @@
 #include "UIInventoryUtilities.h"
 #include "UIItemInfo.h"
 #include "../Level.h"
-#include "UICellItemFactory.h"
 #include "UIDragDropListEx.h"
 #include "UIDragDropReferenceList.h"
 #include "UICellCustomItems.h"
@@ -160,18 +159,16 @@ bool FindItemInList(CUIDragDropListEx* lst, PIItem pItem, CUICellItem*& ci_res)
 }
 
 bool RemoveItemFromList(CUIDragDropListEx* lst, PIItem pItem)
-{// fixme
-	CUICellItem*	ci	= NULL;
-	if(FindItemInList(lst, pItem, ci))
+{
+	CUICellItem* ci						= nullptr;
+	if (FindItemInList(lst, pItem, ci))
 	{
-		R_ASSERT		(ci);
-
-		CUICellItem* dying_cell = lst->RemoveItem	(ci, false);
-		xr_delete(dying_cell);
-
-		return			true;
-	}else
-		return			false;
+		R_ASSERT						(ci);
+		CUICellItem* removed_cell		= lst->RemoveItem(ci, false);
+		removed_cell->destroy			();
+		return							true;
+	}
+	return								false;
 }
 
 void CUIActorMenu::OnInventoryAction(PIItem pItem, bool take, u8 zone)
@@ -249,9 +246,7 @@ void CUIActorMenu::OnInventoryAction(PIItem pItem, bool take, u8 zone)
 
 		if (!b_already && lst_to_add)
 		{
-			CUICellItem* itm			= create_cell_item(pItem);
-			if (!lst_to_add->CanSetItem(itm))
-				lst_to_add->RemoveItem	(lst_to_add->GetItemIdx(0), true);
+			CUICellItem* itm			= pItem->getIcon();
 			lst_to_add->SetItem			(itm);
 			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
 				ColorizeItem			(itm);
@@ -311,7 +306,7 @@ void CUIActorMenu::InitCellForSlot( u16 slot_idx )
 	if (!curr_list)
 		return;
 
-	CUICellItem* cell_item						= create_cell_item(item);
+	CUICellItem* cell_item						= item->getIcon();
 	curr_list->SetItem							(cell_item);
 	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
 		ColorizeItem							(cell_item);
@@ -319,32 +314,31 @@ void CUIActorMenu::InitCellForSlot( u16 slot_idx )
 
 void CUIActorMenu::InitPocket(u16 pocket_idx)
 {
-	TIItemContainer		pocket_list;
-	pocket_list			= m_pActorInv->m_pockets[pocket_idx];
-	::std::sort(pocket_list.begin(), pocket_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	TIItemContainer						pocket_list;
+	pocket_list							= m_pActorInv->m_pockets[pocket_idx];
+	_STD sort							(pocket_list.begin(), pocket_list.end(), InventoryUtilities::GreaterRoomInRuck);
 
-	LPCSTR sect										= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
-	for (TIItemContainer::iterator itb = pocket_list.begin(), ite = pocket_list.end(); itb != ite; ++itb)
+	shared_str sect						= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
+	for (auto& item : pocket_list)
 	{
-		if ((*itb)->Section(true) == sect)
+		if (item->Section(true) == sect)
 		{
-			CUICellItem* itm						= create_cell_item(*itb);
-			m_pInvPocket[pocket_idx]->SetItem		(itm);
+			CUICellItem* itm			= item->getIcon();
+			m_pInvPocket[pocket_idx]->SetItem(itm);
 			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-				ColorizeItem						(itm);
+				ColorizeItem			(itm);
 		}
 	}
 
-
-	for (TIItemContainer::iterator itb = pocket_list.begin(), ite = pocket_list.end(); itb != ite; ++itb)
+	for (auto& item : pocket_list)
 	{
-		if (smart_cast<CMPPlayersBag*>(&(*itb)->object()) || (*itb)->Section(true) == sect)
-			continue;
-
-		CUICellItem* itm						= create_cell_item(*itb);
-		m_pInvPocket[pocket_idx]->SetItem		(itm);
-		if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-			ColorizeItem						(itm);
+		if (item->Section(true) != sect)
+		{
+			CUICellItem* itm			= item->getIcon();
+			m_pInvPocket[pocket_idx]->SetItem(itm);
+			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
+				ColorizeItem			(itm);
+		}
 	}
 }
 
@@ -454,7 +448,7 @@ bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 bool CUIActorMenu::ToPocket(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_id)
 {
 	PIItem item							= (PIItem)itm->m_pData;
-	bool own							= ::std::find(m_pActorInv->m_pockets[pocket_id].begin(), m_pActorInv->m_pockets[pocket_id].end(), item) != m_pActorInv->m_pockets[pocket_id].end();
+	bool own							= m_pActorInv->m_pockets[pocket_id].contains(item);
 	if (!m_pActorInv->CanPutInPocket(item, pocket_id) && !own)
 		return							false;
 

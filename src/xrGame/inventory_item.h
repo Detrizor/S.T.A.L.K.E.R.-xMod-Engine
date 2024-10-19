@@ -47,6 +47,9 @@ struct SHit;
 class CSE_ALifeInventoryItem;
 typedef CSE_ALifeInventoryItem::mask_num_items	mask_inv_num_items;
 
+class CUICellItem;
+struct CUICIDeleter;
+
 struct net_update_IItem
 {
 	u32					dwTimeStamp;
@@ -331,8 +334,14 @@ private:
 	shared_str							m_name									= 0;
 	shared_str							m_name_short							= 0;
 	shared_str							m_description							= 0;
+	xptr<CUICellItem, CUICIDeleter>		m_icon									= nullptr;
+	bool								m_icon_valid							= false;
 	
 	void								set_inv_icon							();
+	void								setup_icon								();
+
+protected:
+	void								shedule_Update							(u32 T);
 
 public:
 	static const float					s_max_repair_condition;
@@ -340,11 +349,16 @@ public:
 	static void							readIcon								(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
 	static LPCSTR						readName								(shared_str CR$ section);
 	static LPCSTR						readNameShort							(shared_str CR$ section);
+	
+	void								invalidateIcon							()		{ m_icon_valid = false; }
+
+	void								swapIcon								(PIItem item);
 
 	LPCSTR								getName								C$	()		{ return m_name.c_str(); }
 	LPCSTR								getNameShort						C$	()		{ return m_name_short.c_str(); }
 	LPCSTR								ItemDescription						C$	()		{ return m_description.c_str(); }
 	bool								areInvIconTypesAllowed				C$	()		{ return m_inv_icon_types; }
+	CUICellItem*						getIcon								C$	()		{ return (m_icon) ? m_icon.get() : nullptr; }
 
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
 	shared_str							Section								C$	(bool full = false);

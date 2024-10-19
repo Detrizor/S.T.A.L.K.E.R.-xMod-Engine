@@ -96,10 +96,12 @@ public:
 protected:
 	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 	float								sSumItemData						O$	(EItemDataTypes type);
+	xoptional<CUICellItem*>				sCreateIcon							O$	();
 
 private:
 	bool								m_can_heap								= false;
 	u16									m_boxCurr								= 0;
+	u16									m_box_prev								= 0;
 	shared_str							m_shell_section							= 0;
 
 	CCartridge							m_cartridge;

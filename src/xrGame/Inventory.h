@@ -210,9 +210,7 @@ private:
 	void				TryActivatePrevSlot		();
 	void				TryDeactivateActiveSlot	();
 
-private:
-	void								OnInventoryAction						(PIItem item, bool take = true, u8 zone = 1);
-
 public:
 	void								CheckArtefact							(PIItem item, bool add = false);
+	void								OnInventoryAction						(PIItem item, bool take = true, u8 zone = 1);
 };

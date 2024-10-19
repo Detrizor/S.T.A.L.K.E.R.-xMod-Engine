@@ -26,6 +26,7 @@ class CUICellItem :public CUIStatic
 {
 private:
 	typedef		CUIStatic	inherited;
+
 protected:
 	xr_vector<CUICellItem*> m_childs;
 
@@ -40,9 +41,11 @@ protected:
 
 	virtual void			UpdateItemText			();
 			void			init					();
+			
+							~CUICellItem			();
+
 public:
 							CUICellItem				();
-	virtual					~CUICellItem			();
 
 	virtual		bool		OnKeyboardAction				(int dik, EUIMessages keyboard_action);
 	virtual		bool		OnMouseAction					(float x, float y, EUIMessages mouse_action);
@@ -90,6 +93,19 @@ protected:
 
 public:
 	CLASS_ID							ClassID								C$	()		{ return m_class_id; }
+	bool								destroy									(bool forced = false);
+};
+
+struct CUICIDeleter
+{
+	void operator()(CUICellItem*& ci) const
+	{
+		if (ci)
+		{
+			ci->destroy(true);
+			ci = nullptr;
+		}
+	}
 };
 
 class CUIDragItem: public CUIWindow, public pureRender, public pureFrame

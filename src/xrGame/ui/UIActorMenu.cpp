@@ -39,12 +39,11 @@
 #include "UIMainIngameWnd.h"
 #include "../Trade.h"
 #include "../item_container.h"
-#include "UICellItemFactory.h"
 #include "UIInvUpgradeInfo.h"
+#include "UICellCustomItems.h"
 
 #include "scope.h"
 #include "silencer.h"
-#include "UICellCustomItems.h"
 
 void CUIActorMenu::SetActor(CInventoryOwner* io)
 {
@@ -302,12 +301,12 @@ void CUIActorMenu::ToggleBag(MContainer* bag)
 	if (!bag->Empty())
 		bag->AddAvailableItems			(tmp);
 
-	std::sort							(tmp.begin(), tmp.end(), InventoryUtilities::GreaterRoomInRuck);
-	CUIDragDropListEx* pBagList			= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
-	for (TIItemContainer::iterator itb = tmp.begin(), ite = tmp.end(); itb != ite; ++itb)
+	_STD sort							(tmp.begin(), tmp.end(), InventoryUtilities::GreaterRoomInRuck);
+	auto& bag_list						= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
+	for (auto& item : tmp)
 	{
-		CUICellItem* itm				= create_cell_item(*itb);
-		pBagList->SetItem				(itm);
+		CUICellItem* itm				= item->getIcon();
+		bag_list->SetItem				(itm);
 		if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
 			ColorizeItem				(itm);
 	}

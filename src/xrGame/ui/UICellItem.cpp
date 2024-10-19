@@ -48,10 +48,10 @@ CUICellItem::CUICellItem()
 
 CUICellItem::~CUICellItem()
 {
-	if(m_b_destroy_childs)
-		delete_data	(m_childs);
-
-	delete_data		(m_custom_draw);
+	if (m_b_destroy_childs)
+		for (auto child : m_childs)
+			child->destroy(true);
+	delete_data(m_custom_draw);
 }
 
 void CUICellItem::init()
@@ -81,12 +81,11 @@ void CUICellItem::init()
 
 void CUICellItem::Draw()
 {	
-	m_drawn_frame		= Device.dwFrame;
-	
-	inherited::Draw();
-	if(m_custom_draw) 
-		m_custom_draw->OnDraw(this);
-};
+	m_drawn_frame						= Device.dwFrame;
+	inherited::Draw						();
+	if (m_custom_draw) 
+		m_custom_draw->OnDraw			(this);
+}
 
 void CUICellItem::Update()
 {
@@ -261,14 +260,11 @@ CUICellItem* CUICellItem::PopChild(CUICellItem* needed)
 	CUICellItem* itm	= m_childs.back();
 	m_childs.pop_back	();
 	
-	if(needed)
-	{	
-	  if(itm!=needed)
-		std::swap		(itm->m_pData, needed->m_pData);
-	}else
-	{
-		std::swap		(itm->m_pData, m_pData);
-	}
+	if (!needed)
+		needed			= this;
+	if (itm != needed)
+		static_cast<PIItem>(itm->m_pData)->swapIcon(static_cast<PIItem>(needed->m_pData));
+
 	UpdateItemText		();
 	R_ASSERT			(itm->ChildsCount()==0);
 	itm->SetOwnerList	(NULL);
@@ -305,6 +301,18 @@ void CUICellItem::SetCustomDraw(ICustomDrawCellItem* c)
 	if (m_custom_draw)
 		xr_delete(m_custom_draw);
 	m_custom_draw = c;
+}
+
+bool CUICellItem::destroy(bool force)
+{
+	if (!m_pData || force)
+	{
+		void* _real_ptr = dynamic_cast<void*>(this);
+		this->~CUICellItem();
+		Memory.mem_free(_real_ptr);
+		return true;
+	}
+	return false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -394,4 +402,3 @@ Fvector2 CUIDragItem::GetPosition()
 {
 	return Fvector2().add(m_pos_offset, GetUICursor().GetCursorPosition());
 }
-

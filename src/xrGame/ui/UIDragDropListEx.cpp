@@ -856,33 +856,27 @@ bool CUICellContainer::ValidCell(const Ivector2& pos) const
 
 void CUICellContainer::ClearAll(bool bDestroy)
 {
+	for (auto& cell : m_cells)
+		cell.Clear						();
+
+	while (!m_ChildWndList.empty())
 	{
-		UI_CELLS_VEC_IT it		= m_cells.begin();
-		UI_CELLS_VEC_IT it_e	= m_cells.end();
-		for(;it!=it_e;++it)
-			(*it).Clear();
-	}
-	while( !m_ChildWndList.empty() )
-	{
-		CUIWindow* w			= m_ChildWndList.back();
-		CUICellItem* wc			= smart_cast<CUICellItem*>(w);
-		VERIFY					(!wc->IsAutoDelete());
-		DetachChild				(wc);	
+		CUIWindow* w					= m_ChildWndList.back();
+		CUICellItem* wc					= smart_cast<CUICellItem*>(w);
+		VERIFY							(!wc->IsAutoDelete());
+		DetachChild						(wc);	
 		
-		while( wc->ChildsCount() )
+		while (wc->ChildsCount())
 		{
-			CUICellItem* ci		= wc->PopChild(NULL);
-			R_ASSERT			(ci->ChildsCount()==0);
-
-			if(bDestroy)
-				delete_data		(ci);
+			CUICellItem* ci				= wc->PopChild(nullptr);
+			R_ASSERT					(ci->ChildsCount() == 0);
+			if (bDestroy)
+				ci->destroy				();
 		}
 		
-		if(bDestroy){
-			delete_data			(wc);
-		}
+		if (bDestroy)
+			wc->destroy					();
 	}
-
 }
 
 Ivector2 CUICellContainer::PickCell(const Fvector2& abs_pos)

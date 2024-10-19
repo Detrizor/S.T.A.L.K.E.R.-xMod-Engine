@@ -2204,7 +2204,6 @@
     <ClInclude Include="ui\UICDkey.h" />
     <ClInclude Include="ui\UICellCustomItems.h" />
     <ClInclude Include="ui\UICellItem.h" />
-    <ClInclude Include="ui\UICellItemFactory.h" />
     <ClInclude Include="ui\UIChangeMap.h" />
     <ClInclude Include="ui\ChangeWeatherDialog.hpp" />
     <ClInclude Include="ui\UICharacterInfo.h" />
@@ -4315,7 +4314,6 @@
     <ClCompile Include="ui\UICDkey.cpp" />
     <ClCompile Include="ui\UICellCustomItems.cpp" />
     <ClCompile Include="ui\UICellItem.cpp" />
-    <ClCompile Include="ui\UICellItemFactory.cpp" />
     <ClCompile Include="ui\UIChangeMap.cpp" />
     <ClCompile Include="ui\ChangeWeatherDialog.cpp" />
     <ClCompile Include="ui\UICharacterInfo.cpp" />

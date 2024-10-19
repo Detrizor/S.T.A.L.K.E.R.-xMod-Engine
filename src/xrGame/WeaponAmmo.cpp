@@ -11,6 +11,7 @@
 #include "level.h"
 #include "string_table.h"
 #include "WeaponMagazined.h"
+#include "ui\UICellCustomItems.h"
 
 CCartridge::CCartridge() 
 {
@@ -99,7 +100,7 @@ void CWeaponAmmo::Load(LPCSTR section)
 	m_cartridge.Load					(section);
 	m_boxSize							= readBoxSize(section);
 	m_can_heap							= (m_boxSize > 1);
-	m_boxCurr							= m_boxSize;
+	SetAmmoCount						(m_boxSize);
 	pSettings->w_string_ex				(m_shell_section, section, "shell_section");
 }
 
@@ -120,6 +121,11 @@ float CWeaponAmmo::sSumItemData(EItemDataTypes type)
 	return								inherited::sSumItemData(type) * static_cast<float>(m_boxCurr);
 }
 
+xoptional<CUICellItem*> CWeaponAmmo::sCreateIcon()
+{
+	return								xr_new<CUIAmmoCellItem>(this);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
@@ -130,7 +136,7 @@ BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC)
 	
 	if (l_pW->a_elapsed > m_boxSize)
 		l_pW->a_elapsed					= m_boxSize;
-	m_boxCurr							= l_pW->a_elapsed;
+	SetAmmoCount						(l_pW->a_elapsed);
 
 	return								bResult;
 }
@@ -160,7 +166,7 @@ void CWeaponAmmo::net_Export(NET_Packet& P)
 void CWeaponAmmo::net_Import(NET_Packet& P) 
 {
 	inherited::net_Import				(P);
-	P.r_u16								(m_boxCurr);
+	SetAmmoCount						(P.r_u16());
 }
 
 CInventoryItem* CWeaponAmmo::can_make_killing(const CInventory *inventory) const
@@ -184,7 +190,13 @@ CInventoryItem* CWeaponAmmo::can_make_killing(const CInventory *inventory) const
 void CWeaponAmmo::SetAmmoCount(u16 val)
 {
 	m_boxCurr							= val;
-	if (!Useful())
+	if (Useful())
+	{
+		if (m_box_prev < 3 || m_boxCurr < 3)
+			invalidateIcon				();
+		m_box_prev						= m_boxCurr;
+	}
+	else
 		DestroyObject					();
 }
 

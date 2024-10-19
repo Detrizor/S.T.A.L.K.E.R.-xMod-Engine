@@ -99,6 +99,7 @@ private:
 	void								sUpdateSlotsTransform				O$	();
 	void								sRenderHudMode						O$	();
 	float								sSumItemData						O$	(EItemDataTypes type);
+	xoptional<CUICellItem*>				sCreateIcon							O$	();
 
 private:
 	bool								m_base_foreground_draw;

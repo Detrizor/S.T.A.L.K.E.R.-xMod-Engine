@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "UIDragDropReferenceList.h"
 #include "UICellItem.h"
-#include "UICellItemFactory.h"
 #include "UIStatic.h"
 #include "../inventory.h"
 #include "../inventoryOwner.h"
@@ -10,7 +9,6 @@
 #include "UIInventoryUtilities.h"
 #include "../../xrEngine/xr_input.h"
 #include "../UICursor.h"
-#include "UICellItemFactory.h"
 
 CUIDragDropReferenceList::CUIDragDropReferenceList()
 {

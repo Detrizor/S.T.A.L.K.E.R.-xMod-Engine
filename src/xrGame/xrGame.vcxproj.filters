@@ -6933,9 +6933,6 @@
     <ClInclude Include="ui\UICellItem.h">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClInclude>
-    <ClInclude Include="ui\UICellItemFactory.h">
-      <Filter>UI\UIWindows\DragDrop</Filter>
-    </ClInclude>
     <ClInclude Include="ui\UIDragDropListEx.h">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClInclude>
@@ -10531,9 +10528,6 @@
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClCompile>
     <ClCompile Include="ui\UICellItem.cpp">
-      <Filter>UI\UIWindows\DragDrop</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\UICellItemFactory.cpp">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClCompile>
     <ClCompile Include="ui\UIDragDropListEx.cpp">

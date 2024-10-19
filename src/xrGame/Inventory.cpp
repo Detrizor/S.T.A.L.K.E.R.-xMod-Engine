@@ -136,6 +136,8 @@ void CInventory::Clear()
 void CInventory::OnInventoryAction(PIItem item, bool take, u8 zone)
 {
 	CheckArtefact						(item, take);
+	if (!item->getIcon())
+		return;
 
 	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
 	if (!actor_menu || !actor_menu->IsShown())
