@@ -145,7 +145,6 @@ void CRenderDevice::End(void)
 #endif
 }
 
-
 volatile u32 mt_Thread_marker = 0x12345678;
 void mt_Thread(void* ptr)
 {
@@ -436,6 +435,7 @@ void CRenderDevice::Run()
 	while (mt_bMustExit) Sleep(0);
 	// DeleteCriticalSection (&mt_csEnter);
 	// DeleteCriticalSection (&mt_csLeave);
+	xBench::flushStatistics();
 }
 
 u32 app_inactive_time = 0;
@@ -640,27 +640,47 @@ void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+
 		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)m_active;
 }
 
-void xBench::start()
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+xr_umap<_STD string, xBench::bench_data> xBench::statistics = {};
+
+xBench::xBench(LPCSTR tag_, bool aggregate_) : tag(tag_), aggregate(aggregate_)
 {
-	start_time = Device.timeGlobal();
+	start_time							= Device.timeGlobal();
 }
 
-void xBench::flush()
+xBench::~xBench()
 {
-	last_time = Device.timeGlobal() - start_time;
-	sum += last_time;
-	++count;
-	avg_time = sum / static_cast<float>(count);
+	float result						= Device.timeGlobal() - start_time;
+	if (aggregate)
+	{
+		auto& data						= statistics[tag];
+		++data.cnt;
+		data.sum_time					+= result;
+		if (data.last_frame != Device.dwFrame)
+		{
+			data.last_frame				= Device.dwFrame;
+			++data.frames;
+		}
+	}
+	else
+		Msg								("--benchmark [%s] result [%.3f]", tag.c_str(), result);
 }
 
-void xBench::finish()
+void xBench::flushStatistics()
 {
-	flush();
-	Msg("--benchmark %s avg [%.3f] last [%.3f] sum [%.3f] cnt [%d]", tag.c_str(), avg_time, last_time, sum, count);
-}
-
-void xBench::finish(LPCSTR info)
-{
-	flush();
-	Msg("--benchmark %s (%s) avg [%.3f] last [%.3f] sum [%.3f] cnt [%d]", tag.c_str(), info, avg_time, last_time, sum, count);
+	for (auto& bench : statistics)
+	{
+		float avg_time					= bench.second.sum_time / static_cast<float>(bench.second.cnt);
+		float avg_per_frame				= bench.second.sum_time / static_cast<float>(bench.second.frames);
+		Msg								("--benchmark [%s] sum [%.3f] cnt [%d] frames [%d] avg [%.3f] avg per frame [%.3f]",
+			bench.first.c_str(),
+			bench.second.sum_time,
+			bench.second.cnt,
+			bench.second.frames,
+			avg_time,
+			avg_per_frame
+		);
+	}
+	statistics.clear					();
 }

@@ -379,34 +379,43 @@ extern ENGINE_API CLoadScreenRenderer load_screen_renderer;
 
 class ENGINE_API xBench
 {
-public:
-	xBench(LPCSTR tag_) : tag(tag_) {}
+	struct bench_data
+	{
+		u32								cnt										= 0;
+		float							sum_time								= 0.f;
+		u32								frames									= 0;
+		u32								last_frame								= 0;
+	};
 
-	void finish();
-	void finish(LPCSTR info);
+public:
+										xBench									(LPCSTR tag_, bool aggregate_ = true);
+										~xBench									();
 
 private:
-	const shared_str tag;
-	float start_time = 0.f;
-	float last_time = 0.f;
-	float avg_time = 0.f;
-	float sum = 0.f;
-	u32 count = 0;
+	static xr_umap<_STD string, bench_data> statistics;
+	const _STD string					tag;
+	const bool							aggregate;
 
-	void flush();
+	float								start_time								= 0.f;
 
 public:
-	void start();
+	static void							flushStatistics							();
 };
 
-#define BENCH_IN xBench bench(__FUNCTION__); bench.start()
-#define BENCH_OUT bench.finish()
-#define BENCH_OUT1(info) bench.finish(info)
+#define BENCH xBench bench(__FUNCTION__)
+#define BENCH_TAG(tag) xBench bench(tag)
 
-#define BENCH(func) { xBench b(#func); b.start(); func; b.finish(); }
-#define BENCH1(func, tag) { xBench b(tag); b.start(); func; b.finish(); }
-#define BENCHR(func) [&]{ xBench b(#func); b.start(); auto res = func; b.finish(); return res; }()
-#define BENCHR1(func, tag) [&]{ xBench b(tag); b.start(); auto res = func; b.finish(); return res; }()
-#define BENCHR2(func, tag, info) [&]{ xBench b(tag); b.start(); auto res = func; b.finish(info); return res; }()
+#define IBENCH xBench bench(__FUNCTION__, false)
+#define IBENCH_TAG(tag) xBench bench(tag, false)
+
+#define BENCH_FUN(func) { xBench b(#func); func; }
+#define BENCH_FUN_TAG(func, tag) { xBench b(tag); func; }
+#define BENCH_FUN_RET(func) [&]{ xBench b(#func); auto res = func; return res; }()
+#define BENCH_FUN_RET_TAG(func, tag) [&]{ xBench b(tag); auto res = func; return res; }()
+
+#define IBENCH_FUN(func) { xBench b(#func, false); func; }
+#define IBENCH_FUN_TAG(func, tag) { xBench b(tag, false); func; }
+#define IBENCH_FUN_RET(func) [&]{ xBench b(#func, false); auto res = func; return res; }()
+#define IBENCH_FUN_RET_TAG(func, tag) [&]{ xBench b(tag, false); auto res = func; return res; }()
 
 #endif

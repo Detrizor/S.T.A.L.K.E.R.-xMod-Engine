@@ -339,7 +339,7 @@ void CResourceManager::DeferredUpload()
 	if (RDEVICE.b_is_Ready)
 	{
 		Msg								("CResourceManager::DeferredUpload -> START, size = %d", m_textures.size());
-		BENCH1							(
+		IBENCH_FUN_TAG					(
 			tbb::parallel_for_each(m_textures, [](auto&& m_tex) { m_tex.second->Load(); }),
 			"texture loading time:"
 		);
