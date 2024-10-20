@@ -28,10 +28,6 @@ namespace InventoryUtilities
 //сравнивает элементы по пространству занимаемому ими в рюкзаке
 //для сортировки
 bool GreaterRoomInRuck	(PIItem item1, PIItem item2);
-//для проверки свободного места
-bool FreeRoom_inBelt	(TIItemContainer& item_list, PIItem item, int width, int height);
-
-
 // get shader for BuyWeaponWnd
 const ui_shader&	GetBuyMenuShader();
 //получить shader на иконки инвенторя
@@ -94,8 +90,7 @@ u32		GetGoodwillColor			(CHARACTER_GOODWILL gw);
 u32		GetRelationColor			(ALife::ERelationType r);
 u32		GetReputationColor			(CHARACTER_REPUTATION_VALUE rv);
 
-			Ivector2		CalculateIconSize		(const Frect& icon_rect, float icon_scale);
-			Ivector2		CalculateIconSize		(const Frect& icon_rect, float icon_scale, Frect& margin);
-			Ivector2		CalculateIconSize		(const Frect& icon_rect, Frect& margin, const Frect& addons_rect);
-	const	float&			GetInvGridSize			();
+	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, float icon_scale);
+	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, float icon_scale, Frect& margin);
+	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect);
 };

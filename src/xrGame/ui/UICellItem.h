@@ -89,10 +89,13 @@ public:
 				bool		m_has_upgrade;
 
 protected:
-	CLASS_ID							m_class_id;
+	CLASS_ID							m_class_id								= -1;
+	float								m_scale									= 1.f;
 
 public:
 	CLASS_ID							ClassID								C$	()		{ return m_class_id; }
+	float								getScale							C$	()		{ return m_scale; }
+
 	bool								destroy									(bool forced = false);
 };
 

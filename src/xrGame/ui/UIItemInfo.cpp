@@ -374,7 +374,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 
 		Fvector2								v_r;
 		pInvItem->GetIconRect().getsize			(v_r);
-		v_r.mul									(pSettings->r_float(pCellItem->m_section, "icon_scale"));
+		v_r.mul									(pCellItem->getScale());
 
 		UIItemImage->GetUIStaticItem().SetSize	(v_r);
 		UIItemImage->SetWidth					(v_r.x);

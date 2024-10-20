@@ -22,61 +22,30 @@ struct is_helper_pred
 
 } //namespace detail 
 
-CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
+CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* item) : CUIInventoryCellItem(item->m_section_id, &item->GetIconRect())
 {
-	if (!itm)
-		return;
-
-	m_section._set									(itm->m_section_id);
-	m_pData											= (void*)itm;
-
-	inherited::SetShader							(InventoryUtilities::GetEquipmentIconsShader(m_section));
-	inherited::SetTextureRect						(itm->GetIconRect());
-	inherited::SetStretchTexture					(true);
-	m_grid_size										= InventoryUtilities::CalculateIconSize(itm->GetIconRect(), pSettings->r_float(itm->m_section_id, "icon_scale"), m_TextureMargin);
-
-	//Alundaio; Layered icon
-	u8 itrNum = 1;
-	LPCSTR field = "1icon_layer";
-	while (pSettings->line_exist(itm->m_section_id, field))
-	{
-		string32 buf;
-
-		LPCSTR section = pSettings->r_string(itm->m_section_id, field);
-		if (!section)
-			continue;
-
-		Fvector2 offset;
-		offset.x = pSettings->r_float(itm->m_section_id, strconcat(sizeof(buf),buf,std::to_string(itrNum).c_str(),"icon_layer_x"));
-		offset.y = pSettings->r_float(itm->m_section_id, strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_y"));
-
-		LPCSTR field_scale = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_scale");
-		float scale = pSettings->line_exist(itm->m_section_id, field_scale) ? pSettings->r_float(itm->m_section_id, field_scale) : 1.0f;
-
-		//LPCSTR field_color = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer_color");
-		//u32 color = pSettings->line_exist(itm->m_section_id, field_color) ? pSettings->r_color(itm->m_section_id, field_color) : 0;
-
-		CreateLayer(section, offset, scale);
-
-		itrNum++;
-
-		field = strconcat(sizeof(buf), buf, std::to_string(itrNum).c_str(), "icon_layer");
-	}
-	//-Alundaio
+	m_pData								= static_cast<void*>(item);
 }
 
-CUIInventoryCellItem::CUIInventoryCellItem(shared_str section)
+CUIInventoryCellItem::CUIInventoryCellItem(shared_str section, Frect* rect)
 {
 	m_section._set						(section);
-	m_pData								= NULL;
 
 	Frect								tex_rect;
-	CInventoryItem::readIcon			(tex_rect, *section);
-	
+	if (rect)
+		tex_rect						= *rect;
+	else
+	{
+		CInventoryItem::readIcon		(tex_rect, section.c_str());
+		inherited::SetTextureRect		(tex_rect);
+	}
+
 	inherited::SetShader				(InventoryUtilities::GetEquipmentIconsShader(section));
 	inherited::SetTextureRect			(tex_rect);
 	inherited::SetStretchTexture		(true);
-	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, pSettings->r_float(section, "icon_scale"), m_TextureMargin);
+	
+	m_scale								= pSettings->r_float(section, "icon_scale");
+	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_scale, m_TextureMargin);
 
 	//Alundaio; Layered icon
 	u8 itrNum = 1;
@@ -437,11 +406,9 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 
 void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 {
-	float icon_scale					= pSettings->r_float(sect, "icon_scale");
 	Frect res_rect						= GetTextureRect();
-	res_rect.mul						(icon_scale, icon_scale);
-	Frect tex_rect						= GetTextureRect();
-	tex_rect.mul						(icon_scale, icon_scale);
+	res_rect.mul						(m_scale, m_scale);
+	Frect tex_rect						= res_rect;
 
 	for (auto& s : m_slots)
 	{
@@ -452,9 +419,8 @@ void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 
 			Frect						addon_rect;
 			CInventoryItem::readIcon	(addon_rect, *s->addon_section, s->addon_type);
-			icon_scale					= pSettings->r_float(s->addon_section, "icon_scale");
-			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + icon_scale * addon_rect.width());
-			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + icon_scale * addon_rect.height());
+			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + m_scale * addon_rect.width());
+			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + m_scale * addon_rect.height());
 		}
 	}
 
@@ -582,13 +548,13 @@ void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, u8 type, u8 
 		base_scale.x					= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetWidth() / GetTextureRect().width();
 		base_scale.y					= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetHeight() / GetTextureRect().height();
 	}
-	base_scale.div						(pSettings->r_float(m_section, "icon_scale"));
+	base_scale.div						(m_scale);
 
 	CInventoryItem::readIcon			(tex_rect, section, type, index);
 	Fvector2							cell_size;
 	tex_rect.getsize					(cell_size);
 	cell_size.mul						(base_scale);
-	cell_size.mul						(pSettings->r_float(section, "icon_scale"));
+	cell_size.mul						(m_scale);
 
 	if (b_rotate)
 	{

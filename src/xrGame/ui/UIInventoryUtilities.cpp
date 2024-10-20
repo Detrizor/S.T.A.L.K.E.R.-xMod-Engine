@@ -22,6 +22,8 @@
 
 #include "../Include/xrRender/UIShader.h"
 
+#include "UICellItem.h"
+
 #define BUY_MENU_TEXTURE "ui\\ui_mp_buy_menu"
 #define CHAR_ICONS		 "ui\\ui_icons_npc"
 #define MAP_ICONS		 "ui\\ui_icons_map"
@@ -100,100 +102,30 @@ void InventoryUtilities::DestroyShaders()
 
 bool InventoryUtilities::GreaterRoomInRuck(PIItem item1, PIItem item2)
 {
-	Ivector2 r1 = CalculateIconSize(item1->GetIconRect(), pSettings->r_float(item1->m_section_id, "icon_scale"));
-	Ivector2 r2 = CalculateIconSize(item2->GetIconRect(), pSettings->r_float(item2->m_section_id, "icon_scale"));
+	auto& r1							= item1->getIcon()->GetGridSize();
+	auto& r2							= item2->getIcon()->GetGridSize();
 
-	if(r1.x > r2.x)			return true;
+	if (r1.x > r2.x)
+		return							true;
 	
 	if (r1.x == r2.x)
 	{
-		if(r1.y > r2.y)		return true;
+		if (r1.y > r2.y)
+			return						true;
 		
-		if (r1.y == r2.y){
-			if(item1->object().cNameSect()==item2->object().cNameSect())
-				return (item1->object().ID() > item2->object().ID());
+		if (r1.y == r2.y)
+		{
+			if (item1->object().cNameSect() == item2->object().cNameSect())
+				return					(item1->object().ID() > item2->object().ID());
 			else
-				return (item1->object().cNameSect()>item2->object().cNameSect());
+				return					(item1->object().cNameSect() > item2->object().cNameSect());
 
 		}
 
-		return				false;
-	}
-   	return					false;
-}
-
-bool InventoryUtilities::FreeRoom_inBelt	(TIItemContainer& item_list, PIItem _item, int width, int height)
-{
-	bool*				ruck_room	= (bool*)alloca(width*height);
-
-	int		i,j,k,m;
-	int		place_row = 0,  place_col = 0;
-	bool	found_place;
-	bool	can_place;
-
-
-	for(i=0; i<height; ++i)
-		for(j=0; j<width; ++j)
-			ruck_room[i*width + j]	= false;
-
-	item_list.push_back	(_item);
-	std::sort			(item_list.begin(), item_list.end(),GreaterRoomInRuck);
-	
-	found_place			= true;
-
-	for(xr_vector<PIItem>::iterator it = item_list.begin(); (item_list.end() != it) && found_place; ++it) 
-	{
-		PIItem pItem = *it;
-		Ivector2 iWH = CalculateIconSize(pItem->GetIconRect(), pSettings->r_float(pItem->m_section_id, "icon_scale"));
-		//проверить можно ли разместить элемент,
-		//проверяем последовательно каждую клеточку
-		found_place = false;
-	
-		for(i=0; (i<height - iWH.y +1) && !found_place; ++i)
-		{
-			for(j=0; (j<width - iWH.x +1) && !found_place; ++j)
-			{
-				can_place = true;
-
-				for(k=0; (k<iWH.y) && can_place; ++k)
-				{
-					for(m=0; (m<iWH.x) && can_place; ++m)
-					{
-						if(ruck_room[(i+k)*width + (j+m)])
-								can_place =  false;
-					}
-				}
-			
-				if(can_place)
-				{
-					found_place=true;
-					place_row = i;
-					place_col = j;
-				}
-
-			}
-		}
-
-		//разместить элемент на найденном месте
-		if(found_place)
-		{
-			for(k=0; k<iWH.y; ++k)
-			{
-				for(m=0; m<iWH.x; ++m)
-				{
-					ruck_room[(place_row+k)*width + place_col+m] = true;
-				}
-			}
-		}
+		return							false;
 	}
 
-	// remove
-	item_list.erase	(std::remove(item_list.begin(),item_list.end(),_item),item_list.end());
-
-	//для какого-то элемента места не нашлось
-	if(!found_place) return false;
-
-	return true;
+	return								false;
 }
 
 const ui_shader& InventoryUtilities::GetBuyMenuShader()
@@ -652,41 +584,36 @@ u32	InventoryUtilities::GetRelationColor(ALife::ERelationType relation)
 #endif
 }
 
-Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, float icon_scale)
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, float icon_scale)
 {
-	Ivector2 res;
-	res.x = iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size);
-	res.y = iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size);
-	return res;
+	return								{
+		iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size),
+		iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size)
+	};
 }
 
-Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, float icon_scale, Frect& margin)
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, float icon_scale, Frect& margin)
 {
-	Ivector2 res = CalculateIconSize(icon_rect, icon_scale);
+	Ivector2 res						= CalculateIconSize(icon_rect, icon_scale);
 
-	float cell_width = float(res.x) * inv_grid_size;
-	float cell_height = float(res.y) * inv_grid_size;
-	margin.x1 = margin.x2 = .5f * (cell_width - icon_scale * icon_rect.width()) / cell_width;
-	margin.y1 = margin.y2 = .5f * (cell_height - icon_scale * icon_rect.height()) / cell_height;
+	float cell_width					= static_cast<float>(res.x) * inv_grid_size;
+	float cell_height					= static_cast<float>(res.y) * inv_grid_size;
+	margin.x1							= margin.x2 = .5f * (cell_width - icon_scale * icon_rect.width()) / cell_width;
+	margin.y1							= margin.y2 = .5f * (cell_height - icon_scale * icon_rect.height()) / cell_height;
 
-	return res;
+	return								res;
 }
 
-Ivector2 InventoryUtilities::CalculateIconSize(const Frect& icon_rect, Frect& margin, const Frect& addons_rect)
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect)
 {
-	Ivector2 res = CalculateIconSize(addons_rect, 1.f);
+	Ivector2 res						= CalculateIconSize(addons_rect, 1.f);
 
-	float cell_width = float(res.x) * inv_grid_size;
-	float cell_height = float(res.y) * inv_grid_size;
-	margin.left = (icon_rect.left - addons_rect.left + .5f * (cell_width - addons_rect.width())) / cell_width;
-	margin.top = (icon_rect.top - addons_rect.top + .5f * (cell_height - addons_rect.height())) / cell_height;
-	margin.right = (addons_rect.right - icon_rect.right + .5f * (cell_width - addons_rect.width())) / cell_width;
-	margin.bottom = (addons_rect.bottom - icon_rect.bottom + .5f * (cell_height - addons_rect.height())) / cell_height;
+	float cell_width					= static_cast<float>(res.x) * inv_grid_size;
+	float cell_height					= static_cast<float>(res.y) * inv_grid_size;
+	margin.left							= (icon_rect.left - addons_rect.left + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.top							= (icon_rect.top - addons_rect.top + .5f * (cell_height - addons_rect.height())) / cell_height;
+	margin.right						= (addons_rect.right - icon_rect.right + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.bottom						= (addons_rect.bottom - icon_rect.bottom + .5f * (cell_height - addons_rect.height())) / cell_height;
 
-	return res;
-}
-
-const float& InventoryUtilities::GetInvGridSize()
-{
-	return inv_grid_size;
+	return								res;
 }

@@ -20,8 +20,8 @@ class CUIInventoryCellItem :public CUICellItem
 {
 	typedef  CUICellItem	inherited;
 public:
-											CUIInventoryCellItem		(CInventoryItem* itm);
-											CUIInventoryCellItem		(shared_str section);
+											CUIInventoryCellItem		(CInventoryItem* item);
+											CUIInventoryCellItem		(shared_str section, Frect* rect = nullptr);
 	virtual		bool						EqualTo						(CUICellItem* itm);
 	virtual		void						UpdateItemText				();
 				CUIDragItem*				CreateDragItem				();
