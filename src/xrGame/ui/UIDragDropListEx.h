@@ -144,7 +144,7 @@ public:
 				void		OnDragEvent			(CUIDragItem* drag_item, bool b_receive);
 };
 
-class CUICellContainer :public CUIWindow
+class CUICellContainer : public CUIWindow
 {
 	friend class CUIDragDropListEx;
 	friend class CUIDragDropReferenceList;
@@ -207,5 +207,6 @@ protected:
 				void			ClearAll			(bool bDestroy);
 				void			clear_select_armament();
 
-
+private:
+	void								render_grid								(Irect CR$ tgt_cells, Ivector2 CR$ cell_size, Ivector2 CR$ cell_spacing, bool with_empty);
 };

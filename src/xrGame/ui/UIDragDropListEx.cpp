@@ -12,6 +12,9 @@
 
 CUIDragItem* CUIDragDropListEx::m_drag_item = NULL;
 
+constexpr bool grid_render = true;
+constexpr bool grid_render_empty = false;
+
 void CUICell::Clear()
 {
 	m_bMainItem = false;
@@ -427,9 +430,8 @@ int CUIDragDropListEx::ScrollPos()
 
 void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 {
-	if(m_container->AddSimilar(itm)){
+	if (m_container->AddSimilar(itm))
 		return;
-	}
 
 	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize());
 
@@ -495,6 +497,7 @@ void CUIDragDropListEx::clear_select_armament()
 {
 	m_container->clear_select_armament();
 }
+
 void CUIDragDropListEx::SetCellsVertAlignment(xr_string alignment)
 {
 	if(strchr(alignment.c_str(), 't'))
@@ -509,6 +512,7 @@ void CUIDragDropListEx::SetCellsVertAlignment(xr_string alignment)
 	}
 	m_virtual_cells_alignment.y = 1;
 }
+
 void CUIDragDropListEx::SetCellsHorizAlignment(xr_string alignment)
 {
 	if(strchr(alignment.c_str(), 'l'))
@@ -527,7 +531,7 @@ void CUIDragDropListEx::SetCellsHorizAlignment(xr_string alignment)
 Ivector2 CUIDragDropListEx::PickCell(const Fvector2& abs_pos) 
 {
 	return m_container->PickCell(abs_pos);
-};
+}
 
 CUICell& CUIDragDropListEx::GetCellAt(const Ivector2& pos) 
 {
@@ -875,140 +879,140 @@ void CUICellContainer::ClearAll(bool bDestroy)
 
 Ivector2 CUICellContainer::PickCell(const Fvector2& abs_pos)
 {
-	Ivector2 res;
-	Fvector2 ap;
-	GetAbsolutePos	(ap);
-	ap.sub			(abs_pos);
-	ap.mul			(-1);
-	res.x			= iFloor(ap.x/(CellSize().x+CellsSpacing().x*(m_cellsCapacity.x-1)/m_cellsCapacity.x));
-	res.y			= iFloor(ap.y/(CellSize().y+CellsSpacing().y*(m_cellsCapacity.y-1)/m_cellsCapacity.y));
-	if(!ValidCell(res))		
-		res.set(-1, -1);
-	return res;
+	Ivector2							res;
+	Fvector2							ap;
+	GetAbsolutePos						(ap);
+	ap.sub								(abs_pos);
+	ap.mul								(-1.f);
+	res.x								= iFloor(ap.x/(CellSize().x+CellsSpacing().x*(m_cellsCapacity.x-1)/m_cellsCapacity.x));
+	res.y								= iFloor(ap.y/(CellSize().y+CellsSpacing().y*(m_cellsCapacity.y-1)/m_cellsCapacity.y));
+	if (!ValidCell(res))
+		res.set							(-1.f, -1.f);
+	return								res;
 }
-
 
 void CUICellContainer::Draw()
 {
-	Frect clientArea;
+	Frect								clientArea;
 	m_pParentDragDropList->GetClientArea(clientArea);
 
-	Ivector2			cell_cnt = m_pParentDragDropList->CellsCapacity();
-	if					(cell_cnt.x==0 || cell_cnt.y==0)	return;
+	Ivector2 cell_cnt					= m_pParentDragDropList->CellsCapacity();
+	if (cell_cnt.x == 0 || cell_cnt.y == 0)
+		return;
+	
+	const Ivector2 cell_size			= CellSize();
+	const Ivector2 cell_spacing			= CellsSpacing();
+	Ivector2 cell_sz					= cell_size;
+	cell_sz.add							(cell_spacing);
 
-	Ivector2			cell_sz = CellSize();
-	cell_sz.add			(CellsSpacing());
+	Irect								tgt_cells;
+	tgt_cells.lt						= TopVisibleCell();
+	Fvector2 cell_szf					= { static_cast<float>(cell_sz.x), static_cast<float>(cell_sz.y) };
+	tgt_cells.x2						= iFloor((clientArea.width() + cell_szf.x - EPS) / cell_szf.x) + tgt_cells.lt.x;
+	tgt_cells.y2						= iFloor((clientArea.height() + cell_szf.y - EPS) / cell_szf.y) + tgt_cells.lt.y;
 
-	Irect				tgt_cells;
-	tgt_cells.lt		= TopVisibleCell();
-	tgt_cells.x2		= iFloor( (float(clientArea.width())+float(cell_sz.x)-EPS)/float(cell_sz.x)) + tgt_cells.lt.x;
-	tgt_cells.y2		= iFloor( (float(clientArea.height())+float(cell_sz.y)-EPS)/float(cell_sz.y)) + tgt_cells.lt.y;
+	clamp								(tgt_cells.x2, 0, cell_cnt.x - 1);
+	clamp								(tgt_cells.y2, 0, cell_cnt.y - 1);
 
-	clamp				(tgt_cells.x2, 0, cell_cnt.x-1);
-	clamp				(tgt_cells.y2, 0, cell_cnt.y-1);
-
-	Fvector2			lt_abs_pos;
-	GetAbsolutePos		(lt_abs_pos);
-
-	Fvector2					drawLT;
-	drawLT.set					(lt_abs_pos.x+tgt_cells.lt.x*(cell_sz.x+CellsSpacing().x), lt_abs_pos.y+tgt_cells.lt.y*(cell_sz.y+CellsSpacing().y));
-	UI().ClientToScreenScaled	(drawLT, drawLT.x, drawLT.y);
-
-	const Fvector2 pts[6] =		{{0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},
-								 {0.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f}};
-#define ty 1.0f
-#define tx 0.25f
-	const Fvector2 uvs[6] =		{{0.0f,0.0f},{tx,0.0f},{tx,ty},
-								 {0.0f,0.0f},{tx,ty},{0.0f,ty}};
-
-	// calculate cell size in screen pixels
-	Fvector2 f_len, sp_len;
-	UI().ClientToScreenScaled(f_len, float(CellSize().x), float(CellSize().y) );
-	UI().ClientToScreenScaled(sp_len, float(CellsSpacing().x), float(CellsSpacing().y) );
-
-	GetCellsInRange(tgt_cells,m_cells_to_draw);
+	GetCellsInRange						(tgt_cells, m_cells_to_draw);
 
 	// fill cell buffer
-	u32 max_prim_cnt = ((tgt_cells.width()+1)*(tgt_cells.height()+1)*6);
-	UIRender->StartPrimitive	(max_prim_cnt, IUIRender::ptTriList, UI().m_currentPointType);
+	u32 max_prim_cnt					= ((tgt_cells.width() + 1) * (tgt_cells.height() + 1) * 6);
+	UIRender->StartPrimitive			(max_prim_cnt, IUIRender::ptTriList, UI().m_currentPointType);
 
-//	u32 cell_i = 0;
-	for ( int x = 0; x <= tgt_cells.width(); ++x )
+	if (grid_render)
+		render_grid						(tgt_cells, cell_size, cell_spacing, grid_render_empty);
+
+	UI().PushScissor					(clientArea);
+
+	UIRender->SetShader					(*hShader);
+	UIRender->FlushPrimitive			();
+
+	//draw shown items in range
+	for (auto& cell : m_cells_to_draw) // all cells
+		if (!cell.Empty() && (cell.m_item->m_drawn_frame != Device.dwFrame))
+			cell.m_item->Draw			();
+
+	UI().PopScissor						();
+}
+
+void CUICellContainer::render_grid(Irect CR$ tgt_cells, Ivector2 CR$ cell_size, Ivector2 CR$ cell_spacing, bool with_empty)
+{
+	static const Fvector2 pts[6] =		{
+		{0.0f, 0.0f},	{1.0f, 0.0f},	{1.0f, 1.0f},
+		{0.0f, 0.0f},	{1.0f, 1.0f},	{0.0f, 1.0f}
+	};
+	static const float ty				= 1.f;
+	static const float tx				= .25f;
+	static const Fvector2 uvs[6]		= {
+		{0.0f, 0.0f},	{tx, 0.0f},		{tx, ty},
+		{0.0f, 0.0f},	{tx, ty},		{0.0f, ty}
+	};
+
+	Fvector2							lt_abs_pos;
+	GetAbsolutePos						(lt_abs_pos);
+
+	Fvector2 drawLT						= {
+		lt_abs_pos.x + static_cast<float>(tgt_cells.lt.x * (cell_size.x + 2 * cell_spacing.x)),
+		lt_abs_pos.y + static_cast<float>(tgt_cells.lt.y * (cell_size.y + 2 * cell_spacing.y))
+	};
+	UI().ClientToScreenScaled			(drawLT, drawLT.x, drawLT.y);
+
+	// calculate cell size in screen pixels
+	Fvector2							f_len, sp_len;
+	UI().ClientToScreenScaled(f_len, static_cast<float>(cell_size.x), static_cast<float>(cell_size.y) );
+	UI().ClientToScreenScaled(sp_len, static_cast<float>(cell_spacing.x), static_cast<float>(cell_spacing.y) );
+
+	for (int x = 0; x <= tgt_cells.width(); ++x)
 	{
-		for ( int y = 0; y <= tgt_cells.height(); ++y/*, ++cell_i*/ )
+		for (int y = 0; y <= tgt_cells.height(); ++y)
 		{
-			Fvector2			rect_offset;
-			rect_offset.set		( (drawLT.x + f_len.x*x + sp_len.x*x), (drawLT.y + f_len.y*y + sp_len.y*y) );
+			Ivector2 cpos				= { x, y };
+			cpos.add					(TopVisibleCell());
+			CUICell& ui_cell			= GetCellAt(cpos);
+			if (!with_empty && ui_cell.Empty())
+				continue;
 
-			Ivector2 cpos;
-			cpos.set( x, y );
-			cpos.add( TopVisibleCell() );
-			CUICell& ui_cell = GetCellAt( cpos );
-			
-			u8 select_mode			= 0;
+			u8 select_mode				= 0;
 			if (!ui_cell.Empty())
 			{
 				if (ui_cell.m_item->m_cur_mark)
-					select_mode		= 2;
+					select_mode			= 2;
 				else if (ui_cell.m_item->m_selected)
-					select_mode		= 1;
+					select_mode			= 1;
 				else if (ui_cell.m_item->m_select_armament)
-					select_mode		= 3;
+					select_mode			= 3;
 				else if (ui_cell.m_item->m_select_equipped)
-					select_mode		= 2;
+					select_mode			= 2;
 			}
-			
-			Fvector2			tp;
-			GetTexUVLT			(tp, tgt_cells.x1+x, tgt_cells.y1+y, select_mode);
 
-			//for (u32 k=0; k<6; ++k,++pv)
-			for ( u32 k = 0; k < 6; ++k )
+			Fvector2					tp;
+			GetTexUVLT					(tp, tgt_cells.x1 + x, tgt_cells.y1 + y, select_mode);
+
+			Fvector2 rect_offset		= {
+				drawLT.x + f_len.x * x + sp_len.x * x,
+				drawLT.y + f_len.y * y + sp_len.y * y
+			};
+
+			for (u32 k = 0; k < 6; ++k)
 			{
-				const Fvector2& p	= pts[k];
-				const Fvector2& uv	= uvs[k];
-				//pv->set			(iFloor(drawLT.x + p.x*(f_len.x) + f_len.x*x)-0.5f, 
-				//				 iFloor(drawLT.y + p.y*(f_len.y) + f_len.y*y)-0.5f, 
-				//				 0xFFFFFFFF,tp.x+uv.x,tp.y+uv.y);
-				UIRender->PushPoint(iFloor( rect_offset.x + p.x*(f_len.x) )-0.5f, 
-									iFloor( rect_offset.y + p.y*(f_len.y) )-0.5f,
-									0,
-									m_pParentDragDropList->back_color,
-									tp.x+uv.x, tp.y+uv.y);
-			}//for k
-		}//for y
-	}// for x
-	UI().PushScissor					(clientArea);
-
-	UIRender->SetShader( *hShader );
-	UIRender->FlushPrimitive();
-
-	//draw shown items in range
-	if ( m_cells_to_draw.size() )
-	{
-		UI_CELLS_VEC_IT it = m_cells_to_draw.begin();
-		for ( ; it != m_cells_to_draw.end(); ++it ) // all cells
-		{
-			CUICell& cell = (*it);
-			if ( !cell.Empty() && (cell.m_item->m_drawn_frame != Device.dwFrame) )
-			{
-				cell.m_item->Draw();
+				const Fvector2& p		= pts[k];
+				const Fvector2& uv		= uvs[k];
+				UIRender->PushPoint		(
+					iFloor(rect_offset.x + p.x * (f_len.x)) - 0.5f,
+					iFloor(rect_offset.y + p.y * (f_len.y)) - 0.5f,
+					0,
+					m_pParentDragDropList->back_color,
+					tp.x + uv.x, tp.y + uv.y
+				);
 			}
 		}
 	}
-
-	UI().PopScissor			();
 }
 
 void CUICellContainer::clear_select_armament()
 {
-	UI_CELLS_VEC_IT itb = m_cells.begin();
-	UI_CELLS_VEC_IT ite = m_cells.end();
-	for ( ; itb != ite; ++itb )
-	{
-		CUICell& cell = (*itb);
-		if ( cell.m_item )
-		{
+	for (auto& cell : m_cells)
+		if (cell.m_item)
 			cell.m_item->m_select_armament = false;
-		}
-	}
 }
