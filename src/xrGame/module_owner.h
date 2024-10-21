@@ -7,81 +7,69 @@ class CModuleOwner : public CSignalProcessor
 
 public:
 										CModuleOwner							(CGameObject* obj_) : obj(obj_)		{};
-										~CModuleOwner							()									{ xr_delete(m_modules); }
+										~CModuleOwner							()									{ for (auto& m : m_modules) xr_delete(m); }
 
 private:
-	xptr<CModule>*						m_modules								= nullptr;
-
-	void								check_modules							()		{ if (!m_modules) m_modules = xr_new<xptr<CModule>, CModule::mModuleTypesEnd>(nullptr); }
+	CModule*							m_modules[CModule::mModuleTypesEnd]		= {};
 
 public:
 	template <typename M, typename... Args>
-	void								addModule(Args&&... args)
-	{
-		check_modules();
-		m_modules[M::mid()].construct<M>(obj, _STD forward<Args>(args)...);
-	}
+	void								addModule								(Args&&... args) { m_modules[M::mid()] = xr_new<M>(obj, _STD forward<Args>(args)...); }
 
 	template <typename M>
 	M*									getModule							C$	()
 	{
-		if (m_modules)
-			if (auto& m = m_modules[M::mid()])
-				return					static_cast<M*>(m.get());
+		if (auto& m = m_modules[M::mid()])
+			return						static_cast<M*>(m);
 		return							nullptr;
 	}
 	
 	template <typename T>
-	void								emitSignal_(T&& functor)
+	void								emitSignal_								(T&& functor)
 	{
-		if (m_modules)
-			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-				if (auto& m = m_modules[i])
-					functor				(m.get());
+		for (auto& m : m_modules)
+			if (m)
+				functor					(m);
 		functor							(this);
 	}
 
 	template <typename T>
-	auto								emitSignalSum_(T&& functor)
+	auto								emitSignalSum_							(T&& functor)
 	{
 		auto res						= functor(this);
-		if (m_modules)
-			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-				if (auto& m = m_modules[i])
-					res					+= functor(m.get());
+		for (auto& m : m_modules)
+			if (m)
+				res						+= functor(m);
 		return							res;
 	}
 
 	template <typename T>
-	bool								emitSignalDis_(T&& functor)
+	bool								emitSignalDis_							(T&& functor)
 	{
 		bool res						= functor(this);
-		if (m_modules)
-			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-				if (auto& m = m_modules[i])
-					res					|= functor(m.get());
+		for (auto& m : m_modules)
+			if (m)
+				res						|= functor(m);
 		return							res;
 	}
 
 	template <typename T>
-	bool								emitSignalCon_(T&& functor)
+	bool								emitSignalCon_							(T&& functor)
 	{
 		bool res						= functor(this);
-		if (m_modules)
-			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-				if (auto& m = m_modules[i])
-					res					&= functor(m.get());
+		for (auto& m : m_modules)
+			if (m)
+				res						&= functor(m);
 		return							res;
 	}
 
 	template <typename T>
-	auto								emitSignalGet_(T&& functor)
+	auto								emitSignalGet_							(T&& functor)
 	{
-		if (m_modules)
-			for (int i = CModule::mModuleTypesBegin; i < CModule::mModuleTypesEnd; ++i)
-				if (auto& m = m_modules[i])
-					if (auto res = functor(m.get()))
-						return			res;
+		for (auto& m : m_modules)
+			if (m)
+				if (auto res = functor(m))
+					return				res;
 		return							functor(this);
 	}
 };
