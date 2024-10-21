@@ -282,6 +282,7 @@ DEFINE_VECTOR(xr_rtoken, RTokenVec, RTokenVecIt);
 #include "intrusive_ptr.h"
 
 #include "net_utils.h"
+#include "bench.h"
 
 // destructor
 template <class T>
