@@ -61,10 +61,8 @@ public:
 	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
 
 	bool 					InSlot				(const CInventoryItem* pIItem) const;
-	bool 					InRuck				(const CInventoryItem* pIItem) const;
 
 	bool 					CanPutInSlot		(PIItem pIItem, u16 slot_id) const;
-	bool 					CanPutInRuck		(PIItem pIItem) const;
 	bool 					CanPutInPocket		(PIItem pIItem, u16 pocket_id) const;
 	bool					PocketPresent		(u16 pocket_id) const;
 
@@ -208,7 +206,7 @@ private:
 	void				TryDeactivateActiveSlot	();
 
 private:
-	bool								process_item							(PIItem item, bool allow_external);
+	bool								process_item							(PIItem item);
 
 public:
 	void								emptyPockets							();

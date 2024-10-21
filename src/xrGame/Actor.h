@@ -151,15 +151,9 @@ public:
 			bool OnDialogSoundHandlerStart	(CInventoryOwner *inv_owner, LPCSTR phrase);
 			bool OnDialogSoundHandlerStop	(CInventoryOwner *inv_owner);
 
-
 	virtual void reinit			();
 	virtual void reload			(LPCSTR section);
 	virtual bool use_bolts		() const;
-
-	virtual void OnItemTake		(CInventoryItem *inventory_item);
-	
-	virtual void OnItemRuck		(CInventoryItem *inventory_item, const SInvItemPlace& previous_place);
-	virtual void OnItemBelt		(CInventoryItem *inventory_item, const SInvItemPlace& previous_place);
 	
 	virtual void OnItemDrop		(CInventoryItem *inventory_item, bool just_before_destroy);
 	virtual void OnItemDropUpdate ();

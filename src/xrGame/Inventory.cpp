@@ -192,7 +192,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 		break;
 	}
 
-	if (pIItem->CurrPlace() == eItemPlaceUndefined && !process_item(pIItem, false))
+	if (pIItem->CurrPlace() == eItemPlaceUndefined)
 		Ruck							(pIItem, strict_placement);
 	
 	m_pOwner->OnItemTake				(pIItem);
@@ -341,7 +341,7 @@ void CInventory::Slot(u16 slot_id, PIItem pIItem)
 
 bool CInventory::Ruck(PIItem pIItem, bool strict_placement) 
 {
-	if (!strict_placement && !CanPutInRuck(pIItem))
+	if (!strict_placement && m_ruck.contains(pIItem))
 		return							false;
 	
 	switch (pIItem->CurrPlace())
@@ -722,7 +722,11 @@ void CInventory::update_actors()
 			if (m_iReturnPlace == eItemPlaceSlot)
 			{
 				if (next_active_item && next_active_item->CurrSlot() == m_iReturnSlot)
-					Ruck				(next_active_item);
+				{
+					Ruck				(active_item);
+					Slot				(next_active_item->HandSlot(), next_active_item);
+					can_set				= false;
+				}
 				Slot					(m_iReturnSlot, active_item);
 			}
 			else
@@ -859,7 +863,7 @@ void CInventory::UpdateDropTasks()
 			UpdateDropItem				(itm);
 	
 	for (auto item : m_ruck)
-		if (!process_item(item, true))
+		if (!process_item(item))
 			UpdateDropItem				(item);
 
 	if (m_drop_last_frame)
@@ -869,7 +873,7 @@ void CInventory::UpdateDropTasks()
 	}
 }
 
-bool CInventory::process_item(PIItem item, bool allow_external)
+bool CInventory::process_item(PIItem item)
 {
 	if (!item->Weight())
 		return							false;
@@ -887,7 +891,7 @@ bool CInventory::process_item(PIItem item, bool allow_external)
 	if (item->BaseSlot() == PRIMARY_SLOT && trySlot(SECONDARY_SLOT, item))
 		return							true;
 
-	if (allow_external && Bag(item))
+	if (Bag(item))
 		return							true;
 
 	for (u8 i = 0; i < m_pockets_count; ++i)
@@ -900,13 +904,8 @@ bool CInventory::process_item(PIItem item, bool allow_external)
 		return							true;
 	}
 
-	if (allow_external)
-	{
-		item->O.transfer				(u16_max, true);
-		return							true;
-	}
-
-	return								false;
+	item->O.transfer					(u16_max, true);
+	return								true;
 }
 
 void CInventory::UpdateDropItem(PIItem pIItem)
@@ -1186,21 +1185,13 @@ bool CInventory::Eat(PIItem pIItem)
 
 	::luabind::functor<bool>	funct;
 	if (ai().script_engine().functor("_G.CInventory__eat", funct))
-	{
 		if (!funct(smart_cast<CGameObject*>(pItemToEat->H_Parent())->lua_game_object(), (smart_cast<CGameObject*>(pIItem))->lua_game_object()))
 			return false;
-	}
-	
-	if (Actor()->m_inventory.get() == this)
-	{
-		Actor()->callback(GameObject::eUseObject)((smart_cast<CGameObject*>(pIItem))->lua_game_object());
-		CurrentGameUI()->GetActorMenu().SetCurrentItem(NULL);
-	}
 
 	if (amt)
-		amt->Deplete();
+		amt->Deplete			();
 	else
-		pIItem->O.DestroyObject();
+		pIItem->O.DestroyObject	();
 
 	return true;
 }
@@ -1238,17 +1229,6 @@ bool CInventory::InSlot(const CInventoryItem* pIItem) const
 	return true;
 }
 
-bool CInventory::InRuck(const CInventoryItem* pIItem) const
-{
-	u16 id				= pIItem->object_id();
-	for (TIItemContainer::const_iterator it = m_ruck.begin(); m_ruck.end() != it; ++it)
-	{
-		if ((*it)->object_id() == id)
-			return		true;
-	}
-	return				false;
-}
-
 bool CInventory::CanPutInSlot(PIItem pIItem, u16 slot_id) const
 {
 	if (!m_bSlotsUseful || slot_id == NO_ACTIVE_SLOT || ItemFromSlot(slot_id))
@@ -1269,13 +1249,6 @@ bool CInventory::CanPutInSlot(PIItem pIItem, u16 slot_id) const
 		return						false;
 
 	return							true;
-}
-
-//проверяет можем ли поместить вещь в рюкзак,
-//при этом реально ничего не меняется
-bool CInventory::CanPutInRuck(PIItem pIItem) const
-{
-	return (!InRuck(pIItem));
 }
 
 bool CInventory::CanPutInPocket(PIItem pIItem, u16 pocket_id) const
@@ -1301,7 +1274,7 @@ void CInventory::emptyPockets()
 {
 	for (auto& pocket : m_pockets)
 		for (auto item : pocket)
-			process_item				(item, true);
+			process_item				(item);
 }
 
 u32	CInventory::dwfGetObjectCount()

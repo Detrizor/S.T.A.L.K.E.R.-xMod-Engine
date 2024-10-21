@@ -438,17 +438,6 @@ void CInventoryOwner::OnItemDropUpdate()
 {
 }
 
-void CInventoryOwner::OnItemBelt(CInventoryItem *inventory_item, const SInvItemPlace& previous_place)
-{
-	/* avo: script callback */
-#ifdef EXTENDED_ITEM_CALLBACKS
-	CGameObject	*object = smart_cast<CGameObject*>(this);
-	VERIFY(object);
-	object->callback(GameObject::eItemToBelt)(inventory_item->object().lua_game_object());
-#endif
-	/* avo: end */
-}
-
 void CInventoryOwner::OnItemRuck(CInventoryItem *inventory_item, const SInvItemPlace& previous_place)
 {
 	/* avo: script callback */

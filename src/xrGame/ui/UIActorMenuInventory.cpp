@@ -606,7 +606,7 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 		b_show							= true;
 	}
 
-	if (item->Ruck() && m_pActorInv->CanPutInRuck(item) && (item->CurrSlot() != NO_ACTIVE_SLOT || m_currMenuMode == mmDeadBodySearch) && !item->isGear(true))
+	if ((item->CurrSlot() != NO_ACTIVE_SLOT || m_currMenuMode == mmDeadBodySearch) && !item->isGear(true))
 	{
 		m_UIPropertiesBox->AddItem		("st_move_to_ruck", NULL, INVENTORY_TO_BAG_ACTION);
 		b_show							= true;

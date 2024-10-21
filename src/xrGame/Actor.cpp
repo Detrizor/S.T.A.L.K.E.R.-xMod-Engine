@@ -1540,12 +1540,6 @@ ALife::_TIME_ID	 CActor::TimePassedAfterDeath()	const
 		return 0;
 }
 
-void CActor::OnItemTake(CInventoryItem *inventory_item)
-{
-	CInventoryOwner::OnItemTake(inventory_item);
-	if (OnClient()) return;
-}
-
 void CActor::OnItemDrop(CInventoryItem *inventory_item, bool just_before_destroy)
 {
 	CInventoryOwner::OnItemDrop(inventory_item, just_before_destroy);
@@ -1565,17 +1559,6 @@ void CActor::OnItemDropUpdate()
 	for (; I != E; ++I)
 	if (!(*I)->IsInvalid() && !attached(*I))
 		attach(*I);
-}
-
-
-void CActor::OnItemRuck(CInventoryItem *inventory_item, const SInvItemPlace& previous_place)
-{
-	CInventoryOwner::OnItemRuck(inventory_item, previous_place);
-}
-
-void CActor::OnItemBelt(CInventoryItem *inventory_item, const SInvItemPlace& previous_place)
-{
-	CInventoryOwner::OnItemBelt(inventory_item, previous_place);
 }
 
 #define ARTEFACTS_UPDATE_TIME 0.100f

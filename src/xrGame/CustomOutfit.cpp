@@ -131,6 +131,7 @@ float CCustomOutfit::GetBoneArmorLevel(s16 element)
 #include "ui/UIActorMenu.h"
 void CCustomOutfit::OnMoveToSlot(const SInvItemPlace& prev)
 {
+	inherited::OnMoveToSlot(prev);
 	if (m_pInventory)
 	{
 		CActor* pActor = smart_cast<CActor*>(H_Parent());
@@ -205,6 +206,7 @@ void CCustomOutfit::ApplySkinModel(CActor* pActor, bool bDress, bool bHUDOnly)
 
 void CCustomOutfit::OnMoveToRuck(const SInvItemPlace& prev)
 {
+	inherited::OnMoveToRuck(prev);
 	if (m_pInventory && prev.type == eItemPlaceSlot)
 	{
 		CActor* pActor = smart_cast<CActor*> (H_Parent());

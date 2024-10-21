@@ -78,17 +78,15 @@ protected:
 	enum EIIFlags{				FdropManual			=(1<<0),
 								FCanTake			=(1<<1),
 								FCanTrade			=(1<<2),
-								Fbelt				=(1<<3),
-								Fruck				=(1<<4),
-								FUsingCondition		=(1<<5),
-								FAllowSprint		=(1<<6),
-								Fuseful_for_NPC		=(1<<7),
-								FInInterpolation	=(1<<8),
-								FInInterpolate		=(1<<9),
-								FIsQuestItem		=(1<<10),
-								FIsHelperItem		=(1<<11),
-								FCanStack			=(1<<12),
-								FShowFullCondition	=(1<<13)
+								FUsingCondition		=(1<<3),
+								FAllowSprint		=(1<<4),
+								Fuseful_for_NPC		=(1<<5),
+								FInInterpolation	=(1<<6),
+								FInInterpolate		=(1<<7),
+								FIsQuestItem		=(1<<8),
+								FIsHelperItem		=(1<<9),
+								FCanStack			=(1<<10),
+								FShowFullCondition	=(1<<11)
 	};
 
 	Flags16						m_flags;
@@ -145,9 +143,8 @@ public:
 
 	SInvItemPlace				m_ItemCurrPlace;
 
-	virtual void				OnMoveToSlot		(const SInvItemPlace& prev) {};
-	virtual void				OnMoveToBelt		(const SInvItemPlace& prev) {};
-	virtual void				OnMoveToRuck		(const SInvItemPlace& prev) {};
+	virtual void				OnMoveToSlot		(SInvItemPlace CR$ prev) {}
+	virtual void				OnMoveToRuck		(SInvItemPlace CR$ prev) {}
 					
 	virtual	Frect				GetIconRect			() const;
 			Irect				GetUpgrIconRect		() const;
@@ -167,9 +164,6 @@ public:
 			u16					CurrPlace			()  const					{return m_ItemCurrPlace.type;}
 
 			bool				InHands				()	const;
-
-			bool				Ruck				()							{return !!m_flags.test(Fruck);}
-			void				Ruck				(bool on_ruck)				{m_flags.set(Fruck,on_ruck);}
 			
 	virtual bool				CanTake				() const					{return !!m_flags.test(FCanTake);}
 			bool				CanTrade			() const;

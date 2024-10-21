@@ -29,6 +29,9 @@
 
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
+#include "uigamecustom.h"
+#include "ui/UIActorMenu.h"
+
 #include "item_container.h"
 #include "addon.h"
 #include "addon_owner.h"
@@ -70,7 +73,6 @@ net_updateInvData* CInventoryItem::NetSync()
 CInventoryItem::CInventoryItem(CGameObject* obj) : O(*obj)
 {
 	m_net_updateData = NULL;
-	m_flags.set(Fruck, TRUE);
 	m_pInventory = NULL;
 
 	SetDropManual(FALSE);
@@ -280,9 +282,9 @@ void CInventoryItem::UpdateCL()
 			Device.seqRender.Remove(this);
 		}
 	}
-
 #endif
-
+	if (!m_icon_valid)
+		setup_icon();
 }
 
 void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
@@ -345,7 +347,10 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 void CInventoryItem::net_Destroy()
 {
 	if (m_pInventory)
-		VERIFY(std::find(m_pInventory->m_all.begin(), m_pInventory->m_all.end(), this) == m_pInventory->m_all.end());
+		VERIFY(!m_pInventory->m_all.contains(this));
+	auto& actor_menu = CurrentGameUI()->GetActorMenu();
+	if (actor_menu.CurrentItem() == m_icon.get())
+		actor_menu.SetCurrentItem(nullptr);
 }
 
 void CInventoryItem::save(NET_Packet &packet)
@@ -760,86 +765,89 @@ bool CInventoryItem::InHands() const
 
 float CInventoryItem::readBaseCost(LPCSTR section, bool for_sale)
 {
-	float							cost;
-	bool							from_costs;
+	float								cost;
+	bool								from_costs;
 	if (from_costs = pSettings->line_exist("costs", section))
-		cost						= pSettings->r_float("costs", section);
+		cost							= pSettings->r_float("costs", section);
 	else
-		cost						= pSettings->r_float(section, "cost");
+		cost							= pSettings->r_float(section, "cost");
 	
 	if (from_costs != for_sale)
 	{
-		auto supplies				= READ_IF_EXISTS(pSettings, r_string, section, "supplies", 0);
+		auto supplies					= READ_IF_EXISTS(pSettings, r_string, section, "supplies", 0);
 		if (supplies && supplies[0])
 		{
 			if (auto count = READ_IF_EXISTS(pSettings, r_u16, section, "supplies_count", 0))
 			{
-				float scost			= count * readBaseCost(supplies);
-				cost				+= (from_costs) ? -scost : scost;
+				float scost				= count * readBaseCost(supplies);
+				cost					+= (from_costs) ? -scost : scost;
 			}
 			else
 			{
-				string128			sect;
+				string128				sect;
 				for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
 				{
-					_GetItem		(supplies, i, sect);
-					float scost		= readBaseCost(sect);
-					cost			+= (from_costs) ? -scost : scost;
+					_GetItem			(supplies, i, sect);
+					float scost			= readBaseCost(sect);
+					cost				+= (from_costs) ? -scost : scost;
 				}
 			}
-			R_ASSERT2				(cost > 0.f, section);
+			R_ASSERT2					(cost > 0.f, section);
 		}
 	}
 
 	if (pSettings->line_exist(section, "cost_factor"))
-		cost						*= pSettings->r_float(section, "cost_factor");
+		cost							*= pSettings->r_float(section, "cost_factor");
 
-	return							cost;
+	return								cost;
 }
 
 void CInventoryItem::readIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
 {
-	Fvector4 icon_rect				= pSettings->r_fvector4(section, "inv_icon");
+	Fvector4 icon_rect					= pSettings->r_fvector4(section, "inv_icon");
 	if (type)
 	{
-		shared_str					tmp;
-		tmp.printf					("inv_icon_%d", type);
+		shared_str						tmp;
+		tmp.printf						("inv_icon_%d", type);
 		if (pSettings->line_exist(section, *tmp))
-			icon_rect				= pSettings->r_fvector4(section, *tmp);
+			icon_rect					= pSettings->r_fvector4(section, *tmp);
 		else
-			icon_rect.x				+= type * icon_rect.z;
+			icon_rect.x					+= type * icon_rect.z;
 	}
 
 	if (idx)
-		icon_rect.y					+= idx * pSettings->r_u16(section, "icon_index_step");
+		icon_rect.y						+= idx * pSettings->r_u16(section, "icon_index_step");
 
-	destination.set					(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
+	destination.set						(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
 }
 
 LPCSTR CInventoryItem::readName(shared_str CR$ section)
 {
 	if (pSettings->line_exist(section, "inv_name"))
-		return						CStringTable().translate(pSettings->r_string(section, "inv_name")).c_str();
-	return							CStringTable().translate(shared_str().printf("st_%s_name", *section)).c_str();
+		return							CStringTable().translate(pSettings->r_string(section, "inv_name")).c_str();
+	return								CStringTable().translate(shared_str().printf("st_%s_name", *section)).c_str();
 }
 
 LPCSTR CInventoryItem::readNameShort(shared_str CR$ section)
 {
 	if (pSettings->line_exist(section, "inv_name_short"))
-		return						CStringTable().translate(pSettings->r_string(section, "inv_name_short")).c_str();
+		return							CStringTable().translate(pSettings->r_string(section, "inv_name_short")).c_str();
 
-	shared_str						tmp;
-	tmp.printf						("st_%s_name_s", *section);
+	shared_str							tmp;
+	tmp.printf							("st_%s_name_s", *section);
 	if (CStringTable().exists(tmp))
-		return						CStringTable().translate(tmp).c_str();
+		return							CStringTable().translate(tmp).c_str();
 
-	return							readName(section);
+	return								readName(section);
 }
 
 void CInventoryItem::swapIcon(PIItem item)
 {
-	_STD swap						(m_icon, item->m_icon);
-	_STD swap						(m_icon->m_pData, item->m_icon->m_pData);
+	if (this)
+	{
+		_STD swap						(m_icon, item->m_icon);
+		_STD swap						(m_icon->m_pData, item->m_icon->m_pData);
+	}
 }
 
 void CInventoryItem::SetInvIconType(u8 type)
