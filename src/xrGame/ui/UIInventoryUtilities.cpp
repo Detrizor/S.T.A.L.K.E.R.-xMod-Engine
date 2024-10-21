@@ -102,8 +102,13 @@ void InventoryUtilities::DestroyShaders()
 
 bool InventoryUtilities::GreaterRoomInRuck(PIItem item1, PIItem item2)
 {
-	auto& r1							= item1->getIcon()->GetGridSize();
-	auto& r2							= item2->getIcon()->GetGridSize();
+	return								greaterRoomInRuck(item1->getIcon(), item2->getIcon());
+}
+
+bool InventoryUtilities::greaterRoomInRuck(CUICellItem* itm1, CUICellItem* itm2)
+{
+	auto& r1							= itm1->GetGridSize();
+	auto& r2							= itm2->GetGridSize();
 
 	if (r1.x > r2.x)
 		return							true;
@@ -115,10 +120,16 @@ bool InventoryUtilities::GreaterRoomInRuck(PIItem item1, PIItem item2)
 		
 		if (r1.y == r2.y)
 		{
-			if (item1->object().cNameSect() == item2->object().cNameSect())
-				return					(item1->object().ID() > item2->object().ID());
+			if (itm1->m_section == itm2->m_section)
+			{
+				if (auto item1 = static_cast<PIItem>(itm1->m_pData))
+					if (auto item2 = static_cast<PIItem>(itm2->m_pData))
+						return			(item1->object().ID() > item2->object().ID());
+
+				return					(itm1 > itm2);
+			}
 			else
-				return					(item1->object().cNameSect() > item2->object().cNameSect());
+				return					(itm1->m_section > itm2->m_section);
 
 		}
 

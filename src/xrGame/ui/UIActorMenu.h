@@ -291,7 +291,7 @@ protected:
 	float						CalcItemsVolume				(CUIDragDropListEx* pList);
 	u32							CalcItemsPrice				(CUIDragDropListEx* pList, CTrade* pTrade, bool bBuying);
 	bool						CanMoveToPartner			(PIItem pItem, shared_str* reason = NULL);
-	void						TransferItems				(CUIDragDropListEx* pSellList, CUIDragDropListEx* pBuyList, CTrade* pTrade, bool bBuying);
+	void						TransferItems				(CUIDragDropListEx* trade_list, CTrade* pTrade, bool bBuying);
 
 public:
 								CUIActorMenu				();
@@ -351,6 +351,8 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
+	xr_vector<CUICellItem*>				m_partner_trade_list					= {};
+
 	void								pickup_item								(PIItem	item, eItemPlace place = eItemPlaceUndefined, u16 idx = 0);
 	void								init_dead_body_bag						();
 	void								init_bag								();

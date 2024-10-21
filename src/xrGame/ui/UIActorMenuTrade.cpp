@@ -172,6 +172,14 @@ void CUIActorMenu::DeInitTradeMode()
 	if (m_pActorInv)
 		while (!m_pActorInv->getTradeContainer().empty())
 			m_pActorInv->Ruck			(m_pActorInv->getTradeContainer().back());
+
+	if (m_pPartnerInvOwner)
+	{
+		m_partner_trade_list.clear		();
+		auto& cont						= m_pPartnerInvOwner->inventory().getTradeContainer();
+		while (!cont.empty())
+			m_pPartnerInvOwner->inventory().Ruck(cont.back());
+	}
 }
 
 bool CUIActorMenu::ToActorTrade(CUICellItem* itm, bool b_use_cursor_pos)
@@ -193,9 +201,14 @@ bool CUIActorMenu::ToPartnerTrade(CUICellItem* itm, bool b_use_cursor_pos)
 {
 	if (m_pPartnerInvOwner->AllowItemToTrade(itm->m_section, SInvItemPlace()))
 	{
-		PIItem item						= static_cast<PIItem>(itm->m_pData);
-		m_pTradePartnerList->SetItem	((item) ? item->getIcon() : create_cell_item_from_section(itm->m_section));
-		update_partner_trade			();
+		if (auto item = static_cast<PIItem>(itm->m_pData))
+		{
+			m_pPartnerInvOwner->inventory().toTrade(item);
+			m_partner_trade_list.push_back(item->getIcon());
+		}
+		else
+			m_partner_trade_list.emplace_back(create_cell_item_from_section(itm->m_section));
+		m_pTradePartnerList->setValid	(false);
 		return							true;
 	}
 	return								false;
@@ -203,9 +216,13 @@ bool CUIActorMenu::ToPartnerTrade(CUICellItem* itm, bool b_use_cursor_pos)
 
 bool CUIActorMenu::ToPartnerTradeBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	CUICellItem* removed_cell			= itm->OwnerList()->RemoveItem(itm, false);
+	if (auto item = static_cast<PIItem>(itm->m_pData))
+		m_pPartnerInvOwner->inventory().Ruck(item);
+
+	m_partner_trade_list.erase_data		(itm);
+	CUICellItem* removed_cell			= m_pTradePartnerList->RemoveItem(itm, false);
 	removed_cell->destroy				();
-	update_partner_trade				();
+	m_pTradePartnerList->setValid		(false);
 	return								true;
 }
 
@@ -351,113 +368,70 @@ void CUIActorMenu::UpdateActor()
 void CUIActorMenu::UpdatePartnerBag()
 {
 	if (m_pPartnerInvOwner->InfinitiveMoney())
-		m_PartnerMoney->SetText		("---");
+		m_PartnerMoney->SetText			("---");
 	else
-		m_PartnerMoney->SetText		(FormatMoney(m_pPartnerInvOwner->get_money()));
+		m_PartnerMoney->SetText			(FormatMoney(m_pPartnerInvOwner->get_money()));
 }
 
 void CUIActorMenu::OnBtnPerformTradeBuy(CUIWindow* w, void* d)
 {
-	if(m_pTradePartnerList->ItemsCount()==0) 
-	{
+	if (!m_pTradePartnerList->ItemsCount())
 		return;
-	}
 
-	int actor_money    = (int)m_pActorInvOwner->get_money();
-	int partner_money  = (int)m_pPartnerInvOwner->get_money();
-	int actor_price    = 0;//(int)CalcItemsPrice( m_pTradeActorList,   m_partner_trade, true  );
-	int partner_price  = (int)CalcItemsPrice( m_pTradePartnerList, m_partner_trade, false );
-
-	int delta_price    = actor_price - partner_price;
-	actor_money        += delta_price;
-	partner_money      -= delta_price;
-
-	if ( ( actor_money >= 0 ) /*&& ( partner_money >= 0 )*/ && ( actor_price >= 0 || partner_price > 0 ) )
-	{
-		m_partner_trade->OnPerformTrade( partner_price, actor_price );
-
-//		TransferItems( m_pTradeActorList,   m_pTradePartnerBagList, m_partner_trade, true );
-		TransferItems( m_pTradePartnerList,	m_pTradeActorBagList,	m_partner_trade, false );
-	}
+	u32 actor_money						= m_pActorInvOwner->get_money();
+	u32 partner_price					= CalcItemsPrice(m_pTradePartnerList, m_partner_trade, false);
+	if (actor_money < partner_price)
+		CallMessageBoxOK				("not_enough_money_actor");
 	else
 	{
-		if (actor_money < 0)
-			CallMessageBoxOK("not_enough_money_actor");
-		else
-			CallMessageBoxOK("trade_dont_make");
+		m_partner_trade->OnPerformTrade	(partner_price, 0);
+		TransferItems					(m_pTradePartnerList, m_partner_trade, false);
+		m_partner_trade_list.clear		();
 	}
-	SetCurrentItem					( NULL );
 
-	UpdateActor();
-	UpdatePartnerBag();
+	UpdateActor							();
+	UpdatePartnerBag					();
+	SetCurrentItem						(nullptr);
 }
 
 void CUIActorMenu::OnTradeList(CUIWindow* w, void* d)
 {
-	u32 idx							= m_trade_list->GetSelectedIDX();
-	luabind::functor<void>			funct;
-	ai().script_engine().functor	("trade_manager.update_supplies", funct);
-	funct							(m_pPartnerInvOwner->object_id(), idx);
+	u32 idx								= m_trade_list->GetSelectedIDX();
+	luabind::functor<void>				funct;
+	ai().script_engine().functor		("trade_manager.update_supplies", funct);
+	funct								(m_pPartnerInvOwner->object_id(), idx);
 }
 
 void CUIActorMenu::OnBtnPerformTradeSell(CUIWindow* w, void* d)
 {
-	if ( m_pTradeActorList->ItemsCount() == 0 ) 
-	{
+	if (!m_pTradeActorList->ItemsCount())
 		return;
-	}
 
-	int actor_money    = (int)m_pActorInvOwner->get_money();
-	int partner_money  = (int)m_pPartnerInvOwner->get_money();
-	int actor_price    = (int)CalcItemsPrice( m_pTradeActorList,   m_partner_trade, true  );
-	int partner_price  = 0;//(int)CalcItemsPrice( m_pTradePartnerList, m_partner_trade, false );
-
-	int delta_price    = actor_price - partner_price;
-	actor_money        += delta_price;
-	partner_money      -= delta_price;
-
-	if ( ( actor_money >= 0 ) && ( partner_money >= 0 ) && ( actor_price >= 0 || partner_price > 0 ) )
-	{
-		m_partner_trade->OnPerformTrade( partner_price, actor_price );
-
-		TransferItems( m_pTradeActorList,   m_pTradePartnerBagList, m_partner_trade, true );
-//		TransferItems( m_pTradePartnerList,	m_pTradeActorBagList,	m_partner_trade, false );
-	}
+	u32 partner_money					= m_pPartnerInvOwner->get_money();
+	u32 actor_price						= CalcItemsPrice( m_pTradeActorList, m_partner_trade, true);
+	if (partner_money < actor_price)
+		CallMessageBoxOK				("not_enough_money_partner");
 	else
 	{
-/*		if ( actor_money < 0 )
-		{
-			CallMessageBoxOK( "not_enough_money_actor" );
-		}
-		else */if ( partner_money < 0 )
-		{
-			CallMessageBoxOK( "not_enough_money_partner" );
-		}
-		else
-		{
-			CallMessageBoxOK( "trade_dont_make" );
-		}
+		m_partner_trade->OnPerformTrade	(0, actor_price);
+		TransferItems					(m_pTradeActorList, m_partner_trade, true);
 	}
-	SetCurrentItem					( NULL );
-
-	UpdateActor();
-	UpdatePartnerBag();
+	
+	UpdateActor							();
+	UpdatePartnerBag					();
+	SetCurrentItem						(nullptr);
 }
 
-void CUIActorMenu::TransferItems(CUIDragDropListEx* pSellList, CUIDragDropListEx* pBuyList, CTrade* pTrade, bool bBuying)
+void CUIActorMenu::TransferItems(CUIDragDropListEx* trade_list, CTrade* pTrade, bool bBuying)
 {
-	bool trader								= !!smart_cast<CAI_Trader*>(m_pPartnerInvOwner);
-	while (pSellList->ItemsCount())
+	while (trade_list->ItemsCount())
 	{
-		CUICellItem* cell_item				= pSellList->RemoveItem(pSellList->GetItemIdx(0), false);
-		pTrade->TransferItem				(cell_item, bBuying);
-		if (trader && !bBuying)
-			cell_item->destroy				();
-		else
-			pBuyList->SetItem				(cell_item);
+		CUICellItem* cell_item			= trade_list->RemoveItem(trade_list->GetItemIdx(0), false);
+		pTrade->TransferItem			(cell_item, bBuying);
+		cell_item->destroy				();
 	}
-	pTrade->pThis.inv_owner->set_money		(pTrade->pThis.inv_owner->get_money(), true);
-	pTrade->pPartner.inv_owner->set_money	(pTrade->pPartner.inv_owner->get_money(), true);
+	pTrade->pThis.inv_owner->set_money	(pTrade->pThis.inv_owner->get_money(), true);
+	pTrade->pPartner.inv_owner->set_money(pTrade->pPartner.inv_owner->get_money(), true);
 }
 
 //Alundaio: Donate current item while in trade menu
@@ -497,13 +471,8 @@ void CUIActorMenu::init_actor_trade()
 {
 	TIItemContainer items_list			= m_pActorInv->getTradeContainer();
 	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
-
 	for (auto& item : items_list)
-	{
-		CUICellItem* itm				= item->getIcon();
-		m_pTradeActorList->SetItem		(itm);
-		ColorizeItem					(itm);
-	}
+		m_pTradeActorList->SetItem		(item->getIcon());
 
 	u32 actor_price						= CalcItemsPrice(m_pTradeActorList, m_partner_trade, true);
 	m_ActorTradePrice->SetText			(FormatMoney(actor_price));
@@ -526,6 +495,10 @@ void CUIActorMenu::init_actor_trade()
 
 void CUIActorMenu::update_partner_trade()
 {
+	_STD sort							(m_partner_trade_list.begin(), m_partner_trade_list.end(), InventoryUtilities::greaterRoomInRuck);
+	for (auto itm : m_partner_trade_list)
+		m_pTradePartnerList->SetItem	(itm);
+
 	u32 partner_price					= CalcItemsPrice(m_pTradePartnerList, m_partner_trade, false);
 	m_PartnerTradePrice->SetText		(FormatMoney(partner_price));
 	m_PartnerTradePrice->AdjustWidthToText();

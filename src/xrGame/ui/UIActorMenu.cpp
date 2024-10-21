@@ -303,6 +303,9 @@ void CUIActorMenu::update_lists(bool clear)
 	if (!m_pTradeActorList->isValid())
 		(clear) ? m_pTradeActorList->ClearAll(true) : init_actor_trade();
 
+	if (!m_pTradePartnerList->isValid())
+		(clear) ? m_pTradePartnerList->ClearAll(false) : update_partner_trade();
+
 	if (!m_pTrashList->isValid())
 		(clear) ? m_pTrashList->ClearAll(true) : init_vicinity();
 

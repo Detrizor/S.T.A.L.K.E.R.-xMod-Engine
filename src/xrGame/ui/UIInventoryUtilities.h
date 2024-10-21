@@ -27,7 +27,8 @@ namespace InventoryUtilities
 {
 //сравнивает элементы по пространству занимаемому ими в рюкзаке
 //для сортировки
-bool GreaterRoomInRuck	(PIItem item1, PIItem item2);
+bool GreaterRoomInRuck(PIItem item1, PIItem item2);
+bool greaterRoomInRuck(CUICellItem* itm1, CUICellItem* itm2);
 // get shader for BuyWeaponWnd
 const ui_shader&	GetBuyMenuShader();
 //получить shader на иконки инвенторя
