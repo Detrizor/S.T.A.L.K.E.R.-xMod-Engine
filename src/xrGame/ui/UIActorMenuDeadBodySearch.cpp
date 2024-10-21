@@ -84,6 +84,9 @@ void CUIActorMenu::init_dead_body_bag()
 	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
 	for (auto& item : items_list)
 		m_pDeadBodyBagList->SetItem		(item->getIcon());
+	
+	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->m_pContainer : m_pContainer);
+	//InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 
 	m_pDeadBodyBagList->setValid		(true);
 }
@@ -125,14 +128,7 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 	item->O.transfer				((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->O.ID()));
 	
-	UpdateDeadBodyBag				();
 	return							true;
-}
-
-void CUIActorMenu::UpdateDeadBodyBag()
-{
-	InventoryUtilities::UpdateLabelsValues(m_PartnerWeight, m_PartnerVolume, m_pPartnerInvOwner, (m_pInvBox) ? m_pInvBox->m_pContainer : m_pContainer);
-	//InventoryUtilities::AlighLabels(m_PartnerWeightInfo, m_PartnerWeight, m_PartnerVolumeInfo, m_PartnerVolume);
 }
 
 void CUIActorMenu::TakeAllFromPartner(CUIWindow* w, void* d)

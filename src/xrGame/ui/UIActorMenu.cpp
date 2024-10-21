@@ -24,7 +24,6 @@
 #include "../WeaponKnife.h"
 #include "../WeaponPistol.h"
 
-#include "UIProgressBar.h"
 #include "UICursor.h"
 #include "UICellItem.h"
 #include "UICharacterInfo.h"
@@ -101,12 +100,15 @@ void CUIActorMenu::SetContainer(MContainer* ciitem)
 
 void CUIActorMenu::SetBag(MContainer* bag)
 {
-	CUIDragDropListEx* pBagList			= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
-	if (!bag)
-		pBagList->ClearAll				(true);
-
 	m_pBag								= bag;
-	pBagList->Show						(!!m_pBag);
+	CUIDragDropListEx* pBagList			= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
+
+	bool status							= !!m_pBag;
+	pBagList->Show						(status);
+	m_ActorWeightInfo->Show				(status);
+	m_ActorWeight->Show					(status);
+	m_ActorVolumeInfo->Show				(status);
+	m_ActorVolume->Show					(status);
 }
 
 void CUIActorMenu::StartMenuMode(EMenuMode mode, void* partner)
@@ -193,7 +195,6 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 			break;
 		}
 
-		UpdateConditionProgressBars		();
 		CurModeToScript					();
 	}
 
@@ -202,7 +203,6 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 		UpdateOutfit					();
 		UpdateActor						();
 	}
-	UpdateButtonsLayout					();
 
 	if (m_currMenuMode == mmUndefined)
 		GamePersistent().RestoreEffectorDOF();
@@ -311,17 +311,12 @@ void CUIActorMenu::update_lists(bool clear)
 
 void CUIActorMenu::ToggleBag(MContainer* bag)
 {
-	if (m_pBag == bag)
-		return;
-
-	SetBag								(bag);
-	if (!bag || m_currMenuMode == mmUndefined)
+	if (m_pBag != bag)
 	{
-		UpdateActor						();
-		return;
+		SetBag							(bag);
+		if (bag && m_currMenuMode != mmUndefined)
+			init_bag					();
 	}
-
-	init_bag							();
 }
 
 void CUIActorMenu::init_bag()
@@ -337,6 +332,9 @@ void CUIActorMenu::init_bag()
 		bag_list->SetItem				(itm);
 		ColorizeItem					(itm);
 	}
+	
+	InventoryUtilities::UpdateLabelsValues(m_ActorWeight, m_ActorVolume, nullptr, m_pBag);
+	//InventoryUtilities::AlighLabels(m_ActorWeightInfo, m_ActorWeight, m_ActorVolumeInfo, m_ActorVolume);
 
 	bag_list->setValid					(true);
 }
@@ -457,34 +455,6 @@ void CUIActorMenu::InfoCurItem(CUICellItem* cell_item)
 		m_ItemInfo->InitItem			(cell_item, u32(-1));
 
 	fit_in_rect							(m_ItemInfo, Frect().set( 0.0f, 0.0f, UI_BASE_WIDTH, UI_BASE_HEIGHT ), 10.f, 0.f);
-}
-
-void CUIActorMenu::UpdateItemsPlace()
-{
-	switch (m_currMenuMode)
-	{
-	case mmUndefined:
-	case mmInventory:
-		break;
-	case mmTrade:
-		UpdatePrices();
-		break;
-	case mmUpgrade:
-		SetupUpgradeItem();
-		break;
-	case mmDeadBodySearch:
-		UpdateDeadBodyBag();
-		break;
-	default:
-		R_ASSERT(0);
-		break;
-	}
-
-	if (m_pActorInvOwner)
-	{
-		UpdateOutfit();
-		UpdateActor();
-	}
 }
 
 // ================================================================
@@ -716,43 +686,4 @@ bool CUIActorMenu::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& ret_
 	}
 
 	return false;
-}
-void CUIActorMenu::UpdateConditionProgressBars()
-{
-	for (u8 i = 1; i <= m_slot_count; ++i)
-	{
-		PIItem itm = m_pActorInvOwner->inventory().ItemFromSlot(i);
-		if (m_pInvSlotProgress[i])
-			m_pInvSlotProgress[i]->SetProgressPos(itm ? itm->GetCondition() : 0.f);
-	}
-
-	//Highlight 'equipped' items in actor bag
-	CUIDragDropListEx* slot_list = m_pInventoryBagList;
-	u32 const cnt = slot_list->ItemsCount();
-	for (u32 i = 0; i < cnt; ++i)
-	{
-		CUICellItem* ci = slot_list->GetItemIdx(i);
-		PIItem item = (PIItem)ci->m_pData;
-		if (!item)
-			continue;
-		
-		if (item->m_highlight_equipped && item->m_pInventory && item->m_pInventory->ItemFromSlot(item->BaseSlot()) == item)
-			ci->m_select_equipped = true;
-		else
-			ci->m_select_equipped = false;
-	}
-
-	for (u8 i = 0; i < m_pockets_count; i++)
-	{
-		CUIDragDropListEx* pocket		= m_pInvPocket[i];
-		u32 count						= pocket->ItemsCount();
-		for (u32 j = 0; j < count; j++)
-		{
-			CUICellItem* ci				= pocket->GetItemIdx(j);
-			PIItem item					= (PIItem)ci->m_pData;
-			if (!item)
-				continue;
-			ci->m_select_equipped		= (item->Section(true) == ACTOR_DEFS::g_quick_use_slots[i]);
-		}
-	}
 }

@@ -16,6 +16,7 @@
 #include "UIGameCustom.h"
 #include "weaponBM16.h"
 #include "WeaponAmmo.h"
+#include "UIProgressBar.h"
 
 #include "../grenadelauncher.h"
 #include "../Artefact.h"
@@ -172,6 +173,11 @@ void CUIActorMenu::InitCellForSlot(u16 slot_idx)
 			CUICellItem* cell_item		= item->getIcon();
 			curr_list->SetItem			(cell_item);
 			ColorizeItem				(cell_item);
+
+			if (auto bar = m_pInvSlotProgress[slot_idx])
+				bar->SetProgressPos		((item) ? item->GetCondition() : 0.f);
+
+			UpdateOutfit				();
 		}
 
 		curr_list->setValid				(true);
@@ -203,6 +209,28 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 			pocket_list->SetItem		(itm);
 			ColorizeItem				(itm);
 		}
+	}
+	
+	auto& label							= m_pPocketInfo[pocket_idx];
+	if (m_pActorInvOwner->inventory().PocketPresent(pocket_idx))
+	{
+		shared_str						str;
+		str.printf						("quick_use_str_%d", pocket_idx + 1);
+		str								= CStringTable().translate(str);
+		float volume					= CalcItemsVolume(pocket_list);
+		float max_volume				= m_pActorInvOwner->GetOutfit()->m_pockets[pocket_idx];
+		LPCSTR li_str					= CStringTable().translate("st_li").c_str();
+		str.printf						("(%s) %.2f/%.2f %s", str.c_str(), volume, max_volume, li_str);
+		label->SetText					(str.c_str());
+	}
+	else
+		label->SetText					("");
+	
+	for (int i = 0, count = pocket_list->ItemsCount(); i < count; ++i)
+	{
+		CUICellItem* ci					= pocket_list->GetItemIdx(i);
+		PIItem item						= static_cast<PIItem>(ci->m_pData);
+		ci->m_select_equipped			= (item->Section(true) == ACTOR_DEFS::g_quick_use_slots[pocket_idx]);
 	}
 
 	pocket_list->setValid				(true);
@@ -635,9 +663,6 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 			pPda->PlayScriptFunction	();
 		break;
 	}
-
-	UpdateItemsPlace					();
-	UpdateConditionProgressBars			();
 }
 
 void CUIActorMenu::UpdateOutfit()
@@ -714,8 +739,6 @@ void CUIActorMenu::onInventoryAction(PIItem item, const SInvItemPlace* prev)
 		else
 			return;
 	}
-
-	UpdateItemsPlace					();
 }
 
 bool CUIActorMenu::process_place(SInvItemPlace CR$ place)

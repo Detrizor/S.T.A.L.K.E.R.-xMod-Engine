@@ -259,12 +259,10 @@ protected:
 	void		xr_stdcall		ProcessPropertiesBoxClicked	(CUIWindow* w, void* d);
 	
 	void						CheckDistance				();
-	void						UpdateItemsPlace			();
 
 	void						SetupUpgradeItem			();
 	void						UpdateUpgradeItem			();
 	void						TrySetCurUpgrade			();
-	void						UpdateButtonsLayout			();
 
 	// inventory
 	bool						ToSlot						(CUICellItem* itm, u16 slot_id, bool assume_alternative = false);
@@ -292,7 +290,6 @@ protected:
 	float						CalcItemsWeight				(CUIDragDropListEx* pList);
 	float						CalcItemsVolume				(CUIDragDropListEx* pList);
 	u32							CalcItemsPrice				(CUIDragDropListEx* pList, CTrade* pTrade, bool bBuying);
-	void						UpdatePrices				();
 	bool						CanMoveToPartner			(PIItem pItem, shared_str* reason = NULL);
 	void						TransferItems				(CUIDragDropListEx* pSellList, CUIDragDropListEx* pBuyList, CTrade* pTrade, bool bBuying);
 
@@ -322,7 +319,6 @@ public:
 
 	void						UpdateActor					();
 	void						UpdatePartnerBag			();
-	void						UpdateDeadBodyBag			();
 	
 	void		xr_stdcall		OnTradeList					(CUIWindow* w, void* d);
 	void		xr_stdcall		OnBtnPerformTradeBuy		(CUIWindow* w, void* d);
@@ -330,7 +326,6 @@ public:
 	void		xr_stdcall		OnBtnExitClicked			(CUIWindow* w, void* d);
 	void		xr_stdcall		TakeAllFromPartner			(CUIWindow* w, void* d);
 	void						TakeAllFromInventoryBox		();
-	void						UpdateConditionProgressBars	();
 
 	void						UpdatePocketsPresence		();
 	void						ToggleBag					(MContainer* bag);
@@ -360,6 +355,7 @@ private:
 	void								init_dead_body_bag						();
 	void								init_bag								();
 	void								init_actor_trade						();
+	void								update_partner_trade					();
 	void								update_lists							(bool clear);
 	bool								process_place							(SInvItemPlace CR$ place);
 

@@ -124,10 +124,8 @@ void CUIActorMenu::TryRepairItem(CUIWindow* w, void* d)
 void CUIActorMenu::RepairEffect_CurItem()
 {
 	PIItem item = CurrentIItem();
-	if ( !item )
-	{
-		return;	
-	}
+	if (!item)
+		return;
 	LPCSTR item_name = item->m_section_id.c_str();
 
 	functor<void>	funct;
@@ -135,12 +133,8 @@ void CUIActorMenu::RepairEffect_CurItem()
 	funct(item_name, item->GetCondition());
 
 	item->SetCondition(CInventoryItem::s_max_repair_condition);
-	UpdateConditionProgressBars();
 	SeparateUpgradeItem();
-	CUICellItem* itm = CurrentItem();
-	if(itm)
-		itm->UpdateConditionProgressBar();
-
+	item->getIcon()->UpdateConditionProgressBar();
 }
 
 bool CUIActorMenu::CanUpgradeItem( PIItem item )

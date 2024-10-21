@@ -243,9 +243,6 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	}
 	//-Alundaio
 
-	UpdateConditionProgressBars();
-	UpdateItemsPlace();
-
 	return true;
 }
 
@@ -315,9 +312,6 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 		ToPartnerTrade				(itm, false);
 		break;
 	}; //switch 
-
-	UpdateConditionProgressBars		();
-	UpdateItemsPlace				();
 
 	return true;
 }
@@ -459,7 +453,6 @@ void CUIActorMenu::OnMesBoxYes( CUIWindow*, void* )
 		R_ASSERT(0);
 		break;
 	}
-	UpdateItemsPlace();
 }
 
 void CUIActorMenu::OnMesBoxNo(CUIWindow*, void*)
@@ -481,5 +474,4 @@ void CUIActorMenu::OnMesBoxNo(CUIWindow*, void*)
 		R_ASSERT(0);
 		break;
 	}
-	UpdateItemsPlace();
 }

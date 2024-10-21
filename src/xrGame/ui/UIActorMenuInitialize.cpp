@@ -332,8 +332,3 @@ void CUIActorMenu::InitCallbacks()
 	AddCallback(m_UIPropertiesBox,				PROPERTY_CLICKED,	CUIWndCallback::void_function(this, &CUIActorMenu::ProcessPropertiesBoxClicked));
 	AddCallback(m_pUpgradeWnd->m_btn_repair,	BUTTON_CLICKED,		CUIWndCallback::void_function(this, &CUIActorMenu::TryRepairItem));
 }
-
-void CUIActorMenu::UpdateButtonsLayout()
-{
-	UpdateConditionProgressBars();
-}

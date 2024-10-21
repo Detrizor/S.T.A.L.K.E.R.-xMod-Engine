@@ -350,6 +350,7 @@ void CUIInventoryUpgradeWnd::OnMesBoxYes()
 			}
 			//-Alundaio
 			parent_wnd->UpdateActor();
+			parent_wnd->UpdatePartnerBag();
 			parent_wnd->SeparateUpgradeItem();
 		}
 	}
