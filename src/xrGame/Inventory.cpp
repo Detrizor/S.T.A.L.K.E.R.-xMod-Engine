@@ -10,10 +10,6 @@
 #include "trade.h"
 #include "weapon.h"
 #include "grenade.h"
-
-#include "ui/UIInventoryUtilities.h"
-#include "ui/UIActorMenu.h"
-
 #include "eatable_item.h"
 #include "script_engine.h"
 #include "xrmessages.h"
@@ -22,14 +18,12 @@
 #include "ai_space.h"
 #include "entitycondition.h"
 #include "game_base_space.h"
-#include "uigamecustom.h"
 #include "clsid_game.h"
 #include "static_cast_checked.hpp"
 #include "player_hud.h"
 #include "item_container.h"
 #include "ActorEffector.h"
 
-using namespace InventoryUtilities;
 //Alundaio
 #include "../../xrServerEntities/script_engine.h" 
 using namespace ::luabind; 
@@ -132,25 +126,6 @@ void CInventory::Clear()
 	InvalidateState						();
 }
 
-void CInventory::OnInventoryAction(PIItem item, bool take, u8 zone)
-{
-	CheckArtefact						(item, take);
-	if (!item->getIcon())
-		return;
-
-	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
-	if (!actor_menu || !actor_menu->IsShown())
-		return;
-
-	u8 res_zone							= 0;
-	if (zone != 2 && Level().CurrentViewEntity() == smart_cast<CObject*>(m_pOwner))
-		res_zone						+= 1;
-	if (zone != 1 && actor_menu->GetMenuMode() == mmDeadBodySearch && m_pOwner == actor_menu->GetPartner())
-		res_zone						+= 2;
-	if (0 < res_zone)
-		actor_menu->OnInventoryAction	(item, take, res_zone);
-}
-
 void CInventory::Take(CGameObject *pObj, bool strict_placement)
 {
 	CInventoryItem* pIItem				= smart_cast<CInventoryItem*>(pObj);
@@ -168,32 +143,30 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 
 	m_all.push_back						(pIItem);
 	
-	if (!strict_placement)
-		pIItem->m_ItemCurrPlace.type	= eItemPlaceUndefined;
+	u16 place							= (strict_placement) ? pIItem->m_ItemCurrPlace.type : eItemPlaceUndefined;
 	u16 slot_id							= pIItem->m_ItemCurrPlace.slot_id;
+	pIItem->m_ItemCurrPlace.type		= eItemPlaceUndefined;
 
-	switch (pIItem->m_ItemCurrPlace.type)
+	switch (place)
 	{
 	case eItemPlaceSlot:
 		if (slot_id == RIGHT_HAND_SLOT || slot_id == BOTH_HANDS_SLOT)
-			m_iNextActiveItemID					= pIItem->object_id();
+			m_iNextActiveItemID			= pIItem->object_id();
 		else if (slot_id == LEFT_HAND_SLOT)
-			m_iNextLeftItemID					= pIItem->object_id();
+			m_iNextLeftItemID			= pIItem->object_id();
 		else
-			Slot								(slot_id, pIItem);
+			Slot						(slot_id, pIItem);
 		break;
 	case eItemPlacePocket:
-		if (!Pocket(pIItem, slot_id, true))
-			pIItem->m_ItemCurrPlace.type		= eItemPlaceUndefined;
+		Pocket							(pIItem, slot_id);
 		break;
 	case eItemPlaceRuck:
-		if (!Ruck(pIItem, strict_placement))
-			pIItem->m_ItemCurrPlace.type		= eItemPlaceUndefined;
+		Ruck							(pIItem);
 		break;
 	}
 
 	if (pIItem->CurrPlace() == eItemPlaceUndefined)
-		Ruck							(pIItem, strict_placement);
+		tryRuck							(pIItem);
 	
 	m_pOwner->OnItemTake				(pIItem);
 	pIItem->OnTaken						();
@@ -205,7 +178,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	pIItem->object().processing_deactivate();
 	VERIFY								(pIItem->CurrPlace() != eItemPlaceUndefined);
 	
-	OnInventoryAction					(pIItem, true, 2);
+	checkArtefact						(pIItem, true);
 
 	if (pIItem->BaseSlot() == BOLT_SLOT)
 	{
@@ -228,55 +201,55 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 
 bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont_create_shell) 
 {
-	CInventoryItem* pIItem						= smart_cast<CInventoryItem*>(pObj);
-	VERIFY										(pIItem);
-	VERIFY										(pIItem->m_pInventory);
-	VERIFY										(pIItem->m_pInventory==this);
-	VERIFY										(pIItem->m_ItemCurrPlace.type!=eItemPlaceUndefined);
+	CInventoryItem* pIItem				= smart_cast<CInventoryItem*>(pObj);
+	VERIFY								(pIItem);
+	VERIFY								(pIItem->m_pInventory);
+	VERIFY								(pIItem->m_pInventory==this);
+	VERIFY								(pIItem->m_ItemCurrPlace.type!=eItemPlaceUndefined);
 	
-	pIItem->object().processing_activate		();
+	pIItem->object().processing_activate();
 	switch (pIItem->CurrPlace())
 	{
 	case eItemPlaceRuck:
 	{
-		m_ruck.erase_data						(pIItem);
+		m_ruck.erase_data				(pIItem);
 		break;
 	}
 	case eItemPlaceSlot:
 		if (pIItem == ActiveItem())
 		{
 			if (m_bActors)
-				m_iNextActiveItemID				= u16_max;
+				m_iNextActiveItemID		= u16_max;
 			else
-				m_iNextActiveSlot				= NO_ACTIVE_SLOT;
+				m_iNextActiveSlot		= NO_ACTIVE_SLOT;
 		}
 		else if (pIItem == LeftItem())
-			m_iNextLeftItemID					= u16_max;
+			m_iNextLeftItemID			= u16_max;
 
-		m_slots[pIItem->CurrSlot()].m_pIItem	= nullptr;
-		pIItem->object().processing_deactivate	();
+		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		pIItem->object().processing_deactivate();
 		break;
 	case eItemPlacePocket:
 	{
-		auto& pocket							= m_pockets[pIItem->CurrPocket()];
-		pocket.erase_data						(pIItem);
-		pIItem->object().processing_deactivate	();
+		auto& pocket					= m_pockets[pIItem->CurrPocket()];
+		pocket.erase_data				(pIItem);
+		pIItem->object().processing_deactivate();
 		break;
 	}
 	default:
 		NODEFAULT;
 	}
 
-	m_all.erase_data							(pIItem);
-	pIItem->m_pInventory						= nullptr;
-	m_pOwner->OnItemDrop						(smart_cast<CInventoryItem*>(pObj), just_before_destroy);
+	m_all.erase_data					(pIItem);
+	pIItem->m_pInventory				= nullptr;
+	m_pOwner->OnItemDrop				(smart_cast<CInventoryItem*>(pObj), just_before_destroy);
 
-	CalcTotalWeight								();
-	CalcTotalVolume								();
-	InvalidateState								();
-	m_drop_last_frame							= true;
-
-	OnInventoryAction							(pIItem, false, 0);
+	CalcTotalWeight						();
+	CalcTotalVolume						();
+	InvalidateState						();
+	m_drop_last_frame					= true;
+	
+	checkArtefact						(pIItem, false);
 
 	if (auto psh = pObj->scast<CPhysicsShellHolder*>())
 	{
@@ -298,121 +271,116 @@ bool CInventory::trySlot(u16 slot_id, PIItem item)
 	return								false;
 }
 
-void CInventory::Slot(u16 slot_id, PIItem pIItem)
+void CInventory::Slot(u16 slot_id, PIItem item)
 {
-	switch (pIItem->CurrPlace())
+	switch (item->CurrPlace())
 	{
 	case eItemPlaceSlot:
-		if (pIItem->CurrSlot() != slot_id)
+		if (item->CurrSlot() != slot_id)
 		{
-			if (GetActiveSlot() == pIItem->CurrSlot())
+			if (GetActiveSlot() == item->CurrSlot())
 				Activate				(NO_ACTIVE_SLOT);
-			m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+			m_slots[item->CurrSlot()].m_pIItem = nullptr;
 		}
 		break;
 	case eItemPlacePocket:
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+		m_pockets[item->CurrPocket()].erase_data(item);
 		break;
 	case eItemPlaceRuck:
-		m_ruck.erase_data				(pIItem);
+		m_ruck.erase_data				(item);
 		break;
 	}
 
-	m_slots[slot_id].m_pIItem			= pIItem;
+	m_slots[slot_id].m_pIItem			= item;
 
-	if (m_bActors)
-	{
-		if (slot_id == BOTH_HANDS_SLOT || slot_id == RIGHT_HAND_SLOT || slot_id == LEFT_HAND_SLOT)
-			pIItem->ActivateItem		(pIItem->CurrSlot());
-		else
-			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
-	}
-
-	SInvItemPlace p						= pIItem->m_ItemCurrPlace;
-	m_pOwner->OnItemSlot				(pIItem, pIItem->m_ItemCurrPlace);
-	pIItem->m_ItemCurrPlace.type		= eItemPlaceSlot;
-	pIItem->m_ItemCurrPlace.slot_id		= slot_id;
-	pIItem->OnMoveToSlot				(p);
+	SInvItemPlace prev_place			= item->m_ItemCurrPlace;
+	item->m_ItemCurrPlace.type			= eItemPlaceSlot;
+	item->m_ItemCurrPlace.slot_id		= slot_id;
+	item->OnMoveToSlot					(prev_place);
+	m_pOwner->OnItemSlot				(item, prev_place);
 	
-	pIItem->object().processing_activate();
-
-	OnInventoryAction					(pIItem);
+	item->object().processing_activate();
 }
 
-bool CInventory::Ruck(PIItem pIItem, bool strict_placement) 
+bool CInventory::tryRuck(PIItem item)
 {
-	if (!strict_placement && m_ruck.contains(pIItem))
-		return							false;
-	
-	switch (pIItem->CurrPlace())
+	if (!m_ruck.contains(item))
+	{
+		Ruck							(item);
+		return							true;
+	}
+	return								false;
+}
+
+void CInventory::Ruck(PIItem item)
+{
+	switch (item->CurrPlace())
 	{
 	case eItemPlaceSlot:
-		if (GetActiveSlot() == pIItem->CurrSlot())
+		if (GetActiveSlot() == item->CurrSlot())
 			Activate					(NO_ACTIVE_SLOT);
-		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		m_slots[item->CurrSlot()].m_pIItem = nullptr;
 		break;
 	case eItemPlacePocket:
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem);
+		m_pockets[item->CurrPocket()].erase_data(item);
 		break;
 	}
 	
-	m_ruck.insert						(m_ruck.end(), pIItem); 
+	m_ruck.push_back					(item);
 	
 	CalcTotalWeight						();
 	CalcTotalVolume						();
 	InvalidateState						();
 
-	m_pOwner->OnItemRuck				(pIItem, pIItem->m_ItemCurrPlace);
-	SInvItemPlace prev_place			= pIItem->m_ItemCurrPlace;
-	pIItem->m_ItemCurrPlace.type		= eItemPlaceRuck;
-	pIItem->OnMoveToRuck				(prev_place);
+	SInvItemPlace prev_place			= item->m_ItemCurrPlace;
+	item->m_ItemCurrPlace.type			= eItemPlaceRuck;
+	item->OnMoveToRuck					(prev_place);
+	m_pOwner->OnItemRuck				(item, prev_place);
 
-	if (InSlot(pIItem))
-		pIItem->object().processing_deactivate();
-
-	return								true;
+	if (InSlot(item))
+		item->object().processing_deactivate();
 }
 
-bool CInventory::Pocket(PIItem pIItem, u16 pocket_id, bool forced)
+bool CInventory::tryPocket(PIItem item, u16 pocket_id)
 {
-	if (!forced && !CanPutInPocket(pIItem, pocket_id))
-		return							false;
-	
-	switch (pIItem->CurrPlace())
+	if (CanPutInPocket(item, pocket_id))
+	{
+		Pocket							(item, pocket_id);
+		return							true;
+	}
+	return								false;
+}
+
+void CInventory::Pocket(PIItem item, u16 pocket_id)
+{
+	switch (item->CurrPlace())
 	{
 	case eItemPlaceSlot:
-		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
+		m_slots[item->CurrSlot()].m_pIItem = nullptr;
 		break;
 	case eItemPlacePocket:
-		m_pockets[pIItem->CurrPocket()].erase_data(pIItem, !forced);
+		m_pockets[item->CurrPocket()].erase_data(item);
 		break;
 	case eItemPlaceRuck:
-		m_ruck.erase_data				(pIItem);
+		m_ruck.erase_data				(item);
 		break;
 	}
 	
-	m_pockets[pocket_id].push_back		(pIItem);
+	m_pockets[pocket_id].push_back		(item);
 
 	CalcTotalWeight						();
 	CalcTotalVolume						();
 	InvalidateState						();
 
-	SInvItemPlace p						= pIItem->m_ItemCurrPlace;
-	pIItem->m_ItemCurrPlace.type		= eItemPlacePocket;
-	pIItem->m_ItemCurrPlace.slot_id		= pocket_id;
-	m_pOwner->OnItemRuck				(pIItem, p);
-	pIItem->OnMoveToRuck				(p);
+	SInvItemPlace prev_place			= item->m_ItemCurrPlace;
+	item->m_ItemCurrPlace.type			= eItemPlacePocket;
+	item->m_ItemCurrPlace.slot_id		= pocket_id;
+	item->OnMoveToRuck					(prev_place);
+	m_pOwner->OnItemRuck				(item, prev_place);
 
-	if (InSlot(pIItem))
-		pIItem->object().processing_deactivate();
-	pIItem->object().processing_activate();
-
-	if (m_bActors)
-		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
-
-	OnInventoryAction					(pIItem);
-
-	return								true;
+	if (InSlot(item))
+		item->object().processing_deactivate();
+	item->object().processing_activate	();
 }
 
 PIItem CInventory::ItemFromSlot(u16 slot) const
@@ -433,7 +401,7 @@ void CInventory::SendActionEvent(u16 cmd, u32 flags)
 	P.w_s32					(pActor->GetZoomRndSeed());
 	P.w_s32					(pActor->GetShotRndSeed());
 	pActor->u_EventSend		(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-};
+}
 
 bool CInventory::Action(u16 cmd, u32 flags) 
 {
@@ -885,7 +853,7 @@ bool CInventory::process_item(PIItem item)
 		return							false;
 
 	for (u8 i = 0; i < m_pockets_count; ++i)
-		if (item->Section(true) == ACTOR_DEFS::g_quick_use_slots[i] && Pocket(item, i))
+		if (item->Section(true) == ACTOR_DEFS::g_quick_use_slots[i] && tryPocket(item, i))
 			return						true;
 
 	if (item->BaseSlot() == PRIMARY_SLOT && trySlot(SECONDARY_SLOT, item))
@@ -895,7 +863,7 @@ bool CInventory::process_item(PIItem item)
 		return							true;
 
 	for (u8 i = 0; i < m_pockets_count; ++i)
-		if (Pocket(item, i))
+		if (tryPocket(item, i))
 			return						true;
 
 	if (CanPutInSlot(item, item->HandSlot()) && item->object_id() != m_iNextActiveItemID && item->object_id() != m_iNextLeftItemID)
@@ -1499,21 +1467,20 @@ bool CInventory::IsSlotBlocked(PIItem const iitem) const
 	return IsSlotBlocked(iitem->BaseSlot());
 }
 
-void CInventory::CheckArtefact(PIItem item, bool add)
+void CInventory::checkArtefact(PIItem item, bool take)
 {
-	CArtefact* artefact					= smart_cast<CArtefact*>(item);
-	if (artefact)
+	if (auto artefact = item->O.scast<CArtefact*>())
 	{
-		xr_vector<CArtefact*>::iterator it = ::std::find(m_artefacts.begin(), m_artefacts.end(), artefact);
+		auto& it						= m_artefacts.find(artefact);
 		if (it != m_artefacts.end())
 		{
-			if (!add)
+			if (!take)
 				m_artefacts.erase		(it);
 		}
-		else if (add)
+		else if (take)
 			m_artefacts.push_back		(artefact);
 	}
 	else if (auto con = item->O.getModule<MContainer>())
 		for (auto I : con->Items())
-			CheckArtefact				(I, add);
+			checkArtefact				(I, take);
 }

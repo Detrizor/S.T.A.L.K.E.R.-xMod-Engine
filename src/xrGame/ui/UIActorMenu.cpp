@@ -213,7 +213,7 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode, void* partner, bool forced)
 void CUIActorMenu::PlaySnd(eActorMenuSndAction a)
 {
 	if (sounds[a]._handle())
-        sounds[a].play					(NULL, sm_2D);
+		sounds[a].play					(NULL, sm_2D);
 }
 
 void CUIActorMenu::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
@@ -268,7 +268,10 @@ void CUIActorMenu::Update()
 	if (m_ItemInfo->IsEnabled())
 		m_ItemInfo->Update();
 	m_hint_wnd->Update();
-	
+
+	update_lists(true);
+	update_lists(false);
+
 	PIItem active_item					= m_pActorInv->ActiveItem();
 	if (active_item)
 	{
@@ -285,6 +288,27 @@ void CUIActorMenu::Update()
 	ToggleBag							(NULL);
 }
 
+void CUIActorMenu::update_lists(bool clear)
+{
+	for (int i = 1; i <= m_slot_count; ++i)
+		if (m_pInvList[i] && !m_pInvList[i]->isValid())
+			(clear) ? m_pInvList[i]->ClearAll(true) : InitCellForSlot(i);
+
+	for (int i = 0; i < m_pockets_count; ++i)
+		if (!m_pInvPocket[i]->isValid())
+			(clear) ? m_pInvPocket[i]->ClearAll(true) : InitPocket(i);
+	
+	if (!m_pDeadBodyBagList->isValid())
+		(clear) ? m_pDeadBodyBagList->ClearAll(true) : init_dead_body_bag();
+
+	if (!m_pTradeActorList->isValid())
+		(clear) ? m_pTradeActorList->ClearAll(true) : init_actor_trade();
+
+	auto bag = GetListByType(iActorBag);
+	if (!bag->isValid())
+		(clear) ? bag->ClearAll(true) : init_bag();
+}
+
 void CUIActorMenu::ToggleBag(MContainer* bag)
 {
 	if (m_pBag == bag)
@@ -297,20 +321,24 @@ void CUIActorMenu::ToggleBag(MContainer* bag)
 		return;
 	}
 
-	TIItemContainer						tmp;
-	if (!bag->Empty())
-		bag->AddAvailableItems			(tmp);
+	init_bag							();
+}
 
-	_STD sort							(tmp.begin(), tmp.end(), InventoryUtilities::GreaterRoomInRuck);
-	auto& bag_list						= (m_currMenuMode == mmTrade) ? m_pTradeActorBagList : m_pInventoryBagList;
-	for (auto& item : tmp)
+void CUIActorMenu::init_bag()
+{
+	auto bag_list						= GetListByType(iActorBag);
+	TIItemContainer						items_list;
+	m_pBag->AddAvailableItems			(items_list);
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+
+	for (auto& item : items_list)
 	{
 		CUICellItem* itm				= item->getIcon();
 		bag_list->SetItem				(itm);
-		if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-			ColorizeItem				(itm);
+		ColorizeItem					(itm);
 	}
-	UpdateActor							();
+
+	bag_list->setValid					(true);
 }
 
 bool CUIActorMenu::StopAnyMove()  // true = актёр не идёт при открытом меню
@@ -342,54 +370,45 @@ void CUIActorMenu::CheckDistance()
 
 EDDListType CUIActorMenu::GetListType(CUIDragDropListEx* l)
 {
-	if(l==m_pInventoryBagList)			return iActorBag;
+	if (l == m_pInventoryBagList)
+		return							iActorBag;
 
-	for (u8 i = 1; i <= m_slot_count; ++i)
-	{
-		if (m_pInvList[i] && m_pInvList[i] == l)
-			return iActorSlot;
-	}
+	for (auto& slot : m_pInvList)
+		if (slot == l)
+			return						iActorSlot;
 
-	for (u8 i = 0; i < m_pockets_count; i++)
-	{
-		if (m_pInvPocket[i] == l)
-			return		iActorPocket;
-	}
+	for (auto& pocket : m_pInvPocket)
+		if (pocket == l)
+			return						iActorPocket;
 
-	if(l==m_pTradeActorBagList)			return iActorBag;
-	if(l==m_pTradeActorList)			return iActorTrade;
-	if(l==m_pTradePartnerBagList)		return iPartnerTradeBag;
-	if(l==m_pTradePartnerList)			return iPartnerTrade;
-	if(l==m_pDeadBodyBagList)			return iDeadBodyBag;
+	if (l==m_pTradeActorBagList)		return iActorBag;
+	if (l==m_pTradeActorList)			return iActorTrade;
+	if (l==m_pTradePartnerBagList)		return iPartnerTradeBag;
+	if (l==m_pTradePartnerList)			return iPartnerTrade;
+	if (l==m_pDeadBodyBagList)			return iDeadBodyBag;
+	if (l==m_pTrashList)				return iTrashSlot;
 
-	if(l==m_pTrashList)					return iTrashSlot;
-
-	R_ASSERT(0);
-	
-	return iInvalid;
+	VERIFY								(0);
+	return								iInvalid;
 }
 
 CUIDragDropListEx* CUIActorMenu::GetListByType(EDDListType t)
 {
 	switch(t)
 	{
-		case iActorBag:
-			{
-				if(m_currMenuMode==mmTrade)
-					return m_pTradeActorBagList;
-				else
-					return m_pInventoryBagList;
-			}break;
-		case iDeadBodyBag:
-			{
-				return m_pDeadBodyBagList;
-			}break;
-		default:
-			{
-				R_ASSERT("invalid call");
-			}break;
+	case iActorBag:
+		if (m_currMenuMode == mmTrade)
+			return						m_pTradeActorBagList;
+		else
+			return						m_pInventoryBagList;
+		break;
+	case iDeadBodyBag:
+		return							m_pDeadBodyBagList;
+		break;
+	default:
+		VERIFY2							(0, "invalid call");
 	}
-	return NULL;
+	return								nullptr;
 }
 
 CUICellItem* CUIActorMenu::CurrentItem()

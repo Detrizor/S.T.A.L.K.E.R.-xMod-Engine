@@ -42,23 +42,8 @@ void CUIActorMenu::InitDeadBodySearchMode()
 
 	m_PartnerCharacterInfo->Show		(!!m_pPartnerInvOwner);
 	InitInventoryContents				();
-
 	UpdatePocketsPresence				();
-
-	TIItemContainer						items_list;
-	if (m_pPartnerInvOwner)
-	{
-		m_pPartnerInvOwner->inventory().AddAvailableItems(items_list, false, m_pPartnerInvOwner->is_alive());
-		UpdatePartnerBag				();
-	}
-	else if (m_pInvBox)
-		m_pInvBox->m_pContainer->AddAvailableItems(items_list);
-	else
-		m_pContainer->AddAvailableItems	(items_list);
-
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
-	for (auto& item : items_list)
-		m_pDeadBodyBagList->SetItem		(item->getIcon());
+	init_dead_body_bag					();
 
 	CBaseMonster* monster				= smart_cast<CBaseMonster*>(m_pPartnerInvOwner);
 	
@@ -81,7 +66,26 @@ void CUIActorMenu::InitDeadBodySearchMode()
 		}
 		known_infos.clear	();
 	}
-	UpdateDeadBodyBag();
+}
+
+void CUIActorMenu::init_dead_body_bag()
+{
+	TIItemContainer						items_list;
+	if (m_pPartnerInvOwner)
+	{
+		m_pPartnerInvOwner->inventory().AddAvailableItems(items_list, false, m_pPartnerInvOwner->is_alive());
+		UpdatePartnerBag				();
+	}
+	else if (m_pInvBox)
+		m_pInvBox->m_pContainer->AddAvailableItems(items_list);
+	else
+		m_pContainer->AddAvailableItems	(items_list);
+
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	for (auto& item : items_list)
+		m_pDeadBodyBagList->SetItem		(item->getIcon());
+
+	m_pDeadBodyBagList->setValid		(true);
 }
 
 void CUIActorMenu::DeInitDeadBodySearchMode()
@@ -100,7 +104,7 @@ void CUIActorMenu::DeInitDeadBodySearchMode()
 
 bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	PIItem item						= (PIItem)itm->m_pData;
+	PIItem item						= static_cast<PIItem>(itm->m_pData);
 	if (m_pPartnerInvOwner)
 	{
 		if (!m_pPartnerInvOwner->deadbody_can_take_status())
@@ -118,11 +122,6 @@ bool CUIActorMenu::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 	}
 	else if (!m_pContainer->CanTakeItem(item))
 		return						false;
-
-	CUIDragDropListEx* old_owner	= itm->OwnerList();
-	CUIDragDropListEx* new_owner	= (b_use_cursor_pos) ? CUIDragDropListEx::m_drag_item->BackList() : m_pDeadBodyBagList;
-	CUICellItem* i					= old_owner->RemoveItem(itm, old_owner == new_owner);
-	(b_use_cursor_pos)				? new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
 
 	item->O.transfer				((m_pPartnerInvOwner) ? m_pPartnerInvOwner->object_id() : ((m_pInvBox) ? m_pInvBox->ID() : m_pContainer->O.ID()));
 	

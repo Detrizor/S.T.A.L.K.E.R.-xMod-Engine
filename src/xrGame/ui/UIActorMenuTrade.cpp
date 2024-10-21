@@ -153,16 +153,16 @@ void CUIActorMenu::DeInitTradeMode()
 	m_PartnerCharacterInfo->Show	(false);
 	m_PartnerMoney->Show			(false);
 
-	m_pTradeActorBagList->Show		(false);
-	m_pTradeActorList->Show			(false);
-	m_pTradePartnerBagList->Show	(false);
-	m_pTradePartnerList->Show		(false);
+	m_pTradeActorBagList->Show			(false);
+	m_pTradeActorList->Show				(false);
+	m_pTradePartnerBagList->Show		(false);
+	m_pTradePartnerList->Show			(false);
 
-	m_ActorInventoryTrade->Show		(false);
-	m_PartnerInventoryTrade->Show	(false);
+	m_ActorInventoryTrade->Show			(false);
+	m_PartnerInventoryTrade->Show		(false);
 	
-	m_trade_buy_button->Show		(false);
-	m_trade_sell_button->Show		(false);
+	m_trade_buy_button->Show			(false);
+	m_trade_sell_button->Show			(false);
 	
 	m_trade_list->Show				(false);
 
@@ -283,6 +283,9 @@ u32 CUIActorMenu::CalcItemsPrice(CUIDragDropListEx* pList, CTrade* pTrade, bool 
 
 bool CUIActorMenu::CanMoveToPartner(PIItem pItem, shared_str* reason)
 {
+	if (m_currMenuMode != mmTrade || !m_pPartnerInvOwner)
+		return true;
+
 	if (!pItem->CanTrade() || !m_pPartnerInvOwner->trade_parameters().enabled(CTradeParameters::action_buy(0), pItem->object().cNameSect()))
 	{
 		if (reason)

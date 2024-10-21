@@ -55,10 +55,12 @@ public:
 	IC u16					LastSlot			() const {return m_last_slot;} // not "end"
 	IC bool					SlotIsPersistent	(u16 slot_id) const {return m_slots[slot_id].m_bPersistent;}
 	bool					trySlot				(u16 slot_id, PIItem item);
-	void					Slot				(u16 slot_id, PIItem pIItem);
-	bool					Pocket				(PIItem pIItem, u16 pocket_id, bool forced = false);
+	void					Slot				(u16 slot_id, PIItem item);
+	bool					tryPocket			(PIItem item, u16 pocket_id);
+	void					Pocket				(PIItem item, u16 pocket_id);
 	bool					Bag					(PIItem item);
-	bool					Ruck				(PIItem pIItem, bool strict_placement=false);
+	bool					tryRuck				(PIItem item);
+	void					Ruck				(PIItem item);
 
 	bool 					InSlot				(const CInventoryItem* pIItem) const;
 
@@ -210,6 +212,5 @@ private:
 
 public:
 	void								emptyPockets							();
-	void								CheckArtefact							(PIItem item, bool add = false);
-	void								OnInventoryAction						(PIItem item, bool take = true, u8 zone = 1);
+	void								checkArtefact							(PIItem item, bool take);
 };

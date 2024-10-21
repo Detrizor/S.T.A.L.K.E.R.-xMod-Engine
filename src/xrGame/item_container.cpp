@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "item_container.h"
-#include "ui/UIActorMenu.h"
-#include "uigamecustom.h"
+#include "InventoryOwner.h"
 
 MContainer::MContainer(CGameObject* obj) : CModule(obj)
 {
@@ -33,9 +32,10 @@ void MContainer::sOnChild(CGameObject* obj, bool take)
 		else
 			m_Items.erase_data			(item);
 
-		OnInventoryAction				(item, take);
 		InvalidateState					();
 		ParentCheck						(item, take);
+		if (take)
+			item->OnMoveToRuck			(SInvItemPlace());
 	}
 }
 
@@ -89,28 +89,12 @@ float MContainer::Get(EItemDataTypes type)
 	return								Sum(type);
 }
 
-void MContainer::OnInventoryAction C$(PIItem item, bool take)
-{
-	CUIActorMenu* actor_menu			= (CurrentGameUI()) ? &CurrentGameUI()->GetActorMenu() : NULL;
-	if (actor_menu && actor_menu->IsShown())
-	{
-		u8 res_zone						= 0;
-		if (actor_menu->GetBag() == this)
-			res_zone					= 3;
-		else if (!O.H_Parent())
-			res_zone					= 2;
-
-		if (res_zone > 0)
-			actor_menu->OnInventoryAction(item, take, res_zone);
-	}
-}
-
 void MContainer::ParentCheck C$(PIItem item, bool add)
 {
 	if (O.H_Parent())
 	{
 		if (auto io = O.H_Parent()->scast<CInventoryOwner*>())
-			io->inventory().CheckArtefact(item, add);
+			io->inventory().checkArtefact(item, add);
 		else
 			O.H_Parent()->mcast<MContainer>()->ParentCheck(item, add);
 	}

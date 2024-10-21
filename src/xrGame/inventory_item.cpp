@@ -245,7 +245,7 @@ bool CInventoryItem::Useful() const
 
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
-	m_ItemCurrPlace.type = eItemPlaceUndefined;
+	on_inventory_action();
 }
 
 void CInventoryItem::OnH_A_Independent()
@@ -264,6 +264,7 @@ void CInventoryItem::OnH_A_Chield()
 {
 	inherited::OnH_A_Chield();
 }
+
 #ifdef DEBUG
 extern	Flags32	dbg_net_Draw_Flags;
 #endif
@@ -271,7 +272,8 @@ extern	Flags32	dbg_net_Draw_Flags;
 void CInventoryItem::UpdateCL()
 {
 #ifdef DEBUG
-	if (bDebug){
+	if (bDebug)
+	{
 		if (dbg_net_Draw_Flags.test(dbg_draw_invitem))
 		{
 			Device.seqRender.Remove(this);
@@ -702,6 +704,25 @@ Frect CInventoryItem::GetKillMsgRect() const
 	return Frect().set(x, y, w, h);
 }
 
+void CInventoryItem::OnMoveToSlot(SInvItemPlace CR$ prev)
+{
+	if (O.H_Parent() == Actor())
+	{
+		if (CurrSlot() == HandSlot())
+			ActivateItem				(prev.slot_id);
+		else
+			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
+	}
+	on_inventory_action					(&prev);
+}
+
+void CInventoryItem::OnMoveToRuck(SInvItemPlace CR$ prev)
+{
+	if (O.H_Parent() == Actor())
+		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
+	on_inventory_action					(&prev);
+}
+
 Frect CInventoryItem::GetIconRect() const
 {
 	return m_inv_icon;
@@ -883,17 +904,18 @@ void CInventoryItem::set_inv_icon()
 
 void CInventoryItem::setup_icon()
 {
-	if (m_icon && m_pInventory)
-		m_pInventory->OnInventoryAction	(this, false);
-
 	if (auto icon = O.emitSignalGet(sCreateIcon()))
 		m_icon.capture					(icon.get());
 	else
 		m_icon.capture					(xr_new<CUIInventoryCellItem>(this));
 	m_icon_valid						= true;
+	on_inventory_action					();
+}
 
-	if (m_pInventory)
-		m_pInventory->OnInventoryAction	(this, true);
+void CInventoryItem::on_inventory_action(const SInvItemPlace* prev)
+{
+	if (auto ui = CurrentGameUI())
+		ui->GetActorMenu().onInventoryAction(this, prev);
 }
 
 void CInventoryItem::shedule_Update(u32 T)

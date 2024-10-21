@@ -163,175 +163,49 @@ bool RemoveItemFromList(CUIDragDropListEx* lst, PIItem pItem)
 	return								false;
 }
 
-void CUIActorMenu::OnInventoryAction(PIItem pItem, bool take, u8 zone)
+void CUIActorMenu::InitCellForSlot(u16 slot_idx)
 {
-	CUIDragDropListEx* lst_to_check		= NULL;
-	if (zone == 1)
-		lst_to_check					= m_pTradeActorList;
-	else if (zone == 2)
-		lst_to_check					= m_pDeadBodyBagList;
-	else if (zone == 3)
-		lst_to_check					= GetListByType(iActorBag);
-
-	if (take)
+	if (auto curr_list = GetSlotList(slot_idx))
 	{
-		bool b_already					= false;
-		bool b_deleted					= false;
-		CUIDragDropListEx* lst_to_add	= NULL;
-		if (zone == 1)
+		if (auto item = m_pActorInv->ItemFromSlot(slot_idx))
 		{
-			SInvItemPlace pl			= pItem->m_ItemCurrPlace;
-			if (pl.type == eItemPlaceSlot)
-				lst_to_add				= GetSlotList(pl.slot_id);
-			else if (pl.type == eItemPlacePocket)
-				lst_to_add				= m_pInvPocket[pl.slot_id];
-		}
-		else if (zone == 2)
-			lst_to_add					= m_pDeadBodyBagList;
-		else if (zone == 3)
-			lst_to_add					= GetListByType(iActorBag);
-
-		CUICellItem* ci					= NULL;
-		if (FindItemInList(lst_to_check, pItem, ci))
-		{
-			if (lst_to_check == lst_to_add)
-				b_already				= true;
-			else
-				b_deleted				= RemoveItemFromList(lst_to_check, pItem);
-		}
-		RemoveItemFromList				(m_pTrashList, pItem);
-
-		if (zone == 1 && !(b_already && b_deleted))
-		{
-			for (u8 i = 1; i <= m_slot_count; ++i)
-			{
-				CUIDragDropListEx* curr	= m_pInvList[i];
-				if (curr)
-				{
-					CUICellItem* ci		= NULL;
-					if (FindItemInList(curr, pItem, ci))
-					{
-						if (curr == lst_to_add)
-							b_already	= true;
-						else
-							RemoveItemFromList(curr, pItem);
-					}
-				}
-			}
-		}
-				
-		if (zone == 1 && !(b_already && b_deleted))
-		{
-			for (u8 i = 0; i < m_pockets_count; i++)
-			{
-				CUIDragDropListEx* pocket	= m_pInvPocket[i];
-				CUICellItem* ci			= NULL;
-				if (FindItemInList(pocket, pItem, ci))
-				{
-					if (pocket == lst_to_add)
-						b_already		= true;
-					else
-						RemoveItemFromList(pocket, pItem);
-				}
-			}
+			CUICellItem* cell_item		= item->getIcon();
+			curr_list->SetItem			(cell_item);
+			ColorizeItem				(cell_item);
 		}
 
-		if (!b_already && lst_to_add)
-		{
-			CUICellItem* itm			= pItem->getIcon();
-			lst_to_add->SetItem			(itm);
-			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-				ColorizeItem			(itm);
-		}
+		curr_list->setValid				(true);
 	}
-	else
-	{
-		CUIDragDropListEx* _drag_owner	= NULL;
-		if (CUIDragDropListEx::m_drag_item)
-		{
-			CUIInventoryCellItem* ici	= smart_cast<CUIInventoryCellItem*>(CUIDragDropListEx::m_drag_item->ParentItem());
-			R_ASSERT					(ici);
-			if (ici->object() == pItem)
-				_drag_owner				= ici->OwnerList();
-		}
-				
-		if (lst_to_check == _drag_owner)
-			lst_to_check->DestroyDragItem();
-
-		if (!RemoveItemFromList(lst_to_check, pItem) && zone == 1)
-		{
-			for (u8 i = 1; i <= m_slot_count; ++i)
-			{
-				CUIDragDropListEx* curr	= m_pInvList[i];
-				if (curr)
-				{
-					if (curr == _drag_owner)
-						curr->DestroyDragItem();
-					if (RemoveItemFromList(curr, pItem))
-						goto _finish;
-				}
-			}
-
-			for (u8 i = 0; i < m_pockets_count; i++)
-			{
-				CUIDragDropListEx* pocket	= m_pInvPocket[i];
-				if (pocket == _drag_owner)
-					pocket->DestroyDragItem();
-				if (RemoveItemFromList(pocket, pItem))
-					break;
-			}
-		}
-	}
-
-_finish:
-	UpdateItemsPlace();
-	UpdateConditionProgressBars();
-}
-
-void CUIActorMenu::InitCellForSlot( u16 slot_idx )
-{
-	PIItem item	= m_pActorInv->ItemFromSlot		(slot_idx);
-	if (!item)
-		return;
-
-	CUIDragDropListEx* curr_list				= GetSlotList( slot_idx );
-	if (!curr_list)
-		return;
-
-	CUICellItem* cell_item						= item->getIcon();
-	curr_list->SetItem							(cell_item);
-	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-		ColorizeItem							(cell_item);
 }
 
 void CUIActorMenu::InitPocket(u16 pocket_idx)
 {
-	TIItemContainer						pocket_list;
-	pocket_list							= m_pActorInv->m_pockets[pocket_idx];
-	_STD sort							(pocket_list.begin(), pocket_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	auto& pocket_list					= m_pInvPocket[pocket_idx];
+	TIItemContainer items_list			= m_pActorInv->m_pockets[pocket_idx];
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
 
 	shared_str sect						= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
-	for (auto& item : pocket_list)
+	for (auto& item : items_list)
 	{
 		if (item->Section(true) == sect)
 		{
 			CUICellItem* itm			= item->getIcon();
-			m_pInvPocket[pocket_idx]->SetItem(itm);
-			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-				ColorizeItem			(itm);
+			pocket_list->SetItem		(itm);
+			ColorizeItem				(itm);
 		}
 	}
 
-	for (auto& item : pocket_list)
+	for (auto& item : items_list)
 	{
 		if (item->Section(true) != sect)
 		{
 			CUICellItem* itm			= item->getIcon();
-			m_pInvPocket[pocket_idx]->SetItem(itm);
-			if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-				ColorizeItem			(itm);
+			pocket_list->SetItem		(itm);
+			ColorizeItem				(itm);
 		}
 	}
+
+	pocket_list->setValid				(true);
 }
 
 void CUIActorMenu::InitInventoryContents()
@@ -343,26 +217,22 @@ void CUIActorMenu::InitInventoryContents()
 
 	//Slots
 	for (u8 i = 1; i <= m_slot_count; ++i)
-	{
-		if (m_pInvList[i])
+		if (m_pInvList[i] || !m_pActorInv->SlotIsPersistent(i))
 			InitCellForSlot				(i);
-		else if (!m_pActorInv->SlotIsPersistent(i))
-			InitCellForSlot				(i);
-	}
 	
-	for (u8 i = 0; i < m_pockets_count; i++)
+	for (u8 i = 0; i < m_pockets_count; ++i)
 		InitPocket						(i);
 }
 
 bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative)
 {
-	PIItem item							= (PIItem)itm->m_pData;
+	PIItem item							= static_cast<PIItem>(itm->m_pData);
 	PIItem item_in_slot					= m_pActorInv->ItemFromSlot(slot_id);
 	bool own							= (item->parent_id() == m_pActorInvOwner->object_id());
-	bool activated						= (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem());
-	if (m_pActorInv->CanPutInSlot(item, slot_id) || (item == item_in_slot))
+
+	if (m_pActorInv->CanPutInSlot(item, slot_id))
 	{
-		if (activated)
+		if (m_pActorInv->InHands(item))
 			m_pActorInv->ActivateItem	(item, eItemPlaceSlot, slot_id);
 		else
 		{
@@ -374,11 +244,6 @@ bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative
 			}
 			else
 			{
-				auto old_owner			= itm->OwnerList();
-				auto new_owner			= GetSlotList(slot_id);
-				CUICellItem* i			= old_owner->RemoveItem(itm, old_owner == new_owner);
-				new_owner->SetItem		(i);
-
 				if (own)
 					m_pActorInv->Slot	(slot_id, item);
 				else
@@ -402,68 +267,44 @@ bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative
 		}
 	}
 
-	if (activated)
+	if (m_pActorInv->InHands(item))
 		m_pActorInv->ActivateItem		(item_in_slot, eItemPlaceSlot, slot_id);
-	else if (slot_id == item->HandSlot() && item_in_slot && (item_in_slot->BaseSlot() != NO_ACTIVE_SLOT) && (item_in_slot->BaseSlot() == item->BaseSlot()))
-		m_pActorInv->ActivateItem		(item, item->CurrPlace(), (item->CurrPlace() == eItemPlaceSlot) ? item->CurrSlot() : item->CurrPocket());
+	else if (slot_id == item->HandSlot() && item_in_slot && item->CurrSlot() && item_in_slot->BaseSlot() == item->BaseSlot())
+		m_pActorInv->ActivateItem		(item, eItemPlaceSlot, item->CurrSlot());
 	else
 		return							false;
+
 	if (!own)
 		ToRuck							(item);
+
 	return								true;
 }
 
 bool CUIActorMenu::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	PIItem item							= (PIItem)itm->m_pData;
-	bool own							= item->parent_id() == GetBag()->O.ID();
-	if (!GetBag()->CanTakeItem(item) && !own)
-		return							false;
-
-	CUIDragDropListEx* old_owner		= itm->OwnerList();
-	CUIDragDropListEx* new_owner		= (b_use_cursor_pos) ? CUIDragDropListEx::m_drag_item->BackList() : GetListByType(iActorBag);
-	CUICellItem* i						= old_owner->RemoveItem(itm, old_owner == new_owner);
-	(b_use_cursor_pos) ?				new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
-
-	if (!own)
+	PIItem item							= static_cast<PIItem>(itm->m_pData);
+	if (item->parent_id() != m_pBag->O.ID() && m_pBag->CanTakeItem(item))
+	{
 		item->O.transfer				(GetBag()->O.ID());
-
-	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-		ColorizeItem					(itm);
-
-	return								true;
+		return							true;
+	}
+	return								false;
 }
 
 bool CUIActorMenu::ToPocket(CUICellItem* itm, bool b_use_cursor_pos, u16 pocket_id)
 {
-	PIItem item							= (PIItem)itm->m_pData;
-	bool own							= m_pActorInv->m_pockets[pocket_id].contains(item);
-	if (!m_pActorInv->CanPutInPocket(item, pocket_id) && !own)
-		return							false;
-
-	if (item == m_pActorInv->ActiveItem() || item == m_pActorInv->LeftItem())
+	PIItem item							= static_cast<PIItem>(itm->m_pData);
+	if (!m_pActorInv->m_pockets[pocket_id].contains(item) && m_pActorInv->CanPutInPocket(item, pocket_id))
 	{
-		m_pActorInv->ActivateItem		(item, eItemPlacePocket, pocket_id);
-		return							true;
-	}
-
-	CUIDragDropListEx* old_owner		= itm->OwnerList();
-	CUIDragDropListEx* new_owner		= m_pInvPocket[pocket_id];
-	CUICellItem* i						= old_owner->RemoveItem(itm, old_owner == new_owner);
-	(b_use_cursor_pos) ?				new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
-
-	if (!own)
-	{
-		if (item->parent_id() == m_pActorInvOwner->object_id())
+		if (m_pActorInv->InHands(item))
+			m_pActorInv->ActivateItem	(item, eItemPlacePocket, pocket_id);
+		else if (item->parent_id() == m_pActorInvOwner->object_id())
 			m_pActorInv->Pocket			(item, pocket_id);
 		else
 			pickup_item					(item, eItemPlacePocket, pocket_id);
+		return							true;
 	}
-
-	if (m_currMenuMode == mmTrade && m_pPartnerInvOwner)
-		ColorizeItem					(itm);
-
-	return								true;
+	return								false;
 }
 
 void CUIActorMenu::ToRuck(PIItem item)
@@ -839,4 +680,65 @@ void CUIActorMenu::pickup_item(PIItem item, eItemPlace type, u16 slot_id)
 	item->m_ItemCurrPlace.type			= type;
 	item->m_ItemCurrPlace.slot_id		= slot_id;
 	item->O.transfer					(m_pActorInvOwner->object_id(), true);
+}
+
+void CUIActorMenu::onInventoryAction(PIItem item, const SInvItemPlace* prev)
+{
+	if (!IsShown())
+		return;
+	auto itm							= item->getIcon();
+	if (!itm)
+		return;
+
+	if (auto old_owner = itm->OwnerList())
+		if (GetListType(old_owner) == iTrashSlot)
+			old_owner->ClearAll			(true);
+
+	u16 parent_id						= item->parent_id();
+	if (parent_id == m_pActorInvOwner->object_id())
+	{
+		bool res						= (prev) ? process_place(*prev) : false;
+		res								|= process_place(item->m_ItemCurrPlace);
+		if (!res)
+			return;
+	}
+	else
+	{
+		if (m_currMenuMode == mmDeadBodySearch &&
+			(m_pPartnerInvOwner && parent_id == m_pPartnerInvOwner->object_id() ||
+				m_pInvBox && parent_id == m_pInvBox->ID() ||
+				m_pContainer && parent_id == m_pContainer->O.ID()))
+			m_pDeadBodyBagList->setValid(false);
+		else if (m_pBag && parent_id == m_pBag->O.ID())
+			GetListByType(iActorBag)->setValid(false);
+		else
+			return;
+	}
+
+	UpdateItemsPlace					();
+}
+
+bool CUIActorMenu::process_place(SInvItemPlace CR$ place)
+{
+	switch (place.type)
+	{
+	case eItemPlaceSlot:
+	{
+		auto slot						= GetSlotList(place.slot_id);
+		slot->setValid					(false);
+		break;
+	}
+	case eItemPlacePocket:
+	{
+		auto& pocket					= m_pInvPocket[place.slot_id];
+		pocket->setValid				(false);
+		break;
+	}
+	case eItemPlaceTrade:
+		m_pTradeActorList->setValid		(false);
+		break;
+	default:
+		return							false;
+	}
+	return								true;
 }

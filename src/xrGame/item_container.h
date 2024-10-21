@@ -31,8 +31,6 @@ private:
 	void								InvalidateState							();
 	float								Get										(EItemDataTypes type);
 
-	void								OnInventoryAction					C$	(PIItem item, bool take);
-
 public:
 	float								GetWeight								()		{ return Get(eWeight); }
 	float								GetVolume								()		{ return Get(eVolume); }

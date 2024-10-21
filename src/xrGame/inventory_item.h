@@ -143,8 +143,8 @@ public:
 
 	SInvItemPlace				m_ItemCurrPlace;
 
-	virtual void				OnMoveToSlot		(SInvItemPlace CR$ prev) {}
-	virtual void				OnMoveToRuck		(SInvItemPlace CR$ prev) {}
+	virtual void				OnMoveToSlot		(SInvItemPlace CR$ prev);
+	virtual void				OnMoveToRuck		(SInvItemPlace CR$ prev);
 					
 	virtual	Frect				GetIconRect			() const;
 			Irect				GetUpgrIconRect		() const;
@@ -331,6 +331,7 @@ private:
 	
 	void								set_inv_icon							();
 	void								setup_icon								();
+	void								on_inventory_action						(const SInvItemPlace* prev = nullptr);
 
 protected:
 	void								shedule_Update							(u32 T);

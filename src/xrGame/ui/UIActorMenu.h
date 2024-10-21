@@ -314,7 +314,6 @@ public:
 	void		xr_stdcall		OnMesBoxYes					(CUIWindow*, void*);
 	void		xr_stdcall		OnMesBoxNo					(CUIWindow*, void*);
 
-	void						OnInventoryAction			(PIItem pItem, bool take, u8 zone);
 	void						ShowRepairButton			(bool status);
 	bool						SetInfoCurUpgrade			(Upgrade_type* upgrade_type, CInventoryItem* inv_item );
 	void						SeparateUpgradeItem			();
@@ -358,6 +357,13 @@ public:
 
 private:
 	void								pickup_item								(PIItem	item, eItemPlace place = eItemPlaceUndefined, u16 idx = 0);
+	void								init_dead_body_bag						();
+	void								init_bag								();
+	void								update_lists							(bool clear);
+	bool								process_place							(SInvItemPlace CR$ place);
+
+public:
+	void								onInventoryAction						(PIItem item, const SInvItemPlace* prev = nullptr);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

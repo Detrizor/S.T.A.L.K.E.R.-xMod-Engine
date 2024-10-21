@@ -119,50 +119,50 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	}
 
 	if (!old_owner || !new_owner )
-		return false;
+		return							false;
 
-	EDDListType t_new		= GetListType(new_owner);
-	EDDListType t_old		= GetListType(old_owner);
+	EDDListType t_new					= GetListType(new_owner);
+	EDDListType t_old					= GetListType(old_owner);
 
-	if ( !AllowItemDrops(t_old, t_new) )
+	if (!AllowItemDrops(t_old, t_new))
 	{
-		Msg("incorrect action [%d]->[%d]",t_old, t_new);
-		return true;
+		Msg								("incorrect action [%d]->[%d]",t_old, t_new);
+		return							true;
 	}
 
 	if (old_owner == new_owner)
 	{
 		//Alundaio: Here we export the action of dragging one inventory item ontop of another! 
-		functor<bool> funct1;
+		functor<bool>					funct1;
 		if (ai().script_engine().functor("actor_menu_inventory.CUIActorMenu_OnItemDropped", funct1))
 		{
 			//If list only has 1 item, get it, otherwise try to get item at current drag position
-			CUICellItem* _citem = (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
+			CUICellItem* _citem			= (new_owner->ItemsCount() == 1) ? new_owner->GetItemIdx(0) : NULL;
 			if (!_citem)
 			{ 
-				CUICellContainer* c = old_owner->GetContainer();
-				Ivector2 c_pos = c->PickCell(old_owner->GetDragItemPosition());
+				CUICellContainer* c		= old_owner->GetContainer();
+				Ivector2 c_pos			= c->PickCell(old_owner->GetDragItemPosition());
 				if (c->ValidCell(c_pos))
 				{
-					CUICell& ui_cell = c->GetCellAt(c_pos);
+					CUICell& ui_cell	= c->GetCellAt(c_pos);
 					if (!ui_cell.Empty())
-						_citem = ui_cell.m_item;
+						_citem			= ui_cell.m_item;
 				}
 			}
 
-			PIItem _iitem = _citem ? (PIItem)_citem->m_pData : NULL;
+			PIItem _iitem				= _citem ? (PIItem)_citem->m_pData : NULL;
 
-			CGameObject* GO1 = smart_cast<CGameObject*>(CurrentIItem());
-			CGameObject* GO2 = _iitem ? smart_cast<CGameObject*>(_iitem) : NULL;
-			if (funct1(GO1 ? GO1->lua_game_object() : (0), GO2 ? GO2->lua_game_object() : (0), (int)t_old, (int)t_new) == false)
-				return false;
+			CGameObject* GO1			= smart_cast<CGameObject*>(CurrentIItem());
+			CGameObject* GO2			= _iitem ? smart_cast<CGameObject*>(_iitem) : NULL;
+			funct1						(GO1 ? GO1->lua_game_object() : (0),
+				GO2 ? GO2->lua_game_object() : (0), (int)t_old, (int)t_new);
 		}
 		//-Alundaio
-		return false;
+		return							true;
 	}
 
 	PIItem item							= CurrentIItem();
-	bool gear_equipped					= item->isGear(true);
+	bool gear_equipped					= (item) ? item->isGear(true) : false;
 	switch(t_new)
 	{
 	case iActorSlot:
@@ -170,9 +170,9 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 		if (CanSetItemToList(item, new_owner, slot_to_place))
 		{
 			if (gear_equipped && slot_to_place == item->HandSlot() || item->isGear() && slot_to_place == item->BaseSlot())
-				item->tryCustomUse();
+				item->tryCustomUse		();
 			else if (!ToSlot(itm, slot_to_place) && (slot_to_place == item->HandSlot()))
-				item->tryCustomUse();
+				item->tryCustomUse		();
 		}
 		break;
 	case iActorPocket:
