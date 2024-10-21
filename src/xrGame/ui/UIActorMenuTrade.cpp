@@ -169,8 +169,8 @@ void CUIActorMenu::DeInitTradeMode()
 	}
 
 	if (m_pActorInv)
-		for (auto& item : m_pActorInv->getTradeContainer())
-			m_pActorInv->Ruck			(item);
+		while (!m_pActorInv->getTradeContainer().empty())
+			m_pActorInv->Ruck			(m_pActorInv->getTradeContainer().back());
 }
 
 bool CUIActorMenu::ToActorTrade(CUICellItem* itm, bool b_use_cursor_pos)

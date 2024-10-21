@@ -410,6 +410,9 @@ void CInventory::toTrade(PIItem item)
 	case eItemPlacePocket:
 		m_pockets[item->CurrPocket()].erase_data(item);
 		break;
+	case eItemPlaceRuck:
+		m_ruck.erase_data				(item);
+		break;
 	}
 	
 	m_trade.push_back					(item);

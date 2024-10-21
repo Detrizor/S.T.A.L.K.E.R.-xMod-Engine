@@ -718,7 +718,7 @@ void CInventoryItem::OnMoveToSlot(SInvItemPlace CR$ prev)
 
 void CInventoryItem::OnMoveToRuck(SInvItemPlace CR$ prev)
 {
-	if (O.H_Parent() == Actor())
+	if (O.H_Parent() == Actor() && CurrPlace() == eItemPlacePocket)
 		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
 	on_inventory_action					(&prev);
 }
