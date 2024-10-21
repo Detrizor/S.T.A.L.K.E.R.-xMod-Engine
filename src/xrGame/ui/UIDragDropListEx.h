@@ -142,6 +142,13 @@ public:
 	virtual		void		SendMessage			(CUIWindow* pWnd, s16 msg, void* pData = NULL);
 
 				void		OnDragEvent			(CUIDragItem* drag_item, bool b_receive);
+
+private:
+	bool								m_valid									= true;
+
+public:
+	bool								isValid								C$	()				{ return m_valid; }
+	void								setValid								(bool v)		{ m_valid = v; }
 };
 
 class CUICellContainer : public CUIWindow

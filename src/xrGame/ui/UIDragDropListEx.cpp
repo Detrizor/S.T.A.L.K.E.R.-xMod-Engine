@@ -183,9 +183,9 @@ void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	CUIDragDropListEx*	new_owner		= m_drag_item->BackList();
-	if (old_owner && new_owner && old_owner != new_owner || GetCustomPlacement())
+	if (old_owner && new_owner && (old_owner != new_owner || GetCustomPlacement()))
 	{
-		CUICellItem* i					= old_owner->RemoveItem(itm, (old_owner==new_owner) );
+		CUICellItem* i					= old_owner->RemoveItem(itm, (old_owner == new_owner) );
 		if (new_owner->CanSetItem(i))
 		{
 			while(i->ChildsCount())
@@ -292,25 +292,19 @@ void CUIDragDropListEx::GetClientArea(Frect& r)
 
 void CUIDragDropListEx::ClearAll(bool bDestroy)
 {
-	DestroyDragItem			();
-	m_container->ClearAll	(bDestroy);
-	m_selected_item			= NULL;
-	m_container->SetWndPos	(Fvector2().set(0,0));
-	ResetCellsCapacity		();
+	DestroyDragItem						();
+	m_container->ClearAll				(bDestroy);
+	m_selected_item						= nullptr;
+	m_container->SetWndPos				(vZero2);
+	ResetCellsCapacity					();
 }
 
 void CUIDragDropListEx::Compact()
 {
-	CUIWindow::WINDOW_LIST	wl		= m_container->GetChildWndList();
-	ClearAll						(false);
-
-	CUIWindow::WINDOW_LIST_it it	= wl.begin();
-	CUIWindow::WINDOW_LIST_it it_e	= wl.end();
-	for(;it!=it_e;++it)
-	{
-		CUICellItem*	itm			= smart_cast<CUICellItem*>(*it);
-		SetItem						(itm);
-	}
+	CUIWindow::WINDOW_LIST wl			= m_container->GetChildWndList();
+	ClearAll							(false);
+	for (auto& wnd : wl)
+		SetItem							(static_cast<CUICellItem*>(wnd));
 }
 
 void CUIDragDropListEx::Draw()
@@ -430,59 +424,62 @@ int CUIDragDropListEx::ScrollPos()
 
 void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 {
-	if (m_container->AddSimilar(itm))
-		return;
-
-	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize());
-
-	SetItem						(itm,dest_cell_pos);
+	if (!m_container->AddSimilar(itm))
+	{
+		Ivector2 dest_cell_pos			= m_container->FindFreeCell(itm->GetGridSize());
+		SetItem							(itm, dest_cell_pos);
+	}
 }
 
 void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at cursor pos
 {
-	if(m_container->AddSimilar(itm))	return;
-
-	const Ivector2 dest_cell_pos =	m_container->PickCell		(abs_pos);
-
-	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize()))
-		SetItem						(itm, dest_cell_pos);
-	else
-		SetItem						(itm);
+	if (!m_container->AddSimilar(itm))
+	{
+		Ivector2 dest_cell_pos			= m_container->PickCell(abs_pos);
+		if (m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize()))
+			SetItem						(itm, dest_cell_pos);
+		else
+			SetItem						(itm);
+	}
 }
 
 void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at cell
 {
-	if(m_container->AddSimilar(itm))	return;
-	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize()));
+	if (!m_container->AddSimilar(itm))
+	{
+		R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize()));
 
-	m_container->PlaceItemAtPos	(itm, cell_pos);
+		m_container->PlaceItemAtPos		(itm, cell_pos);
 
-	itm->SetWindowName			("cell_item");
-	Register					(itm);
-	itm->SetOwnerList			(this);
+		itm->SetWindowName				("cell_item");
+		Register						(itm);
+		itm->SetOwnerList				(this);
+	}
 }
-bool CUIDragDropListEx::CanSetItem(CUICellItem* itm){
-	if (m_container->HasFreeSpace(itm->GetGridSize()))
-		return true;
-	Compact();
 
-	return m_container->HasFreeSpace(itm->GetGridSize());
+bool CUIDragDropListEx::CanSetItem(CUICellItem* itm)
+{
+	if (m_container->HasFreeSpace(itm->GetGridSize()))
+		return							true;
+	Compact								();
+	return m_container->HasFreeSpace	(itm->GetGridSize());
 }
 
 CUICellItem* CUIDragDropListEx::RemoveItem(CUICellItem* itm, bool force_root)
 {
-	CUICellItem* i				= m_container->RemoveItem		(itm, force_root);
-	i->SetOwnerList				((CUIDragDropListEx*)NULL);
-	return						i;
+	CUICellItem* i						= m_container->RemoveItem(itm, force_root);
+	i->SetOwnerList						(nullptr);
+	return								i;
 }
 
 u32 CUIDragDropListEx::ItemsCount()
 {
-	return m_container->GetChildWndList().size();
+	return								m_container->GetChildWndList().size();
 }
 
-bool CUIDragDropListEx::IsOwner(CUICellItem* itm){
-	return m_container->IsChild(itm);
+bool CUIDragDropListEx::IsOwner(CUICellItem* itm)
+{
+	return								m_container->IsChild(itm);
 }
 
 CUICellItem* CUIDragDropListEx::GetItemIdx(u32 idx)
@@ -930,7 +927,7 @@ void CUICellContainer::Draw()
 
 	//draw shown items in range
 	for (auto& cell : m_cells_to_draw) // all cells
-		if (!cell.Empty() && (cell.m_item->m_drawn_frame != Device.dwFrame))
+		if (cell.m_item && (cell.m_item->m_drawn_frame != Device.dwFrame))
 			cell.m_item->Draw			();
 
 	UI().PopScissor						();
