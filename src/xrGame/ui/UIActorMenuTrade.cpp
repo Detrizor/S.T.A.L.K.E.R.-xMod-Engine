@@ -130,28 +130,22 @@ void CUIActorMenu::InitPartnerInventoryContents()
 
 void CUIActorMenu::ColorizeItem(CUICellItem* itm)
 {
-	u32 col					= (CanMoveToPartner((PIItem)itm->m_pData)) ? 255 : 100;
-	itm->SetTextureColor	(color_rgba(255, col, col, 255));
+	u32 col								= (CanMoveToPartner((PIItem)itm->m_pData)) ? 255 : 100;
+	itm->SetTextureColor				(color_rgba(255, col, col, 255));
 }
 
 void CUIActorMenu::DeInitTradeMode()
 {
-	if ( m_actor_trade )
-	{
-		m_actor_trade->StopTrade();
-	}
-	if ( m_partner_trade )
-	{
-		m_partner_trade->StopTrade();
-	}
-	if ( m_pPartnerInvOwner )
-	{
-		m_pPartnerInvOwner->StopTrading();
-	}
+	if (m_actor_trade)
+		m_actor_trade->StopTrade		();
+	if (m_partner_trade)
+		m_partner_trade->StopTrade		();
+	if (m_pPartnerInvOwner)
+		m_pPartnerInvOwner->StopTrading	();
 
-	m_pTrashList->Show				(true);
-	m_PartnerCharacterInfo->Show	(false);
-	m_PartnerMoney->Show			(false);
+	m_pTrashList->Show					(true);
+	m_PartnerCharacterInfo->Show		(false);
+	m_PartnerMoney->Show				(false);
 
 	m_pTradeActorBagList->Show			(false);
 	m_pTradeActorList->Show				(false);
@@ -164,47 +158,45 @@ void CUIActorMenu::DeInitTradeMode()
 	m_trade_buy_button->Show			(false);
 	m_trade_sell_button->Show			(false);
 	
-	m_trade_list->Show				(false);
+	m_trade_list->Show					(false);
 
-	if(!CurrentGameUI())
-		return;
+	if (CurrentGameUI())
+	{
+		//только если находимся в режиме single
+		CUIGameSP* pGameSP				= smart_cast<CUIGameSP*>(CurrentGameUI());
+		if (pGameSP && pGameSP->TalkMenu->IsShown())
+			pGameSP->TalkMenu->NeedUpdateQuestions();
+	}
 
-	//только если находимся в режиме single
-	CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI());
-	if (pGameSP && pGameSP->TalkMenu->IsShown())
-		pGameSP->TalkMenu->NeedUpdateQuestions();
+	if (m_pActorInv)
+		for (auto& item : m_pActorInv->getTradeContainer())
+			m_pActorInv->Ruck			(item);
 }
 
 bool CUIActorMenu::ToActorTrade(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	PIItem item							= (PIItem)itm->m_pData;
-	if (!CanMoveToPartner(item))
-		return							false;
-
-	CUIDragDropListEx* old_owner		= itm->OwnerList();
-	CUIDragDropListEx* new_owner		= (b_use_cursor_pos) ? CUIDragDropListEx::m_drag_item->BackList() : m_pTradeActorList;
-	CUICellItem* i						= old_owner->RemoveItem(itm, old_owner == new_owner);
-	(b_use_cursor_pos)					? new_owner->SetItem(i, old_owner->GetDragItemPosition()) : new_owner->SetItem(i);
+	auto item							= static_cast<PIItem>(itm->m_pData);
+	if (CanMoveToPartner(item))
+	{
+		if (item->parent_id() == m_pActorInvOwner->object_id())
+			m_pActorInv->toTrade		(item);
+		else
+			pickup_item					(item, eItemPlaceTrade);
+		return							true;
+	}
 	
-	return								true;
+	return								false;
 }
 
 bool CUIActorMenu::ToPartnerTrade(CUICellItem* itm, bool b_use_cursor_pos)
 {
-	PIItem item							= (PIItem)itm->m_pData;
-	SInvItemPlace pl;
+	SInvItemPlace						pl;
 	pl.type								= eItemPlaceRuck;
 	if (!m_pPartnerInvOwner->AllowItemToTrade(itm->m_section, pl))
 		return							false;
-
-	CUIDragDropListEx* old_owner		= itm->OwnerList();
-	CUIDragDropListEx* new_owner		= (b_use_cursor_pos) ? CUIDragDropListEx::m_drag_item->BackList() : m_pTradePartnerList;
-	CUICellItem* citem					= (item) ? item->getIcon() : create_cell_item_from_section(itm->m_section);
-	if (b_use_cursor_pos)
-		new_owner->SetItem				(citem, old_owner->GetDragItemPosition());
-	else
-		new_owner->SetItem				(citem);
-
+	
+	PIItem item							= static_cast<PIItem>(itm->m_pData);
+	m_pTradePartnerList->SetItem		((item) ? item->getIcon() : create_cell_item_from_section(itm->m_section));
 	UpdatePrices						();
 
 	return								true;
@@ -555,3 +547,18 @@ void CUIActorMenu::DonateCurrentItem(CUICellItem* cell_item)
 	UpdateItemsPlace();
 }
 //-Alundaio
+
+void CUIActorMenu::init_actor_trade()
+{
+	TIItemContainer items_list			= m_pActorInv->getTradeContainer();
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+
+	for (auto& item : items_list)
+	{
+		CUICellItem* itm				= item->getIcon();
+		m_pTradeActorList->SetItem		(itm);
+		ColorizeItem					(itm);
+	}
+
+	m_pTradeActorList->setValid			(true);
+}

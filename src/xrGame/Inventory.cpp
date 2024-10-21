@@ -163,6 +163,9 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	case eItemPlaceRuck:
 		Ruck							(pIItem);
 		break;
+	case eItemPlaceTrade:
+		toTrade							(pIItem);
+		break;
 	}
 
 	if (pIItem->CurrPlace() == eItemPlaceUndefined)
@@ -236,6 +239,9 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 		pIItem->object().processing_deactivate();
 		break;
 	}
+	case eItemPlaceTrade:
+		m_trade.erase_data				(pIItem);
+		break;
 	default:
 		NODEFAULT;
 	}
@@ -289,6 +295,9 @@ void CInventory::Slot(u16 slot_id, PIItem item)
 	case eItemPlaceRuck:
 		m_ruck.erase_data				(item);
 		break;
+	case eItemPlaceTrade:
+		m_trade.erase_data				(item);
+		break;
 	}
 
 	m_slots[slot_id].m_pIItem			= item;
@@ -323,6 +332,9 @@ void CInventory::Ruck(PIItem item)
 		break;
 	case eItemPlacePocket:
 		m_pockets[item->CurrPocket()].erase_data(item);
+		break;
+	case eItemPlaceTrade:
+		m_trade.erase_data				(item);
 		break;
 	}
 	
@@ -364,6 +376,9 @@ void CInventory::Pocket(PIItem item, u16 pocket_id)
 	case eItemPlaceRuck:
 		m_ruck.erase_data				(item);
 		break;
+	case eItemPlaceTrade:
+		m_trade.erase_data				(item);
+		break;
 	}
 	
 	m_pockets[pocket_id].push_back		(item);
@@ -381,6 +396,35 @@ void CInventory::Pocket(PIItem item, u16 pocket_id)
 	if (InSlot(item))
 		item->object().processing_deactivate();
 	item->object().processing_activate	();
+}
+
+void CInventory::toTrade(PIItem item)
+{
+	switch (item->CurrPlace())
+	{
+	case eItemPlaceSlot:
+		if (InHands(item))
+			((item->BaseSlot() == LEFT_HAND_SLOT) ? m_iNextLeftItemID : m_iNextActiveItemID) = u16_max;
+		m_slots[item->CurrSlot()].m_pIItem = nullptr;
+		break;
+	case eItemPlacePocket:
+		m_pockets[item->CurrPocket()].erase_data(item);
+		break;
+	}
+	
+	m_trade.push_back					(item);
+	
+	CalcTotalWeight						();
+	CalcTotalVolume						();
+	InvalidateState						();
+
+	SInvItemPlace prev_place			= item->m_ItemCurrPlace;
+	item->m_ItemCurrPlace.type			= eItemPlaceTrade;
+	item->OnMoveToRuck					(prev_place);
+	m_pOwner->OnItemRuck				(item, prev_place);
+
+	if (InSlot(item))
+		item->object().processing_deactivate();
 }
 
 PIItem CInventory::ItemFromSlot(u16 slot) const

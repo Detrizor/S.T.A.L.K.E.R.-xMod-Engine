@@ -359,6 +359,7 @@ private:
 	void								pickup_item								(PIItem	item, eItemPlace place = eItemPlaceUndefined, u16 idx = 0);
 	void								init_dead_body_bag						();
 	void								init_bag								();
+	void								init_actor_trade						();
 	void								update_lists							(bool clear);
 	bool								process_place							(SInvItemPlace CR$ place);
 

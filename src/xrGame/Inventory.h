@@ -208,9 +208,14 @@ private:
 	void				TryDeactivateActiveSlot	();
 
 private:
+	TIItemContainer						m_trade									= {};
+
 	bool								process_item							(PIItem item);
 
 public:
+	TIItemContainer CR$					getTradeContainer						()		{ return m_trade; }
+
 	void								emptyPockets							();
 	void								checkArtefact							(PIItem item, bool take);
+	void								toTrade									(PIItem item);
 };
