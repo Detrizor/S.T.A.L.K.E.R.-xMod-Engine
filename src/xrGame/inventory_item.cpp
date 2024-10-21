@@ -245,7 +245,7 @@ bool CInventoryItem::Useful() const
 
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
-	on_inventory_action();
+	onInventoryAction();
 }
 
 void CInventoryItem::OnH_A_Independent()
@@ -713,14 +713,14 @@ void CInventoryItem::OnMoveToSlot(SInvItemPlace CR$ prev)
 		else
 			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
 	}
-	on_inventory_action					(&prev);
+	onInventoryAction					(&prev);
 }
 
 void CInventoryItem::OnMoveToRuck(SInvItemPlace CR$ prev)
 {
 	if (O.H_Parent() == Actor() && CurrPlace() == eItemPlacePocket)
 		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
-	on_inventory_action					(&prev);
+	onInventoryAction					(&prev);
 }
 
 Frect CInventoryItem::GetIconRect() const
@@ -909,10 +909,10 @@ void CInventoryItem::setup_icon()
 	else
 		m_icon.capture					(xr_new<CUIInventoryCellItem>(this));
 	m_icon_valid						= true;
-	on_inventory_action					();
+	onInventoryAction					();
 }
 
-void CInventoryItem::on_inventory_action(const SInvItemPlace* prev)
+void CInventoryItem::onInventoryAction(const SInvItemPlace* prev) const
 {
 	if (auto ui = CurrentGameUI())
 		ui->GetActorMenu().onInventoryAction(this, prev);

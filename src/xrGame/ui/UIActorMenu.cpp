@@ -272,20 +272,19 @@ void CUIActorMenu::Update()
 	update_lists(true);
 	update_lists(false);
 
-	PIItem active_item					= m_pActorInv->ActiveItem();
-	if (active_item)
+	if (auto active_item = m_pActorInv->ActiveItem())
 	{
 		if (auto ciitem = active_item->O.getModule<MContainer>())
 		{
 			CHudItem* hi				= smart_cast<CHudItem*>(active_item);
-			if (!hi->IsHidden() && !hi->IsHiding() && !hi->IsShowing())
+			if (hi->GetState() == CHudItem::eIdle)
 			{
 				ToggleBag				(ciitem);
 				return;
 			}
 		}
 	}
-	ToggleBag							(NULL);
+	ToggleBag							(nullptr);
 }
 
 void CUIActorMenu::update_lists(bool clear)
@@ -303,6 +302,9 @@ void CUIActorMenu::update_lists(bool clear)
 
 	if (!m_pTradeActorList->isValid())
 		(clear) ? m_pTradeActorList->ClearAll(true) : init_actor_trade();
+
+	if (!m_pTrashList->isValid())
+		(clear) ? m_pTrashList->ClearAll(true) : init_vicinity();
 
 	auto bag = GetListByType(iActorBag);
 	if (!bag->isValid())
@@ -686,4 +688,18 @@ bool CUIActorMenu::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& ret_
 	}
 
 	return false;
+}
+
+void CUIActorMenu::init_vicinity()
+{
+	auto& items_list					= Actor()->getVicinity();
+	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+
+	for (auto& item : items_list)
+	{
+		CUICellItem* itm				= item->getIcon();
+		m_pTrashList->SetItem			(itm);
+	}
+
+	m_pTrashList->setValid				(true);
 }

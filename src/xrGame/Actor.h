@@ -796,7 +796,9 @@ private:
 	float 								m_accuracy								= 1.f;
 	void								update_accuracy							();
 	bool								m_armed_mode							= false;
+	TIItemContainer						m_vicinity								= {};
 	
+	bool								check_item							C$	(PIItem item);
 	bool								CanPutInSlot						O$	(PIItem item, u32 slot);
 
 public:
@@ -807,8 +809,11 @@ public:
 	void								VicinityUpdate							();
 	bool								switchArmedMode							();
 
+	TIItemContainer&					getVicinity								()		{ return m_vicinity; }
+
 	float								getAccuracy							CO$	()		{ return m_accuracy; }
 };
+
 add_to_type_list(CActor)
 #undef script_type_list
 #define script_type_list save_type_list(CActor)

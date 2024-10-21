@@ -355,12 +355,13 @@ private:
 	void								init_dead_body_bag						();
 	void								init_bag								();
 	void								init_actor_trade						();
+	void								init_vicinity							();
 	void								update_partner_trade					();
 	void								update_lists							(bool clear);
-	bool								process_place							(SInvItemPlace CR$ place);
+	void								process_place							(SInvItemPlace CR$ place);
 
 public:
-	void								onInventoryAction						(PIItem item, const SInvItemPlace* prev = nullptr);
+	void								onInventoryAction						(CInventoryItem CP$ item, const SInvItemPlace* prev = nullptr);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

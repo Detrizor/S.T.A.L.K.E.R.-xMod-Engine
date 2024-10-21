@@ -123,47 +123,6 @@ bool CUIActorMenu::DropAllItemsFromRuck( bool quest_force )
 	return						true;
 }
 
-bool FindItemInList(CUIDragDropListEx* lst, PIItem pItem, CUICellItem*& ci_res)
-{
-	u32 count = lst->ItemsCount();
-	for (u32 i=0; i<count; ++i)
-	{
-		CUICellItem* ci				= lst->GetItemIdx(i);
-		for(u32 j=0; j<ci->ChildsCount(); ++j)
-		{
-			CUIInventoryCellItem* ici = smart_cast<CUIInventoryCellItem*>(ci->Child(j));
-			if(ici->object()==pItem)
-			{
-				ci_res = ici;
-				//lst->RemoveItem(ci,false);
-				return true;
-			}
-		}
-
-		CUIInventoryCellItem* ici = smart_cast<CUIInventoryCellItem*>(ci);
-		if(ici->object()==pItem)
-		{
-			ci_res = ci;
-			//lst->RemoveItem(ci,false);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool RemoveItemFromList(CUIDragDropListEx* lst, PIItem pItem)
-{
-	CUICellItem* ci						= nullptr;
-	if (FindItemInList(lst, pItem, ci))
-	{
-		R_ASSERT						(ci);
-		CUICellItem* removed_cell		= lst->RemoveItem(ci, false);
-		removed_cell->destroy			();
-		return							true;
-	}
-	return								false;
-}
-
 void CUIActorMenu::InitCellForSlot(u16 slot_idx)
 {
 	if (auto curr_list = GetSlotList(slot_idx))
@@ -250,6 +209,8 @@ void CUIActorMenu::InitInventoryContents()
 	
 	for (u8 i = 0; i < m_pockets_count; ++i)
 		InitPocket						(i);
+
+	init_vicinity						();
 }
 
 bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative)
@@ -707,27 +668,23 @@ void CUIActorMenu::pickup_item(PIItem item, eItemPlace type, u16 slot_id)
 	item->O.transfer					(m_pActorInvOwner->object_id(), true);
 }
 
-void CUIActorMenu::onInventoryAction(PIItem item, const SInvItemPlace* prev)
+void CUIActorMenu::onInventoryAction(CInventoryItem CP$ item, const SInvItemPlace* prev)
 {
-	if (!IsShown())
-		return;
-	auto itm							= item->getIcon();
-	if (!itm)
+	if (!IsShown() || !item->getIcon())
 		return;
 
-	if (auto old_owner = itm->OwnerList())
+	if (auto old_owner = item->getIcon()->OwnerList())
 		if (GetListType(old_owner) == iTrashSlot)
-			old_owner->ClearAll			(true);
+			m_pTrashList->setValid		(false);
 
 	u16 parent_id						= item->parent_id();
 	if (parent_id == m_pActorInvOwner->object_id())
 	{
-		bool res						= (prev) ? process_place(*prev) : false;
-		res								|= process_place(item->m_ItemCurrPlace);
-		if (!res)
-			return;
+		if (prev)
+			process_place				(*prev);
+		process_place					(item->m_ItemCurrPlace);
 	}
-	else
+	else if (parent_id != u16_max)
 	{
 		if (m_currMenuMode == mmDeadBodySearch &&
 			(m_pPartnerInvOwner && parent_id == m_pPartnerInvOwner->object_id() ||
@@ -736,12 +693,12 @@ void CUIActorMenu::onInventoryAction(PIItem item, const SInvItemPlace* prev)
 			m_pDeadBodyBagList->setValid(false);
 		else if (m_pBag && parent_id == m_pBag->O.ID())
 			GetListByType(iActorBag)->setValid(false);
-		else
-			return;
 	}
+	else
+		m_pTrashList->setValid			(false);
 }
 
-bool CUIActorMenu::process_place(SInvItemPlace CR$ place)
+void CUIActorMenu::process_place(SInvItemPlace CR$ place)
 {
 	switch (place.type)
 	{
@@ -760,8 +717,5 @@ bool CUIActorMenu::process_place(SInvItemPlace CR$ place)
 	case eItemPlaceTrade:
 		m_pTradeActorList->setValid		(false);
 		break;
-	default:
-		return							false;
 	}
-	return								true;
 }

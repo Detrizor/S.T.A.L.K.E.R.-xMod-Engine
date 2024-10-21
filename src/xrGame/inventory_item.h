@@ -331,7 +331,6 @@ private:
 	
 	void								set_inv_icon							();
 	void								setup_icon								();
-	void								on_inventory_action						(const SInvItemPlace* prev = nullptr);
 
 protected:
 	void								shedule_Update							(u32 T);
@@ -358,6 +357,7 @@ public:
 	float								Price								C$	();
 	bool								tryCustomUse						C$	();
 	bool								isGear								C$	(bool check_equipped = false);
+	void								onInventoryAction					C$	(const SInvItemPlace* prev = nullptr);
 
 	float								getData								C$	(EItemDataTypes type);
 	float								Weight								C$	();
