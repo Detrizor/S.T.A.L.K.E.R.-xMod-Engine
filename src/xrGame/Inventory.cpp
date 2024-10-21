@@ -182,24 +182,6 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	VERIFY								(pIItem->CurrPlace() != eItemPlaceUndefined);
 	
 	checkArtefact						(pIItem, true);
-
-	if (pIItem->BaseSlot() == BOLT_SLOT)
-	{
-		CGrenade* pGrenade						= smart_cast<CGrenade*>(pIItem);
-		CMissile* pMissile						= smart_cast<CMissile*>(pIItem);
-		if ((pGrenade && !pGrenade->Useful()) || (pMissile && !pMissile->Useful()))
-		{
-			m_pOwner->O->giveItem(*pIItem->m_section_id);
-			if (pIItem->CurrSlot() == pIItem->HandSlot())
-				m_bBoltPickUp					= true;
-			pIItem->object().DestroyObject		();
-		}
-		else if (m_bBoltPickUp)
-		{
-			ActivateItem						(pIItem);
-			m_bBoltPickUp						= false;
-		}
-	}
 }
 
 bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont_create_shell) 
@@ -761,7 +743,7 @@ void CInventory::update_actors()
 			if (m_iReturnPlace == eItemPlaceSlot)
 				Slot					(m_iReturnSlot, left_item);
 			else
-				Pocket					(active_item, m_iReturnSlot);
+				Pocket					(left_item, m_iReturnSlot);
 			m_iReturnPlace				= 0;
 			m_iReturnSlot				= 0;
 		}

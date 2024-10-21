@@ -77,8 +77,6 @@ public:
 	bool					ActivateNextGrenage();
 	
 	static u32 const		qs_priorities_count = 5;
-	PIItem					GetNextItemInActiveSlot		(u8 const priority_value, bool ignore_ammo);
-	bool					ActivateNextItemInActiveSlot();
 	priority_group &		GetPriorityGroup			(u8 const priority_value, u16 slot);
 	void					InitPriorityGroupsForQSwitch();
 

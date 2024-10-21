@@ -208,41 +208,15 @@ void CGrenade::OnEvent(NET_Packet& P, u16 type)
 
 void CGrenade::PutNextToSlot()
 {
-	if (OnClient()) return;
-
-	VERIFY									(!getDestroy());
+	VERIFY								(!getDestroy());
 	//выкинуть гранату из инвентаря
-	NET_Packet						P;
 	if (m_pInventory)
 	{
-		m_pInventory->Ruck					(this);
-
-		this->u_EventGen				(P, GEG_PLAYER_ITEM2RUCK, this->H_Parent()->ID());
-		P.w_u16							(this->ID());
-		this->u_EventSend				(P);
+		m_pInventory->Ruck				(this);
+		m_thrown						= false;
 	}
 	else
-		Msg ("! PutNextToSlot : m_pInventory = NULL [%d][%d]", ID(), Device.dwFrame);	
-
-	if (smart_cast<CInventoryOwner*>(H_Parent()) && m_pInventory)
-	{
-		CGrenade* pNext						= smart_cast<CGrenade*>(m_pInventory->Same(this));
-		if (!pNext)
-			pNext							= smart_cast<CGrenade*>(m_pInventory->SameSlot(GRENADE_SLOT, this));
-
-		VERIFY								(pNext != this);
-
-		if (pNext && m_pInventory->trySlot(pNext->BaseSlot(),pNext))
-		{
-			pNext->u_EventGen				(P, GEG_PLAYER_ITEM2SLOT, pNext->H_Parent()->ID());
-			P.w_u16							(pNext->ID());
-			P.w_u16							(pNext->BaseSlot());
-			pNext->u_EventSend				(P);
-			m_pInventory->SetActiveSlot		(pNext->BaseSlot());
-		}
-
-		m_thrown				= false;
-	}
+		Msg								("! PutNextToSlot : m_pInventory = NULL [%d][%d]", ID(), Device.dwFrame);	
 }
 
 void CGrenade::OnAnimationEnd(u32 state) 

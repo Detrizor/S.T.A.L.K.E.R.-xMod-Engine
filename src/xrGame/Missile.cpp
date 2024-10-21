@@ -149,9 +149,12 @@ void CMissile::spawn_fake_missile()
 			true
 		);
 
-		CSE_ALifeObject				*alife_object = smart_cast<CSE_ALifeObject*>(object);
-		VERIFY						(alife_object);
-		alife_object->m_flags.set	(CSE_ALifeObject::flCanSave,FALSE);
+		if (m_dwDestroyTimeMax < u32_max)
+		{
+			CSE_ALifeObject* alife_object = smart_cast<CSE_ALifeObject*>(object);
+			VERIFY						(alife_object);
+			alife_object->m_flags.set	(CSE_ALifeObject::flCanSave, FALSE);
+		}
 
 		NET_Packet			P;
 		object->Spawn_Write	(P,TRUE);
@@ -637,7 +640,7 @@ void CMissile::activate_physic_shell()
 	kinematics->CalculateBones			(TRUE);
 }
 
-void	CMissile::net_Relcase(CObject* O)
+void CMissile::net_Relcase(CObject* O)
 {
 	inherited::net_Relcase(O);
 	if(PPhysicsShell()&&PPhysicsShell()->isActive())
@@ -648,13 +651,18 @@ void	CMissile::net_Relcase(CObject* O)
 			PPhysicsShell()->set_CallbackData(NULL);
 		}
 	}
-
 }
 
 void CMissile::create_physic_shell	()
 {
 	//create_box2sphere_physic_shell();
 	inherited::CreatePhysicsShell();
+}
+
+void CMissile::set_destroy_time(u32 delta_destroy_time)
+{
+	if (u32_max - delta_destroy_time > Device.dwTimeGlobal)
+		m_dwDestroyTime = delta_destroy_time + Device.dwTimeGlobal;
 }
 
 void CMissile::setup_physic_shell	()

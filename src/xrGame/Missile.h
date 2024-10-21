@@ -93,7 +93,7 @@ public:
 	virtual void			activate_physic_shell	();
 	virtual void			setup_physic_shell		();
 	virtual void			create_physic_shell		();
-	IC		void			set_destroy_time		(u32 delta_destroy_time) {m_dwDestroyTime = delta_destroy_time + Device.dwTimeGlobal;}
+	IC		void			set_destroy_time		(u32 delta_destroy_time);
 	virtual void			PH_A_CrPr				();
 
 protected:
