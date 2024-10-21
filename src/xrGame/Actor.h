@@ -155,7 +155,6 @@ public:
 	virtual void reload			(LPCSTR section);
 	virtual bool use_bolts		() const;
 	
-	virtual void OnItemDrop		(CInventoryItem *inventory_item, bool just_before_destroy);
 	virtual void OnItemDropUpdate ();
 
 	virtual	void OnPlayHeadShotParticle (NET_Packet P);

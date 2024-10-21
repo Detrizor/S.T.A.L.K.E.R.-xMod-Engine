@@ -27,7 +27,6 @@ public:
 	float						GetBoneArmorLevel		(s16 element);
 
 	virtual void				OnMoveToSlot			(const SInvItemPlace& prev);
-	virtual void				OnMoveToRuck			(const SInvItemPlace& previous_place);
 
 	void						GetPockets				(LPCSTR pockets);
 

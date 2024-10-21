@@ -1540,15 +1540,6 @@ ALife::_TIME_ID	 CActor::TimePassedAfterDeath()	const
 		return 0;
 }
 
-void CActor::OnItemDrop(CInventoryItem *inventory_item, bool just_before_destroy)
-{
-	CInventoryOwner::OnItemDrop(inventory_item, just_before_destroy);
-
-	CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(inventory_item);
-	if (outfit && inventory_item->m_ItemCurrPlace.type == eItemPlaceSlot)
-		outfit->ApplySkinModel(this, false, false);
-}
-
 void CActor::OnItemDropUpdate()
 {
 	CInventoryOwner::OnItemDropUpdate();

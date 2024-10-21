@@ -132,27 +132,22 @@ float CCustomOutfit::GetBoneArmorLevel(s16 element)
 void CCustomOutfit::OnMoveToSlot(const SInvItemPlace& prev)
 {
 	inherited::OnMoveToSlot(prev);
-	if (m_pInventory)
+	if (auto actor = H_Parent()->scast<CActor*>())
 	{
-		CActor* pActor = smart_cast<CActor*>(H_Parent());
-		if (pActor)
+		if (CurrSlot() == BaseSlot())
 		{
-			ApplySkinModel(pActor, true, false);
-			if (prev.type == eItemPlaceSlot && !bIsHelmetAvaliable)
-			{
-				CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
-				if (pTorch && pTorch->GetNightVisionStatus())
-					pTorch->SwitchNightVision(true, false);
-			}
+			ApplySkinModel				(actor, true, false);
+			CurrentGameUI()->GetActorMenu().UpdatePocketsPresence();
+		}
+		else if (prev.type == eItemPlaceSlot && prev.slot_id == BaseSlot())
+		{
+			ApplySkinModel				(actor, false, false);
+			CurrentGameUI()->GetActorMenu().UpdatePocketsPresence();
+			m_pInventory->emptyPockets	();
 
-			if (prev.type == eItemPlaceSlot && prev.slot_id == BaseSlot() && prev.slot_id != CurrSlot())
-			{
-				m_pInventory->emptyPockets									();
-				CurrentGameUI()->GetActorMenu().UpdatePocketsPresence		();
-			}
-
-			if (prev.slot_id == HandSlot() && CurrSlot() == BaseSlot())
-				CurrentGameUI()->GetActorMenu().UpdatePocketsPresence();
+			if (auto pTorch = smart_cast<CTorch*>(actor->inventory().ItemFromSlot(TORCH_SLOT)))
+				if (pTorch->GetNightVisionStatus() && !bIsHelmetAvaliable)
+					pTorch->SwitchNightVision(false);
 		}
 	}
 }
@@ -202,22 +197,6 @@ void CCustomOutfit::ApplySkinModel(CActor* pActor, bool bDress, bool bHUDOnly)
 			g_player_hud->load_default();
 	}
 
-}
-
-void CCustomOutfit::OnMoveToRuck(const SInvItemPlace& prev)
-{
-	inherited::OnMoveToRuck(prev);
-	if (m_pInventory && prev.type == eItemPlaceSlot)
-	{
-		CActor* pActor = smart_cast<CActor*> (H_Parent());
-		if (pActor)
-		{
-			ApplySkinModel(pActor, false, false);
-			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
-			if (pTorch && !bIsHelmetAvaliable)
-				pTorch->SwitchNightVision(false);
-		}
-	}
 }
 
 u32	CCustomOutfit::ef_equipment_type	() const
