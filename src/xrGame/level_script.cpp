@@ -308,7 +308,7 @@ void map_remove_object_spot(u16 id, LPCSTR spot_type)
 	Level().MapManager().RemoveMapLocation(spot_type, id);
 }
 
-u16 map_has_object_spot(u16 id, LPCSTR spot_type)
+BOOL map_has_object_spot(u16 id, LPCSTR spot_type)
 {
 	return Level().MapManager().HasMapLocation(spot_type, id);
 }

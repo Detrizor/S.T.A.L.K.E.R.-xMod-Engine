@@ -28,86 +28,41 @@ const int max_objects_size_in_save	= 8*1024;
 
 extern bool	g_b_ClearGameCaptions;
 
-void CLevel::remove_objects	()
+void CLevel::remove_objects()
 {
-	BOOL						b_stored = psDeviceFlags.test(rsDisableObjectsAsCrows);
-	
-	int loop = 5;
-	while(loop)
-	{
-		if (OnServer()) 
-		{
-			R_ASSERT				(Server);
-			Server->SLS_Clear		();
-		}
+	BOOL b_stored						= psDeviceFlags.test(rsDisableObjectsAsCrows);
+	Server->SLS_Clear					();
+	snd_Events.clear					();
 
-		if (OnClient())
-			ClearAllObjects			();
+	// ugly hack for checks that update is twice on frame
+	// we need it since we do updates for checking network messages
+	++Device.dwFrame;
+	psDeviceFlags.set					(rsDisableObjectsAsCrows, TRUE);
+	psNET_Flags.set						(NETFLAG_MINIMIZEUPDATES, FALSE);
 
-		for (int i=0; i<20; ++i) 
-		{
-			snd_Events.clear		();
-			psNET_Flags.set			(NETFLAG_MINIMIZEUPDATES,FALSE);
-			// ugly hack for checks that update is twice on frame
-			// we need it since we do updates for checking network messages
-			++(Device.dwFrame);
-			psDeviceFlags.set		(rsDisableObjectsAsCrows,TRUE);
-			ClientReceive			();
-			ProcessGameEvents		();
-			Objects.Update			(false);
-			#ifdef DEBUG
-			Msg						("Update objects list...");
-			#endif // #ifdef DEBUG
-			Objects.dump_all_objects();
-		}
+	ClientReceive						();
+	ProcessGameEvents					();
+	Objects.Update						(true);
 
-		if(Objects.o_count()==0)
-			break;
-		else
-		{
-			--loop;
-			Msg						("Objects removal next loop. Active objects count=%d", Objects.o_count());
-		}
+	#ifdef DEBUG
+	Msg									("Update objects list...");
+	Objects.dump_all_objects			();
+	#endif
 
-	}
+	R_ASSERT							(!Objects.o_count());
 
-	BulletManager().Clear		();
-	ph_commander().clear		();
-	ph_commander_scripts().clear();
-
-	if(!g_dedicated_server)
-		space_restriction_manager().clear	();
-
-	psDeviceFlags.set			(rsDisableObjectsAsCrows, b_stored);
-	g_b_ClearGameCaptions		= true;
-
-	if (!g_dedicated_server)
-		ai().script_engine().collect_all_garbage	();
-
-	stalker_animation_data_storage().clear		();
-	
-	VERIFY										(Render);
-	Render->models_Clear						(FALSE);
-	
-	Render->clear_static_wallmarks				();
-
-#ifdef DEBUG
-	if(!g_dedicated_server)
-		if (!client_spawn_manager().registry().empty())
-			client_spawn_manager().dump				();
-#endif // DEBUG
-	if(!g_dedicated_server)
-	{
-#ifdef DEBUG
-		VERIFY										(client_spawn_manager().registry().empty());
-#endif
-		client_spawn_manager().clear			();
-	}
-
-	g_pGamePersistent->destroy_particles		(false);
-
-//.	xr_delete									(m_seniority_hierarchy_holder);
-//.	m_seniority_hierarchy_holder				= xr_new<CSeniorityHierarchyHolder>();
+	BulletManager().Clear				();
+	ph_commander().clear				();
+	ph_commander_scripts().clear		();
+	space_restriction_manager().clear	();
+	psDeviceFlags.set					(rsDisableObjectsAsCrows, b_stored);
+	g_b_ClearGameCaptions				= true;
+	ai().script_engine().collect_all_garbage();
+	stalker_animation_data_storage().clear();
+	Render->models_Clear				(FALSE);
+	Render->clear_static_wallmarks		();
+	client_spawn_manager().clear		();
+	g_pGamePersistent->destroy_particles(false);
 }
 
 #ifdef DEBUG
