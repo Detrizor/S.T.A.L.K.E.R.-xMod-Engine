@@ -35,6 +35,9 @@ public:
 	virtual CStatsPhysics* _BCL StatPhysics() = 0;
 	virtual void _BCL AddSeqFrame(pureFrame* f, bool mt) = 0;
 	virtual void _BCL RemoveSeqFrame(pureFrame* f) = 0;
+
+	virtual bool _BCL isActiveMain() const = 0;
+	virtual bool _BCL isGameProcess() const = 0;
 };
 
 class ENGINE_API CRenderDeviceData
@@ -254,7 +257,7 @@ public:
 	}
 
 	void Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason);
-	BOOL Paused();
+	BOOL Paused() const;
 
 	// Scene control
 	void PreCache(u32 amount, bool b_draw_loadscreen, bool b_wait_user_input);
@@ -342,10 +345,13 @@ private:
 
 private:
 	void d_SVPRender();
-	bool ActiveMain() const;
 
 public:
-	float timeGlobal(float k = 1000.f) const { return TimerGlobal.GetElapsed_sec() * k; }
+	bool _BCL isActiveMain() const override;
+	bool _BCL isGameProcess() const override;
+
+	bool isLevelReady() const;
+	bool isGameLoaded() const;
 };
 
 extern ENGINE_API CRenderDevice Device;
@@ -363,13 +369,18 @@ extern ENGINE_API xr_list<LOADING_EVENT> g_loading_events;
 
 class ENGINE_API CLoadScreenRenderer :public pureRender
 {
+private:
+	bool b_registered = false;
+	bool b_need_user_input = false;
+	bool b_standby = false;
+
 public:
-	CLoadScreenRenderer();
 	void start(bool b_user_input);
 	void stop();
-	virtual void OnRender();
-
-	bool b_registered;
-	bool b_need_user_input;
+	void OnRender() override;
+	bool getStandby() const { return b_standby; }
+	void setStandby() { b_standby = true; }
+	bool isActive() const { return b_registered; }
+	bool needUserInput() const { return b_need_user_input; }
 };
 extern ENGINE_API CLoadScreenRenderer load_screen_renderer;

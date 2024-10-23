@@ -448,13 +448,9 @@ void CGamePersistent::game_loaded()
 {
 	if (Device.dwPrecacheFrame <= 2)
 	{
-		if (g_pGameLevel							&&
-			g_pGameLevel->bReady &&
-			(allow_intro() && g_keypress_on_start) &&
-			load_screen_renderer.b_need_user_input	&&
-			m_game_params.m_e_game_type == eGameIDSingle)
+		if (Device.isLevelReady() && allow_intro() && g_keypress_on_start && load_screen_renderer.needUserInput())
 		{
-			VERIFY(NULL == m_intro);
+			VERIFY(!m_intro);
 			m_intro = xr_new<CUISequencer>();
 			m_intro->Start("game_loaded");
 			Msg("intro_start game_loaded");
@@ -479,7 +475,7 @@ void CGamePersistent::start_game_intro()
 		return;
 	}
 
-	if (g_pGameLevel && g_pGameLevel->bReady && Device.dwPrecacheFrame <= 2)
+	if (Device.isLevelReady() && Device.dwPrecacheFrame <= 2)
 	{
 		m_intro_event.bind(this, &CGamePersistent::update_game_intro);
 		if (0 == stricmp(m_game_params.m_new_or_load, "new"))
@@ -513,9 +509,7 @@ extern CUISequencer * g_tutorial2;
 void CGamePersistent::OnFrame()
 {
 	if (Device.dwPrecacheFrame == 5 && m_intro_event.empty())
-	{
 		m_intro_event.bind(this, &CGamePersistent::game_loaded);
-	}
 
 	if (g_tutorial2)
 	{
@@ -533,16 +527,22 @@ void CGamePersistent::OnFrame()
 #ifdef DEBUG
 	++m_frame_counter;
 #endif
-	if (!g_dedicated_server && !m_intro_event.empty())	m_intro_event();
+	if (!m_intro_event.empty())
+		m_intro_event();
 
-	if (!g_dedicated_server && Device.dwPrecacheFrame == 0 && !m_intro && m_intro_event.empty())
-		load_screen_renderer.stop();
+	if (load_screen_renderer.isActive() && Device.dwPrecacheFrame == 0)
+	{
+		if (!m_intro && m_intro_event.empty())
+			load_screen_renderer.stop();
+		else if (!load_screen_renderer.getStandby())
+			load_screen_renderer.setStandby();
+	}
 
 	if (!m_pMainMenu->IsActive())
 		m_pMainMenu->DestroyInternal(false);
 
-	if (!g_pGameLevel)			return;
-	if (!g_pGameLevel->bReady)	return;
+	if (!Device.isLevelReady())
+		return;
 
 	if (Device.Paused())
 	{

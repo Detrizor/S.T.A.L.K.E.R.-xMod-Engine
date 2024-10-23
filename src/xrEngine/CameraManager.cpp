@@ -456,8 +456,8 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	Device.fASPECT						= m_cam_info.fAspect;
 	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
 
-	if (g_pGamePersistent && g_pGamePersistent->m_pMainMenu->IsActive() || Device.SVP.isRendering())
-		ResetPP();
+	if (Device.isActiveMain() || Device.SVP.isRendering())
+		ResetPP							();
 	else
 	{
 		pp_affected.validate("apply device");

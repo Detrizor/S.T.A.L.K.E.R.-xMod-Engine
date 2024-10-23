@@ -35,7 +35,6 @@
 ENGINE_API CRenderDevice Device;
 ENGINE_API CLoadScreenRenderer load_screen_renderer;
 
-
 ENGINE_API BOOL g_bRendering = FALSE;
 
 BOOL g_bLoaded = FALSE;
@@ -198,10 +197,8 @@ void CRenderDevice::PreCache(u32 amount, bool b_draw_loadscreen, bool b_wait_use
 		precache_light->set_active(true);
 	}
 
-	if (amount && b_draw_loadscreen && !load_screen_renderer.b_registered)
-	{
+	if (amount && b_draw_loadscreen && !load_screen_renderer.isActive())
 		load_screen_renderer.start(b_wait_user_input);
-	}
 }
 
 int g_svDedicateServerUpdateReate = 100;
@@ -216,9 +213,6 @@ void CRenderDevice::on_idle()
 		return;
 	}
 
-#ifdef DEDICATED_SERVER
-	u32 FrameStartTime = TimerGlobal.GetElapsed_ms();
-#else
 	// FPS Lock
 	if (g_dwFPSlimit > 0)
 	{
@@ -230,10 +224,7 @@ void CRenderDevice::on_idle()
 
 		dwLastFrameTime = dwCurrentTime;
 	}
-#endif
-	if (psDeviceFlags.test(rsStatistic)) 
-		g_bEnableStatGather = TRUE;
-	else g_bEnableStatGather = FALSE;
+	g_bEnableStatGather = !!psDeviceFlags.test(rsStatistic);
 	if (g_loading_events.size())
 	{
 		if (g_loading_events.front()())
@@ -274,19 +265,16 @@ void CRenderDevice::on_idle()
 	mFullTransform_saved = mFullTransform;
 	mView_saved = mView;
 	mProject_saved = mProject;
-	
+
 	// *** Resume threads
 	// Capture end point - thread must run only ONE cycle
 	// Release start point - allow thread to run
 	mt_csLeave.Enter();
 	mt_csEnter.Leave();
 
-	Sleep(0);
-
-#ifndef DEDICATED_SERVER
 	Statistic->RenderTOTAL_Real.FrameStart();
 	Statistic->RenderTOTAL_Real.Begin();
-	
+
 	if (b_is_Active && Begin())
 	{
 		seqRender.Process(rp_Render);
@@ -294,10 +282,11 @@ void CRenderDevice::on_idle()
 			Statistic->Show();
 		End();
 	}
+
 	Statistic->RenderTOTAL_Real.End();
 	Statistic->RenderTOTAL_Real.FrameEnd();
 	Statistic->RenderTOTAL.accum = Statistic->RenderTOTAL_Real.accum;
-#endif // #ifndef DEDICATED_SERVER
+
 	// *** Suspend threads
 	// Capture startup point
 	// Release end point - allow thread to wait for startup point
@@ -313,20 +302,13 @@ void CRenderDevice::on_idle()
 		seqFrameMT.Process(rp_Frame);
 	}
 
-#ifdef DEDICATED_SERVER
-	u32 FrameEndTime = TimerGlobal.GetElapsed_ms();
-	u32 FrameTime = (FrameEndTime - FrameStartTime);
-	u32 DSUpdateDelta = 1000 / g_svDedicateServerUpdateReate;
-	if (FrameTime < DSUpdateDelta)
-		Sleep(DSUpdateDelta - FrameTime);
-#endif
 	if (!b_is_Active)
 		Sleep(1);
 }
 
 void CRenderDevice::d_SVPRender()
 {
-	if (SVP.isActive() && !ActiveMain())
+	if (SVP.isActive() && !isActiveMain())
 	{
 		dwFrame++;
 		Core.dwFrame = dwFrame;
@@ -364,9 +346,24 @@ void CRenderDevice::d_SVPRender()
 	}
 }
 
-bool CRenderDevice::ActiveMain() const
+bool CRenderDevice::isActiveMain() const
 {
 	return b_is_Active && g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive();
+}
+
+bool CRenderDevice::isLevelReady() const
+{
+	return g_pGameLevel && g_pGameLevel->bReady;
+}
+
+bool CRenderDevice::isGameLoaded() const
+{
+	return isLevelReady() && (!load_screen_renderer.isActive() || load_screen_renderer.getStandby());
+}
+
+bool CRenderDevice::isGameProcess() const
+{
+	return isLevelReady() && !load_screen_renderer.isActive() && !Paused();
 }
 
 #ifdef INGAME_EDITOR
@@ -556,7 +553,7 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
 
 }
 
-BOOL CRenderDevice::Paused()
+BOOL CRenderDevice::Paused() const
 {
 	return g_pauseMngr.Paused();
 }
@@ -606,15 +603,12 @@ void CRenderDevice::RemoveSeqFrame(pureFrame* f)
 	seqFrame.Remove(f);
 }
 
-CLoadScreenRenderer::CLoadScreenRenderer()
-	:b_registered(false)
-{}
-
 void CLoadScreenRenderer::start(bool b_user_input)
 {
 	Device.seqRender.Add(this, 0);
 	b_registered = true;
 	b_need_user_input = b_user_input;
+	b_standby = false;
 }
 
 void CLoadScreenRenderer::stop()
@@ -625,6 +619,7 @@ void CLoadScreenRenderer::stop()
 	pApp->destroy_loading_shaders();
 	b_registered = false;
 	b_need_user_input = false;
+	b_standby = false;
 }
 
 void CLoadScreenRenderer::OnRender()
