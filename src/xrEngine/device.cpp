@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "../xrCDB/frustum.h"
+#include "xr_input.h"
 
 #pragma warning(disable:4995)
 // mmsystem.h
@@ -564,27 +565,17 @@ void CRenderDevice::OnWM_Activate(WPARAM wParam, LPARAM lParam)
 	BOOL fMinimized = (BOOL)HIWORD(wParam);
 	BOOL bActive = ((fActive != WA_INACTIVE) && (!fMinimized)) ? TRUE : FALSE;
 
-	if (bActive != Device.b_is_Active)
+	if (bActive != b_is_Active)
 	{
-		Device.b_is_Active = bActive;
-
-		if (Device.b_is_Active)
+		if (b_is_Active = bActive)
 		{
-			Device.seqAppActivate.Process(rp_AppActivate);
+			seqAppActivate.Process(rp_AppActivate);
 			app_inactive_time += TimerMM.GetElapsed_ms() - app_inactive_time_start;
-
-#ifndef DEDICATED_SERVER
-# ifdef INGAME_EDITOR
-			if (!editor())
-# endif // #ifdef INGAME_EDITOR
-				ShowCursor(FALSE);
-#endif // #ifndef DEDICATED_SERVER
 		}
 		else
 		{
 			app_inactive_time_start = TimerMM.GetElapsed_ms();
-			Device.seqAppDeactivate.Process(rp_AppDeactivate);
-			ShowCursor(TRUE);
+			seqAppDeactivate.Process(rp_AppDeactivate);
 		}
 	}
 }

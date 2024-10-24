@@ -4,52 +4,52 @@
 #include "render.h"
 #include "IGame_Persistent.h"
 #include "xr_IOConsole.h"
+#include "xr_input.h"
 
 void CRenderDevice::_Destroy(BOOL bKeepTextures)
 {
-    DU->OnDeviceDestroy();
+	DU->OnDeviceDestroy();
 
-    // before destroy
-    b_is_Ready = FALSE;
-    Statistic->OnDeviceDestroy();
-    ::Render->destroy();
-    m_pRender->OnDeviceDestroy(bKeepTextures);
-    //Resources->OnDeviceDestroy (bKeepTextures);
-    //RCache.OnDeviceDestroy ();
+	// before destroy
+	b_is_Ready = FALSE;
+	Statistic->OnDeviceDestroy();
+	::Render->destroy();
+	m_pRender->OnDeviceDestroy(bKeepTextures);
+	//Resources->OnDeviceDestroy (bKeepTextures);
+	//RCache.OnDeviceDestroy ();
 
-    Memory.mem_compact();
+	Memory.mem_compact();
 }
 
 void CRenderDevice::Destroy(void)
 {
-    if (!b_is_Ready) return;
+	if (!b_is_Ready) return;
 
-    Log("Destroying Direct3D...");
+	Log("Destroying Direct3D...");
+	pInput->ClipCursor(false);
+	m_pRender->ValidateHW();
 
-    ShowCursor(TRUE);
-    m_pRender->ValidateHW();
+	_Destroy(FALSE);
 
-    _Destroy(FALSE);
+	// real destroy
+	m_pRender->DestroyHW();
 
-    // real destroy
-    m_pRender->DestroyHW();
+	//xr_delete (Resources);
+	//HW.DestroyDevice ();
 
-    //xr_delete (Resources);
-    //HW.DestroyDevice ();
+	seqRender.R.clear();
+	seqAppActivate.R.clear();
+	seqAppDeactivate.R.clear();
+	seqAppStart.R.clear();
+	seqAppEnd.R.clear();
+	seqFrame.R.clear();
+	seqFrameMT.R.clear();
+	seqDeviceReset.R.clear();
+	seqParallel.clear();
 
-    seqRender.R.clear();
-    seqAppActivate.R.clear();
-    seqAppDeactivate.R.clear();
-    seqAppStart.R.clear();
-    seqAppEnd.R.clear();
-    seqFrame.R.clear();
-    seqFrameMT.R.clear();
-    seqDeviceReset.R.clear();
-    seqParallel.clear();
-
-    RenderFactory->DestroyRenderDeviceRender(m_pRender);
-    m_pRender = 0;
-    xr_delete(Statistic);
+	RenderFactory->DestroyRenderDeviceRender(m_pRender);
+	m_pRender = 0;
+	xr_delete(Statistic);
 }
 
 #include "IGame_Level.h"
@@ -57,42 +57,26 @@ void CRenderDevice::Destroy(void)
 extern BOOL bNeed_re_create_env;
 void CRenderDevice::Reset(bool precache)
 {
-    u32 dwWidth_before = dwWidth;
-    u32 dwHeight_before = dwHeight;
+	u32 dwWidth_before = dwWidth;
+	u32 dwHeight_before = dwHeight;
+	u32 tm_start = TimerAsync();
 
-    ShowCursor(TRUE);
-    u32 tm_start = TimerAsync();
-    if (g_pGamePersistent)
-    {
+	m_pRender->Reset(m_hWnd, dwWidth, dwHeight, fWidth_2, fHeight_2);
 
-        //. g_pGamePersistent->Environment().OnDeviceDestroy();
-    }
+	if (g_pGamePersistent)
+		g_pGamePersistent->Environment().bNeed_re_create_env = TRUE;
 
-    m_pRender->Reset(m_hWnd, dwWidth, dwHeight, fWidth_2, fHeight_2);
+	_SetupStates();
+	if (precache)
+		PreCache(20, true, false);
+	u32 tm_end = TimerAsync();
+	Msg("*** RESET [%d ms]", tm_end - tm_start);
 
-    if (g_pGamePersistent)
-    {
-        //. g_pGamePersistent->Environment().OnDeviceCreate();
-        //bNeed_re_create_env = TRUE;
-        g_pGamePersistent->Environment().bNeed_re_create_env = TRUE;
-    }
-    _SetupStates();
-    if (precache)
-        PreCache(20, true, false);
-    u32 tm_end = TimerAsync();
-    Msg("*** RESET [%d ms]", tm_end - tm_start);
+	// TODO: Remove this! It may hide crash
+	Memory.mem_compact();
 
-    // TODO: Remove this! It may hide crash
-    Memory.mem_compact();
+	seqDeviceReset.Process(rp_DeviceReset);
 
-#ifndef DEDICATED_SERVER
-    ShowCursor(FALSE);
-#endif
-
-    seqDeviceReset.Process(rp_DeviceReset);
-
-    if (dwWidth_before != dwWidth || dwHeight_before != dwHeight)
-    {
-        seqResolutionChanged.Process(rp_ScreenResolutionChanged);
-    }
+	if (dwWidth_before != dwWidth || dwHeight_before != dwHeight)
+		seqResolutionChanged.Process(rp_ScreenResolutionChanged);
 }

@@ -4,6 +4,7 @@
 #include "ui/UIStatic.h"
 #include "ui/UIBtnHint.h"
 #include "xrEngine/IInputReceiver.h"
+#include "xrEngine/xr_input.h"
 
 #define C_DEFAULT	D3DCOLOR_XRGB(0xff,0xff,0xff)
 
@@ -29,6 +30,18 @@ void CUICursor::OnScreenResolutionChanged()
 {
 	xr_delete					(m_static);
 	InitInternal				();
+}
+
+void CUICursor::Show()
+{
+	bVisible = true;
+	::ClipCursor(nullptr);
+}
+
+void CUICursor::Hide()
+{
+	bVisible = false;
+	pInput->ClipCursor(true);
 }
 
 void CUICursor::InitInternal()
@@ -96,8 +109,8 @@ void CUICursor::UpdateCursorPosition(int _dx, int _dy)
 	vPrevPos	= vPos;
 	if (m_b_use_win_cursor)
 	{
-        Ivector2 pti;
-        IInputReceiver::IR_GetMousePosReal(pti);
+		Ivector2 pti;
+		IInputReceiver::IR_GetMousePosReal(pti);
 		p.x			= (float)pti.x;
 		p.y			= (float)pti.y;
 		vPos.x		= p.x * (UI_BASE_WIDTH/(float)Device.dwWidth);
@@ -118,7 +131,7 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 	POINT		p;
 	p.x			= iFloor(vPos.x / (UI_BASE_WIDTH/(float)Device.dwWidth));
 	p.y			= iFloor(vPos.y / (UI_BASE_HEIGHT/(float)Device.dwHeight));
-    if (m_b_use_win_cursor)
-        ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
+	if (m_b_use_win_cursor)
+		ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
 	SetCursorPos(p.x, p.y);    
 }

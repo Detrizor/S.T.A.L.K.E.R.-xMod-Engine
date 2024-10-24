@@ -25,6 +25,7 @@
 #include "../Include/xrRender/DebugRender.h"
 
 #include "build_config_defines.h"
+#include "UICursor.h"
 
 //Alundaio
 #include "pch_script.h"
@@ -557,14 +558,14 @@ void CLevel::IR_OnMouseStop(int /**axis/**/, int /**value/**/)
 
 void CLevel::IR_OnActivate()
 {
-	if (!pInput) return;
-	int i;
-	for (i = 0; i < CInput::COUNT_KB_BUTTONS; i++)
+	if (!pInput)
+		return;
+
+	for (int i = 0; i < CInput::COUNT_KB_BUTTONS; ++i)
 	{
 		if (IR_GetKeyState(i))
 		{
-			EGameActions action = get_binded_action(i);
-			switch (action)
+			switch (get_binded_action(i))
 			{
 			case kFWD:
 			case kBACK:
@@ -579,10 +580,11 @@ void CLevel::IR_OnActivate()
 			case kL_LOOKOUT:
 			case kR_LOOKOUT:
 			case kWPN_FIRE:
-			{
-							  IR_OnKeyboardPress(i);
-			}break;
-			};
-		};
+				IR_OnKeyboardPress(i);
+				break;
+			}
+		}
 	}
+
+	pInput->ClipCursor(!GetUICursor().IsVisible());
 }
