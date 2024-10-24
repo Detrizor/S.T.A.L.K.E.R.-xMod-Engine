@@ -220,17 +220,15 @@ void CSE_ALifeItem::STATE_Write(NET_Packet &tNetPacket)
 	inherited2::STATE_Write				(tNetPacket);
 
 	u16 mask							= 0;
-	if (m_modules)
-		for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-			if (m_modules[t])
-				mask					|= (u16(1) << t);
+	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
+		if (m_modules[t])
+			mask						|= (u16(1) << t);
 
 	tNetPacket.w_u16					(mask);
 
-	if (m_modules)
-		for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-			if (m_modules[t])
-				m_modules[t]->STATE_Write(tNetPacket);
+	for (auto& m : m_modules)
+		if (m)
+			m->STATE_Write				(tNetPacket);
 }
 
 void CSE_ALifeItem::STATE_Read(NET_Packet &tNetPacket, u16 size)

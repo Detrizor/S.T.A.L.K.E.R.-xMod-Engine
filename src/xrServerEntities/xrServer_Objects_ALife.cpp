@@ -674,16 +674,13 @@ CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 
 CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
 {
-	if (!m_modules)
-		m_modules						= xr_new<xptr<CSE_ALifeModule>, CSE_ALifeModule::mModuleTypesEnd>(nullptr);
-	auto& module						= CSE_ALifeModule::createModule(m_modules, type);
-	module->setVersion					(m_wVersion);
-	return								module.get();
+	return								(m_modules[type] = CSE_ALifeModule::createModule(type, m_wVersion));
 }
 
 void CSE_ALifeDynamicObject::clearModules()
 {
-	xr_delete(m_modules);
+	for (auto& m : m_modules)
+		xr_delete						(m);
 }
 
 #ifndef XRGAME_EXPORTS
