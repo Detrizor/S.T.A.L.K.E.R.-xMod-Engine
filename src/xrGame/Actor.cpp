@@ -1791,4 +1791,5 @@ void CActor::loadStaticData()
 	CWeapon::loadStaticData				();
 	CWeaponMagazined::loadStaticData	();
 	CAddonSlot::loadStaticData			();
+	CObject::loadStaticData				();
 }
