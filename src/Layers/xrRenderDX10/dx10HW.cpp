@@ -10,6 +10,7 @@
 #include "../xrRender/HW.h"
 #include "../../xrEngine/XR_IOConsole.h"
 #include "../../Include/xrAPI/xrAPI.h"
+#include "../../xrEngine/xr_input.h"
 
 #include "StateManager\dx10SamplerStateCache.h"
 #include "StateManager\dx10StateCache.h"
@@ -329,39 +330,39 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 	//	DX10 don't need it?
 	//u32 GPU		= selectGPU();
 #ifdef USE_DX11
-    D3D_FEATURE_LEVEL pFeatureLevels[] =
-    {
-        D3D_FEATURE_LEVEL_11_0,
+	D3D_FEATURE_LEVEL pFeatureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
 //        D3D_FEATURE_LEVEL_10_1,
 //        D3D_FEATURE_LEVEL_10_0,
-    };
+	};
 
    R =  D3D11CreateDeviceAndSwapChain(   0,//m_pAdapter,//What wrong with adapter??? We should use another version of DXGI?????
-                                          m_DriverType,
-                                          NULL,
-                                          createDeviceFlags,
+										  m_DriverType,
+										  NULL,
+										  createDeviceFlags,
 										  pFeatureLevels,
 										  sizeof(pFeatureLevels)/sizeof(pFeatureLevels[0]),
 										  D3D11_SDK_VERSION,
-                                          &sd,
-                                          &m_pSwapChain,
-		                                  &pDevice,
+										  &sd,
+										  &m_pSwapChain,
+										  &pDevice,
 										  &FeatureLevel,		
 										  &pContext);
 #else
    R =  D3DX10CreateDeviceAndSwapChain(   m_pAdapter,
-                                          m_DriverType,
-                                          NULL,
-                                          createDeviceFlags,
-                                          &sd,
-                                          &m_pSwapChain,
-		                                    &pDevice );
+										  m_DriverType,
+										  NULL,
+										  createDeviceFlags,
+										  &sd,
+										  &m_pSwapChain,
+											&pDevice );
 
    pContext = pDevice;
    FeatureLevel = D3D_FEATURE_LEVEL_10_0;
    if(!FAILED(R))
    {
-      D3DX10GetFeatureLevel1( pDevice, &pDevice1 );
+	  D3DX10GetFeatureLevel1( pDevice, &pDevice1 );
 	  FeatureLevel = D3D_FEATURE_LEVEL_10_1;
    }
    pContext1 = pDevice1;
@@ -737,57 +738,52 @@ BOOL CHW::support( D3DFORMAT fmt, DWORD type, DWORD usage)
 
 void CHW::updateWindowProps(HWND m_hWnd)
 {
-	//	BOOL	bWindowed				= strstr(Core.Params,"-dedicated") ? TRUE : !psDeviceFlags.is	(rsFullscreen);
-	BOOL	bWindowed				= !psDeviceFlags.is	(rsFullscreen);
-
-	u32		dwWindowStyle			= 0;
 	// Set window properties depending on what mode were in.
-	if (bWindowed)		{
-		if (m_move_window) {
-            dwWindowStyle = WS_BORDER | WS_VISIBLE;
-            if (!strstr(Core.Params, "-no_dialog_header"))
-                dwWindowStyle |= WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX;
-            SetWindowLong(m_hWnd, GWL_STYLE, dwWindowStyle);
-			// When moving from fullscreen to windowed mode, it is important to
-			// adjust the window size after recreating the device rather than
-			// beforehand to ensure that you get the window size you want.  For
-			// example, when switching from 640x480 fullscreen to windowed with
-			// a 1000x600 window on a 1024x768 desktop, it is impossible to set
-			// the window size to 1000x600 until after the display mode has
-			// changed to 1024x768, because windows cannot be larger than the
-			// desktop.
-
-			RECT			m_rcWindowBounds;
-			RECT				DesktopRect;
-
-			GetClientRect		(GetDesktopWindow(), &DesktopRect);
-
-			SetRect(			&m_rcWindowBounds, 
-				(DesktopRect.right-m_ChainDesc.BufferDesc.Width)/2, 
-				(DesktopRect.bottom-m_ChainDesc.BufferDesc.Height)/2, 
-				(DesktopRect.right+m_ChainDesc.BufferDesc.Width)/2, 
-				(DesktopRect.bottom+m_ChainDesc.BufferDesc.Height)/2);
-
-			AdjustWindowRect		(	&m_rcWindowBounds, dwWindowStyle, FALSE );
-
-			SetWindowPos			(	m_hWnd, 
-				HWND_NOTOPMOST,	
-                m_rcWindowBounds.left,
-                m_rcWindowBounds.top,
-				( m_rcWindowBounds.right - m_rcWindowBounds.left ),
-				( m_rcWindowBounds.bottom - m_rcWindowBounds.top ),
-				SWP_SHOWWINDOW|SWP_NOCOPYBITS|SWP_DRAWFRAME );
-		}
-	}
-	else
+	if (psDeviceFlags.is(rsFullscreen))
+		SetWindowLong					(m_hWnd, GWL_STYLE, (WS_POPUP | WS_VISIBLE));
+	else if (m_move_window)
 	{
-		SetWindowLong			( m_hWnd, GWL_STYLE, dwWindowStyle=(WS_POPUP|WS_VISIBLE) );
+		u32 dwWindowStyle				= WS_VISIBLE;
+		if (!strstr(Core.Params, "-no_dialog_header"))
+			dwWindowStyle				|= WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX;
+		SetWindowLong					(m_hWnd, GWL_STYLE, dwWindowStyle);
+		// When moving from fullscreen to windowed mode, it is important to
+		// adjust the window size after recreating the device rather than
+		// beforehand to ensure that you get the window size you want.  For
+		// example, when switching from 640x480 fullscreen to windowed with
+		// a 1000x600 window on a 1024x768 desktop, it is impossible to set
+		// the window size to 1000x600 until after the display mode has
+		// changed to 1024x768, because windows cannot be larger than the
+		// desktop.
+
+		RECT							m_rcWindowBounds;
+		RECT							DesktopRect;
+
+		GetClientRect					(GetDesktopWindow(), &DesktopRect);
+
+		SetRect							(
+			&m_rcWindowBounds,
+			(DesktopRect.right - m_ChainDesc.BufferDesc.Width) / 2.f,
+			(DesktopRect.bottom - m_ChainDesc.BufferDesc.Height) / 2.f,
+			(DesktopRect.right + m_ChainDesc.BufferDesc.Width) / 2.f,
+			(DesktopRect.bottom + m_ChainDesc.BufferDesc.Height) / 2.f
+		);
+
+		AdjustWindowRect				(&m_rcWindowBounds, dwWindowStyle, FALSE);
+
+		SetWindowPos					(
+			m_hWnd,
+			HWND_NOTOPMOST,
+			m_rcWindowBounds.left,
+			m_rcWindowBounds.top,
+			(m_rcWindowBounds.right - m_rcWindowBounds.left),
+			(m_rcWindowBounds.bottom - m_rcWindowBounds.top),
+			SWP_SHOWWINDOW | SWP_NOCOPYBITS | SWP_DRAWFRAME
+		);
 	}
 
-	ShowCursor	(FALSE);
-	SetForegroundWindow( m_hWnd );
+	SetForegroundWindow					(m_hWnd);
 }
-
 
 struct _uniq_mode
 {
