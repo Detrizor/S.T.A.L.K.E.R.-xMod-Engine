@@ -310,14 +310,6 @@ void CPoltergeist::UpdateCL()
 	def_lerp(m_height, target_height, m_height_change_velocity, client_update_fdelta());
 	
 	ability()->update_frame	();
-
-	if ( Actor()->memory().visual().visible_now(this) && 
-		 Actor()->Position().distance_to(Position()) < 85.f )
-	{
-		MakeMeCrow					();
-	}
-	
-	//	Visual()->getVisData().hom_frame = Device.dwFrame;
 }
 
 void CPoltergeist::ForceFinalAnimation()
@@ -491,4 +483,3 @@ CBaseMonster::SDebugInfo CPoltergeist::show_debug_info()
 	return CBaseMonster::SDebugInfo();
 }
 #endif
-

@@ -17,9 +17,6 @@ class NET_Packet;
 class CSE_Abstract;
 
 //-----------------------------------------------------------------------------------------------------------
-#define CROW_RADIUS (30.f)
-#define CROW_RADIUS2 (60.f)
-//-----------------------------------------------------------------------------------------------------------
 // CObject
 //-----------------------------------------------------------------------------------------------------------
 class IPhysicsShell;
@@ -73,8 +70,6 @@ public:
 #ifdef DEBUG
 	u32 dbg_update_cl;
 #endif
-	u32 dwFrame_UpdateCL;
-	u32 dwFrame_AsCrow;
 
 	// Crow-MODE
 	// if (object_is_visible)
@@ -83,9 +78,7 @@ public:
 #ifdef DEBUG
 	void DBGGetProps(ObjectProperties& p) const { p = Props; }
 #endif
-	void MakeMeCrow();
 
-	ICF void IAmNotACrowAnyMore() { Props.crow = false; }
 	virtual BOOL AlwaysTheCrow() { return FALSE; }
 	ICF bool AmICrow() const { return !!Props.crow; }
 
@@ -173,7 +166,7 @@ public:
 
 	// Update
 	virtual void shedule_Update(u32 dt); // Called by sheduler
-	virtual void renderable_Render();
+	virtual void renderable_Render() {}
 
 	virtual void UpdateCL(); // Called each frame, so no need for dt
 	virtual BOOL net_Spawn(CSE_Abstract* data);
@@ -210,7 +203,21 @@ public:
 	virtual Fvector get_new_local_point_on_mesh(u16& bone_id) const;
 	virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
-//xMod added
+private:
+	static float						s_update_r1;
+	static float						s_update_r2;
+	static float						s_update_dr;
+	static float						s_update_t2;
+
+	u32									m_last_update_frame								= 0;
+	float								m_last_update_time								= 0.f;
+	float								m_next_update_time								= 0.f;
+
+public:
+	static void							loadStaticData									();
+
+	bool								updateQuery										();
+
 public:
 	template <typename T>
 	T									scast									()		{ return smart_cast<T>(this); }

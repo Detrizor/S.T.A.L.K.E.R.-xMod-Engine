@@ -19,7 +19,6 @@ private:
 	Objects destroy_queue;
 	Objects objects_active;
 	Objects objects_sleeping;
-	Objects m_crows[2];
 	u32 m_owner_thread_id;
 
 public:
@@ -52,7 +51,7 @@ public:
 	CObject* Create(LPCSTR name);
 	void Destroy(CObject* O);
 
-	void SingleUpdate(CObject* O);
+	void SingleUpdate(CObject* O, bool forced);
 	void Update();
 
 	void net_Register(CObject* O);
@@ -69,7 +68,6 @@ public:
 		return (map_NETID[ID]);
 	}
 
-	void o_crow(CObject* O);
 	void o_remove(Objects& v, CObject* O);
 	void o_activate(CObject* O);
 	void o_sleep(CObject* O);
@@ -94,15 +92,6 @@ public:
 #endif // #ifdef DEBUG
 
 private:
-	IC Objects& get_crows()
-	{
-		if (GetCurrentThreadId() == m_owner_thread_id)
-			return (m_crows[0]);
-
-		return (m_crows[1]);
-	}
-
-	static void clear_crow_vec(Objects& o);
 	static void dump_list(Objects& v, LPCSTR reason);
 };
 
