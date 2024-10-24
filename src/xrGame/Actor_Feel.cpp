@@ -257,3 +257,8 @@ bool CActor::check_item(PIItem item) const
 	float distance						= A.distance_to(cameras[cam_active]->vPosition);
 	return								(distance - item->object().Radius() < m_fVicinityRadius);
 }
+
+void CActor::resetVicinity()
+{
+	m_vicinity.clear					();
+}

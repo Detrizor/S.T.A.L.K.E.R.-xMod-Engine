@@ -49,12 +49,10 @@ void CUIActorMenu::SetActor(CInventoryOwner* io)
 	R_ASSERT										(!IsShown());
 	m_last_time										= Device.dwTimeGlobal;
 	m_pActorInvOwner								= io;
+	m_pActorInv										= (io) ? &io->inventory() : nullptr;
 	
 	if (io)
-	{
 		m_ActorCharacterInfo->InitCharacter			(m_pActorInvOwner->object_id());
-		m_pActorInv									= &m_pActorInvOwner->inventory();
-	}
 	else
 		m_ActorCharacterInfo->ClearInfo				();
 }
@@ -661,6 +659,7 @@ void CUIActorMenu::ResetMode()
 	m_pMouseCapturer			= NULL;
 	m_UIPropertiesBox->Hide		();
 	SetCurrentItem				(NULL);
+	Actor()->resetVicinity		();
 }
 
 bool CUIActorMenu::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& ret_slot)

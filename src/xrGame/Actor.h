@@ -804,11 +804,11 @@ public:
 	static void							loadStaticData							();
 
 	bool								getArmedMode							()		{ return m_armed_mode; }
-
-	void								VicinityUpdate							();
-	bool								switchArmedMode							();
-
 	TIItemContainer&					getVicinity								()		{ return m_vicinity; }
+	
+	bool								switchArmedMode							();
+	void								VicinityUpdate							();
+	void								resetVicinity							();
 
 	float								getAccuracy							CO$	()		{ return m_accuracy; }
 };
