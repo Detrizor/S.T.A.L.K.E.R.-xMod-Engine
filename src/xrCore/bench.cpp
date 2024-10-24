@@ -1,47 +1,71 @@
 #include "stdafx.h"
 #include "bench.h"
-#include "..\xrEngine\device.h"
+#include "../xrengine/device.h"
 
-xr_umap<_STD string, xBench::bench_data> xBench::statistics = {};
 CRenderDevice* xBench::device = nullptr;
 
-xBench::xBench(LPCSTR tag_, bool aggregate_) : tag(tag_), aggregate(aggregate_)
+xBench::xBench(bool init) : m_start_time((init) ? device->GetTimerGlobal()->GetElapsed_sec() : -1.f)
 {
-	start_time							= device->timeGlobal();
 }
 
-xBench::~xBench()
+void xBench::setupDevice(CRenderDevice* d)
 {
-	float result						= device->timeGlobal() - start_time;
-	if (aggregate)
+	device = d;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+xr_vector<xptr<aBench::measures>> aBench::statistics = {};
+
+aBench::aBench(measures* data) : xBench(device->isGameProcess()), m_data(data)
+{
+}
+
+aBench::~aBench()
+{
+	if (m_start_time >= 0.f)
 	{
-		auto& data						= statistics[tag];
-		++data.cnt;
-		data.sum_time					+= result;
-		if (data.last_frame != device->dwFrame)
+		m_data->sum_time				+= device->GetTimerGlobal()->GetElapsed_sec() - m_start_time;
+		++m_data->cnt;
+		if (m_data->last_frame != device->dwFrame)
 		{
-			data.last_frame				= device->dwFrame;
-			++data.frames;
+			m_data->last_frame			= device->dwFrame;
+			++m_data->frames;
 		}
 	}
-	else
-		Msg								("--benchmark [%s] result [%.3f]", tag.c_str(), result);
 }
 
-void xBench::flushStatistics()
+aBench::measures* aBench::createMeasures(LPCSTR tag)
 {
-	for (auto& bench : statistics)
+	return								statistics.emplace_back(tag).get();
+}
+
+void aBench::flushStatistics()
+{
+	for (auto& data : statistics)
 	{
-		float avg_time					= bench.second.sum_time / static_cast<float>(bench.second.cnt);
-		float avg_per_frame				= bench.second.sum_time / static_cast<float>(bench.second.frames);
+		float sum_time					= data->sum_time * 1000.f;
+		float avg_time					= sum_time / static_cast<float>(data->cnt);
+		float avg_per_frame				= sum_time / static_cast<float>(data->frames);
 		Msg								("--benchmark [%s] sum [%.3f] cnt [%d] frames [%d] avg [%.3f] avg per frame [%.3f]",
-			bench.first.c_str(),
-			bench.second.sum_time,
-			bench.second.cnt,
-			bench.second.frames,
+			data->tag.c_str(),
+			sum_time,
+			data->cnt,
+			data->frames,
 			avg_time,
 			avg_per_frame
 		);
 	}
-	statistics.clear					();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+iBench::iBench(LPCSTR tag) : xBench(true), m_tag(tag)
+{
+}
+
+iBench::~iBench()
+{
+	float result						= device->GetTimerGlobal()->GetElapsed_sec() - m_start_time;
+	Msg									("--benchmark [%s] result [%.3f]", m_tag.c_str(), result * 1000.f);
 }

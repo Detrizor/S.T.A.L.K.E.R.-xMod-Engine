@@ -22,7 +22,7 @@ static LogCallback LogCB = 0;
 
 void FlushLog()
 {
-	xBench::flushStatistics();
+	aBench::flushStatistics();
 	if (!no_log)
 	{
 		logCS.Enter();
