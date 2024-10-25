@@ -4,26 +4,44 @@
 
 IRenderable::IRenderable()
 {
-    renderable.xform.identity();
-    renderable.visual = NULL;
-    renderable.pROS = NULL;
-    renderable.pROS_Allowed = TRUE;
-    ISpatial* self = dynamic_cast<ISpatial*> (this);
-    if (self) self->spatial.type |= STYPE_RENDERABLE;
+	renderable.xform.identity();
+	renderable.visual = NULL;
+	renderable.pROS = NULL;
+	renderable.pROS_Allowed = TRUE;
+	ISpatial* self = dynamic_cast<ISpatial*> (this);
+	if (self) self->spatial.type |= STYPE_RENDERABLE;
 }
 
 extern ENGINE_API BOOL g_bRendering;
 IRenderable::~IRenderable()
 {
-    VERIFY(!g_bRendering);
-    Render->model_Delete(renderable.visual);
-    if (renderable.pROS) Render->ros_destroy(renderable.pROS);
-    renderable.visual = NULL;
-    renderable.pROS = NULL;
+	VERIFY(!g_bRendering);
+	Render->model_Delete(renderable.visual);
+	if (renderable.pROS) Render->ros_destroy(renderable.pROS);
+	renderable.visual = NULL;
+	renderable.pROS = NULL;
 }
 
 IRender_ObjectSpecific* IRenderable::renderable_ROS()
 {
-    if (0 == renderable.pROS && renderable.pROS_Allowed) renderable.pROS = Render->ros_create(this);
-    return renderable.pROS;
+	if (0 == renderable.pROS && renderable.pROS_Allowed) renderable.pROS = Render->ros_create(this);
+	return renderable.pROS;
+}
+
+float IRenderable::get_distance_to_camera() const
+{
+	return								Device.vCameraPosition.distance_to_sqr(renderable.xform.c);
+}
+
+float IRenderable::getDistanceToCamera()
+{
+	if (Device.dwFrame != m_last_distance_calc_frame)
+	{
+		m_last_distance					= get_distance_to_camera();
+		if (Device.SVP.isRendering())
+			m_last_distance				*= Device.SVP.getZoomOppositeSqr();
+		m_last_distance_calc_frame		= Device.dwFrame;
+	}
+
+	return								m_last_distance;
 }
