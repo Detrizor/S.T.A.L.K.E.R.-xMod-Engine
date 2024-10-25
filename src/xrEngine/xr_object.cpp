@@ -420,42 +420,55 @@ Fvector CObject::get_last_local_point_on_mesh(Fvector const& local_point, u16 co
 	return result;
 }
 
-bool CObject::updateQuery()
+bool CObject::updateQuery(bool forced)
 {
-	if (Device.dwFrame == m_last_update_frame)
+	if (Device.dwFrame == m_last_update_frame || !processing_enabled())
 		return							false;
 
-	if (Parent == g_pGameLevel->CurrentViewEntity())
-		return							true;
-	
-	if (AlwaysTheCrow())
+	if (forced || Parent == g_pGameLevel->CurrentViewEntity() || AlwaysTheCrow())
 		return							true;
 
 	if (Device.fTimeGlobal < m_next_update_time)
 		return							false;
-
+	
+	bool visible						= !!m_renderable_status;
 	float dist							= Device.vCameraPosition.distance_to_sqr(Position());
-	if (dist < s_update_r1)
+	if (m_renderable_status == 2)
+		dist							*= Device.SVP.getZoomOpposite() * Device.SVP.getZoomOpposite();
+
+	if (dist < s_update_r1[visible])
 		m_next_update_time				= 0.f;
 	else
 	{
-		float dt						= s_update_t2 * (dist - s_update_r1) / s_update_dr;
+		float dt						= s_update_t[visible] * (dist - s_update_r1[visible]) / s_update_dr[visible];
 		m_next_update_time				= Device.fTimeGlobal + dt;
 	}
 	return								true;
 }
 
-float CObject::s_update_r1 = 0.f;
-float CObject::s_update_r2 = 0.f;
-float CObject::s_update_dr = 0.f;
-float CObject::s_update_t2 = 0.f;
+void CObject::renderable_Render()
+{
+	m_renderable_status					= (Device.SVP.isRendering()) ? 2 : 1;
+}
+
+float CObject::s_update_r1[2];
+float CObject::s_update_r2[2];
+float CObject::s_update_dr[2];
+float CObject::s_update_t[2];
 
 void CObject::loadStaticData()
 {
-	s_update_r1							= pSettings->r_float("system", "update_r1");
-	s_update_r1							*= s_update_r1;
-	s_update_r2							= pSettings->r_float("system", "update_r2");
-	s_update_r2							*= s_update_r2;
-	s_update_dr							= s_update_r2 - s_update_r1;
-	s_update_t2							= pSettings->r_float("system", "update_t2");
+	s_update_r1[0]						= pSettings->r_float("system", "update_radius1");
+	s_update_r1[0]						*= s_update_r1[0];
+	s_update_r2[0]						= pSettings->r_float("system", "update_radius2");
+	s_update_r2[0]						*= s_update_r2[0];
+	s_update_dr[0]						= s_update_r2[0] - s_update_r1[0];
+	s_update_t[0]						= pSettings->r_float("system", "update_period");
+	
+	s_update_r1[1]						= pSettings->r_float("system", "update_radius1_visible");
+	s_update_r1[1]						*= s_update_r1[1];
+	s_update_r2[1]						= pSettings->r_float("system", "update_radius2_visible");
+	s_update_r2[1]						*= s_update_r2[1];
+	s_update_dr[1]						= s_update_r2[1] - s_update_r1[1];
+	s_update_t[1]						= pSettings->r_float("system", "update_period_visible");
 }

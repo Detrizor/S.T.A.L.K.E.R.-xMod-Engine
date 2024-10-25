@@ -122,13 +122,14 @@ public:
 		bool							m_rendering								= false;
 		Fvector							m_position								= vZero;
 		float							m_zoom									= 1.f;
+		float							m_zoom_opposite							= 1.f;
 		float							m_fov									= 0.f;
 
 	public:
 
 		void							setRendering							(bool val)				{ m_rendering = val; }
 		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
-		void							setZoom									(float val)				{ m_zoom = val; }
+		void							setZoom									(float val)				{ m_zoom = val; m_zoom_opposite = 1.f / val; }
 		void							setFOV									(float val)				{ m_fov = val; }
 		
 		void							setActive								(bool val);
@@ -137,6 +138,7 @@ public:
 		bool							isRendering							C$	()		{ return m_rendering; }
 		Fvector CR$						getPosition							C$	()		{ return m_position; }
 		float							getZoom								C$	()		{ return m_zoom; }
+		float							getZoomOpposite						C$	()		{ return m_zoom_opposite; }
 		float							getFOV								C$	()		{ return m_fov; }
 	};
 
