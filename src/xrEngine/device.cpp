@@ -312,20 +312,8 @@ void CRenderDevice::d_SVPRender()
 		Fvector pos_saved = vCameraPosition;
 
 		SVP.setRendering(true);
+		g_pGameLevel->ApplyCamera();
 
-		if (g_pGameLevel)
-			g_pGameLevel->ApplyCamera();
-
-		if (dwPrecacheFrame)
-		{
-			float factor = float(dwPrecacheFrame) / float(dwPrecacheTotal);
-			float angle = PI_MUL_2 * factor;
-			vCameraDirection.set(_sin(angle), 0, _cos(angle));
-			vCameraDirection.normalize();
-			vCameraTop.set(0, 1, 0);
-			vCameraRight.crossproduct(vCameraTop, vCameraDirection);
-			mView.build_camera_dir(vCameraPosition, vCameraDirection, vCameraTop);
-		}
 		// Matrices
 		mFullTransform.mul(mProject, mView);
 		m_pRender->SetCacheXform(mView, mProject);
@@ -486,6 +474,7 @@ void CRenderDevice::FrameMove()
 	// seqFrame.Process(rp_Frame);
 	Statistic->EngineTOTAL.End();
 }
+
 ENGINE_API BOOL bShowPauseString = TRUE;
 #include "IGame_Persistent.h"
 
@@ -617,6 +606,13 @@ void CLoadScreenRenderer::stop()
 void CLoadScreenRenderer::OnRender()
 {
 	pApp->load_draw_internal();
+}
+
+void CRenderDevice::CSVP::setZoom(float val)
+{
+	m_zoom								= val;
+	float zoom_opposite					= 1.f / val;
+	m_zoom_opposite_sqr					= _sqr(zoom_opposite);
 }
 
 void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+

@@ -432,9 +432,10 @@ bool CObject::updateQuery(bool forced)
 		return							false;
 	
 	bool visible						= !!m_renderable_status;
-	float dist							= Device.vCameraPosition.distance_to_sqr(Position());
+	float dist							= getDistanceToCamera();
 	if (m_renderable_status == 2)
-		dist							*= Device.SVP.getZoomOpposite() * Device.SVP.getZoomOpposite();
+		dist							*= Device.SVP.getZoomOppositeSqr();
+	m_renderable_status					= 0;
 
 	if (dist < s_update_r1[visible])
 		m_next_update_time				= 0.f;
@@ -443,6 +444,7 @@ bool CObject::updateQuery(bool forced)
 		float dt						= s_update_t[visible] * (dist - s_update_r1[visible]) / s_update_dr[visible];
 		m_next_update_time				= Device.fTimeGlobal + dt;
 	}
+
 	return								true;
 }
 
