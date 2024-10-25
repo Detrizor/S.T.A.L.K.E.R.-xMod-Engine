@@ -166,7 +166,7 @@ public:
 
 	// Update
 	virtual void shedule_Update(u32 dt); // Called by sheduler
-	virtual void renderable_Render() {}
+	virtual void renderable_Render();
 
 	virtual void UpdateCL(); // Called each frame, so no need for dt
 	virtual BOOL net_Spawn(CSE_Abstract* data);
@@ -204,19 +204,20 @@ public:
 	virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 private:
-	static float						s_update_r1;
-	static float						s_update_r2;
-	static float						s_update_dr;
-	static float						s_update_t2;
+	static float						s_update_r1[2];
+	static float						s_update_r2[2];
+	static float						s_update_dr[2];
+	static float						s_update_t[2];
 
 	u32									m_last_update_frame								= 0;
 	float								m_last_update_time								= 0.f;
 	float								m_next_update_time								= 0.f;
+	u8									m_renderable_status								= 0;
 
 public:
 	static void							loadStaticData									();
 
-	bool								updateQuery										();
+	bool								updateQuery										(bool forced);
 
 public:
 	template <typename T>

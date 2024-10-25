@@ -92,7 +92,7 @@ void CObjectList::o_sleep(CObject* O)
 
 void CObjectList::SingleUpdate(CObject* O, bool forced)
 {
-	if (!forced && (!O->processing_enabled() || !O->updateQuery()))
+	if (!O->updateQuery(forced))
 		return;
 
 	if (O->H_Parent())
@@ -111,22 +111,17 @@ void CObjectList::Update()
 {
 	if (!Device.Paused())
 	{
-		// Clients
-		if (Device.fTimeDelta>EPS_S)
-		{
-			// Select Crow-Mode
-			Device.Statistic->UpdateClient_updated = 0;
-			Objects* workload = 0;
+		// Select Crow-Mode
+		auto& stat						= Device.Statistic;
+		stat->UpdateClient_updated		= 0;
+		stat->UpdateClient.Begin		();
+		stat->UpdateClient_active		= objects_active.size();
+		stat->UpdateClient_total		= objects_active.size() + objects_sleeping.size();
 
-			Device.Statistic->UpdateClient.Begin();
-			Device.Statistic->UpdateClient_active = objects_active.size();
-			Device.Statistic->UpdateClient_total = objects_active.size() + objects_sleeping.size();
+		for (auto& o : objects_active)
+			SingleUpdate				(o, false);
 
-			for (auto& o : objects_active)
-				SingleUpdate(o, false);
-
-			Device.Statistic->UpdateClient.End();
-		}
+		stat->UpdateClient.End			();
 	}
 
 	// Destroy
