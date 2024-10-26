@@ -140,7 +140,7 @@ void CRender::render_main(Fmatrix&	m_ViewProjection, bool _fportals)
 				if (!bVisible)
 					break;	// exit loop on frustums
 
-				float dist				= renderable->getDistanceToCamera();
+				float dist				= renderable->getDistanceToCamera() * Device.iZoomSqr;
 				if (dist > 62500)
 					continue;
 

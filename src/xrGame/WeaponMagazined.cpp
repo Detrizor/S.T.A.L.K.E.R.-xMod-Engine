@@ -1328,7 +1328,7 @@ void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
 		float zoom_factor				= CurrentZoomFactor(false);
 		Device.SVP.setZoom				(zoom_factor);
 		fov_tan							/= zoom_factor;
-		Device.SVP.setFOV				(atanf(fov_tan) / (.5f * PI / 180.f));
+		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
 		
 		Fvector pos						= static_cast<Fvector>(scope->getObjectiveOffset());
 		cam_trans.transform_tiny		(pos);

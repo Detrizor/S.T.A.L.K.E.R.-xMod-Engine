@@ -38,7 +38,6 @@ class demo_info;
 class CDebugRenderer;
 #endif
 
-extern float g_fov;
 extern int g_objects_per_client_update;
 
 const int maxRP = 64;
