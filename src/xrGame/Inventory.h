@@ -5,6 +5,7 @@ class CInventory;
 class CInventoryItem;
 class CHudItem;
 class CInventoryOwner;
+class CArtefact;
 
 class CInventorySlot
 {									

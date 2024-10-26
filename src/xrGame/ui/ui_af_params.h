@@ -7,6 +7,7 @@ class CUIStatic;
 class CUITextWnd;
 class UIArtefactParamItem;
 class CUICellItem;
+class CArtefact;
 
 enum EAbsorbationTypes
 {

@@ -4,6 +4,7 @@ class CWeaponMagazined;
 class CCartridge;
 class CAddonSlot;
 class MAddon;
+class CWeaponAmmo;
 
 class CWeaponChamber
 {
