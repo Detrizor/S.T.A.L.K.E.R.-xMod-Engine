@@ -1773,14 +1773,10 @@ bool CActor::CanPutInSlot(PIItem item, u32 slot)
 #include "weapon_hud.h"
 #include "scope.h"
 
-float g_fov;
-float g_aim_fov;
-float g_aim_fov_tan;
-
 void CActor::loadStaticData()
 {
 	g_aim_fov							= pSettings->r_float("weapon_manager", "aim_fov");
-	g_aim_fov_tan						= tanf(g_aim_fov * (.5f * PI / 180.f));
+	g_aim_fov_tan						= tanf(deg2radHalf(g_aim_fov));
 
 	CItemsLibrary::loadStaticData		();
 	CEntityCondition::loadStaticData	();

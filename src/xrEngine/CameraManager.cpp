@@ -19,6 +19,10 @@
 float psCamInert = 0.f;
 float psCamSlideInert = 0.25f;
 
+ENGINE_API float g_fov;
+ENGINE_API float g_aim_fov;
+ENGINE_API float g_aim_fov_tan;
+
 SPPInfo pp_identity;
 SPPInfo pp_zero;
 
@@ -450,11 +454,21 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	Device.fFOV							= fov;
 	Device.fHUDFOV						= fov;
 
-	// projection
+	float								zoom;
 	if (Device.SVP.isRendering())
-		_viewport_near					*= Device.SVP.getZoom();
+	{
+		zoom							= Device.SVP.getZoom();
+		Device.iZoomSqr					= Device.SVP.getZoomOppositeSqr();
+	}
+	else
+	{
+		zoom							= (fov == g_aim_fov) ? 1.f : tanf(g_aim_fov_tan) / tanf(deg2radHalf(fov));
+		Device.iZoomSqr					= 1.f / _sqr(zoom);
+	}
+
+	// projection
 	Device.fASPECT						= m_cam_info.fAspect;
-	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near, m_cam_info.fFar);
+	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
 
 	if (Device.isActiveMain() || Device.SVP.isRendering())
 		ResetPP							();

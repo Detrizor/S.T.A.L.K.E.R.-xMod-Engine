@@ -80,6 +80,7 @@ public:
 	float fFOV;
 	float fHUDFOV;
 	float fASPECT;
+	float iZoomSqr;
 
 protected:
 
@@ -100,14 +101,12 @@ public:
 
 	HWND m_hWnd;
 	// CStats* Statistic;
-
 };
 
 class ENGINE_API CRenderDeviceBase :
 	public IRenderDevice,
 	public CRenderDeviceData
 {
-public:
 };
 
 #pragma pack(pop)

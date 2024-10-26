@@ -433,8 +433,7 @@ bool CObject::updateQuery(bool forced)
 	
 	bool visible						= !!m_renderable_status;
 	float dist							= getDistanceToCamera();
-	if (m_renderable_status == 2)
-		dist							*= Device.SVP.getZoomOppositeSqr();
+	dist								*= ((m_renderable_status == 2) ? Device.SVP.getZoomOppositeSqr() : Device.iZoomSqr);
 	m_renderable_status					= 0;
 
 	if (dist < s_update_r1[visible])
