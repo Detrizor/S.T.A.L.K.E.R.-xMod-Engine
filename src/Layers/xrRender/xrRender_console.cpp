@@ -140,6 +140,9 @@ float		ps_r2_ssaLOD_A				= 64.f	;
 float		ps_r2_ssaLOD_B				= 48.f	;
 float		ps_r2_tf_Mipbias			= 0.0f	;
 
+float		ps_r__render_distance		= 500.f	;
+float		ps_r__render_distance_sqr	= 250000.f;
+
 // R2-specific
 Flags32		ps_r2_ls_flags				= { R2FLAG_SUN 
 	//| R2FLAG_SUN_IGNORE_PORTALS
@@ -947,11 +950,27 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r3_dynamic_wet_surfaces_far",	&ps_r3_dyn_wet_surf_far,	30,	100		);
 	CMD4(CCC_Integer,	"r3_dynamic_wet_surfaces_sm_res",&ps_r3_dyn_wet_surf_sm_res,64,	2048	);
 
-	CMD3(CCC_Mask,			"r3_volumetric_smoke",			&ps_r2_ls_flags,			R3FLAG_VOLUMETRIC_SMOKE);
+	CMD3(CCC_Mask,			"r3_volumetric_smoke",		&ps_r2_ls_flags,			R3FLAG_VOLUMETRIC_SMOKE);
 	CMD1(CCC_memory_stats,	"render_memory_stats" );
 	
 
 //	CMD3(CCC_Mask,		"r2_sun_ignore_portals",		&ps_r2_ls_flags,			R2FLAG_SUN_IGNORE_PORTALS);
+
+
+	class CCC_RenderDistance : public CCC_Float
+	{
+	public:
+		CCC_RenderDistance(LPCSTR N, float* V, float _min = 50.f, float _max = 3000.f) : CCC_Float(N, V, _min, _max) {}
+
+		void Execute(LPCSTR args) override
+		{
+			float v = static_cast<float>(atof(args));
+			ps_r__render_distance_sqr = _sqr(v);
+			__super::Execute(args);
+		}
+	};
+	
+	CMD4(CCC_RenderDistance, "r__render_distance", &ps_r__render_distance, 50.f, 3000.f);
 }
 
 void	xrRender_apply_tf		()
