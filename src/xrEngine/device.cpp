@@ -208,12 +208,6 @@ ENGINE_API xr_list<LOADING_EVENT> g_loading_events;
 
 void CRenderDevice::on_idle()
 {
-	if (!b_is_Ready)
-	{
-		Sleep(100);
-		return;
-	}
-
 	// FPS Lock
 	if (g_dwFPSlimit > 0)
 	{
@@ -313,6 +307,10 @@ void CRenderDevice::d_SVPRender()
 	{
 		dwFrame++;
 		Core.dwFrame = dwFrame;
+
+		float fov_saved = fFOV;
+		Fvector pos_saved = vCameraPosition;
+
 		SVP.setRendering(true);
 
 		if (g_pGameLevel)
@@ -344,6 +342,9 @@ void CRenderDevice::d_SVPRender()
 		m_pRender->End();
 
 		SVP.setRendering(false);
+
+		fFOV = fov_saved;
+		vCameraPosition = pos_saved;
 	}
 }
 

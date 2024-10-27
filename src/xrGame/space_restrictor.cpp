@@ -22,7 +22,7 @@
 //Alundaio
 #include "RadioactiveZone.h"
 #include "ZoneCampfire.h"
-BOOL g_ai_die_in_anomaly = 1;
+BOOL g_ai_die_in_anomaly = FALSE;
 //-Alundaio 
 
 CSpaceRestrictor::~CSpaceRestrictor	()

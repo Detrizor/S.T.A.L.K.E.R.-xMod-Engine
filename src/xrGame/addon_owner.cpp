@@ -469,19 +469,20 @@ void CAddonSlot::startReloading(MAddon* loading_addon)
 
 void CAddonSlot::loadingDetach()
 {
-	while (addons.size())
-		parent_ao->finishDetaching		(addons.back());
+	if (parent_ao->O.H_Root()->scast<CActor*>())
+		while (addons.size())
+			parent_ao->finishDetaching	(addons.back());
 }
 
 void CAddonSlot::loadingAttach()
 {
-	if (m_loading_addon)
+	if (m_loading_addon && parent_ao->O.H_Root()->scast<CActor*>())
 		parent_ao->finishAttaching		(m_loading_addon, this);
 }
 
 void CAddonSlot::finishLoading(bool interrupted)
 {
-	if (interrupted)
+	if (interrupted && parent_ao->O.H_Root()->scast<CActor*>())
 		while (addons.size())
 			parent_ao->finishDetaching	(addons.back());
 	if (m_loading_addon)
