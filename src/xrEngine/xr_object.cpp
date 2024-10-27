@@ -428,13 +428,15 @@ bool CObject::updateQuery(bool forced)
 	if (forced || Parent == g_pGameLevel->CurrentViewEntity() || AlwaysTheCrow())
 		return							true;
 
-	if (Device.fTimeGlobal < m_next_update_time)
+	if (Device.fTimeGlobal < m_next_update_time && m_renderable_status == m_renderable_status_prev)
 		return							false;
-	
+
 	bool visible						= !!m_renderable_status;
-	float dist							= Device.vCameraPosition.distance_to_sqr(Position());
-	if (m_renderable_status == 2)
-		dist							*= Device.SVP.getZoomOpposite() * Device.SVP.getZoomOpposite();
+	float dist							= getDistanceToCamera();
+	dist								*= ((m_renderable_status == 2) ? Device.SVP.getZoomOppositeSqr() : Device.iZoomSqr);
+
+	m_renderable_status_prev			= m_renderable_status;
+	m_renderable_status					= 0;
 
 	if (dist < s_update_r1[visible])
 		m_next_update_time				= 0.f;

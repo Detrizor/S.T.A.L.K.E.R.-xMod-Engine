@@ -213,6 +213,7 @@ private:
 	float								m_last_update_time								= 0.f;
 	float								m_next_update_time								= 0.f;
 	u8									m_renderable_status								= 0;
+	u8									m_renderable_status_prev						= 0;
 
 public:
 	static void							loadStaticData									();
