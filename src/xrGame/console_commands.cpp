@@ -97,7 +97,7 @@ extern int		g_upgrades_log;
 extern float	g_smart_cover_animation_speed_factor;
 
 extern	BOOL	g_ai_use_old_vision;
-float			g_aim_predict_time = 0.40f;
+float			g_aim_predict_time = 0.00001f;
 int				g_keypress_on_start = 1;
 
 extern BOOL		g_ai_die_in_anomaly; //Alundaio

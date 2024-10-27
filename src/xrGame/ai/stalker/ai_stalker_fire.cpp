@@ -73,40 +73,25 @@ static float const min_throw_distance		= 10.f;
 
 float CAI_Stalker::getWeaponDispersion	() const
 {
-	auto get_accuracy = [this]()
+	auto get_dispersion = [this]()
+	{
+		if (!movement().path_completed())
 		{
-			if (!movement().path_completed())
-				if (movement().movement_type() == eMovementTypeWalk)
-					if (movement().body_state() == eBodyStateStand)
-						return		m_disp_walk_stand;
-					else
-						return		m_disp_walk_crouch;
-				else
-					if (movement().movement_type() == eMovementTypeRun)
-						if (movement().body_state() == eBodyStateStand)
-							return	m_disp_run_stand;
-						else
-							return	m_disp_run_crouch;
+			if (movement().movement_type() == eMovementTypeWalk)
+				return (movement().body_state() == eBodyStateStand) ? m_disp_walk_stand : m_disp_walk_crouch;
+			else if (movement().movement_type() == eMovementTypeRun)
+				return (movement().body_state() == eBodyStateStand) ? m_disp_run_stand : m_disp_run_crouch;
+		}
 
-			if (movement().body_state() == eBodyStateStand)
-				if (zoom_state())
-					return			m_disp_stand_stand;
-				else
-					return			m_disp_stand_stand_zoom;
-			else
-				if (zoom_state())
-					return			m_disp_stand_crouch;
-				else
-					return			m_disp_stand_crouch_zoom;
-		};
+		if (movement().body_state() == eBodyStateStand)
+			return (zoom_state()) ? m_disp_stand_stand : m_disp_stand_stand_zoom;
+		else
+			return (zoom_state()) ? m_disp_stand_crouch : m_disp_stand_crouch_zoom;
+	};
 
-	float base = PI / 180.f;
-	m_weapon_accuracy = get_accuracy();
-
-	//влияние ранга на меткость
-	m_weapon_accuracy = 1.f / (m_weapon_accuracy * m_fRankDisperison);
-
-	return base / m_weapon_accuracy;
+	float disp							= get_dispersion() * m_fRankDisperison;
+	m_weapon_accuracy					= m_accuracy_k / disp;
+	return								deg2rad(disp);
 }
 
 void CAI_Stalker::g_fireParams(const CHudItem* pHudItem, Fvector& P, Fvector& D)

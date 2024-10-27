@@ -115,6 +115,7 @@ private:
 	float							m_disp_stand_crouch;
 	float							m_disp_stand_stand_zoom;
 	float							m_disp_stand_crouch_zoom;
+	float							m_accuracy_k;
 
 private:
 	float							m_power_fx_factor;
@@ -833,7 +834,7 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float mutable						m_weapon_accuracy = 1.f;
+	float mutable						m_weapon_accuracy						= 1.f;
 	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
 };
 add_to_type_list(CAI_Stalker)

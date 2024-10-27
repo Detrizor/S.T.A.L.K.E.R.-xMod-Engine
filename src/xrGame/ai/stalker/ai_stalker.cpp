@@ -261,6 +261,7 @@ void CAI_Stalker::reload			(LPCSTR section)
 	m_disp_stand_crouch				= pSettings->r_float(section,"disp_stand_crouch");
 	m_disp_stand_stand_zoom			= pSettings->r_float(section,"disp_stand_stand_zoom");
 	m_disp_stand_crouch_zoom		= pSettings->r_float(section,"disp_stand_crouch_zoom");
+	m_accuracy_k					= pSettings->r_float(section,"accuracy_k");
 
 	m_can_select_weapon				= true;
 
@@ -570,17 +571,17 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 	static float novice_rank_dispersion			= pSettings->r_float("ranks_properties", "dispersion_novice_k");
 	static float expirienced_rank_dispersion	= pSettings->r_float("ranks_properties", "dispersion_experienced_k");
 
-	
-	CHARACTER_RANK_VALUE rank = Rank();
-	clamp(rank, 0, 100);
-	float rank_k = float(rank)/100.f;
-	m_fRankVisibility = novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_k;
-	m_fRankDisperison = expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1-rank_k);
+	::luabind::functor<float>			func;
+	R_ASSERT							(ai().script_engine().functor("ranks.rank_factor", func));
+	float rank_factor					= func(this->lua_game_object());
+
+	m_fRankVisibility					= novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_factor;
+	m_fRankDisperison					= expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1.f - rank_factor);
 
 	if (!fis_zero(SpecificCharacter().panic_threshold()))
-		m_panic_threshold						= SpecificCharacter().panic_threshold();
+		m_panic_threshold				= SpecificCharacter().panic_threshold();
 
-	sight().setup					(CSightAction(SightManager::eSightTypeCurrentDirection));
+	sight().setup						(CSightAction(SightManager::eSightTypeCurrentDirection));
 
 #ifdef _DEBUG
 	if (ai().get_alife() && !Level().MapManager().HasMapLocation("debug_stalker",ID())) {
