@@ -80,50 +80,58 @@ void	R_occlusion::occq_end		(u32&	ID		)
 	//CHK_DX			(used[ID].Q->Issue	(D3DISSUE_END));
 	CHK_DX			(EndQuery(used[ID].Q));
 }
-R_occlusion::occq_result R_occlusion::occq_get		(u32&	ID		)
+
+R_occlusion::occq_result R_occlusion::occq_get(u32& ID)
 {
-	if (!enabled)		return 0xffffffff;
+	if (!enabled)
+		return 0xffffffff;
 
 	//	Igor: prevent release crash if we issue too many queries
-	if (ID == iInvalidHandle) return 0xFFFFFFFF;
+	if (ID == iInvalidHandle)
+		return 0xFFFFFFFF;
 
-	occq_result	fragments	= 0;
-	HRESULT hr;
-	// CHK_DX		(used[ID].Q->GetData(&fragments,sizeof(fragments),D3DGETDATA_FLUSH));
-	// Msg			("get  : [%2d] - %d => %d", used[ID].order, ID, fragments);
-	CTimer	T;
-	T.Start	();
-	Device.Statistic->RenderDUMP_Wait.Begin	();
-	//while	((hr=used[ID].Q->GetData(&fragments,sizeof(fragments),D3DGETDATA_FLUSH))==S_FALSE) {
-	VERIFY2( ID<used.size(),make_string("_Pos = %d, size() = %d ", ID, used.size()));
-	while	((hr=GetData(used[ID].Q, &fragments,sizeof(fragments)))==S_FALSE) 
+	occq_result	fragments = 0;
+	Device.Statistic->RenderDUMP_Wait.Begin();
+	VERIFY2(ID < used.size(), make_string("_Pos = %d, size() = %d ", ID, used.size()));
+
+	do
 	{
-		if (!SwitchToThread())			
-			Sleep(ps_r2_wait_sleep);
-
-		if (T.GetElapsed_ms() > 500)	
+		HRESULT hr = GetData(used[ID].Q, &fragments, sizeof(fragments));
+		if (hr == S_OK)
+			break;
+		else if (hr == S_FALSE)
 		{
-			fragments	= (occq_result)-1;//0xffffffff;
+			fragments = (occq_result)-1; //0xffffffff;
 			break;
 		}
-	}
-	Device.Statistic->RenderDUMP_Wait.End	();
-	if		(hr == D3DERR_DEVICELOST)	fragments = 0xffffffff;
+		else if (hr == D3DERR_DEVICELOST)
+		{
+			fragments = 0xffffffff;
+			break;
+		}
+	} while (true);
 
-	if (0==fragments)	RImplementation.stats.o_culled	++;
+	HRESULT hr;
+	Device.Statistic->RenderDUMP_Wait.End();
+	if (hr == D3DERR_DEVICELOST)	fragments = 0xffffffff;
+
+	if (0 == fragments)	RImplementation.stats.o_culled++;
 
 	// insert into pool (sorting in decreasing order)
-	_Q&		Q			= used[ID];
-	if (pool.empty())	pool.push_back(Q);
-	else	{
-		int		it		= int(pool.size())-1;
-		while	((it>=0) && (pool[it].order < Q.order))	it--;
-		pool.insert		(pool.begin()+it+1,Q);
+	_Q& Q = used[ID];
+	if (pool.empty())
+		pool.push_back(Q);
+	else
+	{
+		int		it = int(pool.size()) - 1;
+		while ((it >= 0) && (pool[it].order < Q.order))
+			it--;
+		pool.insert(pool.begin() + it + 1, Q);
 	}
 
 	// remove from used and shrink as nesessary
-	used[ID].Q			= 0;
-	fids.push_back		(ID);
-	ID					= 0;
-	return	fragments;
+	used[ID].Q = 0;
+	fids.push_back(ID);
+	ID = 0;
+	return fragments;
 }
