@@ -308,16 +308,18 @@ BOOL CInput::iGetAsyncBtnState(int btn)
 	return !!mouseState[btn];
 }
 
-void CInput::ClipCursor(bool clip) const
+void CInput::ClipCursor(bool clip, bool switch_system_cursor) const
 {
 	if (clip)
 	{
-		while (ShowCursor(FALSE) > 0);
+		if (switch_system_cursor)
+			while (ShowCursor(FALSE) > 0);
 		::ClipCursor(&screen_rect);
 	}
 	else
 	{
-		while (ShowCursor(TRUE) < 0);
+		if (switch_system_cursor)
+			while (ShowCursor(TRUE) < 0);
 		::ClipCursor(nullptr);
 	}
 }
@@ -562,7 +564,7 @@ void CInput::OnAppActivate(void)
 
 void CInput::OnAppDeactivate(void)
 {
-	while (ShowCursor(TRUE) < 0);
+	ClipCursor(false);
 	if (CurrentIR())
 		CurrentIR()->IR_OnDeactivate();
 

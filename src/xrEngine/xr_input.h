@@ -101,7 +101,7 @@ private:
 	POINT								mouse_point								= { 0, 0 };
 
 public:
-	void								ClipCursor								(bool clip) const;
+	void								ClipCursor								(bool clip, bool switch_system_cursor = true) const;
 	void								OnScreenResolutionChanged				() final;
 };
 

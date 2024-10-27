@@ -586,5 +586,5 @@ void CLevel::IR_OnActivate()
 		}
 	}
 
-	pInput->ClipCursor(!GetUICursor().IsVisible());
+	pInput->ClipCursor(!GetUICursor().IsVisible(), false);
 }
