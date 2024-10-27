@@ -591,10 +591,31 @@ CTexture* CResourceManager::_CreateTexture(LPCSTR _Name)
 	
 	CTexture* T							= xr_new<CTexture>();
 	T->dwFlags							|= xr_resource_flagged::RF_REGISTERED;
-	m_textures.emplace					(T->set_name(Name), T);
+	shared_str name						= T->set_name(Name);
+	m_textures.emplace					(name.c_str(), T);
 
 	T->Preload							();
-	m_parallel_tex_loader.run			([T]{ while (!Device.b_is_Ready) _STD this_thread::yield(); T->Load(); });
+	auto texload						= [this, name]()
+	{
+		while (!Device.b_is_Ready)
+			_STD this_thread::yield		();
+
+		int count						= 0;
+		while (count++ < 10)
+		{
+			auto& I						= m_textures.find(name.c_str());
+			if (I == m_textures.end())
+				_STD this_thread::yield	();
+			else
+			{
+				I->second->Load			();
+				break;
+			}
+		}
+
+		VERIFY3							(count <= 10, "not found texture", name.c_str());
+	};
+	m_parallel_tex_loader.run			(texload);
 
 	return								T;
 }
