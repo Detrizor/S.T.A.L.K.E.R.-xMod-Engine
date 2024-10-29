@@ -677,46 +677,43 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 
 	if (_dynamic)
 	{
-		set_Object						(0);
+		set_Object						(nullptr);
 
 		// Traverse object database
-		g_SpatialSpace->q_frustum
-			(
-			lstRenderables,
-			ISpatial_DB::O_ORDERED,
-			STYPE_RENDERABLE,
-			ViewBase
-			);
+		g_SpatialSpace->q_frustum		(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, ViewBase);
+
+		auto process_spatial = [this](auto spatial)
+		{
+			CSector* sector				= reinterpret_cast<CSector*>(spatial->spatial.sector);
+			if (!sector)
+				return;	// disassociated from S/P structure
+
+			if (PortalTraverser.i_marker != sector->r_marker)
+				return;	// inactive (untouched) sector
+
+			for (auto& frustum : sector->r_frustums)
+			{
+				set_Frustum				(&frustum);
+				if (View->testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
+					if (auto renderable = spatial->dcast_Renderable())
+						renderable->renderable_Render();
+			}
+		};
 
 		// Determine visibility for dynamic part of scene
-		for (u32 o_it=0; o_it<lstRenderables.size(); o_it++)
-		{
-			ISpatial*	spatial		= lstRenderables[o_it];
-			CSector*	sector		= (CSector*)spatial->spatial.sector;
-			if	(0==sector)										continue;	// disassociated from S/P structure
-			if	(PortalTraverser.i_marker != sector->r_marker)	continue;	// inactive (untouched) sector
-			for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)
-			{
-				set_Frustum			(&(sector->r_frustums[v_it]));
-				if (!View->testSphere_dirty(spatial->spatial.sphere.P,spatial->spatial.sphere.R))	continue;
+		for (auto spatial : lstRenderables)
+			process_spatial				(spatial);
 
-				// renderable
-				IRenderable*	renderable		= spatial->dcast_Renderable	();
-				if (0==renderable)				continue;					// unknown, but renderable object (r1_glow???)
-
-				renderable->renderable_Render	();
-			}
-		}
-#if RENDER!=R_R1
-if (g_pGameLevel && (phase==RImplementation.PHASE_SMAP) && ps_actor_shadow_flags.test(RFLAG_ACTOR_SHADOW)) g_hud->Render_Actor_Shadow(); //Swartz: actor shadow
-#endif    
-
-    
+#if RENDER != R_R1
+		if (g_pGameLevel && (phase == RImplementation.PHASE_SMAP) && ps_actor_shadow_flags.test(RFLAG_ACTOR_SHADOW))
+			if (auto s = g_hud->Render_Actor_Shadow())
+				process_spatial			(s);
+#endif
 	}
 
 	// Restore
-	ViewBase						= ViewSave;
-	View							= 0;
+	ViewBase							= ViewSave;
+	View								= nullptr;
 }
 
 #include "fhierrarhyvisual.h"
