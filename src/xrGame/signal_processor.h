@@ -14,6 +14,7 @@ public:
 	virtual void						sOnChild								(CGameObject* obj, bool take)					{}
 	virtual void						sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save)		{}
 	virtual void						sRenderableRender						()												{}
+	virtual void						sNetRelcase								(CObject* obj)									{}
 
 	//MAddonOwner
 	virtual void						sOnAddon								(MAddon* addon, int attach_type)		{}

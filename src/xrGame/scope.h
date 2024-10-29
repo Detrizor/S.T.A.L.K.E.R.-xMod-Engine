@@ -68,6 +68,7 @@ public:
 	
 private:
 	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	void								sNetRelcase							O$	(CObject* obj);
 	bool								sInstallUpgrade						O$	(LPCSTR section, bool test);
 
 private:

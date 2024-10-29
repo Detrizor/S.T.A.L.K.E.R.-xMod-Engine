@@ -192,6 +192,12 @@ void MScope::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 		init_marks						();
 }
 
+void MScope::sNetRelcase(CObject* obj)
+{
+	if (m_pVision)
+		m_pVision->remove_links			(obj);
+}
+
 bool MScope::sInstallUpgrade(LPCSTR section, bool test)
 {
 	bool result							= false;

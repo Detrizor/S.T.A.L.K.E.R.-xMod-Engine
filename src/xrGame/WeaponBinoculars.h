@@ -29,6 +29,7 @@ public:
 	virtual bool	render_item_ui_query();
 	virtual bool	use_crosshair		()	const {return false;}
 	virtual void	net_Relcase			(CObject *object);
+
 protected:
 	CBinocularsVision*					m_binoc_vision;
 
@@ -37,6 +38,7 @@ protected:
 private:
 	void								setADS								O$	(int mode);
 };
+
 add_to_type_list(CWeaponBinoculars)
 #undef script_type_list
 #define script_type_list save_type_list(CWeaponBinoculars)

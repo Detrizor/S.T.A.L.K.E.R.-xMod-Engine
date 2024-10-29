@@ -916,11 +916,11 @@ u32	CGameObject::ef_detector_type		() const
 	return		(u32(-1));
 }
 
-void CGameObject::net_Relcase			(CObject* O)
+void CGameObject::net_Relcase(CObject* O)
 {
-	inherited::net_Relcase		(O);
-	if(!g_dedicated_server)
-		CScriptBinder::net_Relcase	(O);
+	inherited::net_Relcase				(O);
+	CScriptBinder::net_Relcase			(O);
+	emitSignal							(sNetRelcase(O));
 }
 
 CGameObject::CScriptCallbackExVoid &CGameObject::callback(GameObject::ECallbackType type) const

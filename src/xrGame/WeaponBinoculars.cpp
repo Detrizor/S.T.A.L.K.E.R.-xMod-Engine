@@ -97,15 +97,13 @@ void CWeaponBinoculars::render_item_ui()
 	inherited::render_item_ui();
 }
 
-void CWeaponBinoculars::net_Relcase	(CObject *object)
+void CWeaponBinoculars::net_Relcase(CObject* object)
 {
-	if (!m_binoc_vision)
-		return;
-
-	m_binoc_vision->remove_links	(object);
+	if (m_binoc_vision)
+		m_binoc_vision->remove_links(object);
 }
 
-bool CWeaponBinoculars::can_kill	() const
+bool CWeaponBinoculars::can_kill() const
 {
 	return			(false);
 }

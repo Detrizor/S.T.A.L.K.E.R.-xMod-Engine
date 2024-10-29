@@ -253,9 +253,7 @@ void CBinocularsVision::Load(const shared_str& section)
 
 void CBinocularsVision::remove_links(CObject *object)
 {
-	VIS_OBJECTS::iterator	I = std::find_if(m_active_objects.begin(),m_active_objects.end(),FindVisObjByObject(object));
-	if (I == m_active_objects.end())
-		return;
-
-	m_active_objects.erase	(I);
+	auto it = m_active_objects.find_if(FindVisObjByObject(object));
+	if (it != m_active_objects.end())
+		m_active_objects.erase(it);
 }
