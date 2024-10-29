@@ -9,7 +9,7 @@
 #include	"shader.h"
 #include	"tss_def.h"
 #include	"TextureDescrManager.h"
-#include	"oneapi\tbb.h"
+
 // refs
 struct		lua_State;
 

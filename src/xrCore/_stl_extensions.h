@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <oneapi/tbb.h>
 
 using ::std::swap;
 
@@ -214,6 +215,17 @@ public:
 	bool erase_data_if(const Eval& obj, bool assert = true)
 	{
 		return erase_checked(_STD find_if(inherited::begin(), inherited::end(), obj), assert);
+	}
+
+	template <typename _Pr>
+	IC void sort(_Pr _Pred)
+	{
+		tbb::parallel_sort(inherited::begin(), inherited::end(), _Pred);
+	}
+
+	IC void sort()
+	{
+		tbb::parallel_sort(inherited::begin(), inherited::end());
 	}
 };
 
