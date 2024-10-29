@@ -171,7 +171,7 @@ void CSpaceRestriction::merge_in_out_restrictions	()
 		m_border.insert				(m_border.end(),temp_border.begin(),temp_border.end());
 	}
 	
-	std::sort						(m_border.begin(),m_border.end());
+	m_border.sort					();
 	m_border.erase					(
 		std::unique(
 			m_border.begin(),

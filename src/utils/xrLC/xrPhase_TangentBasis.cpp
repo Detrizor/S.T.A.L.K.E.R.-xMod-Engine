@@ -60,7 +60,7 @@ static void	fill_mender_input( xr_vector< MeshMender::Vertex >& theVerts, xr_vec
 {
 		// ************************************* Build vectors + expand TC if nessesary
 	Status						("Building inputs...");
-	std::sort					(lc_global_data()->g_vertices().begin(),lc_global_data()->g_vertices().end());
+	lc_global_data()->g_vertices().sort();
 	xr_vector<xr_vector<u32> >	remap;
 	remap.resize				(lc_global_data()->g_vertices().size());
 	for (u32 f=0; f<lc_global_data()->g_faces().size(); f++)

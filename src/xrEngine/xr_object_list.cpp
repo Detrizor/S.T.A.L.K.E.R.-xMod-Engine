@@ -209,7 +209,7 @@ void CObjectList::Update(bool last)
 			}
 
 # ifdef DEBUG
-			std::sort(crows.begin(), crows.end());
+			crows.sort();
 			VERIFY(
 				std::unique(
 					crows.begin(),

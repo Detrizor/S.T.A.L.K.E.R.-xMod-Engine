@@ -71,7 +71,7 @@ void CBuild::BuildRapid		(BOOL bSaveForOtherCompilers)
 				adjacent_vec.push_back(V->m_adjacents[adj]);
 			}
 		}
-		std::sort		(adjacent_vec.begin(),adjacent_vec.end());
+		adjacent_vec.sort	();
 		adjacent_vec.erase	(std::unique(adjacent_vec.begin(),adjacent_vec.end()),adjacent_vec.end());
 
 		// Unique

@@ -81,7 +81,7 @@ void CUIStatsPlayerList::Init(CUIXml& xml_doc, LPCSTR path)
 	case eGameIDArtefactHunt:
 	case eGameIDTeamDeathmatch:
 		if (!m_bSpectator || m_bStatus_mode)
-            InitTeamHeader(xml_doc, path);
+			InitTeamHeader(xml_doc, path);
 	case eGameIDDeathmatch:
 		InitHeader(xml_doc, path);
 	default:
@@ -152,7 +152,7 @@ void CUIStatsPlayerList::InitHeader(CUIXml& xml_doc, LPCSTR path)
 			st->SetTextColor(m_h.c);
 			st->SetTextComplexMode(false);
 			if (0 != i)
-                st->SetTextAlignment(CGameFont::alCenter);
+				st->SetTextAlignment(CGameFont::alCenter);
 			m_header->AttachChild(st);
 		}
 	}
@@ -186,7 +186,7 @@ void CUIStatsPlayerList::InitTeamHeader(CUIXml& xml_doc, LPCSTR path){
 	m_header_team->AttachChild(logo);
 
 	if (1 == m_CurTeam)
-        logo->InitTexture(pSettings->r_string("team_logo_small", "team1"));
+		logo->InitTexture(pSettings->r_string("team_logo_small", "team1"));
 	else if (2 == m_CurTeam)
 		logo->InitTexture(pSettings->r_string("team_logo_small", "team2"));
 	else
@@ -241,12 +241,12 @@ void CUIStatsPlayerList::Update()
 	};
 	pl_count = items.size();
 
-    CStringTable st;
-    if (GameID() == eGameIDArtefactHunt && !m_bSpectator)
+	CStringTable st;
+	if (GameID() == eGameIDArtefactHunt && !m_bSpectator)
 	{
 		game_cl_ArtefactHunt* game = static_cast<game_cl_ArtefactHunt*>(&Game());
 		pl_artefacts = game->teams[m_CurTeam - 1].score;
-        xr_sprintf(teaminfo, "%s: %u, %s: %u, %s: %d",*st.translate("mp_artefacts_upcase"),pl_artefacts, *st.translate("mp_players"), pl_count, *st.translate("mp_frags_upcase"),pl_frags );
+		xr_sprintf(teaminfo, "%s: %u, %s: %u, %s: %d",*st.translate("mp_artefacts_upcase"),pl_artefacts, *st.translate("mp_players"), pl_count, *st.translate("mp_frags_upcase"),pl_frags );
 		m_header_text->SetText(teaminfo);
 	}
 	else if (GameID() == eGameIDTeamDeathmatch && !m_bSpectator)
@@ -269,7 +269,7 @@ void CUIStatsPlayerList::Update()
 			ShowHeader(true);
 	}
 
-    std::sort(items.begin(), items.end(), DM_Compare_Players);
+	items.sort(DM_Compare_Players);
 
 	int n = (int)items.size();
 	n -= m_pad->GetChildWndList().size();
@@ -278,14 +278,14 @@ void CUIStatsPlayerList::Update()
 	{
 		n = abs(n);
 		for (int i = 0; i<n; i++)
-            m_pad->DetachChild(*(m_pad->GetChildWndList().begin()));
+			m_pad->DetachChild(*(m_pad->GetChildWndList().begin()));
 		m_flags.set			(eNeedRecalc,TRUE);
 	}
 	else
 	{		
 		for (int i = 0; i<n; i++)
 		{
-            CUIStatsPlayerInfo* pi = xr_new<CUIStatsPlayerInfo>(&m_field_info, m_i.f, m_i.c);
+			CUIStatsPlayerInfo* pi = xr_new<CUIStatsPlayerInfo>(&m_field_info, m_i.f, m_i.c);
 			pi->InitPlayerInfo( Fvector2().set(0,0), Fvector2().set(this->GetDesiredChildWidth(),m_i.h) );
 			CUIScrollView::AddWindow(pi, true);
 			m_flags.set			(eNeedRecalc,TRUE);
@@ -312,7 +312,7 @@ void CUIStatsPlayerList::Update()
 
 
 void CUIStatsPlayerList::SetSpectator(bool f){
-    m_bSpectator = f;
+	m_bSpectator = f;
 }
 
 void CUIStatsPlayerList::SetTeam(int team){
@@ -332,7 +332,7 @@ CUIWindow* CUIStatsPlayerList::GetTeamHeader(){
 
 void CUIStatsPlayerList::RecalcSize(){
 	CUIScrollView::RecalcSize();
-    if(GetHeight()<m_pad->GetHeight())
+	if(GetHeight()<m_pad->GetHeight())
 	{
 		SetHeight(m_pad->GetHeight());
 		GetMessageTarget()->SendMessage(this, CHILD_CHANGED_SIZE, NULL);

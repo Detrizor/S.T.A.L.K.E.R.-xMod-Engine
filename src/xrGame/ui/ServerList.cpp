@@ -625,27 +625,26 @@ void	CServerList::RefreshList_internal()
 	g_gs_browser					= m_GSBrowser;
 	m_tmp_srv_lst.resize			(NumServersFound);
 
-	
 	for (u32 i=0; i<NumServersFound; i++)
 		m_tmp_srv_lst[i] = i;
 
 	if (0 == xr_strcmp(m_sort_func, "server_name"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_ServerName);
+		m_tmp_srv_lst.sort(sort_by_ServerName);
 
 	else if (0 == xr_strcmp(m_sort_func, "map"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Map);
+		m_tmp_srv_lst.sort(sort_by_Map);
 
 	else if (0 == xr_strcmp(m_sort_func, "game_type"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_GameType);
+		m_tmp_srv_lst.sort(sort_by_GameType);
 
 	else if (0 == xr_strcmp(m_sort_func, "player"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Players);
+		m_tmp_srv_lst.sort(sort_by_Players);
 
 	else if (0 == xr_strcmp(m_sort_func, "ping"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Ping);
+		m_tmp_srv_lst.sort(sort_by_Ping);
 
 	else if (0 == xr_strcmp(m_sort_func, "version"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Version);
+		m_tmp_srv_lst.sort(sort_by_Version);
 
 	for (u32 i=0; i<NumServersFound; i++)
 	{
@@ -656,7 +655,7 @@ void	CServerList::RefreshList_internal()
 	}
 	UpdateSizes();
 	RestoreCurItem();
-};
+}
 
 void CServerList::RefreshQuick()
 {

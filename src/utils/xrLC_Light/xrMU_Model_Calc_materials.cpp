@@ -12,7 +12,7 @@ void xrMU_Model::calc_materials	()
 	
 	xrMU_Model::v_faces &temp_vector			= m_faces;
 
-	std::sort			(temp_vector.begin(),temp_vector.end(),cmp_face_material);
+	temp_vector.sort	(cmp_face_material);
 
 	_subdiv				current;
 	current.material	= temp_vector[0]->dwMaterial;

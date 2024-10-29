@@ -119,7 +119,7 @@ public:
 		for (u32 i=0; i<N; ++i)
 			m_sorted[i]		= i;
 
-		std::stable_sort	(m_sorted.begin(),m_sorted.end(),SSortNodesPredicate());
+		m_sorted.sort		(SSortNodesPredicate());
 
 		for (u32 i=0; i<N; ++i)
 			m_renumbering	[m_sorted[i]] = i;
@@ -133,7 +133,7 @@ public:
 			}
 		}
 
-		std::stable_sort	(m_nodes.begin(),m_nodes.end(),SSortNodesPredicate());
+		m_nodes.sort		(SSortNodesPredicate());
 	}
 };
 

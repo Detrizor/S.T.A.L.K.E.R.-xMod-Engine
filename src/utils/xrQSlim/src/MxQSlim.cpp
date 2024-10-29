@@ -530,7 +530,7 @@ void MxEdgeQSlim::apply_contraction(const MxPairContraction& conx)
 			edges.push_back	(edge_links(star(j))[i]);
 
 //	u32 r=edges.size();
-	std::sort				(edges.begin(),edges.end());
+	edges.sort				();
 	EdgeVecIt new_end		= std::unique	(edges.begin(),edges.end());
 	edges.erase				(new_end,edges.end());
 //	u32 rr=edges.size();

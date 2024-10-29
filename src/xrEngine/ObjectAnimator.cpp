@@ -72,7 +72,7 @@ void CObjectAnimator::LoadMotions(LPCSTR fname)
 			}
 			FS.r_close(F);
 		}
-		std::sort(m_Motions.begin(), m_Motions.end(), motion_sort_pred);
+		m_Motions.sort(motion_sort_pred);
 	}
 }
 

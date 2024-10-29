@@ -38,7 +38,7 @@ void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 			);
 
 		// (almost) Exact sorting order (front-to-back)
-		std::sort			(lstRenderables.begin(),lstRenderables.end(),pred_sp_sort);
+		lstRenderables.sort					(pred_sp_sort);
 
 		// Determine visibility for dynamic part of scene
 		set_Object							(0);

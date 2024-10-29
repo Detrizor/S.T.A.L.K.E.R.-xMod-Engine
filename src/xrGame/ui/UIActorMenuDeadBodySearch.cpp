@@ -81,7 +81,7 @@ void CUIActorMenu::init_dead_body_bag()
 	else
 		m_pContainer->AddAvailableItems	(items_list);
 
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 	for (auto& item : items_list)
 		m_pDeadBodyBagList->SetItem		(item->getIcon());
 	

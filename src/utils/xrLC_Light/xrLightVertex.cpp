@@ -175,7 +175,7 @@ void LightVertex	( bool net )
 	{
 		// Unique
 		vecVertex&	VL	= it->second;
-		std::sort		(VL.begin(),VL.end());
+		VL.sort			();
 		VL.erase		(std::unique(VL.begin(),VL.end()),VL.end());
 
 		// Calc summary color

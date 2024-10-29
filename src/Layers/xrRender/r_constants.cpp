@@ -185,7 +185,7 @@ BOOL	R_constant_table::parse	(void* _desc, u32 destination)
 			L.cls				=	r_type;
 		}
 	}
-	std::sort	(table.begin(),table.end(),p_sort);
+	table.sort	(p_sort);
 	return		TRUE;
 }
 #endif	//	USE_DX10
@@ -232,7 +232,7 @@ void R_constant_table::merge(R_constant_table* T)
 	}
 
 	// Sort
-	std::sort		(table.begin(),table.end(),p_sort);
+	table.sort(p_sort);
 
 #if defined(USE_DX10) || defined(USE_DX11)
 	//	TODO:	DX10:	Implement merge with validity check

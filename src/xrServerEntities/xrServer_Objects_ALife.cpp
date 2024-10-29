@@ -159,7 +159,7 @@ void	SFillPropData::load			()
 		for (k = 0; Ini->r_line(section,k,&N,&V); ++k)
 			story_names.push_back	(xr_rtoken(V,atoi(N)));
 
-		std::sort				(story_names.begin(),story_names.end(),story_name_predicate());
+		story_names.sort		(story_name_predicate());
 		story_names.insert		(story_names.begin(),xr_rtoken("NO STORY ID",ALife::_STORY_ID(-1)));
 	}
 
@@ -171,7 +171,7 @@ void	SFillPropData::load			()
 		for (k = 0; Ini->r_line(section,k,&N,&V); ++k)
 			spawn_story_names.push_back	(xr_rtoken(V,atoi(N)));
 
-		std::sort				(spawn_story_names.begin(),spawn_story_names.end(),story_name_predicate());
+		spawn_story_names.sort	(story_name_predicate());
 		spawn_story_names.insert(spawn_story_names.begin(),xr_rtoken("NO SPAWN STORY ID",ALife::_SPAWN_STORY_ID(-1)));
 	}
 
@@ -183,7 +183,7 @@ void	SFillPropData::load			()
 		character_profiles.push_back(CCharacterInfo::IndexToId(i));
 	}
 
-	std::sort(character_profiles.begin(), character_profiles.end(), SortStringsByAlphabetPred);
+	character_profiles.sort		(SortStringsByAlphabetPred);
 #endif // AI_COMPILER
 	
     // destroy ini
@@ -198,7 +198,7 @@ void	SFillPropData::load			()
 	for ( ; I != E; ++I)
 		smart_covers.push_back	(luabind::object_cast<LPCSTR>(I.key()));
 
-	std::sort				(smart_covers.begin(), smart_covers.end(), logical_string_predicate());
+	smart_covers.sort			(logical_string_predicate());
 };
 
 void	SFillPropData::unload			()

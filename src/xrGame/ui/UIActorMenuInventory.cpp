@@ -147,7 +147,7 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 {
 	auto& pocket_list					= m_pInvPocket[pocket_idx];
 	TIItemContainer items_list			= m_pActorInv->m_pockets[pocket_idx];
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 
 	shared_str sect						= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
 	for (auto& item : items_list)

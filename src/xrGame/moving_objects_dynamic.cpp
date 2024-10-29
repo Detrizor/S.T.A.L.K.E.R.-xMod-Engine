@@ -194,10 +194,10 @@ void moving_objects::generate_emitters			()
 {
 	remove_already_waited		();
 
-	std::sort					(m_collision_emitters.begin(),m_collision_emitters.end());
+	m_collision_emitters.sort	();
 
 	// it should be alredy sorted here
-//	std::sort					(m_nearest_moving.begin(),m_nearest_moving.end());
+	//m_nearest_moving.sort		();
 #ifdef DEBUG
 	if (!m_nearest_moving.empty()) {
 		NEAREST_MOVING::const_iterator	I = m_nearest_moving.begin(), J = I + 1;
@@ -452,9 +452,9 @@ struct decision_predicate {
 	}
 };
 
-void moving_objects::resolve_collisions			()
+void moving_objects::resolve_collisions()
 {
-	std::sort					(m_collisions.begin(),m_collisions.end(),&priority::predicate2);
+	m_collisions.sort			(&priority::predicate2);
 
 	m_previous_collisions		= m_collisions;
 

@@ -128,7 +128,7 @@ void CUIScrollView::Update				()
 	inherited::Update();
 }
 
-void CUIScrollView::RecalcSize			()
+void CUIScrollView::RecalcSize()
 {
 	if(!m_pad)			return;
 	Fvector2			pad_size;
@@ -139,14 +139,25 @@ void CUIScrollView::RecalcSize			()
 	pad_size.y			+= m_upIndent;
 	pad_size.y			+= m_downIndent;
 
-	if(m_sort_function)
+	if (m_sort_function)
+		m_pad->GetChildWndList().sort(m_sort_function);
+
+	if (GetVertFlip())
 	{
-		//. m_pad->GetChildWndList().sort(m_sort_function);
-		std::sort(m_pad->GetChildWndList().begin(), m_pad->GetChildWndList().end(), m_sort_function);
+		for (WINDOW_LIST::reverse_iterator it = m_pad->GetChildWndList().rbegin(); m_pad->GetChildWndList().rend() != it; ++it)
+		{
+			(*it)->SetWndPos		(item_pos);
+			item_pos.y				+= (*it)->GetWndSize().y;
+			item_pos.y				+= m_vertInterval; 
+			pad_size.y				+= (*it)->GetWndSize().y;
+			pad_size.y				+= m_vertInterval;
+			pad_size.x				= _max(pad_size.x, (*it)->GetWndSize().x);
+		}
+
 	}
-
-	if(GetVertFlip()){
-		for(WINDOW_LIST::reverse_iterator it = m_pad->GetChildWndList().rbegin(); m_pad->GetChildWndList().rend() != it; ++it)
+	else
+	{
+		for (WINDOW_LIST_it it = m_pad->GetChildWndList().begin(); m_pad->GetChildWndList().end() != it; ++it)
 		{
 			(*it)->SetWndPos		(item_pos);
 			item_pos.y				+= (*it)->GetWndSize().y;
@@ -155,18 +166,7 @@ void CUIScrollView::RecalcSize			()
 			pad_size.y				+= m_vertInterval;
 			pad_size.x				= _max(pad_size.x, (*it)->GetWndSize().x);
 		}
-
-	}else{
-		for(WINDOW_LIST_it it = m_pad->GetChildWndList().begin(); m_pad->GetChildWndList().end() != it; ++it)
-		{
-			(*it)->SetWndPos		(item_pos);
-			item_pos.y				+= (*it)->GetWndSize().y;
-			item_pos.y				+= m_vertInterval; 
-			pad_size.y				+= (*it)->GetWndSize().y;
-			pad_size.y				+= m_vertInterval;
-			pad_size.x				= _max(pad_size.x, (*it)->GetWndSize().x);
-		}
-	};
+	}
 
 	m_pad->SetWndSize			(pad_size);
 

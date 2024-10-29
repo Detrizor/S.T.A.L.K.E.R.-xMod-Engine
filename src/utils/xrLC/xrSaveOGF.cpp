@@ -92,7 +92,7 @@ void CBuild::SaveTREE	(IWriter &fs)
 		OGF*	o		= dynamic_cast<OGF*>	(g_tree[rid]);
 		if		(o)		remap.push_back(rid);
 	}
-	std::stable_sort	(remap.begin(),remap.end(),remap_order);
+	remap.sort			(remap_order);
 	clMsg				("remap-size: %d / %d",remap.size(),g_tree.size());
 	for (u32 sid=0; sid<remap.size(); sid++)	{
 		u32				id	= remap[sid];

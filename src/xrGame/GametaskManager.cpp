@@ -102,7 +102,7 @@ CGameTask*	CGameTaskManager::GiveGameTaskToActor(CGameTask* t, u32 timeToComplet
 	t->m_TimeToComplete				= t->m_ReceiveTime + timeToComplete * 1000; //ms
 	t->m_timer_finish				= t->m_ReceiveTime + timer_ttl      * 1000; //ms
 
-	std::stable_sort				(GetGameTasks().begin(), GetGameTasks().end(), task_prio_pred);
+	GetGameTasks().sort				(task_prio_pred);
 
 	t->OnArrived					();
 
@@ -194,10 +194,9 @@ void CGameTaskManager::UpdateTasks						()
 		UpdateActiveTask	();
 }
 
-
 void CGameTaskManager::UpdateActiveTask()
 {
-	std::stable_sort			(GetGameTasks().begin(), GetGameTasks().end(), task_prio_pred);
+	GetGameTasks().sort		(task_prio_pred);
 
 	CGameTask*	t			= ActiveTask();
 	if ( !t )

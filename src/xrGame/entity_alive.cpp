@@ -838,7 +838,7 @@ void CEntityAlive::fill_hit_bone_surface_areas		( ) const
 		m_hit_bone_surface_areas.push_back	( std::make_pair(i, surface_area) );
 	}
 
-	std::sort							( m_hit_bone_surface_areas.begin(), m_hit_bone_surface_areas.end(), sort_surface_area_predicate() );
+	m_hit_bone_surface_areas.sort(sort_surface_area_predicate());
 }
 
 BOOL g_ai_use_old_vision				= 0;

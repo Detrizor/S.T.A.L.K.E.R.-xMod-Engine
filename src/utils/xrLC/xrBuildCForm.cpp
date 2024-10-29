@@ -79,6 +79,7 @@ void TestEdge			(Vertex *V1, Vertex *V2, Face* parent)
 		pBuild->err_multiedge().w_fvector3(V2->P);
 	}
 }
+
 extern void SimplifyCFORM		(CDB::CollectorPacked& CL);
 void CBuild::BuildCForm	()
 {
@@ -91,7 +92,7 @@ void CBuild::BuildCForm	()
 		cfVertexMarks.assign	(lc_global_data()->g_vertices().size(),false);
 
 		Status("Sorting...");
-		std::sort(lc_global_data()->g_vertices().begin(),lc_global_data()->g_vertices().end());
+		lc_global_data()->g_vertices().sort();
 
 		Status("Collecting faces...");
 		cfFaces->reserve	(lc_global_data()->g_faces().size());
@@ -114,7 +115,7 @@ void CBuild::BuildCForm	()
 
 		Status("Collecting vertices...");
 		cfVertices->reserve	(lc_global_data()->g_vertices().size());
-		std::sort(cfFaces->begin(),cfFaces->end());
+		cfFaces->sort();
 		for (u32 V=0; V<lc_global_data()->g_vertices().size(); V++)
 			if (cfVertexMarks[V]) cfVertices->push_back(lc_global_data()->g_vertices()[V]);
 	}

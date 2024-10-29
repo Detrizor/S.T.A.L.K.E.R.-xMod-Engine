@@ -236,7 +236,7 @@ void CDialogHolder::OnFrame()
 		m_dialogsToRender_new.clear	();
 	}
 
-	std::sort			(m_dialogsToRender.begin(), m_dialogsToRender.end());
+	m_dialogsToRender.sort			();
 	while (!m_dialogsToRender.empty() && (!m_dialogsToRender[m_dialogsToRender.size()-1].enabled)) 
 		m_dialogsToRender.pop_back();
 }

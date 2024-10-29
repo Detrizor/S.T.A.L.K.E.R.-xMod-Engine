@@ -70,9 +70,9 @@ IC	CPatrolPathStorage &CGameSpawnConstructor::patrol_path_storage	() const
 	return						(*m_patrol_path_storage);
 }
 
-IC	void CGameSpawnConstructor::process_spawns		(xr_vector<ALife::_SPAWN_ID> &spawns)
+IC	void CGameSpawnConstructor::process_spawns(xr_vector<ALife::_SPAWN_ID> &spawns)
 {
-	std::sort								(spawns.begin(),spawns.end());
+	spawns.sort								();
 	xr_vector<ALife::_SPAWN_ID>::iterator	I = std::unique(spawns.begin(),spawns.end());
 	spawns.erase							(I,spawns.end());
 }

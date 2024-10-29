@@ -78,7 +78,7 @@ void CBuild::LightPatches()
 		one_subd.push_back(g_pathes.front());
 		g_pathes.erase(g_pathes.begin());
 		sort_key.set(one_subd.front().P);
-		std::sort(g_pathes.begin(),g_pathes.end(),sort_pred);
+		g_pathes.sort(sort_pred);
 
 		// Search patches with identical materials until size limit
 		Fbox bb,bbtest; 

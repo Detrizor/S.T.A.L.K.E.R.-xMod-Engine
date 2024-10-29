@@ -90,7 +90,7 @@ void GSaveAsSMF					(LPCSTR fname)
 	string256 			tmp;
 
 	// vertices
-	std::sort			(g_vertices.begin(),g_vertices.end());
+	g_vertices.sort		();
 	for (u32 v_idx=0; v_idx<g_vertices.size(); v_idx++){
 		Fvector v		= g_vertices[v_idx]->P;
 		xr_sprintf			(tmp,"v %f %f %f",v.x,v.y,-v.z);
@@ -228,7 +228,7 @@ void CBuild::xrPhase_AdaptiveHT	()
 
 	// transfer vertices
 	mdl->color_binding	(MX_PERVERTEX);
-	std::sort			(g_vertices.begin(),g_vertices.end());
+	g_vertices.sort		();
 	for (u32 v_idx=0; v_idx<g_vertices.size(); v_idx++){
 		// pos
 		Fvector v		= g_vertices[v_idx]->P;
@@ -301,7 +301,7 @@ void CBuild::u_Tesselate	(tesscb_estimator* cb_E, tesscb_face* cb_F, tesscb_vert
 			if (A->flags.bSplitted)	continue;
 			if (A->VContains(V2))	adjacent.push_back	(A);
 		}
-		std::sort		(adjacent.begin(),adjacent.end());
+		adjacent.sort	();
 		adjacent.erase	(std::unique(adjacent.begin(),adjacent.end()),adjacent.end());
 
 		// create new vertex (lerp)
@@ -401,7 +401,7 @@ void CBuild::u_SmoothVertColors(int count)
 				circle.push_back(F->v[1]);
 				circle.push_back(F->v[2]);
 			}
-			std::sort			(circle.begin(),circle.end());
+			circle.sort			();
 			circle.erase		(std::unique(circle.begin(),circle.end()),circle.end());
 
 			// Average

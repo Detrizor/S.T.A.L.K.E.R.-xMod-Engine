@@ -46,7 +46,7 @@ void xrMU_Reference::export_cform_game(CDB::CollectorPacked& CL)
 		xr_vector<bool>	cfVertexMarks;
 		cfVertexMarks.assign(model->m_vertices.size(),false);
 
-		std::sort			(model->m_vertices.begin(),model->m_vertices.end());
+		model->m_vertices.sort();
 
 		// faces and mark vertices
 		cfFaces->reserve	(model->m_faces.size());
@@ -71,7 +71,7 @@ void xrMU_Reference::export_cform_game(CDB::CollectorPacked& CL)
 
 		// verts
 		cfVertices->reserve	(model->m_vertices.size());
-		std::sort			(cfFaces->begin(),cfFaces->end());
+		cfFaces->sort();
 		for (u32 V=0; V<model->m_vertices.size(); V++)
 			if (cfVertexMarks[V]) cfVertices->push_back(model->m_vertices[V]);
 	}

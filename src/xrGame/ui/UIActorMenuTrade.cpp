@@ -121,7 +121,7 @@ void CUIActorMenu::InitPartnerInventoryContents()
 	{
 		TIItemContainer					items_list;
 		m_pPartnerInvOwner->inventory().AddAvailableItems(items_list, true);
-		_STD sort						(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+		items_list.sort					(InventoryUtilities::GreaterRoomInRuck);
 		for (auto item : items_list)
 			if (!is_item_in_list(m_pTradePartnerList, item))
 				m_pTradePartnerBagList->SetItem(item->getIcon());
@@ -470,7 +470,7 @@ void CUIActorMenu::DonateCurrentItem(CUICellItem* cell_item)
 void CUIActorMenu::init_actor_trade()
 {
 	TIItemContainer items_list			= m_pActorInv->getTradeContainer();
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 	for (auto& item : items_list)
 		m_pTradeActorList->SetItem		(item->getIcon());
 
@@ -495,7 +495,7 @@ void CUIActorMenu::init_actor_trade()
 
 void CUIActorMenu::update_partner_trade()
 {
-	_STD sort							(m_partner_trade_list.begin(), m_partner_trade_list.end(), InventoryUtilities::greaterRoomInRuck);
+	m_partner_trade_list.sort			(InventoryUtilities::greaterRoomInRuck);
 	for (auto itm : m_partner_trade_list)
 		m_pTradePartnerList->SetItem	(itm);
 

@@ -130,7 +130,7 @@ void CSector::BuildHierrarhy	()
 
 void CSector::Validate()
 {
-	std::sort(Portals.begin(),Portals.end());
+	Portals.sort();
 	R_ASSERT(std::unique(Portals.begin(),Portals.end())==Portals.end());
 	R_ASSERT(TreeRoot);
 	R_ASSERT(TreeRoot->Sector == SelfID);

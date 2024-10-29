@@ -206,10 +206,10 @@ void CSpaceRestrictorWrapper::build_border			()
 	}
 
 	{
-		std::sort					(m_border.begin(),m_border.end());
+		m_border.sort				();
 		BORDER::iterator			I = std::unique(m_border.begin(),m_border.end());
 		m_border.erase				(I,m_border.end());
-		std::sort					(m_border.begin(),m_border.end(),sort_by_xz_predicate(m_level_graph));
+		m_border.sort				(sort_by_xz_predicate(m_level_graph));
 	}
 
 	VERIFY3							(!m_border.empty(),"space restrictor has no border",object().name_replace());
@@ -218,7 +218,7 @@ void CSpaceRestrictorWrapper::build_border			()
 void CSpaceRestrictorWrapper::verify_connectivity	()
 {
 	{
-		std::sort					(m_internal.begin(),m_internal.end());
+		m_internal.sort				();
 		BORDER::iterator			I = std::unique(m_internal.begin(),m_internal.end());
 		m_internal.erase			(I,m_internal.end());
 	}

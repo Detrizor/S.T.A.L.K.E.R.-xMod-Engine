@@ -404,16 +404,16 @@ void game_cl_Deathmatch::ConvertTime2String		(string64* str, u32 Time)
 	xr_sprintf(*str,"%02d:%02d:%02d", RHour, RMinutes, RSecs);
 };
 
-int game_cl_Deathmatch::GetPlayersPlace			(game_PlayerState* ps)
+int game_cl_Deathmatch::GetPlayersPlace(game_PlayerState* ps)
 {
-	if (!ps) return -1;
-	game_cl_GameState::PLAYERS_MAP_IT I=Game().players.begin();
-	game_cl_GameState::PLAYERS_MAP_IT E=Game().players.end();
+	if (!ps)
+		return -1;
 
 	// create temporary map (sort by kills)
-	xr_vector<game_PlayerState*>	Players;
-	for (;I!=E;++I)		Players.push_back(I->second);
-	std::sort			(Players.begin(),Players.end(),DM_Compare_Players);
+	xr_vector<game_PlayerState*> Players = {};
+	for (auto& pair : players)
+		Players.push_back(pair.second);
+	Players.sort(DM_Compare_Players);
 
 	int Place = 1;
 	for (u32 i=0; i<Players.size(); i++)

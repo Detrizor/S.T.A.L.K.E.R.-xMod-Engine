@@ -27,7 +27,7 @@ IC	bool	cmp_normal_items		(const _NormalItem& N1, const _NormalItem& N2)
 void __fastcall mapNormal_Render	(mapNormalItems& N)
 {
 	// *** DIRECT ***
-	std::sort				(N.begin(),N.end(),cmp_normal_items);
+	N.sort					(cmp_normal_items);
 	_NormalItem				*I=&*N.begin(), *E = &*N.end();
 	for (; I!=E; I++)		{
 		_NormalItem&		Ni	= *I;
@@ -46,7 +46,7 @@ IC	bool	cmp_matrix_items		(const _MatrixItem& N1, const _MatrixItem& N2)
 void __fastcall mapMatrix_Render	(mapMatrixItems& N)
 {
 	// *** DIRECT ***
-	std::sort				(N.begin(),N.end(),cmp_matrix_items);
+	N.sort					(cmp_matrix_items);
 	_MatrixItem				*I=&*N.begin(), *E = &*N.end();
 	for (; I!=E; I++)		{
 		_MatrixItem&	Ni				= *I;
@@ -181,7 +181,7 @@ void		sort_tlist_nrm
 		{
 			// Just sort by SSA
 			textures.getANY_P			(lst);
-			std::sort					(lst.begin(), lst.end(), cmp_textures_ssa_nrm);
+			lst.sort					(cmp_textures_ssa_nrm);
 		} 
 		else 
 		{
@@ -194,10 +194,13 @@ void		sort_tlist_nrm
 			}
 
 			// 1st - part - SSA, 2nd - lexicographically
-			std::sort					(lst.begin(),	lst.end(),	cmp_textures_ssa_nrm);
-			if (2==amount)				std::sort	(temp.begin(),	temp.end(),	cmp_textures_lex2_nrm);
-			else if (3==amount)			std::sort	(temp.begin(),	temp.end(),	cmp_textures_lex3_nrm);
-			else						std::sort	(temp.begin(),	temp.end(),	cmp_textures_lexN_nrm);
+			lst.sort					(cmp_textures_ssa_nrm);
+			if (2==amount)
+				temp.sort				(cmp_textures_lex2_nrm);
+			else if (3==amount)
+				temp.sort				(cmp_textures_lex3_nrm);
+			else
+				temp.sort				(cmp_textures_lexN_nrm);
 
 			// merge lists
 			lst.insert					(lst.end(),temp.begin(),temp.end());
@@ -206,9 +209,12 @@ void		sort_tlist_nrm
 	else 
 	{
 		textures.getANY_P			(lst);
-		if (2==amount)				std::sort	(lst.begin(),	lst.end(),	cmp_textures_lex2_nrm);
-		else if (3==amount)			std::sort	(lst.begin(),	lst.end(),	cmp_textures_lex3_nrm);
-		else						std::sort	(lst.begin(),	lst.end(),	cmp_textures_lexN_nrm);
+		if (2==amount)
+			lst.sort				(cmp_textures_lex2_nrm);
+		else if (3==amount)
+			lst.sort				(cmp_textures_lex3_nrm);
+		else
+			lst.sort				(cmp_textures_lexN_nrm);
 	}
 }
 
@@ -227,7 +233,7 @@ void		sort_tlist_mat
 		{
 			// Just sort by SSA
 			textures.getANY_P			(lst);
-			std::sort					(lst.begin(), lst.end(), cmp_textures_ssa_mat);
+			lst.sort					(cmp_textures_ssa_mat);
 		} 
 		else 
 		{
@@ -240,10 +246,13 @@ void		sort_tlist_mat
 			}
 
 			// 1st - part - SSA, 2nd - lexicographically
-			std::sort					(lst.begin(),	lst.end(),	cmp_textures_ssa_mat);
-			if (2==amount)				std::sort	(temp.begin(),	temp.end(),	cmp_textures_lex2_mat);
-			else if (3==amount)			std::sort	(temp.begin(),	temp.end(),	cmp_textures_lex3_mat);
-			else						std::sort	(temp.begin(),	temp.end(),	cmp_textures_lexN_mat);
+			lst.sort					(cmp_textures_ssa_mat);
+			if (2==amount)
+				temp.sort				(cmp_textures_lex2_mat);
+			else if (3==amount)
+				temp.sort				(cmp_textures_lex3_mat);
+			else
+				temp.sort				(cmp_textures_lexN_mat);
 
 			// merge lists
 			lst.insert					(lst.end(),temp.begin(),temp.end());
@@ -252,9 +261,12 @@ void		sort_tlist_mat
 	else 
 	{
 		textures.getANY_P			(lst);
-		if (2==amount)				std::sort	(lst.begin(),	lst.end(),	cmp_textures_lex2_mat);
-		else if (3==amount)			std::sort	(lst.begin(),	lst.end(),	cmp_textures_lex3_mat);
-		else						std::sort	(lst.begin(),	lst.end(),	cmp_textures_lexN_mat);
+		if (2==amount)
+			lst.sort				(cmp_textures_lex2_mat);
+		else if (3==amount)
+			lst.sort				(cmp_textures_lex3_mat);
+		else
+			lst.sort				(cmp_textures_lexN_mat);
 	}
 }
 
@@ -276,7 +288,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 			//mapNormalVS&	vs				= mapNormal	[_priority];
 			mapNormalVS&	vs				= mapNormalPasses[_priority][iPass];
 			vs.getANY_P						(nrmVS);
-			std::sort						(nrmVS.begin(), nrmVS.end(), cmp_vs_nrm);
+			nrmVS.sort						(cmp_vs_nrm);
 			for (u32 vs_id=0; vs_id<nrmVS.size(); vs_id++)
 			{
 				mapNormalVS::TNode*	Nvs			= nrmVS[vs_id];
@@ -287,7 +299,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 				mapNormalGS&		gs			= Nvs->val;		gs.ssa	= 0;
 
 				gs.getANY_P						(nrmGS);
-				std::sort						(nrmGS.begin(), nrmGS.end(), cmp_gs_nrm);
+				nrmGS.sort						(cmp_gs_nrm);
 				for (u32 gs_id=0; gs_id<nrmGS.size(); gs_id++)
 				{
 					mapNormalGS::TNode*	Ngs			= nrmGS[gs_id];
@@ -299,7 +311,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 #endif	//	USE_DX10
 
 					ps.getANY_P						(nrmPS);
-					std::sort						(nrmPS.begin(), nrmPS.end(), cmp_ps_nrm);
+					nrmPS.sort						(cmp_ps_nrm);
 					for (u32 ps_id=0; ps_id<nrmPS.size(); ps_id++)
 					{
 						mapNormalPS::TNode*	Nps			= nrmPS[ps_id];
@@ -312,7 +324,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 						mapNormalCS&		cs			= Nps->val;		cs.ssa	= 0;
 #endif
 						cs.getANY_P						(nrmCS);
-						std::sort						(nrmCS.begin(), nrmCS.end(), cmp_cs_nrm);
+						nrmCS.sort						(cmp_cs_nrm);
 						for (u32 cs_id=0; cs_id<nrmCS.size(); cs_id++)
 						{
 							mapNormalCS::TNode*	Ncs			= nrmCS[cs_id];
@@ -320,7 +332,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 
 							mapNormalStates&	states		= Ncs->val;		states.ssa	= 0;
 							states.getANY_P					(nrmStates);
-							std::sort						(nrmStates.begin(), nrmStates.end(), cmp_states_nrm);
+							nrmStates.sort					(cmp_states_nrm);
 							for (u32 state_id=0; state_id<nrmStates.size(); state_id++)
 							{
 								mapNormalStates::TNode*	Nstate		= nrmStates[state_id];
@@ -371,7 +383,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 		//mapMatrixVS&	vs				= mapMatrix	[_priority];
 		mapMatrixVS&	vs				= mapMatrixPasses[_priority][iPass];
 		vs.getANY_P						(matVS);
-		std::sort						(matVS.begin(), matVS.end(), cmp_vs_mat);
+		matVS.sort						(cmp_vs_mat);
 		for (u32 vs_id=0; vs_id<matVS.size(); vs_id++)	{
 			mapMatrixVS::TNode*	Nvs			= matVS[vs_id];
 			RCache.set_VS					(Nvs->key);	
@@ -380,7 +392,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 			mapMatrixGS&		gs			= Nvs->val;		gs.ssa	= 0;
 
 			gs.getANY_P						(matGS);
-			std::sort						(matGS.begin(), matGS.end(), cmp_gs_mat);
+			matGS.sort						(cmp_gs_mat);
 			for (u32 gs_id=0; gs_id<matGS.size(); gs_id++)
 			{
 				mapMatrixGS::TNode*	Ngs			= matGS[gs_id];
@@ -392,7 +404,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 #endif	//	USE_DX10
 
 				ps.getANY_P						(matPS);
-				std::sort						(matPS.begin(), matPS.end(), cmp_ps_mat);
+				matPS.sort						(cmp_ps_mat);
 				for (u32 ps_id=0; ps_id<matPS.size(); ps_id++)
 				{
 					mapMatrixPS::TNode*	Nps			= matPS[ps_id];
@@ -406,7 +418,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 					mapMatrixCS&		cs			= Nps->val;		cs.ssa	= 0;
 #endif
 					cs.getANY_P						(matCS);
-					std::sort						(matCS.begin(), matCS.end(), cmp_cs_mat);
+					matCS.sort						(cmp_cs_mat);
 					for (u32 cs_id=0; cs_id<matCS.size(); cs_id++)
 					{
 						mapMatrixCS::TNode*	Ncs			= matCS[cs_id];
@@ -414,7 +426,7 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 
 						mapMatrixStates&	states		= Ncs->val;		states.ssa	= 0;
 						states.getANY_P					(matStates);
-						std::sort						(matStates.begin(), matStates.end(), cmp_states_mat);
+						matStates.sort					(cmp_states_mat);
 						for (u32 state_id=0; state_id<matStates.size(); state_id++)
 						{
 							mapMatrixStates::TNode*	Nstate		= matStates[state_id];
@@ -799,4 +811,3 @@ void	R_dsgraph_structure::r_dsgraph_render_R1_box	(IRender_Sector* _S, Fbox& BB,
 		}
 	}
 }
-

@@ -214,7 +214,7 @@ void CBinocularsVision::Update()
 			m_sounds.PlaySound	("found_snd", Fvector().set(0,0,0), NULL, true);
 		}
 	}
-	std::sort								(m_active_objects.begin(), m_active_objects.end());
+	m_active_objects.sort					();
 
 	while(m_active_objects.size() && m_active_objects.back()->m_flags.test(flVisObjNotValid)){
 		xr_delete							(m_active_objects.back());

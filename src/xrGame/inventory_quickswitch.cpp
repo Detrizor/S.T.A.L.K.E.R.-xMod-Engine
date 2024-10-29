@@ -221,7 +221,7 @@ PIItem CInventory::GetNextActiveGrenade()
 	if (count_types > 1)
 	{
 		int curr_num = 0;        // номер типа текущей гранаты
-		std::sort(types_sect_grn.begin(), types_sect_grn.end());
+		types_sect_grn.sort();
 		xr_vector<shared_str>::const_iterator I = types_sect_grn.begin();
 		xr_vector<shared_str>::const_iterator E = types_sect_grn.end();
 		for (; I != E; ++I)

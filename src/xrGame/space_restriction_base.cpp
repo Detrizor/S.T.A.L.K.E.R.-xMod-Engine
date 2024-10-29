@@ -62,7 +62,7 @@ struct SortByXZ_predicate {
 
 void CSpaceRestrictionBase::process_borders			()
 {
-	std::sort					(m_border.begin(),m_border.end());
+	m_border.sort				();
 	m_border.erase				(
 		std::unique(
 			m_border.begin(),
@@ -70,5 +70,5 @@ void CSpaceRestrictionBase::process_borders			()
 		),
 		m_border.end()
 	);
-	std::sort					(m_border.begin(),m_border.end(),SortByXZ_predicate());
+	m_border.sort				(SortByXZ_predicate());
 }

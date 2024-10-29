@@ -327,7 +327,7 @@ void CUIActorMenu::init_bag()
 	auto bag_list						= GetListByType(iActorBag);
 	TIItemContainer						items_list;
 	m_pBag->AddAvailableItems			(items_list);
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 
 	for (auto& item : items_list)
 	{
@@ -695,7 +695,7 @@ bool CUIActorMenu::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& ret_
 void CUIActorMenu::init_vicinity()
 {
 	auto& items_list					= Actor()->getVicinity();
-	_STD sort							(items_list.begin(), items_list.end(), InventoryUtilities::GreaterRoomInRuck);
+	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 
 	for (auto& item : items_list)
 	{

@@ -262,7 +262,7 @@ void CAI_Stalker::update_sell_info					()
 	m_total_money			= get_money();
 	u32						money_delta = fill_items(inventory(),this,ALife::_OBJECT_ID(-1));
 	m_total_money			+= money_delta;
-	std::sort				(m_temp_items.begin(),m_temp_items.end());
+	m_temp_items.sort		();
 	select_items			();
 
 	TIItemContainer::iterator	I = inventory().m_all.begin();

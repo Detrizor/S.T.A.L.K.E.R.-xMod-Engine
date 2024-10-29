@@ -47,12 +47,13 @@ void	light::gi_generate	()
 	}
 
 	// sort & clip
-	std::sort				(indirect.begin(),indirect.end(), pred_LI);
+	indirect.sort				(pred_LI);
 	if (indirect.size()>indirect_photons)
 		indirect.erase(indirect.begin()+indirect_photons,indirect.end());
 
 	// normalize
-	if (indirect.size())	{
+	if (indirect.size())
+	{
 		float	target_E		=	ps_r2_GI_refl;
 		float	total_E			=	0;
 		for (u32 it=0; it<indirect.size(); it++)

@@ -98,7 +98,7 @@ void CBuild::xrPhase_MergeLM()
 			CDeflector*	D		= Layer[it];
 			materials()[D->GetBaseMaterial()].internal_max_area	= _max(D->layer.Area(),materials()[D->GetBaseMaterial()].internal_max_area);
 		}
-		std::stable_sort(Layer.begin(),Layer.end(),sort_defl_complex);
+		Layer.sort(sort_defl_complex);
 
 		// Select first deflectors which can fit
 		Status		("Selection...");
@@ -441,7 +441,7 @@ void CBuild::xrPhase_MergeLM()
 			CDeflector*	D		= Layer[it];
 			materials()[D->GetBaseMaterial()].internal_max_area	= _max(D->layer.Area(),materials()[D->GetBaseMaterial()].internal_max_area);
 		}
-		std::stable_sort(Layer.begin(),Layer.end(),sort_defl_complex);
+		Layer.sort(sort_defl_complex);
 
 		// Select first deflectors which can fit
 		Status		("Selection...");
