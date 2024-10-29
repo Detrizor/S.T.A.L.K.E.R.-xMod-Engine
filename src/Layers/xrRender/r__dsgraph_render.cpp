@@ -682,8 +682,19 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 		// Traverse object database
 		g_SpatialSpace->q_frustum		(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, ViewBase);
 
-		auto process_spatial = [this](auto spatial)
+		auto process_spatial = [this](ISpatial* spatial)
 		{
+			auto renderable				= spatial->dcast_Renderable();
+			if (!renderable)
+				return;
+
+			if (ps_r__render_distance_sqr)
+			{
+				float dist				= renderable->getDistanceToCamera() * Device.iZoomSqr;
+				if (dist > ps_r__render_distance_sqr)
+					return;
+			}
+
 			CSector* sector				= reinterpret_cast<CSector*>(spatial->spatial.sector);
 			if (!sector)
 				return;	// disassociated from S/P structure
@@ -695,8 +706,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 			{
 				set_Frustum				(&frustum);
 				if (View->testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
-					if (auto renderable = spatial->dcast_Renderable())
-						renderable->renderable_Render();
+					renderable->renderable_Render();
 			}
 		};
 

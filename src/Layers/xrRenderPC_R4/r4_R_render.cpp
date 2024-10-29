@@ -13,7 +13,7 @@ IC	bool	pred_sp_sort	(ISpatial*	_1, ISpatial* _2)
 	return	d1<d2	;
 }
 
-void CRender::render_main(Fmatrix&	m_ViewProjection, bool _fportals)
+void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 {
 	PIX_EVENT(render_main);
 	++marker;
@@ -105,53 +105,48 @@ void CRender::render_main(Fmatrix&	m_ViewProjection, bool _fportals)
 			VERIFY						(L);
 			float lod					= L->get_LOD();
 			if (lod > EPS_L)
-			{
-				vis_data& vis			= L->get_homdata();
-				if (HOM.visible(vis))
+				if (HOM.visible(L->get_homdata()))
 					Lights.add_light	(L);
-			}
 			continue;
 		}
 
+		if (!(spatial->spatial.type & STYPE_RENDERABLE))
+			continue;
+
 		if (PortalTraverser.i_marker != sector->r_marker)
 			continue;	// inactive (untouched) sector
+
+		auto renderable					= spatial->dcast_Renderable();
+		if (ps_r__render_distance_sqr)
+		{
+			float dist					= renderable->getDistanceToCamera() * Device.iZoomSqr;
+			if (dist > ps_r__render_distance_sqr)
+				continue;
+		}
 
 		for (auto& view : sector->r_frustums)
 		{
 			if (!view.testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
 				continue;
 
-			if (spatial->spatial.type & STYPE_RENDERABLE)
-			{
-				// renderable
-				auto renderable			= spatial->dcast_Renderable();
-				VERIFY					(renderable);
+			// Occlusion
+			//	casting is faster then using getVis method
+			vis_data& v_orig			= reinterpret_cast<dxRender_Visual*>(renderable->renderable.visual)->vis;
+			vis_data v_copy				= v_orig;
+			v_copy.box.xform			(renderable->renderable.xform);
+			BOOL bVisible				= HOM.visible(v_copy);
+			v_orig.marker				= v_copy.marker;
+			v_orig.accept_frame			= v_copy.accept_frame;
+			v_orig.hom_frame			= v_copy.hom_frame;
+			v_orig.hom_tested			= v_copy.hom_tested;
+			if (!bVisible)
+				break;	// exit loop on frustums
 
-				// Occlusion
-				//	casting is faster then using getVis method
-				vis_data& v_orig		= reinterpret_cast<dxRender_Visual*>(renderable->renderable.visual)->vis;
-				vis_data v_copy			= v_orig;
-				v_copy.box.xform		(renderable->renderable.xform);
-				BOOL bVisible			= HOM.visible(v_copy);
-				v_orig.marker			= v_copy.marker;
-				v_orig.accept_frame		= v_copy.accept_frame;
-				v_orig.hom_frame		= v_copy.hom_frame;
-				v_orig.hom_tested		= v_copy.hom_tested;
-				if (!bVisible)
-					break;	// exit loop on frustums
+			// Rendering
+			set_Object					(renderable);
+			renderable->renderable_Render();
+			set_Object					(nullptr);
 
-				if (ps_r__render_distance_sqr)
-				{
-					float dist			= renderable->getDistanceToCamera() * Device.iZoomSqr;
-					if (dist > ps_r__render_distance_sqr)
-						continue;
-				}
-
-				// Rendering
-				set_Object				(renderable);
-				renderable->renderable_Render();
-				set_Object				(nullptr);
-			}
 			break;	// exit loop on frustums
 		}
 	}

@@ -476,6 +476,14 @@ void CRender::Calculate				()
 
 				if (spatial->spatial.type & STYPE_RENDERABLE)
 				{
+					auto renderable = spatial->dcast_Renderable();
+					if (ps_r__render_distance_sqr)
+					{
+						float dist = renderable->getDistanceToCamera() * Device.iZoomSqr;
+						if (dist > ps_r__render_distance_sqr)
+							continue;
+					}
+
 					for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)
 					{
 						set_Frustum			(&(sector->r_frustums[v_it]));
