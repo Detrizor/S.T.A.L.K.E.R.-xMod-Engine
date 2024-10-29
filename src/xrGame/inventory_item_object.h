@@ -14,8 +14,6 @@ public:
 	CHudItem*							cast_hud_item						O$	()		{ return this; }
 
 public:
-	void								renderable_Render					O$	()		{ wrap::renderable_Render(); }
-	void								on_renderable_Render				O$	()		{ core::renderable_Render(); }
 	void								activate_physic_shell				O$	()		{ wrap::activate_physic_shell(); }
 	void								on_activate_physic_shell			O$	()		{ core::activate_physic_shell(); }
 
@@ -61,7 +59,6 @@ public:
 	u32									ef_weapon_type						CO$	()					{ return 0; }
 	bool								ActivateItem						O$	(u16 prev_slot)		{ return core::activateItem(prev_slot); }
 	void								DeactivateItem						O$	(u16 slot)			{ core::deactivateItem(slot); }
-	void								renderable_Render					O$	()					{ core::renderable_Render(); }
 	BOOL								net_SaveRelevant					O$	()					{ return TRUE; }
 
 	bool								Action								O$	(u16 cmd, u32 flags)

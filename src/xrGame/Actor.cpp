@@ -1329,24 +1329,12 @@ void CActor::shedule_Update(u32 DT)
 	UpdateArtefactsAndOutfit();
 	m_pPhysics_support->in_shedule_Update(DT);
 };
-#include "debug_renderer.h"
+
 void CActor::renderable_Render	()
 {
 	VERIFY(_valid(XFORM()));
 	inherited::renderable_Render();
-	//if(1/*!HUDview()*/) //Swartz: replaced by block below for actor shadow
-if ((cam_active==eacFirstEye && // first eye cam
-::Render->get_generation() == ::Render->GENERATION_R2 && // R2
-::Render->active_phase() == 1) // shadow map rendering on R2	
-||
-!(IsFocused() &&
-(cam_active==eacFirstEye) &&
-((!m_holder) || (m_holder && m_holder->allowWeapon() && m_holder->HUDView())))
-)  
-	//{
-		CInventoryOwner::renderable_Render();
-	//}
-	//VERIFY(_valid(XFORM()));
+	CInventoryOwner::renderable_Render();
 }
 
 BOOL CActor::renderable_ShadowGenerate()
@@ -1356,8 +1344,6 @@ BOOL CActor::renderable_ShadowGenerate()
 
 	return inherited::renderable_ShadowGenerate();
 }
-
-
 
 void CActor::g_PerformDrop()
 {

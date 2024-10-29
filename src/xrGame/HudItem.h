@@ -121,7 +121,6 @@ public:
 	virtual void				PlayAnimBore		();
 
 	virtual void				UpdateCL			();
-	virtual void				renderable_Render	();
 
 	virtual void				UpdateHudAdditional	(Dmatrix&);
 
@@ -171,9 +170,6 @@ public:
 	IC CPhysicItem&				object					() const		{ VERIFY(m_object); return(*m_object);}
 	IC CInventoryItem&			item					() const		{ VERIFY(m_item); return(*m_item);}
 	virtual	u32					animation_slot			() const		{ return m_animation_slot;}
-
-	virtual void				on_renderable_Render	() = 0;
-	virtual void				debug_draw_firedeps		() {};
 
 	virtual CHudItem*			cast_hud_item			()				{ return this; }
 	bool HudAnimationExist(LPCSTR anim_name);

@@ -289,7 +289,7 @@ bool CInventoryOwner::IsTrading()
 void CInventoryOwner::renderable_Render()
 {
 	if (inventory().ActiveItem())
-		inventory().ActiveItem()->renderable_Render();
+		inventory().ActiveItem()->O.renderable_Render();
 
 	CAttachmentOwner::renderable_Render();
 }
