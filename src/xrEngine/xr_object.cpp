@@ -293,8 +293,7 @@ void CObject::UpdateCL()
 
 	spatial_update(base_spu_epsP * 5, base_spu_epsR * 5);
 
-	m_last_update_frame					= Device.dwFrame;
-	m_last_update_time					= Device.fTimeGlobal;
+	m_last_update_frame = Device.dwFrame;
 }
 
 void CObject::shedule_Update(u32 T)
@@ -431,18 +430,19 @@ bool CObject::updateQuery(bool forced)
 	if (Device.fTimeGlobal < m_next_update_time && m_renderable_status == m_renderable_status_prev)
 		return							false;
 
-	bool visible						= !!m_renderable_status;
 	float dist							= getDistanceToCamera();
 	dist								*= ((m_renderable_status == 2) ? Device.SVP.getZoomOppositeSqr() : Device.iZoomSqr);
+	if (!m_renderable_status)
+		dist							*= s_update_radius_invisible_k;
 
 	m_renderable_status_prev			= m_renderable_status;
 	m_renderable_status					= 0;
 
-	if (dist < s_update_r1[visible])
+	if (dist < s_update_radius_1)
 		m_next_update_time				= 0.f;
 	else
 	{
-		float dt						= s_update_t[visible] * (dist - s_update_r1[visible]) / s_update_dr[visible];
+		float dt						= s_update_time * (dist - s_update_radius_1) / s_update_delta_radius;
 		m_next_update_time				= Device.fTimeGlobal + dt;
 	}
 	return								true;
@@ -453,24 +453,20 @@ void CObject::renderable_Render()
 	m_renderable_status					= (Device.SVP.isRendering()) ? 2 : 1;
 }
 
-float CObject::s_update_r1[2];
-float CObject::s_update_r2[2];
-float CObject::s_update_dr[2];
-float CObject::s_update_t[2];
+float CObject::s_update_radius_1;
+float CObject::s_update_radius_2;
+float CObject::s_update_delta_radius;
+float CObject::s_update_radius_invisible_k;
+float CObject::s_update_time;
 
 void CObject::loadStaticData()
 {
-	s_update_r1[0]						= pSettings->r_float("system", "update_radius1");
-	s_update_r1[0]						*= s_update_r1[0];
-	s_update_r2[0]						= pSettings->r_float("system", "update_radius2");
-	s_update_r2[0]						*= s_update_r2[0];
-	s_update_dr[0]						= s_update_r2[0] - s_update_r1[0];
-	s_update_t[0]						= pSettings->r_float("system", "update_period");
-	
-	s_update_r1[1]						= pSettings->r_float("system", "update_radius1_visible");
-	s_update_r1[1]						*= s_update_r1[1];
-	s_update_r2[1]						= pSettings->r_float("system", "update_radius2_visible");
-	s_update_r2[1]						*= s_update_r2[1];
-	s_update_dr[1]						= s_update_r2[1] - s_update_r1[1];
-	s_update_t[1]						= pSettings->r_float("system", "update_period_visible");
+	s_update_radius_1					= pSettings->r_float("system", "update_radius_1");
+	s_update_radius_1					*= s_update_radius_1;
+	s_update_radius_2					= pSettings->r_float("system", "update_radius_2");
+	s_update_radius_2					*= s_update_radius_2;
+	s_update_delta_radius				= s_update_radius_2 - s_update_radius_1;
+	s_update_radius_invisible_k			= pSettings->r_float("system", "update_radius_invisible_k");
+	s_update_radius_invisible_k			*= s_update_radius_invisible_k;
+	s_update_time						= pSettings->r_float("system", "update_time");
 }

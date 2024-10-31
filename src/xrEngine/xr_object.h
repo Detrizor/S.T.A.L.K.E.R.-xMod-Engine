@@ -204,13 +204,13 @@ public:
 	virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 private:
-	static float						s_update_r1[2];
-	static float						s_update_r2[2];
-	static float						s_update_dr[2];
-	static float						s_update_t[2];
+	static float						s_update_radius_1;
+	static float						s_update_radius_2;
+	static float						s_update_delta_radius;
+	static float						s_update_radius_invisible_k;
+	static float						s_update_time;
 
 	u32									m_last_update_frame								= 0;
-	float								m_last_update_time								= 0.f;
 	float								m_next_update_time								= 0.f;
 	u8									m_renderable_status								= 0;
 	u8									m_renderable_status_prev						= 0;
