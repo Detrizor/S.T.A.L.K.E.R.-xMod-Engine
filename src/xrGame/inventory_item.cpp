@@ -350,9 +350,13 @@ void CInventoryItem::net_Destroy()
 {
 	if (m_pInventory)
 		VERIFY(!m_pInventory->m_all.contains(this));
-	auto& actor_menu = CurrentGameUI()->GetActorMenu();
-	if (actor_menu.CurrentItem() == m_icon.get())
-		actor_menu.SetCurrentItem(nullptr);
+
+	if (m_icon)
+	{
+		auto& actor_menu = CurrentGameUI()->GetActorMenu();
+		if (actor_menu.CurrentItem() == m_icon.get())
+			actor_menu.SetCurrentItem(nullptr);
+	}
 }
 
 void CInventoryItem::save(NET_Packet &packet)
