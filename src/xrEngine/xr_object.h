@@ -210,15 +210,19 @@ private:
 	static float						s_update_radius_invisible_k;
 	static float						s_update_time;
 
-	u32									m_last_update_frame								= 0;
-	float								m_next_update_time								= 0.f;
-	u8									m_renderable_status								= 0;
-	u8									m_renderable_status_prev						= 0;
+	u32									m_last_update_frame						= 0;
+	float								m_last_update_time						= 0.f;
+	float								m_next_update_time						= 0.f;
+	u8									m_renderable_status						= 0;
+	u8									m_renderable_status_next				= 0;
+	
+	void								calc_next_update_time					();
+	void								on_distance_update					O$	();
 
 public:
-	static void							loadStaticData									();
+	static void							loadStaticData							();
 
-	bool								updateQuery										(bool forced);
+	bool								updateQuery								(bool forced);
 
 public:
 	template <typename T>

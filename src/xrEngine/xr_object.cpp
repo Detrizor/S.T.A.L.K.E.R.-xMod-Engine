@@ -294,6 +294,8 @@ void CObject::UpdateCL()
 	spatial_update(base_spu_epsP * 5, base_spu_epsR * 5);
 
 	m_last_update_frame = Device.dwFrame;
+	m_last_update_time = Device.fTimeGlobal;
+	calc_next_update_time();
 }
 
 void CObject::shedule_Update(u32 T)
@@ -419,38 +421,53 @@ Fvector CObject::get_last_local_point_on_mesh(Fvector const& local_point, u16 co
 	return result;
 }
 
-bool CObject::updateQuery(bool forced)
-{
-	if (Device.dwFrame == m_last_update_frame || !processing_enabled())
-		return							false;
-
-	if (forced || Parent == g_pGameLevel->CurrentViewEntity() || AlwaysTheCrow())
-		return							true;
-
-	if (Device.fTimeGlobal < m_next_update_time && m_renderable_status == m_renderable_status_prev)
-		return							false;
-
-	float dist							= getDistanceToCamera();
-	dist								*= ((m_renderable_status == 2) ? Device.SVP.getZoomOppositeSqr() : Device.iZoomSqr);
-	if (!m_renderable_status)
-		dist							*= s_update_radius_invisible_k;
-
-	m_renderable_status_prev			= m_renderable_status;
-	m_renderable_status					= 0;
-
-	if (dist < s_update_radius_1)
-		m_next_update_time				= 0.f;
-	else
-	{
-		float dt						= s_update_time * (dist - s_update_radius_1) / s_update_delta_radius;
-		m_next_update_time				= Device.fTimeGlobal + dt;
-	}
-	return								true;
-}
-
 void CObject::renderable_Render()
 {
-	m_renderable_status					= (Device.SVP.isRendering()) ? 2 : 1;
+	m_renderable_status_next			= (Device.SVP.isRendering()) ? 2 : 1;
+}
+
+void CObject::on_distance_update()
+{
+	calc_next_update_time				();
+}
+
+void CObject::calc_next_update_time()
+{
+	float dist							= get_distance_to_camera_base();
+	switch (m_renderable_status)
+	{
+	case 0:
+		dist							*= s_update_radius_invisible_k;
+		break;
+	case 1:
+		dist							*= Device.iZoomSqr;
+		break;
+	case 2:
+		dist							*= Device.SVP.getZoomOppositeSqr();
+		break;
+	}
+
+	m_next_update_time					= m_last_update_time;
+	if (dist > s_update_radius_1)
+		m_next_update_time				+= s_update_time * (dist - s_update_radius_1) / s_update_delta_radius;
+}
+
+bool CObject::updateQuery(bool forced)
+{
+	if (Device.dwFrame == m_last_update_frame)
+		return							false;
+
+	if (forced || AlwaysTheCrow())
+		return							true;
+	
+	if (m_renderable_status_next != m_renderable_status)
+	{
+		m_renderable_status				= m_renderable_status_next;
+		calc_next_update_time			();
+	}
+	m_renderable_status_next			= 0;
+
+	return								(m_next_update_time < Device.fTimeGlobal);
 }
 
 float CObject::s_update_radius_1;
