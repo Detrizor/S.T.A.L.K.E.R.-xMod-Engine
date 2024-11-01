@@ -63,7 +63,7 @@ void CPS_Instance::PSI_internal_delete()
 }
 
 #include "..\Include\xrRender\RenderVisual.h"
-float CPS_Instance::get_distance_to_camera() const
+float CPS_Instance::calc_distance_to_camera() const
 {
 	Fvector& pos						= renderable.visual->getVisData().sphere.P;
 	return								Device.vCameraPosition.distance_to_sqr(pos);

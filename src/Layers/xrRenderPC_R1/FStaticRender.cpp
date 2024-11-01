@@ -479,7 +479,7 @@ void CRender::Calculate				()
 					auto renderable = spatial->dcast_Renderable();
 					if (ps_r__render_distance_sqr)
 					{
-						float dist = renderable->getDistanceToCamera() * Device.iZoomSqr;
+						float dist = renderable->getDistanceToCamera();
 						if (dist > ps_r__render_distance_sqr)
 							continue;
 					}

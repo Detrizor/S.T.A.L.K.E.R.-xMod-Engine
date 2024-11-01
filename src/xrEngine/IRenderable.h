@@ -24,11 +24,15 @@ public:
 	virtual BOOL renderable_ShadowReceive() { return FALSE; };
 
 private:
-	u32									m_last_distance_calc_frame						= 0;
-	float								m_last_distance									= 0.f;
+	float								m_distance								= 0.f;
+	float								m_next_distance_update_time				= 0.f;
 
-	virtual float						get_distance_to_camera						C$	();
+	virtual void						on_distance_update						() {}
+	virtual float						calc_distance_to_camera				C$	();
+
+protected:
+	float								get_distance_to_camera_base				();
 
 public:
-	float								getDistanceToCamera								();
+	float								getDistanceToCamera						();
 };

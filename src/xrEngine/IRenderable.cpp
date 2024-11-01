@@ -2,6 +2,8 @@
 #include "../xrcdb/ispatial.h"
 #include "irenderable.h"
 
+constexpr float distance_update_period = 1.f;
+
 IRenderable::IRenderable()
 {
 	renderable.xform.identity();
@@ -28,20 +30,23 @@ IRender_ObjectSpecific* IRenderable::renderable_ROS()
 	return renderable.pROS;
 }
 
-float IRenderable::get_distance_to_camera() const
+float IRenderable::calc_distance_to_camera() const
 {
 	return								Device.vCameraPosition.distance_to_sqr(renderable.xform.c);
 }
 
+float IRenderable::get_distance_to_camera_base()
+{
+	if (m_next_distance_update_time < Device.fTimeGlobal)
+	{
+		m_distance						= calc_distance_to_camera();
+		m_next_distance_update_time		= Device.fTimeGlobal + distance_update_period;
+		on_distance_update				();
+	}
+	return								m_distance;
+}
+
 float IRenderable::getDistanceToCamera()
 {
-	if (Device.dwFrame != m_last_distance_calc_frame)
-	{
-		m_last_distance					= get_distance_to_camera();
-		if (Device.SVP.isRendering())
-			m_last_distance				*= Device.SVP.getZoomOppositeSqr();
-		m_last_distance_calc_frame		= Device.dwFrame;
-	}
-
-	return								m_last_distance;
+	return								get_distance_to_camera_base() * Device.iZoomSqr;
 }

@@ -702,7 +702,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 
 			if (ps_r__render_distance_sqr)
 			{
-				float dist				= renderable->getDistanceToCamera() * Device.iZoomSqr;
+				float dist				= renderable->getDistanceToCamera();
 				if (dist > ps_r__render_distance_sqr)
 					return;
 			}

@@ -44,5 +44,5 @@ public:
 	virtual IRenderable* dcast_Renderable() { return this; }
 
 private:
-	float								get_distance_to_camera						C$	();
+	float								calc_distance_to_camera				CO$	();
 };
