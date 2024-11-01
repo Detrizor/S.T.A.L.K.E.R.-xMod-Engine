@@ -146,6 +146,7 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		break;
 	case eHidden:
 		g_player_hud->detach_item(this);
+		object().processing_deactivate();
 		break;
 	}
 }
@@ -206,6 +207,7 @@ void CHudItem::restoreItem()
 
 void CHudItem::OnActiveItem()
 {
+	object().processing_activate();
 	if (object().H_Parent()->scast<CActor*>())
 		g_player_hud->attach_item(this);
 
@@ -214,7 +216,8 @@ void CHudItem::OnActiveItem()
 
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)
 {
-	SwitchState(eHidden);
+	if (GetState() != eHidden)
+		SwitchState(eHidden);
 }
 
 void CHudItem::UpdateHudAdditional(Dmatrix& trans)
@@ -491,9 +494,11 @@ void CHudItem::OnH_B_Chield()
 void CHudItem::OnH_B_Independent(bool just_before_destroy)
 {
 	if (GetState() != eHidden)
+	{
 		OnHiddenItem();
+		SwitchState(eHidden);
+	}
 	SetPending(FALSE);
-	SwitchState(eHidden);
 	m_sounds.StopAllSounds();
 }
 

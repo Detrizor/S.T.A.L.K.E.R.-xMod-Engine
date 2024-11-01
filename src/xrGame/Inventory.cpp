@@ -178,7 +178,7 @@ void CInventory::Take(CGameObject *pObj, bool strict_placement)
 	CalcTotalVolume						();
 	InvalidateState						();
 
-	pIItem->object().processing_deactivate();
+	pIItem->O.processing_deactivate		();
 	VERIFY								(pIItem->CurrPlace() != eItemPlaceUndefined);
 	
 	checkArtefact						(pIItem, true);
@@ -192,7 +192,7 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	VERIFY								(pIItem->m_pInventory==this);
 	VERIFY								(pIItem->m_ItemCurrPlace.type!=eItemPlaceUndefined);
 	
-	pIItem->object().processing_activate();
+	pIItem->O.processing_activate		();
 	switch (pIItem->CurrPlace())
 	{
 	case eItemPlaceRuck:
@@ -212,13 +212,11 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 			m_iNextLeftItemID			= u16_max;
 
 		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
-		pIItem->object().processing_deactivate();
 		break;
 	case eItemPlacePocket:
 	{
 		auto& pocket					= m_pockets[pIItem->CurrPocket()];
 		pocket.erase_data				(pIItem);
-		pIItem->object().processing_deactivate();
 		break;
 	}
 	case eItemPlaceTrade:
@@ -289,8 +287,6 @@ void CInventory::Slot(u16 slot_id, PIItem item)
 	item->m_ItemCurrPlace.slot_id		= slot_id;
 	item->OnMoveToSlot					(prev_place);
 	m_pOwner->OnItemSlot				(item, prev_place);
-	
-	item->object().processing_activate();
 }
 
 bool CInventory::tryRuck(PIItem item)
@@ -330,9 +326,6 @@ void CInventory::Ruck(PIItem item)
 	item->m_ItemCurrPlace.type			= eItemPlaceRuck;
 	item->OnMoveToRuck					(prev_place);
 	m_pOwner->OnItemRuck				(item, prev_place);
-
-	if (InSlot(item))
-		item->object().processing_deactivate();
 }
 
 bool CInventory::tryPocket(PIItem item, u16 pocket_id)
@@ -374,10 +367,6 @@ void CInventory::Pocket(PIItem item, u16 pocket_id)
 	item->m_ItemCurrPlace.slot_id		= pocket_id;
 	item->OnMoveToRuck					(prev_place);
 	m_pOwner->OnItemRuck				(item, prev_place);
-
-	if (InSlot(item))
-		item->object().processing_deactivate();
-	item->object().processing_activate	();
 }
 
 void CInventory::toTrade(PIItem item)
@@ -407,9 +396,6 @@ void CInventory::toTrade(PIItem item)
 	item->m_ItemCurrPlace.type			= eItemPlaceTrade;
 	item->OnMoveToRuck					(prev_place);
 	m_pOwner->OnItemRuck				(item, prev_place);
-
-	if (InSlot(item))
-		item->object().processing_deactivate();
 }
 
 PIItem CInventory::ItemFromSlot(u16 slot) const
