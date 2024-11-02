@@ -294,6 +294,7 @@ void CObject::UpdateCL()
 	spatial_update(base_spu_epsP * 5, base_spu_epsR * 5);
 
 	m_last_update_frame = Device.dwFrame;
+	m_time_delta = Device.fTimeGlobal - m_last_update_time;
 	m_last_update_time = Device.fTimeGlobal;
 	calc_next_update_time();
 }
@@ -454,7 +455,7 @@ void CObject::calc_next_update_time()
 
 bool CObject::updateQuery(bool forced)
 {
-	if (Device.dwFrame == m_last_update_frame)
+	if (Device.dwFrame == m_last_update_frame || Parent)
 		return							false;
 
 	if (forced || AlwaysTheCrow())

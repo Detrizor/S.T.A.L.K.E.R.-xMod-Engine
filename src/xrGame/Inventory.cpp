@@ -748,6 +748,11 @@ void CInventory::update_actors()
 
 void CInventory::Update()
 {
+	if (auto ai = ActiveItem())
+		ai->O.UpdateCL();
+	if (auto li = LeftItem())
+		li->O.UpdateCL();
+
 	if (OnServer())
 	{
 		if (m_bActors)

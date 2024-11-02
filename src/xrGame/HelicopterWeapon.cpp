@@ -46,7 +46,7 @@ void CHelicopter::OnEvent(	NET_Packet& P, u16 type)
 void CHelicopter::MGunUpdateFire()
 {
 
-	fShotTimeCounter -= Device.fTimeDelta;
+	fShotTimeCounter -= time_delta();
 	if (delta_t < 0){
 		delta_t = Device.fTimeGlobal;
 		flag_by_fire = 0;
@@ -192,8 +192,8 @@ void CHelicopter::UpdateWeapons		()
 	};
 
 	// lerp angle
-	angle_lerp	(m_cur_rot.x, m_tgt_rot.x, PI, Device.fTimeDelta);
-	angle_lerp	(m_cur_rot.y, m_tgt_rot.y, PI, Device.fTimeDelta);
+	angle_lerp	(m_cur_rot.x, m_tgt_rot.x, PI, time_delta());
+	angle_lerp	(m_cur_rot.y, m_tgt_rot.y, PI, time_delta());
 	
 
 	if( isOnAttack() ){

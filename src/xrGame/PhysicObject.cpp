@@ -362,7 +362,7 @@ if(dbg_draw_doors)
 
 	if( !is_active( bones_snd_player ) )
 		return;
-	bones_snd_player->update( Device.fTimeDelta, *this );
+	bones_snd_player->update( time_delta(), *this );
 
 }
 void CPhysicObject::PHObjectPositionUpdate	()

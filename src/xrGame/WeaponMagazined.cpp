@@ -425,7 +425,7 @@ void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
 void CWeaponMagazined::UpdateCL()
 {
 	inherited::UpdateCL();
-	float dt = Device.fTimeDelta;
+	float dt = time_delta();
 
 	switch (GetState())
 	{
@@ -1505,12 +1505,12 @@ void CWeaponMagazined::updateRecoil(float dt, float accuracy)
 		{
 			if (m_recoil_cam_last_impulse.magnitude())
 			{
-				m_recoil_cam_impulse = m_recoil_cam_last_impulse;
+				m_recoil_cam_impulse	= m_recoil_cam_last_impulse;
 				m_recoil_cam_impulse.mul(-s_recoil_cam_relax_impulse_ratio);
 				m_recoil_cam_last_impulse = vZero;
 			}
 			else
-				m_recoil_cam_impulse = vZero;
+				m_recoil_cam_impulse	= vZero;
 		}
 	}
 }

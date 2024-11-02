@@ -467,7 +467,7 @@ void CAI_Rat::UpdateCL			()
 		CreateSkeleton			();
 
 	inherited::UpdateCL		();
-	Exec_Look				(Device.fTimeDelta);
+	Exec_Look				(time_delta());
 
 	CMonsterSquad *squad	= monster_squad().get_squad(this);
 
@@ -491,7 +491,7 @@ void CAI_Rat::UpdatePositionAnimation()
 {
 
 	Fmatrix						l_tSavedTransform = XFORM();
-	m_fTimeUpdateDelta			= Device.fTimeDelta;
+	m_fTimeUpdateDelta			= time_delta();
 	move						(m_bCanAdjustSpeed,m_bStraightForward);
 	float						y,p,b;
 	XFORM().getHPB				(y,p,b);

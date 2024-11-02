@@ -440,7 +440,7 @@ void CHelicopter::UpdateCL()
 
 	m_movement.Update();
 
-	m_stepRemains+=Device.fTimeDelta;
+	m_stepRemains+=time_delta();
 	while(m_stepRemains>STEP){
 		MoveStep();
 		m_stepRemains-=STEP;
@@ -472,7 +472,7 @@ void CHelicopter::UpdateCL()
 
 	if (OwnerActor() && OwnerActor()->IsMyCamera())
 	{
-		cam_Update(Device.fTimeDelta, g_fov);
+		cam_Update(time_delta(), g_fov);
 		OwnerActor()->Cameras().UpdateFromCamera(Camera());
 		if (eacFirstEye == active_camera->tag && !Level().Cameras().GetCamEffector(cefDemo))
 			OwnerActor()->Cameras().ApplyDevice(VIEWPORT_NEAR);

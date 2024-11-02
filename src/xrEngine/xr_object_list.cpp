@@ -95,9 +95,6 @@ void CObjectList::SingleUpdate(CObject* O, bool forced)
 	if (!O->updateQuery(forced))
 		return;
 
-	if (O->H_Parent())
-		SingleUpdate					(O->H_Parent(), true);
-
 	Device.Statistic->UpdateClient_updated++;
 	O->UpdateCL							();
 

@@ -215,9 +215,13 @@ private:
 	float								m_next_update_time						= 0.f;
 	u8									m_renderable_status						= 0;
 	u8									m_renderable_status_next				= 0;
+	float								m_time_delta							= 0.f;
 	
 	void								calc_next_update_time					();
 	void								on_distance_update					O$	();
+
+protected:
+	float								time_delta							C$	()		{ return m_time_delta; }
 
 public:
 	static void							loadStaticData							();

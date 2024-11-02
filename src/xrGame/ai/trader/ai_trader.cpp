@@ -274,7 +274,7 @@ void CAI_Trader::net_Destroy()
 void CAI_Trader::UpdateCL()
 { 
 	inherited::UpdateCL		();
-	sound().update			(Device.fTimeDelta);
+	sound().update			(time_delta());
 
 
 	if (!GetScriptControl() && !bfScriptAnimation()) 
