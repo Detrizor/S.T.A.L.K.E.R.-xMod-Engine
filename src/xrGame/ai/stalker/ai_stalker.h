@@ -803,9 +803,6 @@ public:
 public:
 	typedef fastdelegate::FastDelegate<void (Fmatrix& )>							EyeMatrixCallback;
 
-private:
-	virtual BOOL						AlwaysTheCrow								();
-
 public:
 	IC		void						take_items_enabled							(bool value);
 	IC		bool						take_items_enabled							() const;
@@ -838,6 +835,9 @@ private:
 	bool								m_in_combat								= false;
 
 	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
+	
+protected:
+	bool								alwaysUpdate						O$	();
 };
 
 add_to_type_list(CAI_Stalker)

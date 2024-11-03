@@ -100,8 +100,7 @@ public:
 	virtual void			Load				(LPCSTR section);
 	virtual BOOL			net_Spawn			(CSE_Abstract* DC);
 	virtual void			net_Destroy			();
-	virtual	void			net_Relcase			( CObject* O );	
-	virtual void			UpdateCL			( );
+	virtual	void			net_Relcase			( CObject* O );
 	virtual void			OnChangeVisual		( );
 	//object serialization
 	virtual void			net_Save			(NET_Packet &net_packet);
@@ -306,6 +305,9 @@ public:
 //xMod added
 private:
 	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
+
+protected:
+	void								UpdateCL							O$	();
 
 public:
 	static void							transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max, bool straight = false);

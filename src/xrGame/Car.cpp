@@ -420,9 +420,9 @@ void CCar::UpdateEx			(float fov)
 	
 }
 
-BOOL CCar::AlwaysTheCrow()
+bool CCar::alwaysUpdate()
 {
-	return (m_car_weapon && m_car_weapon->IsActive() );
+	return (m_car_weapon && m_car_weapon->IsActive());
 }
 
 void CCar::UpdateCL				( )

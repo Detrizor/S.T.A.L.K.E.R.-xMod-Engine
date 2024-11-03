@@ -50,8 +50,6 @@ public:
 
 	CObject* Create(LPCSTR name);
 	void Destroy(CObject* O);
-
-	void SingleUpdate(CObject* O, bool forced);
 	void Update();
 
 	void net_Register(CObject* O);
@@ -68,7 +66,6 @@ public:
 		return (map_NETID[ID]);
 	}
 
-	void o_remove(Objects& v, CObject* O);
 	void o_activate(CObject* O);
 	void o_sleep(CObject* O);
 	IC u32 o_count() { return objects_active.size() + objects_sleeping.size(); };

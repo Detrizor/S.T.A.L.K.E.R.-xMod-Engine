@@ -63,60 +63,38 @@ CObject* CObjectList::FindObjectByCLS_ID(CLASS_ID cls)
 	return NULL;
 }
 
-
-void CObjectList::o_remove(Objects& v, CObject* O)
-{
-	//. if(O->ID()==1026)
-	//. {
-	//. Log("ahtung");
-	//. }
-	Objects::iterator _i = std::find(v.begin(), v.end(), O);
-	VERIFY(_i != v.end());
-	v.erase(_i);
-	//. Msg("---o_remove[%s][%d]", O->cName().c_str(), O->ID() );
-}
-
 void CObjectList::o_activate(CObject* O)
 {
-	VERIFY(O && O->processing_enabled());
-	o_remove(objects_sleeping, O);
-	objects_active.push_back(O);
+	VERIFY								(O && O->processing_enabled());
+	objects_sleeping.erase_data			(O);
+	objects_active.push_back			(O);
 }
 
 void CObjectList::o_sleep(CObject* O)
 {
-	VERIFY(O && !O->processing_enabled());
-	o_remove(objects_active, O);
-	objects_sleeping.push_back(O);
-}
-
-void CObjectList::SingleUpdate(CObject* O, bool forced)
-{
-	if (!O->updateQuery(forced))
-		return;
-
-	Device.Statistic->UpdateClient_updated++;
-	O->UpdateCL							();
-
-	if (O->H_Parent() && (O->H_Parent()->getDestroy() || O->H_Root()->getDestroy()))
-		// Push to destroy-queue if it isn't here already
-		Msg("! ERROR: incorrect destroy sequence for object[%d:%s], section[%s], parent[%d:%s]",
-			O->ID(), O->cName().c_str(), O->cNameSect().c_str(), O->H_Parent()->ID(), O->H_Parent()->cName().c_str());
+	VERIFY								(O && !O->processing_enabled());
+	objects_active.erase_data			(O);
+	objects_sleeping.push_back			(O);
 }
 
 void CObjectList::Update()
 {
 	if (!Device.Paused())
 	{
-		// Select Crow-Mode
 		auto& stat						= Device.Statistic;
 		stat->UpdateClient_updated		= 0;
 		stat->UpdateClient.Begin		();
 		stat->UpdateClient_active		= objects_active.size();
 		stat->UpdateClient_total		= objects_active.size() + objects_sleeping.size();
 
-		for (auto& o : objects_active)
-			SingleUpdate				(o, false);
+		for (auto& O : objects_active)
+		{
+			if (O->updateQuery())
+			{
+				++Device.Statistic->UpdateClient_updated;
+				O->update				();
+			}
+		}
 
 		stat->UpdateClient.End			();
 	}
@@ -162,29 +140,16 @@ void CObjectList::Update()
 
 void CObjectList::net_Register(CObject* O)
 {
-	R_ASSERT(O);
-	R_ASSERT(O->ID() < 0xffff);
-
-	map_NETID[O->ID()] = O;
-
-
-
-	//. map_NETID.insert(mk_pair(O->ID(),O));
-	//Msg ("-------------------------------- Register: %s",O->cName());
+	R_ASSERT							(O);
+	R_ASSERT							(O->ID() < 0xffff);
+	map_NETID[O->ID()]					= O;
 }
 
 void CObjectList::net_Unregister(CObject* O)
 {
-	//R_ASSERT (O->ID() < 0xffff);
-	if (O->ID() < 0xffff) //demo_spectator can have 0xffff
-		map_NETID[O->ID()] = NULL;
-	/*
-	 xr_map<u32,CObject*>::iterator it = map_NETID.find(O->ID());
-	 if ((it!=map_NETID.end()) && (it->second == O)) {
-	 // Msg ("-------------------------------- Unregster: %s",O->cName());
-	 map_NETID.erase(it);
-	 }
-	 */
+	//demo_spectator can have 0xffff
+	if (O->ID() < 0xffff)
+		map_NETID[O->ID()]				= NULL;
 }
 
 int g_Dump_Export_Obj = 0;

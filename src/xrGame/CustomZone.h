@@ -317,8 +317,7 @@ public:
 	virtual	bool			register_schedule			() const {return true;}
 
 	// optimization FAST/SLOW mode
-public:	
-	virtual BOOL			AlwaysTheCrow				();
+public:
 	void					o_switch_2_fast				();
 	void					o_switch_2_slow				();
 
@@ -327,6 +326,9 @@ private:
 	virtual bool            light_in_slow_mode () { return true; }
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+protected:
+	bool								alwaysUpdate						O$	();
 };
 
 add_to_type_list(CCustomZone)

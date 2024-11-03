@@ -1040,21 +1040,15 @@ IC	bool similar						(const Fmatrix &_0, const Fmatrix &_1, const float &epsilon
 	return							(true);
 }
 
-void CGameObject::UpdateCL			()
+void CGameObject::UpdateCL()
 {
-	inherited::UpdateCL				();
+	inherited::UpdateCL					();
 	
-//	if (!is_ai_obstacle())
-//		return;
-	
-	if (H_Parent())
-		return;
-
-	if (similar(XFORM(),m_previous_matrix,EPS))
-		return;
-
-	on_matrix_change				(m_previous_matrix);
-	m_previous_matrix				= XFORM();
+	if (!H_Parent() && !similar(XFORM(), m_previous_matrix, EPS))
+	{
+		on_matrix_change				(m_previous_matrix);
+		m_previous_matrix				= XFORM();
+	}
 }
 
 void CGameObject::on_matrix_change	(const Fmatrix &previous)

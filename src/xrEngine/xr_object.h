@@ -47,7 +47,6 @@ public:
 			u32 net_Local : 1;
 			u32 net_Ready : 1;
 			u32 net_SV_Update : 1;
-			u32 crow : 1;
 			u32 bPreDestroy : 1;
 		};
 		u32 storage;
@@ -69,18 +68,8 @@ protected:
 public:
 #ifdef DEBUG
 	u32 dbg_update_cl;
-#endif
-
-	// Crow-MODE
-	// if (object_is_visible)
-	// if (object_is_near)
-	// if (object_is_crow_always)
-#ifdef DEBUG
 	void DBGGetProps(ObjectProperties& p) const { p = Props; }
 #endif
-
-	virtual BOOL AlwaysTheCrow() { return FALSE; }
-	ICF bool AmICrow() const { return !!Props.crow; }
 
 	// Network
 	ICF BOOL Local() const { return Props.net_Local; }
@@ -168,7 +157,6 @@ public:
 	virtual void shedule_Update(u32 dt); // Called by sheduler
 	virtual void renderable_Render();
 
-	virtual void UpdateCL(); // Called each frame, so no need for dt
 	virtual BOOL net_Spawn(CSE_Abstract* data);
 	virtual void net_Destroy();
 	virtual void net_Export(NET_Packet& P) {}; // export to server
@@ -204,6 +192,14 @@ public:
 	virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 
 private:
+	enum
+	{
+		eNonVisible,
+		eMainViewport,
+		eSecondViewport
+	};
+
+private:
 	static float						s_update_radius_1;
 	static float						s_update_radius_2;
 	static float						s_update_delta_radius;
@@ -222,11 +218,15 @@ private:
 
 protected:
 	float								time_delta							C$	()		{ return m_time_delta; }
+	
+	virtual bool						alwaysUpdate							()		{ return false; }
+	virtual void						UpdateCL								();
 
 public:
 	static void							loadStaticData							();
 
-	bool								updateQuery								(bool forced);
+	bool								updateQuery								();
+	void								update									();
 
 public:
 	template <typename T>
