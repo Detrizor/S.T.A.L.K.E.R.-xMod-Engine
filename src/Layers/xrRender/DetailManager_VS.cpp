@@ -219,7 +219,7 @@ void CDetailManager::hw_Render()
 
 	// Still
 	RCache.set_c			(&*hwc_s_consts,scale,		scale,		scale,				1.f);
-	RCache.set_c			(&*hwc_s_xform,	RDEVICE.mFullTransform);
+	RCache.set_c			(&*hwc_s_xform,	RDEVICE.camera.full_transform);
 	hw_Render_dump			(&*hwc_s_array,	0, 1, c_hdr );
 }
 

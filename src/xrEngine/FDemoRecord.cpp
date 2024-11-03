@@ -29,16 +29,16 @@ void setup_lm_screenshot_matrices()
 
 	// build camera matrix
 	Fbox bb = curr_lm_fbox;
-	bb.getcenter(Device.vCameraPosition);
+	bb.getcenter(Device.camera.position);
 
-	Device.vCameraDirection.set(0.f, -1.f, 0.f);
-	Device.vCameraTop.set(0.f, 0.f, 1.f);
-	Device.vCameraRight.set(1.f, 0.f, 0.f);
-	Device.mView.build_camera_dir(Device.vCameraPosition, Device.vCameraDirection, Device.vCameraTop);
+	Device.camera.direction.set(0.f, -1.f, 0.f);
+	Device.camera.top.set(0.f, 0.f, 1.f);
+	Device.camera.right.set(1.f, 0.f, 0.f);
+	Device.camera.view.build_camera_dir(Device.camera.position, Device.camera.direction, Device.camera.top);
 
-	bb.xform(Device.mView);
+	bb.xform(Device.camera.view);
 	// build project matrix
-	Device.mProject.build_projection_ortho(bb.max.x - bb.min.x,
+	Device.camera.project.build_projection_ortho(bb.max.x - bb.min.x,
 		bb.max.y - bb.min.y,
 		bb.min.z,
 		bb.max.z);
@@ -78,7 +78,7 @@ CDemoRecord::CDemoRecord(const char* name, float life_time) : CEffectorCam(cefDe
 	{
 		g_position.set_position = false;
 		IR_Capture(); // capture input
-		m_Camera.invert(Device.mView);
+		m_Camera.invert(Device.camera.view);
 
 		// parse yaw
 		Fvector& dir = m_Camera.k;

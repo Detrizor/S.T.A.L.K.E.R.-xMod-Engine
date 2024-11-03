@@ -257,13 +257,13 @@ void CDetailManager::UpdateVisibleM()
 		for (auto& vis : m_visibles[i])
 		vis.clear();
 
-	Fvector		EYE				= RDEVICE.vCameraPosition;
+	Fvector		EYE				= RDEVICE.camera.position;
 
 	CFrustum	View;
-	View.CreateFromMatrix		(RDEVICE.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	View.CreateFromMatrix		(RDEVICE.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
  	CFrustum	View_old;
- 	Fmatrix		Viewm_old = RDEVICE.mFullTransform;
+ 	Fmatrix		Viewm_old = RDEVICE.camera.full_transform;
  	View_old.CreateFromMatrix		(Viewm_old, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
 	float fade_limit			= dm_fade;	fade_limit=fade_limit*fade_limit;
@@ -424,7 +424,7 @@ void __stdcall	CDetailManager::MT_CALC		()
 	if (m_frame_calc!=RDEVICE.dwFrame)	
 		if ((m_frame_rendered+1)==RDEVICE.dwFrame) //already rendered
 		{
-			Fvector		EYE				= RDEVICE.vCameraPosition;
+			Fvector		EYE				= RDEVICE.camera.position;
 
 			int s_x	= iFloor			(EYE.x/dm_slot_size+.5f);
 			int s_z	= iFloor			(EYE.z/dm_slot_size+.5f);

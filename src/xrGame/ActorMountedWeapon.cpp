@@ -61,7 +61,7 @@ bool CActor::use_HolderEx(CHolderCustom* object, bool bForce)
 		if (object && !object->EnterLocked())
 		{
 			Fvector center;	Center(center);
-			if (object->Use(Device.vCameraPosition, Device.vCameraDirection, center) && object->attach_Actor(this))
+			if (object->Use(Device.camera.position, Device.camera.direction, center) && object->attach_Actor(this))
 			{
 				SetWeaponHideState(INV_STATE_CAR, true);
 

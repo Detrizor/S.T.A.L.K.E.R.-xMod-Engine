@@ -436,7 +436,7 @@ void CObject::calc_next_update_time()
 		dist							*= s_update_radius_invisible_k;
 		break;
 	case eMainViewport:
-		dist							*= Device.iZoomSqr;
+		dist							*= Device.camera.izoom_sqr;
 		break;
 	case eSecondViewport:
 		dist							*= Device.SVP.getZoomOppositeSqr();

@@ -34,14 +34,6 @@ void SetupGPU(IRenderDeviceRender* pRender)
 void CRenderDevice::_SetupStates()
 {
 	// General Render States
-	mView.identity();
-	mProject.identity();
-	mFullTransform.identity();
-	vCameraPosition.set(0, 0, 0);
-	vCameraDirection.set(0, 0, 1);
-	vCameraTop.set(0, 1, 0);
-	vCameraRight.set(1, 0, 0);
-
 	m_pRender->SetupStates();
 }
 
@@ -89,8 +81,6 @@ PROTECT_API void CRenderDevice::Create()
 	psCurrentVidMode[1] = dwHeight;
 #endif // #ifdef _EDITOR
 
-	fFOV = 90.f;
-	fASPECT = 1.f;
 	m_pRender->Create(
 		m_hWnd,
 		dwWidth,

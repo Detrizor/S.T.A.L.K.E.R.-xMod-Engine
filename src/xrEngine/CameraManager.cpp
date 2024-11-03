@@ -446,74 +446,74 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	Fvector CR$ pos						= (Device.SVP.isRendering()) ? Device.SVP.getPosition() : m_cam_info.p;
 	float fov							= (Device.SVP.isRendering()) ? Device.SVP.getFOV() : m_cam_info.fFov;
 
-	Device.mView.build_camera_dir		(pos, m_cam_info.d, m_cam_info.n);
-	Device.vCameraPosition.set			(pos);
-	Device.vCameraDirection.set			(m_cam_info.d);
-	Device.vCameraTop.set				(m_cam_info.n);
-	Device.vCameraRight.set				(m_cam_info.r);
-	Device.fFOV							= fov;
-	Device.fHUDFOV						= fov;
+	Device.camera.view.build_camera_dir	(pos, m_cam_info.d, m_cam_info.n);
+	Device.camera.position.set			(pos);
+	Device.camera.direction.set			(m_cam_info.d);
+	Device.camera.top.set				(m_cam_info.n);
+	Device.camera.right.set				(m_cam_info.r);
+	Device.camera.fov					= fov;
+	Device.camera.hud_fov				= fov;
 
 	float								zoom;
 	if (Device.SVP.isRendering())
 	{
 		zoom							= Device.SVP.getZoom();
-		Device.iZoomSqr					= Device.SVP.getZoomOppositeSqr();
+		Device.camera.izoom_sqr			= Device.SVP.getZoomOppositeSqr();
 	}
 	else
 	{
 		zoom							= (fov == g_aim_fov) ? 1.f : tanf(g_aim_fov_tan) / tanf(deg2radHalf(fov));
-		Device.iZoomSqr					= 1.f / _sqr(zoom);
+		Device.camera.izoom_sqr			= 1.f / _sqr(zoom);
 	}
 
 	// projection
-	Device.fASPECT						= m_cam_info.fAspect;
-	Device.mProject.build_projection	(deg2rad(Device.fFOV), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
+	Device.camera.aspect				= m_cam_info.fAspect;
+	Device.camera.project.build_projection(deg2rad(Device.camera.fov), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
 
 	if (Device.isActiveMain() || Device.SVP.isRendering())
 		ResetPP							();
 	else
 	{
-		pp_affected.validate("apply device");
+		pp_affected.validate			("apply device");
 		// postprocess
-		IRender_Target* T = ::Render->getTarget();
-		T->set_duality_h(pp_affected.duality.h);
-		T->set_duality_v(pp_affected.duality.v);
-		T->set_blur(pp_affected.blur);
-		T->set_gray(pp_affected.gray);
-		T->set_noise(pp_affected.noise.intensity);
+		IRender_Target* T				= ::Render->getTarget();
+		T->set_duality_h				(pp_affected.duality.h);
+		T->set_duality_v				(pp_affected.duality.v);
+		T->set_blur						(pp_affected.blur);
+		T->set_gray						(pp_affected.gray);
+		T->set_noise					(pp_affected.noise.intensity);
 
-		clamp(pp_affected.noise.grain, EPS_L, 1000.0f);
+		clamp							(pp_affected.noise.grain, EPS_L, 1000.0f);
 
-		T->set_noise_scale(pp_affected.noise.grain);
+		T->set_noise_scale				(pp_affected.noise.grain);
 
-		T->set_noise_fps(pp_affected.noise.fps);
-		T->set_color_base(pp_affected.color_base);
-		T->set_color_gray(pp_affected.color_gray);
-		T->set_color_add(pp_affected.color_add);
+		T->set_noise_fps				(pp_affected.noise.fps);
+		T->set_color_base				(pp_affected.color_base);
+		T->set_color_gray				(pp_affected.color_gray);
+		T->set_color_add				(pp_affected.color_add);
 
-		T->set_cm_imfluence(pp_affected.cm_influence);
-		T->set_cm_interpolate(pp_affected.cm_interpolate);
-		T->set_cm_textures(pp_affected.cm_tex1, pp_affected.cm_tex2);
+		T->set_cm_imfluence				(pp_affected.cm_influence);
+		T->set_cm_interpolate			(pp_affected.cm_interpolate);
+		T->set_cm_textures				(pp_affected.cm_tex1, pp_affected.cm_tex2);
 	}
 }
 
 void CCameraManager::ResetPP()
 {
-	IRender_Target* T = ::Render->getTarget();
-	T->set_duality_h(pp_identity.duality.h);
-	T->set_duality_v(pp_identity.duality.v);
-	T->set_blur(pp_identity.blur);
-	T->set_gray(pp_identity.gray);
-	T->set_noise(pp_identity.noise.intensity);
-	T->set_noise_scale(pp_identity.noise.grain);
-	T->set_noise_fps(pp_identity.noise.fps);
-	T->set_color_base(pp_identity.color_base);
-	T->set_color_gray(pp_identity.color_gray);
-	T->set_color_add(pp_identity.color_add);
-	T->set_cm_imfluence(0.0f);
-	T->set_cm_interpolate(1.0f);
-	T->set_cm_textures("", "");
+	IRender_Target* T					= ::Render->getTarget();
+	T->set_duality_h					(pp_identity.duality.h);
+	T->set_duality_v					(pp_identity.duality.v);
+	T->set_blur							(pp_identity.blur);
+	T->set_gray							(pp_identity.gray);
+	T->set_noise						(pp_identity.noise.intensity);
+	T->set_noise_scale					(pp_identity.noise.grain);
+	T->set_noise_fps					(pp_identity.noise.fps);
+	T->set_color_base					(pp_identity.color_base);
+	T->set_color_gray					(pp_identity.color_gray);
+	T->set_color_add					(pp_identity.color_add);
+	T->set_cm_imfluence					(0.f);
+	T->set_cm_interpolate				(1.f);
+	T->set_cm_textures					("", "");
 }
 
 void CCameraManager::Dump()
@@ -521,7 +521,7 @@ void CCameraManager::Dump()
 	Fmatrix mInvCamera;
 	Fvector _R, _U, _T, _P;
 
-	mInvCamera.invert(Device.mView);
+	mInvCamera.invert(Device.camera.view);
 	_R.set(mInvCamera._11, mInvCamera._12, mInvCamera._13);
 	_U.set(mInvCamera._21, mInvCamera._22, mInvCamera._23);
 	_T.set(mInvCamera._31, mInvCamera._32, mInvCamera._33);

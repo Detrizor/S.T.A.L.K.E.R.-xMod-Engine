@@ -276,7 +276,7 @@ void CWallmarksEngine::AddWallmark_internal	(CDB::TRI* pTri, const Fvector* pVer
 void CWallmarksEngine::AddStaticWallmark	(CDB::TRI* pTri, const Fvector* pVerts, const Fvector &contact_point, ref_shader hShader, float sz)
 {
 	// optimization cheat: don't allow wallmarks more than 100 m from viewer/actor
-	if (contact_point.distance_to_sqr(Device.vCameraPosition) > _sqr(100.f))	
+	if (contact_point.distance_to_sqr(Device.camera.position) > _sqr(100.f))	
 		return;
 
 	// Physics may add wallmarks in parallel with rendering
@@ -289,7 +289,7 @@ void CWallmarksEngine::AddSkeletonWallmark	(const Fmatrix* xf, CKinematics* obj,
 {	
 	if(::RImplementation.phase != CRender::PHASE_NORMAL)				return;
 	// optimization cheat: don't allow wallmarks more than 50 m from viewer/actor
-	if (xf->c.distance_to_sqr(Device.vCameraPosition) > _sqr(50.f))				return;
+	if (xf->c.distance_to_sqr(Device.camera.position) > _sqr(50.f))				return;
 
 	VERIFY					(obj&&xf&&(size>EPS_L));
 	lock.Enter				();
@@ -343,16 +343,16 @@ void CWallmarksEngine::Render()
 {
 //	if (marks.empty())			return;
 	// Projection and xform
-	float	_43					= Device.mProject._43;
-	Device.mProject._43			-= ps_r__WallmarkSHIFT; 
+	float	_43					= Device.camera.project._43;
+	Device.camera.project._43			-= ps_r__WallmarkSHIFT; 
 	RCache.set_xform_world		(Fidentity);
-	RCache.set_xform_project	(Device.mProject);
+	RCache.set_xform_project	(Device.camera.project);
 
-	Fmatrix	mSavedView			= Device.mView;
+	Fmatrix	mSavedView			= Device.camera.view;
 	Fvector	mViewPos			;
-			mViewPos.mad		(Device.vCameraPosition, Device.vCameraDirection,ps_r__WallmarkSHIFT_V);
-	Device.mView.build_camera_dir	(mViewPos,Device.vCameraDirection,Device.vCameraTop);
-	RCache.set_xform_view		(Device.mView);
+			mViewPos.mad		(Device.camera.position, Device.camera.direction,ps_r__WallmarkSHIFT_V);
+	Device.camera.view.build_camera_dir	(mViewPos,Device.camera.direction,Device.camera.top);
+	RCache.set_xform_view		(Device.camera.view);
 
 	Device.Statistic->RenderDUMP_WM.Begin	();
 	Device.Statistic->RenderDUMP_WMS_Count	= 0;
@@ -373,7 +373,7 @@ void CWallmarksEngine::Render()
 			static_wallmark* W	= *w_it;
 			if (RImplementation.ViewBase.testSphere_dirty(W->bounds.P,W->bounds.R)){
 				Device.Statistic->RenderDUMP_WMS_Count++;
-				float dst	= Device.vCameraPosition.distance_to_sqr(W->bounds.P);
+				float dst	= Device.camera.position.distance_to_sqr(W->bounds.P);
 				float ssa	= W->bounds.R * W->bounds.R / dst;
 				if (ssa>=ssaCLIP)	{
 					u32 w_count		= u32(w_verts-w_start);
@@ -415,7 +415,7 @@ void CWallmarksEngine::Render()
 			}
 #endif
 
-			float dst	= Device.vCameraPosition.distance_to_sqr(W->m_Bounds.P);
+			float dst	= Device.camera.position.distance_to_sqr(W->m_Bounds.P);
 			float ssa	= W->m_Bounds.R * W->m_Bounds.R / dst;
 			if (ssa>=ssaCLIP){
 				Device.Statistic->RenderDUMP_WMD_Count++;
@@ -450,8 +450,8 @@ void CWallmarksEngine::Render()
 	Device.Statistic->RenderDUMP_WM.End		();
 
 	// Projection
-	Device.mView				= mSavedView;
-	Device.mProject._43			= _43;
-	RCache.set_xform_view		(Device.mView);
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.view				= mSavedView;
+	Device.camera.project._43			= _43;
+	RCache.set_xform_view		(Device.camera.view);
+	RCache.set_xform_project	(Device.camera.project);
 }

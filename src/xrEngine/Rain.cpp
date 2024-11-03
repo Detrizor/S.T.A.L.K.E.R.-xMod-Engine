@@ -78,7 +78,7 @@ void CEffect_Rain::Born(Item& dest, float radius)
     float pitch = drop_max_angle*k - PI_DIV_2;
     axis.setHP(g_pGamePersistent->Environment().CurrentEnv->wind_direction, pitch);
 
-    Fvector& view = Device.vCameraPosition;
+    Fvector& view = Device.camera.position;
     float angle = ::Random.randF(0, PI_MUL_2);
     float dist = ::Random.randF();
     dist = _sqrt(dist)*radius;
@@ -179,7 +179,7 @@ void CEffect_Rain::OnFrame()
     if (snd_Ambient._feedback())
     {
         // Fvector sndP;
-        // sndP.mad (Device.vCameraPosition,Fvector().set(0,1,0),source_offset);
+        // sndP.mad (Device.camera.position,Fvector().set(0,1,0),source_offset);
         // snd_Ambient.set_position(sndP);
         snd_Ambient.set_volume(_max(0.1f, factor) * hemi_factor);
     }
@@ -218,14 +218,14 @@ void CEffect_Rain::Render()
     // build source plane
     Fplane src_plane;
     Fvector norm ={0.f,-1.f,0.f};
-    Fvector upper; upper.set(Device.vCameraPosition.x,Device.vCameraPosition.y+source_offset,Device.vCameraPosition.z);
+    Fvector upper; upper.set(Device.camera.position.x,Device.camera.position.y+source_offset,Device.camera.position.z);
     src_plane.build(upper,norm);
 
     // perform update
     u32 vOffset;
     FVF::LIT *verts = (FVF::LIT *) RCache.Vertex.Lock(desired_items*4,hGeom_Rain->vb_stride,vOffset);
     FVF::LIT *start = verts;
-    const Fvector& vEye = Device.vCameraPosition;
+    const Fvector& vEye = Device.camera.position;
     for (u32 I=0; I<items.size(); I++){
     // physics and time control
     Item& one = items[I];

@@ -119,7 +119,7 @@ void CActor::PickupModeUpdate_COD()
 	if (!item_to_pickup)
 	{
 		CFrustum							frustum;
-		frustum.CreateFromMatrix			(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
+		frustum.CreateFromMatrix			(Device.camera.full_transform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
 
 		ISpatialResult.clear_not_free		();
 		g_SpatialSpace->q_frustum			(ISpatialResult, 0, STYPE_COLLIDEABLE, frustum);
@@ -129,7 +129,7 @@ void CActor::PickupModeUpdate_COD()
 		{
 			ISpatial* spatial				= ISpatialResult[it];
 			CObject* obj					= spatial->dcast_CObject();
-			if (!CanPickItem(frustum, Device.vCameraPosition, obj) || !validate_object(obj))
+			if (!CanPickItem(frustum, Device.camera.position, obj) || !validate_object(obj))
 				continue;
 
 			Fvector							A; 
@@ -160,11 +160,11 @@ void CActor::PickupModeUpdate()
 
 	feel_touch_update						(cam_Active()->vPosition, m_fPickupInfoRadius);
 	CFrustum								frustum;
-	frustum.CreateFromMatrix				(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
+	frustum.CreateFromMatrix				(Device.camera.full_transform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
 
 	for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
 	{
-		if (CanPickItem(frustum, Device.vCameraPosition, *it) && validate_object(*it))
+		if (CanPickItem(frustum, Device.camera.position, *it) && validate_object(*it))
 			PickupInfoDraw					(*it);
 	}
 }
@@ -197,7 +197,7 @@ void CActor::PickupInfoDraw(CObject* object)
 	if(!item)		return;
 
 	Fmatrix			res;
-	res.mul			(Device.mFullTransform,object->XFORM());
+	res.mul			(Device.camera.full_transform,object->XFORM());
 	Fvector4		v_res;
 	Fvector			shift;
 

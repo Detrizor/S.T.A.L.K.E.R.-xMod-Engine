@@ -194,7 +194,7 @@ void IGame_Level::OnFrame()
 	{
 		Sounds_Random_dwNextTime = Device.dwTimeGlobal + ::Random.randI(10000, 20000);
 		Fvector pos;
-		pos.random_dir().normalize().mul(::Random.randF(30, 100)).add(Device.vCameraPosition);
+		pos.random_dir().normalize().mul(::Random.randF(30, 100)).add(Device.camera.position);
 		int id = ::Random.randI(Sounds_Random.size());
 		if (Sounds_Random_Enabled)
 		{
@@ -324,7 +324,7 @@ void IGame_Level::SoundEvent_Dispatch()
 				D.source->g_type,
 				D.source->g_userdata,
 
-				D.source->feedback->is_2D() ? Device.vCameraPosition :
+				D.source->feedback->is_2D() ? Device.camera.position :
 				D.source->feedback->get_params()->position,
 				D.power
 				);

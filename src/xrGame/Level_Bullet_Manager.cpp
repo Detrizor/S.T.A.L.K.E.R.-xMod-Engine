@@ -466,7 +466,7 @@ void CBulletManager::Render	()
 			length			= m_fTracerLengthMax;
 
 		float width			= m_fTracerWidth;
-		float dist2segSqr	= SqrDistancePointToSegment(Device.vCameraPosition, bullet->pos, tracer);
+		float dist2segSqr	= SqrDistancePointToSegment(Device.camera.position, bullet->pos, tracer);
 		//---------------------------------------------
 		float MaxDistSqr = 1.0f;
 		float MinDistSqr = 0.09f;
@@ -476,9 +476,9 @@ void CBulletManager::Render	()
 
 			width *= _sqrt(dist2segSqr/MaxDistSqr);
 		}
-		if (Device.vCameraPosition.distance_to_sqr(bullet->pos)<(length*length))
+		if (Device.camera.position.distance_to_sqr(bullet->pos)<(length*length))
 		{
-			length = Device.vCameraPosition.distance_to(bullet->pos) - 0.3f;
+			length = Device.camera.position.distance_to(bullet->pos) - 0.3f;
 		}
 
 		Fvector center;

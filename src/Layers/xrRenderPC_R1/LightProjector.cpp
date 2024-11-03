@@ -69,7 +69,7 @@ void CLightProjector::set_object	(IRenderable* O)
 		const vis_data &vis = O->renderable.visual->getVisData();
 		Fvector		C;	O->renderable.xform.transform_tiny		(C,vis.sphere.P);
 		float		R	= vis.sphere.R;
-		float		D	= C.distance_to	(Device.vCameraPosition)+R;
+		float		D	= C.distance_to	(Device.camera.position)+R;
 
 		if (D < clipD(R))	current	= O;
 		else				current = 0;
@@ -103,7 +103,7 @@ void CLightProjector::setup		(int id)
 	}
 	recv&			R			= cache[id];
 	float			Rd			= R.O->renderable.visual->getVisData().sphere.R;
-	float			dist		= R.C.distance_to	(Device.vCameraPosition)+Rd;
+	float			dist		= R.C.distance_to	(Device.camera.position)+Rd;
 	float			factor		= _sqr(dist/clipD(Rd))*(1-ps_r1_lmodel_lerp) + ps_r1_lmodel_lerp;
 	RCache.set_c	(c_xform,	R.UVgen);
 	Fvector&	m	= R.UVclamp_min;
@@ -327,8 +327,8 @@ void CLightProjector::calculate	()
 	// Finita la comedia
 	Device.Statistic->RenderDUMP_Pcalc.End	();
 	
-	RCache.set_xform_project	(Device.mProject);
-	RCache.set_xform_view		(Device.mView);
+	RCache.set_xform_project	(Device.camera.project);
+	RCache.set_xform_view		(Device.camera.view);
 }
 
 #ifdef DEBUG

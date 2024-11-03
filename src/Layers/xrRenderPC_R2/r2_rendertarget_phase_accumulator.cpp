@@ -21,8 +21,8 @@ void	CRenderTarget::phase_accumulator()
 		//	Do it after the sun to preserve data.
 		/*
 		// Render emissive geometry, stencil - write 0x0 at pixel pos
-		RCache.set_xform_project					(Device.mProject); 
-		RCache.set_xform_view						(Device.mView);
+		RCache.set_xform_project					(Device.camera.project); 
+		RCache.set_xform_view						(Device.camera.view);
 		// Stencil - write 0x1 at pixel pos - 
 		RCache.set_Stencil							( TRUE,D3DCMP_ALWAYS,0x01,0xff,0xff,D3DSTENCILOP_KEEP,D3DSTENCILOP_REPLACE,D3DSTENCILOP_KEEP);
 		//RCache.set_Stencil						(TRUE,D3DCMP_ALWAYS,0x00,0xff,0xff,D3DSTENCILOP_KEEP,D3DSTENCILOP_REPLACE,D3DSTENCILOP_KEEP);

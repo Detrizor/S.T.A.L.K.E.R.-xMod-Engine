@@ -745,7 +745,7 @@ void CLevel::OnRender()
 				CGameObject* pGO = smart_cast<CGameObject*>	(_O);
 				if (pGO && pGO != Level().CurrentViewEntity() && !pGO->H_Parent())
 				{
-					if (pGO->Position().distance_to_sqr(Device.vCameraPosition) < 400.0f)
+					if (pGO->Position().distance_to_sqr(Device.camera.position) < 400.0f)
 					{
 						pGO->dbg_DrawSkeleton();
 					}

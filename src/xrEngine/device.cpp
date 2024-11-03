@@ -191,7 +191,7 @@ void CRenderDevice::PreCache(u32 amount, bool b_draw_loadscreen, bool b_wait_use
 	{
 		precache_light = ::Render->light_create();
 		precache_light->set_shadow(false);
-		precache_light->set_position(vCameraPosition);
+		precache_light->set_position(camera.position);
 		precache_light->set_color(255, 255, 255);
 		precache_light->set_range(5.0f);
 		precache_light->set_active(true);
@@ -250,16 +250,16 @@ void CRenderDevice::render_svp()
 {
 	if (SVP.isActive() && !isActiveMain())
 	{
-		float fov_saved = fFOV;
-		Fvector pos_saved = vCameraPosition;
+		float fov_saved = camera.fov;
+		Fvector pos_saved = camera.position;
 
 		SVP.setRendering(true);
 		g_pGameLevel->ApplyCamera();
 
 		// Matrices
-		mFullTransform.mul(mProject, mView);
-		m_pRender->SetCacheXform(mView, mProject);
-		mInvFullTransform.invert(mFullTransform);
+		camera.full_transform.mul(camera.project, camera.view);
+		m_pRender->SetCacheXform(camera.view, camera.project);
+		camera.full_transform_inv.invert(camera.full_transform);
 
 		m_pRender->Begin();
 
@@ -271,8 +271,8 @@ void CRenderDevice::render_svp()
 
 		SVP.setRendering(false);
 
-		fFOV = fov_saved;
-		vCameraPosition = pos_saved;
+		camera.fov = fov_saved;
+		camera.position = pos_saved;
 	}
 }
 
@@ -282,11 +282,11 @@ void CRenderDevice::render()
 	{
 		float factor					= static_cast<float>(dwPrecacheFrame) / static_cast<float>(dwPrecacheTotal);
 		float angle						= PI_MUL_2 * factor;
-		vCameraDirection.set			(_sin(angle), 0.f, _cos(angle));
-		vCameraDirection.normalize		();
-		vCameraTop.set					(0.f, 1.f, 0.f);
-		vCameraRight.crossproduct		(vCameraTop, vCameraDirection);
-		mView.build_camera_dir			(vCameraPosition, vCameraDirection, vCameraTop);
+		camera.direction.set			(_sin(angle), 0.f, _cos(angle));
+		camera.direction.normalize		();
+		camera.top.set					(0.f, 1.f, 0.f);
+		camera.right.crossproduct		(camera.top, camera.direction);
+		camera.view.build_camera_dir	(camera.position, camera.direction, camera.top);
 	}
 
 	auto& stats							= Statistic->RenderTOTAL_Real;
@@ -296,9 +296,9 @@ void CRenderDevice::render()
 	if (b_is_Active && Begin())
 	{
 		// Matrices
-		mFullTransform.mul				(mProject, mView);
-		m_pRender->SetCacheXform		(mView, mProject);
-		mInvFullTransform.invert		(mFullTransform);
+		camera.full_transform.mul		(camera.project, camera.view);
+		m_pRender->SetCacheXform		(camera.view, camera.project);
+		camera.full_transform_inv.invert(camera.full_transform);
 
 		seqRender.Process				(rp_Render);
 		if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size())

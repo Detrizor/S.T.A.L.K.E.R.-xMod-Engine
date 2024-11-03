@@ -1397,8 +1397,8 @@ void CActor::RenderIndicator(Fvector dpos, float r1, float r2, const ui_shader &
 	M.mul(XFORM(), BI.mTransform);
 
 	Fvector pos = M.c; pos.add(dpos);
-	const Fvector& T = Device.vCameraTop;
-	const Fvector& R = Device.vCameraRight;
+	const Fvector& T = Device.camera.top;
+	const Fvector& R = Device.camera.right;
 	Fvector Vr, Vt;
 	Vr.x = R.x*r1;
 	Vr.y = R.y*r1;
@@ -1448,12 +1448,12 @@ void CActor::RenderText(LPCSTR Text, Fvector dpos, float* pdup, u32 color)
 	//------------------------------------------------
 	Fvector v0, v1;
 	v0.set(M.c); v1.set(M.c);
-	Fvector T = Device.vCameraTop;
+	Fvector T = Device.camera.top;
 	v1.add(T);
 
 	Fvector v0r, v1r;
-	Device.mFullTransform.transform(v0r, v0);
-	Device.mFullTransform.transform(v1r, v1);
+	Device.camera.full_transform.transform(v0r, v0);
+	Device.camera.full_transform.transform(v1r, v1);
 	float size = v1r.distance_to(v0r);
 	CGameFont* pFont = UI().Font().pFontArial14;
 	if (!pFont) return;
@@ -1468,7 +1468,7 @@ void CActor::RenderText(LPCSTR Text, Fvector dpos, float* pdup, u32 color)
 	M.c.y += dpos.y;
 
 	Fvector4 v_res;
-	Device.mFullTransform.transform(v_res, M.c);
+	Device.camera.full_transform.transform(v_res, M.c);
 
 	if (v_res.z < 0 || v_res.w < 0)	return;
 	if (v_res.x < -1.f || v_res.x > 1.f || v_res.y<-1.f || v_res.y>1.f) return;

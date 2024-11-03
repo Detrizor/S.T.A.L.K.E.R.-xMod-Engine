@@ -593,7 +593,7 @@ public:
 		Tvector vRight;
 		vRight.crossproduct(vUp, vView);
 
-		// Start building the Device.mView. The first three rows contains the basis
+		// Start building the Device.camera.view. The first three rows contains the basis
 		// vectors used to rotate the view to point at the lookat point
 		_11 = vRight.x;
 		_12 = vUp.x;
@@ -629,7 +629,7 @@ public:
 		Tvector vRight;
 		vRight.crossproduct(vUp, vView);
 
-		// Start building the Device.mView. The first three rows contains the basis
+		// Start building the Device.camera.view. The first three rows contains the basis
 		// vectors used to rotate the view to point at the lookat point
 		_11 = vRight.x;
 		_12 = vUp.x;

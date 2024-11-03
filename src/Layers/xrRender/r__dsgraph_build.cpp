@@ -23,12 +23,12 @@ float		r_ssaHZBvsTEX;
 ICF	float	CalcSSA				(float& distSQ, Fvector& C, dxRender_Visual* V)
 {
 	float R	= V->vis.sphere.R + 0;
-	distSQ	= Device.vCameraPosition.distance_to_sqr(C)+EPS;
+	distSQ	= Device.camera.position.distance_to_sqr(C)+EPS;
 	return	R/distSQ;
 }
 ICF	float	CalcSSA				(float& distSQ, Fvector& C, float R)
 {
-	distSQ	= Device.vCameraPosition.distance_to_sqr(C)+EPS;
+	distSQ	= Device.camera.position.distance_to_sqr(C)+EPS;
 	return	R/distSQ;
 }
 

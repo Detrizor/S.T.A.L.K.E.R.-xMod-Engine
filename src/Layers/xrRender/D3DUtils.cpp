@@ -574,11 +574,11 @@ void CDrawUtilities::dbgDrawPlacement(const Fvector& p, int sz, u32 clr, LPCSTR 
 {
 	VERIFY( Device.b_is_Ready );
     Fvector c;
-	float w	= p.x*Device.mFullTransform._14 + p.y*Device.mFullTransform._24 + p.z*Device.mFullTransform._34 + Device.mFullTransform._44;
+	float w	= p.x*Device.camera.full_transform._14 + p.y*Device.camera.full_transform._24 + p.z*Device.camera.full_transform._34 + Device.camera.full_transform._44;
     if (w<0) return; // culling
 
 	float s = (float)sz;
-	Device.mFullTransform.transform(c,p);
+	Device.camera.full_transform.transform(c,p);
 	c.x = (float)iFloor(_x2real(c.x)); c.y = (float)iFloor(_y2real(-c.y));
 
 	_VertexStream*	Stream	= &RCache.Vertex;
@@ -1020,7 +1020,7 @@ void CDrawUtilities::DrawAxis(const Fmatrix& T)
     float dy=float(Device.dwHeight)/2.25f;
 
     for (int i=0; i<6; i++,pv++){
-	    pv->color = c[i]; pv->transform(p[i],Device.mFullTransform);
+	    pv->color = c[i]; pv->transform(p[i],Device.camera.full_transform);
 	    pv->p.set((float)iFloor(_x2real(pv->p.x)+dx),(float)iFloor(_y2real(pv->p.y)+dy),0,1);
         p[i].set(pv->p.x,pv->p.y,0);
     }
@@ -1047,14 +1047,14 @@ void CDrawUtilities::DrawObjectAxis(const Fmatrix& T, float sz, BOOL sel)
 	VERIFY( Device.b_is_Ready );
 	_VertexStream*	Stream	= &RCache.Vertex;
     Fvector c,r,n,d;
-	float w	= T.c.x*Device.mFullTransform._14 + T.c.y*Device.mFullTransform._24 + T.c.z*Device.mFullTransform._34 + Device.mFullTransform._44;
+	float w	= T.c.x*Device.camera.full_transform._14 + T.c.y*Device.camera.full_transform._24 + T.c.z*Device.camera.full_transform._34 + Device.camera.full_transform._44;
     if (w<0) return; // culling
 
 	float s = w*sz;
-								Device.mFullTransform.transform(c,T.c);
-    r.mul(T.i,s); r.add(T.c); 	Device.mFullTransform.transform(r);
-    n.mul(T.j,s); n.add(T.c); 	Device.mFullTransform.transform(n);
-    d.mul(T.k,s); d.add(T.c); 	Device.mFullTransform.transform(d);
+								Device.camera.full_transform.transform(c,T.c);
+    r.mul(T.i,s); r.add(T.c); 	Device.camera.full_transform.transform(r);
+    n.mul(T.j,s); n.add(T.c); 	Device.camera.full_transform.transform(n);
+    d.mul(T.k,s); d.add(T.c); 	Device.camera.full_transform.transform(d);
 	c.x = (float)iFloor(_x2real(c.x)); c.y = (float)iFloor(_y2real(-c.y));
     r.x = (float)iFloor(_x2real(r.x)); r.y = (float)iFloor(_y2real(-r.y));
     n.x = (float)iFloor(_x2real(n.x)); n.y = (float)iFloor(_y2real(-n.y));
@@ -1202,9 +1202,9 @@ void CDrawUtilities::OnRender()
 void CDrawUtilities::OutText(const Fvector& pos, LPCSTR text, u32 color, u32 shadow_color)
 {
 	Fvector p;
-	float w	= pos.x*Device.mFullTransform._14 + pos.y*Device.mFullTransform._24 + pos.z*Device.mFullTransform._34 + Device.mFullTransform._44;
+	float w	= pos.x*Device.camera.full_transform._14 + pos.y*Device.camera.full_transform._24 + pos.z*Device.camera.full_transform._34 + Device.camera.full_transform._44;
 	if (w>=0){
-		Device.mFullTransform.transform(p,pos);
+		Device.camera.full_transform.transform(p,pos);
 		p.x = (float)iFloor(_x2real(p.x)); p.y = (float)iFloor(_y2real(-p.y));
 
 		m_Font->SetColor(shadow_color);

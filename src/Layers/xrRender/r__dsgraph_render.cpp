@@ -476,16 +476,16 @@ void R_dsgraph_structure::r_dsgraph_render_hud	()
 	//PIX_EVENT(r_dsgraph_render_hud);
 
 	// Change projection
-	Fmatrix Pold				= Device.mProject;
-	Fmatrix FTold				= Device.mFullTransform;
-	Fmatrix FVold				= Device.mView;
-	Device.mProject.build_projection(
-		deg2rad(Device.fHUDFOV),
-		Device.fASPECT, VIEWPORT_NEAR_HUD,
+	Fmatrix Pold				= Device.camera.project;
+	Fmatrix FTold				= Device.camera.full_transform;
+	Fmatrix FVold				= Device.camera.view;
+	Device.camera.project.build_projection(
+		deg2rad(Device.camera.hud_fov),
+		Device.camera.aspect, VIEWPORT_NEAR_HUD,
 		g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-	Device.mFullTransform.mul	(Device.mProject, Device.mView);
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+	RCache.set_xform_project	(Device.camera.project);
 
 	// Rendering
 	rmNear						();
@@ -500,10 +500,10 @@ void R_dsgraph_structure::r_dsgraph_render_hud	()
 	rmNormal					();
 
 	// Restore projection
-	Device.mProject				= Pold;
-	Device.mFullTransform		= FTold;
-	Device.mView				= FVold;
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.project				= Pold;
+	Device.camera.full_transform		= FTold;
+	Device.camera.view				= FVold;
+	RCache.set_xform_project	(Device.camera.project);
 }
 
 void R_dsgraph_structure::r_dsgraph_render_hud_ui()
@@ -511,15 +511,15 @@ void R_dsgraph_structure::r_dsgraph_render_hud_ui()
 	VERIFY(g_hud && g_hud->RenderActiveItemUIQuery());
 
 	// Change projection
-	Fmatrix Pold				= Device.mProject;
-	Fmatrix FTold				= Device.mFullTransform;
-	Device.mProject.build_projection(
-		deg2rad(Device.fHUDFOV),
-		Device.fASPECT, VIEWPORT_NEAR_HUD,
+	Fmatrix Pold				= Device.camera.project;
+	Fmatrix FTold				= Device.camera.full_transform;
+	Device.camera.project.build_projection(
+		deg2rad(Device.camera.hud_fov),
+		Device.camera.aspect, VIEWPORT_NEAR_HUD,
 		g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-	Device.mFullTransform.mul	(Device.mProject, Device.mView);
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+	RCache.set_xform_project	(Device.camera.project);
 
 #if	RENDER!=R_R1
 	// Targets, use accumulator for temporary storage
@@ -548,9 +548,9 @@ void R_dsgraph_structure::r_dsgraph_render_hud_ui()
 	rmNormal					();
 
 	// Restore projection
-	Device.mProject				= Pold;
-	Device.mFullTransform		= FTold;
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.project				= Pold;
+	Device.camera.full_transform		= FTold;
+	RCache.set_xform_project	(Device.camera.project);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -562,15 +562,15 @@ void	R_dsgraph_structure::r_dsgraph_render_sorted	()
 	mapSorted.clear			();
 
 	// Change projection
-	Fmatrix Pold = Device.mProject;
-	Fmatrix FTold = Device.mFullTransform;
-	Device.mProject.build_projection(
-		deg2rad(Device.fHUDFOV),
-		Device.fASPECT, VIEWPORT_NEAR_HUD,
+	Fmatrix Pold = Device.camera.project;
+	Fmatrix FTold = Device.camera.full_transform;
+	Device.camera.project.build_projection(
+		deg2rad(Device.camera.hud_fov),
+		Device.camera.aspect, VIEWPORT_NEAR_HUD,
 		g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-	Device.mFullTransform.mul(Device.mProject, Device.mView);
-	RCache.set_xform_project(Device.mProject);
+	Device.camera.full_transform.mul(Device.camera.project, Device.camera.view);
+	RCache.set_xform_project(Device.camera.project);
 
 	// Rendering
 	rmNear();
@@ -579,9 +579,9 @@ void	R_dsgraph_structure::r_dsgraph_render_sorted	()
 	rmNormal();
 
 	// Restore projection
-	Device.mProject = Pold;
-	Device.mFullTransform = FTold;
-	RCache.set_xform_project(Device.mProject);
+	Device.camera.project = Pold;
+	Device.camera.full_transform = FTold;
+	RCache.set_xform_project(Device.camera.project);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -596,15 +596,15 @@ void	R_dsgraph_structure::r_dsgraph_render_emissive	()
 	//	HACK: Calculate this only once
 
 	// Change projection
-	Fmatrix Pold				= Device.mProject;
-	Fmatrix FTold				= Device.mFullTransform;
-	Device.mProject.build_projection(
-		deg2rad(Device.fHUDFOV),
-		Device.fASPECT, VIEWPORT_NEAR_HUD, 
+	Fmatrix Pold				= Device.camera.project;
+	Fmatrix FTold				= Device.camera.full_transform;
+	Device.camera.project.build_projection(
+		deg2rad(Device.camera.hud_fov),
+		Device.camera.aspect, VIEWPORT_NEAR_HUD, 
 		g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-	Device.mFullTransform.mul	(Device.mProject, Device.mView);
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+	RCache.set_xform_project	(Device.camera.project);
 
 	// Rendering
 	rmNear						();
@@ -615,9 +615,9 @@ void	R_dsgraph_structure::r_dsgraph_render_emissive	()
 	rmNormal					();
 
 	// Restore projection
-	Device.mProject				= Pold;
-	Device.mFullTransform		= FTold;
-	RCache.set_xform_project	(Device.mProject);
+	Device.camera.project				= Pold;
+	Device.camera.full_transform		= FTold;
+	RCache.set_xform_project	(Device.camera.project);
 #endif
 }
 

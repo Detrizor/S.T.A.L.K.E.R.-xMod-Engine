@@ -365,7 +365,7 @@ extern float		ps_r2_slight_fade;
 float	light::get_LOD					()
 {
 	if	(!flags.bShadow)	return 1;
-	float	distSQ			= Device.vCameraPosition.distance_to_sqr(spatial.sphere.P)+EPS;
+	float	distSQ			= Device.camera.position.distance_to_sqr(spatial.sphere.P)+EPS;
 	float	ssa				= ps_r2_slight_fade * spatial.sphere.R/distSQ;
 	float	lod				= _sqrt(clampr((ssa - r_ssaGLOD_end)/(r_ssaGLOD_start-r_ssaGLOD_end),0.f,1.f));
 	return	lod	;

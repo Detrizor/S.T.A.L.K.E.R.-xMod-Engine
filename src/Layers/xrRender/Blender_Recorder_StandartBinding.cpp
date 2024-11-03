@@ -142,7 +142,7 @@ class cl_fog_plane	: public R_constant_setup {
 		{
 			// Plane
 			Fvector4		plane;
-			Fmatrix&	M	= Device.mFullTransform;
+			Fmatrix&	M	= Device.camera.full_transform;
 			plane.x			= -(M._14 + M._13);
 			plane.y			= -(M._24 + M._23);
 			plane.z			= -(M._34 + M._33);
@@ -206,7 +206,7 @@ static cl_times		binder_times;
 class cl_eye_P		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraPosition;
+		Fvector&		V	= RDEVICE.camera.position;
 		RCache.set_c	(C,V.x,V.y,V.z,1);
 	}
 };
@@ -216,7 +216,7 @@ static cl_eye_P		binder_eye_P;
 class cl_eye_D		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraDirection;
+		Fvector&		V	= RDEVICE.camera.direction;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
 };
@@ -226,7 +226,7 @@ static cl_eye_D		binder_eye_D;
 class cl_eye_N		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraTop;
+		Fvector&		V	= RDEVICE.camera.top;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
 };
@@ -263,7 +263,7 @@ class cl_sun0_dir_e	: public R_constant_setup {
 		if (marker!=::Render->dwFrame())	{
 			Fvector D;
 			CEnvDescriptor&	desc		= *g_pGamePersistent->Environment().CurrentEnv;
-			Device.mView.transform_dir	(D,desc.sun_dir);
+			Device.camera.view.transform_dir	(D,desc.sun_dir);
 			D.normalize					();
 			result.set					(D.x,D.y,D.z,0);
 		}

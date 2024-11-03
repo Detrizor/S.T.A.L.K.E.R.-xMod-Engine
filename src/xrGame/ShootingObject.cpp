@@ -154,7 +154,7 @@ void CShootingObject::UpdateParticles (CParticlesObject*& pParticles,
 void CShootingObject::OnShellDrop(const Fvector& play_pos, const Fvector& parent_vel)
 {
 	if(!m_cartridge.shell_particles) return;
-	if( Device.vCameraPosition.distance_to_sqr(play_pos)>2*2 ) return;
+	if( Device.camera.position.distance_to_sqr(play_pos)>2*2 ) return;
 
 	CParticlesObject* pShellParticles	= CParticlesObject::Create(m_cartridge.shell_particles.c_str(), TRUE);
 

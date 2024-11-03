@@ -17,7 +17,7 @@ void __stdcall	CHOM::MT_RENDER()
 	if (MT_frame_rendered != ::Render->dwFrame() && !Device.isActiveMain())
 	{
 		CFrustum					ViewBase;
-		ViewBase.CreateFromMatrix	(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+		ViewBase.CreateFromMatrix	(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 		Enable						();
 		Render						(ViewBase);
 	}
@@ -162,8 +162,8 @@ void CHOM::Render_DB			(CFrustum& base)
 		0.0f,				0.0f,				1.0f,		0.0f,
 		1.f/2.f + 0 + 0,	1.f/2.f + 0 + 0,	0.0f,		1.0f
 	};
-	m_xform.mul					(m_viewport,	Device.mFullTransform);
-	m_xform_01.mul				(m_viewport_01,	Device.mFullTransform);
+	m_xform.mul					(m_viewport,	Device.camera.full_transform);
+	m_xform_01.mul				(m_viewport_01,	Device.camera.full_transform);
 
 	// Query DB
 	xrc.frustum_options			(0);
@@ -174,13 +174,13 @@ void CHOM::Render_DB			(CFrustum& base)
 	CDB::RESULT*	it			= xrc.r_begin	();
 	CDB::RESULT*	end			= xrc.r_end		();
 	
-	Fvector			COP			= Device.vCameraPosition;
+	Fvector			COP			= Device.camera.position;
 	end				= std::remove_if	(it,end,pred_fb(m_pTris));
 	std::sort		(it,end,pred_fb(m_pTris,COP));
 
 	// Build frustum with near plane only
 	CFrustum					clip;
-	clip.CreateFromMatrix		(Device.mFullTransform,FRUSTUM_P_NEAR);
+	clip.CreateFromMatrix		(Device.camera.full_transform,FRUSTUM_P_NEAR);
 	sPoly						src,dst;
 	u32		_frame				= ::Render->dwFrame()	;
 #ifdef DEBUG
@@ -275,7 +275,7 @@ IC	BOOL	_visible	(Fbox& B, Fmatrix& m_xform_01)
 BOOL CHOM::visible		(Fbox3& B)
 {
 	if (!bEnabled)							return TRUE;
-	if (B.contains(Device.vCameraPosition))	return TRUE;
+	if (B.contains(Device.camera.position))	return TRUE;
 	return _visible		(B,m_xform_01)		;
 }
 

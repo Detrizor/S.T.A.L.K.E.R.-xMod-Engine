@@ -8,8 +8,8 @@
 
 IC	bool	pred_sp_sort	(ISpatial*	_1, ISpatial* _2)
 {
-	float	d1		= _1->spatial.sphere.P.distance_to_sqr	(Device.vCameraPosition);
-	float	d2		= _2->spatial.sphere.P.distance_to_sqr	(Device.vCameraPosition);
+	float	d1		= _1->spatial.sphere.P.distance_to_sqr	(Device.camera.position);
+	float	d2		= _2->spatial.sphere.P.distance_to_sqr	(Device.camera.position);
 	return	d1<d2	;
 }
 
@@ -71,7 +71,7 @@ void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 		(
 		pLastSector,
 		ViewBase,
-		Device.vCameraPosition,
+		Device.camera.position,
 		m_ViewProjection,
 		CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE
 		//. disabled scissoring (HW.Caps.bScissor?CPortalTraverser::VQ_SCISSOR:0)	// generate scissoring info
@@ -241,7 +241,7 @@ void CRender::Render		()
 	// Msg						("sstatic: %s, sun: %s",o.sunstatic?;"true":"false", bSUN?"true":"false");
 
 	// HOM
-	ViewBase.CreateFromMatrix					(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	ViewBase.CreateFromMatrix					(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	View										= 0;
 	if (!ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
 		HOM.Enable									();
@@ -256,10 +256,10 @@ void CRender::Render		()
 		float		z_distance	= ps_r2_zfill		;
 		Fmatrix		m_zfill, m_project				;
 		m_project.build_projection	(
-			deg2rad(Device.fFOV/* *Device.fASPECT*/), 
-			Device.fASPECT, VIEWPORT_NEAR, 
+			deg2rad(Device.camera.fov/* *Device.camera.aspect*/), 
+			Device.camera.aspect, VIEWPORT_NEAR, 
 			z_distance * g_pGamePersistent->Environment().CurrentEnv->far_plane);
-		m_zfill.mul	(m_project,Device.mView);
+		m_zfill.mul	(m_project,Device.camera.view);
 		r_pmask										(true,false);	// enable priority "0"
 		set_Recorder								(NULL)		;
 		phase										= PHASE_SMAP;
@@ -308,7 +308,7 @@ void CRender::Render		()
 	if (bSUN)									set_Recorder	(&main_coarse_structure);
 	else										set_Recorder	(NULL);
 	phase										= PHASE_NORMAL;
-	render_main									(Device.mFullTransform,true);
+	render_main									(Device.camera.full_transform,true);
 	set_Recorder								(NULL);
 	r_pmask										(true,false);	// disable priority "1"
 	Device.Statistic->RenderCALC.End			();
@@ -479,8 +479,8 @@ void CRender::Render		()
 		PIX_EVENT(DEFER_SELF_ILLUM);
 		Target->phase_accumulator			();
 		// Render emissive geometry, stencil - write 0x0 at pixel pos
-		RCache.set_xform_project			(Device.mProject); 
-		RCache.set_xform_view				(Device.mView);
+		RCache.set_xform_project			(Device.camera.project); 
+		RCache.set_xform_view				(Device.camera.view);
 		// Stencil - write 0x1 at pixel pos - 
       if( !RImplementation.o.dx10_msaa )
 		   RCache.set_Stencil					( TRUE,D3DCMP_ALWAYS,0x01,0xff,0xff,D3DSTENCILOP_KEEP,D3DSTENCILOP_REPLACE,D3DSTENCILOP_KEEP);
@@ -526,7 +526,7 @@ void CRender::render_forward				()
 		// level
 		r_pmask									(false,true);			// enable priority "1"
 		phase									= PHASE_NORMAL;
-		render_main								(Device.mFullTransform,false);//
+		render_main								(Device.camera.full_transform,false);//
 		//	Igor: we don't want to render old lods on next frame.
 		mapLOD.clear							();
 		r_dsgraph_render_graph					(1)	;					// normal level, secondary priority

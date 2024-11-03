@@ -110,7 +110,7 @@ void CBaseMonster::HitEntity(const CEntity *pEntity, float fDamage, float impuls
 			StaticDrawableWrapper* s = CurrentGameUI()->AddCustomStatic("monster_claws", false);
 			
 			float h1,p1;
-			Device.vCameraDirection.getHP	(h1,p1);
+			Device.camera.direction.getHP	(h1,p1);
 			Fvector hd				= hit_dir;
 			hd.mul					(-1);
 			float d = -h1 + hd.getH	();

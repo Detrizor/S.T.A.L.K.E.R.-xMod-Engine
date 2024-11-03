@@ -346,8 +346,8 @@ extern float		r_ssaHZBvsTEX;
 
 ICF bool			pred_sp_sort		(ISpatial* _1, ISpatial* _2)
 {
-	float	d1		= _1->spatial.sphere.P.distance_to_sqr(Device.vCameraPosition);
-	float	d2		= _2->spatial.sphere.P.distance_to_sqr(Device.vCameraPosition);
+	float	d1		= _1->spatial.sphere.P.distance_to_sqr(Device.camera.position);
+	float	d2		= _2->spatial.sphere.P.distance_to_sqr(Device.camera.position);
 	return	d1<d2;
 }
 
@@ -361,7 +361,7 @@ void CRender::Calculate				()
 
 	// Transfer to global space to avoid deep pointer access
 	IRender_Target* T				=	getTarget	();
-	float	fov_factor				=	_sqr		(90.f / Device.fFOV);
+	float	fov_factor				=	_sqr		(90.f / Device.camera.fov);
 	g_fSCREEN						=	float(T->get_width()*T->get_height())*fov_factor*(EPS_S+ps_r__LOD);
 	r_ssaDISCARD					=	_sqr(ps_r__ssaDISCARD)		/g_fSCREEN;
 	r_ssaDONTSORT					=	_sqr(ps_r__ssaDONTSORT/3)	/g_fSCREEN;
@@ -372,7 +372,7 @@ void CRender::Calculate				()
 	r_ssaHZBvsTEX					=	_sqr(ps_r__ssaHZBvsTEX/3)	/g_fSCREEN;
 
 	// Frustum & HOM rendering
-	ViewBase.CreateFromMatrix		(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
+	ViewBase.CreateFromMatrix		(Device.camera.full_transform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
 	View							= 0;
 	HOM.Enable						();
 	HOM.Render						(ViewBase);
@@ -380,15 +380,15 @@ void CRender::Calculate				()
 	phase							= PHASE_NORMAL;
 
 	// Detect camera-sector
-	if (!vLastCameraPos.similar(Device.vCameraPosition,EPS_S)) 
+	if (!vLastCameraPos.similar(Device.camera.position,EPS_S)) 
 	{
-		CSector* pSector		= (CSector*)detectSector(Device.vCameraPosition);
+		CSector* pSector		= (CSector*)detectSector(Device.camera.position);
 		if (pSector && (pSector!=pLastSector))
 			g_pGamePersistent->OnSectorChanged( translateSector(pSector) );
 
 		if (0==pSector) pSector = pLastSector;
 		pLastSector = pSector;
-		vLastCameraPos.set(Device.vCameraPosition);
+		vLastCameraPos.set(Device.camera.position);
 	}
 
 	// Check if camera is too near to some portal - if so force DualRender
@@ -396,7 +396,7 @@ void CRender::Calculate				()
 	{
 		Fvector box_radius;		box_radius.set(EPS_L*2,EPS_L*2,EPS_L*2);
 		Sectors_xrc.box_options	(CDB::OPT_FULL_TEST);
-		Sectors_xrc.box_query	(rmPortals,Device.vCameraPosition,box_radius);
+		Sectors_xrc.box_query	(rmPortals,Device.camera.position,box_radius);
 		for (int K=0; K<Sectors_xrc.r_count(); K++)
 		{
 			CPortal*	pPortal		= (CPortal*) Portals[rmPortals->get_tris()[Sectors_xrc.r_begin()[K].id].dummy];
@@ -416,8 +416,8 @@ void CRender::Calculate				()
 			(
 			pLastSector,
 			ViewBase,
-			Device.vCameraPosition,
-			Device.mFullTransform,
+			Device.camera.position,
+			Device.camera.full_transform,
 			CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE
 			);
 

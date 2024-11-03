@@ -251,7 +251,7 @@ void CGamePersistent::WeathersUpdate()
 					pos.x = _cos(angle);
 					pos.y = 0;
 					pos.z = _sin(angle);
-					pos.normalize().mul(ch.get_rnd_sound_dist()).add(Device.vCameraPosition);
+					pos.normalize().mul(ch.get_rnd_sound_dist()).add(Device.camera.position);
 					pos.y += 10.f;
 					snd.play_at_pos(0, pos);
 
@@ -278,7 +278,7 @@ void CGamePersistent::WeathersUpdate()
 						pos.x				= _cos(angle);
 						pos.y				= 0;
 						pos.z				= _sin(angle);
-						pos.normalize		().mul(env_amb->get_rnd_sound_dist()).add(Device.vCameraPosition);
+						pos.normalize		().mul(env_amb->get_rnd_sound_dist()).add(Device.camera.position);
 						pos.y				+= 10.f;
 						snd->play_at_pos	(0,pos);
 						}
@@ -300,7 +300,7 @@ void CGamePersistent::WeathersUpdate()
 					ambient_effect_wind_on = true;
 
 					ambient_particles = CParticlesObject::Create(eff->particles.c_str(), FALSE, false);
-					Fvector pos; pos.add(Device.vCameraPosition, eff->offset);
+					Fvector pos; pos.add(Device.camera.position, eff->offset);
 					ambient_particles->play_at_pos(pos);
 					if (eff->sound._handle())		eff->sound.play_at_pos(0, pos);
 

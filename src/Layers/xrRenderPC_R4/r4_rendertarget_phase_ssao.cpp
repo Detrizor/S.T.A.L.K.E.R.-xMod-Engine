@@ -35,15 +35,15 @@ void CRenderTarget::phase_ssao	()
 	}*/
 
 	// Compute params
-	Fmatrix		m_v2w;			m_v2w.invert				(Device.mView		);
+	Fmatrix		m_v2w;			m_v2w.invert				(Device.camera.view		);
 
 	float		fSSAONoise = 2.0f;
 	fSSAONoise *= tan(deg2rad(67.5f));
-	fSSAONoise /= tan(deg2rad(Device.fFOV));
+	fSSAONoise /= tan(deg2rad(Device.camera.fov));
 
 	float		fSSAOKernelSize = 150.0f;
 	fSSAOKernelSize *= tan(deg2rad(67.5f));
-	fSSAOKernelSize /= tan(deg2rad(Device.fFOV));
+	fSSAOKernelSize /= tan(deg2rad(Device.camera.fov));
 
 	// Fill VB
 	float	scale_X				= float(Device.dwWidth)	* 0.5f / float(TEX_jitter);
@@ -132,7 +132,7 @@ void CRenderTarget::phase_downsamp	()
 	RCache.set_Stencil	(FALSE);
 
 	{
-		Fmatrix		m_v2w;			m_v2w.invert				(Device.mView		);
+		Fmatrix		m_v2w;			m_v2w.invert				(Device.camera.view		);
 
 		// Fill VB
 		float	scale_X				= float(w)	/ float(TEX_jitter);

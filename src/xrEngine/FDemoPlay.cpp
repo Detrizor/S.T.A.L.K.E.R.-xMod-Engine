@@ -300,11 +300,11 @@ BOOL CDemoPlay::ProcessCam(SCamEffectorInfo& info)
             v[3].x = m4->m[i][0];
             v[3].y = m4->m[i][1];
             v[3].z = m4->m[i][2];
-            spline1(t, &(v[0]), (Fvector*)&(Device.mView.m[i][0]));
+            spline1(t, &(v[0]), (Fvector*)&(Device.camera.view.m[i][0]));
         }
 
         Fmatrix mInvCamera;
-        mInvCamera.invert(Device.mView);
+        mInvCamera.invert(Device.camera.view);
         info.n.set(mInvCamera._21, mInvCamera._22, mInvCamera._23);
         info.d.set(mInvCamera._31, mInvCamera._32, mInvCamera._33);
         info.p.set(mInvCamera._41, mInvCamera._42, mInvCamera._43);

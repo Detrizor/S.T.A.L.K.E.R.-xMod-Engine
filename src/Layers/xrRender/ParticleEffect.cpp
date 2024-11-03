@@ -346,7 +346,7 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	const Fvector& T 	= dir;
 	Fvector R; 	
 
-	// R.crossproduct(T,RDEVICE.vCameraDirection).normalize_safe();
+	// R.crossproduct(T,RDEVICE.camera.direction).normalize_safe();
 
 	__m128 _t , _t1 , _t2 , _r , _r1 , _r2 ;
 
@@ -355,8 +355,8 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	_t = _mm_load_ss( (float*) &T.x );
 	_t = _mm_loadh_pi( _t , (__m64*) &T.y );
 
-	_r = _mm_load_ss( (float*) &RDEVICE.vCameraDirection.x );
-	_r = _mm_loadh_pi( _r , (__m64*) &RDEVICE.vCameraDirection.y );
+	_r = _mm_load_ss( (float*) &RDEVICE.camera.direction.x );
+	_r = _mm_loadh_pi( _r , (__m64*) &RDEVICE.camera.direction.y );
 
 	_t1 = _mm_shuffle_ps( _t , _t , _MM_SHUFFLE( 0 , 3 , 1 , 2 ) );
 	_t2 = _mm_shuffle_ps( _t , _t , _MM_SHUFFLE( 2 , 0 , 1 , 3 ) );
@@ -514,9 +514,9 @@ void ParticleRenderStream( LPVOID lpvParams )
 					if (pPE.m_RT_Flags.is(CParticleEffect::flRT_XFORM)){
 						Fvector p;
 						pPE.m_XFORM.transform_tiny	(p,m.pos);
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,p,lt,rb,r_x,r_y,m.color,sina,cosa);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,p,lt,rb,r_x,r_y,m.color,sina,cosa);
 					}else{
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
 					}
 				}
 			}
@@ -573,19 +573,19 @@ void CParticleEffect::Render(float )
 			if (dwCount)    
 			{
 #ifndef _EDITOR
-				Fmatrix Pold						= Device.mProject;
-				Fmatrix FTold						= Device.mFullTransform;
+				Fmatrix Pold						= Device.camera.project;
+				Fmatrix FTold						= Device.camera.full_transform;
 				if(GetHudMode())
 				{
-					RDEVICE.mProject.build_projection(	deg2rad(Device.fHUDFOV),
-														Device.fASPECT, 
+					RDEVICE.camera.project.build_projection(	deg2rad(Device.camera.hud_fov),
+														Device.camera.aspect, 
 														VIEWPORT_NEAR_HUD,
 														g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-					Device.mFullTransform.mul	(Device.mProject, Device.mView);
-					RCache.set_xform_project	(Device.mProject);
+					Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+					RCache.set_xform_project	(Device.camera.project);
 					RImplementation.rmNear		();
-					ApplyTexgen(Device.mFullTransform);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 
@@ -599,10 +599,10 @@ void CParticleEffect::Render(float )
 				if(GetHudMode())
 				{
 					RImplementation.rmNormal	();
-					Device.mProject				= Pold;
-					Device.mFullTransform		= FTold;
-					RCache.set_xform_project	(Device.mProject);
-					ApplyTexgen(Device.mFullTransform);
+					Device.camera.project				= Pold;
+					Device.camera.full_transform		= FTold;
+					RCache.set_xform_project	(Device.camera.project);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 			}
@@ -642,7 +642,7 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	float sa	= _sin(angle);  
 	float ca	= _cos(angle);  
 	const Fvector& T 	= dir;
-	Fvector R; 	R.crossproduct(T,RDEVICE.vCameraDirection).normalize_safe();
+	Fvector R; 	R.crossproduct(T,RDEVICE.camera.direction).normalize_safe();
 	Fvector Vr, Vt;
 	Vr.x 		= T.x*r1*sa+R.x*r1*ca;
 	Vr.y 		= T.y*r1*sa+R.y*r1*ca;
@@ -733,9 +733,9 @@ void CParticleEffect::Render(float )
 					if (m_RT_Flags.is(flRT_XFORM)){
 						Fvector p;
 						m_XFORM.transform_tiny	(p,m.pos);
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,p,lt,rb,r_x,r_y,m.color,m.rot.x);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,p,lt,rb,r_x,r_y,m.color,m.rot.x);
 					}else{
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
 					}
 				}
 			}
@@ -744,19 +744,19 @@ void CParticleEffect::Render(float )
 			if (dwCount)    
 			{
 #ifndef _EDITOR
-				Fmatrix Pold						= Device.mProject;
-				Fmatrix FTold						= Device.mFullTransform;
+				Fmatrix Pold						= Device.camera.project;
+				Fmatrix FTold						= Device.camera.full_transform;
 				if(GetHudMode())
 				{
-					RDEVICE.mProject.build_projection(	deg2rad(Device.fHUDFOV), 
-														Device.fASPECT, 
+					RDEVICE.camera.project.build_projection(	deg2rad(Device.camera.hud_fov), 
+														Device.camera.aspect, 
 														VIEWPORT_NEAR_HUD, 
 														g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-					Device.mFullTransform.mul	(Device.mProject, Device.mView);
-					RCache.set_xform_project	(Device.mProject);
+					Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+					RCache.set_xform_project	(Device.camera.project);
 					RImplementation.rmNear		();
-					ApplyTexgen(Device.mFullTransform);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 
@@ -770,10 +770,10 @@ void CParticleEffect::Render(float )
 				if(GetHudMode())
 				{
 					RImplementation.rmNormal	();
-					Device.mProject				= Pold;
-					Device.mFullTransform		= FTold;
-					RCache.set_xform_project	(Device.mProject);
-					ApplyTexgen(Device.mFullTransform);
+					Device.camera.project				= Pold;
+					Device.camera.full_transform		= FTold;
+					RCache.set_xform_project	(Device.camera.project);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 			}

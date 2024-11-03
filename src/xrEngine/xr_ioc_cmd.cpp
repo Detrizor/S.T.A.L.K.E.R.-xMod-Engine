@@ -523,7 +523,7 @@ class CCC_DR_TakePoint : public IConsole_Command
 public:
 CCC_DR_TakePoint(LPCSTR N) : IConsole_Command(N) { bEmptyArgsHandled = TRUE; };
 virtual void Execute(LPCSTR args) {
-Fvector CamPos = Device.vCameraPosition;
+Fvector CamPos = Device.camera.position;
 
 if (g_DR_LM_Min.x > CamPos.x) g_DR_LM_Min.x = CamPos.x;
 if (g_DR_LM_Min.z > CamPos.z) g_DR_LM_Min.z = CamPos.z;

@@ -309,7 +309,7 @@ const Fvector2& CMapLocation::CalcDirection()
 
 	if(Level().CurrentViewEntity()&&Level().CurrentViewEntity()->ID()==m_objectID )
 	{
-		m_cached.m_Direction.set(Device.vCameraDirection.x,Device.vCameraDirection.z);
+		m_cached.m_Direction.set(Device.camera.direction.x,Device.camera.direction.z);
 	}else
 	{
 		CObject* pObject =  Level().Objects.net_Find(m_objectID);
@@ -325,7 +325,7 @@ const Fvector2& CMapLocation::CalcDirection()
 		CObject* pObject =  Level().Objects.net_Find(m_objectID);
 		if(pObject){
 			Fvector2 dcp,obj_pos;
-			dcp.set(Device.vCameraPosition.x, Device.vCameraPosition.z);
+			dcp.set(Device.camera.position.x, Device.camera.position.z);
 			obj_pos.set(pObject->Position().x, pObject->Position().z);
 			m_cached.m_Direction.sub(obj_pos, dcp);
 			m_cached.m_Direction.normalize_safe();

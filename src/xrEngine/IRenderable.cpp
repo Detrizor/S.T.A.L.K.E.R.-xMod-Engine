@@ -32,7 +32,7 @@ IRender_ObjectSpecific* IRenderable::renderable_ROS()
 
 float IRenderable::calc_distance_to_camera() const
 {
-	return								Device.vCameraPosition.distance_to_sqr(renderable.xform.c);
+	return								Device.camera.position.distance_to_sqr(renderable.xform.c);
 }
 
 float IRenderable::get_distance_to_camera_base()
@@ -48,5 +48,5 @@ float IRenderable::get_distance_to_camera_base()
 
 float IRenderable::getDistanceToCamera()
 {
-	return								get_distance_to_camera_base() * Device.iZoomSqr;
+	return								get_distance_to_camera_base() * Device.camera.izoom_sqr;
 }

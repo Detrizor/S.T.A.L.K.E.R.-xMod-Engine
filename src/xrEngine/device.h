@@ -51,20 +51,6 @@ public:
 	u32 dwTimeGlobal;
 	u32 dwTimeContinual;
 
-	Fvector vCameraPosition;
-	Fvector vCameraDirection;
-	Fvector vCameraTop;
-	Fvector vCameraRight;
-
-	Fmatrix mView;
-	Fmatrix mProject;
-	Fmatrix mFullTransform;
-
-	float fFOV;
-	float fHUDFOV;
-	float fASPECT;
-	float iZoomSqr;
-
 protected:
 	u32 Timer_MM_Delta;
 	CTimer_paused Timer;
@@ -81,6 +67,28 @@ public:
 	CRegistrator <pureScreenResolutionChanged> seqResolutionChanged;
 
 	HWND m_hWnd;
+
+public:
+	struct SCameraInfo
+	{
+		Fvector							position								= vZero;
+		Fvector							direction								= vForward;
+		Fvector							top										= vTop;
+		Fvector							right									= vRight;
+
+		Fmatrix							view									= Fidentity;
+		Fmatrix							project									= Fidentity;
+		Fmatrix							full_transform							= Fidentity;
+		Fmatrix							full_transform_inv						= Fidentity;
+
+		float							fov										= 75.f;
+		float							hud_fov									= 75.f;
+		float							aspect									= 1.f;
+		float							izoom_sqr								= 1.f;
+	};
+
+public:
+	SCameraInfo							camera;
 };
 
 #pragma pack(pop)
@@ -114,14 +122,14 @@ public:
 		if (enabled&&!m_bNearer)
 		{
 			m_bNearer = TRUE;
-			mProject._43 -= EPS_L;
+			camera.project._43 -= EPS_L;
 		}
 		else if (!enabled&&m_bNearer)
 		{
 			m_bNearer = FALSE;
-			mProject._43 += EPS_L;
+			camera.project._43 += EPS_L;
 		}
-		m_pRender->SetCacheXform(mView, mProject);
+		m_pRender->SetCacheXform(camera.view, camera.project);
 	}
 
 	void DumpResourcesMemoryUsage() { m_pRender->ResourcesDumpMemoryUsage(); }
@@ -132,8 +140,6 @@ public:
 	xr_vector <fastdelegate::FastDelegate0<> > seqParallel;
 
 	CStats* Statistic;
-
-	Fmatrix mInvFullTransform;
 
 	CRenderDevice()
 		:

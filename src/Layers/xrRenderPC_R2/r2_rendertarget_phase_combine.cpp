@@ -100,10 +100,10 @@ void	CRenderTarget::phase_combine	()
 		static Fmatrix		m_saved_viewproj;
 		
 		// (new-camera) -> (world) -> (old_viewproj)
-		Fmatrix	m_invview;	m_invview.invert	(Device.mView);
+		Fmatrix	m_invview;	m_invview.invert	(Device.camera.view);
 		m_previous.mul		(m_saved_viewproj,m_invview);
-		m_current.set		(Device.mProject)		;
-		m_saved_viewproj.set(Device.mFullTransform)	;
+		m_current.set		(Device.camera.project)		;
+		m_saved_viewproj.set(Device.camera.full_transform)	;
 		float	scale		= ps_r2_mblur/2.f;
 		m_blur_scale.set	(scale,-scale).div(12.f);
 	}
@@ -112,7 +112,7 @@ void	CRenderTarget::phase_combine	()
 	if (!_menu_pp)
 	{
 		// Compute params
-		Fmatrix		m_v2w;			m_v2w.invert				(Device.mView		);
+		Fmatrix		m_v2w;			m_v2w.invert				(Device.camera.view		);
 		CEnvDescriptorMixer& envdesc= *g_pGamePersistent->Environment().CurrentEnv		;
 		const float minamb			= 0.001f;
 		Fvector4	ambclr			= { _max(envdesc.ambient.x*2,minamb),	_max(envdesc.ambient.y*2,minamb),			_max(envdesc.ambient.z*2,minamb),	0	};
@@ -129,11 +129,11 @@ void	CRenderTarget::phase_combine	()
 
 		float		fSSAONoise = 2.0f;
 		fSSAONoise *= tan(deg2rad(67.5f/2.0f));
-		fSSAONoise /= tan(deg2rad(Device.fFOV/2.0f));
+		fSSAONoise /= tan(deg2rad(Device.camera.fov/2.0f));
 
 		float		fSSAOKernelSize = 150.0f;
 		fSSAOKernelSize *= tan(deg2rad(67.5f/2.0f));
-		fSSAOKernelSize /= tan(deg2rad(Device.fFOV/2.0f));
+		fSSAOKernelSize /= tan(deg2rad(Device.camera.fov/2.0f));
 
 		// sun-params
 		{
@@ -141,7 +141,7 @@ void	CRenderTarget::phase_combine	()
 			Fvector		L_dir,L_clr;	float L_spec;
 			L_clr.set					(fuckingsun->color.r,fuckingsun->color.g,fuckingsun->color.b);
 			L_spec						= u_diffuse2s	(L_clr);
-			Device.mView.transform_dir	(L_dir,fuckingsun->direction);
+			Device.camera.view.transform_dir	(L_dir,fuckingsun->direction);
 			L_dir.normalize				();
 
 			sunclr.set				(L_clr.x,L_clr.y,L_clr.z,L_spec);
@@ -456,7 +456,7 @@ void CRenderTarget::phase_combine_volumetric()
 	RCache.set_ColorWriteEnable(D3DCOLORWRITEENABLE_RED|D3DCOLORWRITEENABLE_GREEN|D3DCOLORWRITEENABLE_BLUE);
 	{
 		// Compute params
-		Fmatrix		m_v2w;			m_v2w.invert				(Device.mView		);
+		Fmatrix		m_v2w;			m_v2w.invert				(Device.camera.view		);
 		CEnvDescriptorMixer& envdesc= *g_pGamePersistent->Environment().CurrentEnv		;
 		const float minamb			= 0.001f;
 		Fvector4	ambclr			= { _max(envdesc.ambient.x*2,minamb),	_max(envdesc.ambient.y*2,minamb),			_max(envdesc.ambient.z*2,minamb),	0	};
@@ -478,7 +478,7 @@ void CRenderTarget::phase_combine_volumetric()
 			Fvector		L_dir,L_clr;	float L_spec;
 			L_clr.set					(fuckingsun->color.r,fuckingsun->color.g,fuckingsun->color.b);
 			L_spec						= u_diffuse2s	(L_clr);
-			Device.mView.transform_dir	(L_dir,fuckingsun->direction);
+			Device.camera.view.transform_dir	(L_dir,fuckingsun->direction);
 			L_dir.normalize				();
 
 			sunclr.set				(L_clr.x,L_clr.y,L_clr.z,L_spec);

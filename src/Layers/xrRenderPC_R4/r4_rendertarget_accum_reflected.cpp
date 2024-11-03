@@ -13,8 +13,8 @@ void CRenderTarget::accum_reflected		(light* L)
 	BOOL	bIntersect			= FALSE; //enable_scissor(L);
 	L->xform_calc				();
 	RCache.set_xform_world		(L->m_xform			);
-	RCache.set_xform_view		(Device.mView		);
-	RCache.set_xform_project	(Device.mProject	);
+	RCache.set_xform_view		(Device.camera.view		);
+	RCache.set_xform_project	(Device.camera.project	);
 	bIntersect					= enable_scissor	(L);
 	enable_dbt_bounds			(L);
 
@@ -45,8 +45,8 @@ void CRenderTarget::accum_reflected		(light* L)
 	Fvector		L_dir,L_clr,L_pos;	float L_spec;
 	L_clr.set					(L->color.r,L->color.g,L->color.b);
 	L_spec						= u_diffuse2s	(L_clr);
-	Device.mView.transform_tiny	(L_pos,L->position);
-	Device.mView.transform_dir	(L_dir,L->direction);
+	Device.camera.view.transform_tiny	(L_pos,L->position);
+	Device.camera.view.transform_dir	(L_dir,L->direction);
 	L_dir.normalize				();
 
 	{
