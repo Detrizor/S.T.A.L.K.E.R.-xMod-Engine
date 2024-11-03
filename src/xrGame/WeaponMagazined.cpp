@@ -463,7 +463,29 @@ void CWeaponMagazined::UpdateCL()
 	}
 
 	UpdateSounds();
-	updateRecoil();
+
+	if (m_recoil_to_process)
+	{
+		if (auto ea = H_Parent()->scast<CEntityAlive*>())
+		{
+			float accuracy				= ea->getAccuracy();
+			accuracy					*= m_layout_accuracy_modifier * m_grip_accuracy_modifier * m_foregrip_accuracy_modifier;
+			accuracy					*= (IsZoomed()) ? m_stock_accuracy_modifier : m_stock_accuracy_modifier_absent;
+
+			while (m_recoil_to_process && fMore(dt, 0.f))
+			{
+				updateRecoil			(min(s_recoil_processing_time_delta_step, dt), accuracy);
+				dt						-= s_recoil_processing_time_delta_step;
+			}
+		}
+		else
+		{
+			m_recoil_hud_impulse		= vZero4;
+			m_recoil_hud_shift			= vZero4;
+			m_recoil_cam_impulse		= vZero;
+			m_recoil_cam_delta			= vZero;
+		}
+	}
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -1417,73 +1439,68 @@ void CWeaponMagazined::setADS(int mode)
 	}
 }
 
-void CWeaponMagazined::updateRecoil()
+void CWeaponMagazined::updateRecoil(float dt, float accuracy)
 {
 	if (bWorking && m_iShotNum < m_iBaseDispersionedBulletsCount)
 		return;
 
-	bool hud_impulse = !fIsZero(m_recoil_hud_impulse.magnitude());
-	bool hud_shift = !fIsZero(m_recoil_hud_shift.magnitude());
-	bool cam_impulse = !fIsZero(m_recoil_cam_impulse.magnitude());
-	if (!hud_impulse && !hud_shift && !cam_impulse)
+	bool hud_impulse					= !fIsZero(m_recoil_hud_impulse.magnitude());
+	bool hud_shift						= !fIsZero(m_recoil_hud_shift.magnitude());
+	bool cam_impulse					= !fIsZero(m_recoil_cam_impulse.magnitude());
+	m_recoil_to_process					= (hud_impulse || hud_shift || cam_impulse);
+	if (!m_recoil_to_process)
 		return;
-
-	static float fAvgTimeDelta = Device.fTimeDelta;
-	fAvgTimeDelta = _inertion(fAvgTimeDelta, Device.fTimeDelta, 0.8f);
-
-	CEntityAlive* ea = smart_cast<CEntityAlive*>(H_Parent());
-	float accuracy = (ea) ? ea->getAccuracy() : 1.f;
-	accuracy *= m_layout_accuracy_modifier * m_grip_accuracy_modifier * m_foregrip_accuracy_modifier;
-	accuracy *= (IsZoomed()) ? m_stock_accuracy_modifier : m_stock_accuracy_modifier_absent;
 
 	if (hud_impulse || hud_shift)
 	{
-		float dt = fAvgTimeDelta / GetControlInertionFactor();
-		auto update_hud_recoil_shift = [this, dt](Fvector4 CR$ impulse)
+		float dt_						= dt / GetControlInertionFactor();
+		auto update_hud_recoil_shift = [this, dt_](Fvector4 CR$ impulse)
 		{
-			Fvector4 delta = impulse;
-			delta.mul(dt);
-			float prev_shift = m_recoil_hud_shift.magnitude();
-			m_recoil_hud_shift.add(delta);
-			return (fMoreOrEqual(delta.magnitude(), prev_shift));
+			Fvector4 delta				= impulse;
+			delta.mul					(dt_);
+			float prev_shift			= m_recoil_hud_shift.magnitude();
+			m_recoil_hud_shift.add		(delta);
+			return						fMoreOrEqual(delta.magnitude(), prev_shift);
 		};
 
 		if (hud_impulse)
 		{
-			update_hud_recoil_shift(m_recoil_hud_impulse);
+			update_hud_recoil_shift		(m_recoil_hud_impulse);
 
-			Fvector4 stopping_power = m_recoil_hud_impulse;
-			stopping_power.normalize();
-			stopping_power.mul(m_recoil_hud_shift.magnitude());
-			stopping_power.mul(-s_recoil_hud_stopping_power_per_shift);
-			stopping_power.mul(accuracy);
-			stopping_power.mul(fAvgTimeDelta);
+			Fvector4 stopping_power		= m_recoil_hud_impulse;
+			stopping_power.normalize	();
+			stopping_power.mul			(m_recoil_hud_shift.magnitude());
+			stopping_power.mul			(-s_recoil_hud_stopping_power_per_shift);
+			stopping_power.mul			(accuracy);
+			stopping_power.mul			(dt);
 			if (fMoreOrEqual(stopping_power.magnitude(), m_recoil_hud_impulse.magnitude()))
-				m_recoil_hud_impulse = vZero4;
+				m_recoil_hud_impulse	= vZero4;
 			else
 				m_recoil_hud_impulse.add(stopping_power);
 		}
 		else
 		{
-			Fvector4 relax_impulse = m_recoil_hud_shift;
-			relax_impulse.mul(-s_recoil_hud_relax_impulse_per_shift);
-			relax_impulse.mul(accuracy);
+			Fvector4 relax_impulse		= m_recoil_hud_shift;
+			relax_impulse.mul			(-s_recoil_hud_relax_impulse_per_shift);
+			relax_impulse.mul			(accuracy);
 			if (update_hud_recoil_shift(relax_impulse))
-				m_recoil_hud_shift = vZero4;
+				m_recoil_hud_shift		= vZero4;
 		}
 	}
 
 	if (cam_impulse)
 	{
-		m_recoil_cam_delta = m_recoil_cam_impulse;
-		m_recoil_cam_delta.mul(s_recoil_cam_angle_per_delta);
-		m_recoil_cam_delta.mul(fAvgTimeDelta);
+		Fvector d_delta					= m_recoil_cam_impulse;
+		d_delta.mul						(s_recoil_cam_angle_per_delta);
+		d_delta.mul						(dt);
+		m_recoil_cam_delta.add			(d_delta);
 
-		Fvector stopping_power = m_recoil_cam_impulse;
-		stopping_power.mul(-s_recoil_cam_stopping_power_per_impulse);
-		stopping_power.mul(accuracy);
-		stopping_power.mul(fAvgTimeDelta);
-		m_recoil_cam_impulse.add(stopping_power);
+		Fvector stopping_power			= m_recoil_cam_impulse;
+		stopping_power.mul				(-s_recoil_cam_stopping_power_per_impulse);
+		stopping_power.mul				(accuracy);
+		stopping_power.mul				(dt);
+		m_recoil_cam_impulse.add		(stopping_power);
+
 		if (fIsZero(m_recoil_cam_impulse.magnitude()) || fMoreOrEqual(m_recoil_cam_impulse.dotproduct(stopping_power), 0.f))
 		{
 			if (m_recoil_cam_last_impulse.magnitude())
@@ -1507,6 +1524,7 @@ float CWeaponMagazined::s_recoil_hud_relax_impulse_per_shift;
 float CWeaponMagazined::s_recoil_cam_angle_per_delta;
 float CWeaponMagazined::s_recoil_cam_stopping_power_per_impulse;
 float CWeaponMagazined::s_recoil_cam_relax_impulse_ratio;
+float CWeaponMagazined::s_recoil_processing_time_delta_step;
 
 float CWeaponMagazined::m_stock_accuracy_modifier_absent;
 
@@ -1521,6 +1539,7 @@ void CWeaponMagazined::loadStaticData()
 	s_recoil_cam_angle_per_delta		= pSettings->r_float("weapon_manager", "recoil_cam_angle_per_delta");
 	s_recoil_cam_stopping_power_per_impulse = pSettings->r_float("weapon_manager", "recoil_cam_stopping_power_per_impulse");
 	s_recoil_cam_relax_impulse_ratio	= pSettings->r_float("weapon_manager", "recoil_cam_relax_impulse_ratio");
+	s_recoil_processing_time_delta_step	= pSettings->r_float("weapon_manager", "recoil_processing_time_delta_step");
 	
 	m_stock_accuracy_modifier_absent	= readAccuracyModifier("absent");
 }

@@ -411,6 +411,7 @@ protected:
 	Fvector								m_muzzle_recoil_pattern					= vOne;
 	Fvector								m_foregrip_recoil_pattern				= vOne;
 
+	bool								m_recoil_to_process						= true;
 	float								m_recoil_tremble_mean					= 0.f;
 	Fvector4							m_recoil_hud_impulse					= vZero4;
 	Fvector4							m_recoil_hud_shift						= vZero4;
@@ -442,9 +443,9 @@ public:
 	static Fvector						readRecoilPattern						(LPCSTR type);
 
 	void								SwitchArmedMode							();
+	Fvector								getRecoilCamDelta						();
 
 	Fvector4 CR$ 						getRecoilHudShift					C$	()		{ return m_recoil_hud_shift; }
-	Fvector CR$							getRecoilCamDelta					C$	()		{ return m_recoil_cam_delta; }
 	Fmatrix CR$							getOffset							C$	()		{ return m_Offset; }
 	Fvector CR$							getLoadedFirePoint					C$	()		{ return m_fire_point; }
 	

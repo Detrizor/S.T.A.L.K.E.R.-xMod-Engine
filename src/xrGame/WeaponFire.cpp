@@ -101,6 +101,8 @@ void CWeapon::FireEnd()
 
 void CWeapon::appendRecoil(float impulse_magnitude)
 {
+	m_recoil_to_process			= true;
+
 	Fvector pattern				= m_mechanic_recoil_pattern;
 	pattern.mul					(m_layout_recoil_pattern);
 	pattern.mul					((IsZoomed()) ? m_stock_recoil_pattern : m_stock_recoil_pattern_absent);

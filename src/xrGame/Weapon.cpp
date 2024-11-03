@@ -855,6 +855,13 @@ Fvector CWeapon::readRecoilPattern(LPCSTR type)
 	return READ_IF_EXISTS(pSettings, r_fvector3, "recoil_patterns", type, vOne);
 }
 
+Fvector CWeapon::getRecoilCamDelta()
+{
+	auto res = m_recoil_cam_delta;
+	m_recoil_cam_delta = vZero;
+	return res;
+}
+
 void CWeapon::setADS(int mode)
 {
 	if (mode == -1 && !HasAltAim())

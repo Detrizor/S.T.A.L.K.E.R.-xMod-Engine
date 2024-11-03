@@ -66,8 +66,9 @@ void CWeaponShotEffector::Update()
 	if (m_actived && m_weapon->isCamRecoilRelaxed())
 		m_actived = false;
 
-	m_delta_horz = m_weapon->getRecoilCamDelta().x;
-	m_delta_vert = m_weapon->getRecoilCamDelta().y;
+	auto delta = m_weapon->getRecoilCamDelta();
+	m_delta_horz = delta.x;
+	m_delta_vert = delta.y;
 	//--xd problematic m_delta_roll = m_weapon->getRecoilShiftDelta().z * coeff;
 	
 	m_angle_vert += m_delta_vert;

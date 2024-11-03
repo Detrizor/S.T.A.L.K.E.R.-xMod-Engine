@@ -178,6 +178,7 @@ private:
 	static float						s_recoil_cam_angle_per_delta;
 	static float						s_recoil_cam_stopping_power_per_impulse;
 	static float						s_recoil_cam_relax_impulse_ratio;
+	static float						s_recoil_processing_time_delta_step;
 
 	static float						m_stock_accuracy_modifier_absent;
 
@@ -231,7 +232,7 @@ protected:
 	CAddonSlot*							m_magazine_slot							= nullptr;
 	bool								m_grip									= false;
 
-	void								updateRecoil							();
+	void								updateRecoil							(float dt, float accuracy);
 	void								process_addon_data						(CGameObject& obj, shared_str CR$ section, bool attach);
 	int									try_consume_ammo						(int count);
 	bool								on_bolt_lock							();
