@@ -835,8 +835,11 @@ public:
 
 private:
 	float mutable						m_weapon_accuracy						= 1.f;
+	bool								m_in_combat								= false;
+
 	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
 };
+
 add_to_type_list(CAI_Stalker)
 #undef script_type_list
 #define script_type_list save_type_list(CAI_Stalker)

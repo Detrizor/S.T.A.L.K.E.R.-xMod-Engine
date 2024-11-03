@@ -917,6 +917,7 @@ void CAI_Stalker::shedule_Update		( u32 DT )
 
 #ifndef USE_SCHEDULER_IN_AGENT_MANAGER
 		agent_manager().update			();
+		m_in_combat						= agent_manager().member().registered_in_combat(this);
 #endif // USE_SCHEDULER_IN_AGENT_MANAGER
 
 //		bool			check = !!memory().enemy().selected();
@@ -1299,10 +1300,10 @@ void CAI_Stalker::aim_target					(Fvector &result, const CGameObject *object)
 	::aim_target			( m_aim_bone_id, result, object );
 }
 
-BOOL CAI_Stalker::AlwaysTheCrow					()
+BOOL CAI_Stalker::AlwaysTheCrow()
 {
 	VERIFY					( character_physics_support	()	);
-	return					(character_physics_support()->interactive_motion());
+	return					(character_physics_support()->interactive_motion() || m_in_combat);
 }
 
 smart_cover::cover const* CAI_Stalker::get_current_smart_cover	( )
