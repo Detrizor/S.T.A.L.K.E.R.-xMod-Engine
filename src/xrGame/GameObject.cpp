@@ -225,9 +225,8 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 			if (destroy_type != xrServer::sls_clear && destroy_type != xrServer::offline_switch)
 				emitSignal				(sOnChild(obj->scast<CGameObject*>(), false));
 
-			bool activate				= (type != GE_TRADE_SELL && !destroy_type);
-			obj->H_SetParent			(nullptr, !activate);
-			if (activate)
+			obj->H_SetParent			(nullptr, (type == GE_TRADE_SELL || destroy_type));
+			if (!destroy_type)
 				obj->processing_activate();
 		}
 	}
