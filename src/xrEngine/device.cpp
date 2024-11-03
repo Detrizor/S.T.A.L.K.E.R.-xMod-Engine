@@ -250,9 +250,6 @@ void CRenderDevice::render_svp()
 {
 	if (SVP.isActive() && !isActiveMain())
 	{
-		dwFrame++;
-		Core.dwFrame = dwFrame;
-
 		float fov_saved = fFOV;
 		Fvector pos_saved = vCameraPosition;
 

@@ -209,7 +209,7 @@ BOOL CRenderTarget::NeedPostProcess()
 BOOL CRenderTarget::Perform		()
 {
 	return Available() && 
-		( ((BOOL)RImplementation.m_bMakeAsyncSS) || NeedPostProcess() || (ps_r__Supersample>1) || (frame_distort==(Device.dwFrame-1)));
+		( ((BOOL)RImplementation.m_bMakeAsyncSS) || NeedPostProcess() || (ps_r__Supersample>1) || (frame_distort==(::Render->dwFrame()-1)));
 }
 
 #include <dinput.h>
@@ -220,7 +220,7 @@ void CRenderTarget::Begin		()
 	/*
 	if (g_pGameLevel->IR_GetKeyState(DIK_LSHIFT))	
 	{
-		Msg					("[%5d]------------------------",Device.dwFrame);
+		Msg					("[%5d]------------------------",::Render->dwFrame());
 		SHOW				(param_blur)
 		SHOW				(param_gray)
 		SHOW				(param_duality_h)
@@ -373,7 +373,7 @@ void CRenderTarget::End		()
 
 void	CRenderTarget::phase_distortion	()
 {
-	frame_distort								= Device.dwFrame;
+	frame_distort								= ::Render->dwFrame();
 	RCache.set_RT								(RT_distort->pRT);
 	RCache.set_ZB								(ZB);
 	RCache.set_CullMode							(CULL_CCW);

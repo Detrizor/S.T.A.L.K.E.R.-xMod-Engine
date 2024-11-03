@@ -101,7 +101,7 @@ struct	FTreeVisual_setup
 
 	void		calculate	()
 	{
-		dwFrame	    				= Device.dwFrame;
+		dwFrame	    				= ::Render->dwFrame();
 
 		// Calc wind-vector3, scale
 		float	tm_rot			= PI_MUL_2*Device.fTimeGlobal/ps_r__Tree_w_rot;
@@ -130,7 +130,7 @@ struct	FTreeVisual_setup
 void FTreeVisual::Render	(float LOD)
 {
 	static FTreeVisual_setup	tvs;
-	if (tvs.dwFrame!=Device.dwFrame)	tvs.calculate();
+	if (tvs.dwFrame!=::Render->dwFrame())	tvs.calculate();
 	// setup constants
 #if RENDER!=R_R1
 	Fmatrix					xform_v			;

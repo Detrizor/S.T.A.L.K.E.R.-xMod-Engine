@@ -1,5 +1,3 @@
-#ifndef dxRenderDeviceRender_included
-#define dxRenderDeviceRender_included
 #pragma once
 
 #ifndef _EDITOR
@@ -75,11 +73,7 @@ public:
 	ref_shader			m_SelectionShader;
 
 private:
-
 	CGammaControl		m_Gamma;
 };
 
 #endif //ifndef _EDITOR
-
-
-#endif	//	RenderDeviceRender_included

@@ -308,6 +308,7 @@ u32 dxRenderDeviceRender::GetCacheStatPolys()
 
 void dxRenderDeviceRender::Begin()
 {
+	::Render->incFrame();
 #if !defined(USE_DX10) && !defined(USE_DX11)
 	CHK_DX					(HW.pDevice->BeginScene());
 #endif	//	USE_DX10

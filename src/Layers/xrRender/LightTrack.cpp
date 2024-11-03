@@ -51,12 +51,12 @@ void	CROS_impl::add		(light* source)
 {
 	// Search
 	for (xr_vector<Item>::iterator I=track.begin(); I!=track.end(); I++)	
-		if (source == I->source)	{ I->frame_touched = Device.dwFrame; return; }
+		if (source == I->source)	{ I->frame_touched = ::Render->dwFrame(); return; }
 
 	// Register _new_
 	track.push_back		(Item());
 	Item&	L			= track.back();
-	L.frame_touched		= Device.dwFrame;
+	L.frame_touched		= ::Render->dwFrame();
 	L.source			= source;
 	L.cache.verts[0].set(0,0,0);
 	L.cache.verts[1].set(0,0,0);
@@ -176,8 +176,8 @@ inline void CROS_impl::accum_hemi(float* hemi_cube, Fvector3& dir, float scale)
 void	CROS_impl::update	(IRenderable* O)
 {
 	// clip & verify
-	if					(dwFrame==Device.dwFrame)			return;
-	dwFrame				= Device.dwFrame;
+	if					(dwFrame==::Render->dwFrame())			return;
+	dwFrame				= ::Render->dwFrame();
 	if					(0==O)								return;
 	if					(0==O->renderable.visual)			return;
 	VERIFY				(dynamic_cast<CROS_impl*>			(O->renderable_ROS()));
@@ -337,10 +337,10 @@ extern float ps_r2_lt_smooth;
 // hemi & sun: update and smooth
 void	CROS_impl::update_smooth	(IRenderable* O)
 {
-	if (dwFrameSmooth == Device.dwFrame)
+	if (dwFrameSmooth == ::Render->dwFrame())
 		return;
 
-	dwFrameSmooth			=	Device.dwFrame;
+	dwFrameSmooth			=	::Render->dwFrame();
 
 #if RENDER==R_R1
 	if (O && (0==result_count)) 
@@ -457,7 +457,7 @@ void CROS_impl::prepare_lights(Fvector& position, IRenderable* O)
 		{
 			// remove untouched lights
 			xr_vector<CROS_impl::Item>::iterator I	= track.begin()+id;
-			if (I->frame_touched!=Device.dwFrame)	{ track.erase(I) ; id--	; continue ; }
+			if (I->frame_touched!=::Render->dwFrame())	{ track.erase(I) ; id--	; continue ; }
 
 			// Trace visibility
 			Fvector				P,D;

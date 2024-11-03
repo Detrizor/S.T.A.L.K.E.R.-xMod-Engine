@@ -14,7 +14,7 @@ float	psOSSR		= .001f;
 void __stdcall	CHOM::MT_RENDER()
 {
 	MT.Enter					();
-	if (MT_frame_rendered != Device.dwFrame && !Device.isActiveMain())
+	if (MT_frame_rendered != ::Render->dwFrame() && !Device.isActiveMain())
 	{
 		CFrustum					ViewBase;
 		ViewBase.CreateFromMatrix	(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
@@ -142,7 +142,7 @@ public:
 	}
 	ICF bool	operator()		(const CDB::RESULT& _1)	const {
 		occTri&	T	= m_pTris	[_1.id];
-		return	T.skip>Device.dwFrame;
+		return	T.skip>::Render->dwFrame();
 	}
 };
 
@@ -182,7 +182,7 @@ void CHOM::Render_DB			(CFrustum& base)
 	CFrustum					clip;
 	clip.CreateFromMatrix		(Device.mFullTransform,FRUSTUM_P_NEAR);
 	sPoly						src,dst;
-	u32		_frame				= Device.dwFrame	;
+	u32		_frame				= ::Render->dwFrame()	;
 #ifdef DEBUG
 	tris_in_frame				= xrc.r_count();
 	tris_in_frame_visible		= 0;
@@ -233,7 +233,7 @@ void CHOM::Render		(CFrustum& base)
 	Raster.clear		();
 	Render_DB			(base);
 	Raster.propagade	();
-	MT_frame_rendered	= Device.dwFrame;
+	MT_frame_rendered	= ::Render->dwFrame();
 	Device.Statistic->RenderCALC_HOM.End	();
 }
 
@@ -287,14 +287,14 @@ BOOL CHOM::visible		(Fbox2& B, float depth)
 
 BOOL CHOM::visible		(vis_data& vis)
 {
-	if (Device.dwFrame<vis.hom_frame)	return TRUE;				// not at this time :)
+	if (::Render->dwFrame()<vis.hom_frame)	return TRUE;				// not at this time :)
 	if (!bEnabled)						return TRUE;				// return - everything visible
 	
 	// Now, the test time comes
 	// 0. The object was hidden, and we must prove that each frame	- test		| frame-old, tested-new, hom_res = false;
 	// 1. The object was visible, but we must to re-check it		- test		| frame-new, tested-???, hom_res = true;
 	// 2. New object slides into view								- delay test| frame-old, tested-old, hom_res = ???;
-	u32 frame_current	= Device.dwFrame;
+	u32 frame_current	= ::Render->dwFrame();
 	// u32	frame_prev		= frame_current-1;
 
 #ifdef DEBUG

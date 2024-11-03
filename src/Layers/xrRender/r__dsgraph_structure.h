@@ -184,4 +184,11 @@ public:
 		return	(0);
 #endif // USE_DOUG_LEA_ALLOCATOR_FOR_RENDER
 	}
+
+private:
+	u32 m_frame = 0;
+
+public:
+	u32 dwFrame() const override { return m_frame; }
+	void incFrame() { ++m_frame; }
 };

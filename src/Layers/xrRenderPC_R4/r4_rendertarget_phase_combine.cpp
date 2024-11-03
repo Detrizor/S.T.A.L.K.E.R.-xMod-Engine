@@ -46,11 +46,11 @@ void	CRenderTarget::phase_combine	()
 	Fvector2	p0,p1;
 
 	//*** exposure-pipeline
-	u32			gpu_id	= Device.dwFrame%HW.Caps.iGPUNum;
+	u32			gpu_id	= ::Render->dwFrame()%HW.Caps.iGPUNum;
 	if (Device.SVP.isActive()) //--#SM+#-- +SecondVP+
 	{
 		// clang-format off
-		gpu_id = (Device.dwFrame - 1) % HW.Caps.iGPUNum;
+		gpu_id = (::Render->dwFrame() - 1) % HW.Caps.iGPUNum;
 	}
 	{
 		t_LUM_src->surface_set		(rt_LUM_pool[gpu_id*2+0]->pSurface);

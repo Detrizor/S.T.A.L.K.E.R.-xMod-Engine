@@ -46,11 +46,11 @@ void	CRenderTarget::phase_combine	()
 	Fvector2	p0,p1;
 
 	//*** exposure-pipeline
-	u32			gpu_id	= Device.dwFrame%HW.Caps.iGPUNum;
+	u32			gpu_id	= ::Render->dwFrame()%HW.Caps.iGPUNum;
 	if (Device.SVP.isActive()) //--#SM+#-- +SecondVP+ Fix for screen flickering
 	{
 		// clang-format off
-		gpu_id = (Device.dwFrame - 1) % HW.Caps.iGPUNum;	// Фeen "ia?цaнey" tonemapping (HDR) iоnлa вueл?чaнey двойноaо ?aндa?a. 
+		gpu_id = (::Render->dwFrame() - 1) % HW.Caps.iGPUNum;	// Фeen "ia?цaнey" tonemapping (HDR) iоnлa вueл?чaнey двойноaо ?aндa?a. 
 															// Iобочнuй эффaeo - i?e ?aбоoa двойноaо ?aндa?a neо?оnoь eзiaнaнey tonemapping (HDR) iaдaao в двa ?aзa
 															// Ia?цaнea nвyзaно n oai, чoо HDR длy nвоaй ?aбоou o?aнeo уiaньoaннea eоiee "i?оoлuo eaд?ов"
 															// Эoe eaд?u оoноneoaльно iоoоae д?уa нa д?уaa, однaeо i?e вeл?чaнноi двойноi ?aндa?a
