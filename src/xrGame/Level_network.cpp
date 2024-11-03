@@ -31,14 +31,12 @@ extern bool	g_b_ClearGameCaptions;
 void CLevel::remove_objects()
 {
 	bReady								= false;
-	BOOL b_stored						= psDeviceFlags.test(rsDisableObjectsAsCrows);
 	Server->SLS_Clear					();
 	snd_Events.clear					();
 
 	// ugly hack for checks that update is twice on frame
 	// we need it since we do updates for checking network messages
 	++Device.dwFrame;
-	psDeviceFlags.set					(rsDisableObjectsAsCrows, TRUE);
 	psNET_Flags.set						(NETFLAG_MINIMIZEUPDATES, FALSE);
 
 	ClientReceive						();
@@ -56,7 +54,6 @@ void CLevel::remove_objects()
 	ph_commander().clear				();
 	ph_commander_scripts().clear		();
 	space_restriction_manager().clear	();
-	psDeviceFlags.set					(rsDisableObjectsAsCrows, b_stored);
 	g_b_ClearGameCaptions				= true;
 	ai().script_engine().collect_all_garbage();
 	stalker_animation_data_storage().clear();

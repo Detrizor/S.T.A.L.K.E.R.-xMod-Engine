@@ -513,7 +513,6 @@ void CLevel::OnFrame()
 #endif
 	Fvector	temp_vector;
 	m_feel_deny.feel_touch_update(temp_vector, 0.f);
-	psDeviceFlags.set(rsDisableObjectsAsCrows, false);
 	// commit events from bullet manager from prev-frame
 	Device.Statistic->TEST0.Begin();
 	BulletManager().CommitEvents();

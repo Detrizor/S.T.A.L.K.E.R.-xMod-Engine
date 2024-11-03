@@ -26,22 +26,20 @@ enum {
 	rsConstantFPS					= (1ul<<8ul),
 	rsDrawStatic					= (1ul<<9ul),
 	rsDrawDynamic					= (1ul<<10ul),
-	rsDisableObjectsAsCrows			= (1ul<<11ul),
 
-	rsOcclusionDraw					= (1ul<<12ul),
-	rsOcclusionStats				= (1ul<<13ul),
+	rsOcclusionDraw					= (1ul<<11ul),
+	rsOcclusionStats				= (1ul<<12ul),
 
-	mtSound							= (1ul<<14ul),
-	mtPhysics						= (1ul<<15ul),
-	mtNetwork						= (1ul<<16ul),
-	mtParticles						= (1ul<<17ul),
+	mtSound							= (1ul<<13ul),
+	mtPhysics						= (1ul<<14ul),
+	mtNetwork						= (1ul<<15ul),
+	mtParticles						= (1ul<<16ul),
 
-	rsCameraPos						= (1ul<<18ul),
-	rsR2							= (1ul<<19ul),
+	rsCameraPos						= (1ul<<17ul),
+	rsR2							= (1ul<<18ul),
 
 	// 20-32 bit - reserved to Editor
 };
-
 
 //. ENGINE_API extern	u32			psCurrentMode		;
 ENGINE_API extern	u32			psCurrentVidMode[];
