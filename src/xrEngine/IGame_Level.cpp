@@ -59,9 +59,9 @@ IGame_Level::~IGame_Level()
 
 void IGame_Level::net_Stop()
 {
-	// Destroy all objects
-	Objects.Update();
-	Objects.Unload();
+	//Objects.Update();
+	//Objects.Unload();
+	R_ASSERT(!Objects.o_count());
 	IR_Release();
 	bReady = false;
 }

@@ -190,7 +190,7 @@ void CObjectList::clear_crow_vec(Objects& o)
 	o.clear_not_free();
 }
 
-void CObjectList::Update(bool last)
+void CObjectList::Update()
 {
 	if (!Device.Paused())
 	{
@@ -257,7 +257,7 @@ void CObjectList::Update(bool last)
 	if (!destroy_queue.empty())
 	{
 		// Info
-		if (!last)
+		if (g_pGameLevel->bReady)
 		{
 			for (auto& obj : objects_active)
 				for (int it = destroy_queue.size() - 1; it >= 0; --it)

@@ -30,6 +30,7 @@ extern bool	g_b_ClearGameCaptions;
 
 void CLevel::remove_objects()
 {
+	bReady								= false;
 	BOOL b_stored						= psDeviceFlags.test(rsDisableObjectsAsCrows);
 	Server->SLS_Clear					();
 	snd_Events.clear					();
@@ -42,7 +43,7 @@ void CLevel::remove_objects()
 
 	ClientReceive						();
 	ProcessGameEvents					();
-	Objects.Update						(true);
+	Objects.Update						();
 
 	#ifdef DEBUG
 	Msg									("Update objects list...");
@@ -88,7 +89,6 @@ void CLevel::net_Stop		()
 	if(g_tutorial2 && !g_tutorial->Persistent())
 		g_tutorial2->Stop();
 
-	bReady						= false;
 	m_bGameConfigStarted		= FALSE;
 
 	if (m_file_transfer)
@@ -118,8 +118,7 @@ void CLevel::net_Stop		()
 		xr_delete				(Server);
 	}
 
-	if (!g_dedicated_server)
-		ai().script_engine().collect_all_garbage	();
+	ai().script_engine().collect_all_garbage();
 
 #ifdef DEBUG
 	show_animation_stats		();

@@ -53,7 +53,7 @@ public:
 	void Destroy(CObject* O);
 
 	void SingleUpdate(CObject* O);
-	void Update(bool last = false);
+	void Update();
 
 	void net_Register(CObject* O);
 	void net_Unregister(CObject* O);
