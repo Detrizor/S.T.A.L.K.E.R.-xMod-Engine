@@ -1,18 +1,9 @@
 #pragma once
 
-// Note:
-// ZNear - always 0.0f
-// ZFar - always 1.0f
-
-//class ENGINE_API CResourceManager;
-//class ENGINE_API CGammaControl;
-
 #include "pure.h"
-//#include "hw.h"
-#include "../xrcore/ftimer.h"
 #include "stats.h"
-//#include "shader.h"
-//#include "R_Backend.h"
+
+#include "../xrcore/ftimer.h"
 
 extern ENGINE_API float VIEWPORT_NEAR;
 
@@ -40,9 +31,8 @@ public:
 	virtual bool _BCL isGameProcess() const = 0;
 };
 
-class ENGINE_API CRenderDeviceData
+class ENGINE_API CRenderDeviceBase : public IRenderDevice
 {
-
 public:
 	u32 dwWidth;
 	u32 dwHeight;
@@ -50,8 +40,8 @@ public:
 	u32 dwPrecacheFrame;
 	BOOL b_is_Ready;
 	BOOL b_is_Active;
-public:
 
+public:
 	// Engine flow-control
 	u32 dwFrame;
 
@@ -70,26 +60,17 @@ public:
 	Fmatrix mProject;
 	Fmatrix mFullTransform;
 
-	// Copies of corresponding members. Used for synchronization.
-	Fvector vCameraPosition_saved;
-
-	Fmatrix mView_saved;
-	Fmatrix mProject_saved;
-	Fmatrix mFullTransform_saved;
-
 	float fFOV;
 	float fHUDFOV;
 	float fASPECT;
 	float iZoomSqr;
 
 protected:
-
 	u32 Timer_MM_Delta;
 	CTimer_paused Timer;
 	CTimer_paused TimerGlobal;
 
 public:
-
 	// Registrators
 	CRegistrator <pureRender > seqRender;
 	CRegistrator <pureAppActivate > seqAppActivate;
@@ -100,77 +81,30 @@ public:
 	CRegistrator <pureScreenResolutionChanged> seqResolutionChanged;
 
 	HWND m_hWnd;
-	// CStats* Statistic;
-};
-
-class ENGINE_API CRenderDeviceBase :
-	public IRenderDevice,
-	public CRenderDeviceData
-{
 };
 
 #pragma pack(pop)
-// refs
 class ENGINE_API CRenderDevice : public CRenderDeviceBase
 {
-public:
-	struct ENGINE_API CSVP final
-	{
-	private:
-		bool							m_active								= false;
-		bool							m_rendering								= false;
-		Fvector							m_position								= vZero;
-		float							m_zoom									= 1.f;
-		float							m_zoom_opposite_sqr						= 1.f;
-		float							m_fov									= 0.f;
-
-	public:
-
-		void							setRendering							(bool val)				{ m_rendering = val; }
-		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
-		void							setFOV									(float val)				{ m_fov = val; }
-		
-		void							setZoom									(float val);
-		void							setActive								(bool val);
-
-		bool							isActive							C$	()		{ return m_active; }
-		bool							isRendering							C$	()		{ return m_rendering; }
-		Fvector CR$						getPosition							C$	()		{ return m_position; }
-		float							getZoom								C$	()		{ return m_zoom; }
-		float							getZoomOppositeSqr					C$	()		{ return m_zoom_opposite_sqr; }
-		float							getFOV								C$	()		{ return m_fov; }
-	};
-
 private:
 	// Main objects used for creating and rendering the 3D scene
 	u32 m_dwWindowStyle;
 	RECT m_rcWindowBounds;
 	RECT m_rcWindowClient;
 
-	//u32 Timer_MM_Delta;
-	//CTimer_paused Timer;
-	//CTimer_paused TimerGlobal;
 	CTimer TimerMM;
 
 	void _Create(LPCSTR shName);
 	void _Destroy(BOOL bKeepTextures);
 	void _SetupStates();
+
 public:
-	// HWND m_hWnd;
 	LRESULT MsgProc(HWND, UINT, WPARAM, LPARAM);
-
-	// u32 dwFrame;
-	// u32 dwPrecacheFrame;
 	u32 dwPrecacheTotal;
-
-	// u32 dwWidth, dwHeight;
 	float fWidth_2, fHeight_2;
-	// BOOL b_is_Ready;
-	// BOOL b_is_Active;
 	void OnWM_Activate(WPARAM wParam, LPARAM lParam);
+
 public:
-	//ref_shader m_WireShader;
-	//ref_shader m_SelectionShader;
 
 	IRenderDeviceRender* m_pRender;
 
@@ -188,52 +122,18 @@ public:
 			mProject._43 += EPS_L;
 		}
 		m_pRender->SetCacheXform(mView, mProject);
-		//R_ASSERT(0);
-		// TODO: re-implement set projection
-		//RCache.set_xform_project (mProject);
 	}
 
 	void DumpResourcesMemoryUsage() { m_pRender->ResourcesDumpMemoryUsage(); }
+
 public:
-	// Registrators
-	//CRegistrator <pureRender > seqRender;
-	// CRegistrator <pureAppActivate > seqAppActivate;
-	// CRegistrator <pureAppDeactivate > seqAppDeactivate;
-	// CRegistrator <pureAppStart > seqAppStart;
-	// CRegistrator <pureAppEnd > seqAppEnd;
-	//CRegistrator <pureFrame > seqFrame;
 	CRegistrator <pureFrame > seqFrameMT;
 	CRegistrator <pureDeviceReset > seqDeviceReset;
 	xr_vector <fastdelegate::FastDelegate0<> > seqParallel;
 
-	// Dependent classes
-	//CResourceManager* Resources;
-
 	CStats* Statistic;
 
-	// Engine flow-control
-	//float fTimeDelta;
-	//float fTimeGlobal;
-	//u32 dwTimeDelta;
-	//u32 dwTimeGlobal;
-	//u32 dwTimeContinual;
-
-	// Cameras & projection
-	//Fvector vCameraPosition;
-	//Fvector vCameraDirection;
-	//Fvector vCameraTop;
-	//Fvector vCameraRight;
-
-	//Fmatrix mView;
-	//Fmatrix mProject;
-	//Fmatrix mFullTransform;
-
 	Fmatrix mInvFullTransform;
-
-	CSVP SVP;	//--#SM+#-- +SecondVP+
-
-	//float fFOV;
-	//float fASPECT;
 
 	CRenderDevice()
 		:
@@ -345,14 +245,44 @@ private:
 #endif // #ifdef INGAME_EDITOR
 
 private:
-	void d_SVPRender();
+	class ENGINE_API CSVP final
+	{
+	private:
+		bool							m_active								= false;
+		bool							m_rendering								= false;
+		Fvector							m_position								= vZero;
+		float							m_zoom									= 1.f;
+		float							m_zoom_opposite_sqr						= 1.f;
+		float							m_fov									= 0.f;
+
+	public:
+
+		void							setRendering							(bool val)				{ m_rendering = val; }
+		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
+		void							setFOV									(float val)				{ m_fov = val; }
+		
+		void							setZoom									(float val);
+		void							setActive								(bool val);
+
+		bool							isActive							C$	()		{ return m_active; }
+		bool							isRendering							C$	()		{ return m_rendering; }
+		Fvector CR$						getPosition							C$	()		{ return m_position; }
+		float							getZoom								C$	()		{ return m_zoom; }
+		float							getZoomOppositeSqr					C$	()		{ return m_zoom_opposite_sqr; }
+		float							getFOV								C$	()		{ return m_fov; }
+	};
+
+private:
+	void								render_svp								();
+	void								render									();
 
 public:
-	bool _BCL isActiveMain() const override;
-	bool _BCL isGameProcess() const override;
-
-	bool isLevelReady() const;
-	bool isGameLoaded() const;
+	CSVP								SVP;
+	
+	bool								isLevelReady						C$	();
+	bool								isGameLoaded						C$	();
+	bool _BCL							isActiveMain						CO$	();
+	bool _BCL							isGameProcess						CO$	();
 };
 
 extern ENGINE_API CRenderDevice Device;
@@ -384,4 +314,5 @@ public:
 	bool isActive() const { return b_registered; }
 	bool needUserInput() const { return b_need_user_input; }
 };
+
 extern ENGINE_API CLoadScreenRenderer load_screen_renderer;

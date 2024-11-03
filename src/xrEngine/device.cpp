@@ -40,7 +40,6 @@ ENGINE_API BOOL g_bRendering = FALSE;
 
 BOOL g_bLoaded = FALSE;
 ref_light precache_light = 0;
-int g_dwFPSlimit = -1;
 
 BOOL CRenderDevice::Begin()
 {
@@ -208,100 +207,46 @@ ENGINE_API xr_list<LOADING_EVENT> g_loading_events;
 
 void CRenderDevice::on_idle()
 {
-	// FPS Lock
-	if (g_dwFPSlimit > 0)
-	{
-		static DWORD dwLastFrameTime = 0;
-		int dwCurrentTime = timeGetTime();
-
-		if ((dwCurrentTime - dwLastFrameTime) < (1000 / g_dwFPSlimit))
-			return;
-
-		dwLastFrameTime = dwCurrentTime;
-	}
-	g_bEnableStatGather = !!psDeviceFlags.test(rsStatistic);
 	if (g_loading_events.size())
 	{
 		if (g_loading_events.front()())
-			g_loading_events.pop_front();
-		pApp->LoadDraw();
+			g_loading_events.pop_front	();
+		pApp->LoadDraw					();
 		return;
 	}
 	
-	if (!Device.dwPrecacheFrame && !g_SASH.IsBenchmarkRunning() && g_bLoaded)
-		g_SASH.StartBenchmark();
+	if (!dwPrecacheFrame && !g_SASH.IsBenchmarkRunning() && g_bLoaded)
+		g_SASH.StartBenchmark			();
 
-	if (b_is_Active && m_pRender->GetDeviceState() != IRenderDeviceRender::DeviceState::dsLost)
-		d_SVPRender();
+	render_svp							();
 
-	FrameMove();
-
-	// Precache
-	if (dwPrecacheFrame)
-	{
-		float factor = float(dwPrecacheFrame) / float(dwPrecacheTotal);
-		float angle = PI_MUL_2 * factor;
-		vCameraDirection.set(_sin(angle), 0, _cos(angle));
-		vCameraDirection.normalize();
-		vCameraTop.set(0, 1, 0);
-		vCameraRight.crossproduct(vCameraTop, vCameraDirection);
-
-		mView.build_camera_dir(vCameraPosition, vCameraDirection, vCameraTop);
-	}
-
-	// Matrices
-	mFullTransform.mul(mProject, mView);
-	m_pRender->SetCacheXform(mView, mProject);
-	//RCache.set_xform_view ( mView );
-	//RCache.set_xform_project ( mProject );
-	D3DXMatrixInverse((D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
-
-	vCameraPosition_saved = vCameraPosition;
-	mFullTransform_saved = mFullTransform;
-	mView_saved = mView;
-	mProject_saved = mProject;
+	FrameMove							();
 
 	// *** Resume threads
 	// Capture end point - thread must run only ONE cycle
 	// Release start point - allow thread to run
-	mt_csLeave.Enter();
-	mt_csEnter.Leave();
+	mt_csLeave.Enter					();
+	mt_csEnter.Leave					();
 
-	Statistic->RenderTOTAL_Real.FrameStart();
-	Statistic->RenderTOTAL_Real.Begin();
-
-	if (b_is_Active && Begin())
-	{
-		seqRender.Process(rp_Render);
-		if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size())
-			Statistic->Show();
-		End();
-	}
-
-	Statistic->RenderTOTAL_Real.End();
-	Statistic->RenderTOTAL_Real.FrameEnd();
-	Statistic->RenderTOTAL.accum = Statistic->RenderTOTAL_Real.accum;
+	render								();
 
 	// *** Suspend threads
 	// Capture startup point
 	// Release end point - allow thread to wait for startup point
-	mt_csEnter.Enter();
-	mt_csLeave.Leave();
+	mt_csEnter.Enter					();
+	mt_csLeave.Leave					();
 
 	// Ensure, that second thread gets chance to execute anyway
 	if (dwFrame != mt_Thread_marker)
 	{
-		for (u32 pit = 0; pit < Device.seqParallel.size(); pit++)
-			Device.seqParallel[pit]();
+		for (auto& pure : Device.seqParallel)
+			pure						();
 		Device.seqParallel.clear_not_free();
-		seqFrameMT.Process(rp_Frame);
+		seqFrameMT.Process				(rp_Frame);
 	}
-
-	if (!b_is_Active)
-		Sleep(1);
 }
 
-void CRenderDevice::d_SVPRender()
+void CRenderDevice::render_svp()
 {
 	if (SVP.isActive() && !isActiveMain())
 	{
@@ -317,9 +262,7 @@ void CRenderDevice::d_SVPRender()
 		// Matrices
 		mFullTransform.mul(mProject, mView);
 		m_pRender->SetCacheXform(mView, mProject);
-		D3DXMatrixInverse((D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
-
-		vCameraPosition_saved = vCameraPosition;
+		mInvFullTransform.invert(mFullTransform);
 
 		m_pRender->Begin();
 
@@ -334,6 +277,41 @@ void CRenderDevice::d_SVPRender()
 		fFOV = fov_saved;
 		vCameraPosition = pos_saved;
 	}
+}
+
+void CRenderDevice::render()
+{
+	if (dwPrecacheFrame)
+	{
+		float factor					= static_cast<float>(dwPrecacheFrame) / static_cast<float>(dwPrecacheTotal);
+		float angle						= PI_MUL_2 * factor;
+		vCameraDirection.set			(_sin(angle), 0.f, _cos(angle));
+		vCameraDirection.normalize		();
+		vCameraTop.set					(0.f, 1.f, 0.f);
+		vCameraRight.crossproduct		(vCameraTop, vCameraDirection);
+		mView.build_camera_dir			(vCameraPosition, vCameraDirection, vCameraTop);
+	}
+
+	auto& stats							= Statistic->RenderTOTAL_Real;
+	stats.FrameStart					();
+	stats.Begin							();
+
+	if (b_is_Active && Begin())
+	{
+		// Matrices
+		mFullTransform.mul				(mProject, mView);
+		m_pRender->SetCacheXform		(mView, mProject);
+		mInvFullTransform.invert		(mFullTransform);
+
+		seqRender.Process				(rp_Render);
+		if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size())
+			Statistic->Show				();
+		End								();
+	}
+
+	stats.End							();
+	stats.FrameEnd						();
+	Statistic->RenderTOTAL.accum		= stats.accum;
 }
 
 bool CRenderDevice::isActiveMain() const

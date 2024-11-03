@@ -764,7 +764,6 @@ void CCC_Register()
 	CMD3(CCC_Mask, "rs_v_sync", &psDeviceFlags, rsVSync);
 	CMD3(CCC_Mask, "rs_fullscreen", &psDeviceFlags, rsFullscreen);
 	CMD3(CCC_Mask, "rs_refresh_60hz", &psDeviceFlags, rsRefresh60hz);
-	CMD3(CCC_Mask, "rs_stats", &psDeviceFlags, rsStatistic);
 	CMD4(CCC_Float, "rs_vis_distance", &psVisDistance, 0.4f, 1.5f);
 
 	CMD3(CCC_Mask, "rs_cam_pos", &psDeviceFlags, rsCameraPos);
@@ -868,4 +867,17 @@ void CCC_Register()
 #endif
 
 	CMD4(CCC_Float, "ui_scale", &psUI_SCALE, 0.1f, 10.0f);
+
+	class CCC_Stats : public CCC_Mask
+	{
+	public:
+		CCC_Stats(LPCSTR N, Flags32* V, u32 M) : CCC_Mask(N, V, M) {};
+		void Execute(LPCSTR args) override
+		{
+			__super::Execute(args);
+			g_bEnableStatGather = !!psDeviceFlags.test(rsStatistic);
+		}
+	};
+
+	CMD3(CCC_Stats, "rs_stats", &psDeviceFlags, rsStatistic);
 };
