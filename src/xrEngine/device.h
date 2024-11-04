@@ -168,7 +168,7 @@ public:
 
 	// Scene control
 	void PreCache(u32 amount, bool b_draw_loadscreen, bool b_wait_user_input);
-	BOOL Begin();
+	bool Begin();
 	void Clear();
 	void End();
 	void FrameMove();

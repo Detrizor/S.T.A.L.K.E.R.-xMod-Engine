@@ -470,6 +470,9 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	Device.camera.aspect				= m_cam_info.fAspect;
 	Device.camera.project.build_projection(deg2rad(Device.camera.fov), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
 
+	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+	Device.camera.full_transform_inv.invert(Device.camera.full_transform);
+
 	if (Device.isActiveMain() || Device.SVP.isRendering())
 		ResetPP							();
 	else

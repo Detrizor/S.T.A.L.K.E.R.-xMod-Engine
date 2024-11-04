@@ -41,9 +41,8 @@ ENGINE_API BOOL g_bRendering = FALSE;
 BOOL g_bLoaded = FALSE;
 ref_light precache_light = 0;
 
-BOOL CRenderDevice::Begin()
+bool CRenderDevice::Begin()
 {
-#ifndef DEDICATED_SERVER
 	switch (m_pRender->GetDeviceState())
 	{
 	case IRenderDeviceRender::dsOK:
@@ -51,97 +50,92 @@ BOOL CRenderDevice::Begin()
 
 	case IRenderDeviceRender::dsLost:
 		// If the device was lost, do not render until we get it back
-		Sleep(33);
-		return FALSE;
+		Sleep							(33);
+		return							false;
 		break;
 
 	case IRenderDeviceRender::dsNeedReset:
 		// Check if the device is ready to be reset
-		Reset();
+		Reset							();
 		break;
 
 	default:
-		R_ASSERT(0);
+		R_ASSERT						(false);
 	}
 
-	m_pRender->Begin();
+	m_pRender->Begin					();
 
-	FPU::m24r();
-	g_bRendering = TRUE;
-#endif
-	return TRUE;
+	FPU::m24r							();
+	g_bRendering						= TRUE;
+	return								true;
 }
 
 void CRenderDevice::Clear()
 {
-	m_pRender->Clear();
+	m_pRender->Clear					();
 }
 
 extern void CheckPrivilegySlowdown();
 
-
 void CRenderDevice::End(void)
 {
-#ifndef DEDICATED_SERVER
-
-
 #ifdef INGAME_EDITOR
 	bool load_finished = false;
 #endif // #ifdef INGAME_EDITOR
+
 	if (dwPrecacheFrame)
 	{
-		::Sound->set_master_volume(0.f);
-		dwPrecacheFrame--;
+		::Sound->set_master_volume		(0.f);
+		--dwPrecacheFrame;
 
 		if (!dwPrecacheFrame)
 		{
-
 #ifdef INGAME_EDITOR
 			load_finished = true;
 #endif // #ifdef INGAME_EDITOR
 
-			m_pRender->updateGamma();
+			m_pRender->updateGamma		();
 
 			if (precache_light) 
 			{
 				precache_light->set_active(false);
-				precache_light.destroy();
+				precache_light.destroy	();
 			}
-			::Sound->set_master_volume(1.f);
+			::Sound->set_master_volume	(1.f);
 
 			m_pRender->ResourcesDestroyNecessaryTextures();
-			Memory.mem_compact();
-			Msg("* MEMORY USAGE: %d K", Memory.mem_usage() / 1024);
-			Msg("* End of synchronization A[%d] R[%d]", b_is_Active, b_is_Ready);
+			Memory.mem_compact			();
+			Msg							("* MEMORY USAGE: %d K", Memory.mem_usage() / 1024);
+			Msg							("* End of synchronization A[%d] R[%d]", b_is_Active, b_is_Ready);
 
 #ifdef FIND_CHUNK_BENCHMARK_ENABLE
 			g_find_chunk_counter.flush();
 #endif // FIND_CHUNK_BENCHMARK_ENABLE
 
-			CheckPrivilegySlowdown();
+			CheckPrivilegySlowdown		();
 
 			if (g_pGamePersistent->GameType() == 1)//haCk
 			{
-				WINDOWINFO wi;
-				GetWindowInfo(m_hWnd, &wi);
+				WINDOWINFO				wi;
+				GetWindowInfo			(m_hWnd, &wi);
 				if (wi.dwWindowStatus != WS_ACTIVECAPTION)
-					Pause(TRUE, TRUE, TRUE, "application start");
+					Pause				(TRUE, TRUE, TRUE, "application start");
 			}
 		}
 	}
 
-	g_bRendering = FALSE;
+	g_bRendering						= FALSE;
+
 	// end scene
 	// Present goes here, so call OA Frame end.
 	if (g_SASH.IsBenchmarkRunning())
-		g_SASH.DisplayFrame(Device.fTimeGlobal);
-	m_pRender->End();
+		g_SASH.DisplayFrame				(Device.fTimeGlobal);
+	m_pRender->End						();
 
 # ifdef INGAME_EDITOR
 	if (load_finished && m_editor)
 		m_editor->on_load_finished();
 # endif // #ifdef INGAME_EDITOR
-#endif
 }
 
 volatile u32 mt_Thread_marker = 0x12345678;
@@ -218,8 +212,6 @@ void CRenderDevice::on_idle()
 	if (!dwPrecacheFrame && !g_SASH.IsBenchmarkRunning() && g_bLoaded)
 		g_SASH.StartBenchmark			();
 
-	render_svp							();
-
 	FrameMove							();
 
 	// *** Resume threads
@@ -227,7 +219,8 @@ void CRenderDevice::on_idle()
 	// Release start point - allow thread to run
 	mt_csLeave.Enter					();
 	mt_csEnter.Leave					();
-
+	
+	render_svp							();
 	render								();
 
 	// *** Suspend threads
@@ -248,31 +241,20 @@ void CRenderDevice::on_idle()
 
 void CRenderDevice::render_svp()
 {
-	if (SVP.isActive() && !isActiveMain())
+	if (SVP.isActive() && !isActiveMain() && Begin())
 	{
-		float fov_saved = camera.fov;
-		Fvector pos_saved = camera.position;
+		SVP.setRendering				(true);
 
-		SVP.setRendering(true);
-		g_pGameLevel->ApplyCamera();
+		auto camera_backup				= camera;
+		g_pGameLevel->ApplyCamera		();
 
-		// Matrices
-		camera.full_transform.mul(camera.project, camera.view);
-		m_pRender->SetCacheXform(camera.view, camera.project);
-		camera.full_transform_inv.invert(camera.full_transform);
+		m_pRender->SetCacheXform		(camera.view, camera.project);
+		seqRender.Process				(rp_Render);
+		End								();
+		
+		camera							= camera_backup;
 
-		m_pRender->Begin();
-
-		g_bRendering = TRUE;
-		seqRender.Process(rp_Render);
-		g_bRendering = FALSE;
-
-		m_pRender->End();
-
-		SVP.setRendering(false);
-
-		camera.fov = fov_saved;
-		camera.position = pos_saved;
+		SVP.setRendering				(false);
 	}
 }
 
@@ -295,15 +277,12 @@ void CRenderDevice::render()
 
 	if (b_is_Active && Begin())
 	{
-		// Matrices
-		camera.full_transform.mul		(camera.project, camera.view);
 		m_pRender->SetCacheXform		(camera.view, camera.project);
-		camera.full_transform_inv.invert(camera.full_transform);
-
 		seqRender.Process				(rp_Render);
+		End								();
+
 		if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic->errors.size())
 			Statistic->Show				();
-		End								();
 	}
 
 	stats.End							();
