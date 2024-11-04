@@ -89,6 +89,8 @@ public:
 
 public:
 	SCameraInfo							camera;
+	Fvector								cam_position_saved;
+	Fmatrix								cam_full_transform_saved;
 };
 
 #pragma pack(pop)

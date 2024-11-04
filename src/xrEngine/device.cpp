@@ -214,6 +214,9 @@ void CRenderDevice::on_idle()
 
 	FrameMove							();
 
+	cam_position_saved					= camera.position;
+	cam_full_transform_saved			= camera.full_transform;
+
 	// *** Resume threads
 	// Capture end point - thread must run only ONE cycle
 	// Release start point - allow thread to run
