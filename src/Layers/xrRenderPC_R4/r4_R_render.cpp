@@ -6,156 +6,139 @@
 
 #include "../xrRender/QueryHelper.h"
 
-IC	bool	pred_sp_sort	(ISpatial*	_1, ISpatial* _2)
-{
-	float	d1		= _1->spatial.sphere.P.distance_to_sqr	(Device.camera.position);
-	float	d2		= _2->spatial.sphere.P.distance_to_sqr	(Device.camera.position);
-	return	d1<d2	;
-}
-
 void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 {
-	PIX_EVENT(render_main);
+	PIX_EVENT							(render_main);
 	++marker;
+	set_Object							(nullptr);
 
 	// Calculate sector(s) and their objects
 	if (!pLastSector)
 	{
-		set_Object						(0);
 		if (g_pGameLevel && (phase == PHASE_NORMAL))
 			g_hud->Render_Last			();		// HUD
 		return;
 	}
+
 	//!!!
 	//!!! BECAUSE OF PARALLEL HOM RENDERING TRY TO DELAY ACCESS TO HOM AS MUCH AS POSSIBLE
 	//!!!
 	{
 		// Traverse object database
-		g_SpatialSpace->q_frustum
-			(
-			lstRenderables,
-			ISpatial_DB::O_ORDERED,
-			STYPE_RENDERABLE + STYPE_LIGHTSOURCE,
-			ViewBase
-			);
+		g_SpatialSpace->q_frustum		(lstRenderables,
+			ISpatial_DB::O_ORDERED, STYPE_RENDERABLE + STYPE_LIGHTSOURCE, ViewBase);
 
 		// (almost) Exact sorting order (front-to-back)
-		lstRenderables.sort					(pred_sp_sort);
+		lstRenderables.sort				(
+			[](auto CR$ _1, auto CR$ _2)
+			{
+				float d1				= _1->spatial.sphere.P.distance_to_sqr(Device.camera.position);
+				float d2				= _2->spatial.sphere.P.distance_to_sqr(Device.camera.position);
+				return					(d1 < d2);
+			}
+		);
 
 		// Determine visibility for dynamic part of scene
-		set_Object							(0);
-		u32 uID_LTRACK						= 0xffffffff;
-		if (phase==PHASE_NORMAL)			{
-			uLastLTRACK	++;
-			if (lstRenderables.size())		uID_LTRACK	= uLastLTRACK%lstRenderables.size();
+		u32 uID_LTRACK					= 0xffffffff;
+		if (phase==PHASE_NORMAL)
+		{
+			++uLastLTRACK;
+			if (lstRenderables.size())
+				uID_LTRACK				= uLastLTRACK%lstRenderables.size();
 
 			// update light-vis for current entity / actor
-			CObject*	O					= g_pGameLevel->CurrentViewEntity();
-			if (O)		{
-				CROS_impl*	R					= (CROS_impl*) O->ROS();
-				if (R)		R->update			(O);
-			}
+			if (auto O = g_pGameLevel->CurrentViewEntity())
+				if (auto R = reinterpret_cast<CROS_impl*>(O->ROS()))
+					R->update			(O);
 
 			// update light-vis for selected entity
 			// track lighting environment
-			if (lstRenderables.size())		{
-				IRenderable*	renderable		= lstRenderables[uID_LTRACK]->dcast_Renderable	();
-				if (renderable)	{
-					CROS_impl*		T = (CROS_impl*)renderable->renderable_ROS	();
-					if (T)			T->update	(renderable);
-				}
-			}
+			if (lstRenderables.size())
+				if (auto renderable = lstRenderables[uID_LTRACK]->dcast_Renderable())
+					if (auto T = reinterpret_cast<CROS_impl*>(renderable->renderable_ROS()))
+						T->update		(renderable);
 		}
 	}
 
 	// Traverse sector/portal structure
-	PortalTraverser.traverse	
-		(
-		pLastSector,
-		ViewBase,
-		Device.camera.position,
-		m_ViewProjection,
-		CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE
-		//. disabled scissoring (HW.Caps.bScissor?CPortalTraverser::VQ_SCISSOR:0)	// generate scissoring info
-		);
+	PortalTraverser.traverse(pLastSector, ViewBase, Device.camera.position, m_ViewProjection,
+		CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE);
 
 	// Determine visibility for static geometry hierrarhy
-	for (u32 s_it=0; s_it<PortalTraverser.r_sectors.size(); s_it++)
+	for (auto& i_sector : PortalTraverser.r_sectors)
 	{
-		CSector*	sector		= (CSector*)PortalTraverser.r_sectors[s_it];
-		dxRender_Visual*	root	= sector->root();
-		for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	{
-			set_Frustum			(&(sector->r_frustums[v_it]));
-			add_Geometry		(root);
+		auto sector						= reinterpret_cast<CSector*>(i_sector);
+		dxRender_Visual* root			= sector->root();
+		for (auto& frustum : sector->r_frustums)
+		{
+			set_Frustum					(&frustum);
+			add_Geometry				(root);
 		}
 	}
 
-	// Traverse frustums
 	for (auto spatial : lstRenderables)
-	{
-		spatial->spatial_updatesector	();
-		CSector* sector					= reinterpret_cast<CSector*>(spatial->spatial.sector);
-		if (!sector)
-			continue;	// disassociated from S/P structure
-
-		if (spatial->spatial.type & STYPE_LIGHTSOURCE)
-		{
-			// lightsource
-			light* L					= reinterpret_cast<light*>(spatial->dcast_Light());
-			VERIFY						(L);
-			float lod					= L->get_LOD();
-			if (lod > EPS_L)
-				if (HOM.visible(L->get_homdata()))
-					Lights.add_light	(L);
-			continue;
-		}
-
-		if (!(spatial->spatial.type & STYPE_RENDERABLE))
-			continue;
-
-		if (PortalTraverser.i_marker != sector->r_marker)
-			continue;	// inactive (untouched) sector
-
-		auto renderable					= spatial->dcast_Renderable();
-		if (ps_r__render_distance_sqr)
-		{
-			float dist					= renderable->getDistanceToCamera();
-			if (dist > ps_r__render_distance_sqr)
-				continue;
-		}
-
-		for (auto& view : sector->r_frustums)
-		{
-			if (!view.testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
-				continue;
-
-			// Occlusion
-			//	casting is faster then using getVis method
-			vis_data& v_orig			= reinterpret_cast<dxRender_Visual*>(renderable->renderable.visual)->vis;
-			vis_data v_copy				= v_orig;
-			v_copy.box.xform			(renderable->renderable.xform);
-			BOOL bVisible				= HOM.visible(v_copy);
-			v_orig.marker				= v_copy.marker;
-			v_orig.accept_frame			= v_copy.accept_frame;
-			v_orig.hom_frame			= v_copy.hom_frame;
-			v_orig.hom_tested			= v_copy.hom_tested;
-			if (!bVisible)
-				break;	// exit loop on frustums
-
-			// Rendering
-			set_Object					(renderable);
-			renderable->renderable_Render();
-			set_Object					(nullptr);
-
-			break;	// exit loop on frustums
-		}
-	}
+		process_spatial					(spatial);
+	set_Object							(nullptr);
 
 	if (g_pGameLevel && (phase == PHASE_NORMAL))
 		g_hud->Render_Last				();		// HUD
 }
 
-void CRender::render_menu	()
+void CRender::process_spatial(ISpatial* CR$ spatial)
+{
+	spatial->spatial_updatesector		();
+	CSector* sector						= reinterpret_cast<CSector*>(spatial->spatial.sector);
+	if (!sector)
+		return;	// disassociated from S/P structure
+
+	if (spatial->spatial.type & STYPE_LIGHTSOURCE)
+	{
+		// lightsource
+		light* L						= reinterpret_cast<light*>(spatial->dcast_Light());
+		R_ASSERT						(L);
+		if (L->get_LOD() > EPS_L)
+			if (HOM.visible(L->get_homdata()))
+				Lights.add_light		(L);
+		return;
+	}
+
+	if (!(spatial->spatial.type & STYPE_RENDERABLE))
+		return;
+
+	if (PortalTraverser.i_marker != sector->r_marker)
+		return;	// inactive (untouched) sector
+
+	auto R								= spatial->dcast_Renderable();
+
+	if (ps_r__render_distance_sqr)
+	{
+		float dist						= R->getDistanceToCamera();
+		if (dist > ps_r__render_distance_sqr)
+			return;
+	}
+
+	for (auto& view : sector->r_frustums)
+	{
+		if (view.testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
+		{
+			// Occlusion
+			//	casting is faster then using getVis method
+			auto& vis					= reinterpret_cast<dxRender_Visual*>(R->renderable.visual)->vis;
+			auto backup					= vis.box;
+			vis.box.xform				(R->renderable.xform);
+			BOOL bVisible				= HOM.visible(vis);
+			vis.box						= backup;
+			if (bVisible)
+			{
+				set_Object				(R);
+				R->renderable_Render	();
+			}
+			return;
+		}
+	}
+}
+
+void CRender::render_menu()
 {
 	PIX_EVENT(render_menu);
 	//	Globals
