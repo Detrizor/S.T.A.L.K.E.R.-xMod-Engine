@@ -232,7 +232,7 @@ void CRender::Render		()
 	HOM.Render									(Device.camera.view_base);
 
 	//******* Z-prefill calc - DEFERRER RENDERER
-	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))		
+	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))
 	{
 		PIX_EVENT(DEFER_Z_FILL);
 		Device.Statistic->RenderCALC.Begin			();
@@ -255,34 +255,33 @@ void CRender::Render		()
 		RCache.set_ColorWriteEnable					(FALSE);
 		r_dsgraph_render_graph						(0);
 		RCache.set_ColorWriteEnable					( );
-	} 
-	else 
-	{
-		Target->phase_scene_prepare					();
 	}
+	else
+		Target->phase_scene_prepare					();
 
 	//*******
 	// Sync point
-	Device.Statistic->RenderDUMP_Wait_S.Begin	();
-	if (1)
+	Device.Statistic->RenderDUMP_Wait_S.Begin();
+	if (!Device.SVP.isActive() || Device.SVP.isRendering())
 	{
-		CTimer	T;							T.Start	();
-		BOOL	result						= FALSE;
-		HRESULT	hr							= S_FALSE;
-		//while	((hr=q_sync_point[q_sync_count]->GetData	(&result,sizeof(result),D3DGETDATA_FLUSH))==S_FALSE) {
-		while	((hr=GetData (q_sync_point[q_sync_count], &result,sizeof(result)))==S_FALSE) 
+		CTimer							T;
+		T.Start							();
+		BOOL result						= FALSE;
+		while (GetData(q_sync_point[q_sync_count], &result, sizeof(result)) == S_FALSE)
 		{
-			if (!SwitchToThread())			Sleep(ps_r2_wait_sleep);
-			if (T.GetElapsed_ms() > 500)	{
-				result	= FALSE;
+			if (!SwitchToThread())
+				Sleep					(ps_r2_wait_sleep);
+
+			if (T.GetElapsed_ms() > 500)
+			{
+				result					= FALSE;
 				break;
 			}
 		}
+		q_sync_count					= (q_sync_count + 1) % HW.Caps.iGPUNum;
+		CHK_DX							(EndQuery(q_sync_point[q_sync_count]));
 	}
-	Device.Statistic->RenderDUMP_Wait_S.End		();
-	q_sync_count								= (q_sync_count+1)%HW.Caps.iGPUNum;
-	//CHK_DX										(q_sync_point[q_sync_count]->Issue(D3DISSUE_END));
-	CHK_DX										(EndQuery(q_sync_point[q_sync_count]));
+	Device.Statistic->RenderDUMP_Wait_S.End();
 
 	//******* Main calc - DEFERRER RENDERER
 	// Main calc
