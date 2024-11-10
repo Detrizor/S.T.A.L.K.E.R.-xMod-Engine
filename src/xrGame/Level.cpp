@@ -806,13 +806,6 @@ void CLevel::OnRender()
 #endif
 }
 
-#include "ActorEffector.h"
-void CLevel::ApplyCamera()
-{
-	if (Actor())
-		Actor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
-}
-
 void CLevel::OnEvent(EVENT E, u64 P1, u64 /**P2/**/)
 {
 	if (E == eEntitySpawn)
@@ -1132,4 +1125,15 @@ CZoneList::~CZoneList()
 {
 	clear();
 	destroy();
+}
+
+#include "ActorEffector.h"
+void CLevel::applyCamera()
+{
+	Actor()->Cameras().ApplyDevice		(VIEWPORT_NEAR);
+}
+
+void CLevel::applyPP()
+{
+	Actor()->Cameras().applyPP			();
 }

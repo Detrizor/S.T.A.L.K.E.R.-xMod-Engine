@@ -1,6 +1,3 @@
-#ifndef igame_level_h_defined
-#define igame_level_h_defined
-
 #pragma once
 
 #include "iinputreceiver.h"
@@ -97,8 +94,6 @@ public:
 	virtual void _BCL OnFrame(void);
 	virtual void OnRender(void);
 
-	virtual void ApplyCamera() = 0;
-
 	virtual shared_str OpenDemoFile(const char* demo_file_name) = 0;
 	virtual void net_StartPlayDemo() = 0;
 
@@ -116,6 +111,10 @@ public:
 	//ref_shader LL_CreateShader (int S, int T, int M, int C);
 	void LL_CheckTextures();
 	virtual void SetEnvironmentGameTimeFactor(u64 const& GameTime, float const& fTimeFactor) = 0;
+
+public:
+	virtual void						applyCamera								() = 0;
+	virtual void						applyPP									() = 0;
 };
 
 //-----------------------------------------------------------------------------------------------------------
@@ -140,4 +139,3 @@ void relcase_unregister(_class_type* self, void (xr_stdcall _class_type::* funct
 		function_to_bind)
 		);
 }
-#endif

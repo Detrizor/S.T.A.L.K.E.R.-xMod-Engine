@@ -472,33 +472,36 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 
 	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
 	Device.camera.full_transform_inv.invert(Device.camera.full_transform);
-
+	
 	if (Device.isActiveMain() || Device.SVP.isRendering())
 		ResetPP							();
 	else
-	{
-		pp_affected.validate			("apply device");
-		// postprocess
-		IRender_Target* T				= ::Render->getTarget();
-		T->set_duality_h				(pp_affected.duality.h);
-		T->set_duality_v				(pp_affected.duality.v);
-		T->set_blur						(pp_affected.blur);
-		T->set_gray						(pp_affected.gray);
-		T->set_noise					(pp_affected.noise.intensity);
+		applyPP							();
+}
 
-		clamp							(pp_affected.noise.grain, EPS_L, 1000.0f);
+void CCameraManager::applyPP()
+{
+	pp_affected.validate				("apply device");
+	// postprocess
+	IRender_Target* T					= ::Render->getTarget();
+	T->set_duality_h					(pp_affected.duality.h);
+	T->set_duality_v					(pp_affected.duality.v);
+	T->set_blur							(pp_affected.blur);
+	T->set_gray							(pp_affected.gray);
+	T->set_noise						(pp_affected.noise.intensity);
 
-		T->set_noise_scale				(pp_affected.noise.grain);
+	clamp								(pp_affected.noise.grain, EPS_L, 1000.0f);
 
-		T->set_noise_fps				(pp_affected.noise.fps);
-		T->set_color_base				(pp_affected.color_base);
-		T->set_color_gray				(pp_affected.color_gray);
-		T->set_color_add				(pp_affected.color_add);
+	T->set_noise_scale					(pp_affected.noise.grain);
 
-		T->set_cm_imfluence				(pp_affected.cm_influence);
-		T->set_cm_interpolate			(pp_affected.cm_interpolate);
-		T->set_cm_textures				(pp_affected.cm_tex1, pp_affected.cm_tex2);
-	}
+	T->set_noise_fps					(pp_affected.noise.fps);
+	T->set_color_base					(pp_affected.color_base);
+	T->set_color_gray					(pp_affected.color_gray);
+	T->set_color_add					(pp_affected.color_add);
+
+	T->set_cm_imfluence					(pp_affected.cm_influence);
+	T->set_cm_interpolate				(pp_affected.cm_interpolate);
+	T->set_cm_textures					(pp_affected.cm_tex1, pp_affected.cm_tex2);
 }
 
 void CCameraManager::ResetPP()
@@ -521,16 +524,16 @@ void CCameraManager::ResetPP()
 
 void CCameraManager::Dump()
 {
-	Fmatrix mInvCamera;
-	Fvector _R, _U, _T, _P;
+	Fmatrix								mInvCamera;
+	Fvector								_R, _U, _T, _P;
 
-	mInvCamera.invert(Device.camera.view);
-	_R.set(mInvCamera._11, mInvCamera._12, mInvCamera._13);
-	_U.set(mInvCamera._21, mInvCamera._22, mInvCamera._23);
-	_T.set(mInvCamera._31, mInvCamera._32, mInvCamera._33);
-	_P.set(mInvCamera._41, mInvCamera._42, mInvCamera._43);
-	Log("CCameraManager::Dump::vPosition = ", _P);
-	Log("CCameraManager::Dump::vDirection = ", _T);
-	Log("CCameraManager::Dump::vNormal = ", _U);
-	Log("CCameraManager::Dump::vRight = ", _R);
+	mInvCamera.invert					(Device.camera.view);
+	_R.set								(mInvCamera._11, mInvCamera._12, mInvCamera._13);
+	_U.set								(mInvCamera._21, mInvCamera._22, mInvCamera._23);
+	_T.set								(mInvCamera._31, mInvCamera._32, mInvCamera._33);
+	_P.set								(mInvCamera._41, mInvCamera._42, mInvCamera._43);
+	Log									("CCameraManager::Dump::vPosition = ", _P);
+	Log									("CCameraManager::Dump::vDirection = ", _T);
+	Log									("CCameraManager::Dump::vNormal = ", _U);
+	Log									("CCameraManager::Dump::vRight = ", _R);
 }

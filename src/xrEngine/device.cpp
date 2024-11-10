@@ -249,13 +249,14 @@ void CRenderDevice::render_svp()
 		SVP.setRendering				(true);
 
 		auto camera_backup				= camera;
-		g_pGameLevel->ApplyCamera		();
+		g_pGameLevel->applyCamera		();
 
 		m_pRender->SetCacheXform		(camera.view, camera.project);
 		seqRender.Process				(rp_Render);
 		End								();
 		
 		camera							= camera_backup;
+		g_pGameLevel->applyPP			();
 
 		SVP.setRendering				(false);
 	}
