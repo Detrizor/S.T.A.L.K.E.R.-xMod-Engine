@@ -156,7 +156,7 @@ public:
 	virtual	void			ZoomDec();
 	IC		bool			IsZoomed()	const { return m_zoom_params.m_bIsZoomModeNow; };
 
-	virtual float			CurrentZoomFactor	(bool for_actor) const;
+	virtual float			getZoom() const;
 
 	virtual EHandDependence		HandDependence()	const
 	{

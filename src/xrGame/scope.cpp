@@ -262,7 +262,7 @@ void MScope::modify_holder_params(float &range, float &fov) const
 
 bool MScope::isPiP() const
 {
-	return								Type() == eOptics && !fIsZero(m_lense_radius);
+	return								(Type() == eOptics && !fIsZero(m_lense_radius));
 }
 
 void MScope::RenderUI()
@@ -281,7 +281,6 @@ void MScope::RenderUI()
 	}
 	
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	float lense_scale					= hud_params.w;
 
 	float magnification					= 0.f;
 	if (m_Magnificaion.dynamic)
@@ -290,7 +289,7 @@ void MScope::RenderUI()
 	float offset						= (fMore(cur_eye_relief, 0.f)) ? m_camera_lense_distance / cur_eye_relief : 1.f;
 	
 	CUIStatic* shadow					= nullptr;
-	float scale							= lense_scale;
+	float scale							= m_lense_scale;
 	if (fMore(offset, 1.f))
 	{
 		shadow							= static_scope_shadow_far;
@@ -352,7 +351,7 @@ void MScope::RenderUI()
 		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
 		Fvector2 derivation				= { hud_params.x * UI_BASE_HEIGHT, hud_params.y * UI_BASE_HEIGHT };
 
-		m_pUIReticle->SetScale			(lense_scale * magnification);
+		m_pUIReticle->SetScale			(m_lense_scale * magnification);
 		m_pUIReticle->SetWndPos			(derivation);
 		m_pUIReticle->SetHeading		(hud_params.z);
 		m_pUIReticle->Draw				();
@@ -385,12 +384,46 @@ void MScope::updateCameraLenseOffset()
 	itrans.transform_tiny				(m_cam_pos_d_sight_axis, static_cast<Dvector>(Actor()->Cameras().Position()));
 }
 
-float MScope::getLenseFovTan()
+void MScope::updateSVP(Dmatrix CR$ transform)
 {
-	return								m_lense_radius / m_camera_lense_distance;
-}
+	if (Type() == MScope::eIS)
+		return;
 
-float MScope::GetReticleScale() const
-{
-	return (Type() == eCollimator) ? m_Magnificaion.current : 1.f;
+	static Fmatrix						cam_trans;
+	static Fvector						cam_hpb;
+	static Dvector						self_hpb;
+	static Fvector						d_hpb;
+
+	Actor()->Cameras().camera_Matrix	(cam_trans);
+	cam_trans.getHPB					(cam_hpb);
+	transform.getHPB					(self_hpb);
+	d_hpb								= cam_hpb;
+	d_hpb.sub							(static_cast<Fvector>(self_hpb));
+
+	float fov_tan						= g_aim_fov_tan;
+	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
+	if (Type() == eOptics)
+	{
+		float lense_fov_tan				= m_lense_radius / m_camera_lense_distance;
+		m_lense_scale					= lense_fov_tan / g_aim_fov_tan;
+		
+		fov_tan							/= m_Magnificaion.current;
+		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
+		Device.SVP.setZoom				(m_Magnificaion.current);
+		
+		Fvector pos						= static_cast<Fvector>(m_objective_offset);
+		cam_trans.transform_tiny		(pos);
+		Device.SVP.setPosition			(pos);
+	}
+	else
+		hud_params.w					= m_Magnificaion.current;
+
+	float distance						= Zeroing();
+	float x_derivation					= distance * tanf(d_hpb.x);
+	float y_derivation					= distance * tanf(d_hpb.y);
+
+	float h								= 2.f * fov_tan * distance;
+	hud_params.x						= x_derivation / h;
+	hud_params.y						= y_derivation / h;
+	hud_params.z						= d_hpb.z;
 }

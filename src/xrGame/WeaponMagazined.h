@@ -266,9 +266,9 @@ public:
 	bool								CanTrade							C$	();
 	u16									Zeroing								C$	();
 	MScope*								getActiveScope						C$	();
-	void								updateShadersDataAndSVP				C$	(CCameraManager& camera);
+	void								updateSVP							C$	();
 	
-	float								CurrentZoomFactor					CO$	(bool for_actor);
+	float								getZoom								CO$	();
 	int									GetAmmoElapsed						CO$	();
 	int									GetAmmoMagSize						CO$	();
 

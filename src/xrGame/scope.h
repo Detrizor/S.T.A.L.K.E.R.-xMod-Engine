@@ -84,6 +84,7 @@ private:
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 	xptr<MScope>						m_backup_sight							= nullptr;
 	u8									m_current_reticle						= 0;
+	float								m_lense_scale							= 1.f;
 
 	u8									m_reticles_count;
 	Dvector								m_sight_position;
@@ -117,7 +118,7 @@ public:
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
-	float								getLenseFovTan							();
+	void								updateSVP								(Dmatrix CR$ transform);
 
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
@@ -130,7 +131,6 @@ public:
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
 	MScope*								getBackupSight						C$	()		{ return (m_backup_sight) ? m_backup_sight.get() : nullptr; }
 
-	float								GetReticleScale						C$	();
 	void								modify_holder_params				C$	(float &range, float &fov);
 	bool								isPiP								C$	();
 };

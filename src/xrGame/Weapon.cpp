@@ -888,7 +888,7 @@ float CWeapon::GetControlInertionFactor C$(bool full)
 	return								1.f + inherited::GetControlInertionFactor(full) * inertion;
 }
 
-float CWeapon::CurrentZoomFactor C$(bool for_actor)
+float CWeapon::getZoom() const
 {
 	return								static_cast<float>(!!ADS());
 }

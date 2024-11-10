@@ -872,8 +872,8 @@ float CActor::currentFOV()
 {
 	if (auto ai = inventory().ActiveItem())
 		if (auto wpn = ai->O.scast<CWeapon*>())
-			if (auto zoom_factor = wpn->CurrentZoomFactor(true))
-				return					(fMore(zoom_factor, 1.f)) ? rad2degHalf(atanf(g_aim_fov_tan / zoom_factor)) : g_aim_fov;
+			if (auto zoom = wpn->getZoom())
+				return					(fMore(zoom, 1.f)) ? rad2degHalf(atanf(g_aim_fov_tan / zoom)) : g_aim_fov;
 	return								g_fov;
 }
 
@@ -1024,7 +1024,7 @@ void CActor::UpdateCL()
 
 	auto wpn = smart_cast<CWeaponMagazined*>(inventory().ActiveItem());
 	if (wpn && current_entity)
-		wpn->updateShadersDataAndSVP(Cameras());
+		wpn->updateSVP();
 	else
 	{
 		Device.SVP.setActive(false);

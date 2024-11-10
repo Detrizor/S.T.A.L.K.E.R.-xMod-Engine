@@ -974,13 +974,12 @@ void CWeaponMagazined::render_item_ui()
 	getActiveScope()->RenderUI();
 }
 
-float CWeaponMagazined::CurrentZoomFactor(bool for_actor) const
+float CWeaponMagazined::getZoom() const
 {
-	MScope* scope = getActiveScope();
-	if (scope && scope->Type() == MScope::eOptics && (!scope->isPiP() && !IsRotatingToZoom() || !for_actor))
-		return scope->GetCurrentMagnification();
-	else
-		return inherited::CurrentZoomFactor(for_actor);
+	if (auto scope = getActiveScope())
+		if (scope->Type() == MScope::eOptics && !scope->isPiP() && !IsRotatingToZoom())
+			return						scope->GetCurrentMagnification();
+	return __super::getZoom				();
 }
 
 void CWeaponMagazined::cycle_scope(int idx, bool up)
@@ -1324,50 +1323,12 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 	return m_hud->IsRotatingToZoom();
 }
 
-void CWeaponMagazined::updateShadersDataAndSVP(CCameraManager& camera) const
+void CWeaponMagazined::updateSVP() const
 {
 	MScope* scope						= getActiveScope();
 	Device.SVP.setActive(scope && scope->isPiP());
-	if (!scope || scope->Type() == MScope::eIS)
-		return;
-	
-	static Fmatrix						cam_trans;
-	static Fvector						cam_hpb;
-	static Dvector						self_hpb;
-	static Fvector						d_hpb;
-
-	camera.camera_Matrix				(cam_trans);
-	cam_trans.getHPB					(cam_hpb);
-	HudItemData()->m_transform.getHPB	(self_hpb);
-	d_hpb								= cam_hpb;
-	d_hpb.sub							(static_cast<Fvector>(self_hpb));
-
-	float fov_tan						= g_aim_fov_tan;
-	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
-	if (scope->Type() == MScope::eOptics)
-	{
-		hud_params.w					= scope->getLenseFovTan() / g_aim_fov_tan;
-		float zoom_factor				= CurrentZoomFactor(false);
-		Device.SVP.setZoom				(zoom_factor);
-		fov_tan							/= zoom_factor;
-		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
-		
-		Fvector pos						= static_cast<Fvector>(scope->getObjectiveOffset());
-		cam_trans.transform_tiny		(pos);
-		Device.SVP.setPosition			(pos);
-	}
-	else
-		hud_params.w					= scope->GetReticleScale();
-
-	float distance						= scope->Zeroing();
-
-	float x_derivation					= distance * tanf(d_hpb.x);
-	float y_derivation					= distance * tanf(d_hpb.y);
-
-	float h								= 2.f * fov_tan * distance;
-	hud_params.x						= x_derivation / h;
-	hud_params.y						= y_derivation / h;
-	hud_params.z						= d_hpb.z;
+	if (scope)
+		scope->updateSVP				(HudItemData()->m_transform);
 }
 
 u16 CWeaponMagazined::Zeroing C$()
