@@ -58,12 +58,14 @@ u32				frustum_aabb_remap [8][6]	=
 };
 
 //////////////////////////////////////////////////////////////////////
-EFC_Visible	CFrustum::testSphere			(Fvector& c, float r, u32& test_mask) const
+
+EFC_Visible	CFrustum::testSphere(Fvector CR$ c, float r, u32& test_mask) const
 {
 	u32	bit = 1;
 	for (int i=0; i<p_count; i++, bit<<=1)
 	{
-		if (test_mask&bit) {
+		if (test_mask&bit)
+		{
 			float cls = planes[i].classify	(c);
 			if (cls>r) { test_mask=0; return fcvNone;}	// none  - return
 			if (_abs(cls)>=r) test_mask&=~bit;			// fully - no need to test this plane
@@ -72,9 +74,10 @@ EFC_Visible	CFrustum::testSphere			(Fvector& c, float r, u32& test_mask) const
 	return test_mask ? fcvPartial:fcvFully;
 }
 
-BOOL	CFrustum::testSphere_dirty		(Fvector& c, float r) const
+BOOL CFrustum::testSphere_dirty(Fvector CR$ c, float r) const
 {
-	switch (p_count) {
+	switch (p_count)
+	{
 		case 12:if (planes[11].classify(c)>r)	return FALSE;
 		case 11:if (planes[10].classify(c)>r)	return FALSE;
 		case 10:if (planes[9].classify(c)>r)	return FALSE;
@@ -93,7 +96,7 @@ BOOL	CFrustum::testSphere_dirty		(Fvector& c, float r) const
 	return TRUE;
 }
 
-EFC_Visible	CFrustum::testAABB			(const float* mM, u32& test_mask) const
+EFC_Visible	CFrustum::testAABB(const float* mM, u32& test_mask) const
 {
 	// go for trivial rejection or acceptance using "faster overlap test"
 	u32		bit = 1;
@@ -109,16 +112,18 @@ EFC_Visible	CFrustum::testAABB			(const float* mM, u32& test_mask) const
 	return test_mask ? fcvPartial:fcvFully;
 }
 
-EFC_Visible	CFrustum::testSAABB			(Fvector& c, float r, const float* mM, u32& test_mask) const
+EFC_Visible	CFrustum::testSAABB(Fvector CR$ c, float r, const float* mM, u32& test_mask) const
 {
 	u32	bit = 1;
 	for (int i=0; i<p_count; i++, bit<<=1)
 	{
-		if (test_mask&bit) {
+		if (test_mask&bit)
+		{
 			float cls = planes[i].classify(c);
 			if (cls>r) { test_mask=0; return fcvNone;}	// none  - return
 			if (_abs(cls)>=r) test_mask&=~bit;			// fully - no need to test this plane
-			else {
+			else
+			{
 				EFC_Visible	r	= AABB_OverlapPlane(planes[i],mM);
 				if (fcvFully==r)	test_mask&=~bit;					// fully - no need to test this plane
 				else if (fcvNone==r){ test_mask=0; return fcvNone;	}	// none - return
@@ -128,7 +133,7 @@ EFC_Visible	CFrustum::testSAABB			(Fvector& c, float r, const float* mM, u32& te
 	return test_mask ? fcvPartial:fcvFully;
 }
 
-BOOL		CFrustum::testPolyInside_dirty(Fvector* p, int count) const
+BOOL CFrustum::testPolyInside_dirty(Fvector* p, int count) const
 {
 	Fvector* e = p+count;
 	for (int i=0; i<p_count; i++)

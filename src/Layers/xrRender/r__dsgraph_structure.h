@@ -149,8 +149,8 @@ public:
 
 	void		r_pmask											(bool _1, bool _2, bool _wm=false)				{ pmask[0]=_1; pmask[1]=_2;	pmask_wmark = _wm; }
 
-	void		r_dsgraph_insert_dynamic						(dxRender_Visual	*pVisual, Fvector& Center);
-	void		r_dsgraph_insert_static							(dxRender_Visual	*pVisual);
+	void		r_dsgraph_insert_dynamic						(dxRender_Visual* pVisual, Fvector CR$ Center);
+	void		r_dsgraph_insert_static							(dxRender_Visual* pVisual);
 
 	void		r_dsgraph_render_graph							(u32	_priority,	bool _clear=true);
 	void		r_dsgraph_render_hud							();
