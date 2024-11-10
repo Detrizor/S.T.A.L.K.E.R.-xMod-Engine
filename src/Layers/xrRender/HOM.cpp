@@ -8,18 +8,14 @@
 #include "../../xrEngine/GameFont.h"
 
 #include "dxRenderDeviceRender.h"
- 
-float	psOSSR		= .001f;
 
 void __stdcall	CHOM::MT_RENDER()
 {
 	MT.Enter					();
 	if (MT_frame_rendered != ::Render->dwFrame() && !Device.isActiveMain())
 	{
-		CFrustum					ViewBase;
-		ViewBase.CreateFromMatrix	(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
-		Enable						();
-		Render						(ViewBase);
+		Enable					();
+		Render					(Device.camera.view_base);
 	}
 	MT.Leave					();
 }

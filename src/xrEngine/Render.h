@@ -178,6 +178,7 @@ public:
 		SM_FOR_MPSENDING = 4,
 		SM_forcedword = u32(-1)
 	};
+
 public:
 	// options
 	s32 m_skinning;
@@ -186,8 +187,8 @@ public:
 	BENCH_SEC_SCRAMBLEMEMBER1
 
 	// data
-	CFrustum ViewBase;
 	CFrustum* View;
+
 public:
 	// feature level
 	virtual GenerationLevel get_generation() = 0;

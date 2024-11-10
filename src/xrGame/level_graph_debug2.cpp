@@ -116,7 +116,7 @@ void CLevelGraph::draw_nodes	()
 		if (Device.camera.position.distance_to(PC)>30) continue;
 
 		float			sr	= header().cell_size();
-		if (::Render->ViewBase.testSphere_dirty(PC,sr)) {
+		if (Device.camera.view_base.testSphere_dirty(PC,sr)) {
 			
 			u32	LL = 255;
 			

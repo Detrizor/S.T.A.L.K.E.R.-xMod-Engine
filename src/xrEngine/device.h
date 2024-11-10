@@ -4,6 +4,7 @@
 #include "stats.h"
 
 #include "../xrcore/ftimer.h"
+#include "../xrCDB/frustum.h"
 
 extern ENGINE_API float VIEWPORT_NEAR;
 
@@ -85,6 +86,8 @@ public:
 		float							hud_fov									= 75.f;
 		float							aspect									= 1.f;
 		float							izoom_sqr								= 1.f;
+
+		CFrustum						view_base								= {};
 	};
 
 public:

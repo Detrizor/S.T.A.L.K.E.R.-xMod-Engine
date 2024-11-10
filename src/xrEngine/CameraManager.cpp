@@ -472,6 +472,7 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 
 	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
 	Device.camera.full_transform_inv.invert(Device.camera.full_transform);
+	Device.camera.view_base.CreateFromMatrix(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
 	if (Device.isActiveMain() || Device.SVP.isRendering())
 		ResetPP							();

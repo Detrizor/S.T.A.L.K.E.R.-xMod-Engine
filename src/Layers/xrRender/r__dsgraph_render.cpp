@@ -606,11 +606,6 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 	VERIFY							(_sector);
 	RImplementation.marker			++;			// !!! critical here
 
-	// Save and build new frustum, disable HOM
-	CFrustum	ViewSave			= ViewBase;
-	ViewBase						= *_frustum;
-	View							= &ViewBase;
-
 	if (_precise_portals && RImplementation.rmPortals)		{
 		// Check if camera is too near to some portal - if so force DualRender
 		Fvector box_radius;		box_radius.set	(EPS_L*20,EPS_L*20,EPS_L*20);
@@ -624,7 +619,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 	}
 
 	// Traverse sector/portal structure
-	PortalTraverser.traverse		( _sector, ViewBase, _cop, mCombined, 0 );
+	PortalTraverser.traverse		(_sector, *_frustum, _cop, mCombined, 0 );
 
 	// Determine visibility for static geometry hierrarhy
 	for (u32 s_it=0; s_it<PortalTraverser.r_sectors.size(); s_it++)
@@ -642,7 +637,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 		set_Object						(nullptr);
 
 		// Traverse object database
-		g_SpatialSpace->q_frustum		(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, ViewBase);
+		g_SpatialSpace->q_frustum		(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, *_frustum);
 
 		auto process_spatial = [this](ISpatial* spatial)
 		{
@@ -680,10 +675,6 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 			if (auto s = g_hud->Render_Actor_Shadow())
 				process_spatial			(s);
 	}
-
-	// Restore
-	ViewBase							= ViewSave;
-	View								= nullptr;
 }
 
 #include "fhierrarhyvisual.h"

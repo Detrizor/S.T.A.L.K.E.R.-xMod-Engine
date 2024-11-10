@@ -26,7 +26,7 @@ void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 	{
 		// Traverse object database
 		g_SpatialSpace->q_frustum		(lstRenderables,
-			ISpatial_DB::O_ORDERED, STYPE_RENDERABLE + STYPE_LIGHTSOURCE, ViewBase);
+			ISpatial_DB::O_ORDERED, STYPE_RENDERABLE + STYPE_LIGHTSOURCE, Device.camera.view_base);
 
 		// (almost) Exact sorting order (front-to-back)
 		lstRenderables.sort				(
@@ -61,7 +61,7 @@ void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 	}
 
 	// Traverse sector/portal structure
-	PortalTraverser.traverse(pLastSector, ViewBase, Device.camera.position, m_ViewProjection,
+	PortalTraverser.traverse(pLastSector, Device.camera.view_base, Device.camera.position, m_ViewProjection,
 		CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE);
 
 	// Determine visibility for static geometry hierrarhy
@@ -226,11 +226,10 @@ void CRender::Render		()
 	// Msg						("sstatic: %s, sun: %s",o.sunstatic?;"true":"false", bSUN?"true":"false");
 
 	// HOM
-	ViewBase.CreateFromMatrix					(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	View										= 0;
 	if (!ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
 		HOM.Enable									();
-		HOM.Render									(ViewBase);
+		HOM.Render									(Device.camera.view_base);
 	}
 
 	//******* Z-prefill calc - DEFERRER RENDERER

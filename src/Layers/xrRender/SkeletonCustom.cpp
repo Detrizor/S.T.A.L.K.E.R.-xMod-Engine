@@ -669,7 +669,7 @@ void CKinematics::CalculateWallmarks()
 			float w	= (RDEVICE.fTimeGlobal-wm->TimeStart())/LIFE_TIME;
 			if (w<1.f){
 				// append wm to WallmarkEngine
-				if (::Render->ViewBase.testSphere_dirty(wm->m_Bounds.P,wm->m_Bounds.R))
+				if (Device.camera.view_base.testSphere_dirty(wm->m_Bounds.P,wm->m_Bounds.R))
 					//::Render->add_SkeletonWallmark	(wm);
 					::RImplementation.add_SkeletonWallmark	(wm);
 			}else{
