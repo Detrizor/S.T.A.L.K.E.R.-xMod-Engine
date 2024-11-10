@@ -870,20 +870,11 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 
 float CActor::currentFOV()
 {
-	if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
-		return g_fov;
-
-	if (eacFirstEye == cam_active)
-	{
-		CWeapon* pWeapon		= smart_cast<CWeapon*>(inventory().ActiveItem());
-		if (pWeapon)
-		{
-			float zoom_factor	= pWeapon->CurrentZoomFactor(true);
-			if (fMore(zoom_factor, 0.f))
-				return			(fMore(zoom_factor, 1.f)) ? atanf(g_aim_fov_tan / zoom_factor) / (.5f * PI / 180.f) : g_aim_fov;
-		}
-	}
-	return						g_fov;
+	if (auto ai = inventory().ActiveItem())
+		if (auto wpn = ai->O.scast<CWeapon*>())
+			if (auto zoom_factor = wpn->CurrentZoomFactor(true))
+				return					(fMore(zoom_factor, 1.f)) ? rad2degHalf(atanf(g_aim_fov_tan / zoom_factor)) : g_aim_fov;
+	return								g_fov;
 }
 
 static bool bLook_cam_fp_zoom = false;
