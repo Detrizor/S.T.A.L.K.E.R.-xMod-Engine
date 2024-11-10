@@ -23,6 +23,7 @@
 #include "player_hud.h"
 #include "item_container.h"
 #include "ActorEffector.h"
+#include "Torch.h"
 
 //Alundaio
 #include "../../xrServerEntities/script_engine.h" 
@@ -752,6 +753,10 @@ void CInventory::Update()
 		ai->O.update();
 	if (auto li = LeftItem())
 		li->O.update();
+	if (auto item = ItemFromSlot(TORCH_SLOT))
+		if (auto torch = item->O.scast<CTorch*>())
+			if (torch->torch_active())
+				torch->update();
 
 	if (OnServer())
 	{
