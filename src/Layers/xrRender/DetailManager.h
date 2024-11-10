@@ -2,8 +2,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef DetailManagerH
-#define DetailManagerH
 #pragma once
 
 #include "../../xrCore/xrpool.h"
@@ -16,10 +14,10 @@
 	class CCustomObject;
 	typedef u32	ObjClassID;
 
-    typedef xr_list<CCustomObject*> 		ObjectList;
-    typedef ObjectList::iterator 			ObjectIt;
-    typedef xr_map<ObjClassID,ObjectList> 	ObjectMap;
-    typedef ObjectMap::iterator 			ObjectPairIt;
+	typedef xr_list<CCustomObject*> 		ObjectList;
+	typedef ObjectList::iterator 			ObjectIt;
+	typedef xr_map<ObjClassID,ObjectList> 	ObjectMap;
+	typedef ObjectMap::iterator 			ObjectPairIt;
 
 #else
 	const int	dm_max_decompress	= 7;
@@ -70,9 +68,6 @@ public:
 		u32							vis_ID;				// индекс в visibility списке он же тип [не качается, качается1, качается2]
 		float						c_hemi;
 		float						c_sun;
-#if RENDER==R_R1
-		Fvector						c_rgb;
-#endif
 	};
 	DEFINE_VECTOR(SlotItem*,SlotItemVec,SlotItemVecIt);
 	struct	SlotPart	{                              	// 
@@ -98,12 +93,12 @@ public:
 
 									Slot()				{ frame=0;empty=1; type=stReady; sx=sz=0; vis.clear(); }
 	};
-    struct 	CacheSlot1	{
+	struct 	CacheSlot1	{
 		u32							empty;
-    	vis_data 					vis;
-        Slot** 						slots[dm_cache1_count*dm_cache1_count];
+		vis_data 					vis;
+		Slot** 						slots[dm_cache1_count*dm_cache1_count];
 		CacheSlot1()				{empty=1; vis.clear();}
-    };
+	};
 
 	typedef	xr_vector<xr_vector <SlotItemVec* > >	vis_list;
 	typedef	svector<CDetail*,dm_max_objects>	DetailVec;
@@ -141,21 +136,21 @@ public:
 	xrXRC							xrc;
 #endif    
 	//AVO: detail draw raius
-    //CacheSlot1 					cache_level1[dm_cache1_line][dm_cache1_line];
+	//CacheSlot1 					cache_level1[dm_cache1_line][dm_cache1_line];
 	//Slot*							cache		[dm_cache_line][dm_cache_line];	// grid-cache itself
 	//svector<Slot*,dm_cache_size>	cache_task;									// non-unpacked slots
 	//Slot							cache_pool	[dm_cache_size];				// just memory for slots
 
 #ifdef DETAIL_RADIUS
-    CacheSlot1**					cache_level1;
-    Slot***							cache;	// grid-cache itself
-    svector<Slot*, dm_max_cache_size>	cache_task;									// non-unpacked slots
-    Slot*							cache_pool;				// just memory for slots
+	CacheSlot1**					cache_level1;
+	Slot***							cache;	// grid-cache itself
+	svector<Slot*, dm_max_cache_size>	cache_task;									// non-unpacked slots
+	Slot*							cache_pool;				// just memory for slots
 #else
-    CacheSlot1 						cache_level1[dm_cache1_line][dm_cache1_line];
-    Slot*							cache[dm_cache_line][dm_cache_line];	// grid-cache itself
-    svector<Slot*, dm_cache_size>	cache_task;									// non-unpacked slots
-    Slot							cache_pool[dm_cache_size];				// just memory for slots*/
+	CacheSlot1 						cache_level1[dm_cache1_line][dm_cache1_line];
+	Slot*							cache[dm_cache_line][dm_cache_line];	// grid-cache itself
+	svector<Slot*, dm_cache_size>	cache_task;									// non-unpacked slots
+	Slot							cache_pool[dm_cache_size];				// just memory for slots*/
 #endif
 
 	int								cache_cx;
@@ -173,7 +168,7 @@ public:
 	IC bool							UseVS			()		{ return HW.Caps.geometry_major >= 1; }
 
 	// Software processor
-    ref_geom						soft_Geom;
+	ref_geom						soft_Geom;
 	void							soft_Load		();
 	void							soft_Unload		();
 	void							soft_Render		();
@@ -195,26 +190,22 @@ public:
 	void							hw_Load_Shaders	();
 	void							hw_Unload		();
 	void							hw_Render		();
-#if defined(USE_DX10) || defined(USE_DX11)
 	void							hw_Render_dump	(const Fvector4 &consts, const Fvector4 &wave, const Fvector4 &wind, u32 var_id, u32 lod_id);
-#else	//	USE_DX10
-	void							hw_Render_dump	(ref_constant array, u32 var_id, u32 lod_id, u32 c_base);
-#endif	//	USE_DX10
 
 public:
 	// get unpacked slot
 	DetailSlot&						QueryDB			(int sx, int sz);
-    
+	
 	void							cache_Initialize();
 	void							cache_Update	(int sx, int sz, Fvector& view, int limit);
 	void							cache_Task		(int gx, int gz, Slot* D);
 	Slot*							cache_Query		(int sx, int sz);
 	void							cache_Decompress(Slot* D);
 	BOOL							cache_Validate	();
-    // cache grid to world
+	// cache grid to world
 	int								cg2w_X			(int x)			{ return cache_cx-dm_size+x;					}
 	int								cg2w_Z			(int z)			{ return cache_cz-dm_size+(dm_cache_line-1-z);	}
-    // world to cache grid 
+	// world to cache grid 
 	int								w2cg_X			(int x)			{ return x-cache_cx+dm_size;					}
 	int								w2cg_Z			(int z)			{ return cache_cz-dm_size+(dm_cache_line-1-z);	}
 
@@ -238,5 +229,3 @@ public:
 	CDetailManager					();
 	virtual ~CDetailManager			();
 };
-
-#endif //DetailManagerH

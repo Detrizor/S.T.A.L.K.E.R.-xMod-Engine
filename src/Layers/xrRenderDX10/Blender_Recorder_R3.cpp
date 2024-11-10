@@ -65,7 +65,7 @@ void CBlender_Compile::i_dx10Address(u32 s, u32 address)
 	//VERIFY(s!=u32(-1));
    if( s == u32(-1) )
    {
-      Msg( "s != u32(-1)" );
+	  Msg( "s != u32(-1)" );
    }
 	RS.SetSAMP			(s,D3DSAMP_ADDRESSU,	address);
 	RS.SetSAMP			(s,D3DSAMP_ADDRESSV,	address);
@@ -203,10 +203,8 @@ void	CBlender_Compile::r_Pass		(LPCSTR _vs, LPCSTR _gs, LPCSTR _ps, bool bFog, B
 	dest.ps	= ps;
 	dest.vs	= vs;
 	dest.gs	= gs;
-#ifdef USE_DX11
 	dest.hs = DEV->_CreateHS("null");
 	dest.ds = DEV->_CreateDS("null");
-#endif
 	ctable.merge			(&ps->constants);
 	ctable.merge			(&vs->constants);
 	ctable.merge			(&gs->constants);
@@ -218,7 +216,6 @@ void	CBlender_Compile::r_Pass		(LPCSTR _vs, LPCSTR _gs, LPCSTR _ps, bool bFog, B
 	}
 }
 
-#ifdef USE_DX11
 void CBlender_Compile::r_TessPass(LPCSTR vs, LPCSTR hs, LPCSTR ds, LPCSTR gs, LPCSTR ps, bool bFog, BOOL bZtest, BOOL bZwrite, BOOL bABlend, D3DBLEND abSRC, D3DBLEND abDST, BOOL aTest, u32 aRef)
 {
 	r_Pass(vs, gs, ps, bFog, bZtest, bZwrite, bABlend, abSRC, abDST, aTest, aRef);
@@ -236,7 +233,6 @@ void CBlender_Compile::r_ComputePass(LPCSTR cs)
 
 	ctable.merge(&dest.cs->constants);
 }
-#endif
 
 void	CBlender_Compile::r_End			()
 {

@@ -88,7 +88,7 @@ void		CDetailManager::cache_Decompress(Slot* S)
 	ETOOLS::box_options	(CDB::OPT_FULL_TEST);
 	// Select polygons
 	SBoxPickInfoVec		pinf;
-    Scene->BoxPickObjects(D.vis.box,pinf,GetSnapList());
+	Scene->BoxPickObjects(D.vis.box,pinf,GetSnapList());
 	u32	triCount		= pinf.size();
 #else
 	xrc.box_options		(CDB::OPT_FULL_TEST); 
@@ -116,7 +116,7 @@ void		CDetailManager::cache_Decompress(Slot* S)
 	u32			d_size		= iCeil	(dm_slot_size/density);
 	svector<int,dm_obj_in_slot>		selected;
 
-    u32 p_rnd	= D.sx*D.sz; // нужно для того чтобы убрать полосы(ряды)
+	u32 p_rnd	= D.sx*D.sz; // нужно для того чтобы убрать полосы(ряды)
 	CRandom				r_selection	(0x12071980^p_rnd);
 	CRandom				r_jitter	(0x12071980^p_rnd);
 	CRandom				r_yaw		(0x12071980^p_rnd);
@@ -265,11 +265,6 @@ RDEVICE.Statistic->TEST0.End		();
 			//int c_dw						=	255;	//iFloor			(c_f);
 			//clamp							(c_dw,0,255);
 			//Item.C_dw						=	color_rgba		(c_dw,c_dw,c_dw,255);
-#if RENDER==R_R1
-			Item.c_rgb.x					=	DS.r_qclr	(DS.c_r,	15);
-			Item.c_rgb.y					=	DS.r_qclr	(DS.c_g,	15);
-			Item.c_rgb.z					=	DS.r_qclr	(DS.c_b,	15);
-#endif
 			Item.c_hemi						=	DS.r_qclr	(DS.c_hemi,	15);
 			Item.c_sun						=	DS.r_qclr	(DS.c_dir,	15);
 

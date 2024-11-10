@@ -44,18 +44,13 @@ public:
 	R_dsgraph::mapLOD_T											mapLOD;
 	R_dsgraph::mapSorted_T										mapDistort;
 	R_dsgraph::mapHUD_T											mapHUDSorted;
-
-#if RENDER!=R_R1
 	R_dsgraph::mapSorted_T										mapWmark;			// sorted
 	R_dsgraph::mapSorted_T										mapEmissive;
 	R_dsgraph::mapSorted_T										mapHUDEmissive;
-#endif
 
 	// Runtime structures 
 	xr_vector<R_dsgraph::mapNormalVS::TNode*,render_alloc<R_dsgraph::mapNormalVS::TNode*> >				nrmVS;
-#if defined(USE_DX10) || defined(USE_DX11)
 	xr_vector<R_dsgraph::mapNormalGS::TNode*,render_alloc<R_dsgraph::mapNormalGS::TNode*> >				nrmGS;
-#endif	//	USE_DX10
 	xr_vector<R_dsgraph::mapNormalPS::TNode*,render_alloc<R_dsgraph::mapNormalPS::TNode*> >				nrmPS;
 	xr_vector<R_dsgraph::mapNormalCS::TNode*,render_alloc<R_dsgraph::mapNormalCS::TNode*> >				nrmCS;
 	xr_vector<R_dsgraph::mapNormalStates::TNode*,render_alloc<R_dsgraph::mapNormalStates::TNode*> >		nrmStates;
@@ -63,9 +58,7 @@ public:
 	xr_vector<R_dsgraph::mapNormalTextures::TNode*,render_alloc<R_dsgraph::mapNormalTextures::TNode*> >	nrmTexturesTemp;
 
 	xr_vector<R_dsgraph::mapMatrixVS::TNode*,render_alloc<R_dsgraph::mapMatrixVS::TNode*> >				matVS;
-#if defined(USE_DX10) || defined(USE_DX11)
 	xr_vector<R_dsgraph::mapMatrixGS::TNode*,render_alloc<R_dsgraph::mapMatrixGS::TNode*> >				matGS;
-#endif	//	USE_DX10
 	xr_vector<R_dsgraph::mapMatrixPS::TNode*,render_alloc<R_dsgraph::mapMatrixPS::TNode*> >				matPS;
 	xr_vector<R_dsgraph::mapMatrixCS::TNode*,render_alloc<R_dsgraph::mapMatrixCS::TNode*> >				matCS;
 	xr_vector<R_dsgraph::mapMatrixStates::TNode*,render_alloc<R_dsgraph::mapMatrixStates::TNode*> >		matStates;
@@ -150,11 +143,8 @@ public:
 		mapLOD.destroy			();
 		mapDistort.destroy		();
 		mapHUDSorted.destroy	();
-
-#if RENDER!=R_R1
 		mapWmark.destroy		();
 		mapEmissive.destroy		();
-#endif
 	}
 
 	void		r_pmask											(bool _1, bool _2, bool _wm=false)				{ pmask[0]=_1; pmask[1]=_2;	pmask_wmark = _wm; }

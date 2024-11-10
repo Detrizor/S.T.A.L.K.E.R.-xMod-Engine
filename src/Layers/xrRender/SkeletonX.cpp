@@ -28,7 +28,7 @@ shared_str	s_bones_array_const;
 void CSkeletonX::AfterLoad	(CKinematics* parent, u16 child_idx)
 {
 	SetParent				(parent);
-    ChildIDX				= child_idx;
+	ChildIDX				= child_idx;
 }
 void CSkeletonX::_Copy		(CSkeletonX *B)
 {
@@ -48,9 +48,7 @@ void CSkeletonX::_Copy		(CSkeletonX *B)
 	RMS_boneid				= B->RMS_boneid;
 	RMS_bonecount			= B->RMS_bonecount;
 
-#if defined(USE_DX10) || defined(USE_DX11)
 	m_Indices				= B->m_Indices;
-#endif	//	USE_DX10
 }
 //////////////////////////////////////////////////////////////////////
 void CSkeletonX::_Render	(ref_geom& hGeom, u32 vCount, u32 iOffset, u32 pCount)
@@ -177,11 +175,6 @@ void CSkeletonX::_Load	(const char* N, IReader *data, u32& dwVertCount)
 	//	Igor: some shaders in r1 need more free constant registers
 	u16			hw_bones_cnt		= u16((HW.Caps.geometry.dwRegisters-22-3)/3);
 
-	#if RENDER == R_R1
-		if ( ps_r1_SoftwareSkinning == 1 )
-			hw_bones_cnt = 0;
-	#endif // RENDER == R_R1
-
 	u16			sw_bones_cnt		= 0;
 #ifdef _EDITOR
 	hw_bones_cnt					= 0;
@@ -237,7 +230,7 @@ void CSkeletonX::_Load	(const char* N, IReader *data, u32& dwVertCount)
 				Vertices1W.create				(crc,dwVertCount,(vertBoned1W*)data->pointer());
 				Render->shader_option_skinning	(-1);
 			}
-#endif        
+#endif
 		}
 		break;
 	case OGF_VERTEXFORMAT_FVF_2L: // 2-Link
@@ -344,7 +337,7 @@ void CSkeletonX::_Load	(const char* N, IReader *data, u32& dwVertCount)
 #else
 	if (bids.size()>1)	
 #endif
-    {
+	{
 		crc					= crc32(&*bids.begin(),bids.size()*sizeof(u16)); 
 		BonesUsed.create	(crc,bids.size(),&*bids.begin());
 	}
@@ -386,13 +379,13 @@ void 	get_pos_bones(const vertBoned2W &vert, Fvector& p, CKinematics* Parent )
 void 	get_pos_bones(const vertBoned3W &vert, Fvector& p, CKinematics* Parent )
 {
 		Fmatrix& M0		= Parent->LL_GetBoneInstance( vert.m[0] ).mRenderTransform;
-        Fmatrix& M1		= Parent->LL_GetBoneInstance( vert.m[1] ).mRenderTransform;
-        Fmatrix& M2		= Parent->LL_GetBoneInstance( vert.m[2] ).mRenderTransform;
+		Fmatrix& M1		= Parent->LL_GetBoneInstance( vert.m[1] ).mRenderTransform;
+		Fmatrix& M2		= Parent->LL_GetBoneInstance( vert.m[2] ).mRenderTransform;
 
 		Fvector	P0,P1,P2;
 		M0.transform_tiny(P0, vert.P); P0.mul(vert.w[0]);
-        M1.transform_tiny(P1, vert.P); P1.mul(vert.w[1]);
-        M2.transform_tiny(P2, vert.P); P2.mul(1.0f-vert.w[0]-vert.w[1]);
+		M1.transform_tiny(P1, vert.P); P1.mul(vert.w[1]);
+		M2.transform_tiny(P2, vert.P); P2.mul(1.0f-vert.w[0]-vert.w[1]);
 
 		p			= P0;
 		p.add		(P1);
@@ -401,15 +394,15 @@ void 	get_pos_bones(const vertBoned3W &vert, Fvector& p, CKinematics* Parent )
 void 	get_pos_bones(const vertBoned4W &vert, Fvector& p, CKinematics* Parent )
 {
 		Fmatrix& M0		= Parent->LL_GetBoneInstance( vert.m[0] ).mRenderTransform;
-        Fmatrix& M1		= Parent->LL_GetBoneInstance( vert.m[1] ).mRenderTransform;
-        Fmatrix& M2		= Parent->LL_GetBoneInstance( vert.m[2] ).mRenderTransform;
+		Fmatrix& M1		= Parent->LL_GetBoneInstance( vert.m[1] ).mRenderTransform;
+		Fmatrix& M2		= Parent->LL_GetBoneInstance( vert.m[2] ).mRenderTransform;
 		Fmatrix& M3		= Parent->LL_GetBoneInstance( vert.m[3] ).mRenderTransform;
 
 		Fvector	P0,P1,P2,P3;
 		M0.transform_tiny(P0, vert.P); P0.mul(vert.w[0]);
-        M1.transform_tiny(P1, vert.P); P1.mul(vert.w[1]);
+		M1.transform_tiny(P1, vert.P); P1.mul(vert.w[1]);
 		M2.transform_tiny(P2, vert.P); P2.mul(vert.w[2]);
-        M3.transform_tiny(P3,vert.P); P3.mul(1.0f-vert.w[0]-vert.w[1]-vert.w[2]);
+		M3.transform_tiny(P3,vert.P); P3.mul(1.0f-vert.w[0]-vert.w[1]-vert.w[2]);
 		
 		p			= P0;
 		p.add		(P1);
@@ -649,7 +642,6 @@ void CSkeletonX::_FillVerticesSoft4W(const Fmatrix& view, CSkeletonWallmark& wm,
 	}
 }
 
-#if defined(USE_DX10) || defined(USE_DX11)
 void CSkeletonX::_DuplicateIndices(const char* N, IReader *data)
 {
 	//	We will have trouble with container since don't know were to take readable indices
@@ -663,4 +655,3 @@ void CSkeletonX::_DuplicateIndices(const char* N, IReader *data)
 	u32 crc					= crc32( data->pointer(), size);
 	m_Indices.create		( crc, iCount, (u16*)data->pointer());
 }
-#endif	//	USE_DX10

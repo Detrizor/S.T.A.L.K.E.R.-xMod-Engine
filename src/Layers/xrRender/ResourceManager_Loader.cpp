@@ -16,7 +16,7 @@ void	CResourceManager::OnDeviceDestroy(BOOL )
 		xr_delete		(m->second);
 	}
 	m_matrices.clear	();
-    
+	
 	// Constants
 	for (map_Constant::iterator c=m_constants.begin(); c!=m_constants.end(); c++)
 	{
@@ -25,7 +25,7 @@ void	CResourceManager::OnDeviceDestroy(BOOL )
 	}
 	m_constants.clear	();
 
-   	// Release blenders
+	// Release blenders
 	for (map_BlenderIt b=m_blenders.begin(); b!=m_blenders.end(); b++)
 	{
 		xr_free				((char*&)b->first);
@@ -60,7 +60,7 @@ void	CResourceManager::OnDeviceCreate	(IReader* F)
 #endif
 	IReader*	fs			= 0;
 	// Load constants
- 	fs	 		  			= F->open_chunk	(0);
+	fs	 		  			= F->open_chunk	(0);
 	if (fs){
 		while (!fs->eof())	{
 			fs->r_stringZ	(name,sizeof(name));
@@ -71,7 +71,7 @@ void	CResourceManager::OnDeviceCreate	(IReader* F)
 	}
 
 	// Load matrices
-    fs						= F->open_chunk(1);
+	fs						= F->open_chunk(1);
 	if (fs){
 		while (!fs->eof())	{
 			fs->r_stringZ	(name,sizeof(name));
@@ -82,7 +82,7 @@ void	CResourceManager::OnDeviceCreate	(IReader* F)
 	}
 
 	// Load blenders
-    fs						= F->open_chunk	(2);
+	fs						= F->open_chunk	(2);
 	if (fs){
 		IReader*	chunk	= NULL;
 		int			chunk_id= 0;
@@ -91,14 +91,12 @@ void	CResourceManager::OnDeviceCreate	(IReader* F)
 			CBlender_DESC	desc;
 			chunk->r		(&desc,sizeof(desc));
 
-#if RENDER != R_R1
 			if (desc.CLS == B_SHADOW_WORLD)
 			{
 				chunk->close();
 				chunk_id += 1;
 				continue;
 			}
-#endif
 
 			IBlender*		B = IBlender::Create(desc.CLS);
 			if	(0==B)
