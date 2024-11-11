@@ -227,10 +227,8 @@ void CRender::Render		()
 
 	// HOM
 	View										= 0;
-	if (!ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
-		HOM.Enable									();
-		HOM.Render									(Device.camera.view_base);
-	}
+	HOM.Enable									();
+	HOM.Render									(Device.camera.view_base);
 
 	//******* Z-prefill calc - DEFERRER RENDERER
 	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))		

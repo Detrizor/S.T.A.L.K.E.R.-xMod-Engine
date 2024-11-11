@@ -9,17 +9,6 @@
 
 #include "dxRenderDeviceRender.h"
 
-void __stdcall	CHOM::MT_RENDER()
-{
-	MT.Enter					();
-	if (MT_frame_rendered != ::Render->dwFrame() && !Device.isActiveMain())
-	{
-		Enable					();
-		Render					(Device.camera.view_base);
-	}
-	MT.Leave					();
-}
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -221,7 +210,7 @@ void CHOM::Render_DB			(CFrustum& base)
 	}
 }
 
-void CHOM::Render		(CFrustum& base)
+void CHOM::Render(CFrustum& base)
 {
 	if (!bEnabled)		return;
 	
@@ -229,7 +218,6 @@ void CHOM::Render		(CFrustum& base)
 	Raster.clear		();
 	Render_DB			(base);
 	Raster.propagade	();
-	MT_frame_rendered	= ::Render->dwFrame();
 	Device.Statistic->RenderCALC_HOM.End	();
 }
 
