@@ -380,9 +380,9 @@ void MScope::updateCameraLenseOffset()
 	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.scast<CHudItem*>()->HudItemData()->m_transform;
 	trans.translate_mul					(m_sight_position);
 
-	Dvector camera_lense_offset			= trans.c;
-	camera_lense_offset.sub				(static_cast<Dvector>(Actor()->Cameras().Position()));
-	m_camera_lense_distance				= camera_lense_offset.magnitude();
+	m_camera_lense_offset				= static_cast<Fvector>(trans.c);
+	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
+	m_camera_lense_distance				= m_camera_lense_offset.magnitude();
 
 	Dmatrix								itrans;
 	itrans.invert						(trans);
@@ -412,6 +412,8 @@ void MScope::updateSVP(Dmatrix CR$ transform)
 		fov_tan							/= m_Magnificaion.current;
 		float shadow_scale				= update_scope_shadow();
 		Device.SVP.setViewFOV			(2.f * atanf(fov_tan * min(m_lense_scale, shadow_scale)));
+		Device.SVP.setLenseFOV			(2.f * atanf(g_aim_fov_tan * m_lense_scale));
+		Device.SVP.setLenseDir			(m_camera_lense_offset);
 
 		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
 		Device.SVP.setZoom				(m_Magnificaion.current);

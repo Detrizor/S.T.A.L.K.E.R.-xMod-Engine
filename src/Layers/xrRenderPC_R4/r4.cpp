@@ -610,8 +610,8 @@ BOOL					CRender::occ_visible			(vis_data& P)		{ return HOM.visible(P);								}
 BOOL					CRender::occ_visible			(sPoly& P)			{ return HOM.visible(P);								}
 BOOL					CRender::occ_visible			(Fbox& P)			{ return HOM.visible(P);								}
 
-void					CRender::add_Visual				(IRenderVisual*		V )	{ add_Dynamic(reinterpret_cast<dxRender_Visual*>(V), u32_max);			}
-void					CRender::add_Geometry			(IRenderVisual*		V )	{ add_Static(reinterpret_cast<dxRender_Visual*>(V), View->getMask());	}
+void					CRender::add_Visual				(IRenderVisual* V )	{ add_Dynamic(reinterpret_cast<dxRender_Visual*>(V), u32_max, m_planes_lense); }
+void					CRender::add_Geometry			(IRenderVisual* V )	{ add_Static(reinterpret_cast<dxRender_Visual*>(V), View->getMask(), m_planes_lense); }
 void					CRender::add_StaticWallmark		(ref_shader& S, const Fvector& P, float s, CDB::TRI* T, Fvector* verts)
 {
 	if (T->suppress_wm)	return;

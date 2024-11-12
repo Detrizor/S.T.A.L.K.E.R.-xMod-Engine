@@ -85,6 +85,7 @@ private:
 	xptr<MScope>						m_backup_sight							= nullptr;
 	u8									m_current_reticle						= 0;
 	float								m_lense_scale							= 1.f;
+	Fvector								m_camera_lense_offset					= vZero;
 	CUIStatic*							m_scope_shadow							= nullptr;
 
 	u8									m_reticles_count;

@@ -63,6 +63,9 @@ void CRender::render_main(Fmatrix& m_ViewProjection, bool _fportals)
 	// Traverse sector/portal structure
 	PortalTraverser.traverse(pLastSector, Device.camera.view_base, Device.camera.position, m_ViewProjection,
 		CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE);
+	
+	bool check_lense					= Device.SVP.isActive() && !Device.SVP.isRendering();
+	m_planes_lense						= (check_lense) ? Device.SVP.lenseView().getMask() : u32_max;
 
 	// Determine visibility for static geometry hierrarhy
 	for (auto& i_sector : PortalTraverser.r_sectors)

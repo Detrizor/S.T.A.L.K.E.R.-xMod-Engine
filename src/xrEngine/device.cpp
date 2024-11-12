@@ -580,3 +580,9 @@ void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+
 	if (g_pGamePersistent)
 		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)m_active;
 }
+
+void CRenderDevice::CSVP::setLenseDir(Fvector CR$ val)
+{
+	m_lense_dir.set						(val);
+	m_lense_dir.normalize				();
+}

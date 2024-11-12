@@ -475,7 +475,12 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 
 	if (svp.isRendering())
 	{
-		static Fmatrix					project, transform;
+		static Fmatrix					project, view, transform;
+		project.build_projection		(svp.getLenseFOV(), 1.f, _viewport_near, m_cam_info.fFar);
+		view.build_camera_dir			(pos, svp.getLenseDir(), m_cam_info.n);
+		transform.mul					(project, view);
+		svp.lenseView().CreateFromMatrix(transform, FRUSTUM_P_LRTB);
+
 		project.build_projection		(svp.getViewFOV(), 1.f, _viewport_near * zoom, m_cam_info.fFar);
 		transform.mul					(project, dcam.view);
 		dcam.view_base.CreateFromMatrix	(transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
