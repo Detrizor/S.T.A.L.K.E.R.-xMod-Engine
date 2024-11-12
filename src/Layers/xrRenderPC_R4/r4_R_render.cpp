@@ -220,19 +220,20 @@ void CRender::Render		()
 		return;
 	}
 
-//.	VERIFY					(g_pGameLevel && g_pGameLevel->pHUD);
-
 	// Configure
-	RImplementation.o.distortion				= FALSE;		// disable distorion
-	Fcolor					sun_color			= ((light*)Lights.sun_adapted._get())->color;
-	BOOL					bSUN				= ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r,sun_color.g,sun_color.b)>EPS);
-	if (o.sunstatic)		bSUN				= FALSE;
-	// Msg						("sstatic: %s, sun: %s",o.sunstatic?;"true":"false", bSUN?"true":"false");
+	RImplementation.o.distortion		= FALSE;		// disable distorion
+	bool bSUN							= !o.sunstatic && ps_r2_ls_flags.test(R2FLAG_SUN) && !Device.SVP.isRendering();
+	if (bSUN)
+	{
+		Fcolor sun_color				= reinterpret_cast<light*>(Lights.sun_adapted._get())->color;
+		if (fIsZero(u_diffuse2s(sun_color.r, sun_color.g, sun_color.b)))
+			bSUN						= false;
+	}
 
 	// HOM
-	View										= 0;
-	HOM.Enable									();
-	HOM.Render									(Device.camera.view_base);
+	View								= 0;
+	HOM.Enable							();
+	HOM.Render							(Device.camera.view_base);
 
 	//******* Z-prefill calc - DEFERRER RENDERER
 	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))
