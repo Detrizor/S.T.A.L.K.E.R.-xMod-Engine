@@ -446,4 +446,5 @@ public:
 	xoptional(T&& data) { m_data = data; m_status = true; }
 	operator bool() const { return m_status; }
 	T&& get() { R_ASSERT(m_status); m_status = false; return _STD move(m_data); }
+	T& getRef(bool set_status = false) { if (set_status) m_status = true; return m_data; }
 };
