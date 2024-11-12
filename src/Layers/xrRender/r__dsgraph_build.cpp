@@ -312,11 +312,12 @@ void R_dsgraph_structure::r_dsgraph_insert_static	(dxRender_Visual *pVisual)
 
 void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 {
-	auto Tpos = [this, pVisual]() -> Fvector CR$
+	xoptional<Fvector>					tpos;
+	auto Tpos = [&]() -> Fvector CR$
 	{
-		static Fvector					res;
-		val_pTransform->transform_tiny	(res, pVisual->vis.sphere.P);
-		return							res;
+		if (!tpos)
+			val_pTransform->transform_tiny(tpos.getRef(true), pVisual->vis.sphere.P);
+		return							tpos.getRef();
 	};
 
 	if (planes != u32_max)
