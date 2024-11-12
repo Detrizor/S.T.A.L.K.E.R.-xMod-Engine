@@ -442,39 +442,48 @@ void CCameraManager::UpdatePPEffectors()
 
 void CCameraManager::ApplyDevice(float _viewport_near)
 {
-	// Device params
-	Fvector CR$ pos						= (Device.SVP.isRendering()) ? Device.SVP.getPosition() : m_cam_info.p;
-	float fov							= (Device.SVP.isRendering()) ? Device.SVP.getFOV() : m_cam_info.fFov;
+	auto& dcam							= Device.camera;
+	auto& svp							= Device.SVP;
+	Fvector CR$ pos						= (svp.isRendering()) ? svp.getPosition() : m_cam_info.p;
+	float fov							= (svp.isRendering()) ? svp.getFOV() : m_cam_info.fFov;
 
-	Device.camera.view.build_camera_dir	(pos, m_cam_info.d, m_cam_info.n);
-	Device.camera.position.set			(pos);
-	Device.camera.direction.set			(m_cam_info.d);
-	Device.camera.top.set				(m_cam_info.n);
-	Device.camera.right.set				(m_cam_info.r);
-	Device.camera.fov					= fov;
-	Device.camera.hud_fov				= fov;
+	dcam.view.build_camera_dir			(pos, m_cam_info.d, m_cam_info.n);
+	dcam.position.set					(pos);
+	dcam.direction.set					(m_cam_info.d);
+	dcam.top.set						(m_cam_info.n);
+	dcam.right.set						(m_cam_info.r);
+	dcam.fov							= fov;
+	dcam.hud_fov						= fov;
+	dcam.aspect							= m_cam_info.fAspect;
 
 	float								zoom;
-	if (Device.SVP.isRendering())
+	if (svp.isRendering())
 	{
-		zoom							= Device.SVP.getZoom();
-		Device.camera.izoom_sqr			= Device.SVP.getZoomOppositeSqr();
+		zoom							= svp.getZoom();
+		dcam.izoom_sqr					= svp.getZoomOppositeSqr();
 	}
 	else
 	{
 		zoom							= (fov == g_aim_fov) ? 1.f : tanf(g_aim_fov_tan) / tanf(deg2radHalf(fov));
-		Device.camera.izoom_sqr			= 1.f / _sqr(zoom);
+		dcam.izoom_sqr					= 1.f / _sqr(zoom);
 	}
 
 	// projection
-	Device.camera.aspect				= m_cam_info.fAspect;
-	Device.camera.project.build_projection(deg2rad(Device.camera.fov), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
+	dcam.project.build_projection		(deg2rad(fov), m_cam_info.fAspect, _viewport_near * zoom, m_cam_info.fFar);
+	dcam.full_transform.mul				(dcam.project, dcam.view);
+	dcam.full_transform_inv.invert		(dcam.full_transform);
 
-	Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
-	Device.camera.full_transform_inv.invert(Device.camera.full_transform);
-	Device.camera.view_base.CreateFromMatrix(Device.camera.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	if (svp.isRendering())
+	{
+		static Fmatrix					project, transform;
+		project.build_projection		(svp.getViewFOV(), 1.f, _viewport_near * zoom, m_cam_info.fFar);
+		transform.mul					(project, dcam.view);
+		dcam.view_base.CreateFromMatrix	(transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	}
+	else
+		dcam.view_base.CreateFromMatrix	(dcam.full_transform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
-	if (Device.isActiveMain() || Device.SVP.isRendering())
+	if (Device.isActiveMain() || svp.isRendering())
 		ResetPP							();
 	else
 		applyPP							();

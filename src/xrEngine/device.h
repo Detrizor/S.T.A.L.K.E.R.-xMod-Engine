@@ -265,12 +265,14 @@ private:
 		float							m_zoom									= 1.f;
 		float							m_zoom_opposite_sqr						= 1.f;
 		float							m_fov									= 0.f;
+		float							m_view_fov								= 0.f;
 
 	public:
 
 		void							setRendering							(bool val)				{ m_rendering = val; }
 		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
 		void							setFOV									(float val)				{ m_fov = val; }
+		void							setViewFOV								(float val)				{ m_view_fov  = val; }
 		
 		void							setZoom									(float val);
 		void							setActive								(bool val);
@@ -281,6 +283,7 @@ private:
 		float							getZoom								C$	()		{ return m_zoom; }
 		float							getZoomOppositeSqr					C$	()		{ return m_zoom_opposite_sqr; }
 		float							getFOV								C$	()		{ return m_fov; }
+		float							getViewFOV							C$	()		{ return m_view_fov; }
 	};
 
 private:
