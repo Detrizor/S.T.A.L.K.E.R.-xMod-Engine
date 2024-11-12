@@ -603,78 +603,85 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, Fm
 // sub-space rendering - main procedure
 void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CFrustum* _frustum, Fmatrix& mCombined, Fvector& _cop, BOOL _dynamic, BOOL _precise_portals)
 {
-	VERIFY							(_sector);
-	RImplementation.marker			++;			// !!! critical here
+	VERIFY								(_sector);
+	++RImplementation.marker;			// !!! critical here
 
-	if (_precise_portals && RImplementation.rmPortals)		{
+	if (_precise_portals && RImplementation.rmPortals)
+	{
 		// Check if camera is too near to some portal - if so force DualRender
-		Fvector box_radius;		box_radius.set	(EPS_L*20,EPS_L*20,EPS_L*20);
-		RImplementation.Sectors_xrc.box_options	(CDB::OPT_FULL_TEST);
-		RImplementation.Sectors_xrc.box_query	(RImplementation.rmPortals,_cop,box_radius);
-		for (int K=0; K<RImplementation.Sectors_xrc.r_count(); K++)
+		Fvector							box_radius;
+		box_radius.set					(EPS_L * 20.f, EPS_L * 20.f, EPS_L * 20.f);
+		RImplementation.Sectors_xrc.box_options(CDB::OPT_FULL_TEST);
+		RImplementation.Sectors_xrc.box_query(RImplementation.rmPortals, _cop, box_radius);
+		for (int K = 0; K < RImplementation.Sectors_xrc.r_count(); ++K)
 		{
-			CPortal*	pPortal		= (CPortal*) RImplementation.Portals[RImplementation.rmPortals->get_tris()[RImplementation.Sectors_xrc.r_begin()[K].id].dummy];
-			pPortal->bDualRender	= TRUE;
+			auto id						= RImplementation.Sectors_xrc.r_begin()[K].id;
+			auto dummy					= RImplementation.rmPortals->get_tris()[id].dummy;
+			auto portal					= reinterpret_cast<CPortal*>(RImplementation.Portals[dummy]);
+			portal->bDualRender			= TRUE;
 		}
 	}
 
 	// Traverse sector/portal structure
-	PortalTraverser.traverse		(_sector, *_frustum, _cop, mCombined, 0 );
+	PortalTraverser.traverse			(_sector, *_frustum, _cop, mCombined, 0);
 
 	// Determine visibility for static geometry hierrarhy
-	for (u32 s_it=0; s_it<PortalTraverser.r_sectors.size(); s_it++)
+	for (auto& i_sector : PortalTraverser.r_sectors)
 	{
-		CSector*	sector		= (CSector*)PortalTraverser.r_sectors[s_it];
-		dxRender_Visual*	root	= sector->root();
-		for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	{
-			set_Frustum			(&(sector->r_frustums[v_it]));
-			add_Geometry		(root);
+		auto sector						= reinterpret_cast<CSector*>(i_sector);
+		dxRender_Visual* root			= sector->root();
+		for (auto& frustum : sector->r_frustums)
+		{
+			set_Frustum					(&frustum);
+			add_Geometry				(root);
 		}
 	}
 
-	if (_dynamic)
+	if (!_dynamic)
+		return;
+
+	set_Object							(nullptr);
+
+	// Traverse object database
+	g_SpatialSpace->q_frustum			(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, *_frustum);
+
+	auto process_spatial = [this](ISpatial* spatial)
 	{
-		set_Object						(nullptr);
+		CSector* sector					= reinterpret_cast<CSector*>(spatial->spatial.sector);
+		if (!sector)
+			return;	// disassociated from S/P structure
 
-		// Traverse object database
-		g_SpatialSpace->q_frustum		(lstRenderables, ISpatial_DB::O_ORDERED, STYPE_RENDERABLE, *_frustum);
+		if (PortalTraverser.i_marker != sector->r_marker)
+			return;	// inactive (untouched) sector
 
-		auto process_spatial = [this](ISpatial* spatial)
+		auto R							= spatial->dcast_Renderable();
+		if (!R)
+			return;
+
+		if (ps_r__render_distance_sqr)
 		{
-			auto renderable				= spatial->dcast_Renderable();
-			if (!renderable)
+			float dist					= R->getDistanceToCamera();
+			if (dist > ps_r__render_distance_sqr)
 				return;
+		}
 
-			if (ps_r__render_distance_sqr)
+		for (auto& view : sector->r_frustums)
+		{
+			if (view.testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
 			{
-				float dist				= renderable->getDistanceToCamera();
-				if (dist > ps_r__render_distance_sqr)
-					return;
+				R->renderable_Render	();
+				return;
 			}
+		}
+	};
 
-			CSector* sector				= reinterpret_cast<CSector*>(spatial->spatial.sector);
-			if (!sector)
-				return;	// disassociated from S/P structure
+	// Determine visibility for dynamic part of scene
+	for (auto spatial : lstRenderables)
+		process_spatial					(spatial);
 
-			if (PortalTraverser.i_marker != sector->r_marker)
-				return;	// inactive (untouched) sector
-
-			for (auto& frustum : sector->r_frustums)
-			{
-				set_Frustum				(&frustum);
-				if (View->testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
-					renderable->renderable_Render();
-			}
-		};
-
-		// Determine visibility for dynamic part of scene
-		for (auto spatial : lstRenderables)
-			process_spatial				(spatial);
-
-		if (g_pGameLevel && (phase == RImplementation.PHASE_SMAP) && ps_actor_shadow_flags.test(RFLAG_ACTOR_SHADOW))
-			if (auto s = g_hud->Render_Actor_Shadow())
-				process_spatial			(s);
-	}
+	if (g_pGameLevel && (phase == RImplementation.PHASE_SMAP) && ps_actor_shadow_flags.test(RFLAG_ACTOR_SHADOW))
+		if (auto s = g_hud->Render_Actor_Shadow())
+			process_spatial				(s);
 }
 
 #include "fhierrarhyvisual.h"

@@ -92,7 +92,7 @@ private:
 	SRangeNum<float>					m_Magnificaion;
 
 	float								m_lense_radius;
-	Dvector								m_objective_offset;
+	Fvector								m_objective_offset;
 	float								m_objective_diameter;
 	float								m_eye_relief;
 	shared_str							m_Reticle;
@@ -123,7 +123,7 @@ public:
 	eScopeType							Type								C$	()		{ return m_Type; }
 	float								GetCurrentMagnification				C$	()		{ return m_Magnificaion.current; }
 	u16									Zeroing								C$	()		{ return m_Zeroing.current; }
-	Dvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
+	Fvector CR$							getObjectiveOffset					C$	()		{ return m_objective_offset; }
 	Dvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }

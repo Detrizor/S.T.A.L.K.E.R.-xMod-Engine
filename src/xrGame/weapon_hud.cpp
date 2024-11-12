@@ -571,7 +571,7 @@ Fvector CWeaponHud::getTransference(float distance) const
 	cur_trans.setOffset					(get_target_hud_offset());
 	if (auto scope = O.getActiveScope())
 		if (scope->Type() == MScope::eOptics)
-			cur_trans.translate_sub		(scope->getObjectiveOffset());
+			cur_trans.translate_sub		(static_cast<Dvector>(scope->getObjectiveOffset()));
 	Fmatrix f_cur_trans					= static_cast<Fmatrix>(cur_trans);
 
 	f_cur_trans.translate_mul			(O.m_fire_point);

@@ -1326,7 +1326,7 @@ bool CWeaponMagazined::IsRotatingToZoom C$()
 void CWeaponMagazined::updateSVP() const
 {
 	MScope* scope						= getActiveScope();
-	Device.SVP.setActive(scope && scope->isPiP());
+	Device.SVP.setActive				(scope && scope->isPiP());
 	if (scope)
 		scope->updateSVP				(HudItemData()->m_transform);
 }

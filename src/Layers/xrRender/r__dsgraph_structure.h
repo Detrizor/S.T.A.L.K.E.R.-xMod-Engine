@@ -176,9 +176,9 @@ public:
 	}
 
 private:
-	u32 m_frame = 0;
+	u32								m_frame										= 0;
 
 public:
-	u32 dwFrame() const override { return m_frame; }
-	void incFrame() { ++m_frame; }
+	u32								dwFrame									CO$	()		{ return m_frame; }
+	void							incFrame									()		{ ++m_frame; }
 };

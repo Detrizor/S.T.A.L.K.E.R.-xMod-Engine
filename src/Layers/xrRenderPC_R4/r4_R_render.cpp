@@ -123,7 +123,8 @@ void CRender::process_spatial(ISpatial* CR$ spatial)
 		{
 			// Occlusion
 			//	casting is faster then using getVis method
-			auto& vis					= reinterpret_cast<dxRender_Visual*>(R->renderable.visual)->vis;
+			auto visual					= reinterpret_cast<dxRender_Visual*>(R->renderable.visual);
+			auto& vis					= visual->vis;
 			auto backup					= vis.box;
 			vis.box.xform				(R->renderable.xform);
 			BOOL bVisible				= HOM.visible(vis);

@@ -248,7 +248,8 @@ void CRenderDevice::render_svp()
 	{
 		SVP.setRendering				(true);
 
-		auto camera_backup				= camera;
+		static SCameraInfo				camera_backup;
+		camera_backup					= camera;
 		g_pGameLevel->applyCamera		();
 
 		m_pRender->SetCacheXform		(camera.view, camera.project);

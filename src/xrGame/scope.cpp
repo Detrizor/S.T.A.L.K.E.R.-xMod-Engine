@@ -131,7 +131,7 @@ m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
 	m_reticles_count					= pSettings->r_u8(section, "reticles_count");
-	m_sight_position					= static_cast<Dvector>(pSettings->r_fvector3(section, (m_Type == eIS) ? "align_rear" : "sight_position"));
+	m_sight_position					= pSettings->r_dvector3(section, (m_Type == eIS) ? "align_rear" : "sight_position");
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
 	{
@@ -147,7 +147,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
 
 			m_lense_radius				= pSettings->r_float(section, "lense_radius");
-			m_objective_offset			= static_cast<Dvector>(pSettings->r_fvector3(section, "objective_offset"));
+			m_objective_offset			= pSettings->r_fvector3(section, "objective_offset");
 
 			if (pSettings->line_exist(section, "backup_sight"))
 				m_backup_sight.construct(obj, pSettings->r_string(section, "backup_sight"));
@@ -411,7 +411,7 @@ void MScope::updateSVP(Dmatrix CR$ transform)
 		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
 		Device.SVP.setZoom				(m_Magnificaion.current);
 		
-		Fvector pos						= static_cast<Fvector>(m_objective_offset);
+		Fvector pos						= m_objective_offset;
 		cam_trans.transform_tiny		(pos);
 		Device.SVP.setPosition			(pos);
 	}
