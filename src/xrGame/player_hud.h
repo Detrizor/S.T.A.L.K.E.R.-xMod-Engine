@@ -246,7 +246,7 @@ public:
 	void			detach_item			(CHudItem* item);
 	void			detach_all_items	(){m_attached_items[0]=NULL; m_attached_items[1]=NULL;};
 
-	void			calc_transform		(u16 attach_slot_idx, const Dmatrix& offset, Dmatrix& result);
+	void			calc_transform		(u16 attach_slot_idx, Dmatrix CR$ offset, Dmatrix& result);
 	void			tune				(Ivector values);
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const shared_str& section, const CMotionDef*& md);
@@ -256,11 +256,11 @@ public:
 private:
 	shared_str							m_sect_name;
 
-	Dmatrix								m_transform;
-	IKinematicsAnimated*				m_model;
-	xr_vector<u16>						m_ancors;
-	attachable_hud_item*				m_attached_items[2];
-	xr_vector<attachable_hud_item*>		m_pool;
+	Dmatrix								m_transform[2] = { Didentity, Didentity };
+	IKinematicsAnimated*				m_model[2] = { nullptr, nullptr };
+	xr_vector<u16>						m_ancors = {};
+	attachable_hud_item*				m_attached_items[2] = { nullptr, nullptr };
+	xr_vector<attachable_hud_item*>		m_pool = {};
 
 private:
 	enum eMovementLayers
@@ -287,6 +287,8 @@ private:
 	};
 	movement_layer						m_movement_layers[move_anms_end][state_anms_end][pose_anms_end];
 	xr_vector<xptr<script_layer>>		m_script_layers;
+
+	void								re_sync_anim							(int part);
 
 public:
 	void								updateMovementLayerState				();
