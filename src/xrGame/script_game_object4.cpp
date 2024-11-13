@@ -919,6 +919,14 @@ void CScriptGameObject::chargeMagazine(CScriptGameObject* obj) const
 			mag->loadCartridge			(cartridge);
 }
 
+CScriptGameObject* CScriptGameObject::lookingAt() const
+{
+	if (auto actor = object().scast<CActor*>())
+		if (auto obj = actor->ObjectWeLookingAt())
+			return						obj->lua_game_object();
+	return								nullptr;
+}
+
 #define SPECIFIC_CAST(A,B)\
 B* A ()\
 {\

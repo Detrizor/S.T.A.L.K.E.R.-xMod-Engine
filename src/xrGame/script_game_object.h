@@ -987,6 +987,8 @@ public:
 	void								unloadChamber						C$	(CScriptGameObject* obj);
 	bool								tryChargeMagazine					C$	(CScriptGameObject* obj);
 	void								chargeMagazine						C$	(CScriptGameObject* obj);
+	
+	CScriptGameObject*					lookingAt							C$	();
 };
 
 add_to_type_list(CScriptGameObject)
