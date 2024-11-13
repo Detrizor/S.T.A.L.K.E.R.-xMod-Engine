@@ -616,7 +616,7 @@ void CInventory::ActivateItem(PIItem item, u16 return_place, u16 return_slot)
 			}
 
 			auto hi						= active_item->O.scast<CHudItem*>();
-			u16 ret_slot				= (m_iReturnPlace == eItemPlaceSlot) ? m_iReturnSlot : 0;
+			u16 ret_slot				= (m_iReturnPlace == eItemPlaceSlot) ? m_iReturnSlot : 1;
 			if (deactivating)
 			{
 				if (hi->IsHiding() && !force_deactivating)

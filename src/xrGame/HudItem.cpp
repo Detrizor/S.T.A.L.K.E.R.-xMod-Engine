@@ -178,8 +178,6 @@ bool CHudItem::activateItem(u16 prev_slot)
 {
 	if (prev_slot != u16_max)
 		anm_slot = prev_slot;
-	if (!anm_slot)
-		anm_slot = u16_max;
 	OnActiveItem();
 	return			true;
 }
@@ -188,8 +186,6 @@ void CHudItem::deactivateItem(u16 slot)
 {
 	if (slot != u16_max)
 		anm_slot = slot;
-	if (!anm_slot)
-		anm_slot = u16_max;
 	OnHiddenItem();
 }
 
@@ -211,7 +207,7 @@ void CHudItem::OnActiveItem()
 	if (object().H_Parent()->scast<CActor*>())
 		g_player_hud->attach_item(this);
 
-	SwitchState(eShowing);
+	SwitchState((Device.dwPrecacheFrame) ? eIdle : eShowing);
 }
 
 void CHudItem::OnMoveToRuck(const SInvItemPlace& prev)

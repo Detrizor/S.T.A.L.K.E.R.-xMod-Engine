@@ -713,7 +713,19 @@ void CInventoryItem::OnMoveToSlot(SInvItemPlace CR$ prev)
 	if (O.H_Parent() == Actor())
 	{
 		if (CurrSlot() == HandSlot())
-			ActivateItem				(prev.slot_id);
+		{
+			switch (prev.type)
+			{
+			case eItemPlaceSlot:
+				ActivateItem(prev.slot_id);
+				break;
+			case eItemPlacePocket:
+				ActivateItem(1);
+				break;
+			default:
+				ActivateItem(0);
+			}
+		}
 		else
 			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
 	}
