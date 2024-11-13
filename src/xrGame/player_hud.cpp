@@ -638,23 +638,23 @@ void player_hud::update(Fmatrix CR$ cam_trans)
 
 u32 player_hud::anim_play(u16 part, const MotionID& M, BOOL bMixIn, const CMotionDef*& md, float speed)
 {
-	u16 part_id							= u16(-1);
-	if(attached_item(0) && attached_item(1))
-		part_id = m_model->partitions().part_id((part==0)?"right_hand":"left_hand");
+	u16 part_id							= u16_max;
+	if (attached_item(0) && attached_item(1))
+		part_id							= m_model->partitions().part_id((part == 0) ? "right_hand" : "left_hand");
 
-	u16 pc					= m_model->partitions().count();
-	for(u16 pid=0; pid<pc; ++pid)
+	int pc								= m_model->partitions().count();
+	for (int pid = 0; pid < pc; ++pid)
 	{
-		if(pid==0 || pid==part_id || part_id==u16(-1))
+		if (part_id == u16_max || pid == part_id || (pid == 0 && part == 0))
 		{
-			CBlend* B	= m_model->PlayCycle(pid, M, bMixIn);
-			R_ASSERT	(B);
-			B->speed	*= speed;
+			CBlend* B					= m_model->PlayCycle(pid, M, bMixIn);
+			R_ASSERT					(B);
+			B->speed					*= speed;
 		}
 	}
-	m_model->dcast_PKinematics()->CalculateBones_Invalidate	();
+	m_model->dcast_PKinematics()->CalculateBones_Invalidate();
 
-	return				motion_length(M, md, speed);
+	return								motion_length(M, md, speed);
 }
 
 attachable_hud_item* player_hud::create_hud_item(LPCSTR hud_section, LPCSTR object_section)
