@@ -146,7 +146,6 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
 		break;
 	case eHidden:
 		g_player_hud->detach_item(this);
-		object().processing_deactivate();
 		break;
 	}
 }
@@ -203,7 +202,6 @@ void CHudItem::restoreItem()
 
 void CHudItem::OnActiveItem()
 {
-	object().processing_activate();
 	if (object().H_Parent()->scast<CActor*>())
 		g_player_hud->attach_item(this);
 
