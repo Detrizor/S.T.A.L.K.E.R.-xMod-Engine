@@ -310,7 +310,7 @@ void R_dsgraph_structure::r_dsgraph_insert_static	(dxRender_Visual *pVisual)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
+void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes, u32 planes_lense)
 {
 	xoptional<Fvector>					tpos;
 	auto Tpos = [&]() -> Fvector CR$
@@ -329,6 +329,15 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 		if (VIS == fcvFully)	//further tests unnecessary
 			planes						= u32_max;
 	}
+	
+	if (planes_lense != u32_max)
+	{
+		EFC_Visible VIS					= Device.SVP.lenseView().testSphere(Tpos(), pVisual->vis.sphere.R, planes_lense);
+		if (VIS == fcvFully)
+			return;
+		if (VIS == fcvNone)	//further tests unnecessary
+			planes_lense				= u32_max;
+	}
 
 	switch (pVisual->Type)
 	{
@@ -338,11 +347,11 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 		for (auto& I : pG->items)
 		{
 			if (I._effect)
-				add_Dynamic				(I._effect, planes);
+				add_Dynamic				(I._effect, planes, planes_lense);
 			for (auto C : I._children_related)
-				add_Dynamic				(C, planes);
+				add_Dynamic				(C, planes, planes_lense);
 			for (auto C : I._children_free)
-				add_Dynamic				(C, planes);
+				add_Dynamic				(C, planes, planes_lense);
 		}
 		break;
 	}
@@ -350,7 +359,7 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 	{
 		auto pV							= reinterpret_cast<FHierrarhyVisual*>(pVisual);
 		for (auto C : pV->children)
-			add_Dynamic					(C, planes);
+			add_Dynamic					(C, planes, planes_lense);
 		break;
 	}
 	case MT_SKELETON_ANIM:
@@ -367,13 +376,13 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 		}
 
 		if (_use_lod)
-			add_Dynamic					(pV->m_lod, u32_max);
+			add_Dynamic					(pV->m_lod, u32_max, u32_max);
 		else 
 		{
 			pV->CalculateBones			(TRUE);
 			pV->CalculateWallmarks		();		//. bug?
 			for (auto C : pV->children)
-				add_Dynamic				(C, planes);
+				add_Dynamic				(C, planes, planes_lense);
 		}
 		break;
 	}
@@ -383,7 +392,7 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes)
 	}
 }
 
-void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
+void CRender::add_Static(dxRender_Visual* pVisual, u32 planes, u32 planes_lense)
 {
 	if (planes != u32_max)
 	{
@@ -395,6 +404,16 @@ void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
 		if (VIS == fcvFully)	//further tests unnecessary
 			planes						= u32_max;
 	}
+	
+	if (planes_lense != u32_max)
+	{
+		vis_data& vis					= pVisual->vis;
+		EFC_Visible	VIS					= Device.SVP.lenseView().testSAABB(vis.sphere.P, vis.sphere.R, vis.box.data(), planes_lense);
+		if (VIS == fcvFully)
+			return;
+		if (VIS == fcvNone)	//further tests unnecessary
+			planes_lense				= u32_max;
+	}
 
 	switch (pVisual->Type)
 	{
@@ -404,11 +423,11 @@ void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
 		for (auto& I : pG->items)
 		{
 			if (I._effect)
-				add_Dynamic				(I._effect, planes);
+				add_Dynamic				(I._effect, planes, planes_lense);
 			for (auto C : I._children_related)
-				add_Dynamic				(C, planes);
+				add_Dynamic				(C, planes, planes_lense);
 			for (auto C : I._children_free)
-				add_Dynamic				(C, planes);
+				add_Dynamic				(C, planes, planes_lense);
 		}
 		break;
 	}
@@ -416,7 +435,7 @@ void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
 	{
 		auto pV							= reinterpret_cast<FHierrarhyVisual*>(pVisual);
 		for (auto C : pV->children)
-			add_Static					(C, planes);
+			add_Static					(C, planes, planes_lense);
 		break;
 	}
 	case MT_SKELETON_ANIM:
@@ -425,7 +444,7 @@ void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
 		auto pV							= reinterpret_cast<CKinematics*>(pVisual);
 		pV->CalculateBones				(TRUE);
 		for (auto C : pV->children)
-			add_Static					(C, planes);
+			add_Static					(C, planes, planes_lense);
 		break;
 	}
 	case MT_LOD:
@@ -445,7 +464,7 @@ void CRender::add_Static(dxRender_Visual* pVisual, u32 planes)
 
 		if (ssa > r_ssaLOD_B || phase == PHASE_SMAP)
 			for (auto C : pV->children)	
-				add_Static				(C, u32_max);
+				add_Static				(C, u32_max, u32_max);
 		break;
 	}
 	case MT_TREE_ST:

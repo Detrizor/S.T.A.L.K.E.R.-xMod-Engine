@@ -64,7 +64,7 @@ void	light::vis_prepare			()
 	RImplementation.occq_end						(vis.query_id);
 }
 
-void	light::vis_update			()
+void light::vis_update()
 {
 	//	. not pending	->>> return (early out)
 	//	. test-result:	visible:
@@ -72,21 +72,13 @@ void	light::vis_update			()
 	//	. test-result:	invisible:
 	//		. shedule for 'next-frame' interval
 
-	if (!vis.pending)	return;
+	if (!vis.pending)
+		return;
 
-	u32	frame			= ::Render->dwFrame();
-	u64 fragments		= RImplementation.occq_get	(vis.query_id);
-	//Log					("",fragments);
-	vis.visible			= (fragments > cullfragments);
-	vis.pending			= false;
-	if (vis.visible)	
-	{
-		vis.frame2test	=	frame	+ ::Random.randI(delay_large_min,delay_large_max);
-		//	TODO: DX10: Remove this pessimisation
-		//vis.frame2test	=	frame	+ 1;
-	} 
-	else 
-	{
-		vis.frame2test	=	frame	+ 1; 
-	}
+	auto fragments						= RImplementation.occq_get(vis.query_id);
+	if (fragments != static_cast<R_occlusion::occq_result>(-1))
+		vis.visible						= (fragments > cullfragments);
+	vis.pending							= false;
+	vis.frame2test						= ::Render->dwFrame();
+	vis.frame2test						+= (vis.visible) ? ::Random.randI(delay_large_min, delay_large_max) : 1;
 }

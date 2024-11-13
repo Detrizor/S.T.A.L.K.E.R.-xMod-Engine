@@ -265,15 +265,22 @@ private:
 		float							m_zoom									= 1.f;
 		float							m_zoom_opposite_sqr						= 1.f;
 		float							m_fov									= 0.f;
+		float							m_view_fov								= 0.f;
+		float							m_lense_fov								= 0.f;
+		Fvector							m_lense_dir								= vZero;
+		CFrustum						m_lense_view							= {};
 
 	public:
 
 		void							setRendering							(bool val)				{ m_rendering = val; }
 		void							setPosition								(Fvector CR$ val)		{ m_position = val; }
 		void							setFOV									(float val)				{ m_fov = val; }
+		void							setViewFOV								(float val)				{ m_view_fov  = val; }
+		void							setLenseFOV								(float val)				{ m_lense_fov = val; }
 		
 		void							setZoom									(float val);
 		void							setActive								(bool val);
+		void							setLenseDir								(Fvector CR$ val);
 
 		bool							isActive							C$	()		{ return m_active; }
 		bool							isRendering							C$	()		{ return m_rendering; }
@@ -281,6 +288,11 @@ private:
 		float							getZoom								C$	()		{ return m_zoom; }
 		float							getZoomOppositeSqr					C$	()		{ return m_zoom_opposite_sqr; }
 		float							getFOV								C$	()		{ return m_fov; }
+		float							getViewFOV							C$	()		{ return m_view_fov; }
+		float							getLenseFOV							C$	()		{ return m_lense_fov; }
+		Fvector CR$						getLenseDir							C$	()		{ return m_lense_dir; }
+
+		CFrustum&						lenseView								()		{ return m_lense_view; }
 	};
 
 private:

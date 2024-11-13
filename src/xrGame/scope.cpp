@@ -265,6 +265,44 @@ bool MScope::isPiP() const
 	return								(Type() == eOptics && !fIsZero(m_lense_radius));
 }
 
+float MScope::update_scope_shadow()
+{
+	float magnification					= 0.f;
+	if (m_Magnificaion.dynamic)
+		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
+	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_eye_relief_magnification_shrink);
+	float offset						= (fMore(cur_eye_relief, 0.f)) ? m_camera_lense_distance / cur_eye_relief : 1.f;
+	
+	float lense_fov_tan					= m_lense_radius / m_camera_lense_distance;
+	m_lense_scale						= lense_fov_tan / g_aim_fov_tan;
+	float scale							= m_lense_scale;
+	if (fMore(offset, 1.f))
+	{
+		m_scope_shadow					= static_scope_shadow_far;
+		scale							*= s_shadow_far_scale_default * pow(offset, s_shadow_far_scale_offset_power);
+	}
+	else
+	{
+		m_scope_shadow					= static_scope_shadow;
+		scale							*= s_shadow_scale_default * pow(offset, s_shadow_scale_offset_power);
+	}
+
+	Fvector2 pos						= {
+		-static_cast<float>(m_cam_pos_d_sight_axis.x),
+		static_cast<float>(m_cam_pos_d_sight_axis.y)
+	};
+	pos.mul								(s_shadow_pos_d_axis_factor);
+	pos.mul								(m_Magnificaion.current);
+
+	float exit_pupil_correction			= m_objective_diameter * s_shadow_pos_d_axis_factor;
+	//scale								*= 100.f + exit_pupil_correction;		--xd need more research to accurately implement
+
+	m_scope_shadow->SetScale			(scale);
+	m_scope_shadow->SetWndPos			(pos);
+
+	return								scale;
+}
+
 void MScope::RenderUI()
 {
 	bool svp							= Device.SVP.isRendering();
@@ -279,42 +317,8 @@ void MScope::RenderUI()
 		m_pVision->Update				();
 		m_pVision->Draw					();
 	}
-	
-	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 
-	float magnification					= 0.f;
-	if (m_Magnificaion.dynamic)
-		magnification					= (m_Magnificaion.current - m_Magnificaion.vmin) / (m_Magnificaion.vmax - m_Magnificaion.vmin);
-	float cur_eye_relief				= m_eye_relief * (1.f - magnification * s_eye_relief_magnification_shrink);
-	float offset						= (fMore(cur_eye_relief, 0.f)) ? m_camera_lense_distance / cur_eye_relief : 1.f;
-	
-	CUIStatic* shadow					= nullptr;
-	float scale							= m_lense_scale;
-	if (fMore(offset, 1.f))
-	{
-		shadow							= static_scope_shadow_far;
-		scale							*= s_shadow_far_scale_default * pow(offset, s_shadow_far_scale_offset_power);
-	}
-	else
-	{
-		shadow							= static_scope_shadow;
-		scale							*= s_shadow_scale_default * pow(offset, s_shadow_scale_offset_power);
-	}
-
-	Fvector2 pos						= {
-		-static_cast<float>(m_cam_pos_d_sight_axis.x),
-		static_cast<float>(m_cam_pos_d_sight_axis.y)
-	};
-	pos.mul								(s_shadow_pos_d_axis_factor);
-	pos.mul								(m_Magnificaion.current);
-
-	float exit_pupil_correction			= m_objective_diameter * s_shadow_pos_d_axis_factor;
-	//scale								*= 100.f + exit_pupil_correction;		--xd need more research to accurately implement
-
-	shadow->SetScale					(scale);
-	shadow->SetWndPos					(pos);
-		
-	Frect crect							= shadow->GetWndRect();
+	Frect crect = m_scope_shadow->GetWndRect();
 	if (crect.left >= UI_BASE_WIDTH || crect.right <= 0.f || crect.top >= UI_BASE_HEIGHT || crect.bottom <= 0.f)
 	{
 		static_black_fill->SetWndRect({ 0.f, 0.f, UI_BASE_WIDTH, UI_BASE_HEIGHT });
@@ -343,14 +347,15 @@ void MScope::RenderUI()
 			static_black_fill->Draw	();
 		}
 		
-		shadow->Draw				();
+		m_scope_shadow->Draw			();
 	}
 	
 	if (m_pUIReticle)
 	{
-		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
+		auto& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 		Fvector2 derivation				= { hud_params.x * UI_BASE_HEIGHT, hud_params.y * UI_BASE_HEIGHT };
-
+		
+		float magnification				= (m_is_FFP) ? (m_Magnificaion.current / m_Magnificaion.vmin) : 1.f;
 		m_pUIReticle->SetScale			(m_lense_scale * magnification);
 		m_pUIReticle->SetWndPos			(derivation);
 		m_pUIReticle->SetHeading		(hud_params.z);
@@ -375,9 +380,9 @@ void MScope::updateCameraLenseOffset()
 	Dmatrix trans						= (addon) ? addon->getHudTransform() : O.scast<CHudItem*>()->HudItemData()->m_transform;
 	trans.translate_mul					(m_sight_position);
 
-	Dvector camera_lense_offset			= trans.c;
-	camera_lense_offset.sub				(static_cast<Dvector>(Actor()->Cameras().Position()));
-	m_camera_lense_distance				= camera_lense_offset.magnitude();
+	m_camera_lense_offset				= static_cast<Fvector>(trans.c);
+	m_camera_lense_offset.sub			(Actor()->Cameras().Position());
+	m_camera_lense_distance				= m_camera_lense_offset.magnitude();
 
 	Dmatrix								itrans;
 	itrans.invert						(trans);
@@ -404,10 +409,12 @@ void MScope::updateSVP(Dmatrix CR$ transform)
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (Type() == eOptics)
 	{
-		float lense_fov_tan				= m_lense_radius / m_camera_lense_distance;
-		m_lense_scale					= lense_fov_tan / g_aim_fov_tan;
-		
 		fov_tan							/= m_Magnificaion.current;
+		float shadow_scale				= update_scope_shadow();
+		Device.SVP.setViewFOV			(2.f * atanf(fov_tan * min(m_lense_scale, shadow_scale)));
+		Device.SVP.setLenseFOV			(2.f * atanf(g_aim_fov_tan * m_lense_scale));
+		Device.SVP.setLenseDir			(m_camera_lense_offset);
+
 		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));
 		Device.SVP.setZoom				(m_Magnificaion.current);
 		

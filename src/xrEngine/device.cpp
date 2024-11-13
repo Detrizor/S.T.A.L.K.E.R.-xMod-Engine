@@ -244,7 +244,7 @@ void CRenderDevice::on_idle()
 
 void CRenderDevice::render_svp()
 {
-	if (SVP.isActive() && !isActiveMain() && Begin())
+	if (SVP.isActive() && !isActiveMain())
 	{
 		SVP.setRendering				(true);
 
@@ -252,6 +252,7 @@ void CRenderDevice::render_svp()
 		camera_backup					= camera;
 		g_pGameLevel->applyCamera		();
 
+		Begin							();
 		m_pRender->SetCacheXform		(camera.view, camera.project);
 		seqRender.Process				(rp_Render);
 		End								();
@@ -579,4 +580,10 @@ void CRenderDevice::CSVP::setActive(bool val) //--#SM+#-- +SecondVP+
 	m_active = val;
 	if (g_pGamePersistent)
 		g_pGamePersistent->m_pGShaderConstants->m_blender_mode.z = (float)m_active;
+}
+
+void CRenderDevice::CSVP::setLenseDir(Fvector CR$ val)
+{
+	m_lense_dir.set						(val);
+	m_lense_dir.normalize				();
 }

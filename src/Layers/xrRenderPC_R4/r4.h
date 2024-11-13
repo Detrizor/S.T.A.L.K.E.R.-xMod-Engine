@@ -177,8 +177,8 @@ private:
 	void							LoadSWIs					(CStreamReader	*fs);
 	void							Load3DFluid					();
 
-	void							add_Dynamic					(dxRender_Visual* pVisual, u32 planes);
-	void							add_Static					(dxRender_Visual* pVisual, u32 planes);
+	void							add_Dynamic					(dxRender_Visual* pVisual, u32 planes, u32 planes_lense);
+	void							add_Static					(dxRender_Visual* pVisual, u32 planes, u32 planes_lense);
 
 public:
 	IRender_Sector*					rimp_detectSector			(Fvector& P, Fvector& D);
@@ -361,6 +361,8 @@ private:
 	FS_FileSet						m_file_set;
 
 private:
+	u32								m_planes_lense								= u32_max;
+
 	void							process_spatial								(ISpatial* CR$ spatial);
 };
 
