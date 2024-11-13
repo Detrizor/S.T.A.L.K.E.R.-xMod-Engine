@@ -21,10 +21,6 @@ CGrenade::CGrenade(void)
 	m_eSoundCheckout = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING);
 }
 
-CGrenade::~CGrenade(void) 
-{
-}
-
 void CGrenade::Load(LPCSTR section) 
 {
 	inherited::Load(section);
@@ -74,11 +70,6 @@ void CGrenade::net_Destroy()
 
 	inherited::net_Destroy				();
 	CExplosive::net_Destroy				();
-}
-
-void CGrenade::OnH_B_Independent(bool just_before_destroy) 
-{
-	inherited::OnH_B_Independent(just_before_destroy);
 }
 
 void CGrenade::OnH_A_Independent() 
@@ -173,8 +164,6 @@ void CGrenade::Throw()
 	m_thrown = true;
 }
 
-
-
 void CGrenade::Destroy() 
 {
 	//Generate Expode event
@@ -189,8 +178,6 @@ void CGrenade::Destroy()
 	FindNormal					(normal);
 	CExplosive::GenExplodeEvent	(Position(), normal);
 }
-
-
 
 bool CGrenade::Useful() const
 {
@@ -227,7 +214,6 @@ void CGrenade::OnAnimationEnd(u32 state)
 	default : inherited::OnAnimationEnd(state);
 	}
 }
-
 
 void CGrenade::UpdateCL() 
 {
@@ -284,4 +270,10 @@ void CGrenade::DeactivateItem(u16 slot)
 	};
 
 	inherited::DeactivateItem(slot);
+}
+
+void CGrenade::onMovementChanged()
+{
+	if (GetState() < eThrowStart || GetState() > eThrowEnd)
+		__super::onMovementChanged();
 }

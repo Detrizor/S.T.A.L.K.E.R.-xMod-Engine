@@ -79,6 +79,7 @@ protected:
 		u8						m_started_rnd_anim_idx;
 		bool					m_bStopAtEndAnimIsRunning;
 	};
+
 public:
 	virtual void				Load				(LPCSTR section);
 	virtual	BOOL				net_Spawn			(CSE_Abstract* DC)				{return TRUE;};
@@ -93,7 +94,6 @@ public:
 	virtual void				PlaySound			(LPCSTR alias, const Fvector& position, u8 index); //Alundaio: Play at index
 
 	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}
-			void				onMovementChanged	();
 
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
@@ -145,6 +145,7 @@ public:
 	virtual bool				render_item_3d_ui_query	()					{return false;}
 
 	virtual bool				CheckCompatibility		(CHudItem*)			{return true;}
+
 protected:
 
 	IC		void				SetPending			(BOOL H)			{ m_huditem_flags.set(fl_pending, H);}
@@ -200,12 +201,13 @@ protected:
 	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
 
 public:
+	bool								motionPartPassed					C$	(float part);
+
 	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
 	void								UpdateHudBonesVisibility				();
 
-	LPCSTR							V$	anmType								C$	()		{ return ""; }
-
-	bool								motionPartPassed					C$	(float part);
+	virtual LPCSTR						anmType								C$	()		{ return ""; }
+	virtual void						onMovementChanged						();
 };
 
 add_to_type_list(CHudItem)
