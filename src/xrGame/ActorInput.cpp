@@ -435,31 +435,31 @@ void CActor::ActorUse()
 			return;
 		}
 	}
-
+	
+	auto ea								= smart_cast<CEntityAlive*>(m_pObjectWeLookingAt);
 	if (m_pPersonWeLookingAt)
 	{
-		CEntityAlive* pEntityAliveWeLookingAt	= smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
-		VERIFY									(pEntityAliveWeLookingAt);
-		if (pEntityAliveWeLookingAt->g_Alive())
+		VERIFY							(ea);
+		if (ea->g_Alive())
 		{
-			TryToTalk							();
+			TryToTalk					();
 			return;
 		}
-		if (!bCaptured)
+
+		if (!bCaptured && !m_pPersonWeLookingAt->deadbody_closed_status() && ea->AlreadyDie())
 		{
-			//только если находимся в режиме single
-			CUIGameSP* pGameSP					= smart_cast<CUIGameSP*>(CurrentGameUI());
-			if (pGameSP && !m_pPersonWeLookingAt->deadbody_closed_status() && pEntityAliveWeLookingAt->AlreadyDie())
-			{
-				pGameSP->StartCarBody			(mmDeadBodySearch, static_cast<void*>(m_pPersonWeLookingAt));
-				return;
-			}
+			CUIGameSP* pGameSP			= smart_cast<CUIGameSP*>(CurrentGameUI());
+			pGameSP->StartCarBody		(mmDeadBodySearch, static_cast<void*>(m_pPersonWeLookingAt));
+			return;
 		}
 	}
 
+	if (ea)
+		return;
+
 	::luabind::functor<bool> funct;
 	if (ai().script_engine().functor("xmod_action_manager.on_actor_use", funct))
-		funct();
+		funct							();
 }
 
 BOOL CActor::HUDview				( )const 
