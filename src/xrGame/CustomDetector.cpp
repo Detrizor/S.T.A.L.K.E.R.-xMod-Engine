@@ -25,42 +25,38 @@ ITEM_INFO::~ITEM_INFO()
 
 bool CCustomDetector::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate)
 {
-	if(itm==NULL)
-		return true;
+	if (!itm)
+		return							true;
 
-	CInventoryItem& iitm			= itm->item();
-	u32 slot						= iitm.BaseSlot();
-	bool bres = (slot == BOLT_SLOT || slot == KNIFE_SLOT || slot == PISTOL_SLOT);
-	if(!bres && slot_to_activate)
+	CInventoryItem& iitm				= itm->item();
+	u32 slot							= iitm.BaseSlot();
+	bool bres							= (slot == BOLT_SLOT || slot == KNIFE_SLOT || slot == PISTOL_SLOT);
+	if (!bres && slot_to_activate)
 	{
-		*slot_to_activate	= NO_ACTIVE_SLOT;
-		if(m_pInventory->ItemFromSlot(BOLT_SLOT))
-			*slot_to_activate = BOLT_SLOT;
+		*slot_to_activate				= NO_ACTIVE_SLOT;
+		if (m_pInventory->ItemFromSlot(BOLT_SLOT))
+			*slot_to_activate			= BOLT_SLOT;
 
-		if(m_pInventory->ItemFromSlot(KNIFE_SLOT))
-			*slot_to_activate = KNIFE_SLOT;
+		if (m_pInventory->ItemFromSlot(KNIFE_SLOT))
+			*slot_to_activate			= KNIFE_SLOT;
 
 		if (m_pInventory->ItemFromSlot(PISTOL_SLOT))
-			*slot_to_activate = PISTOL_SLOT;
+			*slot_to_activate			= PISTOL_SLOT;
 
-		if(*slot_to_activate != NO_ACTIVE_SLOT)
-			bres = true;
+		if (*slot_to_activate != NO_ACTIVE_SLOT)
+			bres						= true;
 	}
 
-	if(itm->GetState()!=CHUDState::eShowing)
-		bres = bres && !itm->IsPending();
+	if (itm->GetState() != CHUDState::eShowing && itm->IsPending())
+		bres							= false;
 
-	if(bres)
-	{
-		CWeapon* W = smart_cast<CWeapon*>(itm);
-		if(W)
-			bres =	bres								&& 
-					(W->GetState()!=CHUDState::eBore)	&& 
-					(W->GetState()!=CWeapon::eReload) && 
-					(W->GetState()!=CWeapon::eSwitch) && 
-					!W->IsZoomed();
-	}
-	return bres;
+	if (bres)
+		if (auto W = smart_cast<CWeapon*>(itm))
+			if ((W->GetState() == CHUDState::eBore) || (W->GetState() == CWeapon::eReload) ||
+				(W->GetState() == CWeapon::eSwitch) || W->ADS())
+				bres					= false;
+
+	return								bres;
 }
 
 bool CCustomDetector::CheckCompatibility(CHudItem* itm)
@@ -209,39 +205,34 @@ void CCustomDetector::UpfateWork()
 void CCustomDetector::UpdateVisibility()
 {
 	//check visibility
-	attachable_hud_item* i0		= g_player_hud->attached_item(0);
-	if(i0 && HudItemData())
+	attachable_hud_item* i0				= g_player_hud->attached_item(0);
+	if (i0 && HudItemData())
 	{
-		bool bClimb			= ( (Actor()->MovingState()&mcClimb) != 0 );
-		if(bClimb)
+		if (Actor()->MovingState() & mcClimb)
 		{
-			hide				(true);
-			m_bNeedActivation	= true;
-		}else
+			hide						(true);
+			m_bNeedActivation			= true;
+		}
+		else
 		{
-			CWeapon* wpn			= smart_cast<CWeapon*>(i0->m_parent_hud_item);
-			if(wpn)
+			if (auto wpn = smart_cast<CWeapon*>(i0->m_parent_hud_item))
 			{
-				u32 state			= wpn->GetState();
-				if(wpn->IsZoomed() || state==CWeapon::eReload || state==CWeapon::eSwitch)
+				u32 state				= wpn->GetState();
+				if (wpn->ADS() || state == CWeapon::eReload || state == CWeapon::eSwitch)
 				{
 					hide				(true);
 					m_bNeedActivation	= true;
 				}
 			}
 		}
-	}else
-	if(m_bNeedActivation)
+	}
+	else if (m_bNeedActivation)
 	{
-		attachable_hud_item* i0		= g_player_hud->attached_item(0);
-		bool bClimb					= ( (Actor()->MovingState()&mcClimb) != 0 );
-		if(!bClimb)
+		if (!(Actor()->MovingState() & mcClimb))
 		{
-			CHudItem* huditem		= (i0)?i0->m_parent_hud_item : NULL;
-			bool bChecked			= !huditem || CheckCompatibilityInt(huditem, 0);
-			
-			if(	bChecked )
-				show				(true);
+			CHudItem* huditem			= (i0) ? i0->m_parent_hud_item : nullptr;
+			if (!huditem || CheckCompatibilityInt(huditem, 0))
+				show					(true);
 		}
 	}
 }

@@ -560,15 +560,12 @@ u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, BOOL bMixIn, boo
 			motion_name.c_str(),
 			Device.dwFrame);
 	}
+
 	if (HudItemData())
-	{
 		return HudItemData()->anim_play(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx, ignore_anm_type);
-	}
-	else
-	{
-		m_started_rnd_anim_idx = 0;
-		return g_player_hud->motion_length(motion_name, HudSection(), m_object->cNameSect(), m_current_motion_def);
-	}
+
+	m_started_rnd_anim_idx = 0;
+	return g_player_hud->motion_length(motion_name, HudSection(), m_object->cNameSect(), m_current_motion_def);
 }
 
 void CHudItem::StopCurrentAnimWithoutCallback()
