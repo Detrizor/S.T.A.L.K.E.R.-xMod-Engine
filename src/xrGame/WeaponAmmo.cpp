@@ -202,10 +202,11 @@ void CWeaponAmmo::ChangeAmmoCount(int val)
 	SetAmmoCount						(u16((int)m_boxCurr + val));
 }
 
-float CWeaponAmmo::readBoxSize(LPCSTR section)
+u16 CWeaponAmmo::readBoxSize(LPCSTR section)
 {
-	bool can_heap						= pSettings->r_BOOL(section, "heap");
-	return								(can_heap) ? (u16)iFloor(.5f / pSettings->r_float(section, "inv_volume")) : 1;
+	float heap_volume					= pSettings->r_float(section, "heap_volume");
+	int size							= max(iFloor(heap_volume / pSettings->r_float(section, "inv_volume")), 1);
+	return								static_cast<u16>(size);
 }
 
 Frect CWeaponAmmo::GetIconRect() const

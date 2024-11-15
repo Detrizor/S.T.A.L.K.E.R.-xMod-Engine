@@ -111,7 +111,7 @@ public:
 	u8									m_mag_pos								= u8_max;
 
 public:
-	static float						readBoxSize								(LPCSTR section);
+	static u16							readBoxSize								(LPCSTR section);
 
 	u16									GetAmmoCount						C$	()		{ return m_boxCurr; }
 	LPCSTR								getShellSection						C$	()		{ return m_shell_section.c_str(); }
