@@ -109,19 +109,24 @@ SpaceRestrictionHolder::CBaseRestrictionPtr CSpaceRestrictionHolder::restriction
 	return					(bridge);
 }
 
-void CSpaceRestrictionHolder::register_restrictor				(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type)
+void CSpaceRestrictionHolder::register_restrictor(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type)
 {
-	string4096					m_temp_string;
-	shared_str					space_restrictors = space_restrictor->cName();
-	if (restrictor_type != RestrictionSpace::eDefaultRestrictorTypeNone) {
-		shared_str				*temp = 0, temp1;
-		if (restrictor_type == RestrictionSpace::eDefaultRestrictorTypeOut)
+	string4096				m_temp_string;
+	shared_str				space_restrictors = space_restrictor->cName();
+	if (restrictor_type != RestrictionSpace::eDefaultRestrictorTypeNone)
+	{
+		shared_str* temp	= nullptr, temp1;
+		switch (restrictor_type)
+		{
+		case RestrictionSpace::eDefaultRestrictorTypeOut:
 			temp			= &m_default_out_restrictions;
-		else
-			if (restrictor_type == RestrictionSpace::eDefaultRestrictorTypeIn)
-				temp		= &m_default_in_restrictions;
-			else
-				NODEFAULT;
+			break;
+		case RestrictionSpace::eDefaultRestrictorTypeIn:
+			temp			= &m_default_in_restrictions;
+			break;
+		default:
+			NODEFAULT;
+		}
 		temp1				= *temp;
 		
 		if (xr_strlen(*temp) && xr_strlen(space_restrictors))
