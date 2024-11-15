@@ -68,7 +68,7 @@ public:
 	float								light_var_range;
 	float								light_lifetime;
 
-	float								Weight								C$	();
+	float								weight;
 };
 
 class CWeaponAmmo :	public CInventoryItemObject

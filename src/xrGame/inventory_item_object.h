@@ -7,8 +7,8 @@ class CHudItemObject : public CPhysicItem,
 	public CHudItem
 {
 private:
-	typedef CPhysicItem		core;
-	typedef CHudItem		wrap;
+	typedef CPhysicItem					core;
+	typedef CHudItem					wrap;
 
 public:
 	CHudItem*							cast_hud_item						O$	()		{ return this; }
@@ -33,8 +33,8 @@ class CInventoryItemObject: public CHudItemObject,
 	public CInventoryItem
 {
 private:
-	typedef CHudItemObject		core;
-	typedef CInventoryItem		wrap;
+	typedef CHudItemObject				core;
+	typedef CInventoryItem				wrap;
 
 public:
 	CPhysicsShellHolder*				cast_physics_shell_holder			O$	()		{ return this; }
@@ -48,6 +48,9 @@ public:
 
 public:
 										CInventoryItemObject					() : CInventoryItem(this) {}
+
+protected:
+	float								sSumItemData						O$	(EItemDataTypes type)		{ return CInventoryItem::sSumItemData(type); };
 
 protected:
 	bool								use_parent_ai_locations				CO$	()

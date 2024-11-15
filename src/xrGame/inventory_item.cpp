@@ -959,17 +959,21 @@ float CInventoryItem::Price() const
 
 float CInventoryItem::getData(EItemDataTypes type) const
 {
-	float res							= O.emitSignalSum(sSumItemData(type));
+	return								O.emitSignalSum(sSumItemData(type));
+}
+
+float CInventoryItem::sSumItemData(EItemDataTypes type) const
+{
 	switch (type)
 	{
 	case eWeight:
-		return							res + m_weight;
+		return							m_weight;
 	case eVolume:
-		return							res + m_volume;
+		return							m_volume;
 	case eCost:
-		return							res + m_cost;
+		return							m_cost;
 	default:
-		FATAL							("wrong item data type");
+		NODEFAULT2						("wrong item data type");
 	}
 }
 

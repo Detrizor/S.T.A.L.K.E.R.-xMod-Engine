@@ -316,6 +316,7 @@ public:
 
 protected:
 	void								sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save);
+	float								sSumItemData						C$	(EItemDataTypes type);
 
 private:
 	float								m_weight								= 0.f;

@@ -82,11 +82,8 @@ void CCartridge::Load(LPCSTR section, float condition)
 		light_var_range					= pSettings->r_float(section, "light_var_range");
 		light_lifetime					= pSettings->r_float(section, "light_time");
 	}
-}
 
-float CCartridge::Weight() const
-{
-	return								(m_ammoSect.size()) ? pSettings->r_float(m_ammoSect, "inv_weight") : 0.f;
+	weight								= (m_ammoSect.size()) ? pSettings->r_float(m_ammoSect, "inv_weight") : 0.f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +115,7 @@ void CWeaponAmmo::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 
 float CWeaponAmmo::sSumItemData(EItemDataTypes type)
 {
-	return								inherited::sSumItemData(type) * static_cast<float>(m_boxCurr);
+	return								__super::sSumItemData(type) * static_cast<float>(m_boxCurr);
 }
 
 xoptional<CUICellItem*> CWeaponAmmo::sCreateIcon()
