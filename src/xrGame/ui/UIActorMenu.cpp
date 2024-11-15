@@ -325,6 +325,7 @@ void CUIActorMenu::ToggleBag(MContainer* bag)
 void CUIActorMenu::init_bag()
 {
 	auto bag_list						= GetListByType(iActorBag);
+	bag_list->ClearAll					(true);
 	TIItemContainer						items_list;
 	m_pBag->AddAvailableItems			(items_list);
 	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
