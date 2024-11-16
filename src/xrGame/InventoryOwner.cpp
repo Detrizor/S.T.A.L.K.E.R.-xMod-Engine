@@ -294,11 +294,25 @@ void CInventoryOwner::renderable_Render()
 	CAttachmentOwner::renderable_Render();
 }
 
+void add_container(CGameObject* object, CInventoryItem* inventory_item)
+{
+	if (auto container = inventory_item->O.getModule<MContainer>())
+	{
+		for (auto item : container->Items())
+		{
+			object->callback(GameObject::eOnItemTake)(item->O.lua_game_object());
+			add_container(object, item);
+		}
+	}
+}
+
 void CInventoryOwner::OnItemTake(CInventoryItem *inventory_item)
 {
 	CGameObject	*object = smart_cast<CGameObject*>(this);
 	VERIFY(object);
 	object->callback(GameObject::eOnItemTake)(inventory_item->object().lua_game_object());
+
+	add_container(object, inventory_item);
 
 	attach(inventory_item);
 

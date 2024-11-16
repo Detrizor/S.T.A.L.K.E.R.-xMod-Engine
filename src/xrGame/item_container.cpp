@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "item_container.h"
 #include "InventoryOwner.h"
+#include "Actor.h"
+#include "script_game_object.h"
 
 MContainer::MContainer(CGameObject* obj) : CModule(obj)
 {
@@ -36,6 +38,13 @@ void MContainer::sOnChild(CGameObject* obj, bool take)
 		ParentCheck						(item, take);
 		if (take)
 			item->OnMoveToRuck			(SInvItemPlace());
+
+		if (auto ao = O.H_Root()->scast<CInventoryOwner*>())
+		{
+			auto go						= smart_cast<CGameObject*>(ao);
+			auto& callback				= go->callback((take) ? GameObject::eOnItemTake : GameObject::eOnItemDrop);
+			callback					(item->O.lua_game_object());
+		}
 	}
 }
 
