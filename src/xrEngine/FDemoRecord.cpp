@@ -201,7 +201,7 @@ void CDemoRecord::MakeLevelMapProcess()
 		s_dev_flags = psDeviceFlags;
 		s_hud_flag.assign(psHUD_Flags);
 		psDeviceFlags.zero();
-		psDeviceFlags.set(rsClearBB | rsFullscreen | rsDrawStatic, TRUE);
+		psDeviceFlags.set(rsClearBB | rsDrawStatic, TRUE);
 		if (!psDeviceFlags.equal(s_dev_flags, rsFullscreen))
 			Device.Reset();
 

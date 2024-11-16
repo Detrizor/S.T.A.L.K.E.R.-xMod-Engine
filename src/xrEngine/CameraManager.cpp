@@ -19,10 +19,6 @@
 float psCamInert = 0.f;
 float psCamSlideInert = 0.25f;
 
-ENGINE_API float g_fov;
-ENGINE_API float g_aim_fov;
-ENGINE_API float g_aim_fov_tan;
-
 SPPInfo pp_identity;
 SPPInfo pp_zero;
 
@@ -464,7 +460,7 @@ void CCameraManager::ApplyDevice(float _viewport_near)
 	}
 	else
 	{
-		zoom							= (fov == g_aim_fov) ? 1.f : tanf(g_aim_fov_tan) / tanf(deg2radHalf(fov));
+		zoom							= (fov == Device.aimFOV) ? 1.f : (Device.aimFOVTan / tanf(deg2radHalf(fov)));
 		dcam.izoom_sqr					= 1.f / _sqr(zoom);
 	}
 

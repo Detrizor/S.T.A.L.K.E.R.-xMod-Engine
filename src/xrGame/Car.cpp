@@ -437,7 +437,7 @@ void CCar::UpdateCL				( )
 	}
 	ASCUpdate			();
 	if(Owner()) return;
-//	UpdateEx			(g_fov);
+//	UpdateEx			(Device.gFOV);
 	VisualUpdate(90);
 	if (GetScriptControl())
 			ProcessScripts();

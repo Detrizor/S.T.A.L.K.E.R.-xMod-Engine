@@ -304,7 +304,7 @@ void CActor::IR_OnMouseMove(int dx, int dy)
 	}
 
 	float fov		= (Device.SVP.isActive()) ? Device.SVP.getFOV() : cameras[cam_active]->f_fov;
-	float scale		= (fov / g_fov) * GetLookFactor() * psMouseSensScale / psMouseSens;
+	float scale		= (fov / Device.gFOV) * GetLookFactor() * psMouseSensScale / psMouseSens;
 	if (IsZoomADSMode())
 		scale		*= psADSSensScale;
 	else if (IsZoomAimingMode())

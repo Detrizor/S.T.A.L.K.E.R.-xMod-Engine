@@ -258,7 +258,7 @@ xr_token							ext_quality_token[] = {
 //-AVO
 
 //- Mad Max
-float		ps_r2_gloss_factor			= 0.5f;
+float		ps_r2_gloss_factor			= 3.f;
 //- Mad Max
 #ifndef _EDITOR
 #include	"../../xrEngine/xr_ioconsole.h"

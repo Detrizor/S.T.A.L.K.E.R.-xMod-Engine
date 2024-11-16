@@ -173,7 +173,7 @@ void CWeaponStatMgun::UpdateCL()
 
 	if(OwnerActor() && OwnerActor()->IsMyCamera()) 
 	{
-		cam_Update(time_delta(), g_fov);
+		cam_Update(time_delta(), Device.gFOV);
 		OwnerActor()->Cameras().UpdateFromCamera(Camera());
 		OwnerActor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
 	}
@@ -225,9 +225,9 @@ void CWeaponStatMgun::UpdateBarrelDir()
 	m_cur_y_rot		= angle_inertion_var(m_cur_y_rot,m_tgt_y_rot,0.5f,3.5f,PI_DIV_6,time_delta());
 }
 
-void CWeaponStatMgun::cam_Update			(float dt, float fov)
+void CWeaponStatMgun::cam_Update(float dt, float fov)
 {
-	camera->f_fov = 90.f;// g_fov;
+	camera->f_fov = Device.gFOV;
 
 	Fvector P,Da;
 	Da.set(0,0,0);

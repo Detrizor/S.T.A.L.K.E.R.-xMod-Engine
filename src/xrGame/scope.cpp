@@ -274,7 +274,7 @@ float MScope::update_scope_shadow()
 	float offset						= (fMore(cur_eye_relief, 0.f)) ? m_camera_lense_distance / cur_eye_relief : 1.f;
 	
 	float lense_fov_tan					= m_lense_radius / m_camera_lense_distance;
-	m_lense_scale						= lense_fov_tan / g_aim_fov_tan;
+	m_lense_scale						= lense_fov_tan / Device.aimFOVTan;
 	float scale							= m_lense_scale;
 	if (fMore(offset, 1.f))
 	{
@@ -405,14 +405,14 @@ void MScope::updateSVP(Dmatrix CR$ transform)
 	d_hpb								= cam_hpb;
 	d_hpb.sub							(static_cast<Fvector>(self_hpb));
 
-	float fov_tan						= g_aim_fov_tan;
+	float fov_tan						= Device.aimFOVTan;
 	Fvector4& hud_params				= g_pGamePersistent->m_pGShaderConstants->hud_params;
 	if (Type() == eOptics)
 	{
 		fov_tan							/= m_Magnificaion.current;
 		float shadow_scale				= update_scope_shadow();
 		Device.SVP.setViewFOV			(2.f * atanf(fov_tan * min(m_lense_scale, shadow_scale)));
-		Device.SVP.setLenseFOV			(2.f * atanf(g_aim_fov_tan * m_lense_scale));
+		Device.SVP.setLenseFOV			(2.f * atanf(Device.aimFOVTan * m_lense_scale));
 		Device.SVP.setLenseDir			(m_camera_lense_offset);
 
 		Device.SVP.setFOV				(rad2degHalf(atanf(fov_tan)));

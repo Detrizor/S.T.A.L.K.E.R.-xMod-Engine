@@ -343,7 +343,7 @@ void CActor::cam_Update(float dt, float fFOV)
 
 	C->Update						(point,dangle);
 	C->f_fov						= fFOV;
-	C->m_Flags.set					(CCameraBase::flInterpolateFOV, fMoreOrEqual(fFOV, g_aim_fov));
+	C->m_Flags.set					(CCameraBase::flInterpolateFOV, fMoreOrEqual(fFOV, Device.aimFOV));
 
 	if (Level().CurrentEntity() == this)
 	{

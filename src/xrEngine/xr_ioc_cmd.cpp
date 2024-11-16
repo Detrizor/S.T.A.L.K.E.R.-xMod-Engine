@@ -651,11 +651,9 @@ void CCC_Register()
 	// Render device states
 	CMD4(CCC_Integer, "r__supersample", &ps_r__Supersample, 1, 4);
 
-
 	CMD3(CCC_Mask, "rs_v_sync", &psDeviceFlags, rsVSync);
 	CMD3(CCC_Mask, "rs_fullscreen", &psDeviceFlags, rsFullscreen);
-	CMD3(CCC_Mask, "rs_refresh_60hz", &psDeviceFlags, rsRefresh60hz);
-	CMD4(CCC_Float, "rs_vis_distance", &psVisDistance, 0.4f, 1.5f);
+	CMD4(CCC_Float, "rs_vis_distance", &psVisDistance, 0.4f, 1.f);
 
 	CMD3(CCC_Mask, "rs_cam_pos", &psDeviceFlags, rsCameraPos);
 #ifdef DEBUG

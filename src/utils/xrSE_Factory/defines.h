@@ -21,20 +21,19 @@ enum {
 	rsOcclusion						= (1ul<<4ul),
 	rsStatistic						= (1ul<<5ul),
 	rsDetails						= (1ul<<6ul),
-	rsRefresh60hz					= (1ul<<7ul),
-	rsConstantFPS					= (1ul<<8ul),
-	rsDrawStatic					= (1ul<<9ul),
-	rsDrawDynamic					= (1ul<<10ul),
+	rsConstantFPS					= (1ul<<7ul),
+	rsDrawStatic					= (1ul<<8ul),
+	rsDrawDynamic					= (1ul<<9ul),
 
-	rsOcclusionDraw					= (1ul<<11ul),
-	rsOcclusionStats				= (1ul<<12ul),
+	rsOcclusionDraw					= (1ul<<10ul),
+	rsOcclusionStats				= (1ul<<11ul),
 
-	mtSound							= (1ul<<13ul),
-	mtPhysics						= (1ul<<14ul),
-	mtNetwork						= (1ul<<15ul),
-	mtParticles						= (1ul<<16ul),
+	mtSound							= (1ul<<12ul),
+	mtPhysics						= (1ul<<13ul),
+	mtNetwork						= (1ul<<14ul),
+	mtParticles						= (1ul<<15ul),
 
-	rsCameraPos						= (1ul<<17ul),
+	rsCameraPos						= (1ul<<16ul),
 
 	// 20-32 bit - reserved to Editor
 };

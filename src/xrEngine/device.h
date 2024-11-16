@@ -301,6 +301,9 @@ private:
 
 public:
 	CSVP								SVP;
+	float								gFOV									= 75.f;
+	float								aimFOV									= 36.f;
+	float								aimFOVTan								= .32491969623290632615587141221513f;
 	
 	bool								isLevelReady						C$	();
 	bool								isGameLoaded						C$	();

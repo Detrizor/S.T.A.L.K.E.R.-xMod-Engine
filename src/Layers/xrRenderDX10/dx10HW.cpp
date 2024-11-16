@@ -628,51 +628,44 @@ DXGI_RATIONAL CHW::selectRefresh(u32 dwWidth, u32 dwHeight, DXGI_FORMAT fmt)
 
 	float	CurrentFreq = 60.0f;
 
-	if (psDeviceFlags.is(rsRefresh60hz))	
+	xr_vector<DXGI_MODE_DESC>	modes;
+
+	IDXGIOutput *pOutput;
+	m_pAdapter->EnumOutputs(0, &pOutput);
+	VERIFY(pOutput);
+
+	UINT num = 0;
+	DXGI_FORMAT format = fmt;
+	UINT flags         = 0;
+
+	// Get the number of display modes available
+	pOutput->GetDisplayModeList( format, flags, &num, 0);
+
+	// Get the list of display modes
+	modes.resize(num);
+	pOutput->GetDisplayModeList( format, flags, &num, &modes.front());
+
+	_RELEASE(pOutput);
+
+	for (u32 i=0; i<num; ++i)
 	{
-		return res;
-	}
-	else
-	{
-		xr_vector<DXGI_MODE_DESC>	modes;
+		DXGI_MODE_DESC &desc = modes[i];
 
-		IDXGIOutput *pOutput;
-		m_pAdapter->EnumOutputs(0, &pOutput);
-		VERIFY(pOutput);
-
-		UINT num = 0;
-		DXGI_FORMAT format = fmt;
-		UINT flags         = 0;
-
-		// Get the number of display modes available
-		pOutput->GetDisplayModeList( format, flags, &num, 0);
-
-		// Get the list of display modes
-		modes.resize(num);
-		pOutput->GetDisplayModeList( format, flags, &num, &modes.front());
-
-		_RELEASE(pOutput);
-
-		for (u32 i=0; i<num; ++i)
+		if( (desc.Width == dwWidth) 
+			&& (desc.Height == dwHeight)
+			)
 		{
-			DXGI_MODE_DESC &desc = modes[i];
-
-			if( (desc.Width == dwWidth) 
-				&& (desc.Height == dwHeight)
-				)
+			VERIFY(desc.RefreshRate.Denominator);
+			float TempFreq = float(desc.RefreshRate.Numerator)/float(desc.RefreshRate.Denominator);
+			if ( TempFreq > CurrentFreq )
 			{
-				VERIFY(desc.RefreshRate.Denominator);
-				float TempFreq = float(desc.RefreshRate.Numerator)/float(desc.RefreshRate.Denominator);
-				if ( TempFreq > CurrentFreq )
-				{
-					CurrentFreq = TempFreq;
-					res = desc.RefreshRate;
-				}
+				CurrentFreq = TempFreq;
+				res = desc.RefreshRate;
 			}
 		}
-
-		return res;
 	}
+
+	return res;
 }
 
 void CHW::OnAppActivate()

@@ -873,8 +873,8 @@ float CActor::currentFOV()
 	if (auto ai = inventory().ActiveItem())
 		if (auto wpn = ai->O.scast<CWeapon*>())
 			if (auto zoom = wpn->getZoom())
-				return					(fMore(zoom, 1.f)) ? rad2degHalf(atanf(g_aim_fov_tan / zoom)) : g_aim_fov;
-	return								g_fov;
+				return					(fMore(zoom, 1.f)) ? rad2degHalf(atanf(Device.aimFOVTan / zoom)) : Device.aimFOV;
+	return								Device.gFOV;
 }
 
 static bool bLook_cam_fp_zoom = false;
@@ -1757,9 +1757,6 @@ bool CActor::CanPutInSlot(PIItem item, u32 slot)
 
 void CActor::loadStaticData()
 {
-	g_aim_fov							= pSettings->r_float("weapon_manager", "aim_fov");
-	g_aim_fov_tan						= tanf(deg2radHalf(g_aim_fov));
-
 	CItemsLibrary::loadStaticData		();
 	CEntityCondition::loadStaticData	();
 	SBoneProtections::loadStaticData	();

@@ -472,7 +472,7 @@ void CHelicopter::UpdateCL()
 
 	if (OwnerActor() && OwnerActor()->IsMyCamera())
 	{
-		cam_Update(time_delta(), g_fov);
+		cam_Update(time_delta(), Device.gFOV);
 		OwnerActor()->Cameras().UpdateFromCamera(Camera());
 		if (eacFirstEye == active_camera->tag && !Level().Cameras().GetCamEffector(cefDemo))
 			OwnerActor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
@@ -650,7 +650,7 @@ void CHelicopter::OnMouseMove(int dx, int dy)
 	if (Remote())					return;
 
 	CCameraBase* C = active_camera;
-	float scale = (C->f_fov / g_fov) * psMouseSensScale / psMouseSens;
+	float scale = (C->f_fov / Device.gFOV) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d = float(dx)*scale;
 		C->Move((d<0) ? kLEFT : kRIGHT, _abs(d));

@@ -1962,7 +1962,18 @@ void CCC_RegisterCommands()
 	CMD3(CCC_Mask, "hud_crosshair", &psHUD_Flags, HUD_CROSSHAIR);
 	CMD3(CCC_Mask, "hud_crosshair_dist", &psHUD_Flags, HUD_CROSSHAIR_DIST);
 	
-	CMD4(CCC_Float, "fov", &g_fov, 5.0f, 180.0f);
+	class CCC_AimFOV : public CCC_Float
+	{
+	public:
+		CCC_AimFOV(LPCSTR N, float* V, float _min, float _max) : CCC_Float(N, V, _min, _max) {}
+		void Execute(LPCSTR args) override
+		{
+			__super::Execute(args);
+			Device.aimFOVTan = tanf(deg2radHalf(Device.aimFOV));
+		}
+	};
+	CMD4(CCC_AimFOV, "g_aim_fov", &Device.aimFOV, 1.f, 180.0f);
+	CMD4(CCC_Float, "g_fov", &Device.gFOV, 1.0f, 180.0f);
 	CMD4(CCC_Integer, "objects_per_client_update", &g_objects_per_client_update, 1, 65535)
 
 	// Demo
