@@ -78,10 +78,10 @@ void dxFontRender::OnRender(CGameFont &owner)
 				switch ( PS.align )
 				{
 				case CGameFont::alCenter:	
-					X	-= ( floor( fSize * 0.5f * psUI_SCALE ) );	
+					X	-= ( floor( fSize * .5f ) );	
 					break;
 				case CGameFont::alRight:	
-					X	-=	floor( fSize * psUI_SCALE );
+					X	-=	floor( fSize );
 					break;
 				}
 
@@ -107,7 +107,6 @@ void dxFontRender::OnRender(CGameFont &owner)
 					l = owner.IsMultibyte() ? owner.GetCharTC( wsStr[ 1 + j ] ) : owner.GetCharTC( ( u16 ) ( u8 ) PS.string[j] );
 
 					float scw		= floor(l.z * psUI_SCALE);
-
 					float fTCWidth	= l.z/owner.vTS.x;
 
 					if (!fis_zero(l.z))

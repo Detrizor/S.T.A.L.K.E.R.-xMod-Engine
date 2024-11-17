@@ -207,7 +207,7 @@ void CConsole::OnFrame()
 
 void CConsole::OutFont(LPCSTR text, float& pos_y)
 {
-	float str_length = psUI_SCALE * pFont->SizeOf_(text);
+	float str_length = pFont->SizeOf_(text);
 	float scr_width = 1.98f * Device.fWidth_2;
 	if (str_length > scr_width) //1024.0f
 	{
@@ -221,7 +221,7 @@ void CConsole::OutFont(LPCSTR text, float& pos_y)
 			one_line[ln + sz] = text[sz];
 			one_line[ln + sz + 1] = 0;
 
-			float t = psUI_SCALE * pFont->SizeOf_(one_line + ln);
+			float t = pFont->SizeOf_(one_line + ln);
 			if (t > scr_width)
 			{
 				OutFont(text + sz + 1, pos_y);
@@ -288,8 +288,8 @@ void CConsole::OnRender()
 
 	//---------------------------------------------------------------------------------
 	float scr_width = 1.9f * Device.fWidth_2;
-	float ioc_d = psUI_SCALE * pFont->SizeOf_(ioc_prompt);
-	float d1 = psUI_SCALE * pFont->SizeOf_("_");
+	float ioc_d = pFont->SizeOf_(ioc_prompt);
+	float d1 = pFont->SizeOf_("_");
 
 	LPCSTR s_cursor = ec().str_before_cursor();
 	LPCSTR s_b_mark = ec().str_before_mark();
@@ -297,7 +297,7 @@ void CConsole::OnRender()
 	LPCSTR s_mark_a = ec().str_after_mark();
 
 	// strncpy_s( buf1, cur_pos, editor, MAX_LEN );
-	float str_length = ioc_d + psUI_SCALE * pFont->SizeOf_(s_cursor);
+	float str_length = ioc_d + pFont->SizeOf_(s_cursor);
 	float out_pos = 0.0f;
 	if (str_length > scr_width)
 	{
@@ -323,7 +323,7 @@ void CConsole::OnRender()
 			shift_x = scr_x * out_pos;
 			break;
 		case 2:
-			shift_x = scr_x * (ioc_d + psUI_SCALE * pFont->SizeOf_(m_cur_cmd.c_str()) + d1);
+			shift_x = scr_x * (ioc_d + pFont->SizeOf_(m_cur_cmd.c_str()) + d1);
 			break;
 		case 3:
 			shift_x = scr_x * str_length;
@@ -347,7 +347,7 @@ void CConsole::OnRender()
 	pFont2->SetColor(cmd_font_color);
 
 	pFont->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_b_mark);
-	out_pos += psUI_SCALE * pFont->SizeOf_(s_b_mark);
+	out_pos += pFont->SizeOf_(s_b_mark);
 	pFont2->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_mark);
 	out_pos += psUI_SCALE * pFont2->SizeOf_(s_mark);
 	pFont->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_mark_a);
@@ -423,12 +423,12 @@ void CConsole::DrawBackgrounds(bool bGame)
 		}
 	}
 
-	float w1 = psUI_SCALE * pFont->SizeOf_("_");
-	float ioc_w = psUI_SCALE * pFont->SizeOf_(ioc_prompt) - w1;
-	float cur_cmd_w = psUI_SCALE * pFont->SizeOf_(m_cur_cmd.c_str());
+	float w1 = pFont->SizeOf_("_");
+	float ioc_w = pFont->SizeOf_(ioc_prompt) - w1;
+	float cur_cmd_w = pFont->SizeOf_(m_cur_cmd.c_str());
 	cur_cmd_w += (cur_cmd_w > 0.01f) ? w1 : 0.0f;
 
-	float list_w = psUI_SCALE * pFont->SizeOf_(max_str) + 2.0f * w1;
+	float list_w = pFont->SizeOf_(max_str) + 2.0f * w1;
 
 	float font_h = pFont->CurrentHeight_();
 	float tips_h = _min(m_tips.size(), (u32)VIEW_TIPS_COUNT) * font_h;
@@ -485,11 +485,11 @@ void CConsole::DrawBackgrounds(bool bGame)
 
 			r.null();
 			tmp.assign(ts.text.c_str(), ts.HL_start);
-			r.x1 = pr.x1 + w1 + psUI_SCALE * pFont->SizeOf_(tmp.c_str());
+			r.x1 = pr.x1 + w1 + pFont->SizeOf_(tmp.c_str());
 			r.y1 = pr.y1 + i * font_h;
 
 			tmp.assign(ts.text.c_str(), ts.HL_finish);
-			r.x2 = pr.x1 + w1 + psUI_SCALE * pFont->SizeOf_(tmp.c_str());
+			r.x2 = pr.x1 + w1 + pFont->SizeOf_(tmp.c_str());
 			r.y2 = r.y1 + font_h;
 
 			DrawRect(r, tips_word_color);
