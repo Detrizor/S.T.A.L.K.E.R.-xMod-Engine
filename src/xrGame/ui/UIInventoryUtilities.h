@@ -91,7 +91,9 @@ u32		GetGoodwillColor			(CHARACTER_GOODWILL gw);
 u32		GetRelationColor			(ALife::ERelationType r);
 u32		GetReputationColor			(CHARACTER_REPUTATION_VALUE rv);
 
-	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, float icon_scale);
-	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, float icon_scale, Frect& margin);
-	Ivector2							CalculateIconSize						(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect);
+void									loadStaticData							();
+
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, float icon_scale);
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, float icon_scale, Frect& margin);
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect);
 };

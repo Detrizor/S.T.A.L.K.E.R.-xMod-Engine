@@ -29,9 +29,6 @@
 #define MAP_ICONS		 "ui\\ui_icons_map"
 #define MP_CHAR_ICONS	 "ui\\ui_models_multiplayer"
 
-const float inv_grid_size			= pSettings->r_float("miscellaneous", "inv_grid_size");
-const float inv_icon_spacing		= pSettings->r_float("miscellaneous", "inv_icon_spacing");
-
 const LPCSTR relationsLtxSection	= "game_relations";
 const LPCSTR ratingField			= "rating_names";
 const LPCSTR reputationgField		= "reputation_names";
@@ -595,11 +592,22 @@ u32	InventoryUtilities::GetRelationColor(ALife::ERelationType relation)
 #endif
 }
 
+float inv_grid_size = 0.f;
+float inv_icon_spacing = 0.f;
+int inv_icon_min_size = 0;
+
+void InventoryUtilities::loadStaticData()
+{
+	inv_grid_size						= pSettings->r_float("miscellaneous", "inv_grid_size");
+	inv_icon_spacing					= pSettings->r_float("miscellaneous", "inv_icon_spacing");
+	inv_icon_min_size					= pSettings->r_float("miscellaneous", "inv_icon_min_size");
+}
+
 Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, float icon_scale)
 {
 	return								{
-		iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size),
-		iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size)
+		max(iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size), inv_icon_min_size),
+		max(iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size), inv_icon_min_size)
 	};
 }
 

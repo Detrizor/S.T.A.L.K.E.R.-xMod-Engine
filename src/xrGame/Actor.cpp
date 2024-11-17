@@ -1754,6 +1754,7 @@ bool CActor::CanPutInSlot(PIItem item, u32 slot)
 #include "BoneProtections.h"
 #include "weapon_hud.h"
 #include "scope.h"
+#include "ui/UIInventoryUtilities.h"
 
 void CActor::loadStaticData()
 {
@@ -1767,4 +1768,5 @@ void CActor::loadStaticData()
 	CWeaponMagazined::loadStaticData	();
 	CAddonSlot::loadStaticData			();
 	CObject::loadStaticData				();
+	InventoryUtilities::loadStaticData	();
 }
