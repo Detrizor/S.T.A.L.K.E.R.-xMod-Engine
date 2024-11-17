@@ -285,8 +285,6 @@ void CInventoryItem::UpdateCL()
 		}
 	}
 #endif
-	if (!m_icon_valid)
-		setup_icon();
 }
 
 void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
@@ -928,7 +926,7 @@ void CInventoryItem::setup_icon()
 	onInventoryAction					();
 }
 
-void CInventoryItem::onInventoryAction(const SInvItemPlace* prev) const
+void CInventoryItem::onInventoryAction(const SInvItemPlace* prev)
 {
 	if (auto ui = CurrentGameUI())
 		ui->GetActorMenu().onInventoryAction(this, prev);
@@ -938,6 +936,13 @@ void CInventoryItem::shedule_Update(u32 T)
 {
 	if (!m_icon_valid)
 		setup_icon						();
+}
+
+CUICellItem* CInventoryItem::getIcon()
+{
+	if (!m_icon_valid)
+		setup_icon						();
+	return								m_icon.get();
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)

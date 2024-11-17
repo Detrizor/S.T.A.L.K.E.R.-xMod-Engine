@@ -363,7 +363,7 @@ private:
 	void								process_place							(SInvItemPlace CR$ place);
 
 public:
-	void								onInventoryAction						(CInventoryItem CP$ item, const SInvItemPlace* prev = nullptr);
+	void								onInventoryAction						(CInventoryItem* item, const SInvItemPlace* prev = nullptr);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

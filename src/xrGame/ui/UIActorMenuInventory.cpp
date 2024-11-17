@@ -668,9 +668,9 @@ void CUIActorMenu::pickup_item(PIItem item, eItemPlace type, u16 slot_id)
 	item->O.transfer					(m_pActorInvOwner->object_id(), true);
 }
 
-void CUIActorMenu::onInventoryAction(CInventoryItem CP$ item, const SInvItemPlace* prev)
+void CUIActorMenu::onInventoryAction(CInventoryItem* item, const SInvItemPlace* prev)
 {
-	if (!IsShown() || !item->getIcon())
+	if (!IsShown())
 		return;
 
 	if (auto old_owner = item->getIcon()->OwnerList())

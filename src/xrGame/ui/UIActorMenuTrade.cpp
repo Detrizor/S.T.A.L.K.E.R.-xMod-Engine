@@ -219,8 +219,8 @@ bool CUIActorMenu::ToPartnerTradeBag(CUICellItem* itm, bool b_use_cursor_pos)
 	if (auto item = static_cast<PIItem>(itm->m_pData))
 		m_pPartnerInvOwner->inventory().Ruck(item);
 
-	m_partner_trade_list.erase_data		(itm);
 	CUICellItem* removed_cell			= m_pTradePartnerList->RemoveItem(itm, false);
+	m_partner_trade_list.erase_data		(removed_cell);
 	removed_cell->destroy				();
 	m_pTradePartnerList->setValid		(false);
 	return								true;

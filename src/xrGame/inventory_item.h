@@ -346,19 +346,19 @@ public:
 	void								invalidateIcon							()		{ m_icon_valid = false; }
 
 	void								swapIcon								(PIItem item);
+	CUICellItem*						getIcon									();
+	void								onInventoryAction						(const SInvItemPlace* prev = nullptr);
 
 	LPCSTR								getName								C$	()		{ return m_name.c_str(); }
 	LPCSTR								getNameShort						C$	()		{ return m_name_short.c_str(); }
 	LPCSTR								ItemDescription						C$	()		{ return m_description.c_str(); }
 	bool								areInvIconTypesAllowed				C$	()		{ return m_inv_icon_types; }
-	CUICellItem*						getIcon								C$	()		{ return (m_icon) ? m_icon.get() : nullptr; }
 
 	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
 	shared_str							Section								C$	(bool full = false);
 	float								Price								C$	();
 	bool								tryCustomUse						C$	();
 	bool								isGear								C$	(bool check_equipped = false);
-	void								onInventoryAction					C$	(const SInvItemPlace* prev = nullptr);
 
 	float								getData								C$	(EItemDataTypes type);
 	float								Weight								C$	();
