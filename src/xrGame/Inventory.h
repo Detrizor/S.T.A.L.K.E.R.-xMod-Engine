@@ -59,7 +59,7 @@ public:
 	void					Slot				(u16 slot_id, PIItem item);
 	bool					tryPocket			(PIItem item, u16 pocket_id);
 	void					Pocket				(PIItem item, u16 pocket_id);
-	bool					Bag					(PIItem item);
+	bool					Bag					(PIItem item, bool straight = false);
 	bool					tryRuck				(PIItem item);
 	void					Ruck				(PIItem item);
 

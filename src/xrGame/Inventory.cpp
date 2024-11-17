@@ -806,7 +806,7 @@ void CInventory::Update()
 	UpdateDropTasks();
 }
 
-bool CInventory::Bag(PIItem item)
+bool CInventory::Bag(PIItem item, bool straight)
 {
 	if (item->object_id() == m_iRuckBlockID)
 	{
@@ -819,7 +819,7 @@ bool CInventory::Bag(PIItem item)
 	MContainer* container			= ai->O.getModule<MContainer>();
 	if (!container || !container->CanTakeItem(item))
 		return						false;
-	item->O.transfer				(container->O.ID());
+	item->O.transfer				(container->O.ID(), straight);
 	return							true;
 }
 
@@ -855,9 +855,17 @@ void CInventory::UpdateDropTasks()
 		if (auto itm = ItemFromSlot(i))
 			UpdateDropItem				(itm);
 	
-	for (auto item : m_ruck)
-		if (!process_item(item))
+	for (auto it = m_ruck.begin(), it_e = m_ruck.end(); it != it_e;)
+	{
+		auto item						= *it;
+		if (process_item(item))
+			it_e						= m_ruck.end();
+		else
+		{
 			UpdateDropItem				(item);
+			++it;
+		}
+	}
 
 	if (m_drop_last_frame)
 	{
@@ -884,7 +892,7 @@ bool CInventory::process_item(PIItem item)
 	if (item->BaseSlot() == PRIMARY_SLOT && trySlot(SECONDARY_SLOT, item))
 		return							true;
 
-	if (Bag(item))
+	if (Bag(item, true))
 		return							true;
 
 	for (u8 i = 0; i < m_pockets_count; ++i)
