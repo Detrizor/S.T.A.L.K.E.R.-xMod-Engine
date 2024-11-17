@@ -54,8 +54,7 @@ protected:
 	void					UpdatePosition					(const Fmatrix& trans);
 	void					spawn_fake_missile				();
 
-	virtual void			OnActiveItem		();
-	virtual void			OnHiddenItem		();
+	void					OnActiveItem					() override;
 
 	//для сети
 	virtual void			net_Relcase			(CObject* O );

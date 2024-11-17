@@ -129,12 +129,6 @@ void CMissile::OnActiveItem		()
 	SetState				(eIdle);
 }
 
-void CMissile::OnHiddenItem()
-{
-	inherited::OnHiddenItem	();
-	SetState				(eHidden);
-}
-
 void CMissile::spawn_fake_missile()
 {
 	if (OnClient()) return;
