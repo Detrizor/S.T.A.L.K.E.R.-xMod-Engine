@@ -170,7 +170,7 @@ void CALifeSimulatorBase::spawn_supplies(CSE_ALifeDynamicObject* object, bool st
 	if (supplies && supplies[0])
 	{
 		if (u16 count = pSettings->r_u16_ex(object->s_name, "supplies_count", 0))
-			spawn_items					(supplies, object->o_Position, object->m_tNodeID, object->m_tGraphID, object->ID, count, straight);
+			spawn_items					(supplies, object->o_Position, object->m_tNodeID, object->m_tGraphID, object->ID, count, 1.f, straight);
 		else
 		{
 			string128					sect;
