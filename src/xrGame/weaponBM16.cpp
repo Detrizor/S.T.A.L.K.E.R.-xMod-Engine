@@ -188,7 +188,19 @@ void CWeaponBM16::StartReload(EWeaponSubStates substate)
 		}
 	}
 	else if (m_reloading_chamber == -1)
-		m_reloading_chamber				= 2;
+	{
+		auto c1							= m_chamber.getAmmo();
+		bool c1_swap					= !c1 || (c1->cNameSect() != m_current_ammo->cNameSect());
+		auto c2							= m_chamber_second.getAmmo();
+		bool c2_swap					= !c2 || (c2->cNameSect() != m_current_ammo->cNameSect());
+
+		if (c1_swap && c2_swap && m_current_ammo->GetAmmoCount() >= 2)
+			m_reloading_chamber			= 2;
+		else if (c2_swap)
+			m_reloading_chamber			= 1;
+		else if (c1_swap)
+			m_reloading_chamber			= 0;
+	}
 	
 	m_sub_state							= substate;
 	SwitchState							(eReload);
