@@ -446,6 +446,7 @@ void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 	{
 		addon->setSlotPos				(pos);
 		update_addon_local_transform	(addon);
+		parent_ao->O.scast<CInventoryItem*>()->invalidateIcon();
 	}
 }
 

@@ -4,7 +4,6 @@
 #include "HUDManager.h"
 #include "xr_level_controller.h"
 #include "../../xrEngine/xr_input.h"
-#include <fstream>
 #include "player_hud.h"
 #include "Level_Bullet_Manager.h"
 #include "addon.h"
@@ -489,6 +488,7 @@ void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)
 	}
 }
 
+#include <fstream>
 extern BOOL								g_hud_adjusment_mode;
 int hands_mode							= 0;
 bool CWeaponHud::Action(u16 cmd, u32 flags)

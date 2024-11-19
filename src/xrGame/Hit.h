@@ -2,7 +2,7 @@
 
 struct SHit
 {
-	SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
+	SHit(float main_damageA, Fvector CR$ dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA,
 		float impulseA, ALife::EHitType hit_typeA, float pierce_damageA = 0.f, float armor_pierce_damageA = 0.f, ALife::EHitType pierce_hit_typeA = ALife::eHitTypeMax);
 
 	SHit										();	

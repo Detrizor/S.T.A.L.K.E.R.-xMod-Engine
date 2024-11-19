@@ -572,7 +572,8 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 		d_inner				+= pierce_damage;
 	}
 
-	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::ConditionHit health [%f] main_damage [%.5f] pierce_damage [%.5f]", GetHealth(), main_damage, pierce_damage);
+	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor()))
+		Msg("--xd CEntityCondition::ConditionHit health [%f] main_damage [%.5f] pierce_damage [%.5f]", GetHealth(), main_damage, pierce_damage);
 
 	if (m_object->cast_actor())
 	{

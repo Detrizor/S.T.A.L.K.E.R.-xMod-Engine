@@ -6,11 +6,12 @@
 #include "xrMessages.h"
 #include "Level.h"
 #include "../xrphysics/mathutils.h"
-SHit::SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
+
+SHit::SHit(float main_damageA, Fvector CR$ dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA,
 	float impulseA, ALife::EHitType hit_typeA, float pierce_damageA, float armor_pierce_damageA, ALife::EHitType pierce_hit_typeA)
 {
 		main_damage				= main_damageA							;
-		dir						.set(dirA)								;
+		dir.set					(dirA)									;
 		who						= whoA									;
 		if (whoA)
 			whoID				= whoA->ID()							;
