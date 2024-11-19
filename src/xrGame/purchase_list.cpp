@@ -9,27 +9,36 @@
 #include "stdafx.h"
 #include "purchase_list.h"
 #include "ai\trader\ai_trader.h"
+#include "ui/UIInventoryUtilities.h"
 
 #include "items_library.h"
 
 void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner& owner)
 {
-	owner.sell_useless_items		();
-	CAI_Trader& trader				= smart_cast<CAI_Trader&>(owner);
-	trader.supplies_list.clear_not_free();
+	bool ammo							= false;
+	auto& trader						= smart_cast<CAI_Trader&>(owner);
+	auto add_item = [&trader, &ammo](shared_str CR$ sec)
+	{
+		trader.supplies_list.push_back	(sec);
+		if (!ammo && ItemCategory(sec, "ammo"))
+			ammo						= true;
+	};
+
+	owner.sell_useless_items			();
+	trader.supplies_list.clear_not_free	();
 	for (auto& item : ini_file.r_section(section).Data)
 	{
 		if (CItemsLibrary::validSection(item.first))
 		{
-			GiveObject				(owner, item.first);
+			add_item					(item.first);
 			continue;
 		}
 
-		string256					tmp0, tmp1, tmp2;
-		LPCSTR category				= _GetItem(*item.first, 0, tmp0, '.');
-		int count					= _GetItemCount(*item.first, '.');
-		_STD string subcategory		= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
-		_STD string division		= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
+		string256						tmp0, tmp1, tmp2;
+		LPCSTR category					= _GetItem(*item.first, 0, tmp0, '.');
+		int count						= _GetItemCount(*item.first, '.');
+		_STD string subcategory			= (count > 1) ? _GetItem(*item.first, 1, tmp1, '.') : "any";
+		_STD string division			= (count > 2) ? _GetItem(*item.first, 2, tmp2, '.') : "any";
 
 		for (auto& subcat : CItemsLibrary::getCategory(category))
 		{
@@ -40,16 +49,21 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 				if (division != "any" && div.first != division)
 					continue;
 				for (auto& sec : div.second)
-					GiveObject		(owner, sec);
+					add_item			(sec);
 			}
 		}
 	}
 
-	owner.inventory().InvalidateState();
-}
+	if (!ammo)
+	{
+		trader.supplies_list.sort([](auto CR$ s1, auto CR$ s2)
+			{
+				auto c1					= CInventoryItem::readBaseCost(s1.c_str(), true);
+				auto c2					= CInventoryItem::readBaseCost(s2.c_str(), true);
+				return					(c1 < c2);
+			}
+		);
+	}
 
-void CPurchaseList::GiveObject(CInventoryOwner& owner, const shared_str& section)
-{
-	CAI_Trader& trader					= smart_cast<CAI_Trader&>(owner);
-	trader.supplies_list.push_back		(section);
+	owner.inventory().InvalidateState	();
 }

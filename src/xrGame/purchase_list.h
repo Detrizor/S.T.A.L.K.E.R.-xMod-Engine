@@ -19,8 +19,6 @@ public:
 private:
 	DEFICITS				m_deficits;
 
-			void			GiveObject			(CInventoryOwner& owner, const shared_str& section);
-
 public:
 			void			process				(CInifile& ini_file, LPCSTR section, CInventoryOwner& owner);
 

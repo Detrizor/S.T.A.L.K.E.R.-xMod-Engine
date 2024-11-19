@@ -113,8 +113,7 @@ bool is_item_in_list(CUIDragDropListEx* pList, PIItem item)
 void CUIActorMenu::InitPartnerInventoryContents()
 {
 	m_pTradePartnerBagList->ClearAll	(true);
-	CAI_Trader* trader					= smart_cast<CAI_Trader*>(m_pPartnerInvOwner);
-	if (trader)
+	if (auto trader = smart_cast<CAI_Trader*>(m_pPartnerInvOwner))
 		for (auto& str : trader->supplies_list)
 			m_pTradePartnerBagList->SetItem(create_cell_item_from_section(str));
 	else
