@@ -73,6 +73,7 @@ void SBullet::Init(const Fvector& position,
 	hit_type				= e_hit_type;
 	
 	mass					= cartridge.param_s.fBulletMass;
+	buck_shot				= cartridge.param_s.buckShot;
 	resist					= cartridge.param_s.fBulletResist;
 	penetration				= cartridge.param_s.penetration;
 	hollow_point			= cartridge.param_s.bullet_hollow_point;
@@ -127,21 +128,21 @@ CBulletManager::~CBulletManager()
 	m_Events.clear			();
 }
 
-void CBulletManager::Load		()
+void CBulletManager::Load()
 {
-	char const * bullet_manager_sect = "bullet_manager";
+	LPCSTR bullet_manager_sect			= "bullet_manager";
 
-	m_fTracerWidth			= pSettings->r_float(bullet_manager_sect, "tracer_width");
-	m_fTracerLengthMax		= pSettings->r_float(bullet_manager_sect, "tracer_length_max");
-	m_fTracerLengthMin		= pSettings->r_float(bullet_manager_sect, "tracer_length_min");
-	m_fGravityConst			= pSettings->r_float(bullet_manager_sect, "gravity_const");
-	m_gravity				= { 0.f, -m_fGravityConst, 0.f };
-	m_min_bullet_speed		= pSettings->r_float(bullet_manager_sect, "min_bullet_speed");
-	m_max_bullet_fly_time	= pSettings->r_float(bullet_manager_sect, "max_bullet_fly_time");
-	m_fCollisionEnergyMin	= pSettings->r_float(bullet_manager_sect, "collision_energy_min");
-	m_fCollisionEnergyMax	= pSettings->r_float(bullet_manager_sect, "collision_energy_max");
+	m_fTracerWidth						= pSettings->r_float(bullet_manager_sect, "tracer_width");
+	m_fTracerLengthMax					= pSettings->r_float(bullet_manager_sect, "tracer_length_max");
+	m_fTracerLengthMin					= pSettings->r_float(bullet_manager_sect, "tracer_length_min");
+	m_fGravityConst						= pSettings->r_float(bullet_manager_sect, "gravity_const");
+	m_gravity							= { 0.f, -m_fGravityConst, 0.f };
+	m_min_bullet_speed					= pSettings->r_float(bullet_manager_sect, "min_bullet_speed");
+	m_max_bullet_fly_time				= pSettings->r_float(bullet_manager_sect, "max_bullet_fly_time");
+	m_fCollisionEnergyMin				= pSettings->r_float(bullet_manager_sect, "collision_energy_min");
+	m_fCollisionEnergyMax				= pSettings->r_float(bullet_manager_sect, "collision_energy_max");
 
-	m_fHPMaxDist			= pSettings->r_float(bullet_manager_sect, "hit_probability_max_dist");
+	m_fHPMaxDist						= pSettings->r_float(bullet_manager_sect, "hit_probability_max_dist");
 
 	m_fBulletAirResistanceScale			= pSettings->r_float(bullet_manager_sect, "air_resistance_scale");
 	m_fBulletWallMarkSizeScale			= pSettings->r_float(bullet_manager_sect, "wallmark_size_scale");
@@ -159,31 +160,29 @@ void CBulletManager::Load		()
 	m_fBulletPierceDamageScale			= pSettings->r_float(bullet_manager_sect, "pierce_damage_scale");
 	m_fBulletArmorPierceDamageScale		= pSettings->r_float(bullet_manager_sect, "armor_pierce_damage_scale");
 
-	m_fBulletPierceDamageFromResist.Load		(bullet_manager_sect, "pierce_damage_from_resist");
-	m_fBulletPierceDamageFromKAP.Load			(bullet_manager_sect, "pierce_damage_from_kap");
-	m_fBulletPierceDamageFromSpeed.Load			(bullet_manager_sect, "pierce_damage_from_speed");
+	m_fBulletPierceDamageFromResist.Load(bullet_manager_sect, "pierce_damage_from_resist");
+	m_fBulletPierceDamageFromKAP.Load	(bullet_manager_sect, "pierce_damage_from_kap");
+	m_fBulletPierceDamageFromSpeed.Load	(bullet_manager_sect, "pierce_damage_from_speed");
 
-	m_fBulletPierceDamageFromSpeedScale.Load	(bullet_manager_sect, "pierce_damage_from_speed_scale");
-	m_fBulletPierceDamageFromHydroshock.Load	(bullet_manager_sect, "pierce_damage_from_hydroshock");
-	m_fBulletPierceDamageFromStability.Load		(bullet_manager_sect, "pierce_damage_from_stability");
-	m_fBulletPierceDamageFromPierce.Load		(bullet_manager_sect, "pierce_damage_from_pierce");
+	m_fBulletPierceDamageFromSpeedScale.Load(bullet_manager_sect, "pierce_damage_from_speed_scale");
+	m_fBulletPierceDamageFromStability.Load	(bullet_manager_sect, "pierce_damage_from_stability");
+	m_fBulletPierceDamageFromPierce.Load(bullet_manager_sect, "pierce_damage_from_pierce");
 
-	if (pSettings->line_exist(bullet_manager_sect, "bullet_velocity_time_factor"))
-		g_bullet_time_factor	= pSettings->r_float(bullet_manager_sect, "bullet_velocity_time_factor");
+	pSettings->w_float_ex				(g_bullet_time_factor, bullet_manager_sect, "bullet_velocity_time_factor");
 
-	LPCSTR whine_sounds		= pSettings->r_string(bullet_manager_sect, "whine_sounds");
-	int cnt					= _GetItemCount(whine_sounds);
-	xr_string tmp;
-	for (int k=0; k<cnt; ++k)
+	m_WhineSounds.clear					();
+	LPCSTR whine_sounds					= pSettings->r_string(bullet_manager_sect, "whine_sounds");
+	xr_string							tmp;
+	for (int k = 0, cnt = _GetItemCount(whine_sounds); k < cnt; ++k)
 	{
-		m_WhineSounds.push_back	(ref_sound());
-		m_WhineSounds.back().create(_GetItem(whine_sounds,k,tmp),st_Effect,sg_SourceType);
+		m_WhineSounds.push_back			(ref_sound());
+		m_WhineSounds.back().create		(_GetItem(whine_sounds,k,tmp), st_Effect, sg_SourceType);
 	}
 
-	LPCSTR explode_particles= pSettings->r_string(bullet_manager_sect, "explode_particles");
-	cnt						= _GetItemCount(explode_particles);
-	for (int k=0; k<cnt; ++k)
-		m_ExplodeParticles.push_back	(_GetItem(explode_particles,k,tmp));
+	m_ExplodeParticles.clear			();
+	LPCSTR explode_particles			= pSettings->r_string(bullet_manager_sect, "explode_particles");
+	for (int k = 0, cnt = _GetItemCount(explode_particles); k < cnt; ++k)
+		m_ExplodeParticles.push_back	(_GetItem(explode_particles, k, tmp));
 }
 
 void CBulletManager::PlayExplodePS( const Fmatrix& xf )
@@ -531,38 +530,30 @@ void CBulletManager::CommitEvents			()	// @ the start of frame
 	m_Events.clear_and_reserve	()	;
 }
 
-void CBulletManager::RegisterEvent			(EventType Type, BOOL _dynamic, SBullet* bullet, const Fvector& end_point, collide::rq_result& R, u16 tgt_material)
+void CBulletManager::RegisterEvent(EventType Type, BOOL _dynamic, SBullet* bullet, const Fvector& end_point, collide::rq_result& R, u16 tgt_material)
 {
-#if 0//def DEBUG
-	if (m_Events.size() > 1000) {
-		static bool breakpoint = true;
-		if (breakpoint)
-			__asm int 3;
-	}
-#endif // #ifdef DEBUG
-
 	if (_dynamic && (bullet->targetID == R.O->ID()))
 		return;
 
-	m_Events.push_back	(_event())		;
-	_event&	E		= m_Events.back()	;
-	E.Type			= Type				;
-	E.bullet		= *bullet			;
+	m_Events.emplace_back				();
+	_event&	E							= m_Events.back();
+	E.Type								= Type;
+	E.bullet							= *bullet;
 	
 	switch(Type)
 	{
 	case EVENT_HIT:
-		{
-			E.dynamic		= _dynamic			;
-			E.point			= end_point			;
-			E.R				= R					;
-			E.tgt_material	= tgt_material		;
-			ObjectHit( &E.hit_result, bullet, end_point, R, tgt_material, E.normal );
-		}break;
+	{
+		E.dynamic						= _dynamic;
+		E.point							= end_point;
+		E.R								= R;
+		E.tgt_material					= tgt_material;
+		ObjectHit						(E, bullet, end_point, R, tgt_material);
+		break;
+	}
 	case EVENT_REMOVE:
-		{
-			E.tgt_material	= tgt_material		;
-		}break;
+		E.tgt_material					= tgt_material;
+		break;
 	}	
 }
 

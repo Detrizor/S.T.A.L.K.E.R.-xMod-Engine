@@ -20,10 +20,10 @@ struct SPowerDependency
 //коэфициенты и параметры патрона
 struct SBullet_Hit 
 {
-	float	impulse;
-	float	main_damage;
-	float	pierce_damage;
-	float	armor_pierce_damage;
+	float	impulse					= 0.f;
+	float	main_damage				= 0.f;
+	float	pierce_damage			= 0.f;
+	float	armor_pierce_damage		= 0.f;
 };
 
 //структура, описывающая пулю и ее свойства в полете
@@ -63,6 +63,7 @@ struct SBullet
 	u16				updates				;
 	float			wallmark_size		;
 	float			mass				;
+	int				buck_shot			;
 	float			resist				;
 	float			penetration			;
 	float			k_ap				;
@@ -188,8 +189,8 @@ protected:
 	void					StaticObjectHit		(_event& E);
 
 	//попадание по любому объекту, на выходе - импульс и сила переданные пулей объекту
-	bool					ObjectHit			(SBullet_Hit* hit_res, SBullet* bullet, const Fvector& end_point, 
-												collide::rq_result& R, u16 target_material, Fvector& hit_normal);
+	void					ObjectHit			(_event& E, SBullet* bullet, const Fvector& end_point, collide::rq_result& R, u16 target_material);
+
 	//отметка на пораженном объекте
 	void					FireShotmark		(SBullet* bullet, const Fvector& vDir, 
 												const Fvector &vEnd,    collide::rq_result& R,  u16 target_material,
@@ -231,6 +232,9 @@ private:
 	Fvector								m_gravity;
 	float								m_global_ap_scale;
 
+	float								calculate_hit_damage				C$	(float bullet_ap, float armor, float bone_density, SBullet_Hit& hit_res, SBullet* bullet,
+		float k_speed_in = 0.f, float k_speed_out = 0.f, bool inwards = true, bool log = false);
+
 public:
 	float								m_fBulletAirResistanceScale;
 	float								m_fBulletWallMarkSizeScale;
@@ -252,7 +256,6 @@ public:
 	SPowerDependency					m_fBulletPierceDamageFromSpeed;
 
 	SPowerDependency					m_fBulletPierceDamageFromSpeedScale;
-	SPowerDependency					m_fBulletPierceDamageFromHydroshock;
 	SPowerDependency					m_fBulletPierceDamageFromStability;
 	SPowerDependency					m_fBulletPierceDamageFromPierce;
 
