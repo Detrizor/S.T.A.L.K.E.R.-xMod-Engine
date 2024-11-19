@@ -219,9 +219,9 @@ float		ps_r2_lt_smooth				= 1.f;				// 1.f
 float		ps_r2_slight_fade			= 0.5f;				// 1.f
 
 //	x - min (0), y - focus (1.4), z - max (100)
-Fvector3	ps_r2_dof					= Fvector3().set(-1.25f, 1.4f, 600.f);
-float		ps_r2_dof_sky				= 30;				//	distance to sky
-float		ps_r2_dof_kernel_size		= 5.0f;						//	7.0f
+Fvector3	ps_r2_dof					= { -10000.f, 0.f, 10000.f };
+float		ps_r2_dof_sky				= 0.f;				//	distance to sky
+float		ps_r2_dof_kernel_size		= 2.f;				//	7.0f
 
 float		ps_r3_dyn_wet_surf_near		= 10.f;				// 10.0f
 float		ps_r3_dyn_wet_surf_far		= 30.f;				// 30.0f
