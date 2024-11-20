@@ -76,7 +76,7 @@ void light::vis_update()
 		return;
 
 	auto fragments						= RImplementation.occq_get(vis.query_id);
-	if (fragments != static_cast<R_occlusion::occq_result>(-1))
+	if (!Device.SVP.isActive() || fragments != static_cast<R_occlusion::occq_result>(-1))
 		vis.visible						= (fragments > cullfragments);
 	vis.pending							= false;
 	vis.frame2test						= ::Render->dwFrame();
