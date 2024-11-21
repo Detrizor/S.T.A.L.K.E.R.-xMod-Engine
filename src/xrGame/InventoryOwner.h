@@ -243,9 +243,11 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 public:
-			float			GetProtection			(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const;
-			float			GetProtectionArtefacts	(ALife::EHitType hit_type)		const;
-			void			HitArtefacts			(float d_damage, ALife::EHitType hit_type) const;
+	RStringVec							suppliesList							= {};
+
+	float								GetProtection						C$	(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type);
+	float								GetProtectionArtefacts				C$	(ALife::EHitType hit_type);
+	void								HitArtefacts						C$	(float d_damage, ALife::EHitType hit_type);
 };
 
 #include "inventory_owner_inline.h"

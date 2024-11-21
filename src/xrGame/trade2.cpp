@@ -70,7 +70,6 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 	// актер цену не говорит никогда, все делают за него
 	int dwTransferMoney								= (int)GetItemPrice(itm, bBuying, bFree);
 	PIItem pItem									= (PIItem)itm->m_pData;
-	shared_str& section								= itm->m_section;
 
 	if (bBuying)
 	{
@@ -93,10 +92,10 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 		pPartner.inv_owner->GiveMoney				(-dwTransferMoney, false);
 	}
 
-	if (pThis.type == TT_TRADER && !bBuying)
-		pPartner.inv_owner->O->giveItem				(*section);
-	else
+	if (pItem)
 		pItem->O.transfer							((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
+	else
+		pPartner.inv_owner->O->giveItem				(itm->m_section.c_str());
 
 	if (pItem && ((pPartner.type == TT_ACTOR) || (pThis.type == TT_ACTOR)))
 	{

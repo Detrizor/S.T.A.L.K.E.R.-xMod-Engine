@@ -16,16 +16,15 @@
 void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner& owner)
 {
 	bool ammo							= false;
-	auto& trader						= smart_cast<CAI_Trader&>(owner);
-	auto add_item = [&trader, &ammo](shared_str CR$ sec)
+	auto add_item = [&owner, &ammo](shared_str CR$ sec)
 	{
-		trader.supplies_list.push_back	(sec);
+		owner.suppliesList.push_back	(sec);
 		if (!ammo && ItemCategory(sec, "ammo"))
 			ammo						= true;
 	};
 
 	owner.sell_useless_items			();
-	trader.supplies_list.clear_not_free	();
+	owner.suppliesList.clear			();
 	for (auto& item : ini_file.r_section(section).Data)
 	{
 		if (CItemsLibrary::validSection(item.first))
@@ -56,7 +55,7 @@ void CPurchaseList::process(CInifile& ini_file, LPCSTR section, CInventoryOwner&
 
 	if (!ammo)
 	{
-		trader.supplies_list.sort([](auto CR$ s1, auto CR$ s2)
+		owner.suppliesList.sort([](auto CR$ s1, auto CR$ s2)
 			{
 				auto c1					= CInventoryItem::readBaseCost(s1.c_str(), true);
 				auto c2					= CInventoryItem::readBaseCost(s2.c_str(), true);

@@ -38,30 +38,28 @@ static CUICellItem* create_cell_item_from_section(shared_str CR$ section)
 
 void CUIActorMenu::InitTradeMode()
 {
-	m_pInventoryBagList->Show		(false);
-	m_pTrashList->Show				(false);
-	m_PartnerCharacterInfo->Show	(true);
-	m_PartnerMoney->Show			(true);
+	m_pInventoryBagList->Show			(false);
+	m_pTrashList->Show					(false);
+	m_PartnerCharacterInfo->Show		(true);
+	m_PartnerMoney->Show				(true);
 
-	m_pTradeActorBagList->Show		(false);
-	m_pTradeActorList->Show			(true);
-	m_pTradePartnerBagList->Show	(true);
-	m_pTradePartnerList->Show		(true);
+	m_pTradeActorBagList->Show			(false);
+	m_pTradeActorList->Show				(true);
+	m_pTradePartnerBagList->Show		(true);
+	m_pTradePartnerList->Show			(true);
 	
-	m_ActorInventoryTrade->Show		(true);
-	m_PartnerInventoryTrade->Show	(true);
+	m_ActorInventoryTrade->Show			(true);
+	m_PartnerInventoryTrade->Show		(true);
 
-	m_trade_buy_button->Show		(true);
-	m_trade_sell_button->Show		(true);
+	m_trade_buy_button->Show			(true);
+	m_trade_sell_button->Show			(true);
 
-	m_trade_list->Show				(true);
+	VERIFY								( m_pPartnerInvOwner );
+	m_pPartnerInvOwner->StartTrading	();
 
-	VERIFY							( m_pPartnerInvOwner );
-	m_pPartnerInvOwner->StartTrading();
+	InitInventoryContents				();
 
-	InitInventoryContents			();
-
-	UpdatePocketsPresence();
+	UpdatePocketsPresence				();
 	
 	luabind::functor<LPCSTR>			funct;
 	ai().script_engine().functor		("trade_manager.get_supplies", funct);
@@ -75,19 +73,21 @@ void CUIActorMenu::InitTradeMode()
 		{
 			LPCSTR item					= _GetItem(sections, i, buf);
 			str.printf					("st_%s", *CStringTable().translate(item));
-			m_trade_list->AddItem_	(*str, i);
+			m_trade_list->AddItem_		(*str, i);
 		}
 		m_trade_list->SetItemIDX		(0);
 		OnTradeList						(NULL, NULL);
 	}
+
+	m_trade_list->Show					(!m_pPartnerInvOwner->suppliesList.empty());
 	InitPartnerInventoryContents		();
 
-	m_actor_trade					= m_pActorInvOwner->GetTrade();
-	m_partner_trade					= m_pPartnerInvOwner->GetTrade();
-	VERIFY							( m_actor_trade );
-	VERIFY							( m_partner_trade );
-	m_actor_trade->StartTradeEx		( m_pPartnerInvOwner );
-	m_partner_trade->StartTradeEx	( m_pActorInvOwner );
+	m_actor_trade						= m_pActorInvOwner->GetTrade();
+	m_partner_trade						= m_pPartnerInvOwner->GetTrade();
+	VERIFY								( m_actor_trade );
+	VERIFY								( m_partner_trade );
+	m_actor_trade->StartTradeEx			( m_pPartnerInvOwner );
+	m_partner_trade->StartTradeEx		( m_pActorInvOwner );
 
 	init_actor_trade					();
 	update_partner_trade				();
@@ -113,8 +113,8 @@ bool is_item_in_list(CUIDragDropListEx* pList, PIItem item)
 void CUIActorMenu::InitPartnerInventoryContents()
 {
 	m_pTradePartnerBagList->ClearAll	(true);
-	if (auto trader = smart_cast<CAI_Trader*>(m_pPartnerInvOwner))
-		for (auto& str : trader->supplies_list)
+	if (m_trade_list->IsShown())
+		for (auto& str : m_pPartnerInvOwner->suppliesList)
 			m_pTradePartnerBagList->SetItem(create_cell_item_from_section(str));
 	else
 	{
