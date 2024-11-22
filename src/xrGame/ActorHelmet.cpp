@@ -97,10 +97,12 @@ float CHelmet::GetHitTypeProtection(ALife::EHitType hit_type)
 
 float CHelmet::GetBoneArmor(s16 element)
 {
-	float res = m_boneProtection->getBoneArmor(element ? element : MAIN_BONE);
+	if (element <= 0)
+		element							= MAIN_BONE;
+	float res							= m_boneProtection->getBoneArmor(element);
 	if (fMore(res, 0.f))
-		res *= sqrt(GetConditionToWork());
-	return res;
+		res								*= sqrt(GetConditionToWork());
+	return								res;
 }
 
 float CHelmet::GetBoneArmorLevel(s16 element)
