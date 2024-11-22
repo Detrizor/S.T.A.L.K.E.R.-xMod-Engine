@@ -643,7 +643,8 @@ float CCustomZone::effective_radius(float nearest_shape_radius)
 
 float CCustomZone::Power(float dist, float nearest_shape_radius) 
 {
-	return  m_fMaxPower * RelativePower(dist, nearest_shape_radius);
+	float k = s_level_danger_class_to_power_k.Calc(Level().getDangerClass());
+	return k * m_fMaxPower * RelativePower(dist, nearest_shape_radius);
 }
 
 void CCustomZone::PlayIdleParticles(bool bIdleLight)
@@ -1508,4 +1509,11 @@ void CCustomZone::load							(IReader &input_packet)
 		m_eZoneState = eZoneStateDisabled;
 	else
 		m_eZoneState = eZoneStateIdle;
+}
+
+CPowerDependency CCustomZone::s_level_danger_class_to_power_k;
+
+void CCustomZone::loadStaticData()
+{
+	s_level_danger_class_to_power_k.Load("damage_manager", "level_danger_class_to_field_power_k");
 }

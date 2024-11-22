@@ -652,7 +652,7 @@ int g_community_goodwill(LPCSTR _community, int _entity_id)
 	 CHARACTER_COMMUNITY c;
 	 c.set					(_community);
 
- 	return RELATION_REGISTRY().GetCommunityGoodwill(c.index(), u16(_entity_id));
+	return RELATION_REGISTRY().GetCommunityGoodwill(c.index(), u16(_entity_id));
  }
 
 void g_set_community_goodwill(LPCSTR _community, int _entity_id, int val)
@@ -833,7 +833,7 @@ bool ray_pick (const Fvector& start, const Fvector& dir, float range, collide::r
   collide::rq_result		R;
   CObject *ignore = NULL;
   if (ignore_object)
-    ignore = smart_cast<CObject *>(&(ignore_object->object())); 	
+	ignore = smart_cast<CObject *>(&(ignore_object->object())); 	
   if (Level().ObjectSpace.RayPick		(start, dir, range, tgt, R, ignore))
 	{
 	   script_R.set(R);
@@ -841,6 +841,11 @@ bool ray_pick (const Fvector& start, const Fvector& dir, float range, collide::r
 	}
 	else
 	   return false;
+}
+
+void update_danger_class()
+{
+	Level().updateDangerClass();
 }
 
 xrTime get_start_time()
@@ -970,16 +975,17 @@ void CLevel::script_register(lua_State *L)
 		def("vertex_id",						&vertex_id),
 
 		def("game_id",							&GameID),
-    	def("ray_pick", &ray_pick)    
+		def("ray_pick",							&ray_pick),
+		def("update_danger_class",				&update_danger_class)
 	],
-	
+
 	module(L,"actor_stats")
 	[
 		def("add_points",						&add_actor_points),
 		def("add_points_str",					&add_actor_points_str),
 		def("get_points",						&get_actor_points)
 	];
- 	module(L)
+	module(L)
 	[
 	   class_<CRayPick>("ray_pick")
 	   .def(								constructor<>())
@@ -994,22 +1000,22 @@ void CLevel::script_register(lua_State *L)
 	   .def("get_object",					&CRayPick::get_object)
 	   .def("get_distance",				&CRayPick::get_distance)
 	   .def("get_element",					&CRayPick::get_element),	
-    class_<script_rq_result>("rq_result")
-      .def_readonly("object",			&script_rq_result::O)
-      .def_readonly("range",			&script_rq_result::range)
-      .def_readonly("element",		&script_rq_result::element)
-      .def(								constructor<>()), 	
-    class_<enum_exporter<collide::rq_target> >("rq_target")
-      .enum_("targets")
-    [
-      value("rqtNone",						int(collide::rqtNone)),
-      value("rqtObject",						int(collide::rqtObject)),
-      value("rqtStatic",						int(collide::rqtStatic)),
-      value("rqtShape",						int(collide::rqtShape)),
-      value("rqtObstacle",					int(collide::rqtObstacle)),
-      value("rqtBoth",						int(collide::rqtBoth)),
-      value("rqtDyn",							int(collide::rqtDyn))
-    ]
+	class_<script_rq_result>("rq_result")
+	  .def_readonly("object",			&script_rq_result::O)
+	  .def_readonly("range",			&script_rq_result::range)
+	  .def_readonly("element",		&script_rq_result::element)
+	  .def(								constructor<>()), 	
+	class_<enum_exporter<collide::rq_target> >("rq_target")
+	  .enum_("targets")
+	[
+	  value("rqtNone",						int(collide::rqtNone)),
+	  value("rqtObject",						int(collide::rqtObject)),
+	  value("rqtStatic",						int(collide::rqtStatic)),
+	  value("rqtShape",						int(collide::rqtShape)),
+	  value("rqtObstacle",					int(collide::rqtObstacle)),
+	  value("rqtBoth",						int(collide::rqtBoth)),
+	  value("rqtDyn",							int(collide::rqtDyn))
+	]
 	];  
 
 	module(L)

@@ -34,7 +34,7 @@ class CCustomZone :		public CSpaceRestrictor,
 						public Feel::Touch
 {
 private:
-    typedef	CSpaceRestrictor inherited;
+	typedef	CSpaceRestrictor inherited;
 
 public:
 	CZoneEffector*		m_actor_effector;
@@ -83,7 +83,7 @@ public:
 		eZoneStateIdle = 0,		//состояние зоны, когда внутри нее нет активных объектов
 		eZoneStateAwaking,		//пробуждение зоны (объект попал в зону)
 		eZoneStateBlowout,		//выброс
-        eZoneStateAccumulate,	//накапливание энергии, после выброса
+		eZoneStateAccumulate,	//накапливание энергии, после выброса
 		eZoneStateDisabled,
 		eZoneStateMax
 	} EZoneState;
@@ -163,11 +163,13 @@ protected:
 				void		UpdateOnOffState			();
 	virtual		void		GoEnabledState				();
 	virtual		void		GoDisabledState				();
+
 public:
 				bool		IsEnabled					()	{return m_eZoneState != eZoneStateDisabled; };
 				void		ZoneEnable					();	
 				void		ZoneDisable					();
 	EZoneState				ZoneState					() {return m_eZoneState;}
+
 protected:
 
 
@@ -282,7 +284,6 @@ protected:
 
 	virtual	void	Hit					(SHit* pHDS);
 
-
 	//для визуализации зоны
 		virtual	void		PlayIdleParticles			(bool bIdleLight=true);
 		virtual	void		StopIdleParticles			(bool bIdleLight=true);
@@ -307,9 +308,11 @@ protected:
 
 	//расстояние от зоны до текущего актера
 	float					m_fDistanceToCurEntity;
+
 protected:
 	u32						m_ef_anomaly_type;
 	u32						m_ef_weapon_type;
+
 public:
 	void					CalcDistanceTo				(const Fvector& P, float& dist, float& radius);
 	virtual u32				ef_anomaly_type				() const;
@@ -317,6 +320,7 @@ public:
 	virtual	bool			register_schedule			() const {return true;}
 
 	// optimization FAST/SLOW mode
+
 public:
 	void					o_switch_2_fast				();
 	void					o_switch_2_slow				();
@@ -327,8 +331,14 @@ private:
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+private:
+	static CPowerDependency				s_level_danger_class_to_power_k;
+
 protected:
 	bool								alwaysUpdate						O$	();
+
+public:
+	static void							loadStaticData							();
 };
 
 add_to_type_list(CCustomZone)

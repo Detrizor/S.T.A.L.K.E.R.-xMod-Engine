@@ -1137,3 +1137,10 @@ void CLevel::applyPP()
 {
 	Actor()->Cameras().applyPP			();
 }
+
+void CLevel::updateDangerClass()
+{
+	::luabind::functor<float>			funct;
+	R_ASSERT							(ai().script_engine().functor("utils.get_level_class", funct));
+	m_danger_class						= funct();
+}

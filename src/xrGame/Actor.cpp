@@ -1769,4 +1769,5 @@ void CActor::loadStaticData()
 	CAddonSlot::loadStaticData			();
 	CObject::loadStaticData				();
 	InventoryUtilities::loadStaticData	();
+	CCustomZone::loadStaticData			();
 }

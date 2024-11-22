@@ -337,7 +337,14 @@ public:
 	void deinit_compression();
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
+private:
+	float								m_danger_class;
+
 public:
+	float								getDangerClass						C$	()		{ return m_danger_class; }
+
+	void								updateDangerClass						();
+
 	void								applyCamera							O$	();
 	void								applyPP								O$	();
 };
