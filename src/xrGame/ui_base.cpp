@@ -200,7 +200,7 @@ ui_core::ui_core()
 {
 	m_layout_unit					= pSettings->r_float("miscellaneous", "layout_unit");
 	m_layout_factor					= pSettings->r_float("miscellaneous", "basic_layout_height") / m_layout_unit;
-	m_text_scale_factor				= 1.f / (m_layout_factor * psUI_SCALE);
+	m_text_scale_factor				= 1.f / GetScaleFactor();
 	OnDeviceReset					();
 
 	if (!g_dedicated_server)

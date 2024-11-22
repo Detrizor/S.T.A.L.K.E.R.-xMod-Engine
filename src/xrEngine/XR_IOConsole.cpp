@@ -349,7 +349,7 @@ void CConsole::OnRender()
 	pFont->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_b_mark);
 	out_pos += pFont->SizeOf_(s_b_mark);
 	pFont2->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_mark);
-	out_pos += psUI_SCALE * pFont2->SizeOf_(s_mark);
+	out_pos += pFont2->SizeOf_(s_mark);
 	pFont->OutI(-1.0f + out_pos * scr_x, ypos, "%s", s_mark_a);
 
 	//pFont2->OutI( -1.0f + ioc_d * scr_x, ypos, "%s", editor=all );

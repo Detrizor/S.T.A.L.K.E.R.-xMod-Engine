@@ -394,9 +394,14 @@ float CGameFont::SizeOf_(const wide_char* wsStr)
 	return psUI_SCALE * (X * vInterval.x);
 }
 
+float CGameFont::GetHeight()
+{
+	return psUI_SCALE * fCurrentHeight;
+}
+
 float CGameFont::CurrentHeight_()
 {
-	return fCurrentHeight * vInterval.y;
+	return psUI_SCALE * fCurrentHeight * vInterval.y;
 }
 
 void CGameFont::SetHeightI(float S)
@@ -409,4 +414,4 @@ void CGameFont::SetHeight(float S)
 {
 	VERIFY(uFlags&fsDeviceIndependent);
 	fCurrentHeight = S;
-};
+}
