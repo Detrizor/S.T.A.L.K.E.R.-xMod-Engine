@@ -163,6 +163,7 @@ int SHit::DamageType(ALife::EHitType hit_type)
 	case ALife::eHitTypeWound:
 	case ALife::eHitTypeStrike:
 	case ALife::eHitTypeWound_2:
+	case ALife::eHitTypeRadiationGamma:
 		return 1;
 	case ALife::eHitTypeExplosion:
 		return 2;

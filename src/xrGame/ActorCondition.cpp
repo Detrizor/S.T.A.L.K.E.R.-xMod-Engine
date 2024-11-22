@@ -319,9 +319,9 @@ void CActorCondition::AffectDamage_InjuriousMaterialAndMonstersInfluence()
 		ALife::EHitType	type;
 		float			value;
 
-	} hits[]		=	{	{ ALife::eHitTypeRadiation, radiation_influence	*	one },
-							{ ALife::eHitTypeTelepatic, psy_influence		*	one }, 
-							{ ALife::eHitTypeBurn,		fire_influence		*	one }	};
+	} hits[]		=	{	{ ALife::eHitTypeRadiationGamma,	radiation_influence	*	one },
+							{ ALife::eHitTypeTelepatic,			psy_influence		*	one }, 
+							{ ALife::eHitTypeBurn,				fire_influence		*	one }	};
 
  	NET_Packet	np;
 

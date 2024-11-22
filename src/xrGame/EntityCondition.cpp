@@ -382,63 +382,67 @@ float CEntityCondition::GearProtectionEffect(T gear, const ALife::EHitType& hit_
 
 void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 {
-	CCustomOutfit* outfit		= NULL;
-	CHelmet* helmet				= NULL;
-	float protection			= m_object->GetProtection(outfit, helmet, pHDS->boneID, pHDS->hit_type);
-	CInventoryOwner* io			= smart_cast<CInventoryOwner*>(m_object);
+	CCustomOutfit* outfit				= nullptr;
+	CHelmet* helmet						= nullptr;
+	float protection					= m_object->GetProtection(outfit, helmet, pHDS->boneID, pHDS->hit_type);
+	CInventoryOwner* io					= smart_cast<CInventoryOwner*>(m_object);
 
 	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::HitProtectionEffect frame [%d] main_damage [%.5f] pierce_damage [%.5f] protection [%.5f]",
 		Device.dwFrame, pHDS->main_damage, pHDS->pierce_damage, protection);		//--xd отладка
+
 	if (pHDS->DamageType() == 1)
 	{
-		pHDS->pierce_hit_type				= pHDS->hit_type;
-		pHDS->hit_type						= ALife::eHitTypeStrike;
-		
-		if (pHDS->pierce_hit_type == ALife::eHitTypeWound || pHDS->pierce_hit_type == ALife::eHitTypeWound_2)
+		if (pHDS->hit_type != ALife::eHitTypeRadiationGamma)
 		{
-			float ap						= pHDS->main_damage * (pHDS->pierce_hit_type == ALife::eHitTypeWound_2 ? 20.f : 10.f);
-			float k_speed_in				= (ap >= protection) ? sqrt(1.f - Level().BulletManager().m_fBulletAPLossOnPierce * protection / ap) : 0.f;
-			if (fMore(k_speed_in, 0.f))
-			{
-				float full_damage			= pHDS->main_damage * m_fMeleeOnPierceDamageMultiplier;
-				pHDS->main_damage			*= 1.f - k_speed_in;
-				pHDS->pierce_damage			= full_damage - pHDS->main_damage;
-				pHDS->armor_pierce_damage	= pHDS->pierce_damage * m_fMeleeOnPierceArmorDamageFactor;
-			}
-		}
+			pHDS->pierce_hit_type		= pHDS->hit_type;
+			pHDS->hit_type				= ALife::eHitTypeStrike;
 		
-		if (io)
-		{
-			float armor_damage				= pHDS->main_damage * ArmorDamageResistance.Calc(protection);
-			if (outfit)
+			if (pHDS->pierce_hit_type == ALife::eHitTypeWound || pHDS->pierce_hit_type == ALife::eHitTypeWound_2)
 			{
-				outfit->Hit					(armor_damage, pHDS->hit_type);
-				outfit->Hit					(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
+				float ap				= pHDS->main_damage * (pHDS->pierce_hit_type == ALife::eHitTypeWound_2 ? 20.f : 10.f);
+				float k_speed_in		= (ap >= protection) ? sqrt(1.f - Level().BulletManager().m_fBulletAPLossOnPierce * protection / ap) : 0.f;
+				if (fMore(k_speed_in, 0.f))
+				{
+					float full_damage	= pHDS->main_damage * m_fMeleeOnPierceDamageMultiplier;
+					pHDS->main_damage	*= 1.f - k_speed_in;
+					pHDS->pierce_damage	= full_damage - pHDS->main_damage;
+					pHDS->armor_pierce_damage = pHDS->pierce_damage * m_fMeleeOnPierceArmorDamageFactor;
+				}
 			}
-			else if (helmet)
-			{
-				helmet->Hit					(armor_damage, pHDS->hit_type);
-				helmet->Hit					(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
-			}
-			io->HitArtefacts				(armor_damage, pHDS->hit_type);
-		}
 		
-		pHDS->main_damage					*= m_fArmorDamageBoneScale;
-		pHDS->pierce_damage					*= m_fPierceDamageBoneScale;
+			if (io)
+			{
+				float armor_damage		= pHDS->main_damage * ArmorDamageResistance.Calc(protection);
+				if (outfit)
+				{
+					outfit->Hit			(armor_damage, pHDS->hit_type);
+					outfit->Hit			(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
+				}
+				else if (helmet)
+				{
+					helmet->Hit			(armor_damage, pHDS->hit_type);
+					helmet->Hit			(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
+				}
+				io->HitArtefacts		(armor_damage, pHDS->hit_type);
+			}
+		
+			pHDS->main_damage			*= m_fArmorDamageBoneScale;
+			pHDS->pierce_damage			*= m_fPierceDamageBoneScale;
+		}
 
-		pHDS->main_damage					-= min(pHDS->main_damage, StrikeDamageThreshold.Calc(protection));
+		pHDS->main_damage				-= min(pHDS->main_damage, StrikeDamageThreshold.Calc(protection));
 		if (fMore(pHDS->main_damage, 0.f))
-			pHDS->main_damage				/= (1.f + StrikeDamageResistance.Calc(protection));
+			pHDS->main_damage			/= (1.f + StrikeDamageResistance.Calc(protection));
 	}
 	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{
 		if (smart_cast<const CBaseMonster*>(m_object))
-			pHDS->main_damage				*= ExplDamageResistance.Calc(protection);
+			pHDS->main_damage			*= ExplDamageResistance.Calc(protection);
 		else if (io)
 		{
-			float outfit_part				= GearExplEffect(outfit, pHDS->main_damage, protection, io, false);
-			float helmet_part				= (outfit && !outfit->bIsHelmetAvaliable) ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
-			pHDS->main_damage				= outfit_part + helmet_part;
+			float outfit_part			= GearExplEffect(outfit, pHDS->main_damage, protection, io, false);
+			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
+			pHDS->main_damage			= outfit_part + helmet_part;
 		}
 	}
 	else if (io)
@@ -555,6 +559,12 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	case ALife::eHitTypeStrike:
 		d_neural			*= 1.f;
 		d_outer				*= 0.75f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
+		break;
+	case ALife::eHitTypeRadiationGamma:
+		d_neural			*= 0.f;
+		d_outer				*= 0.f;
 		d_inner				*= 1.f;
 		d_radiation			*= 0.f;
 		break;
@@ -784,6 +794,7 @@ void CEntityCondition::loadStaticData()
 	HitTypeScale[eHitTypeExplosion]		= pSettings->r_float("hit_type_global_scale", "explosion");
 	HitTypeScale[eHitTypeWound_2]		= pSettings->r_float("hit_type_global_scale", "wound_2");
 	HitTypeScale[eHitTypeLightBurn]		= pSettings->r_float("hit_type_global_scale", "light_burn");
+	HitTypeScale[eHitTypeRadiationGamma]= pSettings->r_float("hit_type_global_scale", "radiation_gamma");
 	
 	m_fMeleeOnPierceDamageMultiplier	= pSettings->r_float("damage_manager", "melee_on_pierce_damage_multiplier");
 	m_fMeleeOnPierceArmorDamageFactor	= pSettings->r_float("damage_manager", "melee_on_pierce_armor_damage_factor");
