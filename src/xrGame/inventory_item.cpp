@@ -1009,10 +1009,11 @@ float CInventoryItem::GetFill() const
 	return								(res) ? res.get() : 1.f;
 }
 
-float CInventoryItem::GetBar() const
+float CInventoryItem::getFillBar() const
 {
-	auto res							= O.emitSignalGet(sGetBar());
-	return								(res) ? res.get() : (fLess(GetCondition(), 1.f) ? GetCondition() : -1.f);
+	if (auto res = O.emitSignalGet(sGetBar()))
+		return							res.get();
+	return								-1.f;
 }
 
 bool CInventoryItem::tryCustomUse() const

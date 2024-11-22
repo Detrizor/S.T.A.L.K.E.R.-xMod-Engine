@@ -77,6 +77,16 @@ void CUICellItem::init()
 	AttachChild							(m_pConditionState);
 	CUIXmlInit::InitProgressBar			(uiXml, "cell_item_condition", 0, m_pConditionState);
 	m_pConditionState->Show				(false);
+	m_pConditionState->ShowBackground	(true);
+	m_pConditionState->m_bUseGradient	= true;
+
+	m_fill_bar							= xr_new<CUIProgressBar>();
+	m_fill_bar->SetAutoDelete			(true);
+	AttachChild							(m_fill_bar);
+	CUIXmlInit::InitProgressBar			(uiXml, "cell_item_fill", 0, m_fill_bar);
+	m_fill_bar->Show					(false);
+	m_fill_bar->ShowBackground			(true);
+	m_fill_bar->m_bUseGradient			= true;
 }
 
 void CUICellItem::Draw()
@@ -206,35 +216,56 @@ void CUICellItem::SetOwnerList(CUIDragDropListEx* p)
 void CUICellItem::UpdateConditionProgressBar()
 {
 	m_pConditionState->Show				(false);
+	m_fill_bar->Show					(false);
 	if (!m_pParentList || !m_pParentList->GetConditionProgBarVisibility())
 		return;
 
-	PIItem item							= (PIItem)m_pData;
+	PIItem item							= static_cast<PIItem>(m_pData);
 	if (!item)
 		return;
 
-	float bar							= item->GetBar();
-	if (bar == -1.f)
+	float fill							= item->getFillBar();
+	float condition						= item->GetCondition();
+	bool show_fill_bar					= (fill != -1.f);
+	bool show_condition_bar				= !fEqual(condition, 1.f);
+	if (!show_fill_bar && !show_condition_bar)
 		return;
-
-	m_pConditionState->ShowBackground	(true);
-	m_pConditionState->m_bUseGradient	= true;
 
 	Ivector2 itm_grid_size				= GetGridSize();
 	if (m_pParentList->GetVerticalPlacement())
-		std::swap						(itm_grid_size.x, itm_grid_size.y);
+		_STD swap						(itm_grid_size.x, itm_grid_size.y);
 	Ivector2 cell_size					= m_pParentList->CellSize();
 	Ivector2 cell_space					= m_pParentList->CellsSpacing();
-	float x								= 1.f;
-	float y								= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
 
-	m_pConditionState->SetWndPos		(Fvector2().set(x, y));
-	float width							= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
-	m_pConditionState->SetWidth			(width);
-	m_pConditionState->m_UIProgressItem.SetWidth(width);
-	m_pConditionState->m_UIBackgroundItem.SetWidth(width);
-	m_pConditionState->SetProgressPos	(bar);
-	m_pConditionState->Show				(true);
+	if (show_fill_bar)
+	{
+		float indent					= m_pConditionState->GetHeight() + 2.f;
+		m_fill_bar->SetX				(1.f);
+		m_fill_bar->SetY				(indent);
+
+		float height					= itm_grid_size.y * (cell_size.y + cell_space.y) - 2.f * indent;
+		m_fill_bar->SetHeight			(height);
+		m_fill_bar->m_UIProgressItem.SetHeight(height);
+		m_fill_bar->m_UIBackgroundItem.SetHeight(height);
+
+		m_fill_bar->SetProgressPos		(fill);
+		m_fill_bar->Show				(true);
+	}
+
+	if (show_condition_bar)
+	{
+		float indent					= m_fill_bar->GetWidth() + 2.f;
+		m_pConditionState->SetX			(indent);
+		m_pConditionState->SetY			(itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f);
+
+		float width						= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f * indent;
+		m_pConditionState->SetWidth		(width);
+		m_pConditionState->m_UIProgressItem.SetWidth(width);
+		m_pConditionState->m_UIBackgroundItem.SetWidth(width);
+
+		m_pConditionState->SetProgressPos(condition);
+		m_pConditionState->Show			(true);
+	}
 }
 
 bool CUICellItem::EqualTo(CUICellItem* itm)

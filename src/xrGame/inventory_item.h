@@ -364,10 +364,10 @@ public:
 	float								Weight								C$	();
 	float								Volume								C$	();
 	float								Cost								C$	();
-
+	
 	float								GetAmount							C$	();
 	float								GetFill								C$	();
-	float								GetBar								C$	();
+	float								getFillBar							C$	();
 };
 
 #include "inventory_item_inline.h"

@@ -32,6 +32,7 @@ protected:
 
 	CUIDragDropListEx*		m_pParentList;
 	CUIProgressBar*			m_pConditionState;
+	CUIProgressBar*			m_fill_bar			= nullptr;
 	Ivector2				m_grid_size;
 	ICustomDrawCellItem*	m_custom_draw;
 	int						m_accelerator;
