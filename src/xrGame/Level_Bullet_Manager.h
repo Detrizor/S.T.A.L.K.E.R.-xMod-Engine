@@ -7,16 +7,6 @@
 #include "weaponammo.h"
 #include "tracer.h"
 
-struct SPowerDependency
-{
-	Fvector3 p1;
-	float t;
-	Fvector3 p2;
-	SPowerDependency() :p1({ 0.f, 0.f, 0.f }), t(0.f), p2({ 0.f, 0.f, 0.f }) {}
-	void Load(LPCSTR sect, LPCSTR line) { LPCSTR C = pSettings->r_string(sect, line); int r = sscanf(C, "%f,%f,%f,%f,%f,%f,%f", &p1.x, &p1.y, &p1.z, &t, &p2.x, &p2.y, &p2.z); if (r < 7) p2 = p1; }
-	float Calc(float param) const { const Fvector3& p = (param < t) ? p1 : p2; return pow(p[0] + p[1] * param, p[2]); }
-};
-
 //коэфициенты и параметры патрона
 struct SBullet_Hit 
 {
@@ -251,13 +241,13 @@ public:
 	float								m_fBulletPierceDamageScale;
 	float								m_fBulletArmorPierceDamageScale;
 
-	SPowerDependency					m_fBulletPierceDamageFromResist;
-	SPowerDependency					m_fBulletPierceDamageFromKAP;
-	SPowerDependency					m_fBulletPierceDamageFromSpeed;
+	CPowerDependency					m_fBulletPierceDamageFromResist;
+	CPowerDependency					m_fBulletPierceDamageFromKAP;
+	CPowerDependency					m_fBulletPierceDamageFromSpeed;
 
-	SPowerDependency					m_fBulletPierceDamageFromSpeedScale;
-	SPowerDependency					m_fBulletPierceDamageFromStability;
-	SPowerDependency					m_fBulletPierceDamageFromPierce;
+	CPowerDependency					m_fBulletPierceDamageFromSpeedScale;
+	CPowerDependency					m_fBulletPierceDamageFromStability;
+	CPowerDependency					m_fBulletPierceDamageFromPierce;
 
 	float								GravityConst						C$	()		{ return m_fGravityConst; }
 

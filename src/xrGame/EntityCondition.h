@@ -4,7 +4,6 @@ class CWound;
 class NET_Packet;
 class CEntityAlive;
 class CLevel;
-struct SPowerDependency;
 
 #include "hit_immunity.h"
 #include "Hit.h"
@@ -250,14 +249,14 @@ private:
 	static float						m_fMeleeOnPierceDamageMultiplier;
 	static float						m_fMeleeOnPierceArmorDamageFactor;
 
-	static SPowerDependency				StrikeDamageThreshold;
-	static SPowerDependency				StrikeDamageResistance;
-	static SPowerDependency				ExplDamageResistance;
-	static SPowerDependency				ArmorDamageResistance;
+	static CPowerDependency				StrikeDamageThreshold;
+	static CPowerDependency				StrikeDamageResistance;
+	static CPowerDependency				ExplDamageResistance;
+	static CPowerDependency				ArmorDamageResistance;
 
-	static SPowerDependency				AnomalyDamageThreshold;
-	static SPowerDependency				AnomalyDamageResistance;
-	static SPowerDependency				ProtectionDamageResistance;
+	static CPowerDependency				AnomalyDamageThreshold;
+	static CPowerDependency				AnomalyDamageResistance;
+	static CPowerDependency				ProtectionDamageResistance;
 
 	template <typename T>
 	float								GearProtectionEffect					(T gear, const ALife::EHitType& hit_type, float damage, bool head);

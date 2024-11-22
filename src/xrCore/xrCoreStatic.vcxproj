@@ -939,6 +939,7 @@
     <ClInclude Include="lzhuf.h" />
     <ClInclude Include="memory_monitor.h" />
     <ClInclude Include="os_clipboard.h" />
+    <ClInclude Include="power_dependency.h" />
     <ClInclude Include="PPMd.h" />
     <ClInclude Include="PPMdType.h" />
     <ClInclude Include="ppmd_compressor.h" />

@@ -33,14 +33,14 @@ HitImmunity::HitTypeSVec CEntityCondition::HitTypeScale;
 float CEntityCondition::m_fMeleeOnPierceDamageMultiplier;
 float CEntityCondition::m_fMeleeOnPierceArmorDamageFactor;
 
-SPowerDependency CEntityCondition::ArmorDamageResistance;
-SPowerDependency CEntityCondition::StrikeDamageThreshold;
-SPowerDependency CEntityCondition::StrikeDamageResistance;
-SPowerDependency CEntityCondition::ExplDamageResistance;
+CPowerDependency CEntityCondition::ArmorDamageResistance;
+CPowerDependency CEntityCondition::StrikeDamageThreshold;
+CPowerDependency CEntityCondition::StrikeDamageResistance;
+CPowerDependency CEntityCondition::ExplDamageResistance;
 
-SPowerDependency CEntityCondition::AnomalyDamageThreshold;
-SPowerDependency CEntityCondition::AnomalyDamageResistance;
-SPowerDependency CEntityCondition::ProtectionDamageResistance;
+CPowerDependency CEntityCondition::AnomalyDamageThreshold;
+CPowerDependency CEntityCondition::AnomalyDamageResistance;
+CPowerDependency CEntityCondition::ProtectionDamageResistance;
 
 CEntityConditionSimple::CEntityConditionSimple()
 {

@@ -6,6 +6,18 @@
 
 //#define BENCHMARK_BUILD
 
+#define V$ virtual
+#define S$ static
+#define C$(...) (##__VA_ARGS__) const
+#define O$(...) (##__VA_ARGS__) override
+#define o$(...) (##__VA_ARGS__)
+#define CO$(...) (##__VA_ARGS__) const override
+
+#define CP$ const*
+#define PC$ *const
+#define CPC const*const
+#define CR$ const&
+
 #ifdef BENCHMARK_BUILD
 # define BENCH_SEC_CALLCONV __stdcall
 # define BENCH_SEC_SCRAMBLEVTBL1 virtual int GetFlags() { return 1;}
@@ -229,35 +241,35 @@
 // stl ext
 struct XRCORE_API xr_rtoken
 {
-    shared_str name;
-    int id;
-    xr_rtoken(LPCSTR _nm, int _id) { name = _nm; id = _id; }
+	shared_str name;
+	int id;
+	xr_rtoken(LPCSTR _nm, int _id) { name = _nm; id = _id; }
 public:
-    void rename(LPCSTR _nm) { name = _nm; }
-    bool equal(LPCSTR _nm) { return (0 == xr_strcmp(*name, _nm)); }
+	void rename(LPCSTR _nm) { name = _nm; }
+	bool equal(LPCSTR _nm) { return (0 == xr_strcmp(*name, _nm)); }
 };
 
 #pragma pack (push,1)
 struct XRCORE_API xr_shortcut
 {
-    enum
-    {
-        flShift = 0x20,
-        flCtrl = 0x40,
-        flAlt = 0x80,
-    };
-    union
-    {
-        struct
-        {
-            u8 key;
-            Flags8 ext;
-        };
-        u16 hotkey;
-    };
-    xr_shortcut(u8 k, BOOL a, BOOL c, BOOL s) :key(k) { ext.assign(u8((a ? flAlt : 0) | (c ? flCtrl : 0) | (s ? flShift : 0))); }
-    xr_shortcut() { ext.zero(); key = 0; }
-    bool similar(const xr_shortcut& v)const { return ext.equal(v.ext) && (key == v.key); }
+	enum
+	{
+		flShift = 0x20,
+		flCtrl = 0x40,
+		flAlt = 0x80,
+	};
+	union
+	{
+		struct
+		{
+			u8 key;
+			Flags8 ext;
+		};
+		u16 hotkey;
+	};
+	xr_shortcut(u8 k, BOOL a, BOOL c, BOOL s) :key(k) { ext.assign(u8((a ? flAlt : 0) | (c ? flCtrl : 0) | (s ? flShift : 0))); }
+	xr_shortcut() { ext.zero(); key = 0; }
+	bool similar(const xr_shortcut& v)const { return ext.equal(v.ext) && (key == v.key); }
 };
 #pragma pack (pop)
 
@@ -283,32 +295,33 @@ DEFINE_VECTOR(xr_rtoken, RTokenVec, RTokenVecIt);
 
 #include "net_utils.h"
 #include "bench.h"
+#include "power_dependency.h"
 
 // destructor
 template <class T>
 class destructor
 {
-    T* ptr;
+	T* ptr;
 public:
-    destructor(T* p) { ptr = p; }
-    ~destructor() { xr_delete(ptr); }
-    IC T& operator() ()
-    {
-        return *ptr;
-    }
+	destructor(T* p) { ptr = p; }
+	~destructor() { xr_delete(ptr); }
+	IC T& operator() ()
+	{
+		return *ptr;
+	}
 };
 
 // ********************************************** The Core definition
 class XRCORE_API xrCore
 {
 public:
-    string64 ApplicationName;
-    string_path ApplicationPath;
-    string_path WorkingPath;
-    string64 UserName;
-    string64 CompName;
-    char* Params;
-    DWORD dwFrame;
+	string64 ApplicationName;
+	string_path ApplicationPath;
+	string_path WorkingPath;
+	string64 UserName;
+	string64 CompName;
+	char* Params;
+	DWORD dwFrame;
 
 	Flags16 ParamFlags;				//Alun: TODO: Add all params
 	enum ParamFlag{
@@ -319,8 +332,8 @@ public:
 		dbgbullet		= (1 << 9),
 	};
 public:
-    void _initialize(LPCSTR ApplicationName, LogCallback cb = 0, BOOL init_fs = TRUE, LPCSTR fs_fname = 0);
-    void _destroy();
+	void _initialize(LPCSTR ApplicationName, LogCallback cb = 0, BOOL init_fs = TRUE, LPCSTR fs_fname = 0);
+	void _destroy();
 };
 
 //Borland class dll interface
@@ -330,18 +343,6 @@ public:
 #define _BGCL __stdcall
 
 extern XRCORE_API xrCore Core;
-
-#define V$ virtual
-#define S$ static
-#define C$(...) (##__VA_ARGS__) const
-#define O$(...) (##__VA_ARGS__) override
-#define o$(...) (##__VA_ARGS__)
-#define CO$(...) (##__VA_ARGS__) const override
-
-#define CP$ const*
-#define PC$ *const
-#define CPC const*const
-#define CR$ const&
 
 #define WRAP_CONSTRUCT()\
 DLL_Pure* _construct() override { wrap::_construct(); return core::_construct(); }
