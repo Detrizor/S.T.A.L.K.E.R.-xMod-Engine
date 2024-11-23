@@ -286,7 +286,6 @@ protected:
 
 	// trade
 	void						InitPartnerInventoryContents();
-	void						ColorizeItem				(CUICellItem* itm);
 	float						CalcItemsWeight				(CUIDragDropListEx* pList);
 	float						CalcItemsVolume				(CUIDragDropListEx* pList);
 	u32							CalcItemsPrice				(CUIDragDropListEx* pList, CTrade* pTrade, bool bBuying);
@@ -364,6 +363,7 @@ private:
 
 public:
 	void								onInventoryAction						(CInventoryItem* item, const SInvItemPlace* prev = nullptr);
+	void								colorizeItem							(CUICellItem* itm);
 }; // class CUIActorMenu
 
 add_to_type_list(CUIActorMenu)

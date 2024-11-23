@@ -331,11 +331,7 @@ void CUIActorMenu::init_bag()
 	items_list.sort						(InventoryUtilities::GreaterRoomInRuck);
 
 	for (auto& item : items_list)
-	{
-		CUICellItem* itm				= item->getIcon();
-		bag_list->SetItem				(itm);
-		ColorizeItem					(itm);
-	}
+		bag_list->SetItem				(item->getIcon());
 	
 	InventoryUtilities::UpdateLabelsValues(m_ActorWeight, m_ActorVolume, nullptr, m_pBag);
 	//InventoryUtilities::AlighLabels(m_ActorWeightInfo, m_ActorWeight, m_ActorVolumeInfo, m_ActorVolume);

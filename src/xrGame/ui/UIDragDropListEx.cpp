@@ -9,6 +9,8 @@
 #include "../Inventory.h"
 #include <dinput.h>
 //-Alundaio
+#include "../UIGameCustom.h"
+#include "UIActorMenu.h"
 
 CUIDragItem* CUIDragDropListEx::m_drag_item = NULL;
 
@@ -428,6 +430,8 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 	{
 		Ivector2 dest_cell_pos			= m_container->FindFreeCell(itm->GetGridSize());
 		SetItem							(itm, dest_cell_pos);
+		CurrentGameUI()->GetActorMenu().colorizeItem(itm);
+		itm->m_select_equipped			= false;
 	}
 }
 

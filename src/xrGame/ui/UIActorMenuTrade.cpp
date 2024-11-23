@@ -128,10 +128,14 @@ void CUIActorMenu::InitPartnerInventoryContents()
 	m_trade_partner_inventory_state		= m_pPartnerInvOwner->inventory().ModifyFrame();
 }
 
-void CUIActorMenu::ColorizeItem(CUICellItem* itm)
+void CUIActorMenu::colorizeItem(CUICellItem* itm)
 {
-	u32 col								= (CanMoveToPartner((PIItem)itm->m_pData)) ? 255 : 100;
-	itm->SetTextureColor				(color_rgba(255, col, col, 255));
+	auto item							= static_cast<PIItem>(itm->m_pData);
+	if (item)
+	{
+		u32 col							= (CanMoveToPartner(item)) ? 255 : 100;
+		itm->SetTextureColor			(color_rgba(255, col, col, 255));
+	}
 }
 
 void CUIActorMenu::DeInitTradeMode()

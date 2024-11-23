@@ -129,9 +129,7 @@ void CUIActorMenu::InitCellForSlot(u16 slot_idx)
 	{
 		if (auto item = m_pActorInv->ItemFromSlot(slot_idx))
 		{
-			CUICellItem* cell_item		= item->getIcon();
-			curr_list->SetItem			(cell_item);
-			ColorizeItem				(cell_item);
+			curr_list->SetItem			(item->getIcon());
 
 			if (auto bar = m_pInvSlotProgress[slot_idx])
 				bar->SetProgressPos		((item) ? item->GetCondition() : 0.f);
@@ -151,24 +149,12 @@ void CUIActorMenu::InitPocket(u16 pocket_idx)
 
 	shared_str sect						= ACTOR_DEFS::g_quick_use_slots[pocket_idx];
 	for (auto& item : items_list)
-	{
 		if (item->Section(true) == sect)
-		{
-			CUICellItem* itm			= item->getIcon();
-			pocket_list->SetItem		(itm);
-			ColorizeItem				(itm);
-		}
-	}
+			pocket_list->SetItem		(item->getIcon());
 
 	for (auto& item : items_list)
-	{
 		if (item->Section(true) != sect)
-		{
-			CUICellItem* itm			= item->getIcon();
-			pocket_list->SetItem		(itm);
-			ColorizeItem				(itm);
-		}
-	}
+			pocket_list->SetItem		(item->getIcon());
 	
 	auto& label							= m_pPocketInfo[pocket_idx];
 	if (m_pActorInvOwner->inventory().PocketPresent(pocket_idx))
