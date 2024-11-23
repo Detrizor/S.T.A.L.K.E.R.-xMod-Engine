@@ -658,12 +658,8 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 		if (!R)
 			return;
 
-		if (ps_r__render_distance_sqr)
-		{
-			float dist					= R->getDistanceToCamera();
-			if (dist > ps_r__render_distance_sqr)
-				return;
-		}
+		if (ps_r__render_distance_sqr && R->getDistanceToCamera() > ps_r__render_distance_sqr)
+			return;
 
 		for (auto& view : sector->r_frustums)
 		{

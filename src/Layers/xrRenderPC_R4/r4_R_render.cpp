@@ -112,13 +112,8 @@ void CRender::process_spatial(ISpatial* CR$ spatial)
 		return;	// inactive (untouched) sector
 
 	auto R								= spatial->dcast_Renderable();
-
-	if (ps_r__render_distance_sqr)
-	{
-		float dist						= R->getDistanceToCamera();
-		if (dist > ps_r__render_distance_sqr)
-			return;
-	}
+	if (ps_r__render_distance_sqr && R->getDistanceToCamera() > ps_r__render_distance_sqr)
+		return;
 
 	for (auto& view : sector->r_frustums)
 	{
