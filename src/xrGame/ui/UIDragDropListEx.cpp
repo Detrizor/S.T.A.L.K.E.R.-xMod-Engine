@@ -210,11 +210,8 @@ void CUIDragDropListEx::OnItemDBClick(CUIWindow* w, void* pData)
 	if (m_f_item_db_click)
 	{
 		if (Level().IR_GetKeyState(DIK_LCONTROL))
-		{
-			u32 size					= itm->ChildsCount();
-			for (u32 j = 0; j < size; j++)
-				m_f_item_db_click		(itm);
-		}
+			for (size_t i = 0, cnt = itm->ChildsCount(); i < cnt; ++i)
+				m_f_item_db_click		(itm->Child(i));
 
 		if (m_f_item_db_click(itm))
 		{
