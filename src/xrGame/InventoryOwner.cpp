@@ -288,9 +288,8 @@ bool CInventoryOwner::IsTrading()
 //==============
 void CInventoryOwner::renderable_Render()
 {
-	if (inventory().ActiveItem())
-		inventory().ActiveItem()->O.renderable_Render();
-
+	if (auto ai = inventory().ActiveItem())
+		ai->O.renderable_Render();
 	CAttachmentOwner::renderable_Render();
 }
 

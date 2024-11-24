@@ -423,16 +423,13 @@ void CWeapon::UpdateCL()
 
 void CWeapon::renderable_Render()
 {
-	UpdateXForm();
+	__super::renderable_Render();
 
 	//нарисовать подсветку
-
 	RenderLight();
 
 	//если мы в режиме снайперки, то сам HUD рисовать не надо
 	RenderHud((BOOL)need_renderable());
-
-	inherited::renderable_Render();
 }
 
 void CWeapon::signal_HideComplete()

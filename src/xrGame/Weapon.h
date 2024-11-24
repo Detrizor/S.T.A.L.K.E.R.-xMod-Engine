@@ -50,7 +50,7 @@ public:
 
 	virtual void			UpdateCL();
 
-	virtual void			renderable_Render();
+	void					renderable_Render() override;
 	virtual void			render_hud_mode();
 	
 			void			OnH_A_Chield() override;

@@ -71,6 +71,7 @@ public:
 
 public:
 	void								UpdateXForm							O$	();
+	void								renderable_Render					O$	();
 	
 #ifdef DEBUG
 	void								PH_Ch_CrPr							O$	()		{ wrap::PH_Ch_CrPr(); }
