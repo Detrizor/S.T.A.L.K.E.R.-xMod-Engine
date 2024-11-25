@@ -480,7 +480,7 @@ float CBulletManager::calculate_hit_damage(float bullet_ap, float armor, float b
 			pierce						= bullet_ap / bone_density;
 	}
 
-	if (fMore(pierce, 0.f))
+	if (pierce)
 	{
 		float speed						= bullet->speed * k_speed_in;
 		float resist_factor				= m_fBulletPierceDamageFromResist.Calc(bullet->resist);
@@ -501,7 +501,8 @@ float CBulletManager::calculate_hit_damage(float bullet_ap, float armor, float b
 	hit_res.impulse						= m_fBulletHitImpulseScale * bullet->mass * bullet->speed * (1.f - k_speed_out);
 	float damage						= m_fBulletArmorDamageScale * sqrt(bullet->buck_shot * bullet->mass * bullet->speed) / bullet->buck_shot;
 	hit_res.main_damage					= damage * (1.f - k_speed_in);
-	hit_res.pierce_damage				+= damage * (k_speed_in - k_speed_bone);
+	if (pierce)
+		hit_res.pierce_damage			+= damage * (k_speed_in - k_speed_bone);
 
 	if (log)
 		Msg("--xd CBulletManager::calculate_hit_damage main_damage [%.3f] pierce_damage [%.3f] k_speed_in [%.3f] k_speed_bone [%.3f] k_speed_out [%.3f]",
