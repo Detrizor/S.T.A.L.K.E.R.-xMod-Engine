@@ -31,6 +31,7 @@
 #include "inventory.h"
 #include "uigamecustom.h"
 #include "ui/UIActorMenu.h"
+#include "WeaponAutomaticShotgun.h"
 
 #include "item_container.h"
 #include "addon.h"
@@ -1018,19 +1019,25 @@ float CInventoryItem::getFillBar() const
 
 bool CInventoryItem::tryCustomUse() const
 {
-	if (auto addon = O.getModule<MAddon>())
-		if (auto active_item = Actor()->inventory().ActiveItem())
-			if (auto ao = active_item->O.getModule<MAddonOwner>())
-				if (ao->tryAttach(addon, true))
-					return				true;
+	if (auto active_item = Actor()->inventory().ActiveItem())
+	{
+		if (auto ammo = O.scast<CWeaponAmmo*>())
+			if (active_item)
+				if (auto wpn = active_item->O.scast<CWeaponAutomaticShotgun*>())
+					if (wpn->tryChargeMagazine(ammo))
+						return			true;
+
+		if (auto addon = O.getModule<MAddon>())
+			if (active_item)
+				if (auto ao = active_item->O.getModule<MAddonOwner>())
+					if (ao->tryAttach(addon, true))
+						return			true;
+	}
 	
 	if (auto usable = O.getModule<MUsable>())
-	{
-		int i							= 0;
-		while (usable->getAction(++i))
-			if (usable->performAction(i))
+		for (auto& action : usable->getActions())
+			if (usable->performAction(action->num))
 				return					true;
-	}
 
 	return								false;
 }

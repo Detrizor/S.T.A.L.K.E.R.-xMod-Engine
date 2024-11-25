@@ -38,7 +38,7 @@
 #include "WeaponAmmo.h"
 #include "grenade.h"
 #include "BottleItem.h"
-#include "WeaponMagazinedWGrenade.h"
+#include "WeaponAutomaticShotgun.h"
 #include "inventory_item_amountable.h"
 #include "item_container.h"
 #include "Magazine.h"
@@ -906,7 +906,7 @@ void CScriptGameObject::unloadChamber(CScriptGameObject* obj) const
 
 bool CScriptGameObject::tryChargeMagazine(CScriptGameObject* obj) const
 {
-	if (auto wpn = object().scast<CWeaponMagazined*>())
+	if (auto wpn = object().scast<CWeaponAutomaticShotgun*>())
 		if (auto ammo = obj->object().scast<CWeaponAmmo*>())
 			return						wpn->tryChargeMagazine(ammo);
 	return								false;

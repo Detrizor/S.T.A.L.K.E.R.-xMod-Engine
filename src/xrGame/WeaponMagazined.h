@@ -254,7 +254,6 @@ public:
 	void								unloadChamber							(MAddon* chamber = nullptr);
 	void								loadChamber								(CWeaponAmmo* ammo = nullptr);
 	void								onFold									(MFoldable CP$ foldable, bool new_status);
-	bool								tryChargeMagazine						(CWeaponAmmo* ammo);
 
 	bool								ScopeAttached						C$	()		{ return !m_attached_scopes.empty(); }
 	bool								SilencerAttached					C$	()		{ return !!m_silencer; }

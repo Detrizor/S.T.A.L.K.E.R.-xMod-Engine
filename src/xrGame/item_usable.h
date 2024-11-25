@@ -51,6 +51,8 @@ protected:
 	void								sOnAddon							O$	(MAddon* addon, int attach_type);
 
 public:
+	auto CR$							getActions								()		{ return m_actions; }
+
 	SAction*							getAction								(int num);
 	SAction*							getAction								(shared_str CR$ title);
 	bool								performAction							(int num, bool skip_query = false, u16 item_id = u16_max);

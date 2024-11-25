@@ -31,6 +31,9 @@ protected:
 	void								detach_loading							(CAddonSlot* slot, bool destroy);
 	
 	void								OnHiddenItem						O$	();
+
+public:
+	bool								tryChargeMagazine						(CWeaponAmmo* ammo);
 };
 
 add_to_type_list(CWeaponAutomaticShotgun)

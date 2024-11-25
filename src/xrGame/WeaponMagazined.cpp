@@ -1286,17 +1286,6 @@ bool CWeaponMagazined::tryTransfer(MAddon* addon, bool attach)
 	return								false;
 }
 
-bool CWeaponMagazined::tryChargeMagazine(CWeaponAmmo* ammo)
-{
-	if (m_grip)
-	{
-		m_current_ammo					= ammo;
-		StartReload						(eSubstateReloadBegin);
-		return							true;
-	}
-	return								false;
-}
-
 void CWeaponMagazined::UpdateSndShot()
 {
 	if (m_actor)

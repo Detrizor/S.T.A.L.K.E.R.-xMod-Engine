@@ -183,3 +183,14 @@ void CWeaponAutomaticShotgun::detach_loading(CAddonSlot* slot, bool destroy)
 		slot->detachAddon				(loading, (destroy || !m_actor && unlimited_ammo()) ? 2 : 1);
 	}
 }
+
+bool CWeaponAutomaticShotgun::tryChargeMagazine(CWeaponAmmo* ammo)
+{
+	if (m_grip)
+	{
+		m_current_ammo					= ammo;
+		StartReload						(eSubstateReloadBegin);
+		return							true;
+	}
+	return								false;
+}
