@@ -754,6 +754,11 @@ bool has_active_tutotial()
 	return (g_tutorial!=NULL);
 }
 
+static LPCSTR read_inv_name(LPCSTR section)
+{
+	return CInventoryItem::readName(section);
+}
+
 //Alundaio: namespace level exports extension
 #ifdef NAMESPACE_LEVEL_EXPORTS
 //ability to update level netpacket
@@ -1087,7 +1092,7 @@ void CLevel::script_register(lua_State *L)
 	def("string_exists",		&string_exists),
 	def("translate_string",		&translate_string),
 	def("reload_language",		&reload_language),
-	def("log_stack_trace",		&LogStackTrace)
-
+	def("log_stack_trace",		&LogStackTrace),
+	def("read_inv_name",		&read_inv_name)
 	];
 }
