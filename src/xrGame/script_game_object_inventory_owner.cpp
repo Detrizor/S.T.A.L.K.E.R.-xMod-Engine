@@ -604,9 +604,13 @@ void CScriptGameObject::SetCommunityGoodwill_obj(LPCSTR community, int goodwill)
 
 int	CScriptGameObject::GetAttitude(CScriptGameObject* pToWho)
 {
-	CInventoryOwner* pInventoryOwner = smart_cast<CInventoryOwner*>(&object()); VERIFY(pInventoryOwner);
-	CInventoryOwner* pOthersInventoryOwner = smart_cast<CInventoryOwner*>(&pToWho->object()); VERIFY(pOthersInventoryOwner);
-	return RELATION_REGISTRY().GetAttitude(pInventoryOwner, pOthersInventoryOwner);
+	if (auto pInventoryOwner = smart_cast<CInventoryOwner*>(&object()))
+	{
+		CInventoryOwner* pOthersInventoryOwner = smart_cast<CInventoryOwner*>(&pToWho->object());
+		VERIFY(pOthersInventoryOwner);
+		return RELATION_REGISTRY().GetAttitude(pInventoryOwner, pOthersInventoryOwner);
+	}
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
