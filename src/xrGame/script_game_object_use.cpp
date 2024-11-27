@@ -57,7 +57,9 @@ Fvector CScriptGameObject::GetCurrentDirection()
 
 CScriptGameObject::CScriptGameObject		(CGameObject *game_object) :
 	m_game_object	( game_object ),
-	m_door			( 0 )
+	m_door			( 0 ),
+	m_section(game_object->cNameSect()),
+	m_id(game_object->ID())
 {
 	R_ASSERT2		( m_game_object, "Null actual object passed!" );
 }

@@ -159,8 +159,11 @@ namespace luabind {
 	class object;
 } // namespace luabind
 
-class CScriptGameObject {
+class CScriptGameObject
+{
 	mutable CGameObject		*m_game_object;
+	shared_str m_section;
+	u16 m_id;
 							CScriptGameObject		(CScriptGameObject const& game_object);
 
 public:
