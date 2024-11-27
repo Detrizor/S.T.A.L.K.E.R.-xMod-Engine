@@ -150,8 +150,9 @@ bool MMagazine::getCartridge(CCartridge& destination, bool expend)
 	return								res;
 }
 
-void MMagazine::setCondition(float val)
+void MMagazine::setCondition(float val, bool recursive)
 {
-	for (auto h : m_heaps)
-		h->SetCondition					(val);
+	if (recursive)
+		for (auto h : m_heaps)
+			h->SetCondition				(val, true);
 }

@@ -210,17 +210,20 @@ float CInventoryItem::GetConditionToWork() const
 	return								(condition < 1.f) ? condition : 1.f;
 }
 
-void CInventoryItem::SetCondition(float val)
+void CInventoryItem::SetCondition(float val, bool recursive)
 {
 	m_condition							= val;
 
-	if (auto ao = O.getModule<MAddonOwner>())
-		for (auto& s : ao->AddonSlots())
-			for (auto a : s->addons)
-				a->I->SetCondition		(val);
+	if (recursive)
+	{
+		if (auto ao = O.getModule<MAddonOwner>())
+			for (auto& s : ao->AddonSlots())
+				for (auto a : s->addons)
+					a->I->SetCondition	(val, true);
 
-	if (auto mag = O.getModule<MMagazine>())
-		mag->setCondition				(val);
+		if (auto mag = O.getModule<MMagazine>())
+			mag->setCondition			(val, true);
+	}
 }
 
 void CInventoryItem::ChangeCondition(float fDeltaCondition)

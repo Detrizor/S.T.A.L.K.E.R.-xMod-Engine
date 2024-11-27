@@ -44,7 +44,7 @@ public:
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);
 	void								loadCartridge							(CWeaponAmmo* ammo);
 	bool								getCartridge							(CCartridge& destination, bool expend = true);
-	void								setCondition							(float val);
+	void								setCondition							(float val, bool recursive);
 	
 	bool								canTake								C$	(CWeaponAmmo CPC ammo);
 	

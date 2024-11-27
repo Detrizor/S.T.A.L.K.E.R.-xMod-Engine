@@ -154,7 +154,7 @@ public:
 	IC		float				GetCondition		() const					{return m_condition;}
 			float				GetConditionToWork	() const;
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
-			void				SetCondition		(float val);
+			void				SetCondition		(float val, bool recursive = false);
 			void				ChangeCondition		(float fDeltaCondition);
 
 			u16					BaseSlot			()  const					{return m_ItemCurrPlace.base_slot_id;}
