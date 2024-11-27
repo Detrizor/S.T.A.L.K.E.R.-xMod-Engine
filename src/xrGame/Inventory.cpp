@@ -1333,49 +1333,32 @@ bool CInventory::CanTakeItem(CInventoryItem *inventory_item) const
 
 void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_trade, bool bOverride) const
 {
-	for(TIItemContainer::const_iterator it = m_ruck.begin(); m_ruck.end() != it; ++it) 
+	auto add_item = [this, for_trade, bOverride, &items_container](auto item)
 	{
-		PIItem pIItem = *it;
-		if (!for_trade || pIItem->CanTrade())
+		if (!item->Weight())		//--xd temroral hack for pseudo-items
+			return;
+
+		if (for_trade && !item->CanTrade())
+			return;
+
+		if (bOverride)
 		{
-			if (bOverride)
-			{
-				::luabind::functor<bool> funct;
-				if (ai().script_engine().functor("actor_menu_inventory.CInventory_ItemAvailableToTrade", funct))
-				{
-					if (!funct(m_pOwner->cast_game_object()->lua_game_object(),pIItem->cast_game_object()->lua_game_object()))
-						continue;
-				}
-			}
-			items_container.push_back(pIItem);
+			::luabind::functor<bool>	funct;
+			if (ai().script_engine().functor("actor_menu_inventory.CInventory_ItemAvailableToTrade", funct))
+				if (!funct(m_pOwner->cast_game_object()->lua_game_object(), item->cast_game_object()->lua_game_object()))
+					return;
 		}
-	}
+
+		items_container.push_back		(item);
+	};
+
+	for (auto& item : m_ruck)
+		add_item						(item);
 
 	if (m_bSlotsUseful)
-	{
-		u16 I = FirstSlot();
-		u16 E = LastSlot();
-		for (; I <= E; ++I)
-		{
-			PIItem item = ItemFromSlot(I);
-			if (item && (!for_trade || item->CanTrade()))
-			{
-				if (!SlotIsPersistent(I) || item->BaseSlot() == GRENADE_SLOT)
-				{
-					if (bOverride)
-					{
-						::luabind::functor<bool> funct;
-						if (ai().script_engine().functor("actor_menu_inventory.CInventory_ItemAvailableToTrade", funct))
-						{
-							if (!funct(m_pOwner->cast_game_object()->lua_game_object(), item->cast_game_object()->lua_game_object()))
-								continue;
-						}
-					}
-					items_container.push_back(item);
-				}
-			}
-		}
-	}
+		for (auto& slot : m_slots)
+			if (slot.m_pIItem && (!slot.m_bPersistent || slot.m_pIItem->BaseSlot() == GRENADE_SLOT))
+				add_item				(slot.m_pIItem);
 }
 
 bool CInventory::isBeautifulForActiveSlot	(CInventoryItem *pIItem)
