@@ -1321,6 +1321,9 @@ void CActor::shedule_Update(u32 DT)
 	//для свойст артефактов, находящихся на поясе
 	UpdateArtefactsAndOutfit();
 	m_pPhysics_support->in_shedule_Update(DT);
+
+	::luabind::functor<bool> F;
+	R_ASSERT2(ai().script_engine().functor("xmod_save_manager.look_alive", F) && F(), "the game doesn't look alive...");
 };
 
 void CActor::renderable_Render	()
