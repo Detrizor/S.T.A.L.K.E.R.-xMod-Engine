@@ -223,6 +223,8 @@ void CPHShell::PresetActive()
 	}
 }
 
+
+
 void CPHShell::Deactivate(){
 
 	VERIFY(ph_world);
@@ -232,8 +234,9 @@ void CPHShell::Deactivate(){
 	{
 		VERIFY( PhysicsRefObject( ) );
 		PhysicsRefObject( )->ObjectProcessingDeactivate();
-		xr_delete(m_pPhysicsShellAnimatorC); 
+		xr_delete<CPhysicsShellAnimator>(m_pPhysicsShellAnimatorC); 
 	}
+
 
 	if(!isActive())return;
 	R_ASSERT2(!ph_world->Processing(),"can not deactivate physics shell during physics processing!!!");

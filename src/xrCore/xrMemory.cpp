@@ -1,105 +1,290 @@
 #include "stdafx.h"
-#include <Psapi.h>
-#pragma comment(lib, "psapi.lib")
+#pragma hdrstop
+
+#include "xrsharedmem.h"
+#include "xrMemory_pure.h"
+
+#include <malloc.h>
 
 xrMemory Memory;
-// Also used in src\xrCore\xrDebug.cpp to prevent use of g_pStringContainer before it initialized
+BOOL mem_initialized = FALSE;
 bool shared_str_initialized = false;
 
+//fake fix of memory corruptions in multiplayer game :(
+// XXX nitrocaster: to be removed
 XRCORE_API bool g_allow_heap_min = true;
 
-void xrMemory::_initialize()
+// Processor specific implementations
+extern pso_MemCopy xrMemCopy_MMX;
+extern pso_MemCopy xrMemCopy_x86;
+extern pso_MemFill xrMemFill_x86;
+extern pso_MemFill32 xrMemFill32_MMX;
+extern pso_MemFill32 xrMemFill32_x86;
+
+#ifdef DEBUG_MEMORY_MANAGER
+XRCORE_API void dump_phase()
 {
-	g_pStringContainer = new str_container();
-	shared_str_initialized = true;
-	g_pSharedMemoryContainer = new smem_container();
+    if (!Memory.debug_mode)
+        return;
+
+    static int phase_counter = 0;
+
+    string256 temp;
+    xr_sprintf(temp, sizeof(temp), "x:\\$phase$%d.dump", ++phase_counter);
+    Memory.mem_statistic(temp);
 }
+#endif // DEBUG_MEMORY_MANAGER
+
+xrMemory::xrMemory()
+#ifdef DEBUG_MEMORY_MANAGER
+# ifdef PROFILE_CRITICAL_SECTIONS
+    :debug_cs(MUTEX_PROFILE_ID(xrMemory))
+# endif // PROFILE_CRITICAL_SECTIONS
+#endif // DEBUG_MEMORY_MANAGER
+{
+#ifdef DEBUG_MEMORY_MANAGER
+
+    debug_mode = FALSE;
+
+#endif // DEBUG_MEMORY_MANAGER
+    mem_copy = xrMemCopy_x86;
+    mem_fill = xrMemFill_x86;
+    mem_fill32 = xrMemFill32_x86;
+}
+
+#ifdef DEBUG_MEMORY_MANAGER
+BOOL g_bMEMO = FALSE;
+#endif // DEBUG_MEMORY_MANAGER
+
+void xrMemory::_initialize(BOOL bDebug)
+{
+#ifdef DEBUG_MEMORY_MANAGER
+    debug_mode = bDebug;
+    debug_info_update = 0;
+#endif // DEBUG_MEMORY_MANAGER
+
+    stat_calls = 0;
+    stat_counter = 0;
+
+    u32 features = CPU::ID.feature;
+    if (features & _CPU_FEATURE_MMX)
+    {
+        mem_copy = xrMemCopy_MMX;
+        mem_fill = xrMemFill_x86;
+        mem_fill32 = xrMemFill32_MMX;
+    }
+    else
+    {
+        mem_copy = xrMemCopy_x86;
+        mem_fill = xrMemFill_x86;
+        mem_fill32 = xrMemFill32_x86;
+    }
+
+#ifndef M_BORLAND
+    if (!strstr(Core.Params, "-pure_alloc"))
+    {
+        // initialize POOLs
+        u32 element = mem_pools_ebase;
+        u32 sector = mem_pools_ebase * 1024;
+        for (u32 pid = 0; pid < mem_pools_count; pid++)
+        {
+            mem_pools[pid]._initialize(element, sector, 0x1);
+            element += mem_pools_ebase;
+        }
+    }
+#endif // M_BORLAND
+
+#ifdef DEBUG_MEMORY_MANAGER
+    if (0 == strstr(Core.Params, "-memo")) mem_initialized = TRUE;
+    else g_bMEMO = TRUE;
+#else // DEBUG_MEMORY_MANAGER
+    mem_initialized = TRUE;
+#endif // DEBUG_MEMORY_MANAGER
+
+    // DUMP_PHASE;
+    g_pStringContainer = xr_new<str_container>();
+    shared_str_initialized = true;
+    // DUMP_PHASE;
+    g_pSharedMemoryContainer = xr_new<smem_container>();
+    // DUMP_PHASE;
+}
+
+#ifdef DEBUG_MEMORY_MANAGER
+extern void dbg_dump_leaks();
+extern void dbg_dump_str_leaks();
+#endif // DEBUG_MEMORY_MANAGER
 
 void xrMemory::_destroy()
 {
-	xr_delete(g_pSharedMemoryContainer);
-	xr_delete(g_pStringContainer);
-}
+#ifdef DEBUG_MEMORY_MANAGER
+    mem_alloc_gather_stats(false);
+    mem_alloc_show_stats();
+    mem_alloc_clear_stats();
+#endif // DEBUG
 
-void xrMemory::GetProcessMemInfo(SProcessMemInfo& minfo)
-{
-	memset(&minfo, 0, sizeof(SProcessMemInfo));
+#ifdef DEBUG_MEMORY_MANAGER
+    if (debug_mode) dbg_dump_str_leaks();
+#endif // DEBUG_MEMORY_MANAGER
 
-	MEMORYSTATUSEX mem;
-	mem.dwLength = sizeof(mem);
-	GlobalMemoryStatusEx(&mem);
+    xr_delete(g_pSharedMemoryContainer);
+    xr_delete(g_pStringContainer);
 
-	minfo.TotalPhysicalMemory = mem.ullTotalPhys;
-	minfo.FreePhysicalMemory = mem.ullAvailPhys;
-	minfo.TotalVirtualMemory = mem.ullTotalVirtual;
-	minfo.MemoryLoad = mem.dwMemoryLoad;
+#ifndef M_BORLAND
+# ifdef DEBUG_MEMORY_MANAGER
+    if (debug_mode) dbg_dump_leaks();
+# endif // DEBUG_MEMORY_MANAGER
+#endif // M_BORLAND
 
-	//--------------------------------------------------------------------
-	PROCESS_MEMORY_COUNTERS pc;
-	memset(&pc, 0, sizeof(PROCESS_MEMORY_COUNTERS));
-	pc.cb = sizeof(pc);
-	if (GetProcessMemoryInfo(GetCurrentProcess(), &pc, sizeof(pc)))
-	{
-		minfo.PeakWorkingSetSize = pc.PeakWorkingSetSize;
-		minfo.WorkingSetSize = pc.WorkingSetSize;
-		minfo.PagefileUsage = pc.PagefileUsage;
-		minfo.PeakPagefileUsage = pc.PeakPagefileUsage;
-	}
-}
-
-XRCORE_API void vminfo(size_t* _free, size_t* reserved, size_t* committed)
-{
-	MEMORY_BASIC_INFORMATION memory_info;
-	memory_info.BaseAddress = 0;
-	*_free = *reserved = *committed = 0;
-	while (VirtualQuery(memory_info.BaseAddress, &memory_info, sizeof(memory_info)))
-	{
-		switch (memory_info.State)
-		{
-		case MEM_FREE: *_free += memory_info.RegionSize; break;
-		case MEM_RESERVE: *reserved += memory_info.RegionSize; break;
-		case MEM_COMMIT: *committed += memory_info.RegionSize; break;
-		}
-		memory_info.BaseAddress = (char*)memory_info.BaseAddress + memory_info.RegionSize;
-	}
-}
-
-XRCORE_API void log_vminfo()
-{
-	size_t w_free, w_reserved, w_committed;
-	vminfo(&w_free, &w_reserved, &w_committed);
-#ifdef XR_X64
-	Msg("* [x64 Engine]: free[%I64d MB], reserved[%u KB], committed[%u KB]", w_free / (1024 * 1024), w_reserved / 1024,
-		w_committed / 1024);
-#else
-	Msg("* [x32 Engine]: free[%u K], reserved[%u K], committed[%u K]", w_free / 1024, w_reserved / 1024, w_committed / 1024);
-#endif
-}
-
-size_t xrMemory::mem_usage()
-{
-	PROCESS_MEMORY_COUNTERS pmc = {};
-	if (HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId()))
-	{
-		GetProcessMemoryInfo(h, &pmc, sizeof(pmc));
-		CloseHandle(h);
-	}
-	return pmc.PagefileUsage;
+    mem_initialized = FALSE;
+#ifdef DEBUG_MEMORY_MANAGER
+    debug_mode = FALSE;
+#endif // DEBUG_MEMORY_MANAGER
 }
 
 void xrMemory::mem_compact()
 {
-	RegFlushKey(HKEY_CLASSES_ROOT);
-	RegFlushKey(HKEY_CURRENT_USER);
+    RegFlushKey(HKEY_CLASSES_ROOT);
+    RegFlushKey(HKEY_CURRENT_USER);
+    if (g_allow_heap_min)
+        _heapmin();
+    HeapCompact(GetProcessHeap(), 0);
+    if (g_pStringContainer) g_pStringContainer->clean();
+    if (g_pSharedMemoryContainer) g_pSharedMemoryContainer->clean();
+    if (strstr(Core.Params, "-swap_on_compact"))
+        SetProcessWorkingSetSize(GetCurrentProcess(), size_t(-1), size_t(-1));
+}
 
-	if (g_allow_heap_min)
-		_heapmin();
-	HeapCompact(GetProcessHeap(), 0);
-	if (g_pStringContainer)
-		g_pStringContainer->clean();
-	if (g_pSharedMemoryContainer)
-		g_pSharedMemoryContainer->clean();
+#ifdef DEBUG_MEMORY_MANAGER
+ICF u8* acc_header(void* P) { u8* _P = (u8*)P; return _P - 1; }
+ICF u32 get_header(void* P) { return (u32)*acc_header(P); }
+void xrMemory::mem_statistic(LPCSTR fn)
+{
+    if (!debug_mode) return;
+    mem_compact();
 
-	if (strstr(Core.Params, "-swap_on_compact"))
-		SetProcessWorkingSetSize(GetCurrentProcess(), size_t(-1), size_t(-1));
+    debug_cs.Enter();
+    debug_mode = FALSE;
+
+    FILE* Fa = fopen(fn, "w");
+    fprintf(Fa, "$BEGIN CHUNK #0\n");
+    fprintf(Fa, "POOL: %d %dKb\n", mem_pools_count, mem_pools_ebase);
+
+    fprintf(Fa, "$BEGIN CHUNK #1\n");
+    for (u32 k = 0; k < mem_pools_count; ++k)
+        fprintf(Fa, "%2d: %d %db\n", k, mem_pools[k].get_block_count(), (k + 1) * 16);
+
+    fprintf(Fa, "$BEGIN CHUNK #2\n");
+    for (u32 it = 0; it < debug_info.size(); it++)
+    {
+        if (0 == debug_info[it]._p) continue;
+
+        u32 p_current = get_header(debug_info[it]._p);
+        int pool_id = (mem_generic == p_current) ? -1 : p_current;
+
+        fprintf(Fa, "0x%08X[%2d]: %8d %s\n", *(u32*)(&debug_info[it]._p), pool_id, debug_info[it]._size, debug_info[it]._name);
+    }
+
+    {
+        for (u32 k = 0; k < mem_pools_count; ++k)
+        {
+            MEMPOOL& pool = mem_pools[k];
+            u8* list = pool.list;
+            while (list)
+            {
+                pool.cs.Enter();
+                u32 temp = *(u32*)(&list);
+                if (!temp)
+                    break;
+                fprintf(Fa, "0x%08X[%2d]: %8d mempool\n", temp, k, pool.s_element);
+                list = (u8*)*pool.access(list);
+                pool.cs.Leave();
+            }
+        }
+    }
+
+    /*
+    fprintf (Fa,"$BEGIN CHUNK #3\n");
+    for (u32 it=0; it<debug_info.size(); it++)
+    {
+    if (0==debug_info[it]._p) continue ;
+    try{
+    if (0==strcmp(debug_info[it]._name,"storage: sstring"))
+    fprintf (Fa,"0x%08X: %8d %s %s\n",*(u32*)(&debug_info[it]._p),debug_info[it]._size,debug_info[it]._name,((str_value*)(*(u32*)(&debug_info[it]._p)))->value);
+    }catch(...){
+    }
+    }
+    */
+
+    fclose(Fa);
+
+    // leave
+    debug_mode = TRUE;
+    debug_cs.Leave();
+
+    /*
+    mem_compact ();
+    LPCSTR fn = "$memstat$.tmp";
+    xr_map<u32,u32> stats;
+
+    if (g_pStringContainer) Msg ("memstat: shared_str: economy: %d bytes",g_pStringContainer->stat_economy());
+    if (g_pSharedMemoryContainer) Msg ("memstat: shared_mem: economy: %d bytes",g_pSharedMemoryContainer->stat_economy());
+
+    // Dump memory stats into file to avoid reallocation while traversing
+    {
+    IWriter* F = FS.w_open(fn);
+    F->w_u32 (0);
+    _HEAPINFO hinfo;
+    int heapstatus;
+    hinfo._pentry = NULL;
+    while( ( heapstatus = _heapwalk( &hinfo ) ) == _HEAPOK )
+    if (hinfo._useflag == _USEDENTRY) F->w_u32 (u32(hinfo._size));
+    FS.w_close (F);
+    }
+
+    // Read back and perform sorting
+    {
+    IReader* F = FS.r_open (fn);
+    u32 size = F->r_u32 ();
+    while (!F->eof())
+    {
+    size = F->r_u32 ();
+    xr_map<u32,u32>::iterator I = stats.find(size);
+    if (I!=stats.end()) I->second += 1;
+    else stats.insert(mk_pair(size,1));
+    }
+    FS.r_close (F);
+    FS.file_delete (fn);
+    }
+
+    // Output to log
+    {
+    xr_map<u32,u32>::iterator I = stats.begin();
+    xr_map<u32,u32>::iterator E = stats.end();
+    for (; I!=E; I++) Msg ("%8d : %-4d [%d]",I->first,I->second,I->first*I->second);
+    }
+    */
+}
+#endif // DEBUG_MEMORY_MANAGER
+
+// xr_strdup
+char* xr_strdup(const char* string)
+{
+    VERIFY(string);
+    u32 len = u32(xr_strlen(string)) + 1;
+    char* memory = (char*)Memory.mem_alloc(len
+#ifdef DEBUG_MEMORY_NAME
+                                           , "strdup"
+#endif // DEBUG_MEMORY_NAME
+                                          );
+    CopyMemory(memory, string, len);
+    return memory;
+}
+
+XRCORE_API BOOL is_stack_ptr(void* _ptr)
+{
+    int local_value = 0;
+    void* ptr_refsound = _ptr;
+    void* ptr_local = &local_value;
+    ptrdiff_t difference = (ptrdiff_t)_abs(s64(ptrdiff_t(ptr_local) - ptrdiff_t(ptr_refsound)));
+    return (difference < (512 * 1024));
 }

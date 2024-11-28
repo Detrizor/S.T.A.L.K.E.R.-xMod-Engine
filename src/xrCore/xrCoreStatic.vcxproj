@@ -778,6 +778,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="memory_monitor.cpp" />
+    <ClCompile Include="memory_usage.cpp" />
     <ClCompile Include="Model.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -872,6 +873,41 @@
     </ClCompile>
     <ClCompile Include="xrDebugNew.cpp" />
     <ClCompile Include="xrMemory.cpp" />
+    <ClCompile Include="xrMemory_align.cpp" />
+    <ClCompile Include="xrMemory_debug.cpp" />
+    <ClCompile Include="xrMemory_POOL.cpp" />
+    <ClCompile Include="xrMemory_pso_Copy.cpp">
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">AssemblyAndSourceCode</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">AssemblyAndSourceCode</AssemblerOutput>
+    </ClCompile>
+    <ClCompile Include="xrMemory_pso_Fill.cpp" />
+    <ClCompile Include="xrMemory_pso_Fill32.cpp">
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|Win32'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|x64'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|Win32'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|x64'">
+      </AssemblerOutput>
+    </ClCompile>
+    <ClCompile Include="xrMemory_subst_borland.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="xrMemory_subst_msvc.cpp" />
     <ClCompile Include="xrsharedmem.cpp" />
     <ClCompile Include="xrstring.cpp" />
     <ClCompile Include="xrSyncronize.cpp" />
@@ -966,6 +1002,12 @@
     <ClInclude Include="xrDebug.h" />
     <ClInclude Include="xrDebug_macros.h" />
     <ClInclude Include="xrMemory.h" />
+    <ClInclude Include="xrMemory_align.h" />
+    <ClInclude Include="xrMEMORY_POOL.h" />
+    <ClInclude Include="xrMemory_pso.h" />
+    <ClInclude Include="xrMemory_pure.h" />
+    <ClInclude Include="xrMemory_subst_borland.h" />
+    <ClInclude Include="xrMemory_subst_msvc.h" />
     <ClInclude Include="xrPool.h" />
     <ClInclude Include="xrsharedmem.h" />
     <ClInclude Include="xrstring.h" />

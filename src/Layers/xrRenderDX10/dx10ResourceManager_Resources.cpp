@@ -579,27 +579,32 @@ CTexture* CResourceManager::_CreateTexture(LPCSTR _Name)
 	m_textures.emplace					(name.c_str(), T);
 
 	T->Preload							();
-	auto texload						= [this, name]()
-	{
-		while (!Device.b_is_Ready)
-			_STD this_thread::yield		();
 
-		int count						= 0;
-		while (count++ < 10)
+	string_path							fn;
+	if (FS.exist(fn, "$game_textures$", Name, ".seq"))
+		T->Load();
+	else
+		m_parallel_tex_loader.run([this, name]()
 		{
-			auto& I						= m_textures.find(name.c_str());
-			if (I == m_textures.end())
+			while (!Device.b_is_Ready)
 				_STD this_thread::yield	();
-			else
-			{
-				I->second->Load			();
-				break;
-			}
-		}
 
-		VERIFY3							(count <= 10, "not found texture", name.c_str());
-	};
-	m_parallel_tex_loader.run			(texload);
+			int count					= 0;
+			while (count++ < 10)
+			{
+				auto& I					= m_textures.find(name.c_str());
+				if (I == m_textures.end())
+					_STD this_thread::yield();
+				else
+				{
+					I->second->Load		();
+					break;
+				}
+			}
+
+			VERIFY3						(count <= 10, "not found texture", name.c_str());
+		}
+	);
 
 	return								T;
 }

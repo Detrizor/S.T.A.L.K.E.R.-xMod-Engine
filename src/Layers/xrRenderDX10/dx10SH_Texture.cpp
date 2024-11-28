@@ -23,8 +23,6 @@ void resptrcode_texture::create(LPCSTR _name)
 	_set(DEV->_CreateTexture(_name));
 }
 
-xrCriticalSection lock;
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -322,8 +320,6 @@ void CTexture::apply_avi	(u32 dwStage)
 
 void CTexture::apply_seq(u32 dwStage)
 {
-	xrCriticalSection::raii mt{ &lock };
-
 	// SEQ
 	u32	frame		= Device.dwTimeContinual/seqMSPF; //Device.dwTimeGlobal
 	u32	frame_data	= seqDATA.size();
@@ -478,8 +474,6 @@ void CTexture::Load		()
 	}
 	else if (FS.exist(fn,"$game_textures$",*cName,".seq"))
 	{
-		xrCriticalSection::raii mt{ &lock };
-
 		// Sequence
 		string256 buffer;
 		IReader* _fs		= FS.r_open(fn);
