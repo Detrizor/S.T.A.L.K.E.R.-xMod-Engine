@@ -34,6 +34,7 @@ protected:
 
 	xptr<UIBoosterInfoItem>	m_artefact_isolation;
 	xptr<UIBoosterInfoItem>	m_radiation_protection;
+	xptr<UIBoosterInfoItem>	m_radiation;
 
 	xptr<CUIStatic>			m_Prop_line;
 

@@ -518,9 +518,9 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 	}
 }
 
-float CArtefact::Power() const
+float CArtefact::Power(bool for_ui) const
 {
-	if (Parent)
+	if (!for_ui && Parent)
 		if (auto cont = Parent->mcast<MContainer>())
 			if (cont->ArtefactIsolation())
 				return					0.f;
@@ -532,19 +532,18 @@ float CArtefact::Power() const
 	return								sqrt(dfill);
 }
 
-float CArtefact::Radiation() const
+float CArtefact::getRadiation(bool for_ui) const
 {
-	float res							= m_fRadiation * Power();
-	if (Parent)
+	float res							= m_fRadiation * Power(false);
+	if (!for_ui && Parent)
 		if (auto cont = Parent->mcast<MContainer>())
 			res							*= cont->RadiationProtection();
-
 	return								res;
 }
 
-float CArtefact::HitProtection(ALife::EHitType hit_type) const
+float CArtefact::HitProtection(ALife::EHitType hit_type, bool for_ui) const
 {
-	return SHit::DamageType(hit_type) ? GetArmor() : Absorbation(hit_type);
+	return SHit::DamageType(hit_type) ? GetArmor(for_ui) : Absorbation(hit_type, for_ui);
 }
 
 void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)

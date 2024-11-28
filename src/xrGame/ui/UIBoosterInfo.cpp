@@ -14,6 +14,7 @@
 #include "Level_Bullet_Manager.h"
 #include "BoneProtections.h"
 #include "WeaponMagazined.h"
+#include "Artefact.h"
 
 LPCSTR boost_influence_caption[] =
 {
@@ -116,6 +117,11 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_radiation_protection->Init		(xml, "radiation_protection");
 	name								= CStringTable().translate("ui_radiation_protection").c_str();
 	m_radiation_protection->SetCaption	(name);
+	xml.SetLocalRoot					(base_node);
+
+	m_radiation->Init					(xml, "radiation");
+	name								= CStringTable().translate("st_radiation").c_str();
+	m_radiation->SetCaption				(name);
 	xml.SetLocalRoot					(stored_root);
 }
 
@@ -334,7 +340,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 
 	auto item							= PIItem(itm->m_pData);
 	auto cont							= (item) ? item->O.getModule<MContainer>() : nullptr;
-	if ((cont || READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE)) && !pSettings->r_string(section, "supplies"))
+	if ((cont || pSettings->r_bool_ex(section, "container", false)) && !pSettings->r_string(section, "supplies"))
 	{
 		float capacity					= (cont) ? cont->GetCapacity() : pSettings->r_float(section, "capacity");
 		m_capacity->SetValue			(capacity);
@@ -354,7 +360,7 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		}
 
 		float radiation_protection		= (cont) ? cont->RadiationProtection(true) : pSettings->r_float(section, "radiation_protection");
-		if (fMore(radiation_protection, 0.f))
+		if (fLess(radiation_protection, 1.f))
 		{
 			m_radiation_protection->SetValue(1.f - radiation_protection);
 			pos.set						(m_radiation_protection->GetWndPos());
@@ -362,6 +368,25 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 			m_radiation_protection->SetWndPos(pos);
 			h							+= m_radiation_protection->GetWndSize().y;
 			AttachChild					(m_radiation_protection.get());
+		}
+
+		if (cont && !cont->ArtefactIsolation() && !cont->Empty())
+		{
+			auto artefact_it			= cont->Items().find_if([](auto&& item) { return item->O.scast<CArtefact*>(); });
+			if (artefact_it != cont->Items().end())
+			{
+				auto artefact			= (*artefact_it)->O.scast<CArtefact*>();
+				float radiation			= artefact->getRadiation();
+				if (fMore(radiation, 0.f))
+				{
+					m_radiation->SetValue(radiation);
+					pos.set				(m_radiation->GetWndPos());
+					pos.y				= h;
+					m_radiation->SetWndPos(pos);
+					h					+= m_radiation->GetWndSize().y;
+					AttachChild			(m_radiation.get());
+				}
+			}
 		}
 	}
 

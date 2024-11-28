@@ -116,15 +116,15 @@ private:
 	float								m_HitAbsorbation[ALife::eHitTypeMax];
 
 public:
-	float								WeightDump							C$	()		{ return m_fWeightDump * Power(); }
-	float								DrainFactor							C$	()		{ return m_fDrainFactor * Power(); }
-	float								GetArmor							C$	()		{ return m_fArmor * Power(); }
+	float								WeightDump							C$	(bool for_ui = false)		{ return m_fWeightDump * Power(for_ui); }
+	float								DrainFactor							C$	(bool for_ui = false)		{ return m_fDrainFactor * Power(for_ui); }
+	float								GetArmor							C$	(bool for_ui = false)		{ return m_fArmor * Power(for_ui); }
 
-	float								Absorbation							C$	(int hit_type)		{ return m_HitAbsorbation[hit_type] * Power(); }
+	float								Absorbation							C$	(int hit_type, bool for_ui = false)		{ return m_HitAbsorbation[hit_type] * Power(for_ui); }
 
-	float								Power								C$	();
-	float								Radiation							C$	();
-	float								HitProtection						C$	(ALife::EHitType hit_type);
+	float								Power								C$	(bool for_ui);
+	float								HitProtection						C$	(ALife::EHitType hit_type, bool for_ui = false);
+	float								getRadiation						C$	(bool for_ui = false);
 
 	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
 };
