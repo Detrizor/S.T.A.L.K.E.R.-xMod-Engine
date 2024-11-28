@@ -54,7 +54,8 @@ public:
 
 	xr_list<MAddon*>					addons									= {};
 	
-	void								setAttachBone							(LPCSTR val)		{ m_attach_bone = val; }
+	void								setAttachBone							(LPCSTR val)					{ m_attach_bone = val; }
+	bool								isCompatible						C$	(shared_str CR$ addon_type)		{ return isCompatible(type, addon_type); }
 
 	void								attachAddon								(MAddon* addon);
 	void								detachAddon								(MAddon* addon, int transfer);

@@ -45,7 +45,7 @@ void MAddonOwner::sOnChild(CGameObject* obj, bool take)
 		{
 			if (addon->getSlotStatus() == MAddon::attached)
 			{
-				if (addon->getSlotIdx() < m_slots.size() && m_slots[addon->getSlotIdx()]->canTake(addon))
+				if (addon->getSlotIdx() < m_slots.size() && m_slots[addon->getSlotIdx()]->canTake(addon, true))
 					finishAttaching		(addon, m_slots[addon->getSlotIdx()].get());
 				else
 					addon->onDetach		();
@@ -528,13 +528,16 @@ bool CAddonSlot::isCompatible(shared_str CR$ slot_type, shared_str CR$ addon_typ
 
 bool CAddonSlot::canTake(MAddon CPC addon, bool forced) const
 {
+	if (!forced && addon->I && addon->I->GetCondition() < .2f)
+		return							false;
+
 	if (!forced && parent_ao)
 		if (auto hi = parent_ao->O.scast<CHudItem*>())
 			if (hi->HudItemData())
 				if (hi->IsPending())
 					return				false;
 
-	if (!isCompatible(type, addon->SlotType()))
+	if (!isCompatible(addon->SlotType()))
 		return							false;
 	if (m_overlaping_slot != u16_max && parent_ao && parent_ao->AddonSlots()[m_overlaping_slot]->addons.size())
 		return							false;
