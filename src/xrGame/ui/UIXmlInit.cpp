@@ -69,7 +69,7 @@ bool CUIXmlInit::InitWindow(CUIXml& xml_doc, LPCSTR path,
 	ReadPosSize					(xml_doc, path, index, pWnd);
 	ReadAlignment				(xml_doc, path, index, pWnd);
 
-   	string512					buf;
+	string512					buf;
 	strconcat					(sizeof(buf), buf, path, ":window_name");
 	if (xml_doc.NavigateToNode(buf, index))
 		pWnd->SetWindowName		(xml_doc.Read(buf, index, NULL));
@@ -99,8 +99,8 @@ bool CUIXmlInit::InitOptionsItem(CUIXml& xml_doc, LPCSTR path, int index, CUIOpt
 
 	if (xml_doc.NavigateToNode(buf,index))
 	{
-        shared_str entry		= xml_doc.ReadAttrib(buf, index, "entry");
-        shared_str group		= xml_doc.ReadAttrib(buf, index, "group");
+		shared_str entry		= xml_doc.ReadAttrib(buf, index, "entry");
+		shared_str group		= xml_doc.ReadAttrib(buf, index, "group");
 		pWnd->AssignProps		(entry, group);
 		
 		LPCSTR depends			= xml_doc.ReadAttrib(buf, index,"depend", NULL);
@@ -331,6 +331,7 @@ bool CUIXmlInit::Init3tButton(CUIXml& xml_doc, LPCSTR path, int index, CUI3tButt
 	pWnd->frameline_mode	= !!xml_doc.ReadAttribInt(path, index, "frameline_mode", 0);
 	pWnd->frame_custom		= !!xml_doc.ReadAttribInt(path, index, "frame_custom", 0);
 	pWnd->frame_outer		= !!xml_doc.ReadAttribInt(path, index, "frame_outer", 1);
+	pWnd->vertical			= !!xml_doc.ReadAttribInt(path, index, "vertical", 0);
 
 	InitWindow			(xml_doc, path, index, pWnd);				
 	pWnd->InitButton	(pWnd->GetWndPos(), pWnd->GetWndSize());
@@ -409,7 +410,7 @@ bool CUIXmlInit::InitTabButtonMP(CUIXml& xml_doc, LPCSTR path,	int index, CUITab
 	if (xml_doc.NavigateToNode(buff, index))
 	{
 		pWnd->CreateHint();
-        InitStatic(xml_doc, buff, index, pWnd->m_hint);
+		InitStatic(xml_doc, buff, index, pWnd->m_hint);
 	}
 
 	return true;
@@ -535,7 +536,7 @@ bool CUIXmlInit::InitProgressBar(CUIXml& xml_doc, LPCSTR path,
 	
 	if (xml_doc.NavigateToNode(buf, index))
 	{
-        InitStatic							(xml_doc, buf, index, &pWnd->m_UIBackgroundItem);
+		InitStatic							(xml_doc, buf, index, &pWnd->m_UIBackgroundItem);
 		pWnd->m_bBackgroundPresent			= true;
 		pWnd->m_UIBackgroundItem.SetWndSize(pWnd->GetWndSize());
 	}
@@ -587,7 +588,7 @@ bool CUIXmlInit::InitProgressShape(CUIXml& xml_doc, LPCSTR path, int index, CUIP
 	pWnd->m_angle_begin = xml_doc.ReadAttribFlt(path, index, "begin_angle", 0.0f);
 	pWnd->m_angle_end   = xml_doc.ReadAttribFlt(path, index, "end_angle", PI_MUL_2);
 	
-    return true;
+	return true;
 }
 
 void CUIXmlInit::InitAutoStaticGroup(CUIXml& xml_doc, LPCSTR path, int index, CUIWindow* pParentWnd)
@@ -862,7 +863,7 @@ bool CUIXmlInit::InitAnimatedStatic(CUIXml &xml_doc, const char *path, int index
 	R_ASSERT4(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
 
 	InitStatic(xml_doc, path, index, pWnd);
-    
+	
 	float x				= xml_doc.ReadAttribFlt(path, index, "x_offset", 0);
 	float y				= xml_doc.ReadAttribFlt(path, index, "y_offset", 0);
 	u32 framesCount		= static_cast<u32>(xml_doc.ReadAttribInt(path, index, "frames", 0));
@@ -890,7 +891,7 @@ bool CUIXmlInit::InitSleepStatic(CUIXml &xml_doc, const char *path, int index, C
 	R_ASSERT4(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
 
 	InitStatic(xml_doc, path, index, pWnd);
-    
+	
 	return true;
 }
 
@@ -936,7 +937,7 @@ bool CUIXmlInit::InitTexture(CUIXml& xml_doc, LPCSTR path, int index, ITextureOw
 }
 
 bool CUIXmlInit::InitTextureOffset(CUIXml &xml_doc, LPCSTR path, int index, CUIStatic* pWnd){
-    string256 textureOffset;
+	string256 textureOffset;
 	if (0 == xr_strcmp(path, ""))
 		xr_strcpy(textureOffset, "texture_offset");
 	else
@@ -963,44 +964,66 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 		return true;
 	}
 
-	strconcat(sizeof(buff),buff, path, ":texture_e");
-	texture = xml_doc.Read(buff, index, NULL);
+	strconcat(sizeof(buff), buff, path, ":texture_e");
+	texture = xml_doc.Read(buff, index, nullptr);
 	if (texture.size())
 	{
 		if (pWnd->m_background)
 			pWnd->m_background->InitState(S_Enabled, texture.c_str());
+		else if (pWnd->m_back_frameline)
+		{
+			pWnd->m_back_frameline->InitState(S_Enabled, texture.c_str());
+			pWnd->m_back_frameline->Get(S_Enabled)->SetHorizontal(!(pWnd->vertical));
+		}
 		success = true;
 	}
 
-	strconcat(sizeof(buff),buff, path, ":texture_t");
-	texture = xml_doc.Read(buff, index, NULL);
+	strconcat(sizeof(buff), buff, path, ":texture_t");
+	texture = xml_doc.Read(buff, index, nullptr);
 	if (texture.size())
 	{
 		if (pWnd->m_background)
 			pWnd->m_background->InitState(S_Touched, texture.c_str());
+		else if (pWnd->m_back_frameline)
+		{
+			pWnd->m_back_frameline->InitState(S_Touched, texture.c_str());
+			pWnd->m_back_frameline->Get(S_Touched)->SetHorizontal(!(pWnd->vertical));
+		}
 		success = true;
 	}
 
-	strconcat(sizeof(buff),buff, path, ":texture_d");
-	texture = xml_doc.Read(buff, index, NULL);
+	strconcat(sizeof(buff), buff, path, ":texture_d");
+	texture = xml_doc.Read(buff, index, nullptr);
 	if (texture.size())
 	{
 		if (pWnd->m_background)
 			pWnd->m_background->InitState(S_Disabled, texture.c_str());
+		else if (pWnd->m_back_frameline)
+		{
+			pWnd->m_back_frameline->InitState(S_Disabled, texture.c_str());
+			pWnd->m_back_frameline->Get(S_Disabled)->SetHorizontal(!(pWnd->vertical));
+		}
 		success = true;
 	}
 
-	strconcat(sizeof(buff),buff, path, ":texture_h");
-	texture = xml_doc.Read(buff, index, NULL);   
+	strconcat(sizeof(buff), buff, path, ":texture_h");
+	texture = xml_doc.Read(buff, index, nullptr);
 	if (texture.size())
 	{
 		if (pWnd->m_background)
+		{
 			pWnd->m_background->InitState(S_Highlighted, texture.c_str());
+		}
+		else if (pWnd->m_back_frameline)
+		{
+			pWnd->m_back_frameline->InitState(S_Highlighted, texture.c_str());
+			pWnd->m_back_frameline->Get(S_Highlighted)->SetHorizontal(!(pWnd->vertical));
+		}
 		success = true;
 	}
 
 	if (success)
-        pWnd->TextureOn();
+		pWnd->TextureOn();
 
 	return success;
 }
@@ -1258,7 +1281,7 @@ void CUIXmlInit::ReadAlignment(CUIXml& xml_doc, const LPCSTR path, const int ind
 	if (anchor_str)
 		pWnd->SetAnchor				(AlignmentStrToValue(anchor_str));
 	
-   	string512						buf;
+	string512						buf;
 	xr_sprintf						(buf, "%s_%d", path, index);
 	pWnd->SetOffsetTag				(buf);
 

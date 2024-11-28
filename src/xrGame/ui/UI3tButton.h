@@ -9,7 +9,6 @@ class CUI3tButton : public CUIButton
 //.	using CUIButton::SetTextColor;
 public:
 					CUI3tButton					();
-	virtual			~CUI3tButton				();
 	// appearance
 
 	virtual	void 	InitButton					(Fvector2 pos, Fvector2 size);
@@ -33,19 +32,9 @@ public:
 	
 	virtual bool 	OnMouseDown					(int mouse_btn);
 
-	void			SetStateTextColor				(u32 color, IBState state){m_dwTextColor[state] = color; m_bUseTextColor[state] = true;}
+	void			SetStateTextColor			(u32 color, IBState state){m_dwTextColor[state] = color; m_bUseTextColor[state] = true;}
 	u32				m_dwTextColor[4];
 	bool			m_bUseTextColor[4]; // note: 0 index will be ignored
-
-
-	bool					frame_mode;
-	bool					frameline_mode;
-	bool					frame_custom;
-	bool					frame_outer;
-
-	CUI_IB_Static*			m_background;
-	CUI_IB_FrameLineWnd*	m_back_frameline;
-	CUIFrameWindow*			m_frame;
 
 private:	
 			void		PlaySoundH					();
@@ -54,4 +43,14 @@ private:
 	ref_sound			m_sound_h;
 	ref_sound			m_sound_t;	
 
-}; // class CUI3tButton
+public:
+	bool								frame_mode								= false;
+	bool								frameline_mode							= false;
+	bool								frame_custom							= false;
+	bool								frame_outer								= true;
+	bool								vertical								= false;
+
+	CUI_IB_Static*						m_background							= nullptr;
+	CUI_IB_FrameLineWnd*				m_back_frameline						= nullptr;
+	CUIFrameWindow*						m_frame									= nullptr;
+};

@@ -14,25 +14,12 @@ CUI3tButton::CUI3tButton()
 	m_dwTextColor[S_Disabled] 		= 0xFFAAAAAA;
 	m_dwTextColor[S_Highlighted]	= 0xFFFFFFFF;
 	m_dwTextColor[S_Touched] 		= 0xFFFFFFFF;
-
-	frame_mode		= false;
-	frameline_mode	= false;
-	frame_custom	= false;
-	frame_outer		= true;
-
-	m_background	= NULL;
-	m_back_frameline= NULL;
-	m_frame			= NULL;
-}
-
-CUI3tButton::~CUI3tButton()
-{
 }
 
 void CUI3tButton::OnClick()
 {
-    CUIButton::OnClick	();
-    PlaySoundT			();
+	CUIButton::OnClick	();
+	PlaySoundT			();
 }
 
 bool CUI3tButton::OnMouseDown(int mouse_btn)
@@ -64,7 +51,7 @@ void CUI3tButton::InitSoundT(LPCSTR sound_file)
 void CUI3tButton::PlaySoundT()
 {
 	if (m_sound_t._handle())
-        m_sound_t.play(NULL, sm_2D);
+		m_sound_t.play(NULL, sm_2D);
 }
 
 void CUI3tButton::PlaySoundH()
@@ -111,8 +98,8 @@ void CUI3tButton::InitButton(Fvector2 pos, Fvector2 size)
 		m_frame->SetOuter				(frame_outer);
 	}
 
-    CUIButton::SetWndPos		(pos);
-    CUIButton::SetWndSize		(size);
+	CUIButton::SetWndPos		(pos);
+	CUIButton::SetWndSize		(size);
 }
 
 void CUI3tButton::SetWidth(float width)
