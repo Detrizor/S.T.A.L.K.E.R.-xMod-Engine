@@ -9,10 +9,10 @@ void CUIAddonInfo::initFromXml(CUIXml& xml_doc)
 {
 	R_ASSERT							(xml_doc.NavigateToNode("addon_info", 0));
 
-	CUIXmlInit::InitWindow				(xml_doc, "addon_info",							0, this);
-	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:compatible_slots_cap",		0, &m_compatible_slots_cap);
+	CUIXmlInit::InitWindow				(xml_doc, "addon_info",								0, this);
+	CUIXmlInit::InitStatic				(xml_doc, "addon_info:compatible_slots_cap",		0, &m_compatible_slots_cap);
 	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:compatible_slots_value",		0, &m_compatible_slots_value);
-	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:available_slots_cap",			0, &m_available_slots_cap);
+	CUIXmlInit::InitStatic				(xml_doc, "addon_info:available_slots_cap",			0, &m_available_slots_cap);
 	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:available_slots_value",		0, &m_available_slots_value);
 	
 	AttachChild							(&m_compatible_slots_cap);
@@ -23,7 +23,7 @@ void CUIAddonInfo::initFromXml(CUIXml& xml_doc)
 
 void CUIAddonInfo::setInfo(CUICellItem* itm)
 {
-	float h								= 0.f;
+	float h								= 5.f;
 
 	bool addon							= pSettings->r_bool_ex(itm->m_section, "addon", false);
 	m_compatible_slots_cap.SetVisible	(addon);

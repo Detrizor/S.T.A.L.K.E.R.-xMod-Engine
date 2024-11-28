@@ -13,8 +13,8 @@ public:
 	void								setInfo									(CUICellItem* itm);
 
 private:
-	CUITextWnd							m_compatible_slots_cap;
+	CUIStatic							m_compatible_slots_cap;
 	CUITextWnd							m_compatible_slots_value;
-	CUITextWnd							m_available_slots_cap;
+	CUIStatic							m_available_slots_cap;
 	CUITextWnd							m_available_slots_value;
 };

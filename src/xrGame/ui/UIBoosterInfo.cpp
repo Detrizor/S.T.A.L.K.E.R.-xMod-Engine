@@ -103,6 +103,11 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_ammo_type->SetCaption				(name);
 	xml.SetLocalRoot					(base_node);
 
+	m_magazine_capacity->Init			(xml, "magazine_capacity");
+	name								= CStringTable().translate("ui_capacity").c_str();
+	m_magazine_capacity->SetCaption		(name);
+	xml.SetLocalRoot					(base_node);
+
 	m_capacity->Init					(xml, "capacity");
 	name								= CStringTable().translate("ui_capacity").c_str();
 	m_capacity->SetCaption				(name);
@@ -330,12 +335,12 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		AttachChild						(m_ammo_type.get());
 
 		float capacity					= pSettings->r_float(section, "capacity");
-		m_capacity->SetValue			(capacity);
-		pos.set							(m_capacity->GetWndPos());
+		m_magazine_capacity->SetValue	(capacity);
+		pos.set							(m_magazine_capacity->GetWndPos());
 		pos.y							= h;
-		m_capacity->SetWndPos			(pos);
-		h								+= m_capacity->GetWndSize().y;
-		AttachChild						(m_capacity.get());
+		m_magazine_capacity->SetWndPos	(pos);
+		h								+= m_magazine_capacity->GetWndSize().y;
+		AttachChild						(m_magazine_capacity.get());
 	}
 
 	auto item							= PIItem(itm->m_pData);

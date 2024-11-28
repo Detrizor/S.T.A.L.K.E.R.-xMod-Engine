@@ -30,8 +30,9 @@ protected:
 	xptr<UIBoosterInfoItem>	m_impair;
 
 	xptr<UIBoosterInfoItem>	m_ammo_type;
-	xptr<UIBoosterInfoItem>	m_capacity;
+	xptr<UIBoosterInfoItem>	m_magazine_capacity;
 
+	xptr<UIBoosterInfoItem>	m_capacity;
 	xptr<UIBoosterInfoItem>	m_artefact_isolation;
 	xptr<UIBoosterInfoItem>	m_radiation_protection;
 	xptr<UIBoosterInfoItem>	m_radiation;
