@@ -327,7 +327,12 @@ void CWeaponMagazined::prepare_cartridge_to_shoot()
 
 bool CWeaponMagazined::get_cartridge_from_mag()
 {
-	return								(m_magazine) ? m_magazine->getCartridge(m_cartridge) : false;
+	if (m_magazine)
+		if (auto ammo = m_magazine->getAmmo())
+			if (!m_chamber || m_chamber.getSlot()->isCompatible(ammo->getModule<MAddon>()->SlotType()))
+				if (m_magazine->getCartridge(m_cartridge))
+					return				true;
+	return								false;
 }
 
 void CWeaponMagazined::unloadChamber(MAddon* chamber)

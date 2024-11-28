@@ -135,19 +135,29 @@ void MMagazine::loadCartridge(CWeaponAmmo* ammo)
 	loadCartridge						(cartridge);
 }
 
+CWeaponAmmo* MMagazine::get_ammo() const
+{
+	return								(Empty()) ? nullptr : m_heaps.back();
+}
+
+CWeaponAmmo const* MMagazine::getAmmo() const
+{
+	return								get_ammo();
+}
+
 bool MMagazine::getCartridge(CCartridge& destination, bool expend)
 {
-	if (Empty())
+	auto ammo							= get_ammo();
+	if (!ammo || !ammo->Get(destination, expend))
 		return							false;
 
-	bool res							= m_heaps.back()->Get(destination, expend);
-	if (res && expend)
+	if (expend)
 	{
 		--m_amount;
 		m_weight						-= destination.weight;
 	}
 
-	return								res;
+	return								true;
 }
 
 void MMagazine::setCondition(float val, bool recursive)

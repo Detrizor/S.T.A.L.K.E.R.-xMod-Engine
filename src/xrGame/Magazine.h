@@ -40,6 +40,8 @@ private:
 	void								update_hud_bullets_visibility			();
 	void								register_heap							(CWeaponAmmo* heap, bool insert);
 
+	CWeaponAmmo*						get_ammo							C$	();
+
 public:
 	void								loadCartridge							(CCartridge CR$ cartridge, int count = 1);
 	void								loadCartridge							(CWeaponAmmo* ammo);
@@ -47,6 +49,7 @@ public:
 	void								setCondition							(float val, bool recursive);
 	
 	bool								canTake								C$	(CWeaponAmmo CPC ammo);
+	CWeaponAmmo const*					getAmmo								C$	();
 	
 	u16									Amount								C$	()		{ return m_amount; }
 	u16									Capacity							C$	()		{ return m_capacity; };	
