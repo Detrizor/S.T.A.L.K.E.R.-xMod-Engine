@@ -171,7 +171,7 @@ void CActor::IR_OnMouseWheel(int direction)
 		return;
 	}
 
-	inventory().Action((0 < direction != g_invert_zoom) ? (u16)kWPN_ZOOM_DEC : (u16)kWPN_ZOOM_INC, CMD_START);
+	inventory().Action((direction > 0 != g_invert_zoom) ? kWPN_ZOOM_INC : kWPN_ZOOM_DEC, CMD_START);
 }
 
 extern BOOL g_hud_adjusment_mode;
