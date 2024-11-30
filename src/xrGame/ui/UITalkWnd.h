@@ -39,7 +39,7 @@ public:
 	virtual bool		StopAnyMove				(){return true;}
 	virtual void		SendMessage				(CUIWindow* pWnd, s16 msg, void* pData = NULL);
 
-	virtual void		Draw					();
+	void				Draw					() override;
 	virtual void		Update					();
 		
 	virtual void		Show					(bool status);

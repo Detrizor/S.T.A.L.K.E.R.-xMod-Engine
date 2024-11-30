@@ -28,6 +28,7 @@
 #include "UILogsWnd.h"
 
 #include "UIScriptWnd.h"
+#include "../inventory_item_amountable.h"
 
 #define PDA_XML		"pda.xml"
 
@@ -167,15 +168,17 @@ void CUIPdaWnd::Update()
 
 	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(pUILogsWnd,&CUILogsWnd::PerformWork));
 
-	CActor* actor = smart_cast<CActor*>(Level().CurrentEntity());
+	CActor* actor						= smart_cast<CActor*>(Level().CurrentEntity());
 	if (actor)
 	{
-		PIItem active_item = actor->inventory().ActiveItem();
-		if (!(active_item && READ_IF_EXISTS(pSettings, r_bool, active_item->m_section_id, "pda_trigger", false) && active_item->GetCondition() > 0.f))
-			HideDialog();
+		PIItem active_item				= actor->inventory().ActiveItem();
+		if (active_item)
+			if (auto aiitem = active_item->O.getModule<MAmountable>())
+				if (!aiitem->Empty())
+					return;
 	}
-	else
-		HideDialog();
+
+	HideDialog();
 }
 
 void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
@@ -206,7 +209,7 @@ void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
 		m_pActiveDialog = pUILogsWnd;
 	}
 	
-	luabind::functor<CUIDialogWndEx*> funct;
+	::luabind::functor<CUIDialogWndEx*> funct;
 	if (ai().script_engine().functor("pda.set_active_subdialog", funct))
 	{
 		CUIDialogWndEx* ret = funct((LPCSTR)section.c_str());

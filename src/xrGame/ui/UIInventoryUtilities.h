@@ -8,10 +8,7 @@
 class CUIStatic;
 class CUITextWnd;
 class CInventoryBox;
-
-//размеры сетки в текстуре инвентаря
-#define INV_GRID_WIDTH			50.0f
-#define INV_GRID_HEIGHT			50.0f
+class MContainer;
 
 //размеры сетки в текстуре иконок персонажей
 #define ICON_GRID_WIDTH			64.0f
@@ -28,18 +25,14 @@ class CInventoryBox;
 
 namespace InventoryUtilities
 {
-
 //сравнивает элементы по пространству занимаемому ими в рюкзаке
 //для сортировки
-bool GreaterRoomInRuck	(PIItem item1, PIItem item2);
-//для проверки свободного места
-bool FreeRoom_inBelt	(TIItemContainer& item_list, PIItem item, int width, int height);
-
-
+bool GreaterRoomInRuck(PIItem item1, PIItem item2);
+bool greaterRoomInRuck(CUICellItem* itm1, CUICellItem* itm2);
 // get shader for BuyWeaponWnd
 const ui_shader&	GetBuyMenuShader();
 //получить shader на иконки инвенторя
-const ui_shader& GetEquipmentIconsShader();
+const ui_shader& GetEquipmentIconsShader(const shared_str& section);
 // shader на иконки персонажей в мультиплеере
 const ui_shader&	GetMPCharIconsShader();
 //get shader for outfit icons in upgrade menu
@@ -80,7 +73,7 @@ const shared_str Get_GameTimeAndDate_AsString();
 LPCSTR GetTimePeriodAsString	(LPSTR _buff, u32 buff_sz, ALife::_TIME_ID _from, ALife::_TIME_ID _to);
 
 // Обновить метки веса и объёма
-void UpdateLabelsValues			(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryBox* pInventoryBox = NULL);
+void UpdateLabelsValues			(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, MContainer* cont = nullptr);
 
 // Выравнить координаты меток веса и объёма
 void AlighLabels				(CUIStatic* pWeightInfo, CUITextWnd* pWeight, CUIStatic* pVolumeInfo, CUITextWnd* pVolume);
@@ -97,4 +90,10 @@ void	SendInfoToLuaScripts		(shared_str info);
 u32		GetGoodwillColor			(CHARACTER_GOODWILL gw);
 u32		GetRelationColor			(ALife::ERelationType r);
 u32		GetReputationColor			(CHARACTER_REPUTATION_VALUE rv);
+
+void									loadStaticData							();
+
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, float icon_scale);
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, float icon_scale, Frect& margin);
+Ivector2								CalculateIconSize						(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect);
 };

@@ -21,6 +21,10 @@
 #include "patrol_path.h"
 #include "patrol_path_storage.h"
 
+#include "Level_Bullet_Manager.h"
+#include "ui/ui_af_params.h"
+#include "item_container.h"
+
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
 
 #define CHOOSE_MAX(x,inst_x,y,inst_y,z,inst_z)\
@@ -39,10 +43,11 @@ CArtefact::CArtefact()
 	m_pTrailLight				= NULL;
 	m_activationObj				= NULL;
 	m_detectorObj				= NULL;
-}
+	m_fChargeThreshold			= .8f;
+	m_bActive					= true;
 
-CArtefact::~CArtefact() 
-{
+	for (int i = 0; i < ALife::eHitTypeMax; i++)
+		m_HitAbsorbation[i]		= 0.f;
 }
 
 void CArtefact::Load(LPCSTR section) 
@@ -52,26 +57,31 @@ void CArtefact::Load(LPCSTR section)
 	if (pSettings->line_exist(section, "particles"))
 		m_sParticlesName							= pSettings->r_string(section, "particles");
 
-	m_bLightsEnabled								= !!pSettings->r_bool(section, "lights_enabled");
+	m_bLightsEnabled								= !!pSettings->r_BOOL(section, "lights_enabled");
 	if (m_bLightsEnabled)
 	{
 		sscanf										(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
 		m_fTrailLightRange							= pSettings->r_float(section, "trail_light_range");
 	}
 
-	m_fRadiationRestoreSpeed						= pSettings->r_float(section, "radiation_speed");
+	m_fRadiation									= pSettings->r_float(section, "radiation");
 	m_fWeightDump									= pSettings->r_float(section, "weight_dump");
+	m_fDrainFactor									= pSettings->r_float(section, "drain_factor") - 1.f;
 	m_fArmor										= pSettings->r_float(section, "armor");
 
-	if (pSettings->section_exist(pSettings->r_string(section, "hit_absorbation_sect")))
-		m_ArtefactHitImmunities.LoadImmunities		(pSettings->r_string(section, "hit_absorbation_sect"), pSettings);
 	m_bCanSpawnZone									= !!pSettings->line_exist("artefact_spawn_zones", section);
 	m_af_rank										= pSettings->r_u8(section, "af_rank");
+	m_fChargeThreshold								= pSettings->r_float(section, "power_decay_charge_threshold");
+	
+	extern LPCSTR									af_absorbation_names[];
+	for (int i = 0; i < eAbsorbationTypeMax; i++)
+		m_HitAbsorbation[i]							= pSettings->r_float(section, af_absorbation_names[i]);
+	m_HitAbsorbation[ALife::eHitTypeLightBurn]		= m_HitAbsorbation[ALife::eHitTypeBurn];
 }
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
 {
-	if(pSettings->r_bool(cNameSect(),"can_be_controlled") )
+	if(pSettings->r_BOOL(cNameSect(),"can_be_controlled") )
 		m_detectorObj				= xr_new<SArtefactDetectorsSupport>(this);
 
 	BOOL result						= inherited::net_Spawn(DC);
@@ -205,7 +215,7 @@ void CArtefact::shedule_Update		(u32 dt)
 	else					{
 		Fvector	center;			Center(center);
 		BOOL	rendering		= (Device.dwFrame==o_render_frame);
-		float	cam_distance	= Device.vCameraPosition.distance_to(center)-Radius();
+		float	cam_distance	= Device.camera.position.distance_to(center)-Radius();
 		if (rendering || (cam_distance < FASTMODE_DISTANCE))	o_switch_2_fast	();
 		else													o_switch_2_slow	();
 	}
@@ -231,7 +241,7 @@ void CArtefact::StartLights()
 
 	VERIFY						(m_pTrailLight == NULL);
 	m_pTrailLight				= ::Render->light_create();
-	bool const b_light_shadow	= !!pSettings->r_bool(cNameSect(), "idle_light_shadow");
+	bool const b_light_shadow	= !!pSettings->r_BOOL(cNameSect(), "idle_light_shadow");
 
 	m_pTrailLight->set_shadow	(b_light_shadow);
 
@@ -286,16 +296,6 @@ bool CArtefact::CanTake() const
 	return true;
 }
 
-void CArtefact::Hide()
-{
-	SwitchState(eHiding);
-}
-
-void CArtefact::Show()
-{
-	SwitchState(eShowing);
-}
-
 void CArtefact::MoveTo(Fvector const &  position)
 {
 	if (!PPhysicsShell())
@@ -307,55 +307,6 @@ void CArtefact::MoveTo(Fvector const &  position)
 	//m_bInInterpolation = false;	
 }
 
-
-#include "inventoryOwner.h"
-#include "Entity_alive.h"
-void CArtefact::UpdateXForm()
-{
-	if (Device.dwFrame!=dwXF_Frame)
-	{
-		dwXF_Frame			= Device.dwFrame;
-
-		if (0==H_Parent())	return;
-
-		// Get access to entity and its visual
-		CEntityAlive*		E		= smart_cast<CEntityAlive*>(H_Parent());
-        
-		if(!E)				return	;
-
-		const CInventoryOwner	*parent = smart_cast<const CInventoryOwner*>(E);
-		if (parent && parent->use_simplified_visual())
-			return;
-
-		VERIFY				(E);
-		IKinematics*		V		= smart_cast<IKinematics*>	(E->Visual());
-		VERIFY				(V);
-		if(CAttachableItem::enabled())
-			return;
-
-		// Get matrices
-		int					boneL = -1, boneR = -1, boneR2 = -1;
-		E->g_WeaponBones	(boneL,boneR,boneR2);
-		if (boneR == -1)	return;
-
-		boneL = boneR2;
-
-		V->CalculateBones	();
-		Fmatrix& mL			= V->LL_GetTransform(u16(boneL));
-		Fmatrix& mR			= V->LL_GetTransform(u16(boneR));
-
-		// Calculate
-		Fmatrix				mRes;
-		Fvector				R,D,N;
-		D.sub				(mL.c,mR.c);	D.normalize_safe();
-		R.crossproduct		(mR.j,D);		R.normalize_safe();
-		N.crossproduct		(D,R);			N.normalize_safe();
-		mRes.set			(R,N,D,mR.c);
-		mRes.mulA_43		(E->XFORM());
-//		UpdatePosition		(mRes);
-		XFORM().mul			(mRes,offset());
-	}
-}
 #include "xr_level_controller.h"
 bool CArtefact::Action(u16 cmd, u32 flags) 
 {
@@ -381,34 +332,18 @@ bool CArtefact::Action(u16 cmd, u32 flags)
 
 void CArtefact::OnStateSwitch(u32 S, u32 oldState)
 {	
-	inherited::OnStateSwitch	(S, oldState);
-	
-	switch(S){
-	case eShowing:
-		{
-			PlayHUDMotion("anm_show", FALSE, this, S);
-		}break;
-	case eHiding:
-		{
-			if (oldState != eHiding)
-			{
-				PlayHUDMotion("anm_hide", FALSE, this, S);
-			}
-		}break;
+	CHudItem::OnStateSwitch	(S, oldState);
+	switch(S)
+	{
 	case eActivating:
-		{
-			PlayHUDMotion("anm_activate", FALSE, this, S);
-		}break;
-	case eIdle:
-		{
-			PlayAnimIdle();
-		}break;
-	};
+		PlayHUDMotion("anm_activate", FALSE, S);
+		break;
+	}
 }
 
 void CArtefact::PlayAnimIdle()
 {
-	PlayHUDMotion("anm_idle", FALSE, NULL, eIdle);
+	PlayHUDMotion("anm_idle", FALSE, eIdle);
 }
 
 void CArtefact::OnAnimationEnd(u32 state)
@@ -416,25 +351,22 @@ void CArtefact::OnAnimationEnd(u32 state)
 	switch (state)
 	{
 	case eHiding:
-		{
-			SwitchState(eHidden);
-		}break;
+		SwitchState(eHidden);
+		break;
 	case eShowing:
-		{
-			SwitchState(eIdle);
-		}break;
+		SwitchState(eIdle);
+		break;
 	case eActivating:
+		if(Local())
 		{
-			if(Local())
-			{
-				SwitchState		(eHiding);
-				NET_Packet		P;
-				u_EventGen		(P, GEG_PLAYER_ACTIVATEARTEFACT, H_Parent()->ID());
-				P.w_u16			(ID());
-				u_EventSend		(P);	
-			}
-		}break;
-	};
+			SwitchState		(eHiding);
+			NET_Packet		P;
+			u_EventGen		(P, GEG_PLAYER_ACTIVATEARTEFACT, H_Parent()->ID());
+			P.w_u16			(ID());
+			u_EventSend		(P);	
+		}
+		break;
+	}
 }
 
 void CArtefact::FollowByPath(LPCSTR path_name, int start_idx, Fvector magic_force)
@@ -570,7 +502,7 @@ void SArtefactDetectorsSupport::UpdateOnFrame()
 	if(!m_parent->getVisible() && m_switchVisTime+dwDt < Device.dwTimeGlobal)
 	{
 		m_switchVisTime		= Device.dwTimeGlobal;
-		if(m_parent->Position().distance_to(Device.vCameraPosition)>40.0f)
+		if(m_parent->Position().distance_to(Device.camera.position)>40.0f)
 			Blink			();
 	}
 }
@@ -586,19 +518,57 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 	}
 }
 
-void CArtefact::OnActiveItem ()
+float CArtefact::Power(bool for_ui) const
 {
-	SwitchState					(eShowing);
-	inherited::OnActiveItem		();
+	if (!for_ui && Parent)
+		if (auto cont = Parent->mcast<MContainer>())
+			if (cont->ArtefactIsolation())
+				return					0.f;
+
+	float dfill							= GetFill() / m_fChargeThreshold;
+	if (dfill > 1.f)
+		dfill							= 1.f;
+
+	return								sqrt(dfill);
 }
 
-void CArtefact::OnHiddenItem ()
+float CArtefact::getRadiation(bool for_ui) const
 {
-	SwitchState(eHiding);
-	inherited::OnHiddenItem		();
+	float res							= m_fRadiation * Power(false);
+	if (!for_ui && Parent)
+		if (auto cont = Parent->mcast<MContainer>())
+			res							*= cont->RadiationProtection();
+	return								res;
 }
 
-bool CArtefact::IsActivated()
+float CArtefact::HitProtection(ALife::EHitType hit_type, bool for_ui) const
 {
-	return (GetCondition() < 1.f);
+	return SHit::DamageType(hit_type) ? GetArmor(for_ui) : Absorbation(hit_type, for_ui);
+}
+
+void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
+{
+	/*if (pAP && fMore(*pAP, 0.f))
+	{
+		float armor				= GetArmor();
+		float d_ap				= min(*pAP, armor);
+		float bullet_d_ap		= fLess(d_ap, armor) ? d_ap : Level().BulletManager().m_fBulletAPLossOnPierce * d_ap;
+		float bullet_k_energy	= (*pAP - bullet_d_ap) / (*pAP);
+		*pEnergy				*= bullet_k_energy;
+		if (pSpeed)
+			*pSpeed				*= sqrt(bullet_k_energy);
+		*pAP					-= bullet_d_ap;
+		//DepleteAP				(d_ap);		--xd for future energy depletion system
+	}
+	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
+	{
+		//pHDS->main_damage		*= CEntityCondition::ExplDamageResistance.Calc(GetArmor());
+		//DepleteResistance		(pHDS->main_damage);		--xd for future energy depletion system
+	}
+	else
+	{
+		float d_damage			= min(pHDS->main_damage, m_HitAbsorbation[pHDS->hit_type] * Power());
+		pHDS->main_damage		-= d_damage;
+		//DepleteProtection		(d_damage);		--xd for future energy depletion system
+	}*/
 }

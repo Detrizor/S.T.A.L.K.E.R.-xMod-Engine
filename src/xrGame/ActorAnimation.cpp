@@ -347,7 +347,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 	else							
 		ST 		= &m_anims->m_normal;
 
-	bool bAccelerated = isActorAccelerated(mstate_rl, IsZoomAimingMode());
+	bool bAccelerated = isActorAccelerated(mstate_rl, IsZoomADSMode());
 	if ( bAccelerated )
 	{
 		AS							= &ST->m_run;
@@ -390,15 +390,12 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 
 	if (this == Level().CurrentViewEntity())
 	{	
-		if ((mstate_rl&mcSprint) != (mstate_old&mcSprint))
-		{
-			g_player_hud->OnMovementChanged(mcSprint);
-		}else
-		if ((mstate_rl&mcAnyMove) != (mstate_old&mcAnyMove))
-		{
-			g_player_hud->OnMovementChanged(mcAnyMove);
-		}
-	};
+		if ((mstate_rl&mcSprint) != (mstate_old&mcSprint) ||
+			(mstate_rl&mcAnyMove) != (mstate_old&mcAnyMove) ||
+			(mstate_rl&mcAccel) != (mstate_old&mcAccel) ||
+			(mstate_rl&mcCrouch) != (mstate_old&mcCrouch))
+			g_player_hud->OnMovementChanged();
+	}
 
 	//-----------------------------------------------------------------------
 	// Torso
@@ -550,7 +547,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 
 	if (!M_legs)
 	{
-		if((mstate_rl&mcCrouch)&&!isActorAccelerated(mstate_rl, IsZoomAimingMode()))//!(mstate_rl&mcAccel))
+		if ((mstate_rl&mcCrouch) && !isActorAccelerated(mstate_rl, IsZoomADSMode()))//!(mstate_rl&mcAccel))
 		{
 			M_legs=smart_cast<IKinematicsAnimated*>(Visual())->ID_Cycle("cr_idle_1");
 		}

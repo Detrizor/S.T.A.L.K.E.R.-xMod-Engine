@@ -13,6 +13,8 @@ class CUIMessageBox;
 class CInventoryBox;
 class CInventoryOwner;
 
+enum EMenuMode;
+
 class CUIGameSP : public CUIGameCustom
 {
 private:
@@ -27,10 +29,9 @@ public:
 	virtual void _BCL	OnFrame					();
 
 	void				StartTalk				(bool disable_break);
-	void				StartTrade				(CInventoryOwner* pActorInv, CInventoryOwner* pOtherOwner);
-	void				StartUpgrade			(CInventoryOwner* pActorInv, CInventoryOwner* pMech);
-	void				StartCarBody			(CInventoryOwner* pActorInv, CInventoryOwner* pOtherOwner);
-	void				StartCarBody			(CInventoryOwner* pActorInv, CInventoryBox* pBox);
+	void				StartTrade				(CInventoryOwner* pOtherOwner);
+	void				StartUpgrade			(CInventoryOwner* pMech);
+	void				StartCarBody			(EMenuMode mode, void* pCarBody);
 	void				ChangeLevel				(GameGraph::_GRAPH_ID game_vert_id, u32 level_vert_id, Fvector pos, Fvector ang, Fvector pos2, Fvector ang2, bool b, const shared_str& message, bool b_allow_change_level);
 
 	virtual void		HideShownDialogs		();

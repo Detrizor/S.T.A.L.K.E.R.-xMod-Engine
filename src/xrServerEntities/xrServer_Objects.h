@@ -162,8 +162,15 @@
 //       CSE_ALifeTraderAbstract		added property m_deadbody_can_take, m_deadbody_closed
 // 127	 CSE_ALifeObjectClimable		added material;
 // 128	 CSE_ALifeObjectClimable		added can_fire in smart covers;
+// 129 - xMod base
+// 130 - weapon ads shift
+// 131 - current scope reticle
+// 132 - weapon locked and cocked state
+// 133 - removed ammo elapsed from weapon
+// 134 - added ammo mag position
+// 135 - removed chamber and ammo type
 //------------------------------------------------------------------------------
-#define SPAWN_VERSION	u16(128)
+constexpr u16 SPAWN_VERSION = 135;
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

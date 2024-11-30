@@ -199,7 +199,7 @@ void CEffect_Thunderbolt::Bolt(shared_str id, float period, float lt)
     float lng = Random.randF(sun_h - environment.p_var_long + PI, sun_h + environment.p_var_long + PI);
     float dist = Random.randF(FAR_DIST*environment.p_min_dist, FAR_DIST*.95f);
     current_direction.setHP(lng, alt);
-    pos.mad(Device.vCameraPosition, current_direction, dist);
+    pos.mad(Device.camera.position, current_direction, dist);
     dev.x = Random.randF(-environment.p_tilt, environment.p_tilt);
     dev.y = Random.randF(0, PI_MUL_2);
     dev.z = Random.randF(-environment.p_tilt, environment.p_tilt);
@@ -319,8 +319,8 @@ void CEffect_Thunderbolt::Render()
         {
         u32 c_val = iFloor(current->m_GradientTop.fOpacity*lightning_phase*255.f);
         u32 c = color_rgba(c_val,c_val,c_val,c_val);
-        vecSx.mul (Device.vCameraRight, current->m_GradientTop.fRadius.x*lightning_size);
-        vecSy.mul (Device.vCameraTop, -current->m_GradientTop.fRadius.y*lightning_size);
+        vecSx.mul (Device.camera.right, current->m_GradientTop.fRadius.x*lightning_size);
+        vecSy.mul (Device.camera.top, -current->m_GradientTop.fRadius.y*lightning_size);
         pv->set (current_xform.c.x+vecSx.x-vecSy.x, current_xform.c.y+vecSx.y-vecSy.y, current_xform.c.z+vecSx.z-vecSy.z, c, 0, 0); pv++;
         pv->set (current_xform.c.x+vecSx.x+vecSy.x, current_xform.c.y+vecSx.y+vecSy.y, current_xform.c.z+vecSx.z+vecSy.z, c, 0, 1); pv++;
         pv->set (current_xform.c.x-vecSx.x-vecSy.x, current_xform.c.y-vecSx.y-vecSy.y, current_xform.c.z-vecSx.z-vecSy.z, c, 1, 0); pv++;
@@ -330,8 +330,8 @@ void CEffect_Thunderbolt::Render()
         {
         u32 c_val = iFloor(current->m_GradientTop.fOpacity*lightning_phase*255.f);
         u32 c = color_rgba(c_val,c_val,c_val,c_val);
-        vecSx.mul (Device.vCameraRight, current->m_GradientCenter.fRadius.x*lightning_size);
-        vecSy.mul (Device.vCameraTop, -current->m_GradientCenter.fRadius.y*lightning_size);
+        vecSx.mul (Device.camera.right, current->m_GradientCenter.fRadius.x*lightning_size);
+        vecSy.mul (Device.camera.top, -current->m_GradientCenter.fRadius.y*lightning_size);
         pv->set (lightning_center.x+vecSx.x-vecSy.x, lightning_center.y+vecSx.y-vecSy.y, lightning_center.z+vecSx.z-vecSy.z, c, 0, 0); pv++;
         pv->set (lightning_center.x+vecSx.x+vecSy.x, lightning_center.y+vecSx.y+vecSy.y, lightning_center.z+vecSx.z+vecSy.z, c, 0, 1); pv++;
         pv->set (lightning_center.x-vecSx.x-vecSy.x, lightning_center.y-vecSx.y-vecSy.y, lightning_center.z-vecSx.z-vecSy.z, c, 1, 0); pv++;

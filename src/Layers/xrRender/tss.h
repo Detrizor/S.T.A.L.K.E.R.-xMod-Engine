@@ -1,10 +1,7 @@
-#ifndef TSS_H
-#define TSS_H
 #pragma once
 
 #include "tss_def.h"
 
-#if defined(USE_DX10) || defined(USE_DX11)
 enum	XRDX10SAMPLERSTATETYPE
 {
 	XRDX10SAMP_ANISOTROPICFILTER	=	256,
@@ -16,7 +13,6 @@ enum	XRDX10RENDERSTATETYPE
 {
 	XRDX10RS_ALPHATOCOVERAGE		=	1024
 };
-#endif	//	USE_DX10
 
 class  CSimulatorTSS
 {
@@ -104,5 +100,3 @@ public:
 	IC void				SetRS		(u32 N, u32 V)						{ RS.Set(container,N,V);	}
 	IC SimulatorStates&	GetContainer()									{ return container; }
 };
-
-#endif

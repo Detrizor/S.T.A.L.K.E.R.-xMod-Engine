@@ -33,6 +33,7 @@ class CEffectorZoomInertion : public CEffectorCam
 
 	void			CalcNextPoint		();
 	void			LoadParams			(LPCSTR Section, LPCSTR Prefix);
+
 public:
 	CEffectorZoomInertion				();
 	virtual ~CEffectorZoomInertion		();

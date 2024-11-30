@@ -67,7 +67,6 @@ class cl_texgen : public R_constant_setup
 	{
 		Fmatrix mTexgen;
 
-#if defined(USE_DX10) || defined(USE_DX11)
 		Fmatrix			mTexelAdjust		= 
 		{
 			0.5f,				0.0f,				0.0f,			0.0f,
@@ -75,19 +74,6 @@ class cl_texgen : public R_constant_setup
 			0.0f,				0.0f,				1.0f,			0.0f,
 			0.5f,				0.5f,				0.0f,			1.0f
 		};
-#else	//	USE_DX10
-		float	_w						= float(RDEVICE.dwWidth);
-		float	_h						= float(RDEVICE.dwHeight);
-		float	o_w						= (.5f / _w);
-		float	o_h						= (.5f / _h);
-		Fmatrix			mTexelAdjust		= 
-		{
-			0.5f,				0.0f,				0.0f,			0.0f,
-			0.0f,				-0.5f,				0.0f,			0.0f,
-			0.0f,				0.0f,				1.0f,			0.0f,
-			0.5f + o_w,			0.5f + o_h,			0.0f,			1.0f
-		};
-#endif	//	USE_DX10
 
 		mTexgen.mul	(mTexelAdjust,RCache.xforms.m_wvp);
 
@@ -102,7 +88,6 @@ class cl_VPtexgen : public R_constant_setup
 	{
 		Fmatrix mTexgen;
 
-#if defined(USE_DX10) || defined(USE_DX11)
 		Fmatrix			mTexelAdjust		= 
 		{
 			0.5f,				0.0f,				0.0f,			0.0f,
@@ -110,19 +95,6 @@ class cl_VPtexgen : public R_constant_setup
 			0.0f,				0.0f,				1.0f,			0.0f,
 			0.5f,				0.5f,				0.0f,			1.0f
 		};
-#else	//	USE_DX10
-		float	_w						= float(RDEVICE.dwWidth);
-		float	_h						= float(RDEVICE.dwHeight);
-		float	o_w						= (.5f / _w);
-		float	o_h						= (.5f / _h);
-		Fmatrix			mTexelAdjust		= 
-		{
-			0.5f,				0.0f,				0.0f,			0.0f,
-			0.0f,				-0.5f,				0.0f,			0.0f,
-			0.0f,				0.0f,				1.0f,			0.0f,
-			0.5f + o_w,			0.5f + o_h,			0.0f,			1.0f
-		};
-#endif	//	USE_DX10
 
 		mTexgen.mul	(mTexelAdjust,RCache.xforms.m_vp);
 
@@ -138,11 +110,11 @@ class cl_fog_plane	: public R_constant_setup {
 	Fvector4	result;
 	virtual void setup(R_constant* C)
 	{
-		if (marker!=Device.dwFrame)
+		if (marker!=::Render->dwFrame())
 		{
 			// Plane
 			Fvector4		plane;
-			Fmatrix&	M	= Device.mFullTransform;
+			Fmatrix&	M	= Device.camera.full_transform;
 			plane.x			= -(M._14 + M._13);
 			plane.y			= -(M._24 + M._23);
 			plane.z			= -(M._34 + M._33);
@@ -166,7 +138,7 @@ class cl_fog_params	: public R_constant_setup {
 	Fvector4	result;
 	virtual void setup(R_constant* C)
 	{
-		if (marker!=Device.dwFrame)
+		if (marker!=::Render->dwFrame())
 		{
 			// Near/Far
 			float	n		= g_pGamePersistent->Environment().CurrentEnv->fog_near	;
@@ -183,7 +155,7 @@ class cl_fog_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
 			result.set				(desc.fog_color.x,	desc.fog_color.y, desc.fog_color.z,	0);
 		}
@@ -206,7 +178,7 @@ static cl_times		binder_times;
 class cl_eye_P		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraPosition;
+		Fvector&		V	= RDEVICE.camera.position;
 		RCache.set_c	(C,V.x,V.y,V.z,1);
 	}
 };
@@ -216,7 +188,7 @@ static cl_eye_P		binder_eye_P;
 class cl_eye_D		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraDirection;
+		Fvector&		V	= RDEVICE.camera.direction;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
 };
@@ -226,7 +198,7 @@ static cl_eye_D		binder_eye_D;
 class cl_eye_N		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
-		Fvector&		V	= RDEVICE.vCameraTop;
+		Fvector&		V	= RDEVICE.camera.top;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
 };
@@ -238,7 +210,7 @@ class cl_sun0_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
 			result.set				(desc.sun_color.x,	desc.sun_color.y, desc.sun_color.z,	0);
 		}
@@ -249,7 +221,7 @@ class cl_sun0_dir_w	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
 			result.set				(desc.sun_dir.x,	desc.sun_dir.y, desc.sun_dir.z,	0);
 		}
@@ -260,10 +232,10 @@ class cl_sun0_dir_e	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			Fvector D;
 			CEnvDescriptor&	desc		= *g_pGamePersistent->Environment().CurrentEnv;
-			Device.mView.transform_dir	(D,desc.sun_dir);
+			Device.camera.view.transform_dir	(D,desc.sun_dir);
 			D.normalize					();
 			result.set					(D.x,D.y,D.z,0);
 		}
@@ -276,7 +248,7 @@ class cl_amb_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			CEnvDescriptorMixer&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
 			result.set				(desc.ambient.x, desc.ambient.y, desc.ambient.z, desc.weight);
 		}
@@ -287,7 +259,7 @@ class cl_hemi_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
-		if (marker!=Device.dwFrame)	{
+		if (marker!=::Render->dwFrame())	{
 			CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
 			result.set				(desc.hemi_color.x, desc.hemi_color.y, desc.hemi_color.z, desc.hemi_color.w);
 		}
@@ -304,6 +276,29 @@ static class cl_screen_res : public R_constant_setup
 	}
 }	binder_screen_res;
 
+static class cl_hud_params : public R_constant_setup //--#SM+#--
+{
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, g_pGamePersistent->m_pGShaderConstants->hud_params);
+	}
+}	binder_hud_params;
+
+static class cl_script_params : public R_constant_setup //--#SM+#--
+{
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, g_pGamePersistent->m_pGShaderConstants->m_script_params);
+	}
+}	binder_script_params;
+
+static class cl_blend_mode : public R_constant_setup //--#SM+#--
+{
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, g_pGamePersistent->m_pGShaderConstants->m_blender_mode);
+	}
+}	binder_blend_mode;
 
 // Standart constant-binding
 void	CBlender_Compile::SetMapping	()
@@ -359,6 +354,11 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("L_ambient",		&binder_amb_color);
 #endif
 	r_Constant				("screen_res",		&binder_screen_res);
+
+	// misc
+	r_Constant				("m_hud_params",	&binder_hud_params);	//--#SM+#--
+	r_Constant				("m_script_params",	&binder_script_params); //--#SM+#--
+	r_Constant				("m_blender_mode",	&binder_blend_mode);	//--#SM+#--
 
 	// detail
 	//if (bDetail	&& detail_scaler)

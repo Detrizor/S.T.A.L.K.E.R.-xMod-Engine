@@ -6,7 +6,7 @@
 #	include "xrserver_objects_alife_items.h"
 #endif
 
-CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpawnWithClientsMainEntityAsParent, CSE_Abstract* tpExistedEntity)
+CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, bool bSpawnWithClientsMainEntityAsParent, CSE_Abstract* tpExistedEntity, bool straight)
 {
 	// create server entity
 	xrClientData* CL	= ID_to_client	(sender);
@@ -129,39 +129,38 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 	}
 
 	// create packet and broadcast packet to everybody
-	NET_Packet				Packet;
-	if (CL) 
+	NET_Packet							Packet;
+	if (straight)
+	{
+		E->Spawn_Write					(Packet, FALSE);
+		if (E->s_flags.is(M_SPAWN_UPDATE))
+			E->UPDATE_Write				(Packet);
+		emitSpawn						(Packet);
+	}
+	else if (CL) 
 	{
 		// For local ONLY
-		E->Spawn_Write		(Packet,TRUE	);
+		E->Spawn_Write					(Packet, TRUE);
 		if (E->s_flags.is(M_SPAWN_UPDATE))
-			E->UPDATE_Write	(Packet);
-		SendTo				(CL->ID,Packet,net_flags(TRUE,TRUE));
+			E->UPDATE_Write				(Packet);
+		SendTo							(CL->ID, Packet, net_flags(TRUE, TRUE));
 
 		// For everybody, except client, which contains authorative copy
-		E->Spawn_Write		(Packet,FALSE	);
+		E->Spawn_Write					(Packet, FALSE);
 		if (E->s_flags.is(M_SPAWN_UPDATE))
-			E->UPDATE_Write	(Packet);
-		SendBroadcast		(CL->ID,Packet,net_flags(TRUE,TRUE));
-	} else {
-		E->Spawn_Write		(Packet,FALSE	);
-		if (E->s_flags.is(M_SPAWN_UPDATE))
-			E->UPDATE_Write	(Packet);
-		ClientID clientID;clientID.set(0);
-		SendBroadcast		(clientID, Packet, net_flags(TRUE,TRUE));
+			E->UPDATE_Write				(Packet);
+		SendBroadcast					(CL->ID, Packet, net_flags(TRUE, TRUE));
 	}
-	if (!tpExistedEntity)
+	else
 	{
-		game->OnPostCreate(E->ID);
-	};
+		E->Spawn_Write					(Packet, FALSE);
+		if (E->s_flags.is(M_SPAWN_UPDATE))
+			E->UPDATE_Write				(Packet);
+		SendBroadcast					(ClientID(0), Packet, net_flags(TRUE, TRUE));
+	}
 
-	// log
-	//Msg		("- SERVER: Spawning '%s'(%d,%d,%d) as #%d, on '%s'", E->s_name_replace, E->g_team(), E->g_squad(), E->g_group(), E->ID, CL?CL->Name:"*SERVER*");
-	return E;
+	if (!tpExistedEntity)
+		game->OnPostCreate				(E->ID);
+
+	return								E;
 }
-
-/*
-void spawn_WithPhantom
-void spawn_FromPhantom
-void spawn_Simple
-*/

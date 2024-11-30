@@ -87,7 +87,6 @@ const u32 v_clouds_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_SPECULAR;
 //-----------------------------------------------------------------------------
 // Environment render
 //-----------------------------------------------------------------------------
-extern ENGINE_API float psHUD_FOV;
 //BOOL bNeed_re_create_env = FALSE;
 void CEnvironment::RenderSky()
 {
@@ -117,7 +116,7 @@ void CEnvironment::RenderSky()
     // draw sky box
     Fmatrix mSky;
     mSky.rotateY (CurrentEnv->sky_rotation);
-    mSky.translate_over (Device.vCameraPosition);
+    mSky.translate_over (Device.camera.position);
 
     u32 i_offset,v_offset;
     u32 C = color_rgba(iFloor(CurrentEnv->sky_color.x*255.f), iFloor(CurrentEnv->sky_color.y*255.f), iFloor(CurrentEnv->sky_color.z*255.f), iFloor(CurrentEnv->weight*255.f));
@@ -162,7 +161,7 @@ void CEnvironment::RenderClouds()
     mScale.scale (10,0.4f,10);
     mXFORM.rotateY (CurrentEnv->sky_rotation);
     mXFORM.mulB_43 (mScale);
-    mXFORM.translate_over (Device.vCameraPosition);
+    mXFORM.translate_over (Device.camera.position);
 
     Fvector wd0,wd1;
     Fvector4 wind_dir;

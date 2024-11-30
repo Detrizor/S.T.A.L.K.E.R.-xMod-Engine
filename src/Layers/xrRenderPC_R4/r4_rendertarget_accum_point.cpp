@@ -10,8 +10,25 @@ void CRenderTarget::accum_point		(light* L)
 	if (!shader)
 	{
 		shader			= s_accum_point;
-      shader_msaa    = s_accum_point_msaa;
-	}	
+		shader_msaa		= s_accum_point_msaa;
+	}
+
+	Fmatrix Pold = Fidentity;
+	Fmatrix FTold = Fidentity;
+
+	if (L->flags.bHudMode)
+	{
+		Pold = Device.camera.project;
+		FTold = Device.camera.full_transform;
+		Device.camera.project.build_projection(
+			deg2rad(Device.camera.hud_fov),
+			Device.camera.aspect, VIEWPORT_NEAR,
+			g_pGamePersistent->Environment().CurrentEnv->far_plane);
+
+		Device.camera.full_transform.mul(Device.camera.project, Device.camera.view);
+		RCache.set_xform_project(Device.camera.project);
+		RImplementation.rmNear();
+	}
 
 	// Common
 	Fvector		L_pos;
@@ -20,13 +37,13 @@ void CRenderTarget::accum_point		(light* L)
 	float		L_R					= L->range*.95f;
 	Fvector		L_clr;				L_clr.set		(L->color.r,L->color.g,L->color.b);
 	L_spec							= u_diffuse2s	(L_clr);
-	Device.mView.transform_tiny		(L_pos,L->position);
+	Device.camera.view.transform_tiny		(L_pos,L->position);
 
 	// Xforms
 	L->xform_calc					();
 	RCache.set_xform_world			(L->m_xform);
-	RCache.set_xform_view			(Device.mView);
-	RCache.set_xform_project		(Device.mProject);
+	RCache.set_xform_view			(Device.camera.view);
+	RCache.set_xform_project		(Device.camera.project);
 	enable_scissor					(L);
 	enable_dbt_bounds				(L);
 
@@ -191,4 +208,13 @@ void CRenderTarget::accum_point		(light* L)
 	increment_light_marker();
 
 	u_DBT_disable				();
+
+	if (L->flags.bHudMode)
+	{
+		RImplementation.rmNormal();
+		// Restore projection
+		Device.camera.project = Pold;
+		Device.camera.full_transform = FTold;
+		RCache.set_xform_project(Device.camera.project);
+	}
 }

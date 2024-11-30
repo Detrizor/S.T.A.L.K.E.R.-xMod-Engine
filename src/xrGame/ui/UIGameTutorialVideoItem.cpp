@@ -77,7 +77,7 @@ void CUISequenceVideoItem::Load(CUIXml* xml, int idx)
 	if(!bFullScreen)
 	{
 		m_wnd->SetWndPos								(Fvector2().set(512.0f,384.0f));
-		m_wnd->SetAlignment								(waCenter);
+		m_wnd->SetAnchor								(aCenter);
 		Frect texture_coords							= m_wnd->GetUIStaticItem().GetTextureRect();
 
 		bool is_16_9									= UI().is_widescreen();

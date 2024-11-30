@@ -4,6 +4,7 @@
 #include "ui/UIStatic.h"
 #include "ui/UIBtnHint.h"
 #include "xrEngine/IInputReceiver.h"
+#include "xrEngine/xr_input.h"
 
 #define C_DEFAULT	D3DCOLOR_XRGB(0xff,0xff,0xff)
 
@@ -31,18 +32,27 @@ void CUICursor::OnScreenResolutionChanged()
 	InitInternal				();
 }
 
+void CUICursor::Show()
+{
+	bVisible = true;
+	::ClipCursor(nullptr);
+}
+
+void CUICursor::Hide()
+{
+	bVisible = false;
+	pInput->ClipCursor(true);
+}
+
 void CUICursor::InitInternal()
 {
 	m_static					= xr_new<CUIStatic>();
 	m_static->InitTextureEx		("ui\\ui_ani_cursor", "hud\\cursor");
 	Frect						rect;
-	rect.set					(12.0f, 12.0f, 52.0f, 52.0f);
+	rect.set					(0.f,0.f,128.f,128.f);
 	m_static->SetTextureRect	(rect);
-	Fvector2					sz;
-	sz.set						(40.f, 40.f);
-	sz.x						*= UI().get_current_kx();
 
-	m_static->SetWndSize		(sz);
+	m_static->SetWndSize		(Fvector2().set(24, 24));
 	m_static->SetStretchTexture	(true);
 
 	u32 screen_size_x	= GetSystemMetrics( SM_CXSCREEN );
@@ -99,8 +109,8 @@ void CUICursor::UpdateCursorPosition(int _dx, int _dy)
 	vPrevPos	= vPos;
 	if (m_b_use_win_cursor)
 	{
-        Ivector2 pti;
-        IInputReceiver::IR_GetMousePosReal(pti);
+		Ivector2 pti;
+		IInputReceiver::IR_GetMousePosReal(pti);
 		p.x			= (float)pti.x;
 		p.y			= (float)pti.y;
 		vPos.x		= p.x * (UI_BASE_WIDTH/(float)Device.dwWidth);
@@ -121,7 +131,7 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 	POINT		p;
 	p.x			= iFloor(vPos.x / (UI_BASE_WIDTH/(float)Device.dwWidth));
 	p.y			= iFloor(vPos.y / (UI_BASE_HEIGHT/(float)Device.dwHeight));
-    if (m_b_use_win_cursor)
-        ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
+	if (m_b_use_win_cursor)
+		ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
 	SetCursorPos(p.x, p.y);    
 }

@@ -355,12 +355,6 @@
     <ClCompile Include="..\..\xrServerEntities\PHSynchronize.cpp">
       <Filter>ALife\Shared\Server</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xrServerEntities\smart_cast.cpp">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xrServerEntities\smart_cast_stats.cpp">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClCompile>
     <ClCompile Include="buffer_vector.cpp">
       <Filter>ALife\Shared\buffer_vector</Filter>
     </ClCompile>
@@ -393,6 +387,9 @@
     </ClCompile>
     <ClCompile Include="guid_generator.cpp">
       <Filter>ALife\guid_generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_Modules.cpp">
+      <Filter>ALife\Shared\ServerEntities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -834,18 +831,6 @@
     <ClInclude Include="..\..\xrServerEntities\clsid_game.h">
       <Filter>ALife\Shared\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xrServerEntities\smart_cast.h">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xrServerEntities\smart_cast_impl0.h">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xrServerEntities\smart_cast_impl1.h">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xrServerEntities\smart_cast_impl2.h">
-      <Filter>ALife\Shared\Common</Filter>
-    </ClInclude>
     <ClInclude Include="profiler.h">
       <Filter>ALife\Shared\Common</Filter>
     </ClInclude>
@@ -917,6 +902,9 @@
     </ClInclude>
     <ClInclude Include="guid_generator.h">
       <Filter>ALife\guid_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xrServerEntities\xrServer_Objects_Modules.h">
+      <Filter>ALife\Shared\ServerEntities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

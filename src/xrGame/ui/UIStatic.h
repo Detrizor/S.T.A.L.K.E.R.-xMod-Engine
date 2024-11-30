@@ -107,15 +107,26 @@ public:
 	shared_str		m_stat_hint_text;
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+public:
+			Frect			m_TextureMargin;
+
+	virtual void			SetTextureMargin		(float margin)							{ m_TextureMargin.set(margin, margin, margin, margin); };
+
+protected:
+	bool								m_base_foreground_draw					= false;
+
+public:
+	void								setBaseForegroundDraw					(bool status)		{ m_base_foreground_draw = status; }
 };
 
 class CUITextWnd :public CUIWindow, public CUILightAnimColorConrollerImpl
 {
 	typedef CUIWindow	inherited;
-	CUILines			m_lines;
+	CUILines*			m_lines;
 public:
 						CUITextWnd				();
-	virtual				~CUITextWnd				(){};
+						~CUITextWnd				();
 	virtual void		Draw					();
 	virtual void		Update					();
 
@@ -138,5 +149,5 @@ public:
 
 	virtual void		ColorAnimationSetTextColor(u32 color, bool only_alpha);
 
-	CUILines&			TextItemControl			()							{return m_lines;}
+	CUILines&			TextItemControl			();
 };

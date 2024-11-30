@@ -16,8 +16,6 @@ class CCharacterPhysicsSupport;
 class ICollisionDamageInfo;
 class CIKLimbsController;
 
-
-
 class CPhysicsShellHolder:  public CGameObject,
 							public CParticlesPlayer,
 							public IObjectPhysicsCollision,
@@ -25,10 +23,12 @@ class CPhysicsShellHolder:  public CGameObject,
 	
 {
 	bool				b_sheduled;
+
 public:
 	void	SheduleRegister		(){if(!IsSheduled())shedule_register();b_sheduled=true;}
 	void	SheduleUnregister	(){if(IsSheduled())shedule_unregister();b_sheduled=false;}
 IC	bool	IsSheduled			(){return b_sheduled;}	
+
 public:
 
 	typedef CGameObject inherited;
@@ -39,8 +39,6 @@ public:
 
 			CPhysicsShellHolder							();
 	virtual	~CPhysicsShellHolder						();
-
-	virtual bool		ActivationSpeedOverriden (Fvector& dest, bool clear_override) { return false; }
 
 	IC CPhysicsShell	*&PPhysicsShell				()		
 	{
@@ -68,6 +66,7 @@ public:
 	virtual ICollisionHitCallback		*get_collision_hit_callback ()							{return NULL;}
 	virtual void						set_collision_hit_callback	(ICollisionHitCallback *cc)	{;}
 	virtual void			_BCL			enable_notificate			()							{;}
+
 public:
 
 	virtual void			PHGetLinearVell		(Fvector& velocity);
@@ -101,14 +100,17 @@ public:
 	//для наследования CParticlesPlayer
 	virtual void			UpdateCL			();
 			void			correct_spawn_pos	();
+
 protected:
 	virtual	bool			has_shell_collision_place( const CPhysicsShellHolder* obj ) const;
 	virtual void			on_child_shell_activate	 ( CPhysicsShellHolder* obj );
+
 public:
 	virtual bool			register_schedule	() const;
 
 public:
 	virtual	void					_BCL					on_physics_disable					();
+
 private://IPhysicsShellHolder
 	virtual	Fmatrix&				_BCL					ObjectXFORM							()						;
 	virtual	Fvector&				_BCL					ObjectPosition						()						;
@@ -143,6 +145,13 @@ private://IPhysicsShellHolder
 	virtual	std::string				_BCL					dump								(EDumpType type) const  ;
 #endif
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	Fvector								m_overriden_activation_speed			= vZero;
+	bool								m_activation_speed_is_overriden			= false;
+
+public:
+	void								setActivationSpeedOverride				(Fvector CR$ speed)		{ m_overriden_activation_speed = speed; m_activation_speed_is_overriden = true; }
 };
 
 add_to_type_list(CPhysicsShellHolder)

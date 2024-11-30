@@ -92,7 +92,7 @@ void CUICDkey::Draw()
 	GetAbsoluteRect				(rect);
 	Fvector2					out;
 
-	out.y						= (m_wndSize.y - TextItemControl()->m_pFont->CurrentHeight_())/2.0f;
+	out.y						= (GetWndSize().y - TextItemControl()->m_pFont->CurrentHeight_())/2.0f;
 	out.x						= TextItemControl()->m_TextOffset.x + TextItemControl()->GetIndentByAlign();
 	TextItemControl()->m_pFont->SetColor	(TextItemControl()->GetTextColor());
 	TextItemControl()->m_pFont->SetAligment	(TextItemControl()->GetTextAlignment());
@@ -120,18 +120,12 @@ void CUICDkey::Draw()
 		TextItemControl()->m_pFont->Out	( pos.x, pos.y, "%s", AddHyphens( res ) );
 		
 		float _h				= TextItemControl()->m_pFont->CurrentHeight_();
-		UI().ClientToScreenScaledHeight(_h);
-		
-		out.y					= rect.top + (m_wndSize.y - _h)/2.0f;
-		
+		out.y					= rect.top + (GetWndSize().y - _h)/2.0f;
 		float	w_tmp			= 0.0f;
 		int i					= (int)xr_strlen( res1 );
 		w_tmp					= TextItemControl()->m_pFont->SizeOf_( res1 );
-		UI().ClientToScreenScaledWidth( w_tmp );
 		out.x					= rect.left + w_tmp;
-		
 		w_tmp					= TextItemControl()->m_pFont->SizeOf_("-");
-		UI().ClientToScreenScaledWidth( w_tmp );
 		
 		if(i>3)
 			out.x	+= w_tmp;

@@ -27,8 +27,6 @@ void CArtefact::script_register(lua_State *L)
 		.def("ActivateArtefact",					&CArtefact::ActivateArtefact)
 		.def("CanBeActivated",						&CArtefact::CanBeActivated)
 		.def_readwrite("m_bCanSpawnZone",			&CArtefact::m_bCanSpawnZone)
-		.def_readwrite("radiation_speed",			&CArtefact::m_fRadiationRestoreSpeed)
-		.def_readwrite("weight_dump",				&CArtefact::m_fWeightDump)
 		.def("FollowByPath",						&CArtefact::FollowByPath)
 		.def("SwitchVisibility",					&CArtefact::SwitchVisibility)
 		.def("GetAfRank",							&CArtefact::GetAfRank),

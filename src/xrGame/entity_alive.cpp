@@ -20,6 +20,7 @@
 #include "game_object_space.h"
 #include "material_manager.h"
 #include "game_base_space.h"
+#include "ai\Monsters\BaseMonster\base_monster.h"
 
 #define SMALL_ENTITY_RADIUS		0.6f
 #define BLOOD_MARKS_SECT		"bloody_marks"
@@ -267,12 +268,6 @@ void CEntityAlive::HitImpulse	(float /**amount/**/, Fvector& /**vWorldDir/**/, F
 void	CEntityAlive::Hit(SHit* pHDS)
 {
 	SHit HDS = *pHDS;
-	//-------------------------------------------------------------------
-	if (HDS.hit_type == ALife::eHitTypeWound_2)
-		HDS.hit_type = ALife::eHitTypeWound;
-	if (HDS.hit_type == ALife::eHitTypeLightBurn)
-		HDS.hit_type = ALife::eHitTypeBurn;
-	//-------------------------------------------------------------------
 
 	//изменить состояние, перед тем как родительский класс обработает хит
 	if (!smart_cast<CAI_Stalker*>(this))
@@ -307,7 +302,6 @@ void	CEntityAlive::Hit(SHit* pHDS)
 			RELATION_REGISTRY().Action(EA, this, RELATION_REGISTRY::ATTACK);
 		}
 	}
-
 }
 
 void CEntityAlive::OnEvent(NET_Packet& P, u16 type)
@@ -844,7 +838,7 @@ void CEntityAlive::fill_hit_bone_surface_areas		( ) const
 		m_hit_bone_surface_areas.push_back	( std::make_pair(i, surface_area) );
 	}
 
-	std::sort							( m_hit_bone_surface_areas.begin(), m_hit_bone_surface_areas.end(), sort_surface_area_predicate() );
+	m_hit_bone_surface_areas.sort(sort_surface_area_predicate());
 }
 
 BOOL g_ai_use_old_vision				= 0;
@@ -979,4 +973,24 @@ Fvector CEntityAlive::get_last_local_point_on_mesh	( Fvector const& last_point, 
 
 	XFORM().transform_tiny				( result, Fvector(result) );
 	return								result;
+}
+
+float CEntityAlive::GetProtection(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type) const
+{
+	const CInventoryOwner* io = smart_cast<const CInventoryOwner*>(this);
+	if (io)
+		return io->GetProtection(outfit, helmet, bone_id, hit_type);
+
+	const CBaseMonster* bm = smart_cast<const CBaseMonster*>(this);
+	if (bm)
+		return bm->GetSkinArmor();
+
+	return 0.f;
+}
+
+float CEntityAlive::GetBoneArmor(u16 bone_id) const
+{
+	CCustomOutfit* to;
+	CHelmet* th;
+	return GetProtection(to, th, bone_id, ALife::eHitTypeFireWound);
 }

@@ -236,7 +236,7 @@ float CParticlesObject::shedule_Scale		()
 { 
 	if(g_dedicated_server)		return 5.0f;
 
-	return Device.vCameraPosition.distance_to(Position())/200.f; 
+	return Device.camera.position.distance_to(Position())/200.f; 
 }
 
 void CParticlesObject::renderable_Render	()

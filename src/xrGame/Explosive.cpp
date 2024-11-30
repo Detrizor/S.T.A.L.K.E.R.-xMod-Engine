@@ -103,9 +103,10 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 	frag_fSpeed				= ini->r_float(section, "fragment_speed");
 	frag_fMass				= READ_IF_EXISTS(ini, r_float, section, "fragment_mass", 1.f);
 
-	float size				= READ_IF_EXISTS(ini, r_float, section, "fragment_size", 3.f);
-	float area				= PI * pow((size / 2), 2);
-	frag_fResist			= (size > 0.f) ? (area / 1.5f) : EPS;
+	float size				= READ_IF_EXISTS(ini, r_float, section, "fragment_size", 2.f);
+	float area				= PI * pow((size / 2.f), 2);
+	float sharpness			= READ_IF_EXISTS(ini, r_float, section, "fragment_sharpness", 1.f);
+	frag_fResist			= area / sharpness;
 
 	m_eHitTypeBlast			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_blast"));
 	m_eHitTypeFrag			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_frag"));
@@ -138,7 +139,7 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 	m_bHideInExplosion = TRUE;
 	if (ini->line_exist(section, "hide_in_explosion"))
 	{
-		m_bHideInExplosion = ini->r_bool(section, "hide_in_explosion");
+		m_bHideInExplosion = ini->r_BOOL(section, "hide_in_explosion");
 		m_fExplodeHideDurationMax = 0;
 		if (ini->line_exist(section, "explode_hide_duration"))
 		{
@@ -148,7 +149,7 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 
 	m_bDynamicParticles	 = FALSE;
 	if (ini->line_exist(section, "dynamic_explosion_particles"))
-		m_bDynamicParticles = ini->r_bool(section, "dynamic_explosion_particles");
+		m_bDynamicParticles = ini->r_BOOL(section, "dynamic_explosion_particles");
 }
 
 void CExplosive::net_Destroy	()
@@ -380,8 +381,9 @@ void CExplosive::Explode()
 		
 		CCartridge cartridge;
 		cartridge.param_s.fBulletMass		= frag_fMass;
-		cartridge.param_s.mHollowPoint		= false;
+		cartridge.param_s.bullet_hollow_point = false;
 		cartridge.param_s.fBulletResist		= frag_fResist;
+		cartridge.param_s.fAirResist		= Level().BulletManager().m_fBulletAirResistanceScale * frag_fResist * .000001f / frag_fMass;
 		cartridge.bullet_material_idx		= GMLib.GetMaterialIdx(WEAPON_MATERIAL_NAME);
 		cartridge.m_flags.set				(CCartridge::cfTracer,FALSE);
 

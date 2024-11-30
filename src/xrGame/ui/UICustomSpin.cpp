@@ -57,14 +57,13 @@ void CUICustomSpin::InitSpin(Fvector2 pos, Fvector2 size)
 	m_pFrameLine->SetWndSize	(Fvector2().set(size.x, SPIN_HEIGHT));
 	m_pFrameLine->InitTexture	("ui_inGame2_spin_box","hud\\default");
 
-	m_pBtnUp->InitButton		(Fvector2().set(size.x-BTN_SIZE_X-2.0f, 1.0f),Fvector2().set(BTN_SIZE_X, BTN_SIZE_Y));
+	m_pBtnUp->InitButton		(Fvector2().set(size.x-BTN_SIZE_X-2.0f, 1.0f), Fvector2().set(BTN_SIZE_X, BTN_SIZE_Y));
 	m_pBtnUp->InitTexture		("ui_inGame2_spin_box_button_top");
 
-	m_pBtnDown->InitButton		(Fvector2().set(size.x-BTN_SIZE_X-2.0f, BTN_SIZE_Y+2.0f),Fvector2().set(BTN_SIZE_X, BTN_SIZE_Y));
+	m_pBtnDown->InitButton		(Fvector2().set(size.x-BTN_SIZE_X-2.0f, BTN_SIZE_Y+2.0f), Fvector2().set(BTN_SIZE_X, BTN_SIZE_Y));
 	m_pBtnDown->InitTexture		("ui_inGame2_spin_box_button_bottom");
 
-	m_pLines->m_wndPos.set		(Fvector2().set(0,0));
-	m_pLines->m_wndSize.set		(Fvector2().set(size.x-BTN_SIZE_X-10.0f, SPIN_HEIGHT));
+	m_pLines->SetParentWnd		(this);
 }
 
 void CUICustomSpin::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
@@ -109,7 +108,7 @@ void CUICustomSpin::Draw()
 	CUIWindow::Draw	();
 	Fvector2		pos;
 	GetAbsolutePos	(pos);
-	m_pLines->Draw	(pos.x + 3, pos.y);
+	m_pLines->Draw(pos.x + 3, pos.y);
 }
 
 void CUICustomSpin::Update()

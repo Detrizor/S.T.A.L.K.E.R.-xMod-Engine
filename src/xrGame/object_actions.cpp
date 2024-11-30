@@ -12,7 +12,6 @@
 #include "ai/stalker/ai_stalker.h"
 #include "xr_level_controller.h"
 #include "xrmessages.h"
-#include "fooditem.h"
 #include "weapon.h"
 #include "weaponmagazined.h"
 #include "object_handler_space.h"
@@ -119,7 +118,6 @@ void CObjectActionHide::finalize	()
 
 	hud_item->StopCurrentAnimWithoutCallback( );
 	hud_item->SetState				( CHUDState::eIdle);
-	hud_item->SetNextState			( CHUDState::eIdle);
 }
 
 // to prevent several recharges
@@ -135,8 +133,8 @@ static bool try_advance_ammo		(CWeapon const& weapon)
 			CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
 			if(l_pAmmo && !xr_strcmp(l_pAmmo->cNameSect(), l_ammoType)) 
 			{
-				if (l_pAmmo->m_boxCurr < l_pAmmo->m_boxSize) {
-					l_pAmmo->m_boxCurr	= l_pAmmo->m_boxSize;
+				if (l_pAmmo->GetAmmoCount() < l_pAmmo->m_boxSize) {
+					l_pAmmo->SetAmmoCount(l_pAmmo->m_boxSize);
 					return				(true);
 				}
 			}

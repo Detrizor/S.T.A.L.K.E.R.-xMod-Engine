@@ -183,15 +183,24 @@ MotionID CStalkerAnimationManager::weapon_animation	(u32 slot, const EBodyState 
 		return (animation[15].A[0]);
 	}
 
-	switch (m_weapon->GetState()) {
-		case CWeapon::eReload : {
-			switch (m_weapon->GetReloadState()){
+	switch (m_weapon->GetState())
+	{
+		case CWeapon::eReload:
+		{
+			switch (m_weapon->GetReloadState())
+			{
 				case CWeapon::eSubstateReloadBegin:
+				case CWeapon::eSubstateReloadDetach:
+				case CWeapon::eSubstateReloadAttach:
 					return			(animation[4].A[0]);
 				case CWeapon::eSubstateReloadInProcess:
 					return			(animation[4].A[1]);
 				case CWeapon::eSubstateReloadEnd:
 					return			(animation[4].A[2]);
+				case CWeapon::eSubstateReloadBoltPull:
+				case CWeapon::eSubstateReloadBoltLock:
+				case CWeapon::eSubstateReloadBoltRelease:
+					return			(torso().select(animation[0].A));
 
 				default:			NODEFAULT;
 			}

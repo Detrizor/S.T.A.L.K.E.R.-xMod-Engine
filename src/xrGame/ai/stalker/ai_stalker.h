@@ -115,6 +115,7 @@ private:
 	float							m_disp_stand_crouch;
 	float							m_disp_stand_stand_zoom;
 	float							m_disp_stand_crouch_zoom;
+	float							m_accuracy_k;
 
 private:
 	float							m_power_fx_factor;
@@ -262,7 +263,7 @@ public:
 			bool						ready_to_detour			();
 			void						update_best_item_info	();
 			void						update_best_item_info_impl();
-	virtual float						GetWeaponAccuracy		() const;
+	virtual float						getWeaponDispersion		() const;
 	virtual bool						unlimited_ammo			();
 	virtual	void						spawn_supplies			();
 	IC		CAgentManager				&agent_manager			() const;
@@ -802,9 +803,6 @@ public:
 public:
 	typedef fastdelegate::FastDelegate<void (Fmatrix& )>							EyeMatrixCallback;
 
-private:
-	virtual BOOL						AlwaysTheCrow								();
-
 public:
 	IC		void						take_items_enabled							(bool value);
 	IC		bool						take_items_enabled							() const;
@@ -831,7 +829,17 @@ private:
 
 public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	float mutable						m_weapon_accuracy						= 1.f;
+	bool								m_in_combat								= false;
+
+	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
+	
+protected:
+	bool								alwaysUpdate						O$	();
 };
+
 add_to_type_list(CAI_Stalker)
 #undef script_type_list
 #define script_type_list save_type_list(CAI_Stalker)

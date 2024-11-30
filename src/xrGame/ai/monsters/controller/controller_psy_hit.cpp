@@ -245,8 +245,8 @@ void CControllerPsyHit::death_glide_start()
 	target_pos.mad		(src_pos,dir, 0.01f + actor_psy_immunity*(dist-4.8f) );
 
 
-	float const base_fov	=	g_fov;
-	float const dest_fov	=	g_fov - (g_fov-10.f)*actor_psy_immunity;
+	float const base_fov	= Device.gFOV;
+	float const dest_fov	= Device.gFOV - (Device.gFOV - 10.f) * actor_psy_immunity;
 	
 	Actor()->Cameras().AddCamEffector(xr_new<CControllerPsyHitCamEffector>(eCEControllerPsyHit, src_pos,target_pos, 
 										m_man->animation().motion_time(m_stage[1], m_object->Visual()),

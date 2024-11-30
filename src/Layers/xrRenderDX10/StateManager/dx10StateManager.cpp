@@ -248,7 +248,7 @@ void dx10StateManager::SetStencil(u32 Enable, u32 Func, u32 Ref, u32 Mask, u32 W
 	if( m_DSDesc.StencilWriteMask != SMask)
 	{
 		m_bDSSChanged = true;
-      m_DSDesc.StencilWriteMask = SMask;
+	  m_DSDesc.StencilWriteMask = SMask;
 	}
 
 	//if (stencil_fail		!= _fail)		{ stencil_fail=_fail;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILFAIL,		_fail				)); }
@@ -339,11 +339,7 @@ void dx10StateManager::SetColorWriteEnable(u32 WriteMask)
 	bool	bNeedUpdate = false;
 	for (int i=0; i<4; ++i)
 	{
-#ifdef USE_DX11
 		if (m_BDesc.RenderTarget[i].RenderTargetWriteMask!=WMask)
-#else
-		if (m_BDesc.RenderTargetWriteMask[i]!=WMask)
-#endif
 			bNeedUpdate = true;
 	}
 
@@ -351,11 +347,7 @@ void dx10StateManager::SetColorWriteEnable(u32 WriteMask)
 	{
 		m_bBSChanged = true;
 		for (int i=0; i<4; ++i)
-#ifdef USE_DX11
 			m_BDesc.RenderTarget[i].RenderTargetWriteMask = WMask;
-#else
-			m_BDesc.RenderTargetWriteMask[i] = WMask;
-#endif
 	}
 }
 
@@ -363,7 +355,7 @@ void dx10StateManager::SetSampleMask( u32 SampleMask )
 {
    if( m_uiSampleMask != SampleMask )
    {
-      m_uiSampleMask = SampleMask;
+	  m_uiSampleMask = SampleMask;
 		m_bBSNeedApply = true;
    }
 }

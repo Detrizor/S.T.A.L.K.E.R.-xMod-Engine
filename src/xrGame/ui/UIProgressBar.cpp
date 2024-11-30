@@ -25,11 +25,9 @@ CUIProgressBar::~CUIProgressBar(void)
 {
 }
 
-void CUIProgressBar::InitProgressBar(Fvector2 pos, Fvector2 size, EOrientMode mode)
+void CUIProgressBar::InitProgressBar(EOrientMode mode)
 {
 	m_orient_mode			= mode;
-	SetWndPos				(pos);
-	SetWndSize				(size);
 	UpdateProgressBar		();
 }
 

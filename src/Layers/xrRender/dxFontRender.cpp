@@ -3,9 +3,11 @@
 
 #include "../../xrEngine/GameFont.h"
 
+extern ENGINE_API BOOL		g_bRendering;
+extern ENGINE_API float		psUI_SCALE;
+
 dxFontRender::dxFontRender()
 {
-
 }
 
 dxFontRender::~dxFontRender()
@@ -19,8 +21,7 @@ void dxFontRender::Initialize(LPCSTR cShader, LPCSTR cTexture)
 	pShader.create(cShader, cTexture);
 	pGeom.create(FVF::F_TL, RCache.Vertex.Buffer(), RCache.QuadIB);
 }
-extern ENGINE_API BOOL g_bRendering;
-extern ENGINE_API Fvector2		g_current_font_scale;
+
 void dxFontRender::OnRender(CGameFont &owner)
 {
 	VERIFY				(g_bRendering);
@@ -67,7 +68,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 			if (len) {
 				float	X	= float(iFloor(PS.x));
 				float	Y	= float(iFloor(PS.y));
-				float	S	= PS.height*g_current_font_scale.y;
+				float	S	= floor(PS.height * psUI_SCALE);
 				float	Y2	= Y+S;
 				float fSize = 0;
 
@@ -77,10 +78,10 @@ void dxFontRender::OnRender(CGameFont &owner)
 				switch ( PS.align )
 				{
 				case CGameFont::alCenter:	
-					X	-= ( iFloor( fSize * 0.5f ) ) * g_current_font_scale.x;	
+					X	-= ( floor( fSize * .5f ) );	
 					break;
 				case CGameFont::alRight:	
-					X	-=	iFloor( fSize );
+					X	-=	floor( fSize );
 					break;
 				}
 
@@ -93,12 +94,10 @@ void dxFontRender::OnRender(CGameFont &owner)
 					u32	_A	= color_get_A	(clr);
 					clr2	= color_rgba	(_R,_G,_B,_A);
 				}
-
-#if defined(USE_DX10) || defined(USE_DX11)		//	Vertex shader will cancel a DX9 correction, so make fake offset
+				
 				X			-= 0.5f;
 				Y			-= 0.5f;
 				Y2			-= 0.5f;
-#endif	//	USE_DX10
 
 				float	tu,tv;
 				for (int j=0; j<len; j++)
@@ -107,8 +106,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 
 					l = owner.IsMultibyte() ? owner.GetCharTC( wsStr[ 1 + j ] ) : owner.GetCharTC( ( u16 ) ( u8 ) PS.string[j] );
 
-					float scw		= l.z * g_current_font_scale.x;
-
+					float scw		= floor(l.z * psUI_SCALE);
 					float fTCWidth	= l.z/owner.vTS.x;
 
 					if (!fis_zero(l.z))
@@ -117,13 +115,6 @@ void dxFontRender::OnRender(CGameFont &owner)
 //						tv			= ( l.y / owner.vTS.y ) + ( 0.5f / owner.vTS.y );
 						tu			= ( l.x / owner.vTS.x );
 						tv			= ( l.y / owner.vTS.y );
-#ifndef USE_DX10
-#	ifndef USE_DX11
-						//	Make half pixel offset for 1 to 1 mapping
-						tu			+=( 0.5f / owner.vTS.x );
-						tv			+=( 0.5f / owner.vTS.y );
-#	endif
-#endif	//	USE_DX10
 
 						v->set( X , Y2 , clr2 , tu , tv + owner.fTCHeight );						v++;
 						v->set( X ,	Y , clr , tu , tv );									v++;

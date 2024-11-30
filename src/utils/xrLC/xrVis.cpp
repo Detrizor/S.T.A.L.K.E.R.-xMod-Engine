@@ -18,8 +18,9 @@ struct V_Header {
 
 u32 PlaceData(xr_vector<vecW> &C, vecW &P)
 {
-	if (P.size()>1) {
-		std::sort	(P.begin(),P.end());
+	if (P.size()>1)
+	{
+		P.sort();
 		vecW::iterator I = std::unique	(P.begin(),P.end());
 		P.erase(I,P.end());
 	}
@@ -106,7 +107,7 @@ void CalculateRelSet(Fvector &pos, vecW &rel_set)
 	}
 	if (rel_set.size()>1)
 	{
-		std::sort(rel_set.begin(),rel_set.end());
+		rel_set.sort();
 		vecW_IT I = std::unique(rel_set.begin(),rel_set.end());
 		rel_set.erase(I,rel_set.end());
 	}
@@ -178,8 +179,8 @@ void CBuild::BuildRelevance(IWriter &fs)
 					// Unroll hierrarhy
 					VERIFY(g_TREE_ROOT);
 					g_TREE_ROOT->VisUnroll(pos,unroll);
-					if (unroll.size()>1)
-						std::sort(unroll.begin(),unroll.end());
+					if (unroll.size() > 1)
+						unroll.sort();
 					// Capture results
 					if (g_TREE_ROOT->VisCapture(unroll,rel_set))
 						rel_set.push_back(g_tree.size()-1);

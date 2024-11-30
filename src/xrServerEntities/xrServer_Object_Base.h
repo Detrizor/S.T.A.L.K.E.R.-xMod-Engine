@@ -47,7 +47,18 @@ SERVER_ENTITY_DECLARE_BEGIN(CPureServerObject,IPureServerObject)
 add_to_type_list(CPureServerObject)
 #define script_type_list save_type_list(CPureServerObject)
 
-SERVER_ENTITY_DECLARE_BEGIN3(CSE_Abstract,ISE_Abstract,CPureServerObject,CScriptValueContainer)
+class CSE_Abstract :
+	public ISE_Abstract,
+	public CPureServerObject,
+	public CScriptValueContainer
+{
+typedef ISE_Abstract inherited1;
+typedef CPureServerObject inherited2;
+typedef CScriptValueContainer inherited3;
+
+public:
+	static void script_register(lua_State*);
+
 public:
 	enum ESpawnFlags {
 		flSpawnEnabled				= u32(1 << 0),

@@ -18,6 +18,10 @@
 #include "xrserver_objects_alife_items.h"
 #include "script_export_space.h"
 
+bool	ItemCategory		(const shared_str& section, LPCSTR cmp);
+bool	ItemSubcategory		(const shared_str& section, LPCSTR cmp);
+bool	ItemDivision		(const shared_str& section, LPCSTR cmp);
+
 enum EHandDependence{
 	hdNone	= 0,
 	hd1Hand	= 1,
@@ -26,7 +30,6 @@ enum EHandDependence{
 
 class CSE_Abstract;
 class CGameObject;
-class CFoodItem;
 class CMissile;
 class CHudItem;
 class CWeaponAmmo;
@@ -44,6 +47,9 @@ struct SHit;
 class CSE_ALifeInventoryItem;
 typedef CSE_ALifeInventoryItem::mask_num_items	mask_inv_num_items;
 
+class CUICellItem;
+struct CUICIDeleter;
+
 struct net_update_IItem
 {
 	u32					dwTimeStamp;
@@ -57,47 +63,41 @@ struct net_updateInvData
 	u32				m_dwIEndTime;
 };
 
-
-class CInventoryItem : 
-	public CAttachableItem,
-	public CHitImmunity
+class CInventoryItem : public CAttachableItem,
+public CHitImmunity
 #ifdef DEBUG
 	, public pureRender
 #endif
 {
-private:
 	typedef CAttachableItem inherited;
+
+public:
+	CGameObject& O;
+
 protected:
 	enum EIIFlags{				FdropManual			=(1<<0),
 								FCanTake			=(1<<1),
 								FCanTrade			=(1<<2),
-								Fbelt				=(1<<3),
-								Fruck				=(1<<4),
-								FRuckDefault		=(1<<5),
-								FUsingCondition		=(1<<6),
-								FAllowSprint		=(1<<7),
-								Fuseful_for_NPC		=(1<<8),
-								FInInterpolation	=(1<<9),
-								FInInterpolate		=(1<<10),
-								FIsQuestItem		=(1<<11),
-								FIsHelperItem		=(1<<12),
-								FCanStack			=(1<<13),
-								FShowFullCondition	=(1<<14)
+								FUsingCondition		=(1<<3),
+								FAllowSprint		=(1<<4),
+								Fuseful_for_NPC		=(1<<5),
+								FInInterpolation	=(1<<6),
+								FInInterpolate		=(1<<7),
+								FIsQuestItem		=(1<<8),
+								FIsHelperItem		=(1<<9),
+								FCanStack			=(1<<10),
+								FShowFullCondition	=(1<<11)
 	};
 
 	Flags16						m_flags;
 	BOOL						m_can_trade;
+
 public:
-								CInventoryItem		();
+								CInventoryItem		(CGameObject* obj);
 	virtual						~CInventoryItem		();
 
 public:
 	virtual void				Load				(LPCSTR section);
-
-			LPCSTR				NameItem			();// remove <virtual> by sea
-			LPCSTR				NameShort			();
-	shared_str					ItemDescription		() { return m_Description; }
-	virtual bool				GetBriefInfo		(II_BriefInfo& info) { info.clear(); return false; }
 	
 	virtual void				OnEvent				(NET_Packet& P, u16 type);
 	
@@ -105,23 +105,17 @@ public:
 	virtual bool				IsUsingCondition	() const { return (m_flags.test(FUsingCondition) > 0); };
 	virtual bool				ShowFullCondition	() const { return (m_flags.test(FShowFullCondition) > 0); };
 	virtual bool				CanStack			() const;
-	virtual bool				Attach				(PIItem pIItem, bool b_send_event) {return false;}
-	virtual bool				Detach				(PIItem pIItem) {return false;}
-	//при детаче спаунится новая вещь при заданно названии секции
-	virtual bool				Detach				(const char* item_section_name, bool b_spawn_item);
-	virtual bool				CanAttach			(PIItem pIItem) {return false;}
-	virtual bool				CanDetach			(LPCSTR item_section_name) {return false;}
 
 	virtual EHandDependence		HandDependence		()	const	{return hd1Hand;};
 	virtual bool				IsSingleHanded		()	const	{return true;};	
-	virtual bool				ActivateItem		();									// !!! Переопределить. (см. в Inventory.cpp)
-	virtual void				DeactivateItem		();								// !!! Переопределить. (см. в Inventory.cpp)
-	virtual bool				Action				(u16 cmd, u32 flags) {return false;}	// true если известная команда, иначе false
+	virtual bool				ActivateItem		(u16 prev_slot = u16_max)		{ return false; }		// !!! Переопределить. (см. в Inventory.cpp)
+	virtual void				DeactivateItem		(u16 slot = u16_max)			{}						// !!! Переопределить. (см. в Inventory.cpp)
+	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}			// true если известная команда, иначе false
 	virtual void				DiscardState		() {};
 
 	virtual void				OnH_B_Chield		();
 	virtual void				OnH_A_Chield		();
-    virtual void				OnH_B_Independent	(bool just_before_destroy);
+	virtual void				OnH_B_Independent	(bool just_before_destroy);
 	virtual void				OnH_A_Independent	();
 
 	virtual void				save				(NET_Packet &output_packet);
@@ -141,42 +135,26 @@ public:
 			BOOL				IsInvalid			() const;
 
 			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}
-	virtual	float				Cost				()	const;
-	virtual float				Weight				() 	const	{ return m_weight;}
-			void				SetWeight			(float w)	{ m_weight = w; }
-	virtual float				Volume				() 	const	{ return m_volume;}
-			void				SetVolume			(float v)	{ m_volume = v; }
-			shared_str			FullClass			(bool with_division = false);
-			bool				PercentCondition	() const	{ return m_bPercentCondition; }
 
 public:
 	CInventory*					m_pInventory;
 	shared_str					m_section_id;
-	shared_str					m_main_class;
-	shared_str					m_subclass;
-	shared_str					m_division;
-	shared_str					m_name;
-	shared_str					m_nameShort;
-	shared_str					m_nameComplex;
 	bool						m_highlight_equipped;
 
 	SInvItemPlace				m_ItemCurrPlace;
-	SInvItemPlace				m_ItemCurrPlaceBackup;
 
-
-	virtual void				OnMoveToSlot		(const SInvItemPlace& prev) {};
-	virtual void				OnMoveToBelt		(const SInvItemPlace& prev) {};
-	virtual void				OnMoveToRuck		(const SInvItemPlace& prev) {};
+	virtual void				OnMoveToSlot		(SInvItemPlace CR$ prev);
+	virtual void				OnMoveToRuck		(SInvItemPlace CR$ prev);
 					
-			Irect				GetInvGridRect		() const;
+	virtual	Frect				GetIconRect			() const;
 			Irect				GetUpgrIconRect		() const;
 			const shared_str&	GetIconName			() const		{return m_icon_name;};
 			Frect				GetKillMsgRect		() const;
 	//---------------------------------------------------------------------
-	IC		float				GetCondition		() const					{return m_fCondition;}
+	IC		float				GetCondition		() const					{return m_condition;}
 			float				GetConditionToWork	() const;
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
-	IC		void				SetCondition		(float val)					{m_fCondition = val;}
+			void				SetCondition		(float val, bool recursive = false);
 			void				ChangeCondition		(float fDeltaCondition);
 
 			u16					BaseSlot			()  const					{return m_ItemCurrPlace.base_slot_id;}
@@ -186,10 +164,6 @@ public:
 			u16					CurrPlace			()  const					{return m_ItemCurrPlace.type;}
 
 			bool				InHands				()	const;
-
-			bool				Ruck				()							{return !!m_flags.test(Fruck);}
-			void				Ruck				(bool on_ruck)				{m_flags.set(Fruck,on_ruck);}
-			bool				RuckDefault			()							{return !!m_flags.test(FRuckDefault);}
 			
 	virtual bool				CanTake				() const					{return !!m_flags.test(FCanTake);}
 			bool				CanTrade			() const;
@@ -199,17 +173,6 @@ public:
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
 
-	float						GetControlInertionFactor() { return m_fControlInertionFactor; }
-
-protected:	
-	float						m_cost;
-	float						m_cost_factor;
-	float						m_weight;
-	float						m_volume;
-	float						m_fCondition;
-	shared_str					m_Description;
-	bool						m_bPercentCondition;
-
 protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
 
@@ -218,27 +181,19 @@ protected:
 
 public:
 	virtual void				make_Interpolation	()			{};
-	virtual void				PH_B_CrPr			(); // actions & operations before physic correction-prediction steps
-	virtual void				PH_I_CrPr			(); // actions & operations after correction before prediction steps
-#ifdef DEBUG
-	virtual void				PH_Ch_CrPr			(); // 
-#endif
 	virtual void				PH_A_CrPr			(); // actions & operations after phisic correction-prediction steps
 
 	virtual void				net_Import			(NET_Packet& P);					// import from server
 	virtual void				net_Export			(NET_Packet& P);					// export to server
 
 public:
-	virtual void				activate_physic_shell		();
 	virtual bool				has_network_synchronization	() const;
 
-	virtual bool				NeedToDestroyObject			() const;
 	virtual ALife::_TIME_ID		TimePassedAfterIndependant	() const;
 
 	virtual	bool				IsSprintAllowed				() const		{return !!m_flags.test(FAllowSprint);} ;
 
-	virtual	float				GetControlInertionFactor(	) const			{return m_fControlInertionFactor;};
-
+	virtual	float				GetControlInertionFactor	(bool full = false) const		{ return m_fControlInertionFactor; }
 
 	virtual void				UpdateXForm	();
 			
@@ -258,22 +213,15 @@ public:
 	virtual CInventoryItem*		can_make_killing		(const CInventory *inventory) const;
 	virtual bool				ready_to_kill			() const;
 	IC		bool				useful_for_NPC			() const;
-#ifdef DEBUG
-	virtual void				OnRender					();
-#endif
 
 public:
 	virtual DLL_Pure*			_construct					();
 	IC	CPhysicsShellHolder&	object						() const{ VERIFY		(m_object); return		(*m_object);}
 	u16							object_id					() const;
 	u16							parent_id					() const;
-	virtual void				on_activate_physic_shell	() { R_ASSERT2(0, "failed call of virtual function!"); }
-	
-protected:
-	float						m_holder_range_modifier;
-	float						m_holder_fov_modifier;
+
 public:
-	virtual	void				modify_holder_params		(float &range, float &fov) const;
+	virtual	void				modify_holder_params		(float &range, float &fov) const {}
 
 protected:
 	IC	CInventoryOwner&		inventory_owner				() const;
@@ -287,7 +235,6 @@ public:
 	virtual CPhysicsShellHolder	*cast_physics_shell_holder	()	{return 0;}
 	virtual CEatableItem		*cast_eatable_item			()	{return 0;}
 	virtual CWeapon				*cast_weapon				()	{return 0;}
-	virtual CFoodItem			*cast_food_item				()	{return 0;}
 	virtual CMissile			*cast_missile				()	{return 0;}
 	virtual CHudItem			*cast_hud_item				()	{return 0;}
 	virtual CWeaponAmmo			*cast_weapon_ammo			()	{return 0;}
@@ -314,7 +261,6 @@ public:
 
 	bool	verify_upgrade				( LPCSTR section );
 	bool	install_upgrade				( LPCSTR section );
-	void	pre_install_upgrade			();
 
 #ifdef DEBUG	
 	void	log_upgrades				();
@@ -327,15 +273,6 @@ public:
 protected:
 	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
 	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
-	
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, float& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, int& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, u32& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, u8& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, bool& value, bool test);
-
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, shared_str& value, bool test);
-			bool	process_if_exists			(LPCSTR section, LPCSTR name, LPCSTR& value, bool test);
 
 	void								net_Export_PH_Params			(NET_Packet& P, SPHNetState& State, mask_inv_num_items&	num_items);
 	void								net_Import_PH_Params			(NET_Packet& P, net_update_IItem& N, mask_inv_num_items& num_items);
@@ -347,7 +284,91 @@ public:
 	IC bool	is_helper_item				()				 { return !!m_flags.test(FIsHelperItem); }
 	IC void	set_is_helper				(bool is_helper) { m_flags.set(FIsHelperItem,is_helper); }
 	DECLARE_SCRIPT_REGISTER_FUNCTION
-}; // class CInventoryItem
+
+private:
+	shared_str							m_category;
+	shared_str							m_subcategory;
+	shared_str							m_division;
+	Frect								m_inv_icon;
+	bool								m_inv_icon_types;
+	u8									m_inv_icon_type_default;
+
+	u8									m_inv_icon_type							= u8_max;
+	u8									m_inv_icon_index						= 0;
+
+public:
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, float& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, int& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, u32& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, u8& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, bool& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, shared_str& value, bool test);
+	static	bool			process_if_exists		(LPCSTR section, LPCSTR name, LPCSTR& value, bool test);
+
+			void			SetInvIconType			(u8 type);
+			void			SetInvIconIndex			(u8 idx);
+			u8				getInvIconType			()								const;
+			u8				getInvIconTypeDefault	()								const	{ return m_inv_icon_type; }
+			u8				GetInvIconIndex			()								const	{ return m_inv_icon_index; }
+
+
+	virtual	void			OnTaken					()										{}
+
+protected:
+	void								sSyncData								(CSE_ALifeDynamicObject* se_obj, bool save);
+	float								sSumItemData						C$	(EItemDataTypes type);
+
+private:
+	float								m_weight								= 0.f;
+	float								m_volume								= 0.f;
+	float								m_cost									= 0.f;
+	float								m_upgrades_cost							= 0.f;
+	float								m_condition								= 1.f;
+	shared_str							m_name									= 0;
+	shared_str							m_name_short							= 0;
+	shared_str							m_description							= 0;
+	xptr<CUICellItem, CUICIDeleter>		m_icon									= nullptr;
+	bool								m_icon_valid							= false;
+	
+	void								set_inv_icon							();
+	void								setup_icon								();
+
+protected:
+	void								shedule_Update							(u32 T);
+
+public:
+	static const float					s_max_repair_condition;
+	static float						readBaseCost							(LPCSTR section, bool for_sale = false);
+	static void							readIcon								(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
+	static LPCSTR						readName								(shared_str CR$ section);
+	static LPCSTR						readNameShort							(shared_str CR$ section);
+	
+	void								invalidateIcon							()		{ m_icon_valid = false; }
+
+	void								swapIcon								(PIItem item);
+	CUICellItem*						getIcon									();
+	void								onInventoryAction						(const SInvItemPlace* prev = nullptr);
+
+	LPCSTR								getName								C$	()		{ return m_name.c_str(); }
+	LPCSTR								getNameShort						C$	()		{ return m_name_short.c_str(); }
+	LPCSTR								ItemDescription						C$	()		{ return m_description.c_str(); }
+	bool								areInvIconTypesAllowed				C$	()		{ return m_inv_icon_types; }
+
+	bool								Category							C$	(LPCSTR cmpc, LPCSTR cmps = "*", LPCSTR cmpd = "*");
+	shared_str							Section								C$	(bool full = false);
+	float								Price								C$	();
+	bool								tryCustomUse						C$	();
+	bool								isGear								C$	(bool check_equipped = false);
+
+	float								getData								C$	(EItemDataTypes type);
+	float								Weight								C$	();
+	float								Volume								C$	();
+	float								Cost								C$	();
+	
+	float								GetAmount							C$	();
+	float								GetFill								C$	();
+	float								getFillBar							C$	();
+};
 
 #include "inventory_item_inline.h"
 

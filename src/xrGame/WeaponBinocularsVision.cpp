@@ -32,10 +32,10 @@ struct FindVisObjByObject{
 void SBinocVisibleObj::create_default(u32 color)
 {
 	Frect r = {0,0,RECT_SIZE,RECT_SIZE};
-	m_lt.InitTexture			("ui\\ui_enemy_frame");m_lt.SetWndRect(r);m_lt.SetAlignment(waCenter);
-	m_lb.InitTexture			("ui\\ui_enemy_frame");m_lb.SetWndRect(r);m_lb.SetAlignment(waCenter);
-	m_rt.InitTexture			("ui\\ui_enemy_frame");m_rt.SetWndRect(r);m_rt.SetAlignment(waCenter);
-	m_rb.InitTexture			("ui\\ui_enemy_frame");m_rb.SetWndRect(r);m_rb.SetAlignment(waCenter);
+	m_lt.InitTexture			("ui\\ui_enemy_frame");m_lt.SetWndRect(r);m_lt.SetAnchor(aCenter);
+	m_lb.InitTexture			("ui\\ui_enemy_frame");m_lb.SetWndRect(r);m_lb.SetAnchor(aCenter);
+	m_rt.InitTexture			("ui\\ui_enemy_frame");m_rt.SetWndRect(r);m_rt.SetAnchor(aCenter);
+	m_rb.InitTexture			("ui\\ui_enemy_frame");m_rb.SetWndRect(r);m_rb.SetAnchor(aCenter);
 
 	m_lt.SetTextureRect		(Frect().set(0,				0,				RECT_SIZE,		RECT_SIZE)	);
 	m_lb.SetTextureRect		(Frect().set(0,				32-RECT_SIZE,	RECT_SIZE,		32)			);
@@ -73,7 +73,7 @@ void SBinocVisibleObj::Update()
 	Fbox		b		= m_object->Visual()->getVisData().box;
 
 	Fmatrix				xform;
-	xform.mul			(Device.mFullTransform,m_object->XFORM());
+	xform.mul			(Device.camera.full_transform,m_object->XFORM());
 	Fvector2	mn		={flt_max,flt_max},mx={flt_min,flt_min};
 
 	for (u32 k=0; k<8; ++k){
@@ -214,7 +214,7 @@ void CBinocularsVision::Update()
 			m_sounds.PlaySound	("found_snd", Fvector().set(0,0,0), NULL, true);
 		}
 	}
-	std::sort								(m_active_objects.begin(), m_active_objects.end());
+	m_active_objects.sort					();
 
 	while(m_active_objects.size() && m_active_objects.back()->m_flags.test(flVisObjNotValid)){
 		xr_delete							(m_active_objects.back());
@@ -253,9 +253,7 @@ void CBinocularsVision::Load(const shared_str& section)
 
 void CBinocularsVision::remove_links(CObject *object)
 {
-	VIS_OBJECTS::iterator	I = std::find_if(m_active_objects.begin(),m_active_objects.end(),FindVisObjByObject(object));
-	if (I == m_active_objects.end())
-		return;
-
-	m_active_objects.erase	(I);
+	auto it = m_active_objects.find_if(FindVisObjByObject(object));
+	if (it != m_active_objects.end())
+		m_active_objects.erase(it);
 }

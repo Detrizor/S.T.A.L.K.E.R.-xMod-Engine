@@ -12,53 +12,53 @@
 #include "purchase_list.h"
 #include "UICellItem.h"
 
+#include "..\items_library.h"
+#include "Artefact.h"
+
 u32 const red_clr		= color_argb(255, 210, 50, 50);
 u32 const green_clr		= color_argb(255, 170, 170, 170);
 
-float m_max_immunities[]	= { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-float m_max_restores[]		= { 0.f, 0.f, 0.f, 0.f };
+float m_max_restores[]		= { -1.f, -1.f, -1.f, -1.f };
 
 CUIArtefactParams::CUIArtefactParams()
 {
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
-		m_immunity_item[i]		= NULL;
+	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
+		m_absorbation_item[i]	= NULL;
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 		m_restore_item[i]		= NULL;
 	m_drain_factor				= NULL;
 	m_weight_dump				= NULL;
 	m_armor						= NULL;
+	m_radiation					= NULL;
 }
 
 CUIArtefactParams::~CUIArtefactParams()
 {
-	delete_data		(m_immunity_item);
+	delete_data		(m_absorbation_item);
 	delete_data		(m_restore_item);
 	xr_delete		(m_drain_factor);
 	xr_delete		(m_weight_dump);
 	xr_delete		(m_armor);
+	xr_delete		(m_radiation);
 	xr_delete		(m_Prop_line);
 }
 
-LPCSTR af_immunity_section_names[] = // EImmunityTypes
+LPCSTR af_absorbation_names[] = // EImmunityTypes
 {
-	"burn_immunity",
-	"shock_immunity",
-	"chemical_burn_immunity",
-	"radiation_immunity",
-	"telepatic_immunity",
-	"strike_immunity",
-	"explosion_immunity"
+	"burn_absorbation",
+	"shock_absorbation",
+	"chemical_burn_absorbation",
+	"radiation_absorbation",
+	"telepatic_absorbation"
 };
 
-LPCSTR af_immunity_caption[] =  // EImmunityTypes
+LPCSTR af_absorbation_captions[] =  // EImmunityTypes
 {
 	"ui_inv_outfit_burn_protection",
 	"ui_inv_outfit_shock_protection",
 	"ui_inv_outfit_chemical_burn_protection",
 	"ui_inv_outfit_radiation_protection",
 	"ui_inv_outfit_telepatic_protection",
-	"ui_inv_outfit_strike_protection",
-	"ui_inv_outfit_explosion_protection"
 };
 
 LPCSTR af_restore_section_names[] = // EConditionRestoreTypes
@@ -92,24 +92,24 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 	m_Prop_line->SetAutoDelete		(false);
 	CUIXmlInit::InitStatic			(xml, "prop_line", 0, m_Prop_line);
 	
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
+	for (u32 i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		m_immunity_item[i]					= xr_new<UIArtefactParamItem>();
-		m_immunity_item[i]->Init			(xml, af_immunity_section_names[i]);
-		m_immunity_item[i]->SetAutoDelete	(false);
-		LPCSTR name							= *CStringTable().translate(af_immunity_caption[i]);
-		m_immunity_item[i]->SetCaption		(name);
+		m_absorbation_item[i]				= xr_new<UIArtefactParamItem>();
+		m_absorbation_item[i]->Init			(xml, af_absorbation_names[i]);
+		m_absorbation_item[i]->SetAutoDelete(false);
+		LPCSTR name							= *CStringTable().translate(af_absorbation_captions[i]);
+		m_absorbation_item[i]->SetCaption	(name);
 		xml.SetLocalRoot					(base_node);
 	}
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		m_restore_item[i]					= xr_new<UIArtefactParamItem>();
-		m_restore_item[i]->Init				(xml, af_restore_section_names[i]);
-		m_restore_item[i]->SetAutoDelete	(false);
-		LPCSTR name							= *CStringTable().translate(af_restore_caption[i]);
-		m_restore_item[i]->SetCaption		(name);
-		xml.SetLocalRoot					(base_node);
+		m_restore_item[i]				= xr_new<UIArtefactParamItem>();
+		m_restore_item[i]->Init			(xml, af_restore_section_names[i]);
+		m_restore_item[i]->SetAutoDelete(false);
+		LPCSTR name						= *CStringTable().translate(af_restore_caption[i]);
+		m_restore_item[i]->SetCaption	(name);
+		xml.SetLocalRoot				(base_node);
 	}
 	
 	m_drain_factor						= xr_new<UIArtefactParamItem>();
@@ -118,128 +118,103 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 	m_drain_factor->SetCaption			(*CStringTable().translate("st_drain_factor"));
 	xml.SetLocalRoot					(base_node);
 	
-	m_weight_dump					= xr_new<UIArtefactParamItem>();
-	m_weight_dump->Init				(xml, "weight_dump");
-	m_weight_dump->SetAutoDelete	(false);
-	m_weight_dump->SetCaption		(*CStringTable().translate("ui_inv_weight"));
-	xml.SetLocalRoot				(base_node);
+	m_weight_dump						= xr_new<UIArtefactParamItem>();
+	m_weight_dump->Init					(xml, "weight_dump");
+	m_weight_dump->SetAutoDelete		(false);
+	m_weight_dump->SetCaption			(*CStringTable().translate("st_weight_dump"));
+	xml.SetLocalRoot					(base_node);
 	
-	m_armor					= xr_new<UIArtefactParamItem>();
-	m_armor->Init			(xml, "armor");
-	m_armor->SetAutoDelete	(false);
-	m_armor->SetCaption		(*CStringTable().translate("st_armor"));
+	m_armor								= xr_new<UIArtefactParamItem>();
+	m_armor->Init						(xml, "armor");
+	m_armor->SetAutoDelete				(false);
+	m_armor->SetCaption					(*CStringTable().translate("st_armor"));
+	xml.SetLocalRoot					(base_node);
 
-	xml.SetLocalRoot(stored_root);
+	m_radiation							= xr_new<UIArtefactParamItem>();
+	m_radiation->Init					(xml, "radiation");
+	m_radiation->SetAutoDelete			(false);
+	m_radiation->SetCaption				(CStringTable().translate("st_radiation").c_str());
+
+	xml.SetLocalRoot					(stored_root);
 }
 
 void InitMaxArtValues()
 {
-	extern CItems						ITEMS;
-	DIVISION division					= ITEMS.Get("artefact", "nil", "nil");
-	for (SECTION section = division->second.begin(), section_e = division->second.end(); section != section_e; ++section)
+	for (auto& sec : CItemsLibrary::getDivision("artefact", "active", "void"))
 	{
-		LPCSTR sect						= pSettings->r_string(*section, "hit_absorbation_sect");
-		for (u8 i = 0; i < eImmunityTypeMax; ++i)
-		{
-			float val					= pSettings->r_float(sect, af_immunity_section_names[i]);
-			if (val > m_max_immunities[i])
-				m_max_immunities[i]		= val;
-		}
-
 		for (u8 i = 0; i < eRestoreTypeMax; ++i)
 		{
-			float val					= pSettings->r_float(*section, af_restore_section_names[i]);
+			float val					= pSettings->r_float(sec, af_restore_section_names[i]);
 			if (val > m_max_restores[i])
 				m_max_restores[i]		= val;
 		}
 	}
 }
 
-void CUIArtefactParams::SetInfo(CUICellItem* itm)
+void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 {
-	DetachAll					();
-	CActor* actor				= smart_cast<CActor*>(Level().CurrentViewEntity());
-	if (!actor)
+	DetachAll							();
+	if (!smart_cast<CActor*>(Level().CurrentViewEntity()))
 		return;
-	const shared_str& section	= itm->m_section;
-	Fvector2					pos;
-	float						val, h;
-	if (xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "description", ""), ""))
+
+	Fvector2							pos;
+	float								val, h;
+	if (pSettings->r_string_ex(section, "description", 0))
 	{
-		AttachChild				(m_Prop_line);
-		h						= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
+		AttachChild						(m_Prop_line);
+		h								= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;
 	}
 	else
-		h						= 0.f;
+		h								= 0.f;
 
-	LPCSTR sect					= pSettings->r_string(section, "hit_absorbation_sect");
-	for (u32 i = 0; i < eImmunityTypeMax; ++i)
+	for (int i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		val								= pSettings->r_float(sect, af_immunity_section_names[i]);
-		if (fis_zero(val))
-			continue;
-		if (m_max_immunities[i] == 0.f)
-			InitMaxArtValues			();
-		val								/= m_max_immunities[i];
-		m_immunity_item[i]->SetValue	(val);
-		pos.set							(m_immunity_item[i]->GetWndPos());
-		pos.y							= h;
-		m_immunity_item[i]->SetWndPos	(pos);
-		h								+= m_immunity_item[i]->GetWndSize().y;
-		AttachChild						(m_immunity_item[i]);
+		val								= (art) ? art->Absorbation(i, true) : pSettings->r_float(section, af_absorbation_names[i]);
+		if (!fis_zero(val))
+			SetInfoItem					(m_absorbation_item[i], val, pos, h);
 	}
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		val								= pSettings->r_float(section, af_restore_section_names[i]);
+		val								= pSettings->r_float(section, af_restore_section_names[i]) * ((art) ? art->Power(true) : 1.f);
 		if (fis_zero(val))
 			continue;
-		if (m_max_restores[i] == 0.f)
+
+		if (m_max_restores[i] == -1.f)
 			InitMaxArtValues			();
 		if (i != eRadiationSpeed)
 			val							/= m_max_restores[i];
-		m_restore_item[i]->SetValue		(val);
-		pos.set							(m_restore_item[i]->GetWndPos());
-		pos.y							= h;
-		m_restore_item[i]->SetWndPos	(pos);
-		h								+= m_restore_item[i]->GetWndSize().y;
-		AttachChild						(m_restore_item[i]);
+
+		SetInfoItem						(m_restore_item[i], val, pos, h);
 	}
 
-	val									= pSettings->r_float(section, "drain_factor");
+	val									= (art) ? art->DrainFactor(true) : pSettings->r_float(section, "drain_factor");
 	if (!fis_zero(val))
-	{
-		m_drain_factor->SetValue		(val);
-		pos.set							(m_drain_factor->GetWndPos());
-		pos.y							= h;
-		m_drain_factor->SetWndPos		(pos);
-		h								+= m_drain_factor->GetWndSize().y;
-		AttachChild						(m_drain_factor);
-	}
+		SetInfoItem						(m_drain_factor, val, pos, h);
 
-	val									= pSettings->r_float(section, "weight_dump");
+	val									= (art) ? art->WeightDump(true) : pSettings->r_float(section, "weight_dump");
 	if (!fis_zero(val))
-	{
-		m_weight_dump->SetValue			(val);
-		pos.set							(m_weight_dump->GetWndPos());
-		pos.y							= h;
-		m_weight_dump->SetWndPos		(pos);
-		h								+= m_weight_dump->GetWndSize().y;
-		AttachChild						(m_weight_dump);
-	}
+		SetInfoItem						(m_weight_dump, val, pos, h);
 
-	val						= pSettings->r_float(section, "armor");
+	val									= (art) ? art->GetArmor(true) : pSettings->r_float(section, "armor");
 	if (!fis_zero(val))
-	{
-		m_armor->SetValue	(val);
-		pos.set				(m_armor->GetWndPos());
-		pos.y				= h;
-		m_armor->SetWndPos	(pos);
-		h					+= m_armor->GetWndSize().y;
-		AttachChild			(m_armor);
-	}
+		SetInfoItem						(m_armor, val, pos, h);
 
-	SetHeight(h);
+	val									= (art) ? art->getRadiation(true) : pSettings->r_float(section, "radiation");
+	if (!fis_zero(val))
+		SetInfoItem						(m_radiation, val, pos, h);
+
+	SetHeight							(h);
+}
+
+void CUIArtefactParams::SetInfoItem(UIArtefactParamItem* item, float value, Fvector2& pos, float& h)
+{
+	item->SetValue						(value);
+	pos.set								(item->GetWndPos());
+	pos.y								= h;
+	item->SetWndPos						(pos);
+	h									+= item->GetWndSize().y;
+	AttachChild							(item);
 }
 
 /// ----------------------------------------------------------------

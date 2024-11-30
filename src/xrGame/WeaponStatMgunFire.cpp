@@ -37,7 +37,7 @@ void CWeaponStatMgun::FireEnd()
 
 void CWeaponStatMgun::UpdateFire()
 {
-	fShotTimeCounter -= Device.fTimeDelta;
+	fShotTimeCounter -= time_delta();
 
 	inheritedShooting::UpdateFlameParticles();
 	inheritedShooting::UpdateLight();
@@ -105,8 +105,8 @@ void CWeaponStatMgun::UpdateFire()
 		fShotTimeCounter		+= fOneShotTime;
 	}else
 	{
-		angle_lerp		(m_dAngle.x,0.f,5.f,Device.fTimeDelta);
-		angle_lerp		(m_dAngle.y,0.f,5.f,Device.fTimeDelta);
+		angle_lerp		(m_dAngle.x,0.f,5.f,time_delta());
+		angle_lerp		(m_dAngle.y,0.f,5.f,time_delta());
 	}
 }
 
@@ -116,13 +116,10 @@ void CWeaponStatMgun::OnShot()
 	VERIFY(Owner());
 
 	FireBullet				(	m_fire_pos, m_fire_dir, fireDispersionBase, *m_Ammo, 
-								Owner()->ID(),ID(), SendHitAllowed(Owner()),::Random.randI(0,30));
+								Owner()->ID(),ID(), SendHitAllowed(Owner()));
 
 	StartShotParticles		();
-	
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(m_fire_pos, zero_vel);
 	OnShellDrop				(m_fire_pos, zero_vel);
@@ -139,18 +136,11 @@ void CWeaponStatMgun::AddShotEffector				()
 {
 	if(OwnerActor())
 	{
-		CCameraShotEffector* S	= smart_cast<CCameraShotEffector*>(OwnerActor()->Cameras().GetCamEffector(eCEShot)); 
-		CameraRecoil		camera_recoil;
-		//( camMaxAngle,camRelaxSpeed, 0.25f, 0.01f, 0.7f )
-		camera_recoil.MaxAngleVert		= camMaxAngle;
-		camera_recoil.RelaxSpeed		= camRelaxSpeed;
-		camera_recoil.MaxAngleHorz		= 0.25f;
-		camera_recoil.StepAngleHorz		= ::Random.randF(-1.0f, 1.0f) * 0.01f;
-		camera_recoil.DispersionFrac	= 0.7f;
+		CCameraShotEffector* S	= smart_cast<CCameraShotEffector*>(OwnerActor()->Cameras().GetCamEffector(eCEShot));
 
-		if (!S)	S			= (CCameraShotEffector*)OwnerActor()->Cameras().AddCamEffector(xr_new<CCameraShotEffector>(camera_recoil) );
+		if (!S)	S			= (CCameraShotEffector*)OwnerActor()->Cameras().AddCamEffector(xr_new<CCameraShotEffector>());
 		R_ASSERT			(S);
-		S->Initialize		(camera_recoil);
+		S->Initialize		();
 		S->Shot2			(0.01f);
 	}
 }

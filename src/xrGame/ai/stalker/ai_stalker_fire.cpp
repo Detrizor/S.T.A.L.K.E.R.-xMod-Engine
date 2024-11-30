@@ -71,37 +71,27 @@ static u32	 const FIRE_MAKE_SENSE_INTERVAL	= 10000;
 
 static float const min_throw_distance		= 10.f;
 
-float CAI_Stalker::GetWeaponAccuracy	() const
+float CAI_Stalker::getWeaponDispersion	() const
 {
-	float				base = PI/180.f;
-	
-	//влияние ранга на меткость
-	base				*= m_fRankDisperison;
+	auto get_dispersion = [this]()
+	{
+		if (!movement().path_completed())
+		{
+			if (movement().movement_type() == eMovementTypeWalk)
+				return (movement().body_state() == eBodyStateStand) ? m_disp_walk_stand : m_disp_walk_crouch;
+			else if (movement().movement_type() == eMovementTypeRun)
+				return (movement().body_state() == eBodyStateStand) ? m_disp_run_stand : m_disp_run_crouch;
+		}
 
-	if (!movement().path_completed()) {
-		if (movement().movement_type() == eMovementTypeWalk)
-			if (movement().body_state() == eBodyStateStand)
-				return		(base*m_disp_walk_stand);
-			else
-				return		(base*m_disp_walk_crouch);
+		if (movement().body_state() == eBodyStateStand)
+			return (zoom_state()) ? m_disp_stand_stand : m_disp_stand_stand_zoom;
 		else
-			if (movement().movement_type() == eMovementTypeRun)
-				if (movement().body_state() == eBodyStateStand)
-					return	(base*m_disp_run_stand);
-				else
-					return	(base*m_disp_run_crouch);
-	}
-	
-	if (movement().body_state() == eBodyStateStand)
-		if (zoom_state())
-			return			(base*m_disp_stand_stand);
-		else
-			return			(base*m_disp_stand_stand_zoom);
-	else
-		if (zoom_state())
-			return			(base*m_disp_stand_crouch);
-		else
-			return			(base*m_disp_stand_crouch_zoom);
+			return (zoom_state()) ? m_disp_stand_crouch : m_disp_stand_crouch_zoom;
+	};
+
+	float disp							= get_dispersion() * m_fRankDisperison;
+	m_weapon_accuracy					= m_accuracy_k / disp;
+	return								deg2rad(disp);
 }
 
 void CAI_Stalker::g_fireParams(const CHudItem* pHudItem, Fvector& P, Fvector& D)
@@ -360,7 +350,7 @@ void CAI_Stalker::update_best_item_info_impl()
 	luabind::functor<CScriptGameObject*> funct;
 	if (ai().script_engine().functor("ai_stalker.update_best_weapon", funct))
 	{
-		CScriptGameObject* GO = funct(this->lua_game_object(), m_best_item_to_kill ? m_best_item_to_kill->cast_game_object()->lua_game_object() : NULL);
+		CScriptGameObject* GO = funct(this->lua_game_object(), m_item_actuality && m_best_item_to_kill ? m_best_item_to_kill->cast_game_object()->lua_game_object() : NULL);
 		if (GO) 
 		{
 			CInventoryItem* bw = GO->object().cast_inventory_item();

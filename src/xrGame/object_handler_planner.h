@@ -14,7 +14,6 @@ class CAI_Stalker;
 class CInventoryItem;
 class CWeapon;
 class CMissile;
-class CFoodItem;
 
 namespace ObjectHandlerSpace {
 	enum EWorldProperties;

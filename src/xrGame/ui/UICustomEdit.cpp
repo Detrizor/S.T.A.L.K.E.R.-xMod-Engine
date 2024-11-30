@@ -84,7 +84,7 @@ void  CUICustomEdit::Init( u32 max_char_count, bool number_only_mode, bool read_
 	m_bInputFocus = false;
 }
 
-void CUICustomEdit::InitCustomEdit( Fvector2 pos, Fvector2 size )
+void CUICustomEdit::InitCustomEdit(Fvector2 pos, Fvector2 size)
 {
 	inherited::SetWndPos	( pos  );
 	inherited::SetWndSize	( size );
@@ -189,14 +189,12 @@ void  CUICustomEdit::Draw()
 
 		LPCSTR istr			= cursor_str;
 		float str_length	= font->SizeOf_( istr );
-		UI().ClientToScreenScaledWidth( str_length );
 
 		u32 ix = 0;
 		while ( (str_length > ui_width) && (ix < cursor_str_size) )
 		{
 			istr			= cursor_str + ix;
 			str_length		= font->SizeOf_( istr );
-			UI().ClientToScreenScaledWidth( str_length );
 			++ix;
 		}
 		istr				= cursor_str + ix;
@@ -207,13 +205,11 @@ void  CUICustomEdit::Draw()
 		strncpy_s			(m_out_str, sizeof(m_out_str), astr, jx);
 
 		str_length			= font->SizeOf_(m_out_str);
-		UI().ClientToScreenScaledWidth(str_length);
 
 		while((str_length < ui_width) && (jx < str_size-ix))
 		{
 			strncpy_s		(m_out_str, sizeof(m_out_str), astr, jx);
 			str_length		= font->SizeOf_(m_out_str);
-			UI().ClientToScreenScaledWidth(str_length);
 			++jx;
 		}
 		strncpy_s			(m_out_str, sizeof(m_out_str), astr, jx);

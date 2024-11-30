@@ -1,30 +1,44 @@
 #pragma once
 
-#include "weaponShotgun.h"
+#include "WeaponAutomaticShotgun.h"
 #include "script_export_space.h"
 
-class CWeaponBM16 :public CWeaponShotgun
+class CWeaponBM16 :public CWeaponAutomaticShotgun
 {
-	typedef CWeaponShotgun inherited;
+	typedef CWeaponAutomaticShotgun inherited;
 
 public:
-	virtual			~CWeaponBM16					();
-	virtual void	Load							(LPCSTR section);
+										CWeaponBM16								() : m_chamber_second(this) {}
+
+	void								Load								O$	(LPCSTR section);
+
+private:
+	CWeaponChamber						m_chamber_second;
+	CAddonSlot*							m_loading_slot_second				= nullptr;
+	int									m_reloading_chamber					= -1;
+	
+	int									GetAmmoMagSize						CO$	()		{ return 2; }
+
+	int									GetAmmoElapsed						CO$	();
+	bool								has_ammo_to_shoot					CO$	();
+	void								prepare_cartridge_to_shoot			O$	();
+	void								OnAnimationEnd						O$	(u32 state);
+	void								OnHiddenItem						O$	();
+	void								StartReload							O$	(EWeaponSubStates substate);
 
 protected:
-			bool	SingleCartridgeReload			();
+	void								PlayAnimReload						O$	();
 
-	virtual void	PlayAnimShoot					();
-	virtual void	PlayAnimReload					();
-	virtual void	PlayReloadSound					();
-	virtual void	PlayAnimIdle					();
-	virtual void	PlayAnimIdleMoving				();
-	virtual void	PlayAnimIdleSprint				();
-	virtual void	PlayAnimShow					();
-	virtual void	PlayAnimHide					();
-	virtual void	PlayAnimBore					();
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+	LPCSTR								anmType		 						CO$	();
+
+	bool								tryTransfer							O$	(MAddon* addon, bool attach);
+
+public:
+	bool								checkSecondChamber					C$	(CAddonSlot* slot);
 };
+
 add_to_type_list(CWeaponBM16)
 #undef script_type_list
 #define script_type_list save_type_list(CWeaponBM16)

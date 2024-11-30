@@ -81,7 +81,7 @@ void CCarWeapon::Load(LPCSTR section)
 {
 	inheritedShooting::Load(section);
 	HUD_SOUND_ITEM::LoadSound(section,"snd_shoot", m_sndShot, SOUND_TYPE_WEAPON_SHOOTING);
-	m_Ammo->Load(pSettings->r_string(section, "ammo_class"), 0);
+	m_Ammo->Load(pSettings->r_string(section, "ammo_class"));
 }
 
 void CCarWeapon::UpdateCL()
@@ -226,13 +226,10 @@ void CCarWeapon::FireEnd()
 void CCarWeapon::OnShot()
 {
 	FireBullet				(	m_fire_pos, m_fire_dir, fireDispersionBase, *m_Ammo, 
-								m_object->ID(), m_object->ID(), SendHitAllowed(m_object), ::Random.randI(0,30));
+								m_object->ID(), m_object->ID(), SendHitAllowed(m_object));
 
 	StartShotParticles		();
-	
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(m_fire_pos, zero_vel);
 //	OnShellDrop				(m_fire_pos, zero_vel);

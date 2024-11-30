@@ -1,7 +1,9 @@
 #pragma once
 
 #include "UILine.h"
-#include "uiabstract.h"
+#include "UIWindow.h"
+
+class CUIWindow;
 
 class CUILines : public CDeviceResetNotifier 
 {
@@ -35,7 +37,6 @@ public:
 
 			void			Draw										(float x, float y);
 
-
     // CDeviceResetNotifier methods
 	virtual void			OnDeviceReset								();
 
@@ -45,8 +46,7 @@ public:
 			float			GetVisibleHeight							();
 
 		Fvector2			m_TextOffset;
-		Fvector2			m_wndSize;
-		Fvector2			m_wndPos;
+
 protected:
 				// %c[255,255,255,255]
 		u32					GetColorFromText							(const xr_string& str)							const;
@@ -78,5 +78,10 @@ protected:
 	};	
 private:
 	Flags8					uFlags;
-};
 
+private:
+	const	CUIWindow*		m_parent_wnd;
+
+public:
+			void			SetParentWnd			(const CUIWindow* wnd)					{ m_parent_wnd = wnd; }
+};

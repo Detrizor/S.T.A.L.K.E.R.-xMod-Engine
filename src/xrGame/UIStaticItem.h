@@ -46,7 +46,7 @@ public:
 
 public:
 					CUIStaticItem			();
-	IC void			SetSize					(const Fvector2& sz)								{vSize.set(sz); uFlags.set(flValidSize, TRUE); }
+	IC void			SetSize					(const Fvector2& sz)									{vSize.set(sz); uFlags.set(flValidSize, TRUE); }
 	void			SetTextureRect			(const Frect& r)									{TextureRect = r; uFlags.set(flValidTextureRect,TRUE);}
 	const Frect&	GetTextureRect			() const											{return TextureRect;};
 

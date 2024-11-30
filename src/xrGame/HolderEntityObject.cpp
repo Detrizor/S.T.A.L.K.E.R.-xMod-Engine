@@ -45,9 +45,9 @@ void CHolderEntityObject::ResetBoneCallbacks()
 void CHolderEntityObject::Load(LPCSTR section)
 {
 	inheritedPH::Load(section);
-	m_bAllowWeapon = !!pSettings->r_bool(section,"allow_weapon");
-	m_bExitLocked = !!pSettings->r_bool(section, "lock_exit");
-	m_bEnterLocked = !!pSettings->r_bool(section, "lock_enter");
+	m_bAllowWeapon = !!pSettings->r_BOOL(section,"allow_weapon");
+	m_bExitLocked = !!pSettings->r_BOOL(section, "lock_exit");
+	m_bEnterLocked = !!pSettings->r_BOOL(section, "lock_enter");
 
 	m_exit_position = READ_IF_EXISTS(pSettings, r_fvector3, section, "exit_pos", Fvector().set(0.0f, 0.0f, 0.0f));
 	m_camera_position = READ_IF_EXISTS(pSettings, r_fvector3, section, "camera_pos", Fvector().set(0.0f, 0.0f, 0.0f));
@@ -102,7 +102,7 @@ void CHolderEntityObject::UpdateCL()
 
 	if(OwnerActor() && OwnerActor()->IsMyCamera()) 
 	{
-		cam_Update(Device.fTimeDelta, g_fov);
+		cam_Update(Device.fTimeDelta, Device.gFOV);
 		OwnerActor()->Cameras().UpdateFromCamera(Camera());
 		OwnerActor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
 	}
@@ -171,7 +171,7 @@ void CHolderEntityObject::OnMouseMove(int dx, int dy)
 {
 	if (Remote())	return;
 	CCameraBase* C = camera;
-	float scale = (C->f_fov / g_fov)*psMouseSens * psMouseSensScale / 50.f;
+	float scale = (C->f_fov / Device.gFOV) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d = float(dx)*scale;
 		C->Move((d<0) ? kLEFT : kRIGHT, _abs(d));

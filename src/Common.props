@@ -10,17 +10,18 @@
     <xrLibDir>$(xrLibRootDir)$(Configuration)\</xrLibDir>
     <xrIntDir>$(SolutionDir)..\_build\intermediate\$(Configuration)\</xrIntDir>
     <xrSdkDir>$(SolutionDir)..\sdk\</xrSdkDir>
-    <xrGameDir>g:\STALKER\xMod components\Engine\Output\</xrGameDir>
+    <xrGameDir>D:\Development\xMod\</xrGameDir>
     <xrGameBinDir>$(xrGameDir)bin\</xrGameBinDir>
     <xr3rdPartyDir>$(SolutionDir)3rd party\</xr3rdPartyDir>
     <dxSdkDir>$(xrSdkDir)include\dxsdk\</dxSdkDir>
     <xrLuaDir>$(SolutionDir)3rd party\luajit-2\src\</xrLuaDir>
-    <xrSdkLibDir>g:\STALKER\xMod components\Engine\xray-16-libraries\</xrSdkLibDir>
+    <xrSdkLibDir>
+    </xrSdkLibDir>
     <DxLibDir>$(SolutionDir)..\sdk\libraries\</DxLibDir>
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(IncludePath);$(xrSdkDir)include;</IncludePath>
-    <OutDir>$(xrGameDir)bin_rel\</OutDir>
+    <OutDir>$(xrGameDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

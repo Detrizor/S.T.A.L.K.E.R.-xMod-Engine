@@ -297,7 +297,7 @@ void  CCustomRocket::reload		(LPCSTR section)
 	inherited::reload	(section);
 	m_eState = eInactive;
 
-	m_bEnginePresent = !!pSettings->r_bool(section, "engine_present");
+	m_bEnginePresent = !!pSettings->r_BOOL(section, "engine_present");
 	if(m_bEnginePresent)
 	{
 		m_dwEngineWorkTime = pSettings->r_u32(section, "engine_work_time");
@@ -306,7 +306,7 @@ void  CCustomRocket::reload		(LPCSTR section)
 	}
 
 
-	m_bLightsEnabled = !!pSettings->r_bool(section, "lights_enabled");
+	m_bLightsEnabled = !!pSettings->r_BOOL(section, "lights_enabled");
 	if(m_bLightsEnabled)
 	{
 		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", 
@@ -460,7 +460,7 @@ void CCustomRocket::StopEngine				()
 void CCustomRocket::UpdateEnginePh			()
 {
 	if (Level().In_NetCorrectionPrediction()) return;
-	float force = m_fEngineImpulse*fixed_step;// * Device.fTimeDelta;
+	float force = m_fEngineImpulse*fixed_step;// * time_delta();
 	float k_back=1.f;
 	Fvector l_pos, l_dir; 
 	l_pos.set(0, 0,-2.f);
@@ -475,7 +475,7 @@ void CCustomRocket::UpdateEnginePh			()
 	l_dir.invert();
 	m_pPhysicsShell->applyImpulseTrace(l_pos, l_dir, force);
 	l_dir.set(0, 1.f, 0);
-	force = m_fEngineImpulseUp*fixed_step;// * Device.fTimeDelta;
+	force = m_fEngineImpulseUp*fixed_step;// * time_delta();
 	m_pPhysicsShell->applyImpulse(l_dir, force);
 
 

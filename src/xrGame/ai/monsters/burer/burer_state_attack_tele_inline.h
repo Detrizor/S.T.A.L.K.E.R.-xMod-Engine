@@ -416,7 +416,7 @@ public:
 template <typename Object>
 void CStateBurerAttackTele<Object>::SelectObjects()
 {
-	std::sort(tele_objects.begin(),tele_objects.end(),best_object_predicate2(object->Position(), object->EnemyMan.get_enemy()->Position()));
+	tele_objects.sort(best_object_predicate2(object->Position(), object->EnemyMan.get_enemy()->Position()));
 
 	// выбрать объект
 	for ( u32 i=0; i<tele_objects.size(); ++i )

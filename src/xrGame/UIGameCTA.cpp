@@ -348,143 +348,23 @@ struct AmmoSearcherPredicate
 		if (!temp_ammo)
 			return false;
 		
-		if (temp_ammo->m_boxCurr >= temp_ammo->m_boxSize)
+		if (temp_ammo->GetAmmoCount() >= temp_ammo->m_boxSize)
 			return false;
 		
 		if (temp_ammo->cNameSect() != ammo_section)
 			return false;
 
-		if ((temp_ammo->m_boxCurr + additional_ammo_count) < temp_ammo->m_boxSize)
+		if ((temp_ammo->GetAmmoCount() + additional_ammo_count) < temp_ammo->m_boxSize)
 			return false;
 		
 		return true;
 	}
-
 };
-
-void TryToDefuseGrenadeLauncher(CWeaponMagazinedWGrenade const * weapon,
-								TIItemContainer const & all_items,
-								buffer_vector<shared_str> & dest_ammo)
-{
-	if (!weapon)
-		return;
-
-	xr_vector<shared_str> const *	tmp_ammo_types = NULL;
-	u8 const *						tmp_ammo_type = NULL;
-	u16								ammo_elapsed = 0;
-	if (weapon->m_bGrenadeMode)
-	{
-		tmp_ammo_types	= &weapon->m_ammoTypes;
-		tmp_ammo_type	= &weapon->m_ammoType;
-		ammo_elapsed	= (u16)weapon->GetAmmoElapsed();
-	} else
-	{
-		tmp_ammo_types	= &weapon->m_ammoTypes2;
-		tmp_ammo_type	= &weapon->m_ammoType2;
-		ammo_elapsed	= (u16)weapon->m_magazine2.size();
-	}
-	
-	if (tmp_ammo_types->size() <= u32(*tmp_ammo_type))
-		return;
-
-	shared_str ammo_section = (*tmp_ammo_types)[*tmp_ammo_type];
-
-	VERIFY2(ammo_section.size(), make_string(
-		"grenade ammo type of [%s] hasn't section name", weapon->cNameSect().c_str()).c_str());
-	if (!ammo_section.size())
-		return;
-
-	VERIFY(pSettings->line_exist(ammo_section.c_str(), "box_size"));
-
-	u16 ammo_box_size	= pSettings->r_u16(ammo_section.c_str(), "box_size");
-	
-
-	R_ASSERT2(ammo_elapsed <= 1, make_string(
-		"weapon [%s] can't have more than one grenade in grenade launcher",
-		weapon->cNameSect().c_str()).c_str());
-
-
-	while (ammo_elapsed >= ammo_box_size)
-	{
-		dest_ammo.push_back(ammo_section);
-		ammo_elapsed = ammo_elapsed - ammo_box_size;
-	}
-	if (!ammo_elapsed)
-		return;
-
-	AmmoSearcherPredicate ammo_completitor(ammo_elapsed, ammo_section);
-
-	TIItemContainer::const_iterator temp_iter = std::find_if(
-		all_items.begin(), all_items.end(), ammo_completitor);
-
-	if (temp_iter == all_items.end())
-		return;
-
-	CWeaponAmmo* temp_ammo = smart_cast<CWeaponAmmo*>(*temp_iter);
-	R_ASSERT2(temp_ammo, "failed to create ammo after defusing weapon");
-	temp_ammo->m_boxCurr = temp_ammo->m_boxSize;
-}
-
 
 void TryToDefuseWeapon(CWeapon const * weapon,
 					   TIItemContainer const & all_items,
 					   buffer_vector<shared_str> & dest_ammo)
 {
-	if (!weapon)
-		return;
-
-	CWeaponMagazinedWGrenade const * tmp_gl_weapon = smart_cast<CWeaponMagazinedWGrenade const *>(weapon);
-	if (weapon->IsGrenadeLauncherAttached())
-		TryToDefuseGrenadeLauncher(tmp_gl_weapon, all_items, dest_ammo);
-
-	xr_vector<shared_str> const *	tmp_ammo_types = NULL;
-	u8 const *						tmp_ammo_type = NULL;
-	u16								ammo_elapsed = 0;
-	if (tmp_gl_weapon && tmp_gl_weapon->m_bGrenadeMode)
-	{
-		tmp_ammo_types	= &tmp_gl_weapon->m_ammoTypes2;
-		tmp_ammo_type	= &tmp_gl_weapon->m_ammoType2;
-		ammo_elapsed	= (u16)tmp_gl_weapon->m_magazine2.size();
-	} else
-	{
-		tmp_ammo_types	= &weapon->m_ammoTypes;
-		tmp_ammo_type	= &weapon->m_ammoType;
-		ammo_elapsed	= (u16)weapon->GetAmmoElapsed();
-	}
-	
-	if (tmp_ammo_types->size() <= u32(*tmp_ammo_type))
-		return;
-
-	shared_str ammo_section = (*tmp_ammo_types)[*tmp_ammo_type];
-
-	VERIFY2(ammo_section.size(), make_string(
-		"ammo type of [%s] hasn't section name", weapon->cName().c_str()).c_str());
-	if (!ammo_section.size())
-		return;
-
-	VERIFY(pSettings->line_exist(ammo_section.c_str(), "box_size"));
-
-	u16 ammo_box_size	= pSettings->r_u16(ammo_section.c_str(), "box_size");
-	
-	while (ammo_elapsed >= ammo_box_size)
-	{
-		dest_ammo.push_back(ammo_section);
-		ammo_elapsed = ammo_elapsed - ammo_box_size;
-	}
-	if (!ammo_elapsed)
-		return;
-
-	AmmoSearcherPredicate ammo_completitor(ammo_elapsed, ammo_section);
-
-	TIItemContainer::const_iterator temp_iter = std::find_if(
-		all_items.begin(), all_items.end(), ammo_completitor);
-
-	if (temp_iter == all_items.end())
-		return;
-
-	CWeaponAmmo* temp_ammo = smart_cast<CWeaponAmmo*>(*temp_iter);
-	R_ASSERT2(temp_ammo, "failed to create ammo after defusing weapon");
-	temp_ammo->m_boxCurr = temp_ammo->m_boxSize;
 }
 
 void CUIGameCTA::AdditionalAmmoInserter	(aditional_ammo_t::value_type const & sect_name)
@@ -517,12 +397,8 @@ void CUIGameCTA::BuyMenuItemInserter(PIItem const & item)
 		return;
 	
 	u8 addons = 0;
-	CWeapon* pWeapon = smart_cast<CWeapon*>(item);
-	if (pWeapon)
-		addons = pWeapon->GetAddonsState();
-	
 	CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*>(item);
-	if (pAmmo && (pAmmo->m_boxCurr != pAmmo->m_boxSize))
+	if (pAmmo && (pAmmo->GetAmmoCount() != pAmmo->m_boxSize))
 		return;
 	
 	m_pCurBuyMenu->ItemToSlot(item->object().cNameSect(), addons);

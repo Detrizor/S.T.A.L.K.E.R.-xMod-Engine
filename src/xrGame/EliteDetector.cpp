@@ -7,27 +7,21 @@
 #include "ui/UIStatic.h"
 #include "ui/ArtefactDetectorUI.h"
 
-
-
 CEliteDetector::CEliteDetector()
 {
 	m_artefacts.m_af_rank = 3;
 }
 
-CEliteDetector::~CEliteDetector()
-{}
-
-
 void CEliteDetector::CreateUI()
 {
 	R_ASSERT(NULL==m_ui);
-	m_ui				= xr_new<CUIArtefactDetectorElite>();
+	m_ui.construct<CUIArtefactDetectorElite>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorElite&  CEliteDetector::ui()
 {
-	return *((CUIArtefactDetectorElite*)m_ui);
+	return *static_cast<CUIArtefactDetectorElite*>(m_ui.get());
 }
 
 void CEliteDetector::UpdateAf()
@@ -69,26 +63,6 @@ void CEliteDetector::render_item_3d_ui()
 	ui().Draw			();
 	//	Restore cull mode
 	UIRender->CacheSetCullMode	(IUIRender::cmCCW);
-}
-
-void fix_ws_wnd_size(CUIWindow* w, float kx)
-{
-	Fvector2 p		= w->GetWndSize();
-	p.x				/= kx;
-	w->SetWndSize	(p);
-
-	p				= w->GetWndPos();
-	p.x				/= kx;
-	w->SetWndPos	(p);
-
-	CUIWindow::WINDOW_LIST::iterator it = w->GetChildWndList().begin();
-	CUIWindow::WINDOW_LIST::iterator it_e = w->GetChildWndList().end();
-
-	for(;it!=it_e;++it)
-	{
-		CUIWindow* w2		= *it;
-		fix_ws_wnd_size		(w2, kx);
-	}
 }
 
 void CUIArtefactDetectorElite::construct(CEliteDetector* p)
@@ -156,16 +130,15 @@ void CUIArtefactDetectorElite::Draw()
 
 	CUIWindow::Draw				();
 
-//.	Frect r						= m_wrk_area->GetWndRect();
 	Fvector2 wrk_sz				= m_wrk_area->GetWndSize();
 	Fvector2					rp; 
 	m_wrk_area->GetAbsolutePos	(rp);
 
 	Fmatrix						M, Mc;
 	float h,p;
-	Device.vCameraDirection.getHP(h,p);
+	Device.camera.direction.getHP(h,p);
 	Mc.setHPB					(h,0,0);
-	Mc.c.set					(Device.vCameraPosition);
+	Mc.c.set					(Device.camera.position);
 	M.invert					(Mc);
 
 	UI().ScreenFrustumLIT().CreateFromRect(Frect().set(	rp.x,
@@ -202,7 +175,7 @@ void CUIArtefactDetectorElite::Draw()
 
 void CUIArtefactDetectorElite::GetUILocatorMatrix(Fmatrix& _m)
 {
-	Fmatrix	trans					= m_parent->HudItemData()->m_item_transform;
+	Fmatrix	trans					= static_cast<Fmatrix>(m_parent->HudItemData()->m_transform);
 	u16 bid							= m_parent->HudItemData()->m_model->LL_BoneID("cover");
 	Fmatrix cover_bone				= m_parent->HudItemData()->m_model->LL_GetTransform(bid);
 	_m.mul							(trans, cover_bone);
@@ -300,7 +273,6 @@ void CScientificDetector::OnH_B_Independent(bool just_before_destroy)
 	m_zones.clear			();
 }
 
-extern BOOL g_invert_zoom;
 bool CScientificDetector::Action(u16 cmd, u32 flags)
 {
 	if (inherited::Action(cmd, flags))
@@ -312,24 +284,14 @@ bool CScientificDetector::Action(u16 cmd, u32 flags)
 	case kWPN_ZOOM_DEC:
 		if (flags&CMD_START)
 		{
-			if (g_invert_zoom == 0)
-			{
-				if (cmd == kWPN_ZOOM_INC)
-					ChangeLevel		(true);
-				else
-					ChangeLevel		(false);
-			}
+			if (cmd == kWPN_ZOOM_INC)
+				ChangeLevel		(true);
 			else
-			{
-				if (cmd == kWPN_ZOOM_INC)
-					ChangeLevel		(false);
-				else
-					ChangeLevel		(true);
-			}
-			return					true;
+				ChangeLevel		(false);
+			return				true;
 		}
 		else
-			return					false;
+			return				false;
 	}
 
 	return false;

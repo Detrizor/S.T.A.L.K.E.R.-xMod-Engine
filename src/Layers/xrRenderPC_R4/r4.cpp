@@ -79,8 +79,8 @@ static class cl_LOD		: public R_constant_setup
 
 static class cl_pos_decompress_params		: public R_constant_setup		{	virtual void setup	(R_constant* C)
 {
-	float VertTan =  -1.0f * tanf( deg2rad(Device.fFOV/2.0f ) );
-	float HorzTan =  - VertTan / Device.fASPECT;
+	float VertTan =  -1.0f * tanf( deg2rad(Device.camera.fov/2.0f ) );
+	float HorzTan =  - VertTan / Device.camera.aspect;
 
 	RCache.set_c	( C, HorzTan, VertTan, ( 2.0f * HorzTan )/(float)Device.dwWidth, ( 2.0f * VertTan ) /(float)Device.dwHeight );
 
@@ -105,12 +105,12 @@ static class cl_water_intensity : public R_constant_setup
 #ifdef TREE_WIND_EFFECT
 static class cl_tree_amplitude_intensity : public R_constant_setup
 {
-    virtual void setup(R_constant* C)
-    {
-        CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
-        float fValue = E.m_fTreeAmplitudeIntensity;
-        RCache.set_c(C, fValue, fValue, fValue, 0);
-    }
+	virtual void setup(R_constant* C)
+	{
+		CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
+		float fValue = E.m_fTreeAmplitudeIntensity;
+		RCache.set_c(C, fValue, fValue, fValue, 0);
+	}
 } binder_tree_amplitude_intensity;
 #endif
 
@@ -132,8 +132,6 @@ static class cl_alpha_ref	: public R_constant_setup
 	}
 } binder_alpha_ref;
 
-extern ENGINE_API BOOL r2_sun_static;
-extern ENGINE_API BOOL r2_advanced_pp;	//	advanced post process and effects
 //////////////////////////////////////////////////////////////////////////
 // Just two static storage
 void					CRender::create					()
@@ -289,8 +287,8 @@ void					CRender::create					()
 	o.bug				= (strstr(Core.Params,"-bug"))?			TRUE	:FALSE	;
 	o.sunfilter			= (strstr(Core.Params,"-sunfilter"))?	TRUE	:FALSE	;
 	//.	o.sunstatic			= (strstr(Core.Params,"-sunstatic"))?	TRUE	:FALSE	;
-	o.sunstatic			= r2_sun_static;
-	o.advancedpp		= r2_advanced_pp;
+	o.sunstatic			= ps_r2_ls_flags.test(R2FLAG_SUN_STATIC);
+	o.advancedpp		= true;
 	o.volumetricfog		= ps_r2_ls_flags.test(R3FLAG_VOLUMETRIC_SMOKE);
 	o.sjitter			= (strstr(Core.Params,"-sjitter"))?		TRUE	:FALSE	;
 	o.depth16			= (strstr(Core.Params,"-depth16"))?		TRUE	:FALSE	;
@@ -317,8 +315,8 @@ void					CRender::create					()
 		o.ssao_opt_data = true;
 	}
 
-    if( o.ssao_hdao )
-        o.ssao_opt_data = false;
+	if( o.ssao_hdao )
+		o.ssao_opt_data = false;
 
 	o.dx10_sm4_1		= ps_r2_ls_flags.test((u32)R3FLAG_USE_DX10_1);
 	o.dx10_sm4_1		= o.dx10_sm4_1 && ( HW.FeatureLevel >= D3D_FEATURE_LEVEL_10_1 );
@@ -477,13 +475,13 @@ void CRender::reset_begin()
 		Lights_LastFrame.clear	();
 	}
 
-    //AVO: let's reload details while changed details options on vid_restart
-    if (b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
-    {
-        Details->Unload();
-        xr_delete(Details);
-    }
-    //-AVO
+	//AVO: let's reload details while changed details options on vid_restart
+	if (b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
+	{
+		Details->Unload();
+		xr_delete(Details);
+	}
+	//-AVO
 
 	xr_delete					(Target);
 	HWOCC.occq_destroy			();
@@ -511,13 +509,13 @@ void CRender::reset_end()
 
 	Target						=	xr_new<CRenderTarget>	();
 
-    //AVO: let's reload details while changed details options on vid_restart
-    if (b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
-    {
-        Details = xr_new<CDetailManager>();
-        Details->Load();
-    }
-    //-AVO
+	//AVO: let's reload details while changed details options on vid_restart
+	if (b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
+	{
+		Details = xr_new<CDetailManager>();
+		Details->Load();
+	}
+	//-AVO
 
 	xrRender_apply_tf			();
 	FluidManager.SetScreenSize(Device.dwWidth, Device.dwHeight);
@@ -526,29 +524,17 @@ void CRender::reset_end()
 	// that some data is not ready in the first frame (for example device camera position)
 	m_bFirstFrameAfterReset		= true;
 }
-/*
-void CRender::OnFrame()
-{
-	Models->DeleteQueue			();
-	if (ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
-		Device.seqParallel.insert	(Device.seqParallel.begin(),
-			fastdelegate::FastDelegate0<>(&HOM,&CHOM::MT_RENDER));
-	}
-}*/
-void CRender::OnFrame()
-{
-	Models->DeleteQueue			();
-	if (ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
-		// MT-details (@front)
-		Device.seqParallel.insert	(Device.seqParallel.begin(),
-			fastdelegate::FastDelegate0<>(Details,&CDetailManager::MT_CALC));
 
-		// MT-HOM (@front)
-		Device.seqParallel.insert	(Device.seqParallel.begin(),
-			fastdelegate::FastDelegate0<>(&HOM,&CHOM::MT_RENDER));
+void CRender::OnFrame()
+{
+	Models->DeleteQueue();
+	if (ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))
+	{
+		// MT-details (@front)
+		Device.seqParallel.insert(Device.seqParallel.begin(),
+			fastdelegate::FastDelegate0<>(Details,&CDetailManager::MT_CALC));
 	}
 }
-
 
 // Implementation
 IRender_ObjectSpecific*	CRender::ros_create				(IRenderable* parent)				{ return xr_new<CROS_impl>();			}
@@ -624,8 +610,8 @@ BOOL					CRender::occ_visible			(vis_data& P)		{ return HOM.visible(P);								}
 BOOL					CRender::occ_visible			(sPoly& P)			{ return HOM.visible(P);								}
 BOOL					CRender::occ_visible			(Fbox& P)			{ return HOM.visible(P);								}
 
-void					CRender::add_Visual				(IRenderVisual*		V )	{ add_leafs_Dynamic((dxRender_Visual*)V);								}
-void					CRender::add_Geometry			(IRenderVisual*		V )	{ add_Static((dxRender_Visual*)V,View->getMask());					}
+void					CRender::add_Visual				(IRenderVisual* V )	{ add_Dynamic(reinterpret_cast<dxRender_Visual*>(V), u32_max, m_planes_lense); }
+void					CRender::add_Geometry			(IRenderVisual* V )	{ add_Static(reinterpret_cast<dxRender_Visual*>(V), View->getMask(), m_planes_lense); }
 void					CRender::add_StaticWallmark		(ref_shader& S, const Fvector& P, float s, CDB::TRI* T, Fvector* verts)
 {
 	if (T->suppress_wm)	return;
@@ -796,11 +782,7 @@ static HRESULT create_shader				(
 	HRESULT		_result = E_FAIL;
 	if (pTarget[0] == 'p') {
 		SPS* sps_result = (SPS*)result;
-#ifdef USE_DX11
 		_result			= HW.pDevice->CreatePixelShader(buffer, buffer_size, 0, &sps_result->ps);
-#else // #ifdef USE_DX11
-		_result			= HW.pDevice->CreatePixelShader(buffer, buffer_size, &sps_result->ps);
-#endif // #ifdef USE_DX11
 		if ( !SUCCEEDED(_result) ) {
 			Log			("! PS: ", file_name);
 			Msg			("! CreatePixelShader hr == 0x%08x", _result);
@@ -809,11 +791,7 @@ static HRESULT create_shader				(
 
 		ID3DShaderReflection *pReflection = 0;
 
-#ifdef USE_DX11
-        _result			= D3DReflect( buffer, buffer_size, guidShaderReflection, (void**)&pReflection);
-#else
-		_result			= D3D10ReflectShader( buffer, buffer_size, &pReflection);
-#endif
+		_result			= D3DReflect( buffer, buffer_size, guidShaderReflection, (void**)&pReflection);
 
 		//	Parse constant, texture, sampler binding
 		//	Store input signature blob
@@ -832,11 +810,7 @@ static HRESULT create_shader				(
 	}
 	else if (pTarget[0] == 'v') {
 		SVS* svs_result = (SVS*)result;
-#ifdef USE_DX11
 		_result			= HW.pDevice->CreateVertexShader(buffer, buffer_size, 0, &svs_result->vs);
-#else // #ifdef USE_DX11
-		_result			= HW.pDevice->CreateVertexShader(buffer, buffer_size, &svs_result->vs);
-#endif // #ifdef USE_DX11
 
 		if ( !SUCCEEDED(_result) ) {
 			Log			("! VS: ", file_name);
@@ -845,11 +819,7 @@ static HRESULT create_shader				(
 		}
 
 		ID3DShaderReflection *pReflection = 0;
-#ifdef USE_DX11
-        _result			= D3DReflect( buffer, buffer_size, guidShaderReflection, (void**)&pReflection);
-#else
-		_result			= D3D10ReflectShader( buffer, buffer_size, &pReflection);
-#endif
+		_result			= D3DReflect( buffer, buffer_size, guidShaderReflection, (void**)&pReflection);
 		
 		//	Parse constant, texture, sampler binding
 		//	Store input signature blob
@@ -880,11 +850,7 @@ static HRESULT create_shader				(
 	}
 	else if (pTarget[0] == 'g') {
 		SGS* sgs_result = (SGS*)result;
-#ifdef USE_DX11
 		_result			= HW.pDevice->CreateGeometryShader(buffer, buffer_size, 0, &sgs_result->gs);
-#else // #ifdef USE_DX11
-		_result			= HW.pDevice->CreateGeometryShader(buffer, buffer_size, &sgs_result->gs);
-#endif // #ifdef USE_DX11
 		if ( !SUCCEEDED(_result) ) {
 			Log			("! GS: ", file_name);
 			Msg			("! CreateGeometryShaderhr == 0x%08x", _result);
@@ -893,11 +859,7 @@ static HRESULT create_shader				(
 
 		ID3DShaderReflection *pReflection = 0;
 
-#ifdef USE_DX11
 		_result			= D3DReflect( buffer, buffer_size, guidShaderReflection, (void**)&pReflection);
-#else
-		_result			= D3D10ReflectShader( buffer, buffer_size, &pReflection);
-#endif
 
 		//	Parse constant, texture, sampler binding
 		//	Store input signature blob
@@ -914,42 +876,6 @@ static HRESULT create_shader				(
 			Msg	("! D3DReflectShader hr == 0x%08x", _result);
 		}
 	}
-//	else if (pTarget[0] == 'c') {
-//		SCS* scs_result = (SCS*)result;
-//#ifdef USE_DX11
-//		_result			= HW.pDevice->CreateComputeShader(buffer, buffer_size, 0, &scs_result->sh);
-//#else // #ifdef USE_DX11
-//		_result			= HW.pDevice->CreateComputeShader(buffer, buffer_size, &scs_result->sh);
-//#endif // #ifdef USE_DX11
-//		if ( !SUCCEEDED(_result) ) {
-//			Log			("! CS: ", file_name);
-//			Msg			("! CreateComputeShaderhr == 0x%08x", _result);
-//			return		E_FAIL;
-//		}
-//
-//		ID3DShaderReflection *pReflection = 0;
-//
-//#ifdef USE_DX11
-//		_result			= D3DReflect( buffer, buffer_size, IID_ID3DShaderReflection, (void**)&pReflection);
-//#else
-//		_result			= D3D10ReflectShader( buffer, buffer_size, &pReflection);
-//#endif
-//
-//		//	Parse constant, texture, sampler binding
-//		//	Store input signature blob
-//		if (SUCCEEDED(_result) && pReflection)
-//		{
-//			//	Let constant table parse it's data
-//			scs_result->constants.parse(pReflection,RC_dest_pixel);
-//
-//			_RELEASE(pReflection);
-//		}
-//		else
-//		{
-//			Log	("! PS: ", file_name);
-//			Msg	("! D3DReflectShader hr == 0x%08x", _result);
-//		}
-//	}
 	else if (pTarget[0] == 'c') {
 		_result = create_shader	( pTarget, buffer, buffer_size, file_name, (SCS*&)result, disasm );
 	}
@@ -1149,15 +1075,15 @@ HRESULT	CRender::shader_compile			(
 	}
 	sh_name[len]='0'+char(o.ssao_blur_on); ++len;
 
-    if (o.ssao_hdao)
-    {
-        defines[def_it].Name		=	"HDAO";
-        defines[def_it].Definition	=	"1";
-        def_it						++;
+	if (o.ssao_hdao)
+	{
+		defines[def_it].Name		=	"HDAO";
+		defines[def_it].Definition	=	"1";
+		def_it						++;
 		sh_name[len]='1'; ++len;
 		sh_name[len]='0'; ++len;
 		sh_name[len]='0'; ++len;
-    }
+	}
 	else {
 		sh_name[len]='0'; ++len;
 		sh_name[len]='0'+char(o.ssao_hbao); ++len;
@@ -1187,7 +1113,7 @@ HRESULT	CRender::shader_compile			(
 		}
 	}
 
-    if( o.dx10_msaa )
+	if( o.dx10_msaa )
 	{
 		static char def[ 256 ];
 		//if( m_MSAASample < 0 )
@@ -1387,7 +1313,7 @@ HRESULT	CRender::shader_compile			(
 	   defines[def_it].Name		=	"USE_MSAA";
 	   defines[def_it].Definition	=	"1";
 	   def_it						++;
-       sh_name[len]='1'; ++len;
+	   sh_name[len]='1'; ++len;
 
 	   static char samples[2];
 
@@ -1617,10 +1543,6 @@ static inline bool match_shader		( LPCSTR const debug_shader_id, LPCSTR const fu
 
 static inline bool match_shader_id	( LPCSTR const debug_shader_id, LPCSTR const full_shader_id, FS_FileSet const& file_set, string_path& result )
 {
-#if 0
-	strcpy_s					( result, "" );
-	return						false;
-#else // #if 1
 #ifdef DEBUG
 	LPCSTR temp					= "";
 	bool found					= false;
@@ -1648,5 +1570,4 @@ static inline bool match_shader_id	( LPCSTR const debug_shader_id, LPCSTR const 
 
 	return						false;
 #endif // #ifdef DEBUG
-#endif// #if 1
 }

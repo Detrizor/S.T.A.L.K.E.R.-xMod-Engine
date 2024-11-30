@@ -111,7 +111,7 @@ void   monster_aura::load_from_ini (CInifile const* ini, pcstr const section, bo
 	m_quadratic_factor				=	READ_IF_EXISTS(ini, r_float, section, quadratic_factor_string, 0.f);
 	m_max_power						=	READ_IF_EXISTS(ini, r_float, section, max_power_string, 0.f);
 	m_max_distance					=	READ_IF_EXISTS(ini, r_float, section, max_distance_string, 0.f);
-	m_enable_for_dead				=	!!READ_IF_EXISTS(ini, r_bool, section, enable_for_dead_string, enable_for_dead_default);
+	m_enable_for_dead				=	!!READ_IF_EXISTS(ini, r_BOOL, section, enable_for_dead_string, enable_for_dead_default);
 	pcstr const sound_name			=	READ_IF_EXISTS(ini, r_string, section, sound_string, NULL);
 	pcstr const detect_sound_name	=	READ_IF_EXISTS(ini, r_string, section, detect_sound_string, NULL);
 

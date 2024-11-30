@@ -21,7 +21,8 @@ class	R_dsgraph_structure										: public IRender_interface, public pureFrame
 {
 public:
 	IRenderable*												val_pObject;
-	Fmatrix*													val_pTransform;
+	Fmatrix CP$													val_pTransform;
+	Fmatrix														val_Transform = Fidentity;
 	BOOL														val_bHUD;
 	BOOL														val_bInvisible;
 	BOOL														val_bRecordMP;		// record nearest for multi-pass
@@ -42,18 +43,14 @@ public:
 	R_dsgraph::mapHUD_T											mapHUD;
 	R_dsgraph::mapLOD_T											mapLOD;
 	R_dsgraph::mapSorted_T										mapDistort;
-
-#if RENDER!=R_R1
+	R_dsgraph::mapHUD_T											mapHUDSorted;
 	R_dsgraph::mapSorted_T										mapWmark;			// sorted
 	R_dsgraph::mapSorted_T										mapEmissive;
 	R_dsgraph::mapSorted_T										mapHUDEmissive;
-#endif
 
 	// Runtime structures 
 	xr_vector<R_dsgraph::mapNormalVS::TNode*,render_alloc<R_dsgraph::mapNormalVS::TNode*> >				nrmVS;
-#if defined(USE_DX10) || defined(USE_DX11)
 	xr_vector<R_dsgraph::mapNormalGS::TNode*,render_alloc<R_dsgraph::mapNormalGS::TNode*> >				nrmGS;
-#endif	//	USE_DX10
 	xr_vector<R_dsgraph::mapNormalPS::TNode*,render_alloc<R_dsgraph::mapNormalPS::TNode*> >				nrmPS;
 	xr_vector<R_dsgraph::mapNormalCS::TNode*,render_alloc<R_dsgraph::mapNormalCS::TNode*> >				nrmCS;
 	xr_vector<R_dsgraph::mapNormalStates::TNode*,render_alloc<R_dsgraph::mapNormalStates::TNode*> >		nrmStates;
@@ -61,9 +58,7 @@ public:
 	xr_vector<R_dsgraph::mapNormalTextures::TNode*,render_alloc<R_dsgraph::mapNormalTextures::TNode*> >	nrmTexturesTemp;
 
 	xr_vector<R_dsgraph::mapMatrixVS::TNode*,render_alloc<R_dsgraph::mapMatrixVS::TNode*> >				matVS;
-#if defined(USE_DX10) || defined(USE_DX11)
 	xr_vector<R_dsgraph::mapMatrixGS::TNode*,render_alloc<R_dsgraph::mapMatrixGS::TNode*> >				matGS;
-#endif	//	USE_DX10
 	xr_vector<R_dsgraph::mapMatrixPS::TNode*,render_alloc<R_dsgraph::mapMatrixPS::TNode*> >				matPS;
 	xr_vector<R_dsgraph::mapMatrixCS::TNode*,render_alloc<R_dsgraph::mapMatrixCS::TNode*> >				matCS;
 	xr_vector<R_dsgraph::mapMatrixStates::TNode*,render_alloc<R_dsgraph::mapMatrixStates::TNode*> >		matStates;
@@ -82,7 +77,9 @@ public:
 	u32															counter_D	;
 	BOOL														b_loaded	;
 public:
-	virtual		void					set_Transform			(Fmatrix*	M	)				{ VERIFY(M);	val_pTransform = M;	}
+				void					set_Transform			(Fmatrix CP$	M	) override	{ VERIFY(M);	val_pTransform = M;	}
+				void					set_Transform			(Fmatrix CR$	M	) override	{ val_pTransform = &M;				}
+				void					set_Transform			(Dmatrix CR$	M	) override	{ val_Transform = static_cast<Fmatrix>(M); val_pTransform = &val_Transform; }
 	virtual		void					set_HUD					(BOOL 		V	)				{ val_bHUD		= V;				}
 	virtual		BOOL					get_HUD					()								{ return		val_bHUD;			}
 	virtual		void					set_Invisible			(BOOL 		V	)				{ val_bInvisible= V;				}
@@ -145,17 +142,15 @@ public:
 		mapHUD.destroy			();
 		mapLOD.destroy			();
 		mapDistort.destroy		();
-
-#if RENDER!=R_R1
+		mapHUDSorted.destroy	();
 		mapWmark.destroy		();
 		mapEmissive.destroy		();
-#endif
 	}
 
 	void		r_pmask											(bool _1, bool _2, bool _wm=false)				{ pmask[0]=_1; pmask[1]=_2;	pmask_wmark = _wm; }
 
-	void		r_dsgraph_insert_dynamic						(dxRender_Visual	*pVisual, Fvector& Center);
-	void		r_dsgraph_insert_static							(dxRender_Visual	*pVisual);
+	void		r_dsgraph_insert_dynamic						(dxRender_Visual* pVisual, Fvector CR$ Center);
+	void		r_dsgraph_insert_static							(dxRender_Visual* pVisual);
 
 	void		r_dsgraph_render_graph							(u32	_priority,	bool _clear=true);
 	void		r_dsgraph_render_hud							();
@@ -179,4 +174,11 @@ public:
 		return	(0);
 #endif // USE_DOUG_LEA_ALLOCATOR_FOR_RENDER
 	}
+
+private:
+	u32								m_frame										= 0;
+
+public:
+	u32								dwFrame									CO$	()		{ return m_frame; }
+	void							incFrame									()		{ ++m_frame; }
 };

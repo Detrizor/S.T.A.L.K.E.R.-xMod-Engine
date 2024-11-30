@@ -8,22 +8,6 @@
 #include "../../xrEngine/GameFont.h"
 
 #include "dxRenderDeviceRender.h"
- 
-float	psOSSR		= .001f;
-
-void __stdcall	CHOM::MT_RENDER()
-{
-	MT.Enter					();
-	bool b_main_menu_is_active = (g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive() );
-	if (MT_frame_rendered!=Device.dwFrame && !b_main_menu_is_active)
-	{
-		CFrustum					ViewBase;
-		ViewBase.CreateFromMatrix	(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
-		Enable						();
-		Render						(ViewBase);
-	}
-	MT.Leave					();
-}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -143,7 +127,7 @@ public:
 	}
 	ICF bool	operator()		(const CDB::RESULT& _1)	const {
 		occTri&	T	= m_pTris	[_1.id];
-		return	T.skip>Device.dwFrame;
+		return	T.skip>::Render->dwFrame();
 	}
 };
 
@@ -163,8 +147,8 @@ void CHOM::Render_DB			(CFrustum& base)
 		0.0f,				0.0f,				1.0f,		0.0f,
 		1.f/2.f + 0 + 0,	1.f/2.f + 0 + 0,	0.0f,		1.0f
 	};
-	m_xform.mul					(m_viewport,	Device.mFullTransform);
-	m_xform_01.mul				(m_viewport_01,	Device.mFullTransform);
+	m_xform.mul					(m_viewport,	Device.camera.full_transform);
+	m_xform_01.mul				(m_viewport_01,	Device.camera.full_transform);
 
 	// Query DB
 	xrc.frustum_options			(0);
@@ -175,15 +159,15 @@ void CHOM::Render_DB			(CFrustum& base)
 	CDB::RESULT*	it			= xrc.r_begin	();
 	CDB::RESULT*	end			= xrc.r_end		();
 	
-	Fvector			COP			= Device.vCameraPosition;
+	Fvector			COP			= Device.camera.position;
 	end				= std::remove_if	(it,end,pred_fb(m_pTris));
 	std::sort		(it,end,pred_fb(m_pTris,COP));
 
 	// Build frustum with near plane only
 	CFrustum					clip;
-	clip.CreateFromMatrix		(Device.mFullTransform,FRUSTUM_P_NEAR);
+	clip.CreateFromMatrix		(Device.camera.full_transform,FRUSTUM_P_NEAR);
 	sPoly						src,dst;
-	u32		_frame				= Device.dwFrame	;
+	u32		_frame				= ::Render->dwFrame()	;
 #ifdef DEBUG
 	tris_in_frame				= xrc.r_count();
 	tris_in_frame_visible		= 0;
@@ -226,7 +210,7 @@ void CHOM::Render_DB			(CFrustum& base)
 	}
 }
 
-void CHOM::Render		(CFrustum& base)
+void CHOM::Render(CFrustum& base)
 {
 	if (!bEnabled)		return;
 	
@@ -234,7 +218,6 @@ void CHOM::Render		(CFrustum& base)
 	Raster.clear		();
 	Render_DB			(base);
 	Raster.propagade	();
-	MT_frame_rendered	= Device.dwFrame;
 	Device.Statistic->RenderCALC_HOM.End	();
 }
 
@@ -276,7 +259,7 @@ IC	BOOL	_visible	(Fbox& B, Fmatrix& m_xform_01)
 BOOL CHOM::visible		(Fbox3& B)
 {
 	if (!bEnabled)							return TRUE;
-	if (B.contains(Device.vCameraPosition))	return TRUE;
+	if (B.contains(Device.camera.position))	return TRUE;
 	return _visible		(B,m_xform_01)		;
 }
 
@@ -288,14 +271,14 @@ BOOL CHOM::visible		(Fbox2& B, float depth)
 
 BOOL CHOM::visible		(vis_data& vis)
 {
-	if (Device.dwFrame<vis.hom_frame)	return TRUE;				// not at this time :)
+	if (::Render->dwFrame()<vis.hom_frame)	return TRUE;				// not at this time :)
 	if (!bEnabled)						return TRUE;				// return - everything visible
 	
 	// Now, the test time comes
 	// 0. The object was hidden, and we must prove that each frame	- test		| frame-old, tested-new, hom_res = false;
 	// 1. The object was visible, but we must to re-check it		- test		| frame-new, tested-???, hom_res = true;
 	// 2. New object slides into view								- delay test| frame-old, tested-old, hom_res = ???;
-	u32 frame_current	= Device.dwFrame;
+	u32 frame_current	= ::Render->dwFrame();
 	// u32	frame_prev		= frame_current-1;
 
 #ifdef DEBUG

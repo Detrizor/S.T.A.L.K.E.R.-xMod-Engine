@@ -95,86 +95,19 @@ void CUIHudStatesWnd::InitFromXml( CUIXml& xml, LPCSTR path )
 	XML_NODE* new_root = xml.NavigateToNode( path, 0 );
 	xml.SetLocalRoot( new_root );
 
-
-	m_back            = UIHelper::CreateStatic( xml, "back", this );
 	m_ui_health_bar   = UIHelper::CreateProgressBar( xml, "progress_bar_health", this );
 	m_ui_stamina_bar  = UIHelper::CreateProgressBar( xml, "progress_bar_stamina", this );
-//	m_back_v          = UIHelper::CreateStatic( xml, "back_v", this );
-//	m_static_armor    = UIHelper::CreateStatic( xml, "static_armor", this );
-	
-/*
-	m_resist_back[ALife::infl_rad]  = UIHelper::CreateStatic( xml, "resist_back_rad", this );
-	m_resist_back[ALife::infl_fire] = UIHelper::CreateStatic( xml, "resist_back_fire", this );
-	m_resist_back[ALife::infl_acid] = UIHelper::CreateStatic( xml, "resist_back_acid", this );
-	m_resist_back[ALife::infl_psi]  = UIHelper::CreateStatic( xml, "resist_back_psi", this );
-	// electra = no has CStatic!!
-*/
+
 	m_indik[ALife::infl_rad]  = UIHelper::CreateStatic( xml, "indik_rad", this );
 	m_indik[ALife::infl_fire] = UIHelper::CreateStatic( xml, "indik_fire", this );
 	m_indik[ALife::infl_acid] = UIHelper::CreateStatic( xml, "indik_acid", this );
 	m_indik[ALife::infl_psi]  = UIHelper::CreateStatic( xml, "indik_psi", this );
-
-//	m_lanim_name				= xml.ReadAttrib( "indik_rad", 0, "light_anim", "" );
-
-	m_ui_weapon_cur_ammo		= UIHelper::CreateTextWnd( xml, "static_cur_ammo", this );
-	m_ui_weapon_fmj_ammo		= UIHelper::CreateTextWnd( xml, "static_fmj_ammo", this );
-	m_ui_weapon_ap_ammo			= UIHelper::CreateTextWnd( xml, "static_ap_ammo", this );
-
-	//Alundaio: Option to display a third ammo type
-	m_ui_weapon_third_ammo		= UIHelper::CreateTextWnd(xml, "static_third_ammo", this);		
-	//-Alundaio
-
-	m_ui_weapon_ammo_color_active = CUIXmlInit::GetColor(xml, "active_ammo_color", 0, color_rgba(238, 155, 23, 255));
-	m_ui_weapon_ammo_color_inactive = CUIXmlInit::GetColor(xml, "inactive_ammo_color", 0, color_rgba(238, 155, 23, 150));
-
-	m_fire_mode					= UIHelper::CreateTextWnd( xml, "static_fire_mode", this );
-	m_ui_grenade				= UIHelper::CreateTextWnd( xml, "static_grenade", this );
 	
-	m_ui_weapon_icon			= UIHelper::CreateStatic( xml, "static_wpn_icon", this );
-	m_ui_weapon_icon->SetShader( InventoryUtilities::GetEquipmentIconsShader() );
-//	m_ui_weapon_icon->Enable	( false );
-	m_ui_weapon_icon_rect		= m_ui_weapon_icon->GetWndRect();
+	m_back								= UIHelper::CreateStatic( xml, "back", this );
+	m_zeroing							= UIHelper::CreateTextWnd( xml, "static_zeroing", m_back);
+	m_fire_mode							= UIHelper::CreateTextWnd( xml, "static_fire_mode", m_back);
+	m_magnification						= UIHelper::CreateTextWnd( xml, "static_magnification", m_back);
 
-//	m_ui_armor_bar    = UIHelper::CreateProgressBar( xml, "progress_bar_armor", this );
-
-//	m_progress_self = xr_new<CUIProgressShape>();
-//	m_progress_self->SetAutoDelete(true);
-//	AttachChild( m_progress_self );
-//	CUIXmlInit::InitProgressShape( xml, "progress", 0, m_progress_self );
-
-//	m_arrow				= xr_new<UI_Arrow>();
-//	m_arrow_shadow		= xr_new<UI_Arrow>();
-
-//	m_arrow->init_from_xml( xml, "arrow", this );
-//	m_arrow_shadow->init_from_xml( xml, "arrow_shadow", this );
-
-//	m_back_over_arrow = UIHelper::CreateStatic( xml, "back_over_arrow", this );
-
-/*
-	m_bleeding_lev1 = UIHelper::CreateStatic( xml, "bleeding_level_1", this );
-	m_bleeding_lev1->Show( false );
-
-	m_bleeding_lev2 = UIHelper::CreateStatic( xml, "bleeding_level_2", this );
-	m_bleeding_lev2->Show( false );
-
-	m_bleeding_lev3 = UIHelper::CreateStatic( xml, "bleeding_level_3", this );
-	m_bleeding_lev3->Show( false );
-
-	m_radiation_lev1 = UIHelper::CreateStatic( xml, "radiation_level_1", this );
-	m_radiation_lev1->Show( false );
-
-	m_radiation_lev2 = UIHelper::CreateStatic( xml, "radiation_level_2", this );
-	m_radiation_lev2->Show( false );
-
-	m_radiation_lev3 = UIHelper::CreateStatic( xml, "radiation_level_3", this );
-	m_radiation_lev3->Show( false );
-
-	for ( int i = 0; i < it_max; ++i )
-	{
-		m_cur_state_LA[i] = true;
-		SwitchLA( false, (ALife::EInfluenceType)i );
-	}
-*/	
 	xml.SetLocalRoot( stored_root );
 }
 
@@ -240,11 +173,6 @@ void CUIHudStatesWnd::Update()
 
 void CUIHudStatesWnd::UpdateHealth( CActor* actor )
 {
-//	if ( Device.dwTimeGlobal - m_timer_1sec > 1000 ) // 1 sec
-//	{
-//		m_timer_1sec = Device.dwTimeGlobal;
-//	}
-	
 	float cur_health = actor->GetfHealth();
 	m_ui_health_bar->SetProgressPos(iCeil(cur_health * 100.0f * 35.f) / 35.f);
 	if ( _abs(cur_health - m_last_health) > m_health_blink )
@@ -259,154 +187,30 @@ void CUIHudStatesWnd::UpdateHealth( CActor* actor )
 	{
 		m_ui_stamina_bar->m_UIProgressItem.ResetColorAnimation();
 	}
-
-/*
-	CCustomOutfit* outfit = actor->GetOutfit();
-	if ( outfit )
-	{
-		m_static_armor->Show( true );
-		m_ui_armor_bar->Show( true );
-		m_ui_armor_bar->SetProgressPos( outfit->GetCondition() * 100.0f );
-	}
-	else
-	{
-		m_static_armor->Show( false );
-		m_ui_armor_bar->Show( false );
-	}
-*/	
-	/*
-	float bleeding_speed = actor->conditions().BleedingSpeed();
-	if(bleeding_speed > 0.01f)
-		m_bleeding_lev1->Show(true);
-	else
-		m_bleeding_lev1->Show(false);
-
-	if(bleeding_speed > 0.35f)
-		m_bleeding_lev2->Show(true);
-	else
-		m_bleeding_lev2->Show(false);
-	
-	if(bleeding_speed > 0.7f)
-		m_bleeding_lev3->Show(true);
-	else
-		m_bleeding_lev3->Show(false);
-	
-	
-	if(m_radia_self > 0.01f)
-		m_radiation_lev1->Show(true);
-	else
-		m_radiation_lev1->Show(false);
-
-	if(m_radia_self > 0.35f)
-		m_radiation_lev2->Show(true);
-	else
-		m_radiation_lev2->Show(false);
-	
-	if(m_radia_self > 0.7f)
-		m_radiation_lev3->Show(true);
-	else
-		m_radiation_lev3->Show(false);
-		*/
 }
 
-void CUIHudStatesWnd::UpdateActiveItemInfo( CActor* actor )
+void CUIHudStatesWnd::UpdateActiveItemInfo(CActor* actor)
 {
-	PIItem item = actor->inventory().ActiveItem();
-	if ( item )
+	auto ai								= actor->inventory().ActiveItem();
+	if (auto wpn = (ai) ? ai->O.scast<CWeaponMagazined*>() : nullptr)
 	{
-		if(m_b_force_update)
+		if (m_b_force_update)
 		{
-			if(item->cast_weapon())
-				item->cast_weapon()->ForceUpdateAmmo();
-			m_b_force_update		= false;
+			wpn->ForceUpdateAmmo		();
+			m_b_force_update			= false;
 		}
+		wpn->GetBriefInfo				(m_wpn_info);
 
-		item->GetBriefInfo			( m_item_info );
-
-//		UIWeaponBack.SetText		( str_name.c_str() );
-		m_fire_mode->SetText		( m_item_info.fire_mode.c_str() );
-		SetAmmoIcon					( m_item_info.icon.c_str() );
+		m_zeroing->SetText				(*m_wpn_info.zeroing);
+		m_fire_mode->SetText			(*m_wpn_info.fire_mode);
+		m_magnification->SetText		(*m_wpn_info.magnification);
 		
-		m_ui_weapon_cur_ammo->Show	( true );
-		m_ui_weapon_fmj_ammo->Show	( true );
-		m_ui_weapon_ap_ammo->Show	( true );
-		m_ui_weapon_third_ammo->Show(true); //Alundaio: third_ammo
-		m_fire_mode->Show			( true );
-		m_ui_grenade->Show			( true );
-
-		m_ui_weapon_cur_ammo->SetText	( m_item_info.cur_ammo.c_str() );
-		m_ui_weapon_fmj_ammo->SetText	( m_item_info.fmj_ammo.c_str() );
-		m_ui_weapon_ap_ammo->SetText	( m_item_info.ap_ammo.c_str() );
-
-		//Alundaio: Third ammo type and also set text color for each ammo type
-		if (m_ui_weapon_third_ammo)
-			m_ui_weapon_third_ammo->SetText(m_item_info.third_ammo.c_str());
-		
-		m_ui_grenade->SetText	( m_item_info.grenade.c_str() );
-
-		m_ui_weapon_fmj_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-		m_ui_weapon_ap_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-		m_ui_weapon_third_ammo->SetTextColor(m_ui_weapon_ammo_color_inactive);
-
-		CWeaponMagazinedWGrenade* wpn = smart_cast<CWeaponMagazinedWGrenade*>(item);
-		if(wpn && wpn->m_bGrenadeMode)
-			m_ui_grenade->SetTextColor(m_ui_weapon_ammo_color_active);
-		else
-			m_ui_grenade->SetTextColor(m_ui_weapon_ammo_color_inactive);
-
-		CWeaponMagazined* wpnm = smart_cast<CWeaponMagazined*>(item);
-		if (wpnm)
-		{
-			if (wpnm->m_ammoType == 0)
-				m_ui_weapon_fmj_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-			else if (wpnm->m_ammoType == 1)
-				m_ui_weapon_ap_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-			else if (wpnm->m_ammoType == 2)
-				m_ui_weapon_third_ammo->SetTextColor(m_ui_weapon_ammo_color_active);
-		}
-		//-Alundaio
+		m_back->Show					(true);
 	}
 	else
-	{
-		m_ui_weapon_icon->Show		( false );
-
-		m_ui_weapon_cur_ammo->Show	( false );
-		m_ui_weapon_fmj_ammo->Show	( false );
-		m_ui_weapon_ap_ammo->Show	( false );
-		m_ui_weapon_third_ammo->Show(false); //Alundaio: Third Ammo
-		m_fire_mode->Show			( false );
-		m_ui_grenade->Show			( false );
-	}
+		m_back->Show					(false);
 }
 
-void CUIHudStatesWnd::SetAmmoIcon(const shared_str& sect_name)
-{
-	if (!sect_name.size())
-	{
-		m_ui_weapon_icon->Show(false);
-		return;
-	}
-	m_ui_weapon_icon->Show(true);
-
-	Frect texture_rect;
-	texture_rect.x1					= pSettings->r_float(sect_name,  "inv_grid_x")		*INV_GRID_WIDTH;
-	texture_rect.y1					= pSettings->r_float(sect_name,  "inv_grid_y")		*INV_GRID_HEIGHT;
-	texture_rect.x2					= pSettings->r_float( sect_name, "inv_grid_width")	*INV_GRID_WIDTH;
-	texture_rect.y2					= pSettings->r_float( sect_name, "inv_grid_height")	*INV_GRID_HEIGHT;
-	texture_rect.rb.add				(texture_rect.lt);
-	m_ui_weapon_icon->GetUIStaticItem().SetTextureRect(texture_rect);
-	m_ui_weapon_icon->SetStretchTexture(true);
-
-	float h = texture_rect.height() * 0.8f;
-	float w = texture_rect.width() * 0.8f;
-
-// now perform only width scale for ammo, which (W)size >2
-	if (texture_rect.width() > 2.01f*INV_GRID_WIDTH)
-		w = INV_GRID_WIDTH * 1.5f;
-
-	m_ui_weapon_icon->SetWidth( w*UI().get_current_kx() );
-	m_ui_weapon_icon->SetHeight( h );
-}
 // ------------------------------------------------------------------------------------------------
 void CUIHudStatesWnd::UpdateZones()
 {
@@ -479,7 +283,7 @@ void CUIHudStatesWnd::UpdateZones()
 	}
 
 	Fvector posf; 
-	posf.set( Device.vCameraPosition );
+	posf.set( Device.camera.position );
 	Level().hud_zones_list->feel_touch_update( posf, m_zone_feel_radius_max );
 	
 	if ( Level().hud_zones_list->m_ItemInfos.size() == 0 )
@@ -503,7 +307,7 @@ void CUIHudStatesWnd::UpdateZones()
 		}
 */
 
-		Fvector P			= Device.vCameraPosition;
+		Fvector P			= Device.camera.position;
 		P.y					-= 0.5f;
 		float dist_to_zone	= 0.0f;
 		float rad_zone		= 0.0f;

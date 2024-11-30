@@ -209,33 +209,29 @@ CCoverManager::Cover const *CCoverManager::add_smart_cover	(LPCSTR table_name, s
 	return					(smart_cover);
 }
 
-class id_predicate_less {
+class id_predicate_less
+{
 private:
 	typedef	smart_cover::cover	Cover;
 
 public:
-	IC 	bool	operator ()		(Cover *lhs, Cover *rhs)
+	IC 	bool	operator ()		(Cover *lhs, Cover *rhs) const
 	{
 		VERIFY				(lhs);
 		VERIFY				(rhs);
 		return				(lhs->object().cName()._get() < rhs->object().cName()._get());
 	}
-	IC 	bool	operator ()		(Cover *cover, shared_str const &id)
+	IC 	bool	operator ()		(Cover *cover, shared_str const &id) const
 	{
 		VERIFY				(cover);
 		return				(cover->object().cName()._get() < id._get());
 	}
 };
 
-void CCoverManager::actualize_smart_covers					() const
+void CCoverManager::actualize_smart_covers() const
 {
-	std::sort(
-		m_smart_covers.begin(),
-		m_smart_covers.end(),
-		id_predicate_less()
-	);
-
-	m_smart_covers_actual	= true;
+	m_smart_covers.sort(id_predicate_less());
+	m_smart_covers_actual = true;
 }
 
 CCoverManager::Cover *CCoverManager::smart_cover			(shared_str const &cover_id) const

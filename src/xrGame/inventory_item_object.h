@@ -1,173 +1,105 @@
-////////////////////////////////////////////////////////////////////////////
-//	Module 		: inventory_item_object.h
-//	Created 	: 24.03.2003
-//  Modified 	: 27.12.2004
-//	Author		: Victor Reutsky, Yuri Dobronravin
-//	Description : Inventory item object implementation
-////////////////////////////////////////////////////////////////////////////
-
 #pragma once
-
 #include "physic_item.h"
 #include "inventory_item.h"
-
-class CInventoryItemObjectOld :
-	public CInventoryItem,
-	public CPhysicItem
-{
-public:
-							CInventoryItemObjectOld();
-	virtual					~CInventoryItemObjectOld();
-	virtual DLL_Pure		*_construct();
-
-public:
-	virtual CPhysicsShellHolder*cast_physics_shell_holder()	{ return this; }
-	virtual CInventoryItem	*cast_inventory_item()	{ return this; }
-	virtual CAttachableItem	*cast_attachable_item()	{ return this; }
-	virtual CWeapon			*cast_weapon()	{ return 0; }
-	virtual CFoodItem		*cast_food_item()	{ return 0; }
-	virtual CMissile		*cast_missile()	{ return 0; }
-	virtual CHudItem		*cast_hud_item()	{ return 0; }
-	virtual CWeaponAmmo		*cast_weapon_ammo()	{ return 0; }
-	virtual CGameObject		*cast_game_object()  { return this; };
-
-public:
-	virtual void	Load(LPCSTR section);
-	virtual	void	Hit(SHit* pHDS);
-
-	virtual void	OnH_B_Independent(bool just_before_destroy);
-	virtual void	OnH_A_Independent();
-	virtual void	OnH_B_Chield();
-	virtual void	OnH_A_Chield();
-	virtual void	UpdateCL();
-	virtual void	OnEvent(NET_Packet& P, u16 type);
-	virtual BOOL	net_Spawn(CSE_Abstract* DC);
-	virtual void	net_Destroy();
-	virtual void	net_Import(NET_Packet& P);					// import from server
-	virtual void	net_Export(NET_Packet& P);					// export to server
-	virtual void	save(NET_Packet &output_packet);
-	virtual void	load(IReader &input_packet);
-	virtual BOOL	net_SaveRelevant()								{ return TRUE; }
-	virtual void	renderable_Render();
-	virtual void	reload(LPCSTR section);
-	virtual void	reinit();
-	virtual void	activate_physic_shell();
-	virtual void	on_activate_physic_shell();
-	virtual	void	modify_holder_params(float &range, float &fov) const;
-public:
-	////////// network //////////////////////////////////////////////////
-	virtual void	make_Interpolation();
-	virtual void	PH_B_CrPr(); // actions & operations before physic correction-prediction steps
-	virtual void	PH_I_CrPr(); // actions & operations after correction before prediction steps
-#ifdef DEBUG
-	virtual void	PH_Ch_CrPr(); // 
-#endif
-	virtual void	PH_A_CrPr(); // actions & operations after phisic correction-prediction steps
-	virtual bool	NeedToDestroyObject() const;
-
-protected:
-#ifdef DEBUG
-	virtual void	OnRender();
-#endif
-
-public:
-	virtual bool	Useful() const;
-
-public:
-	virtual u32		ef_weapon_type() const;
-protected:
-	virtual bool	use_parent_ai_locations() const
-	{
-		return CAttachableItem::use_parent_ai_locations();
-	}
-
-};
-
 #include "huditem.h"
 
-class CInventoryItemObject :
-	public CInventoryItem,
-	public CPhysicItem,
+class CHudItemObject : public CPhysicItem,
 	public CHudItem
 {
-public:
-	CInventoryItemObject();
-	virtual					~CInventoryItemObject();
-	virtual DLL_Pure		*_construct();
+private:
+	typedef CPhysicItem					core;
+	typedef CHudItem					wrap;
 
 public:
-	virtual CPhysicsShellHolder*cast_physics_shell_holder()	{ return this; }
-	virtual CInventoryItem	*cast_inventory_item()	{ return this; }
-	virtual CAttachableItem	*cast_attachable_item()	{ return this; }
-	virtual CWeapon			*cast_weapon()	{ return 0; }
-	virtual CFoodItem		*cast_food_item()	{ return 0; }
-	virtual CMissile		*cast_missile()	{ return 0; }
-	virtual CHudItem		*cast_hud_item()	{ return this; }
-	virtual CWeaponAmmo		*cast_weapon_ammo()	{ return 0; }
-	virtual CGameObject		*cast_game_object()  { return this; };
+	CHudItem*							cast_hud_item						O$	()		{ return this; }
 
 public:
-	virtual bool	Action(u16 cmd, u32 flags);
-	virtual void	on_renderable_Render();
-	virtual void	OnMoveToRuck(const SInvItemPlace& prev);
-	virtual void	SwitchState(u32 S);
-	virtual void	OnStateSwitch(u32 S, u32 oldState);
-	virtual void	OnAnimationEnd(u32 state);
-	virtual void	Show();
-	virtual void	Hide();
-	virtual bool	ActivateItem();
-	virtual void	DeactivateItem();
-	virtual void	OnActiveItem();
-	virtual void	OnHiddenItem();
-	virtual	void	UpdateXForm();
-
-
-	virtual void	Load(LPCSTR section);
-	virtual	void	Hit(SHit* pHDS);
-
-	virtual void	OnH_B_Independent(bool just_before_destroy);
-	virtual void	OnH_A_Independent();
-	virtual void	OnH_B_Chield();
-	virtual void	OnH_A_Chield();
-	virtual void	UpdateCL();
-	virtual void	OnEvent(NET_Packet& P, u16 type);
-	virtual BOOL	net_Spawn(CSE_Abstract* DC);
-	virtual void	net_Destroy();
-	virtual void	net_Import(NET_Packet& P);					// import from server
-	virtual void	net_Export(NET_Packet& P);					// export to server
-	virtual void	save(NET_Packet &output_packet);
-	virtual void	load(IReader &input_packet);
-	virtual BOOL	net_SaveRelevant()								{ return TRUE; }
-	virtual void	renderable_Render();
-	virtual void	reload(LPCSTR section);
-	virtual void	reinit();
-	virtual void	activate_physic_shell();
-	virtual void	on_activate_physic_shell();
-	virtual	void	modify_holder_params(float &range, float &fov) const;
-public:
-	////////// network //////////////////////////////////////////////////
-	virtual void	make_Interpolation();
-	virtual void	PH_B_CrPr(); // actions & operations before physic correction-prediction steps
-	virtual void	PH_I_CrPr(); // actions & operations after correction before prediction steps
-#ifdef DEBUG
-	virtual void	PH_Ch_CrPr(); // 
-#endif
-	virtual void	PH_A_CrPr(); // actions & operations after phisic correction-prediction steps
-	virtual bool	NeedToDestroyObject() const;
-
-protected:
-#ifdef DEBUG
-	virtual void	OnRender();
-#endif
+	void								activate_physic_shell				O$	()		{ wrap::activate_physic_shell(); }
+	void								on_activate_physic_shell			O$	()		{ core::activate_physic_shell(); }
 
 public:
-	virtual bool	Useful() const;
-
-public:
-	virtual u32		ef_weapon_type() const;
-protected:
-	virtual bool	use_parent_ai_locations() const	{ return (CAttachableItem::use_parent_ai_locations() && Device.dwFrame != dwXF_Frame); }
-
+	WRAP_CONSTRUCT						()
+	WRAP_VIRTUAL_METHOD1				(void, Load, , ;, LPCSTR)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Chield, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_B_Chield, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Independent, , ;)
+	WRAP_VIRTUAL_METHOD1				(void, OnH_B_Independent, , ;, bool)
+	WRAP_VIRTUAL_METHOD1				(BOOL, net_Spawn, return, &&, CSE_Abstract*)
+	WRAP_VIRTUAL_METHOD0				(void, net_Destroy, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, UpdateCL, , ;)
 };
 
-#include "inventory_item_object_inline.h"
+class CInventoryItemObject: public CHudItemObject,
+	public CInventoryItem
+{
+private:
+	typedef CHudItemObject				core;
+	typedef CInventoryItem				wrap;
+
+public:
+	CPhysicsShellHolder*				cast_physics_shell_holder			O$	()		{ return this; }
+	CInventoryItem*						cast_inventory_item					O$	()		{ return this; }
+	CAttachableItem*					cast_attachable_item				O$	()		{ return this; }
+	CWeapon*							cast_weapon							O$	()		{ return NULL; }
+	CMissile*							cast_missile						O$	()		{ return NULL; }
+	CHudItem*							cast_hud_item						O$	()		{ return this; }
+	CWeaponAmmo*						cast_weapon_ammo					O$	()		{ return NULL; }
+	CGameObject*						cast_game_object					O$	()		{ return this; }
+
+public:
+										CInventoryItemObject					() : CInventoryItem(this) {}
+
+protected:
+	float								sSumItemData						O$	(EItemDataTypes type)		{ return CInventoryItem::sSumItemData(type); };
+
+protected:
+	bool								use_parent_ai_locations				CO$	()
+	{
+		return CAttachableItem::use_parent_ai_locations() && (Device.dwFrame != dwXF_Frame);
+	}
+
+public:
+	u32									ef_weapon_type						CO$	()					{ return 0; }
+	bool								ActivateItem						O$	(u16 prev_slot)		{ return core::activateItem(prev_slot); }
+	void								DeactivateItem						O$	(u16 slot)			{ core::deactivateItem(slot); }
+	BOOL								net_SaveRelevant					O$	()					{ return TRUE; }
+
+	bool								Action								O$	(u16 cmd, u32 flags)
+	{
+		return (wrap::Action(cmd, flags)) ? true : core::Action(cmd, flags);
+	}
+
+public:
+	void								UpdateXForm							O$	();
+	void								renderable_Render					O$	();
+	
+#ifdef DEBUG
+	void								PH_Ch_CrPr							O$	()		{ wrap::PH_Ch_CrPr(); }
+protected:
+	void								OnRender							O$	()		{ wrap::OnRender(); };
+#endif
+
+public:
+	WRAP_CONSTRUCT						()
+	WRAP_VIRTUAL_METHOD1				(void, Load, , ;, LPCSTR)
+	WRAP_VIRTUAL_METHOD1				(void, Hit, , ;, SHit*)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Independent, , ;)
+	WRAP_VIRTUAL_METHOD1				(void, OnH_B_Independent, , ;, bool)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_A_Chield, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, OnH_B_Chield, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, UpdateCL, , ;)
+	WRAP_VIRTUAL_METHOD2				(void, OnEvent, , ;, NET_Packet&, u16)
+	WRAP_VIRTUAL_METHOD1				(BOOL, net_Spawn, return, &&, CSE_Abstract*)
+	WRAP_VIRTUAL_METHOD0				(void, net_Destroy, , ;)
+	WRAP_VIRTUAL_METHOD1				(void, net_Import, , ;, NET_Packet&)
+	WRAP_VIRTUAL_METHOD1				(void, net_Export, , ;, NET_Packet&)
+	WRAP_VIRTUAL_METHOD1				(void, save, , ;, NET_Packet&)
+	WRAP_VIRTUAL_METHOD1				(void, load, , ;, IReader&)
+	WRAP_VIRTUAL_METHOD1				(void, reload, , ;, LPCSTR)
+	WRAP_VIRTUAL_METHOD0				(void, reinit, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, make_Interpolation, , ;)
+	WRAP_VIRTUAL_METHOD0				(void, PH_A_CrPr, , ;)
+	WRAP_VIRTUAL_METHOD1				(void, OnMoveToRuck, , ;, SInvItemPlace CR$)
+	WRAP_VIRTUAL_METHOD2				(void, sSyncData, , ;, CSE_ALifeDynamicObject*, bool)
+	WRAP_VIRTUAL_METHOD1				(void, shedule_Update, , ;, u32)
+};

@@ -10,24 +10,19 @@
 #	include "phdebug.h"
 #endif
 
-
-CWeaponRG6::~CWeaponRG6()
-{
-}
-
 BOOL	CWeaponRG6::net_Spawn				(CSE_Abstract* DC)
 {
 	BOOL l_res = inheritedSG::net_Spawn(DC);
 	if (!l_res) return l_res;
 
-	if (iAmmoElapsed && !getCurrentRocket())
+	/*if (m_chamber.size() && !getCurrentRocket())		--xd to reimplement in the future
 	{
 		shared_str grenade_name = m_ammoTypes[0];
 		shared_str fake_grenade_name = pSettings->r_string(grenade_name, "fake_grenade_name");
 
 		if (fake_grenade_name.size())
 		{
-			int k=iAmmoElapsed;
+			int k= m_chamber.size();
 			while (k)
 			{
 				k--;
@@ -35,7 +30,7 @@ BOOL	CWeaponRG6::net_Spawn				(CSE_Abstract* DC)
 			}
 		}
 //			inheritedRL::SpawnRocket(*fake_grenade_name, this);
-	}
+	}*/ 
 	
 
 	
@@ -66,7 +61,6 @@ void CWeaponRG6::FireStart ()
 			if(NULL == io->inventory().ActiveItem())
 			{
 			Log("current_state", GetState() );
-			Log("next_state", GetNextState());
 			Log("item_sect", cNameSect().c_str());
 			Log("H_Parent", H_Parent()->cNameSect().c_str());
 			}
@@ -134,16 +128,6 @@ void CWeaponRG6::FireStart ()
 		}
 		dropCurrentRocket();
 	}
-}
-
-bool CWeaponRG6::AddCartridge()
-{
-	if (inheritedSG::AddCartridge())
-	{
-		inheritedRL::SpawnRocket	(pSettings->r_string(m_ammoTypes[m_ammoType].c_str(), "fake_grenade_name"), this);
-		return						true;
-	}
-	return							false;
 }
 
 void CWeaponRG6::OnEvent(NET_Packet& P, u16 type) 

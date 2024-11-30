@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "UIDragDropReferenceList.h"
 #include "UICellItem.h"
-#include "UICellItemFactory.h"
 #include "UIStatic.h"
 #include "../inventory.h"
 #include "../inventoryOwner.h"
@@ -10,7 +9,6 @@
 #include "UIInventoryUtilities.h"
 #include "../../xrEngine/xr_input.h"
 #include "../UICursor.h"
-#include "UICellItemFactory.h"
 
 CUIDragDropReferenceList::CUIDragDropReferenceList()
 {
@@ -51,7 +49,7 @@ void CUIDragDropReferenceList::ReloadReferences(CInventoryOwner* pActor, u8 idx)
 	LPCSTR item_name		= ACTOR_DEFS::g_quick_use_slots[idx];
 	if (item_name && xr_strlen(item_name))
 	{
-		PIItem item			= pActor->inventory().Get(item_name, idx);
+		PIItem item			= pActor->inventory().Get(item_name, idx, true);
 		SetReference		(item_name, Ivector2().set(0, 0), !item);
 	}
 	else
@@ -69,14 +67,10 @@ void CUIDragDropReferenceList::SetReference(LPCSTR section, Ivector2 cell_pos, b
 	}
 
 	Frect					texture_rect;
-	float r_x				= pSettings->r_float(section, "inv_grid_width")		* INV_GRID_WIDTH;
-	float r_y				= pSettings->r_float(section, "inv_grid_height")	* INV_GRID_HEIGHT;;
-	texture_rect.x1			= pSettings->r_float(section, "inv_grid_x")			* INV_GRID_WIDTH;
-	texture_rect.y1			= pSettings->r_float(section, "inv_grid_y")			* INV_GRID_HEIGHT;
-	texture_rect.x2			= r_x;
-	texture_rect.y2			= r_y;
-	texture_rect.rb.add		(texture_rect.lt);
-	r_x						*= UI().widescreen_factor();
+	CInventoryItem::readIcon(texture_rect, section);
+	
+	float r_x		= texture_rect.width();
+	float r_y		= texture_rect.height();
 
 	float x			= (float)m_container->CellSize().x, y = (float)m_container->CellSize().y;
 	float dx		= (float)m_container->CellsSpacing().x, dy = (float)m_container->CellsSpacing().y;
@@ -89,7 +83,7 @@ void CUIDragDropReferenceList::SetReference(LPCSTR section, Ivector2 cell_pos, b
 
 	ref->SetWndPos				(pos);
 	ref->SetWndSize				(size);
-	ref->SetShader				(InventoryUtilities::GetEquipmentIconsShader());
+	ref->SetShader				(InventoryUtilities::GetEquipmentIconsShader(section));
 	ref->SetTextureRect			(texture_rect);
 	ref->TextureOn				();
 	ref->SetStretchTexture		(true);

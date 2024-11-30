@@ -42,22 +42,23 @@ public:
 		};
 	
 	public:
-		IC	void	add_item		(T data) {
-			m_data.push_back	(data);	
-			std::sort			(m_data.begin(), m_data.end(), sort_id_pred());
+		IC	void	add_item		(T data)
+		{
+			m_data.push_back		(data);
+			m_data.sort				(sort_id_pred());
 		}
 
-		IC	void	remove_item		(LPCSTR text) {
+		IC	void	remove_item		(LPCSTR text)
+		{
 			ITEM_STORAGE_VEC_IT it = std::remove_if(m_data.begin(), m_data.end(), remove_text_pred(text));
-			m_data.erase(it, m_data.end());
-
-			std::sort(m_data.begin(), m_data.end(), sort_id_pred());
+			m_data.erase			(it, m_data.end());
+			m_data.sort				(sort_id_pred());
 		}
-		IC	void	remove_item		(u32 id) {
+		IC	void	remove_item		(u32 id)
+		{
 			ITEM_STORAGE_VEC_IT it = std::remove_if(m_data.begin(), m_data.end(), remove_id_pred(id));
-			m_data.erase(it, m_data.end());
-
-			std::sort(m_data.begin(), m_data.end(), sort_id_pred());
+			m_data.erase			(it, m_data.end());
+			m_data.sort				(sort_id_pred());
 		}
 		IC	void	clear			() {m_data.clear	();}
 

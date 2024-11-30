@@ -24,11 +24,13 @@
 #include "../ActorHelmet.h"
 #include "../eatable_item.h"
 #include "UICellItem.h"
+#include "UIActorMenu.h"
+#include "uigamecustom.h"
+#include "clsid_game.h"
+#include "CUIAddonInfo.h"
+#include "UICellCustomItems.h"
 
 extern const LPCSTR g_inventory_upgrade_xml;
-
-#define  INV_GRID_WIDTH2  40.0f
-#define  INV_GRID_HEIGHT2 40.0f
 
 CUIItemInfo::CUIItemInfo()
 {
@@ -39,23 +41,20 @@ CUIItemInfo::CUIItemInfo()
 	UIWeight					= NULL;
 	UIVolume					= NULL;
 	UICondition					= NULL;
+	UIAmount					= NULL;
 	UIItemImage					= NULL;
 	UIDesc						= NULL;
-//	UIConditionWnd				= NULL;
 	UIWpnParams					= NULL;
 	UIProperties				= NULL;
 	UIOutfitInfo				= NULL;
 	UIBoosterInfo				= NULL;
 	UIArtefactParams			= NULL;
 	UIName						= NULL;
-	UIBackground				= NULL;
 	m_b_FitToHeight				= false;
-	m_complex_desc				= false;
 }
 
 CUIItemInfo::~CUIItemInfo()
 {
-//	xr_delete	(UIConditionWnd);
 	xr_delete	(UIWpnParams);
 	xr_delete	(UIArtefactParams);
 	xr_delete	(UIProperties);
@@ -65,110 +64,89 @@ CUIItemInfo::~CUIItemInfo()
 
 void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 {
-	CUIXml						uiXml;
-	uiXml.Load					(CONFIG_PATH, UI_PATH, xml_name);
-	CUIXmlInit					xml_init;
+	CUIXml							uiXml;
+	uiXml.Load						(CONFIG_PATH, UI_PATH, xml_name);
+	CUIXmlInit						xml_init;
 
-	if(uiXml.NavigateToNode("main_frame",0))
+	uiXml.NavigateToNode			("main_frame", 0);
+	xml_init.InitWindow				(uiXml, "main_frame", 0, this);
+	delay							= uiXml.ReadAttribInt("main_frame", 0, "delay", 500);
+
+	AttachChild						(m_frame.get());
+	uiXml.NavigateToNode			("background_frame", 0);
+	xml_init.InitFrameWindow		(uiXml, "background_frame", 0, m_frame.get());
+
+	AttachChild						(m_background.get());
+	uiXml.NavigateToNode			("background", 0);
+	xml_init.InitStatic				(uiXml, "background", 0, m_background.get());
+
+	uiXml.NavigateToNode			("static_name", 0);
+	UIName							= xr_new<CUITextWnd>();	 
+	AttachChild						(UIName);		
+	UIName->SetAutoDelete			(true);
+	xml_init.InitTextWnd			(uiXml, "static_name", 0,	UIName);
+
+	uiXml.NavigateToNode			("static_weight", 0);
+	UIWeight						= xr_new<CUITextWnd>();	 
+	AttachChild						(UIWeight);		
+	UIWeight->SetAutoDelete			(true);
+	xml_init.InitTextWnd			(uiXml, "static_weight", 0, UIWeight);
+
+	uiXml.NavigateToNode			("static_volume", 0);
+	UIVolume						= xr_new<CUITextWnd>();	 
+	AttachChild						(UIVolume);		
+	UIVolume->SetAutoDelete			(true);
+	xml_init.InitTextWnd			(uiXml, "static_volume", 0, UIVolume);
+
+	uiXml.NavigateToNode			("static_condition", 0);
+	UICondition						= xr_new<CUITextWnd>();	 
+	AttachChild						(UICondition);		
+	UICondition->SetAutoDelete		(true);
+	xml_init.InitTextWnd			(uiXml, "static_condition", 0, UICondition);
+
+	uiXml.NavigateToNode			("static_amount", 0);
+	UIAmount						= xr_new<CUITextWnd>();	 
+	AttachChild						(UIAmount);		
+	UIAmount->SetAutoDelete			(true);
+	xml_init.InitTextWnd			(uiXml, "static_amount", 0, UIAmount);
+
+	uiXml.NavigateToNode			("static_cost", 0);
+	UICost							= xr_new<CUITextWnd>();	 
+	AttachChild						(UICost);
+	UICost->SetAutoDelete			(true);
+	xml_init.InitTextWnd			(uiXml, "static_cost", 0, UICost);
+
+	uiXml.NavigateToNode			("static_no_trade", 0);
+	UITradeTip						= xr_new<CUITextWnd>();	 
+	AttachChild						(UITradeTip);
+	UITradeTip->SetAutoDelete		(true);
+	xml_init.InitTextWnd			(uiXml, "static_no_trade", 0, UITradeTip);
+
+	uiXml.NavigateToNode			("descr_list", 0);
+	UIWpnParams						= xr_new<CUIWpnParams>();
+	UIWpnParams->InitFromXml		(uiXml);
+
+	UIArtefactParams				= xr_new<CUIArtefactParams>();
+	UIArtefactParams->InitFromXml	(uiXml);
+
+	UIBoosterInfo					= xr_new<CUIBoosterInfo>();
+	UIBoosterInfo->InitFromXml		(uiXml);
+	
+	m_addon_info->initFromXml		(uiXml);
+
+	if (ai().get_alife())
 	{
-		Frect wnd_rect;
-		wnd_rect.x1		= uiXml.ReadAttribFlt("main_frame", 0, "x", 0);
-		wnd_rect.y1		= uiXml.ReadAttribFlt("main_frame", 0, "y", 0);
-
-		wnd_rect.x2		= uiXml.ReadAttribFlt("main_frame", 0, "width", 0);
-		wnd_rect.y2		= uiXml.ReadAttribFlt("main_frame", 0, "height", 0);
-		wnd_rect.x2		+= wnd_rect.x1;
-		wnd_rect.y2		+= wnd_rect.y1;
-		inherited::SetWndRect(wnd_rect);
-		
-		delay			= uiXml.ReadAttribInt("main_frame", 0, "delay", 500);
+		UIProperties				= xr_new<UIInvUpgPropertiesWnd>();
+		UIProperties->init_from_xml	("actor_menu_item.xml");
 	}
-	if(uiXml.NavigateToNode("background_frame",0))
-	{
-		UIBackground				= xr_new<CUIFrameWindow>();
-		UIBackground->SetAutoDelete	(true);
-		AttachChild					(UIBackground);
-		xml_init.InitFrameWindow	(uiXml, "background_frame", 0,	UIBackground);
-	}
-	m_complex_desc = false;
-	if(uiXml.NavigateToNode("static_name",0))
-	{
-		UIName						= xr_new<CUITextWnd>();	 
-		AttachChild					(UIName);		
-		UIName->SetAutoDelete		(true);
-		xml_init.InitTextWnd		(uiXml, "static_name", 0,	UIName);
-		m_complex_desc				= ( uiXml.ReadAttribInt("static_name", 0, "complex_desc", 0) == 1 );
-	}
-	if(uiXml.NavigateToNode("static_weight",0))
-	{
-		UIWeight				= xr_new<CUITextWnd>();	 
-		AttachChild				(UIWeight);		
-		UIWeight->SetAutoDelete(true);
-		xml_init.InitTextWnd		(uiXml, "static_weight", 0,			UIWeight);
-	}
-	if(uiXml.NavigateToNode("static_volume",0))
-	{
-		UIVolume				= xr_new<CUITextWnd>();	 
-		AttachChild				(UIVolume);		
-		UIVolume->SetAutoDelete(true);
-		xml_init.InitTextWnd		(uiXml, "static_volume", 0,			UIVolume);
-	}
-	if (uiXml.NavigateToNode("static_condition", 0))
-	{
-		UICondition					= xr_new<CUITextWnd>();	 
-		AttachChild					(UICondition);		
-		UICondition->SetAutoDelete	(true);
-		xml_init.InitTextWnd		(uiXml, "static_condition", 0, UICondition);
-	}
 
-	if(uiXml.NavigateToNode("static_cost",0))
-	{
-		UICost					= xr_new<CUITextWnd>();	 
-		AttachChild				(UICost);
-		UICost->SetAutoDelete	(true);
-		xml_init.InitTextWnd		(uiXml, "static_cost", 0,			UICost);
-	}
-
-	if(uiXml.NavigateToNode("static_no_trade",0))
-	{
-		UITradeTip					= xr_new<CUITextWnd>();	 
-		AttachChild					(UITradeTip);
-		UITradeTip->SetAutoDelete	(true);
-		xml_init.InitTextWnd		(uiXml, "static_no_trade", 0,		UITradeTip);
-	}
-
-	if(uiXml.NavigateToNode("descr_list",0))
-	{
-//		UIConditionWnd					= xr_new<CUIConditionParams>();
-//		UIConditionWnd->InitFromXml		(uiXml);
-		UIWpnParams						= xr_new<CUIWpnParams>();
-		UIWpnParams->InitFromXml		(uiXml);
-
-		UIArtefactParams				= xr_new<CUIArtefactParams>();
-		UIArtefactParams->InitFromXml	(uiXml);
-
-		UIBoosterInfo					= xr_new<CUIBoosterInfo>();
-		UIBoosterInfo->InitFromXml		(uiXml);
-
-		//UIDesc_line						= xr_new<CUIStatic>();
-		//AttachChild						(UIDesc_line);	
-		//UIDesc_line->SetAutoDelete		(true);
-		//xml_init.InitStatic				(uiXml, "description_line", 0, UIDesc_line);
-
-		if ( ai().get_alife() ) // (-designer)
-		{
-			UIProperties					= xr_new<UIInvUpgPropertiesWnd>();
-			UIProperties->init_from_xml		("actor_menu_item.xml");
-		}
-
-		UIDesc							= xr_new<CUIScrollView>(); 
-		AttachChild						(UIDesc);		
-		UIDesc->SetAutoDelete			(true);
-		m_desc_info.bShowDescrText		= !!uiXml.ReadAttribInt("descr_list",0,"only_text_info", 1);
-		m_b_FitToHeight					= !!uiXml.ReadAttribInt("descr_list",0,"fit_to_height", 0);
-		xml_init.InitScrollView			(uiXml, "descr_list", 0, UIDesc);
-		xml_init.InitFont				(uiXml, "descr_list:font", 0, m_desc_info.uDescClr, m_desc_info.pDescFont);
-	}	
+	UIDesc							= xr_new<CUIScrollView>(); 
+	AttachChild						(UIDesc);		
+	UIDesc->SetAutoDelete			(true);
+	m_desc_info.bShowDescrText		= !!uiXml.ReadAttribInt("descr_list",0,"only_text_info", 1);
+	m_b_FitToHeight					= !!uiXml.ReadAttribInt("descr_list",0,"fit_to_height", 0);
+	xml_init.InitScrollView			(uiXml, "descr_list", 0, UIDesc);
+	xml_init.InitFont				(uiXml, "descr_list:font", 0, m_desc_info.uDescClr, m_desc_info.pDescFont);	
 
 	if (uiXml.NavigateToNode("image_static", 0))
 	{	
@@ -178,10 +156,11 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 		xml_init.InitStatic			(uiXml, "image_static", 0, UIItemImage);
 		UIItemImage->TextureOn		();
 
-		UIItemImage->TextureOff			();
-		UIItemImageSize.set				(UIItemImage->GetWidth(),UIItemImage->GetHeight());
+		UIItemImage->TextureOff		();
+		UIItemImageSize.set			(UIItemImage->GetWidth(),UIItemImage->GetHeight());
 	}
-	if ( uiXml.NavigateToNode( "outfit_info", 0 ) )
+
+	if (uiXml.NavigateToNode("outfit_info", 0))
 	{
 		UIOutfitInfo				= xr_new<CUIOutfitInfo>();
 		UIOutfitInfo->InitFromXml	(uiXml);
@@ -194,177 +173,166 @@ void CUIItemInfo::InitItemInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
 {
 	inherited::SetWndPos	(pos);
 	inherited::SetWndSize	(size);
-    InitItemInfo			(xml_name);
+	InitItemInfo			(xml_name);
 }
 
 void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_tip)
 {
+	m_itm								= pCellItem;
 	if (!pCellItem)
 	{
-		Enable				(false);
+		Enable							(false);
 		return;
 	}
 
-	PIItem pInvItem			= (PIItem)pCellItem->m_pData;
-	shared_str& section		= pCellItem->m_section;
-	Enable					(NULL != pInvItem || section != "");
+	PIItem pInvItem						= (PIItem)pCellItem->m_pData;
+	shared_str& section					= pCellItem->m_section;
+	Enable								(NULL != pInvItem || section != "");
 	if (!pInvItem && section == "")
 		return;
 
-	Fvector2				pos;	pos.set( 0.0f, 0.0f );
-	string256				str;
-	if ( UIName )
+	string256							str;
+
+	if (UIName)
+		UIName->SetText					((pInvItem) ? pInvItem->getName() : CInventoryItem::readName(section));
+
+	if (UIWeight)
 	{
-		UIName->SetText(*CStringTable().translate(pSettings->r_string(section, "inv_name")));
-		UIName->AdjustHeightToText();
-		pos.y = UIName->GetWndPos().y + UIName->GetHeight() + 4.0f;
+		float weight					= (pInvItem) ? pInvItem->Weight() : CurrentGameUI()->GetActorMenu().CalcItemWeight(*section);
+		LPCSTR kg_str					= CStringTable().translate("st_kg").c_str();
+		xr_sprintf						(str, "%3.2f %s", weight, kg_str );
+		UIWeight->SetText				(str);
 	}
-	if ( UIWeight )
-	{
-		LPCSTR  kg_str = CStringTable().translate("st_kg").c_str();
-		float	weight = (pInvItem) ? pInvItem->Weight() : pSettings->r_float(section, "inv_weight");
-		
-		if (!weight)
-		{
-			if (CWeaponAmmo* ammo = dynamic_cast<CWeaponAmmo*>(pInvItem))
-			{
-				// its helper item, m_boxCur is zero, so recalculate via CInventoryItem::Weight()
-				weight = pInvItem->CInventoryItem::Weight();
-				for( u32 j = 0; j < pCellItem->ChildsCount(); ++j )
-				{
-					PIItem jitem	= (PIItem)pCellItem->Child(j)->m_pData;
-					weight			+= jitem->CInventoryItem::Weight();
-				}
-			}
-		}
 
-		xr_sprintf				(str, "%3.2f %s", weight, kg_str );
-		UIWeight->SetText	(str);
-		UIWeight->AdjustWidthToText();
-		
-		pos.x = UIWeight->GetWndPos().x;
-		if (m_complex_desc)
-			UIWeight->SetWndPos	(pos);
-	}
-	if (UIVolume)
-	{
-		LPCSTR  li_str = CStringTable().translate("st_li").c_str();
-		float	volume = (pInvItem) ? pInvItem->Volume() : pSettings->r_float(section, "inv_volume");
-
-		if (!volume)
-		{
-			if (CWeaponAmmo* ammo = dynamic_cast<CWeaponAmmo*>(pInvItem))
-			{
-				// its helper item, m_boxCur is zero, so recalculate via CInventoryItem::Weight()
-				volume = pInvItem->CInventoryItem::Volume();
-				for (u32 j = 0; j < pCellItem->ChildsCount(); ++j)
-				{
-					PIItem jitem = (PIItem)pCellItem->Child(j)->m_pData;
-					volume += jitem->CInventoryItem::Volume();
-				}
-
-			}
-		}
-
-		xr_sprintf			(str, "%3.2f %s", volume, li_str);
-		UIVolume->SetText	(str);
-
-		UIVolume->AdjustWidthToText	();
-		pos.x						= UIWeight->GetWndPos().x + UIWeight->GetWidth() + 3.f;
-		UIVolume->SetWndPos			(pos);
-	}
 	if (UICondition)
 	{
-		shared_str				cond;
-		CEatableItem* eitm		= smart_cast<CEatableItem*>(pInvItem);
-		float condition			= (pInvItem) ? pInvItem->GetCondition() : 1.f;
-		if (eitm && eitm->DiscreteCondition() || READ_IF_EXISTS(pSettings, r_bool, section, "discrete_condition", false))
-		{
-			u8 max_uses			= (eitm) ? eitm->GetMaxUses() : READ_IF_EXISTS(pSettings, r_u8, section, "max_uses", 1);
-			u8 uses				= (eitm) ? eitm->GetRemainingUses() : max_uses;
-			if (uses > 0)
-				cond.printf		("%i/%i", uses, max_uses);
-			else
-				cond			= CStringTable().translate("st_empty");
-		}
-		else if (pInvItem && pInvItem->PercentCondition())
-		{
-			if (condition > EPS || !eitm)
-				cond.printf		("%i%%", 10 * (u8)roundf(condition * 10.f));
-			else
-				cond			= CStringTable().translate("st_empty");
-		}
-		else if (condition > 0.8f)
-			cond				= CStringTable().translate("st_prestine");
-		else if (condition > 0.6f)
-			cond				= CStringTable().translate("st_worn");
-		else if (condition > 0.4f)
-			cond				= CStringTable().translate("st_damaged");
-		else if (condition > 0.2f)
-			cond				= CStringTable().translate("st_badly_damaged");
+		LPCSTR							condition_str;
+		float condition					= (pInvItem) ? pInvItem->GetCondition() : 1.f;
+		if (fMoreOrEqual(condition, 1.f))
+			condition_str				= "st_prestine";
+		else if (fMoreOrEqual(condition, 0.8f))
+			condition_str				= "st_almost_prestine";
+		else if (fMoreOrEqual(condition, 0.6f))
+			condition_str				= "st_worn";
+		else if (fMoreOrEqual(condition, 0.4f))
+			condition_str				= "st_damaged";
+		else if (fMoreOrEqual(condition, 0.2f))
+			condition_str				= "st_badly_damaged";
+		else if (fMore(condition, 0.f))
+			condition_str				= "st_almost_ruined";
 		else
-			cond				= CStringTable().translate("st_ruined");
-		
-		LPCSTR cond_str			= CStringTable().translate("st_cond").c_str();
-		xr_sprintf				(str, "%s %s", cond_str, *cond);
-		UICondition->SetText	(str);
+			condition_str				= "st_ruined";
 
-		UICondition->AdjustWidthToText	();
-		pos.x							= GetWidth() - UICondition->GetWidth() - UIWeight->GetWndPos().x;
-		UICondition->SetWndPos			(pos);
+		xr_sprintf						(str, "%s: %s", *CStringTable().translate("st_condition"), *CStringTable().translate(condition_str));
+		UICondition->SetText			(str);
 	}
-	if ( UICost && item_price!=u32(-1) )
+
+	if (UIVolume)
 	{
-		LPCSTR cur_str			= CStringTable().translate("st_currency").c_str();
-		xr_sprintf				(str, "%d %s", item_price, cur_str);// will be owerwritten in multiplayer
-		UICost->SetText			(str);
-		
-		UICost->AdjustWidthToText		();
-		pos.x							= 0.5f * (GetWidth() - UICost->GetWidth());
-		UICost->SetWndPos				(pos);
-		pos.x							= UIWeight->GetWndPos().x;
+		float volume					= (pInvItem) ? pInvItem->Volume() : CurrentGameUI()->GetActorMenu().CalcItemVolume(*section);
+		LPCSTR li_str					= CStringTable().translate("st_li").c_str();
+		xr_sprintf						(str, "%3.2f %s", volume, li_str);
+		UIVolume->SetText				(str);
+	}
+
+	if (UICost && item_price!=u32(-1))
+	{
+		UICost->SetText					(CurrentGameUI()->GetActorMenu().FormatMoney(item_price));
 		UICost->Show					(true);
 	}
 	else
-		UICost->Show(false);
+		UICost->Show					(false);
 	
-	if ( UITradeTip)
+	if (UIAmount)
 	{
-		pos.y = UITradeTip->GetWndPos().y;
-		if (m_complex_desc)
+		shared_str amount_str			= "";
+		if (pSettings->line_exist(section, "amount_display_type"))
 		{
-			if (UIWeight)
-				pos.y = UIWeight->GetWndPos().y + UIWeight->GetHeight() + 4.0f;
-			if (UIVolume)
-				pos.y = UIVolume->GetWndPos().y + UIVolume->GetHeight() + 4.0f;
+			LPCSTR amount_display_type	= pSettings->r_string(section, "amount_display_type");
+			CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(pInvItem);
+			CHelmet* helmet				= smart_cast<CHelmet*>(pInvItem);
+			bool no_nightvision			= false;
+			if (pInvItem)
+			{
+				if (outfit || helmet)
+					no_nightvision		= outfit && !outfit->m_NightVisionSect.size() || helmet && !helmet->m_NightVisionSect.size();
+			}
+			else if (pCellItem->ClassID() == CLSID_EQUIPMENT_STALKER || pCellItem->ClassID() == CLSID_EQUIPMENT_HELMET)
+				no_nightvision			= !pSettings->line_exist(section, "nightvision_sect");
+
+			if (xr_strcmp(amount_display_type, "hide") && !no_nightvision)
+			{
+				LPCSTR title					= *CStringTable().translate(pSettings->r_string(amount_display_type, "title"));
+				LPCSTR unit						= pSettings->r_string(amount_display_type, "unit");
+				bool empty_cont					= READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE) && (pSettings->r_u16(section, "supplies_count") == 0);
+				float amount					= (pInvItem)	? pInvItem->GetAmount()		: (empty_cont) ? 0.f : pSettings->r_float(section, "capacity");
+				float fill						= (pInvItem)	? pInvItem->GetFill()		: (empty_cont) ? 0.f : 1.f;
+				if (!xr_strcmp(unit, "percent"))
+					amount_str.printf			("%s: %i%%", title, (u32)floor(fill * 100.f));
+				else if (!xr_strcmp(unit, "fill"))
+				{
+					LPCSTR						fill_str;
+					if (1.f-EPS < fill)
+						fill_str				= "st_full";
+					else if (0.8f-EPS < fill)
+						fill_str				= "st_almost_full";
+					else if (0.6f-EPS < fill)
+						fill_str				= "st_more_than_half";
+					else if (0.4f-EPS < fill)
+						fill_str				= "st_around_half";
+					else if (0.2f-EPS < fill)
+						fill_str				= "st_less_than_half";
+					else if (EPS < fill)
+						fill_str				= "st_almost_empty";
+					else
+						fill_str				= "st_empty";
+					amount_str.printf			("%s: %s", title, *CStringTable().translate(fill_str));
+				}
+				else
+				{
+					amount						*= pSettings->r_float(amount_display_type, "factor");
+					LPCSTR unit_str				= *CStringTable().translate(unit);
+					bool integer				= !!pSettings->r_BOOL(amount_display_type, "integer");
+					if (!xr_strcmp(unit, "none"))
+						if (integer)
+							amount_str.printf	("%s: %d", title, (u32)round(amount));
+						else
+							amount_str.printf	("%s: %.2f", title, amount);
+					else
+						if (integer)
+							amount_str.printf	("%s: %d %s", title, (u32)round(amount), unit_str);
+						else
+							amount_str.printf	("%s: %.2f %s", title, amount, unit_str);
+				}
+			}
 		}
 
-		if(trade_tip==NULL)
-			UITradeTip->Show(false);
+		UIAmount->SetText						(*amount_str);
+	}
+	
+	if (UITradeTip)
+	{
+		if (!trade_tip)
+			UITradeTip->Show					(false);
 		else
 		{
-			UITradeTip->SetText(CStringTable().translate(trade_tip).c_str());
-			UITradeTip->AdjustHeightToText();
-			UITradeTip->SetWndPos(pos);
-			UITradeTip->Show(true);
+			UITradeTip->SetText					(CStringTable().translate(trade_tip).c_str());
+			UITradeTip->AdjustHeightToText		();
+			UITradeTip->Show					(true);
 		}
 	}
 	
 	if (UIDesc)
 	{
-		pos = UIDesc->GetWndPos();
-		if ( UIWeight )
-			pos.y = UIWeight->GetWndPos().y + UIWeight->GetHeight() + 4.0f;
-		if (UIVolume)
-			pos.y = UIVolume->GetWndPos().y + UIVolume->GetHeight() + 4.0f;
+		Fvector2 pos							= UIDesc->GetWndPos();
+		if (trade_tip)
+			pos.y								= UITradeTip->GetWndPos().y + UITradeTip->GetHeight() + 4.0f;
 
-		if(UITradeTip && trade_tip!=NULL)
-			pos.y = UITradeTip->GetWndPos().y + UITradeTip->GetHeight() + 4.0f;
+		UIDesc->SetWndPos						(pos);
+		UIDesc->Clear							();
+		VERIFY									(!UIDesc->GetSize());
 
-		UIDesc->SetWndPos		(pos);
-		UIDesc->Clear			();
-		VERIFY					(0==UIDesc->GetSize());
-		if(m_desc_info.bShowDescrText)
+		if (m_desc_info.bShowDescrText)
 		{
 			CUITextWnd* pItem					= xr_new<CUITextWnd>();
 			pItem->SetTextColor					(m_desc_info.uDescClr);
@@ -375,46 +343,38 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 			pItem->AdjustHeightToText			();
 			UIDesc->AddWindow					(pItem, true);
 		}
-		TryAddConditionInfo					(pCellItem);
-		TryAddWpnInfo						(pCellItem);
-		TryAddArtefactInfo					(pCellItem);
-		TryAddOutfitInfo					(pCellItem);
-		TryAddUpgradeInfo					(pCellItem);
-		TryAddBoosterInfo					(pCellItem);
 
-		if(m_b_FitToHeight)
+		TryAddWpnInfo							(pCellItem);
+		TryAddArtefactInfo						(pCellItem);
+		TryAddOutfitInfo						(pCellItem);
+		TryAddUpgradeInfo						(pCellItem);
+		TryAddBoosterInfo						(pCellItem);
+		tryAddAddonInfo							(pCellItem);
+
+		if (m_b_FitToHeight)
 		{
-			UIDesc->SetWndSize				(Fvector2().set(UIDesc->GetWndSize().x, UIDesc->GetPadSize().y) );
-			Fvector2 new_size;
-			new_size.x						= GetWndSize().x;
-			new_size.y						= UIDesc->GetWndPos().y+UIDesc->GetWndSize().y+20.0f;
-			new_size.x						= _max(105.0f, new_size.x);
-			new_size.y						= _max(105.0f, new_size.y);
-			
-			SetWndSize						(new_size);
-			if(UIBackground)
-				UIBackground->SetWndSize	(new_size);
+			UIDesc->SetHeight					(UIDesc->GetPadSize().y);
+			float new_height					= UIDesc->GetWndPos().y + UIDesc->GetWndSize().y + UIName->GetWndPos().y;
+			SetHeight							(new_height);
+			m_frame->SetHeight					(new_height);
+			m_background->SetHeight				(new_height);
 		}
 
-		UIDesc->ScrollToBegin				();
+		UIDesc->ScrollToBegin					();
 	}
-	if(UIItemImage)
+
+	if (UIItemImage)
 	{
 		// Загружаем картинку
-		UIItemImage->SetShader				(InventoryUtilities::GetEquipmentIconsShader());
+		UIItemImage->SetShader					(InventoryUtilities::GetEquipmentIconsShader(pCellItem->m_section));
 
-		Irect item_grid_rect				= pInvItem->GetInvGridRect();
-		Frect texture_rect;
-		texture_rect.lt.set					(item_grid_rect.x1*INV_GRID_WIDTH,	item_grid_rect.y1*INV_GRID_HEIGHT);
-		texture_rect.rb.set					(item_grid_rect.x2*INV_GRID_WIDTH,	item_grid_rect.y2*INV_GRID_HEIGHT);
-		texture_rect.rb.add					(texture_rect.lt);
-		UIItemImage->GetUIStaticItem().SetTextureRect(texture_rect);
-		UIItemImage->TextureOn				();
-		UIItemImage->SetStretchTexture		(true);
-		Fvector2 v_r						= { item_grid_rect.x2*INV_GRID_WIDTH2,	
-												item_grid_rect.y2*INV_GRID_HEIGHT2};
-		
-		v_r.x								*= UI().get_current_kx();
+		UIItemImage->GetUIStaticItem().SetTextureRect(pInvItem->GetIconRect());
+		UIItemImage->TextureOn					();
+		UIItemImage->SetStretchTexture			(true);
+
+		Fvector2								v_r;
+		pInvItem->GetIconRect().getsize			(v_r);
+		v_r.mul									(pCellItem->getScale());
 
 		UIItemImage->GetUIStaticItem().SetSize	(v_r);
 		UIItemImage->SetWidth					(v_r.x);
@@ -422,14 +382,9 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 	}
 }
 
-void CUIItemInfo::TryAddConditionInfo(CUICellItem* item)
-{
-}
-
 void CUIItemInfo::TryAddWpnInfo(CUICellItem* itm)
 {
-	LPCSTR subclass					= READ_IF_EXISTS(pSettings, r_string, itm->m_section, "subclass", "nil");
-	if (!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "main_class", "nil"), "weapon") && xr_strcmp(subclass, "melee") && xr_strcmp(subclass, "grenade"))
+	if (ItemCategory(itm->m_section, "weapon") && !ItemSubcategory(itm->m_section, "melee") && !ItemSubcategory(itm->m_section, "grenade"))
 	{
 		UIWpnParams->SetInfo		(itm);
 		UIDesc->AddWindow			(UIWpnParams, false);
@@ -438,25 +393,21 @@ void CUIItemInfo::TryAddWpnInfo(CUICellItem* itm)
 
 void CUIItemInfo::TryAddArtefactInfo(CUICellItem* itm)
 {
-	PIItem item = (PIItem)itm->m_pData;
-	if (!item || item->GetCondition() == 1.f)
-		return;
-
-	if (!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "main_class", "nil"), "artefact"))
+	if (ItemCategory(itm->m_section, "artefact"))
 	{
-		UIArtefactParams->SetInfo	(itm);
+		CArtefact* artefact			= smart_cast<CArtefact*>((PIItem)itm->m_pData);
+		UIArtefactParams->SetInfo	(*itm->m_section, artefact);
 		UIDesc->AddWindow			(UIArtefactParams, false);
 	}
 }
 
 void CUIItemInfo::TryAddOutfitInfo(CUICellItem* itm)
 {
-	if (!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "main_class", "nil"), "outfit"))
+	if (ItemCategory(itm->m_section, "outfit"))
 	{
-		LPCSTR subclass							= READ_IF_EXISTS(pSettings, r_string, itm->m_section, "subclass", "nil");
-		if (!xr_strcmp(subclass, "helmet"))
+		if (ItemSubcategory(itm->m_section, "helmet"))
 			UIOutfitInfo->UpdateInfoHelmet		(itm);
-		else if (xr_strcmp(subclass, "backpack"))
+		else if (!ItemSubcategory(itm->m_section, "backpack"))
 			UIOutfitInfo->UpdateInfoSuit		(itm);
 		else
 			return;
@@ -478,6 +429,15 @@ void CUIItemInfo::TryAddBoosterInfo(CUICellItem* itm)
 {
 	UIBoosterInfo->SetInfo			(itm);
 	UIDesc->AddWindow				(UIBoosterInfo, false);
+}
+
+void CUIItemInfo::tryAddAddonInfo(CUICellItem* itm)
+{
+	if (READ_IF_EXISTS(pSettings, r_BOOL, itm->m_section, "addon", FALSE) || smart_cast<CUIAddonOwnerCellItem*>(itm))
+	{
+		m_addon_info->setInfo		(itm);
+		UIDesc->AddWindow			(m_addon_info.get(), false);
+	}
 }
 
 void CUIItemInfo::Draw()

@@ -14,7 +14,6 @@
 #include "inventory.h"
 #include "pda.h"
 #include "eatable_item.h"
-#include "medkit.h"
 #include "weapon.h"
 #include "Grenade.h"
 #include "customdetector.h"
@@ -263,7 +262,7 @@ void CAI_Stalker::update_sell_info					()
 	m_total_money			= get_money();
 	u32						money_delta = fill_items(inventory(),this,ALife::_OBJECT_ID(-1));
 	m_total_money			+= money_delta;
-	std::sort				(m_temp_items.begin(),m_temp_items.end());
+	m_temp_items.sort		();
 	select_items			();
 
 	TIItemContainer::iterator	I = inventory().m_all.begin();
@@ -276,7 +275,7 @@ void CAI_Stalker::update_sell_info					()
 
 bool CAI_Stalker::can_sell							(CInventoryItem* item)
 {
-	if (READ_IF_EXISTS(pSettings, r_bool, cNameSect(), "is_trader", false))
+	if (READ_IF_EXISTS(pSettings, r_BOOL, cNameSect(), "is_trader", false))
 		return				(tradable_item(item, ID()));
 
 	update_sell_info		();
@@ -342,7 +341,7 @@ bool CAI_Stalker::conflicted						(const CInventoryItem *item, const CWeapon *ne
 		return				(weapon->GetCondition() >= new_weapon->GetCondition());
 
 	if (weapon->ef_weapon_type() != new_weapon->ef_weapon_type())
-		return				(weapon->Cost() >= new_weapon->Cost());
+		return				(weapon->CInventoryItem::Cost() >= new_weapon->CInventoryItem::Cost());
 
 	u32						weapon_rank = get_rank(weapon->cNameSect());
 
@@ -425,7 +424,7 @@ void CAI_Stalker::on_after_take						(const CGameObject *object)
 	if (!g_Alive())
 		return;
 
-	if (!READ_IF_EXISTS(pSettings,r_bool,cNameSect(),"use_single_item_rule",true))
+	if (!READ_IF_EXISTS(pSettings,r_BOOL,cNameSect(),"use_single_item_rule",true))
 		return;
 
 	const CWeapon				*new_weapon = smart_cast<const CWeapon*>(object);

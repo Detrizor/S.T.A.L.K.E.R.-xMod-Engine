@@ -141,34 +141,7 @@
     <ClCompile Include="memory_allocation_stats.cpp">
       <Filter>Memory manager</Filter>
     </ClCompile>
-    <ClCompile Include="memory_usage.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
     <ClCompile Include="xrMemory.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_align.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_debug.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_POOL.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_pso_Copy.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_pso_Fill.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_pso_Fill32.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_subst_borland.cpp">
-      <Filter>Memory manager</Filter>
-    </ClCompile>
-    <ClCompile Include="xrMemory_subst_msvc.cpp">
       <Filter>Memory manager</Filter>
     </ClCompile>
     <ClCompile Include="xrDebug.cpp">
@@ -403,24 +376,6 @@
     <ClInclude Include="xrMemory.h">
       <Filter>Memory manager</Filter>
     </ClInclude>
-    <ClInclude Include="xrMemory_align.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
-    <ClInclude Include="xrMEMORY_POOL.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
-    <ClInclude Include="xrMemory_pso.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
-    <ClInclude Include="xrMemory_pure.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
-    <ClInclude Include="xrMemory_subst_borland.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
-    <ClInclude Include="xrMemory_subst_msvc.h">
-      <Filter>Memory manager</Filter>
-    </ClInclude>
     <ClInclude Include="xrDebug.h">
       <Filter>Debug core</Filter>
     </ClInclude>
@@ -540,6 +495,7 @@
     </ClInclude>
     <ClInclude Include="os_clipboard.h" />
     <ClInclude Include="xrSyncronize.h" />
+    <ClInclude Include="power_dependency.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="xrCore.rc">

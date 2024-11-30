@@ -127,19 +127,19 @@ void CHelicopter::Load(LPCSTR section)
 	UseFireTrail						(m_enemy.bUseFireTrail);//temp force reloar disp params
 
 	m_sAmmoType							= pSettings->r_string(section, "ammo_class");
-	m_CurrentAmmo.Load					(*m_sAmmoType, 0);
+	m_CurrentAmmo.Load					(*m_sAmmoType);
 
 	m_sRocketSection					= pSettings->r_string	(section,"rocket_class");
 
 
-	m_use_rocket_on_attack				= !!pSettings->r_bool(section,"use_rocket");
-	m_use_mgun_on_attack				= !!pSettings->r_bool(section,"use_mgun");
+	m_use_rocket_on_attack				= !!pSettings->r_BOOL(section,"use_rocket");
+	m_use_mgun_on_attack				= !!pSettings->r_BOOL(section,"use_mgun");
 	m_min_rocket_dist					= pSettings->r_float(section,"min_rocket_attack_dist");
 	m_max_rocket_dist					= pSettings->r_float(section,"max_rocket_attack_dist");
 	m_min_mgun_dist						= pSettings->r_float(section,"min_mgun_attack_dist");
 	m_max_mgun_dist						= pSettings->r_float(section,"max_mgun_attack_dist");
 	m_time_between_rocket_attack		= pSettings->r_u32(section,"time_between_rocket_attack");
-	m_syncronize_rocket					= !!pSettings->r_bool(section,"syncronize_rocket");
+	m_syncronize_rocket					= !!pSettings->r_BOOL(section,"syncronize_rocket");
 	m_barrel_dir_tolerance				= pSettings->r_float(section,"barrel_dir_tolerance");
 
 //lighting & sounds
@@ -440,7 +440,7 @@ void CHelicopter::UpdateCL()
 
 	m_movement.Update();
 
-	m_stepRemains+=Device.fTimeDelta;
+	m_stepRemains+=time_delta();
 	while(m_stepRemains>STEP){
 		MoveStep();
 		m_stepRemains-=STEP;
@@ -472,7 +472,7 @@ void CHelicopter::UpdateCL()
 
 	if (OwnerActor() && OwnerActor()->IsMyCamera())
 	{
-		cam_Update(Device.fTimeDelta, g_fov);
+		cam_Update(time_delta(), Device.gFOV);
 		OwnerActor()->Cameras().UpdateFromCamera(Camera());
 		if (eacFirstEye == active_camera->tag && !Level().Cameras().GetCamEffector(cefDemo))
 			OwnerActor()->Cameras().ApplyDevice(VIEWPORT_NEAR);
@@ -650,7 +650,7 @@ void CHelicopter::OnMouseMove(int dx, int dy)
 	if (Remote())					return;
 
 	CCameraBase* C = active_camera;
-	float scale = (C->f_fov / g_fov)*psMouseSens * psMouseSensScale / 50.f;
+	float scale = (C->f_fov / Device.gFOV) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d = float(dx)*scale;
 		C->Move((d<0) ? kLEFT : kRIGHT, _abs(d));

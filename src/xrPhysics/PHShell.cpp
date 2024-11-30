@@ -1038,7 +1038,8 @@ void CPHShell::SetCallbacks( )
     struct set_bone_reference: private boost::noncopyable
     {
         IKinematics &K;
-        set_bone_reference( IKinematics &K_ ): K( K_ ){}
+        set_bone_reference(IKinematics& K_) : K(K_) {}
+        set_bone_reference(set_bone_reference&& other) : K(other.K) {}
         void operator() ( u16 id )
         {
             CBoneInstance &bi  = K.LL_GetBoneInstance(id);

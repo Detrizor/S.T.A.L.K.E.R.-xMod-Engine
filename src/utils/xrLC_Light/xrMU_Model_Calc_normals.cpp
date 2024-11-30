@@ -51,7 +51,7 @@ void xrMU_Model::calc_normals()
 			_face*	F			= *AFit;
 			F->flags.bSplitted	= FALSE;
 		}
-		std::sort	(V->m_adjacents.begin(), V->m_adjacents.end());
+		V->m_adjacents.sort();
 
 		for (u32 AF = 0; AF < V->m_adjacents.size(); AF++)
 		{

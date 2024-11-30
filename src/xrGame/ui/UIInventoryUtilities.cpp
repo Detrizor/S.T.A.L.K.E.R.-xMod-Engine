@@ -11,6 +11,7 @@
 #include "../Inventory.h"
 #include "../InventoryOwner.h"
 #include "../InventoryBox.h"
+#include "../item_container.h"
 
 #include "../InfoPortion.h"
 #include "game_base_space.h"
@@ -20,6 +21,8 @@
 #include "../../xrServerEntities/script_engine.h"
 
 #include "../Include/xrRender/UIShader.h"
+
+#include "UICellItem.h"
 
 #define BUY_MENU_TEXTURE "ui\\ui_mp_buy_menu"
 #define CHAR_ICONS		 "ui\\ui_icons_npc"
@@ -47,8 +50,9 @@ const LPCSTR st_months[12]= // StringTable for GetDateAsString()
 	"month_december"
 };
 
+associative_vector<shared_str, ui_shader*> g_EquipmentIconsShader;
+
 ui_shader	*g_BuyMenuShader			= NULL;
-ui_shader	*g_EquipmentIconsShader		= NULL;
 ui_shader	*g_MPCharIconsShader		= NULL;
 ui_shader	*g_OutfitUpgradeIconsShader	= NULL;
 ui_shader	*g_WeaponUpgradeIconsShader	= NULL;
@@ -67,15 +71,14 @@ void InventoryUtilities::CreateShaders()
 	g_tmpWMShader = xr_new<ui_shader>();
 	(*g_tmpWMShader)->create("effects\\wallmark",  "wm\\wm_grenade");
 	//g_tmpWMShader.create("effects\\wallmark",  "wm\\wm_grenade");
+
+	g_EquipmentIconsShader.clear();
 }
 
 void InventoryUtilities::DestroyShaders()
 {
 	xr_delete(g_BuyMenuShader);
 	g_BuyMenuShader = 0;
-
-	xr_delete(g_EquipmentIconsShader);
-	g_EquipmentIconsShader = 0;
 
 	xr_delete(g_MPCharIconsShader);
 	g_MPCharIconsShader = 0;
@@ -88,105 +91,49 @@ void InventoryUtilities::DestroyShaders()
 
 	xr_delete(g_tmpWMShader);
 	g_tmpWMShader = 0;
+
+	for (associative_vector<shared_str, ui_shader*>::iterator it = g_EquipmentIconsShader.begin(), it_e = g_EquipmentIconsShader.end(); it != it_e; it++)
+		xr_delete(it->second);
+	g_EquipmentIconsShader.clear();
 }
 
 bool InventoryUtilities::GreaterRoomInRuck(PIItem item1, PIItem item2)
 {
-	Ivector2 r1,r2;
-	r1				= item1->GetInvGridRect().rb;
-	r2				= item2->GetInvGridRect().rb;
+	return								greaterRoomInRuck(item1->getIcon(), item2->getIcon());
+}
 
-	if(r1.x > r2.x)			return true;
+bool InventoryUtilities::greaterRoomInRuck(CUICellItem* itm1, CUICellItem* itm2)
+{
+	auto& r1							= itm1->GetGridSize();
+	auto& r2							= itm2->GetGridSize();
+
+	if (r1.x > r2.x)
+		return							true;
 	
 	if (r1.x == r2.x)
 	{
-		if(r1.y > r2.y)		return true;
+		if (r1.y > r2.y)
+			return						true;
 		
-		if (r1.y == r2.y){
-			if(item1->object().cNameSect()==item2->object().cNameSect())
-				return (item1->object().ID() > item2->object().ID());
+		if (r1.y == r2.y)
+		{
+			if (itm1->m_section == itm2->m_section)
+			{
+				if (auto item1 = static_cast<PIItem>(itm1->m_pData))
+					if (auto item2 = static_cast<PIItem>(itm2->m_pData))
+						return			(item1->object().ID() > item2->object().ID());
+
+				return					(itm1 > itm2);
+			}
 			else
-				return (item1->object().cNameSect()>item2->object().cNameSect());
+				return					(itm1->m_section > itm2->m_section);
 
 		}
 
-		return				false;
-	}
-   	return					false;
-}
-
-bool InventoryUtilities::FreeRoom_inBelt	(TIItemContainer& item_list, PIItem _item, int width, int height)
-{
-	bool*				ruck_room	= (bool*)alloca(width*height);
-
-	int		i,j,k,m;
-	int		place_row = 0,  place_col = 0;
-	bool	found_place;
-	bool	can_place;
-
-
-	for(i=0; i<height; ++i)
-		for(j=0; j<width; ++j)
-			ruck_room[i*width + j]	= false;
-
-	item_list.push_back	(_item);
-	std::sort			(item_list.begin(), item_list.end(),GreaterRoomInRuck);
-	
-	found_place			= true;
-
-	for(xr_vector<PIItem>::iterator it = item_list.begin(); (item_list.end() != it) && found_place; ++it) 
-	{
-		PIItem pItem = *it;
-		Ivector2 iWH = pItem->GetInvGridRect().rb; 
-		//проверить можно ли разместить элемент,
-		//проверяем последовательно каждую клеточку
-		found_place = false;
-	
-		for(i=0; (i<height - iWH.y +1) && !found_place; ++i)
-		{
-			for(j=0; (j<width - iWH.x +1) && !found_place; ++j)
-			{
-				can_place = true;
-
-				for(k=0; (k<iWH.y) && can_place; ++k)
-				{
-					for(m=0; (m<iWH.x) && can_place; ++m)
-					{
-						if(ruck_room[(i+k)*width + (j+m)])
-								can_place =  false;
-					}
-				}
-			
-				if(can_place)
-				{
-					found_place=true;
-					place_row = i;
-					place_col = j;
-				}
-
-			}
-		}
-
-		//разместить элемент на найденном месте
-		if(found_place)
-		{
-			for(k=0; k<iWH.y; ++k)
-			{
-				for(m=0; m<iWH.x; ++m)
-				{
-					ruck_room[(place_row+k)*width + place_col+m] = true;
-				}
-			}
-		}
+		return							false;
 	}
 
-	// remove
-	item_list.erase	(std::remove(item_list.begin(),item_list.end(),_item),item_list.end());
-
-	//для какого-то элемента места не нашлось
-	if(!found_place) return false;
-
-	return true;
+	return								false;
 }
 
 const ui_shader& InventoryUtilities::GetBuyMenuShader()
@@ -200,15 +147,19 @@ const ui_shader& InventoryUtilities::GetBuyMenuShader()
 	return *g_BuyMenuShader;
 }
 
-const ui_shader& InventoryUtilities::GetEquipmentIconsShader()
-{	
-	if(!g_EquipmentIconsShader)
+const ui_shader& InventoryUtilities::GetEquipmentIconsShader(const shared_str& section)
+{
+	shared_str tex = pSettings->line_exist(section, "icon_texture") ? pSettings->r_string(section, "icon_texture") : pSettings->r_string(section, "category");
+	associative_vector<shared_str, ui_shader*>::iterator it = g_EquipmentIconsShader.find(tex);
+	if (it  == g_EquipmentIconsShader.end())
 	{
-		g_EquipmentIconsShader = xr_new<ui_shader>();
-		(*g_EquipmentIconsShader)->create("hud\\default", "ui\\ui_icon_equipment");
+		ui_shader* tmp = xr_new<ui_shader>();
+		(*tmp)->create("hud\\default", shared_str().printf("ui\\icon\\%s", *tex).c_str());
+		g_EquipmentIconsShader.insert(std::make_pair(tex, tmp));
+		it = g_EquipmentIconsShader.find(tex);
 	}
 
-	return *g_EquipmentIconsShader;
+	return *it->second;
 }
 
 const ui_shader&	InventoryUtilities::GetMPCharIconsShader()
@@ -388,28 +339,23 @@ LPCSTR InventoryUtilities::GetTimePeriodAsString(LPSTR _buff, u32 buff_sz, ALife
 
 //////////////////////////////////////////////////////////////////////////
 
-void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, CInventoryBox* pInventoryBox)
+void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVolume, CInventoryOwner* pInventoryOwner, MContainer* cont)
 {
-	float								total_weight, total_volume;
-	float max_volume					= 0.f;
-	CActor* actor						= (pInventoryOwner) ? smart_cast<CActor*>(pInventoryOwner) : NULL;
+	float								total_weight, total_volume, max_volume;
 	if (pInventoryOwner)
 	{
 		total_weight					= pInventoryOwner->inventory().CalcTotalWeight();
 		total_volume					= pInventoryOwner->inventory().CalcTotalVolume();
-		if (actor)
-		{
-			CInventoryBox* container	= smart_cast<CInventoryBox*>(Level().Objects.net_Find((u16)pInventoryOwner->inventory().m_iRuckVboxID));
-			max_volume					= (container) ? container->GetCapacity() : pInventoryOwner->inventory().m_fRuckVboxCapacity;
-		}
+		max_volume						= 666.f;
 	}
 	else
 	{
-		total_weight					= pInventoryBox->CalcItemsWeight();
-		total_volume					= pInventoryBox->CalcItemsVolume();
-		max_volume						= pInventoryBox->GetCapacity();
+		total_weight					= cont->GetWeight();
+		total_volume					= cont->GetVolume();
+		max_volume						= cont->GetCapacity();
 	}
-
+	
+	bool actors							= !!smart_cast<CActor*>(pInventoryOwner);
 	u32									color_weight, color_volume;
 	if (pInventoryOwner && pInventoryOwner->is_alive())
 	{
@@ -420,7 +366,7 @@ void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVo
 		u32 green						= u32(255.f * (1 - d_weight)) * 2;
 		clamp<u32>						(green, 0, 255);
 		color_weight					= color_argb(255, red, green, 0);
-		color_volume					= ((actor || pInventoryBox) && (total_volume > max_volume)) ? color_argb(255, 255, 0, 0) : color_argb(255, 255, 255, 255);
+		color_volume					= ((actors || cont) && (total_volume > max_volume)) ? color_argb(255, 255, 0, 0) : color_argb(255, 255, 255, 255);
 	}
 	else
 		color_weight = color_volume		= color_argb(255, 255, 255, 255);
@@ -434,7 +380,7 @@ void InventoryUtilities::UpdateLabelsValues(CUITextWnd* pWeight, CUITextWnd* pVo
 	pWeight->AdjustWidthToText			();
 
 	LPCSTR li_str						= CStringTable().translate("st_li").c_str();
-	if (actor || pInventoryBox)
+	if (actors || cont)
 		xr_sprintf						(buf, "%.2f/%.2f %s", total_volume, max_volume, li_str);
 	else
 		xr_sprintf						(buf, "%.2f %s", total_volume, li_str);
@@ -644,4 +590,49 @@ u32	InventoryUtilities::GetRelationColor(ALife::ERelationType relation)
 #ifdef DEBUG
 	return 0xffffffff;
 #endif
+}
+
+float inv_grid_size = 0.f;
+float inv_icon_spacing = 0.f;
+int inv_icon_min_size = 0;
+
+void InventoryUtilities::loadStaticData()
+{
+	inv_grid_size						= pSettings->r_float("miscellaneous", "inv_grid_size");
+	inv_icon_spacing					= pSettings->r_float("miscellaneous", "inv_icon_spacing");
+	inv_icon_min_size					= pSettings->r_float("miscellaneous", "inv_icon_min_size");
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, float icon_scale)
+{
+	return								{
+		max(iCeil((icon_scale * icon_rect.width() + 2.f * inv_icon_spacing) / inv_grid_size), inv_icon_min_size),
+		max(iCeil((icon_scale * icon_rect.height() + 2.f * inv_icon_spacing) / inv_grid_size), inv_icon_min_size)
+	};
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, float icon_scale, Frect& margin)
+{
+	Ivector2 res						= CalculateIconSize(icon_rect, icon_scale);
+
+	float cell_width					= static_cast<float>(res.x) * inv_grid_size;
+	float cell_height					= static_cast<float>(res.y) * inv_grid_size;
+	margin.x1							= margin.x2 = .5f * (cell_width - icon_scale * icon_rect.width()) / cell_width;
+	margin.y1							= margin.y2 = .5f * (cell_height - icon_scale * icon_rect.height()) / cell_height;
+
+	return								res;
+}
+
+Ivector2 InventoryUtilities::CalculateIconSize(Frect CR$ icon_rect, Frect& margin, Frect CR$ addons_rect)
+{
+	Ivector2 res						= CalculateIconSize(addons_rect, 1.f);
+
+	float cell_width					= static_cast<float>(res.x) * inv_grid_size;
+	float cell_height					= static_cast<float>(res.y) * inv_grid_size;
+	margin.left							= (icon_rect.left - addons_rect.left + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.top							= (icon_rect.top - addons_rect.top + .5f * (cell_height - addons_rect.height())) / cell_height;
+	margin.right						= (addons_rect.right - icon_rect.right + .5f * (cell_width - addons_rect.width())) / cell_width;
+	margin.bottom						= (addons_rect.bottom - icon_rect.bottom + .5f * (cell_height - addons_rect.height())) / cell_height;
+
+	return								res;
 }

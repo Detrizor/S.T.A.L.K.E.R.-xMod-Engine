@@ -30,8 +30,7 @@ public:
 protected:
 	CUIStatic		m_name; // texture + name
 	CUITextWnd		m_value; // 100%
-	u8				m_levels;
-
+	float			m_magnitude;
 }; // class CUIOutfitImmunity
 
 // -------------------------------------------------------------------------------------

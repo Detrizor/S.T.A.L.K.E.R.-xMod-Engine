@@ -54,7 +54,7 @@ void	fill_mender_input( xr_vector<float>	&v_position,
 {
 		// ************************************* Build vectors + expand TC if nessesary
 	Status						("Building inputs...");
-	std::sort					(g_vertices.begin(),g_vertices.end());
+	g_vertices.sort				();
 	xr_vector<xr_vector<u32> >	remap;
 	remap.resize				(g_vertices.size());
 	for (u32 f=0; f<g_faces.size(); f++)

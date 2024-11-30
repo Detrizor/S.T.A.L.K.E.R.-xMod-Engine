@@ -103,7 +103,7 @@ void Upgrade::construct( const shared_str& upgrade_id, Group& parental_group, Ma
 		add_dependent_groups( groups_str, manager_r );
 	}
 
-	m_known = !!READ_IF_EXISTS( pSettings, r_bool, id(), "known", false );
+	m_known = !!READ_IF_EXISTS( pSettings, r_BOOL, id(), "known", false );
 
 	shared_str properties = pSettings->r_string( id(), "property" );
 	VERIFY2( properties.size(), make_string( "Upgrade <%s> : property is empty !", id_str() ) );

@@ -91,7 +91,7 @@ void GSaveAsSMF					(LPCSTR fname)
 	string256 			tmp;
 
 	// vertices
-	std::sort			(g_vertices.begin(),g_vertices.end());
+	g_vertices.sort		();
 	for (u32 v_idx=0; v_idx<g_vertices.size(); v_idx++){
 		Fvector v		= g_vertices[v_idx]->P;
 		xr_sprintf			(tmp,"v %f %f %f",v.x,v.y,-v.z);
@@ -256,7 +256,7 @@ void CollectProblematicFaces(const Face &F, int max_id, xr_vector<Face*> & reult
 			adjacent_vec.push_back	( A );
 	}
 
-	std::sort			(adjacent_vec.begin(), adjacent_vec.end());
+	adjacent_vec.sort	();
 	adjacent_vec.erase	(std::unique(adjacent_vec.begin(),adjacent_vec.end()),adjacent_vec.end());
 }
 
@@ -460,7 +460,7 @@ void CBuild::u_SmoothVertColors(int count)
 				circle_vec.push_back(F->v[1]);
 				circle_vec.push_back(F->v[2]);
 			}
-			std::sort				(circle_vec.begin(),circle_vec.end());
+			circle_vec.sort			();
 			circle_vec.erase		(std::unique(circle_vec.begin(),circle_vec.end()),circle_vec.end());
 
 			// Average

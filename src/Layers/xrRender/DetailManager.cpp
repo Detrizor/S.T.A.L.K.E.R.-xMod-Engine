@@ -27,7 +27,7 @@ const int	dbgItems			= 128;
 //--------------------------------------------------- Decompression
 static int magic4x4[4][4] =
 {
- 	{ 0, 14,  3, 13},
+	{ 0, 14,  3, 13},
 	{11,  5,  8,  6},
 	{12,  2, 15,  1},
 	{ 7,  9,  4, 10}
@@ -36,7 +36,7 @@ static int magic4x4[4][4] =
 void bwdithermap	(int levels, int magic[16][16])
 {
 	/* Get size of each step */
-    float N = 255.0f / (levels - 1);
+	float N = 255.0f / (levels - 1);
 
 	/*
 	* Expand 4x4 dither pattern to 16x16.  4x4 leaves obvious patterning,
@@ -48,8 +48,8 @@ void bwdithermap	(int levels, int magic[16][16])
 	* pixel value with mod N == 0 at the next level).
 	*/
 
-    float	magicfact = (N - 1) / 16;
-    for ( int i = 0; i < 4; i++ )
+	float	magicfact = (N - 1) / 16;
+	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 4; j++ )
 			for ( int k = 0; k < 4; k++ )
 				for ( int l = 0; l < 4; l++ )
@@ -89,73 +89,73 @@ CDetailManager::CDetailManager	()
 	m_global_time_old = 0;
 
 #ifdef DETAIL_RADIUS
-    // KD: variable detail radius
-    dm_size = dm_current_size;
-    dm_cache_line = dm_current_cache_line;
-    dm_cache1_line = dm_current_cache1_line;
-    dm_cache_size = dm_current_cache_size;
-    dm_fade = dm_current_fade;
-    ps_r__Detail_density = ps_current_detail_density;
-    cache_level1 = (CacheSlot1**) Memory.mem_alloc(dm_cache1_line*sizeof(CacheSlot1*)
+	// KD: variable detail radius
+	dm_size = dm_current_size;
+	dm_cache_line = dm_current_cache_line;
+	dm_cache1_line = dm_current_cache1_line;
+	dm_cache_size = dm_current_cache_size;
+	dm_fade = dm_current_fade;
+	ps_r__Detail_density = ps_current_detail_density;
+	cache_level1 = (CacheSlot1**) Memory.mem_alloc(dm_cache1_line*sizeof(CacheSlot1*)
 #ifdef USE_MEMORY_MONITOR
-        , "CDetailManager::cache_level1"
+		, "CDetailManager::cache_level1"
 #endif
-        );
-    for (u32 i = 0; i < dm_cache1_line; ++i)
-    {
-        cache_level1[i] = (CacheSlot1*) Memory.mem_alloc(dm_cache1_line*sizeof(CacheSlot1)
+		);
+	for (u32 i = 0; i < dm_cache1_line; ++i)
+	{
+		cache_level1[i] = (CacheSlot1*) Memory.mem_alloc(dm_cache1_line*sizeof(CacheSlot1)
 #ifdef USE_MEMORY_MONITOR
-            , "CDetailManager::cache_level1 " + i
+			, "CDetailManager::cache_level1 " + i
 #endif
-            );
-        for (u32 j = 0; j < dm_cache1_line; ++j)
-            new (&(cache_level1[i][j])) CacheSlot1();
-    }
+			);
+		for (u32 j = 0; j < dm_cache1_line; ++j)
+			new (&(cache_level1[i][j])) CacheSlot1();
+	}
 
-    cache = (Slot***) Memory.mem_alloc(dm_cache_line*sizeof(Slot**)
+	cache = (Slot***) Memory.mem_alloc(dm_cache_line*sizeof(Slot**)
 #ifdef USE_MEMORY_MONITOR
-        , "CDetailManager::cache"
+		, "CDetailManager::cache"
 #endif
-        );
-    for (u32 i = 0; i < dm_cache_line; ++i)
-        cache[i] = (Slot**) Memory.mem_alloc(dm_cache_line*sizeof(Slot*)
+		);
+	for (u32 i = 0; i < dm_cache_line; ++i)
+		cache[i] = (Slot**) Memory.mem_alloc(dm_cache_line*sizeof(Slot*)
 #ifdef USE_MEMORY_MONITOR
-        , "CDetailManager::cache " + i
+		, "CDetailManager::cache " + i
 #endif		
-        );
+		);
 
-    cache_pool = (Slot *) Memory.mem_alloc(dm_cache_size*sizeof(Slot)
+	cache_pool = (Slot *) Memory.mem_alloc(dm_cache_size*sizeof(Slot)
 #ifdef USE_MEMORY_MONITOR
-        , "CDetailManager::cache_pool"
+		, "CDetailManager::cache_pool"
 #endif
-        );
-    for (u32 i = 0; i < dm_cache_size; ++i)
-        new (&(cache_pool[i])) Slot();
-    /*
-    CacheSlot1 						cache_level1[dm_cache1_line][dm_cache1_line];
-    Slot*							cache		[dm_cache_line][dm_cache_line];	// grid-cache itself
-    Slot							cache_pool	[dm_cache_size];				// just memory for slots */
+		);
+	for (u32 i = 0; i < dm_cache_size; ++i)
+		new (&(cache_pool[i])) Slot();
+	/*
+	CacheSlot1 						cache_level1[dm_cache1_line][dm_cache1_line];
+	Slot*							cache		[dm_cache_line][dm_cache_line];	// grid-cache itself
+	Slot							cache_pool	[dm_cache_size];				// just memory for slots */
 #endif
 }
 
 CDetailManager::~CDetailManager	()
 {
 #ifdef DETAIL_RADIUS
-    for (u32 i = 0; i < dm_cache_size; ++i)
-        cache_pool[i].~Slot();
-    Memory.mem_free(cache_pool);
+	for (u32 i = 0; i < dm_cache_size; ++i)
+		cache_pool[i].~Slot();
+	Memory.mem_free(cache_pool);
 
-    for (u32 i = 0; i < dm_cache_line; ++i)
-        Memory.mem_free(cache[i]);
-    Memory.mem_free(cache);
+	for (u32 i = 0; i < dm_cache_line; ++i)
+		Memory.mem_free(cache[i]);
+	Memory.mem_free(cache);
 
-    for (u32 i = 0; i < dm_cache1_line; ++i)
-    {
-        for (u32 j = 0; j < dm_cache1_line; ++j)
-            cache_level1[i][j].~CacheSlot1();
-        Memory.mem_free(cache_level1[i]);
-    }
-    Memory.mem_free(cache_level1);
+	for (u32 i = 0; i < dm_cache1_line; ++i)
+	{
+		for (u32 j = 0; j < dm_cache1_line; ++j)
+			cache_level1[i][j].~CacheSlot1();
+		Memory.mem_free(cache_level1[i]);
+	}
+	Memory.mem_free(cache_level1);
 #endif
 }
 /*
@@ -240,7 +240,7 @@ void CDetailManager::Unload		()
 	for (DetailIt it=objects.begin(); it!=objects.end(); it++){
 		(*it)->Unload();
 		xr_delete		(*it);
-    }
+	}
 	objects.clear		();
 	m_visibles[0].clear	();
 	m_visibles[1].clear	();
@@ -253,23 +253,23 @@ extern BOOL ps_no_scale_on_fade;
 
 void CDetailManager::UpdateVisibleM()
 {
-	for (int i = 0; i != 3; i++)
-		for (auto& vis : m_visibles[i])
-		vis.clear();
+	for (auto& vis_list : m_visibles)
+		for (auto& vis : vis_list)
+			vis.clear();
 
-	Fvector		EYE				= RDEVICE.vCameraPosition_saved;
+	Fvector		EYE				= RDEVICE.cam_position_saved;
 
 	CFrustum	View;
-	View.CreateFromMatrix		(RDEVICE.mFullTransform_saved, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	View.CreateFromMatrix		(RDEVICE.cam_full_transform_saved, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
- 	CFrustum	View_old;
- 	Fmatrix		Viewm_old = RDEVICE.mFullTransform;
- 	View_old.CreateFromMatrix		(Viewm_old, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	CFrustum	View_old;
+	Fmatrix		Viewm_old = RDEVICE.camera.full_transform;
+	View_old.CreateFromMatrix		(Viewm_old, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 	
 	float fade_limit			= dm_fade;	fade_limit=fade_limit*fade_limit;
 	float fade_start			= 1.f;		fade_start=fade_start*fade_start;
 	float fade_range			= fade_limit-fade_start;
- 	float		r_ssaCHEAP		= 16*r_ssaDISCARD;
+	float		r_ssaCHEAP		= 16*r_ssaDISCARD;
 
 	// Initialize 'vis' and 'cache'
 	// Collect objects for rendering
@@ -390,7 +390,8 @@ void CDetailManager::Render	()
 	// MT
 	MT_SYNC					();
 
-	RDEVICE.Statistic->RenderDUMP_DT_Render.Begin	();
+	RDEVICE.Statistic->RenderDUMP_DT_Render.Begin();
+	g_pGamePersistent->m_pGShaderConstants->m_blender_mode.w = 1.0f; //--#SM+#-- Ôëaa ía÷aëa ?aíäa?a o?aâu [begin of grass render]
 
 #ifndef _EDITOR
 	float factor			= g_pGamePersistent->Environment().wind_strength_factor;
@@ -404,6 +405,9 @@ void CDetailManager::Render	()
 	if (UseVS())			hw_Render	();
 	else					soft_Render	();
 	RCache.set_CullMode		(CULL_CCW);
+
+	g_pGamePersistent->m_pGShaderConstants->m_blender_mode.w = 0.0f; //--#SM+#-- Ôëaa eîíöa ?aíäa?a o?aâu [end of grass render]	
+
 	RDEVICE.Statistic->RenderDUMP_DT_Render.End	();
 	m_frame_rendered		= RDEVICE.dwFrame;
 }
@@ -420,7 +424,7 @@ void __stdcall	CDetailManager::MT_CALC		()
 	if (m_frame_calc!=RDEVICE.dwFrame)	
 		if ((m_frame_rendered+1)==RDEVICE.dwFrame) //already rendered
 		{
-			Fvector		EYE				= RDEVICE.vCameraPosition_saved;
+			Fvector		EYE				= RDEVICE.camera.position;
 
 			int s_x	= iFloor			(EYE.x/dm_slot_size+.5f);
 			int s_z	= iFloor			(EYE.z/dm_slot_size+.5f);
@@ -432,5 +436,5 @@ void __stdcall	CDetailManager::MT_CALC		()
 			UpdateVisibleM				();
 			m_frame_calc				= RDEVICE.dwFrame;
 		}
-	MT.Leave					        ();
+	MT.Leave							();
 }

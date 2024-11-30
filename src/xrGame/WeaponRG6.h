@@ -1,23 +1,22 @@
 #pragma once
 
 #include "rocketlauncher.h"
-#include "weaponShotgun.h"
+#include "WeaponAutomaticShotgun.h"
 #include "script_export_space.h"
 
 class CWeaponRG6 :  public CRocketLauncher,
-					public CWeaponShotgun
+					public CWeaponAutomaticShotgun
 {
-	typedef CRocketLauncher		inheritedRL;
-	typedef CWeaponShotgun		inheritedSG;
+	typedef CRocketLauncher				inheritedRL;
+	typedef CWeaponAutomaticShotgun		inheritedSG;
 	
 public:
-	virtual			~CWeaponRG6				();
 	virtual BOOL	net_Spawn				(CSE_Abstract* DC);
 	virtual void	Load					(LPCSTR section);
 	virtual void	OnEvent					(NET_Packet& P, u16 type);
+
 protected:
 	virtual void	FireStart				();
-	virtual bool	AddCartridge			();
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

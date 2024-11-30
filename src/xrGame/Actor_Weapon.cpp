@@ -20,45 +20,30 @@
 static const float VEL_MAX		= 10.f;
 static const float VEL_A_MAX	= 10.f;
 
-#define GetWeaponParam(pWeapon, func_name, def_value)	((pWeapon) ? (pWeapon->func_name) : def_value)
-
-//возвращает текуший разброс стрельбы (в радианах)с учетом движения
-float CActor::GetWeaponAccuracy() const
+void CActor::update_accuracy()
 {
-	CWeapon* W	= smart_cast<CWeapon*>(inventory().ActiveItem());
+	if (IsZoomADSMode())
+		m_accuracy						= m_accuracy_ads;
+	else if (IsZoomAimingMode())
+		m_accuracy						= m_accuracy_aim;
+	else
+		m_accuracy						= m_accuracy_heap;
 	
-	if ( IsZoomAimingMode() && W && !GetWeaponParam(W, IsRotatingToZoom(), false) )
+	CEntity::SEntityState				state;
+	if (g_State(state))
 	{
-		return m_fDispAim;
+		m_accuracy						*= pow(m_accuracy_vel_factor, state.fAVelocity / VEL_A_MAX);
+		m_accuracy						*= pow(m_accuracy_vel_factor, state.fVelocity / VEL_MAX);
+		if (state.bCrouch)
+			m_accuracy					*= m_accuracy_crouch_factor;
 	}
-	float dispersion = m_fDispBase*GetWeaponParam(W, Get_PDM_Base(), 1.0f);
-
-	CEntity::SEntityState state;
-	if ( g_State(state) )
-	{
-		//fAVelocity = angle velocity
-		dispersion *= ( 1.0f + (state.fAVelocity/VEL_A_MAX) * m_fDispVelFactor * GetWeaponParam(W, Get_PDM_Vel_F(), 1.0f) );
-		//fVelocity = linear velocity
-		dispersion *= ( 1.0f + (state.fVelocity/VEL_MAX) * m_fDispVelFactor * GetWeaponParam(W, Get_PDM_Vel_F(), 1.0f) );
-
-		bool bAccelerated = isActorAccelerated( mstate_real, IsZoomAimingMode() );
-		if ( bAccelerated || !state.bCrouch )
-		{
-			dispersion *= ( 1.0f + m_fDispAccelFactor * GetWeaponParam(W, Get_PDM_Accel_F(), 1.0f) );
-		}
-
-		if ( state.bCrouch )
-		{	
-			dispersion *= ( 1.0f + m_fDispCrouchFactor * GetWeaponParam(W, Get_PDM_Crouch(), 1.0f) );
-			if ( !bAccelerated )
-			{
-				dispersion *= ( 1.0f + m_fDispCrouchNoAccelFactor * GetWeaponParam(W, Get_PDM_Crouch_NA(), 1.0f) );
-			}
-		}
-	}
-	return dispersion;
 }
 
+//возвращает текуший разброс стрельбы (в радианах)с учетом движения
+float CActor::getWeaponDispersion() const	
+{
+	return								m_dispersion / m_accuracy;
+}
 
 void CActor::g_fireParams	(const CHudItem* pHudItem, Fvector &fire_pos, Fvector &fire_dir)
 {
@@ -137,15 +122,9 @@ void	CActor::HitSector(CObject* who, CObject* weapon)
 
 	if (weapon)
 	{
-		CWeapon* pWeapon = smart_cast<CWeapon*> (weapon);
-		if (pWeapon)
-		{
-			if (pWeapon->IsSilencerAttached())
-			{
-				bShowHitSector = false;
-
-			}
-		}
+		CWeaponMagazined* wm = smart_cast<CWeaponMagazined*> (weapon);
+		if (wm && wm->SilencerAttached())
+			bShowHitSector = false;
 	}
 
 	if (!bShowHitSector) return;	
@@ -153,22 +132,12 @@ void	CActor::HitSector(CObject* who, CObject* weapon)
 }
 
 void CActor::on_weapon_shot_start		(CWeapon *weapon)
-{	
-	//CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*> (weapon);
-	CameraRecoil const& camera_recoil = ( IsZoomAimingMode() )? weapon->zoom_cam_recoil : weapon->cam_recoil;
-		
-	CCameraShotEffector* effector = smart_cast<CCameraShotEffector*>( Cameras().GetCamEffector(eCEShot) );
-	if ( !effector )
-	{
-		effector = (CCameraShotEffector*)Cameras().AddCamEffector( xr_new<CCameraShotEffector>( camera_recoil ) );
-	}
-	else
-	{
-		if( effector->m_WeaponID != weapon->ID() )
-		{
-			effector->Initialize( camera_recoil );
-		}
-	}
+{
+	CCameraShotEffector* effector = smart_cast<CCameraShotEffector*>(Cameras().GetCamEffector(eCEShot));
+	if (!effector)
+		effector = (CCameraShotEffector*)Cameras().AddCamEffector(xr_new<CCameraShotEffector>());
+	else if (effector->m_WeaponID != weapon->ID())
+		effector->Initialize();
 	
 	effector->m_WeaponID = weapon->ID();
 	R_ASSERT(effector);
@@ -230,19 +199,6 @@ Fvector CActor::weapon_recoil_last_delta()
 	return							(result);
 }
 //////////////////////////////////////////////////////////////////////////
-
-void	CActor::SpawnAmmoForWeapon	(CInventoryItem *pIItem)
-{
-	if (OnClient()) return;
-	if (!pIItem) return;
-
-	CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*> (pIItem);
-	if (!pWM || !pWM->AutoSpawnAmmo()) return;
-
-	///	CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*>(inventory().GetAny( (pWM->m_ammoTypes[0].c_str()) ));
-	//	if (!pAmmo) 
-	pWM->SpawnAmmo(0xffffffff, NULL, ID());
-};
 
 void	CActor::RemoveAmmoForWeapon	(CInventoryItem *pIItem)
 {

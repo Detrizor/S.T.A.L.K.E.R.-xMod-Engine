@@ -160,7 +160,7 @@ void CUIMpTradeWnd::SetCurrentItem(CUICellItem* itm)
 		xr_sprintf							(str, "%d", GetItemPrice(CurrentIItem()));
 		m_item_info->UICost->SetText	(str);
 
-		m_item_info->UIName->SetText	(CurrentIItem()->NameShort());
+		m_item_info->UIName->SetText	(CurrentIItem()->getNameShort());
 
 		string64						tex_name;
 		string64						team;

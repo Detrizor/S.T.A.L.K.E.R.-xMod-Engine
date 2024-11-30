@@ -3,13 +3,22 @@
 class CLAItem;
 class CParticlesObject;
 
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 
-class CFlare :public CHudItemObject
+class CFlare :public CInventoryItemObject
 {
 private:
-	typedef			CHudItemObject	inherited;
-	enum FlareStates{eFlareHidden,eFlareShowing,eFlareIdle,eFlareHiding,eFlareDropping};
+	typedef CInventoryItemObject inherited;
+
+private:
+	enum FlareStates
+	{
+		eFlareHidden,
+		eFlareShowing,
+		eFlareIdle,
+		eFlareHiding,
+		eFlareDropping
+	};
 
 	CLAItem*					light_lanim;
 	ref_light					light_render;
@@ -19,6 +28,7 @@ private:
 	void						SwitchOff						();
 	void						FirePoint						(Fvector&);
 	void						ParticlesMatrix					(Fmatrix&);
+
 public:
 	virtual void				UpdateCL						();
 	virtual void				Load							(LPCSTR section);

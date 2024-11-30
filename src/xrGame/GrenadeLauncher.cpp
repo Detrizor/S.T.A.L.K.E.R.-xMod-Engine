@@ -1,55 +1,22 @@
-///////////////////////////////////////////////////////////////
-// GrenadeLauncher.cpp
-// GrenadeLauncher - апгрейд оружия поствольный гранатомет
-///////////////////////////////////////////////////////////////
-
 #include "stdafx.h"
-
 #include "grenadelauncher.h"
-//#include "PhysicsShell.h"
+#include "addon.h"
+#include "WeaponMagazinedWGrenade.h"
 
-CGrenadeLauncher::CGrenadeLauncher()
+MGrenadeLauncher::MGrenadeLauncher(CGameObject* obj, shared_str CR$ section) : CModule(obj)
 {
-	m_fGrenadeVel = 0.f;
-}
+	m_fGrenadeVel						= pSettings->r_float(section, "grenade_vel");
+	m_sFlameParticles					= pSettings->r_string(section, "grenade_flame_particles");
+	m_sight_offset[0]					= static_cast<Dvector>(pSettings->r_fvector3(section, "sight_position"));
+	m_sight_offset[1]					= static_cast<Dvector>(pSettings->r_fvector3d2r(section, "sight_rotation"));
 
-CGrenadeLauncher::~CGrenadeLauncher() 
-{
-}
-
-BOOL CGrenadeLauncher::net_Spawn(CSE_Abstract* DC) 
-{
-	return		(inherited::net_Spawn(DC));
-}
-
-void CGrenadeLauncher::Load(LPCSTR section) 
-{
-	m_fGrenadeVel = pSettings->r_float(section, "grenade_vel");
-	inherited::Load(section);
-}
-
-void CGrenadeLauncher::net_Destroy() 
-{
-	inherited::net_Destroy();
-}
-
-void CGrenadeLauncher::UpdateCL() 
-{
-	inherited::UpdateCL();
-}
-
-
-void CGrenadeLauncher::OnH_A_Chield() 
-{
-	inherited::OnH_A_Chield		();
-}
-
-void CGrenadeLauncher::OnH_B_Independent(bool just_before_destroy) 
-{
-	inherited::OnH_B_Independent(just_before_destroy);
-}
-
-void CGrenadeLauncher::renderable_Render() 
-{
-	inherited::renderable_Render();
+	auto ao								= O.getModule<MAddonOwner>();
+	for (auto& s : ao->AddonSlots())
+	{
+		if (s->getAttachBone() == "grenade")
+		{
+			m_slot						= s.get();
+			break;
+		}
+	}
 }

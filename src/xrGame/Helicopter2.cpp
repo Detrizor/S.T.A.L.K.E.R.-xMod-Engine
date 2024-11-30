@@ -340,7 +340,7 @@ void CHelicopter::DieHelicopter()
 void SHeliEnemy::Load(LPCSTR section)
 {
 	fire_trail_length_des	= pSettings->r_float(section, "fire_trail_length");
-	bUseFireTrail			= !!pSettings->r_bool(section, "use_fire_trail");
+	bUseFireTrail			= !!pSettings->r_BOOL(section, "use_fire_trail");
 }
 
 void SHeliEnemy::reinit()

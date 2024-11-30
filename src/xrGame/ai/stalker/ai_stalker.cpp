@@ -261,6 +261,7 @@ void CAI_Stalker::reload			(LPCSTR section)
 	m_disp_stand_crouch				= pSettings->r_float(section,"disp_stand_crouch");
 	m_disp_stand_stand_zoom			= pSettings->r_float(section,"disp_stand_stand_zoom");
 	m_disp_stand_crouch_zoom		= pSettings->r_float(section,"disp_stand_crouch_zoom");
+	m_accuracy_k					= pSettings->r_float(section,"accuracy_k");
 
 	m_can_select_weapon				= true;
 
@@ -484,30 +485,6 @@ void CAI_Stalker::Die				(CObject* who)
 	
 	//запретить использование слотов в инвенторе
 	inventory().SetSlotsUseful		(false);
-
-	if (inventory().GetActiveSlot() == NO_ACTIVE_SLOT)
-		return;
-
-	CInventoryItem					*active_item = inventory().ActiveItem();
-	if (!active_item)
-		return;
-
-	CWeapon							*weapon = smart_cast<CWeapon*>(active_item);
-	if (!weapon)
-		return;
-
-	{
-		TIItemContainer::iterator	I = inventory().m_all.begin();
-		TIItemContainer::iterator	E = inventory().m_all.end();
-		for ( ; I != E; ++I) {
-			if (std::find(weapon->m_ammoTypes.begin(),weapon->m_ammoTypes.end(),(*I)->object().cNameSect()) == weapon->m_ammoTypes.end())
-				continue;
-
-			NET_Packet				packet;
-			u_EventGen				(packet,GE_DESTROY,(*I)->object().ID());
-			u_EventSend				(packet);
-		}
-	}
 }
 
 void CAI_Stalker::Load				(LPCSTR section)
@@ -519,7 +496,7 @@ void CAI_Stalker::Load				(LPCSTR section)
 	// skeleton physics
 	m_pPhysics_support->in_Load		(section);
 
-	m_can_select_items				= !!pSettings->r_bool(section,"can_select_items");
+	m_can_select_items				= !!pSettings->r_BOOL(section,"can_select_items");
 }
 
 BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
@@ -594,17 +571,17 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 	static float novice_rank_dispersion			= pSettings->r_float("ranks_properties", "dispersion_novice_k");
 	static float expirienced_rank_dispersion	= pSettings->r_float("ranks_properties", "dispersion_experienced_k");
 
-	
-	CHARACTER_RANK_VALUE rank = Rank();
-	clamp(rank, 0, 100);
-	float rank_k = float(rank)/100.f;
-	m_fRankVisibility = novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_k;
-	m_fRankDisperison = expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1-rank_k);
+	::luabind::functor<float>			func;
+	R_ASSERT							(ai().script_engine().functor("ranks.rank_factor", func));
+	float rank_factor					= func(this->lua_game_object());
+
+	m_fRankVisibility					= novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_factor;
+	m_fRankDisperison					= expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1.f - rank_factor);
 
 	if (!fis_zero(SpecificCharacter().panic_threshold()))
-		m_panic_threshold						= SpecificCharacter().panic_threshold();
+		m_panic_threshold				= SpecificCharacter().panic_threshold();
 
-	sight().setup					(CSightAction(SightManager::eSightTypeCurrentDirection));
+	sight().setup						(CSightAction(SightManager::eSightTypeCurrentDirection));
 
 #ifdef _DEBUG
 	if (ai().get_alife() && !Level().MapManager().HasMapLocation("debug_stalker",ID())) {
@@ -869,7 +846,12 @@ void CAI_Stalker::UpdateCL()
 	m_pPhysics_support->in_UpdateCL	();
 	STOP_PROFILE
 
-	if (g_Alive()) {
+	START_PROFILE("stalker/schedule_update/inventory_owner")
+	UpdateInventoryOwner(time_delta());
+	STOP_PROFILE
+
+	if (g_Alive())
+	{
 		START_PROFILE("stalker/client_update/sight_manager")
 		VERIFY						(!m_pPhysicsShell);
 		try {
@@ -940,6 +922,7 @@ void CAI_Stalker::shedule_Update		( u32 DT )
 
 #ifndef USE_SCHEDULER_IN_AGENT_MANAGER
 		agent_manager().update			();
+		m_in_combat						= agent_manager().member().registered_in_combat(this);
 #endif // USE_SCHEDULER_IN_AGENT_MANAGER
 
 //		bool			check = !!memory().enemy().selected();
@@ -1022,16 +1005,6 @@ void CAI_Stalker::shedule_Update		( u32 DT )
 		}
 	}
 	VERIFY				(_valid(Position()));
-
-	START_PROFILE("stalker/schedule_update/inventory_owner")
-	UpdateInventoryOwner(DT);
-	STOP_PROFILE
-
-//#ifdef DEBUG
-//	if (psAI_Flags.test(aiALife)) {
-//		smart_cast<CSE_ALifeHumanStalker*>(ai().alife().objects().object(ID()))->check_inventory_consistency();
-//	}
-//#endif
 	
 	START_PROFILE("stalker/schedule_update/physics")
 	VERIFY				(_valid(Position()));
@@ -1322,10 +1295,10 @@ void CAI_Stalker::aim_target					(Fvector &result, const CGameObject *object)
 	::aim_target			( m_aim_bone_id, result, object );
 }
 
-BOOL CAI_Stalker::AlwaysTheCrow					()
+bool CAI_Stalker::alwaysUpdate()
 {
 	VERIFY					( character_physics_support	()	);
-	return					(character_physics_support()->interactive_motion());
+	return					(character_physics_support()->interactive_motion() || m_in_combat);
 }
 
 smart_cover::cover const* CAI_Stalker::get_current_smart_cover	( )
@@ -1359,5 +1332,5 @@ bool CAI_Stalker::can_fire_right_now							( )
 
 bool CAI_Stalker::unlimited_ammo()
 {
-	return infinite_ammo() && CObjectHandler::planner().object().g_Alive();
+	return infinite_ammo();
 }

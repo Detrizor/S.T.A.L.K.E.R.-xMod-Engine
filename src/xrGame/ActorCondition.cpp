@@ -192,7 +192,7 @@ void CActorCondition::UpdateCondition()
 	if ((object().mstate_real&mcAnyMove))
 	{
 		ConditionWalk( cur_weight,
-			isActorAccelerated( object().mstate_real,object().IsZoomAimingMode() ),
+			isActorAccelerated(object().mstate_real, object().IsZoomADSMode()),
 			(object().mstate_real&mcSprint) != 0 );
 	}
 	else
@@ -319,9 +319,9 @@ void CActorCondition::AffectDamage_InjuriousMaterialAndMonstersInfluence()
 		ALife::EHitType	type;
 		float			value;
 
-	} hits[]		=	{	{ ALife::eHitTypeRadiation, radiation_influence	*	one },
-							{ ALife::eHitTypeTelepatic, psy_influence		*	one }, 
-							{ ALife::eHitTypeBurn,		fire_influence		*	one }	};
+	} hits[]		=	{	{ ALife::eHitTypeRadiationGamma,	radiation_influence	*	one },
+							{ ALife::eHitTypeTelepatic,			psy_influence		*	one }, 
+							{ ALife::eHitTypeBurn,				fire_influence		*	one }	};
 
  	NET_Packet	np;
 
@@ -410,47 +410,47 @@ void CActorCondition::UpdateSatiety()
 
 CWound* CActorCondition::ConditionHit(SHit* pHDS)
 {
-	if (GodMode()) return NULL;
-	return inherited::ConditionHit(pHDS);
+	if (GodMode())
+		return							nullptr;
+	return								__super::ConditionHit(pHDS);
 }
 
 void CActorCondition::PowerHit(float power, bool apply_outfit)
 {
-	m_fPower			-=	apply_outfit ? HitPowerEffect(power) : power;
-	clamp					(m_fPower, 0.f, 1.f);
+	m_fPower							-= apply_outfit ? HitPowerEffect(power) : power;
+	clamp								(m_fPower, 0.f, 1.f);
 }
+
 //weight - "удельный" вес от 0..1
 void CActorCondition::ConditionJump(float weight)
 {
 	if (GodMode())
 		return;
-	float power			=	m_fJumpPower;
-	power				+=	m_fJumpWeightPower*weight*(weight>1.f?m_fOverweightJumpK:1.f);
-	ConditionPowerDrain(power);
+
+	float power							= m_fJumpPower;
+	power								+= m_fJumpWeightPower * weight * (weight > 1.f ? m_fOverweightJumpK : 1.f);
+	ConditionPowerDrain					(power);
 }
 
 void CActorCondition::ConditionWalk(float weight, bool accel, bool sprint)
-{	
-	float power			=	m_fWalkPower;
-	power				+=	m_fWalkWeightPower*weight*(weight>1.f?m_fOverweightWalkK:1.f);
-	power				*=	m_fDeltaTime*(accel?(sprint?m_fSprintK:m_fAccelK):1.f);
-	ConditionPowerDrain(power);
+{
+	float power							= m_fWalkPower;
+	power								+= m_fWalkWeightPower * weight * (weight > 1.f ? m_fOverweightWalkK : 1.f);
+	power								*= m_object->time_delta() * (accel ? (sprint ? m_fSprintK : m_fAccelK) : 1.f);
+	ConditionPowerDrain					(power);
 }
 
 void CActorCondition::ConditionPowerDrain(float power)
 {
-	luabind::functor<void>funct;
-	ai().script_engine().functor("actor_condition_manager.process_power_drain", funct);
-	funct(power);
+	luabind::functor<void>				funct;
+	ai().script_engine().functor		("actor_condition_manager.process_power_drain", funct);
+	funct								(power);
 }
 
 void CActorCondition::ConditionStand(float weight)
-{	
-	float power			= m_fStandPower;
-	power				*= m_fDeltaTime;
-	m_fPower			-= power;
+{
+	m_fPower							-= m_fStandPower * m_object->time_delta();
 }
-
 
 bool CActorCondition::IsCantWalk() const
 {

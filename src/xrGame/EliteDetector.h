@@ -9,7 +9,6 @@ class CEliteDetector :public CCustomDetector
 	typedef CCustomDetector	inherited;
 public:
 					CEliteDetector				();
-	virtual			~CEliteDetector				();
 	virtual void	render_item_3d_ui			();
 	virtual bool	render_item_3d_ui_query		();
 	virtual LPCSTR	ui_xml_tag					() const {return "elite";}
@@ -18,8 +17,6 @@ protected:
 	virtual void 	CreateUI					();
 	CUIArtefactDetectorElite& ui				();
 };
-
-
 
 class CScientificDetector :public CEliteDetector
 {
@@ -36,7 +33,7 @@ protected:
 	virtual void	UpfateWork					();
 	CZoneList		m_zones;
 	
-    virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
+	virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
 
 public:
 	bool			bZonesEnabled;
@@ -46,7 +43,6 @@ public:
 	u8				m_iAfDetectRadiusPowersNum;
 	u8				m_iAfDetectRadiusCurPower;
 	
-    virtual bool	Action			(u16 cmd, u32 flags);
+	virtual bool	Action			(u16 cmd, u32 flags);
 	void			ChangeLevel		(bool increase);
 };
-

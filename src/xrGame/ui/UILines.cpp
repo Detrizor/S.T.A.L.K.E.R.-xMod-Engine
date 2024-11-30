@@ -12,13 +12,13 @@
 #include "UIXmlInit.h"
 #include "uilinestd.h"
 #include "../string_table.h"
-
+#include "UIWindow.h"
 
 CUILines::CUILines()
 {
 	m_pFont							= NULL;
 	m_eTextAlign					= CGameFont::alLeft;
-	m_eVTextAlign					= valTop;
+	m_eVTextAlign					= valCenter;
 	m_dwTextColor					= 0xffffffff;
 	m_TextOffset.set				(0.0f,0.0f);
 	m_text							="";
@@ -29,6 +29,7 @@ CUILines::CUILines()
 	uFlags.set(flColoringMode,		TRUE);
 	uFlags.set(flCutWordsMode,		FALSE);
 	uFlags.set(flRecognizeNewLine,	TRUE);
+	m_parent_wnd					= NULL;
 }
 
 CUILines::~CUILines(){
@@ -101,9 +102,7 @@ void CUILines::Reset()
 
 float get_str_width(CGameFont*pFont, char ch)
 {
-	float ll = pFont->SizeOf_(ch);
-	UI().ClientToScreenScaledWidth(ll);
-	return ll;
+	return pFont->SizeOf_(ch) * UI().GetTextScaleFactor();
 }
 
 void CUILines::ParseText(bool force)
@@ -167,10 +166,7 @@ void CUILines::ParseText(bool force)
         u16	aMarkers[ UBUFFER_SIZE ];
 		CUILine tmp_line;
 		char szTempLine[ MAX_MB_CHARS ];
-		float fTargetWidth = 1.0f;
-		UI().ClientToScreenScaledWidth( fTargetWidth );
-		VERIFY( ( m_wndSize.x > 0 ) && ( fTargetWidth > 0 ) );
-		fTargetWidth = m_wndSize.x / fTargetWidth;
+		float fTargetWidth = m_parent_wnd->GetWidth() / UI().GetTextScaleFactor();
 		int vsz = line->m_subLines.size();
 		VERIFY( vsz );
 		if ( ( vsz > 1 ) && ( ! bNewLines ) ) { // only colored line, pizdets
@@ -210,7 +206,7 @@ void CUILines::ParseText(bool force)
 		}
 	} else
 	{
-		float max_width							= m_wndSize.x;
+		float max_width							= m_parent_wnd->GetWidth();
 		u32 sbl_cnt								= line->m_subLines.size();
 		CUILine									tmp_line;
 		string4096								buff;
@@ -272,22 +268,17 @@ void CUILines::ParseText(bool force)
 
 float CUILines::GetVisibleHeight()
 {
-
+	float				res;
 	if (uFlags.test(flComplexMode))
 	{
-		if(uFlags.test(flNeedReparse))
+		if (uFlags.test(flNeedReparse))
 			ParseText	();
-
-		float _curr_h = m_pFont->CurrentHeight_();
-		UI().ClientToScreenScaledHeight(_curr_h);
-		return _curr_h * m_lines.size();
+		res				= m_pFont->CurrentHeight_() * m_lines.size();
 	}
 	else
-	{
-		float _curr_h = m_pFont->GetHeight();
-		UI().ClientToScreenScaledHeight(_curr_h);
-		return _curr_h;
-	}
+		res				= m_pFont->GetHeight();
+
+	return				res * UI().GetTextScaleFactor();
 }
 
 void CUILines::SetTextColor(u32 color)
@@ -308,8 +299,7 @@ void CUILines::SetFont(CGameFont* pFont)
 
 LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR buff, int buff_len)
 {
-	float text_len					= pFont->SizeOf_(source_text);
-	UI().ClientToScreenScaledWidth	(text_len);
+	float text_len					= pFont->SizeOf_(source_text) * UI().GetTextScaleFactor();
 
 	if(text_len<width)
 	{
@@ -317,16 +307,14 @@ LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR b
 	}else
 	{
 		buff[0]							= 0;
-		float el_len					= pFont->SizeOf_("..");
-		UI().ClientToScreenScaledWidth	(el_len);
+		float el_len					= pFont->SizeOf_("..") * UI().GetTextScaleFactor();
 		float total						= 0.0f;
 		u16		pos						= 0;
 		
 		while(total+el_len < width)
 		{
 			const char c					= *(source_text+pos);
-			float ch_len					= pFont->SizeOf_(c);
-			UI().ClientToScreenScaledWidth	(ch_len);
+			float ch_len					= pFont->SizeOf_(c) * UI().GetTextScaleFactor();
 		
 			if(total+ch_len+el_len < width)
 				buff[pos]				= c;
@@ -343,74 +331,63 @@ LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR b
 
 void CUILines::Draw(float x, float y)
 {
-	x		+= m_TextOffset.x;
-	y		+= m_TextOffset.y;
-
-	static string256 passText;
+	x								+= m_TextOffset.x;
+	y								+= m_TextOffset.y;
 
 	if (m_text.size()==0)
 		return;
-
-	R_ASSERT(m_pFont);
-	m_pFont->SetColor(m_dwTextColor);
+	
+	R_ASSERT						(m_pFont);
+	m_pFont->SetColor				(m_dwTextColor);
 
 	if (!uFlags.is(flComplexMode))
 	{
-		Fvector2 text_pos;
-		text_pos.set(0,0);
-
-		text_pos.x = x + GetIndentByAlign();
-//		text_pos.y = y + GetVIndentByAlign();
-		text_pos.y = y;
-		UI().ClientToScreenScaled(text_pos);
-		text_pos.y	+= GetVIndentByAlign();
+		Fvector2					text_pos;
+		text_pos.set				(x, y);
+		text_pos.x					+= GetIndentByAlign();
+		text_pos.y					+= GetVIndentByAlign();
+		UI().ClientToScreenScaled	(text_pos);
 
 		if (uFlags.test(flPasswordMode))
 		{
-			int sz = (int)m_text.size();
+			int sz					= (int)m_text.size();
+			static string256		passText;
 			for (int i = 0; i < sz; i++)
-				passText[i] = '*';
-			passText[sz] = 0;
+				passText[i]			= '*';
+			passText[sz]			= 0;
 			m_pFont->SetAligment((CGameFont::EAligment)m_eTextAlign);
-			m_pFont->Out(text_pos.x, text_pos.y, "%s", passText);
+			m_pFont->Out			(text_pos.x, text_pos.y, "%s", passText);
 		}
-		else{
-			m_pFont->SetAligment((CGameFont::EAligment)m_eTextAlign);
+		else
+		{
+			m_pFont->SetAligment	((CGameFont::EAligment)m_eTextAlign);
 			if(uFlags.test(flEllipsis) )
 			{
-				u32 buff_len	= sizeof(char)*xr_strlen(m_text.c_str()) + 1;
+				u32 buff_len		= sizeof(char)*xr_strlen(m_text.c_str()) + 1;
 
-				char* p			= static_cast<char*>(_alloca(buff_len));
-				LPCSTR			str = GetElipsisText(m_pFont, m_wndSize.x, m_text.c_str(), p, buff_len);
+				char* p				= static_cast<char*>(_alloca(buff_len));
+				LPCSTR				str = GetElipsisText(m_pFont, m_parent_wnd->GetWidth(), m_text.c_str(), p, buff_len);
 
-				m_pFont->Out	(text_pos.x, text_pos.y, "%s", str);
+				m_pFont->Out		(text_pos.x, text_pos.y, "%s", str);
 			}else
-				m_pFont->Out(text_pos.x, text_pos.y, "%s", m_text.c_str());
+				m_pFont->Out		(text_pos.x, text_pos.y, "%s", m_text.c_str());
 		}
 	}
 	else
 	{
 		ParseText();
+		m_pFont->SetAligment		((CGameFont::EAligment)m_eTextAlign);
 
-		Fvector2 pos;
-		// get vertical indent
-		pos.y			= y + GetVIndentByAlign();
-		float height	= m_pFont->CurrentHeight_();
-		UI().ClientToScreenScaledHeight(height);
-
-		u32 size		= m_lines.size();
-
-		m_pFont->SetAligment((CGameFont::EAligment)m_eTextAlign);
-		for (int i=0; i<(int)size; i++)
+		Fvector2 pos				= { x + GetIndentByAlign(), y + GetVIndentByAlign() };
+		float height				= m_pFont->CurrentHeight_() * UI().GetTextScaleFactor();
+		for (int i = 0, i_e = m_lines.size(); i < i_e; i++)
 		{
-			pos.x			= x + GetIndentByAlign();
-			m_lines[i].Draw	(m_pFont, pos.x, pos.y);
-			pos.y			+= height;
+			m_lines[i].Draw			(m_pFont, pos.x, pos.y);
+			pos.y					+= height;
 		}
 	}
-	m_pFont->OnRender();
+	m_pFont->OnRender				();
 }
-
 
 void CUILines::OnDeviceReset()
 {
@@ -422,40 +399,29 @@ float CUILines::GetIndentByAlign()const
 	switch (m_eTextAlign)
 	{
 	case CGameFont::alCenter:
-		{
-			return (m_wndSize.x)/2;
-		}break;
+		return		m_parent_wnd->GetWidth() / 2.f;
 	case CGameFont::alLeft:
-		{
-			return 0;
-		}break;
+		return		0.f;
 	case CGameFont::alRight:
-		{
-			return (m_wndSize.x);
-		}break;
+		return		m_parent_wnd->GetWidth();
 	default:
-			NODEFAULT;
+		NODEFAULT;
 	}
-#ifdef DEBUG
-	return 0;
-#endif
 }
 
 float CUILines::GetVIndentByAlign()
 {
-	switch(m_eVTextAlign) {
+	switch(m_eVTextAlign)
+	{
 	case valTop: 
 		return 0;
 	case valCenter:
-		return (m_wndSize.y - GetVisibleHeight())/2;
+		return (m_parent_wnd->GetHeight() - GetVisibleHeight()) / 2.f;
 	case valBotton:
-		return m_wndSize.y - GetVisibleHeight();
+		return m_parent_wnd->GetHeight() - GetVisibleHeight();
 	default:
 		NODEFAULT;
 	}
-#ifdef DEBUG
-	return 0;
-#endif
 }
 
 // %c[255,255,255,255]
@@ -563,5 +529,3 @@ void CUILines::CutFirstColoredTextEntry(xr_string& entry, u32& color, xr_string&
 		text.replace(0, begin2, "");
 	}
 }
-
-

@@ -80,6 +80,8 @@ extern ECORE_API	float		ps_r2_ssaLOD_A;
 extern ECORE_API	float		ps_r2_ssaLOD_B;
 extern ECORE_API	float		ps_r2_tf_Mipbias;
 
+extern ECORE_API float			ps_r__render_distance_sqr;
+
 // R2-specific
 extern ECORE_API Flags32		ps_r2_ls_flags;				// r2-only
 extern ECORE_API Flags32		ps_r2_ls_flags_ext;
@@ -153,7 +155,7 @@ enum
 	R2FLAG_R1LIGHTS				= (1<<10),
 	R2FLAG_SUN_IGNORE_PORTALS	= (1<<11),
 
-//	R2FLAG_SUN_STATIC			= (1<<12),
+	R2FLAG_SUN_STATIC			= (1<<12),
 	
 	R2FLAG_EXP_SPLIT_SCENE					= (1<<13),
 	R2FLAG_EXP_DONT_TEST_UNSHADOWED			= (1<<14),

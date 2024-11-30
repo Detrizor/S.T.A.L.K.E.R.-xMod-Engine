@@ -159,7 +159,7 @@ void	SFillPropData::load			()
 		for (k = 0; Ini->r_line(section,k,&N,&V); ++k)
 			story_names.push_back	(xr_rtoken(V,atoi(N)));
 
-		std::sort				(story_names.begin(),story_names.end(),story_name_predicate());
+		story_names.sort		(story_name_predicate());
 		story_names.insert		(story_names.begin(),xr_rtoken("NO STORY ID",ALife::_STORY_ID(-1)));
 	}
 
@@ -171,7 +171,7 @@ void	SFillPropData::load			()
 		for (k = 0; Ini->r_line(section,k,&N,&V); ++k)
 			spawn_story_names.push_back	(xr_rtoken(V,atoi(N)));
 
-		std::sort				(spawn_story_names.begin(),spawn_story_names.end(),story_name_predicate());
+		spawn_story_names.sort	(story_name_predicate());
 		spawn_story_names.insert(spawn_story_names.begin(),xr_rtoken("NO SPAWN STORY ID",ALife::_SPAWN_STORY_ID(-1)));
 	}
 
@@ -183,7 +183,7 @@ void	SFillPropData::load			()
 		character_profiles.push_back(CCharacterInfo::IndexToId(i));
 	}
 
-	std::sort(character_profiles.begin(), character_profiles.end(), SortStringsByAlphabetPred);
+	character_profiles.sort		(SortStringsByAlphabetPred);
 #endif // AI_COMPILER
 	
     // destroy ini
@@ -198,7 +198,7 @@ void	SFillPropData::load			()
 	for ( ; I != E; ++I)
 		smart_covers.push_back	(luabind::object_cast<LPCSTR>(I.key()));
 
-	std::sort				(smart_covers.begin(), smart_covers.end(), logical_string_predicate());
+	smart_covers.sort			(logical_string_predicate());
 };
 
 void	SFillPropData::unload			()
@@ -669,27 +669,19 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 
 CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
+	clearModules						();
 }
 
-void CSE_ALifeDynamicObject::STATE_Write	(NET_Packet &tNetPacket)
+CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
 {
-	inherited::STATE_Write		(tNetPacket);
+	return								(m_modules[type] = CSE_ALifeModule::createModule(type, m_wVersion));
 }
 
-void CSE_ALifeDynamicObject::STATE_Read		(NET_Packet &tNetPacket, u16 size)
+void CSE_ALifeDynamicObject::clearModules()
 {
-	inherited::STATE_Read		(tNetPacket, size);
+	for (auto& m : m_modules)
+		xr_delete						(m);
 }
-
-void CSE_ALifeDynamicObject::UPDATE_Write	(NET_Packet &tNetPacket)
-{
-	inherited::UPDATE_Write		(tNetPacket);
-};
-
-void CSE_ALifeDynamicObject::UPDATE_Read	(NET_Packet &tNetPacket)
-{
-	inherited::UPDATE_Read		(tNetPacket);
-};
 
 #ifndef XRGAME_EXPORTS
 void CSE_ALifeDynamicObject::FillProps	(LPCSTR pref, PropItemVec& values)

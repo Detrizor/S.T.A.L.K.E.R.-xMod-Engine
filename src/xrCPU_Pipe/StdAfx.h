@@ -23,7 +23,6 @@
 	#include "../xrCore/xrCore.h"
 	#include "../Layers/xrRender/SkeletonXVertRender.h"
 	#include "../xrEngine/bone.h"
-	#define RENDER 1
 	#include "../xrEngine/Render.h"
 	#include "../xrEngine/Device.h"
 	#include "../Layers/xrRender/light.h"

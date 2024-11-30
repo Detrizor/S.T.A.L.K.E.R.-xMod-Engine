@@ -37,7 +37,7 @@
 #include "../ActorHelmet.h"
 #include "script_game_object.h" //Alundaio
 
-using namespace luabind; //Alundaio
+using namespace ::luabind; //Alundaio
 // -----
 
 const LPCSTR g_inventory_upgrade_xml = "inventory_upgrade.xml";
@@ -103,7 +103,6 @@ void CUIInventoryUpgradeWnd::Init()
 	LoadSchemes( uiXml );
 }
 
-#include "ActorBackpack.h"
 void CUIInventoryUpgradeWnd::InitInventory( CInventoryItem* item, bool can_upgrade )
 {
 	m_inv_item = item;
@@ -116,7 +115,7 @@ void CUIInventoryUpgradeWnd::InitInventory( CInventoryItem* item, bool can_upgra
 		if(smart_cast<CWeaponRPG7*>(item))
 			m_item->SetShader(InventoryUtilities::GetOutfitUpgradeIconsShader());
 	}
-	else if(smart_cast<CCustomOutfit*>(item) || smart_cast<CHelmet*>(item) || smart_cast<CBackpack*>(item))
+	else if (item && item->isGear())
 	{
 		is_shader = true;
 		m_item->SetShader(InventoryUtilities::GetOutfitUpgradeIconsShader());
@@ -225,8 +224,7 @@ bool CUIInventoryUpgradeWnd::install_item( CInventoryItem& inv_item, bool can_up
 {
 	m_scheme_wnd->DetachAll();
 	m_back->DetachAll();
-	float condition = inv_item.GetCondition();
-	m_btn_repair->Enable(condition > 0.2f && condition < 0.8f && (inv_item.m_main_class == "weapon" || inv_item.m_main_class == "outfit"));
+	m_btn_repair->Enable(inv_item.Category("weapon") || inv_item.Category("outfit"));
 
 	if ( !can_upgrade )
 	{
@@ -343,7 +341,7 @@ void CUIInventoryUpgradeWnd::OnMesBoxYes()
 		if ( parent_wnd )
 		{
 			//Alundaio: tell script that item has been upgraded
-			luabind::functor<void>	funct;
+			functor<void>	funct;
 			ai().script_engine().functor("inventory_upgrades.effect_upgrade_item", funct);
 			if (funct)
 			{
@@ -352,6 +350,7 @@ void CUIInventoryUpgradeWnd::OnMesBoxYes()
 			}
 			//-Alundaio
 			parent_wnd->UpdateActor();
+			parent_wnd->UpdatePartnerBag();
 			parent_wnd->SeparateUpgradeItem();
 		}
 	}

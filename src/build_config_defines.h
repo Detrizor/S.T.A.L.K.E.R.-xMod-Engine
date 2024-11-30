@@ -43,7 +43,6 @@
 //-TWEAKS
 
 // SOUND:
-	#define NEW_SOUNDS									// use new sounds. Please enclose any new sound addions with this define
 	#define LAYERED_SND_SHOOT								// see comment down below 
 //-SOUND
 

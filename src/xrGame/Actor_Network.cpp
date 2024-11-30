@@ -67,7 +67,7 @@ CActor*			Actor()
 void	CActor::ConvState(u32 mstate_rl, string128 *buf)
 {
 	xr_strcpy(*buf, "");
-	if (isActorAccelerated(mstate_rl, IsZoomAimingMode()))		xr_strcat(*buf, "Accel ");
+	if (isActorAccelerated(mstate_rl, IsZoomADSMode()))		xr_strcat(*buf, "Accel ");
 	if (mstate_rl&mcCrouch)		xr_strcat(*buf, "Crouch ");
 	if (mstate_rl&mcFwd)		xr_strcat(*buf, "Fwd ");
 	if (mstate_rl&mcBack)		xr_strcat(*buf, "Back ");
@@ -92,7 +92,7 @@ void CActor::net_Export(NET_Packet& P)					// export to server
 	Fvector				p = Position();
 	P.w_vec3(p);//Position());
 
-	P.w_float /*w_angle8*/(angle_normalize(r_model_yaw)); //Device.vCameraDirection.getH());//
+	P.w_float /*w_angle8*/(angle_normalize(r_model_yaw)); //Device.camera.direction.getH());//
 	P.w_float /*w_angle8*/(angle_normalize(unaffected_r_torso.yaw));//(r_torso.yaw);
 	P.w_float /*w_angle8*/(angle_normalize(unaffected_r_torso.pitch));//(r_torso.pitch);
 	P.w_float /*w_angle8*/(angle_normalize(unaffected_r_torso.roll));//(r_torso.roll);
@@ -671,10 +671,11 @@ void CActor::net_Destroy()
 	CInventoryOwner::net_Destroy();
 	cam_UnsetLadder();
 	character_physics_support()->movement()->DestroyCharacter();
-	if (m_pPhysicsShell)			{
+	if (m_pPhysicsShell)
+	{
 		m_pPhysicsShell->Deactivate();
-		xr_delete<CPhysicsShell>(m_pPhysicsShell);
-	};
+		xr_delete(m_pPhysicsShell);
+	}
 	m_pPhysics_support->in_NetDestroy();
 
 	xr_delete(m_sndShockEffector);
@@ -1797,8 +1798,4 @@ bool CActor::InventoryAllowSprint()
 
 void CActor::On_B_NotCurrentEntity()
 {
-#ifndef MASTER_GOLD
-	Msg("CActor::On_B_NotCurrentEntity");
-#endif // #ifndef MASTER_GOLD
-	inventory().Items_SetCurrentEntityHud(false);
-};
+}

@@ -4,17 +4,16 @@
 
 #pragma once
 
-
 #include "weaponammo.h"
 #include "tracer.h"
 
 //коэфициенты и параметры патрона
 struct SBullet_Hit 
 {
-	float	impulse;
-	float	main_damage;
-	float	pierce_damage;
-	float	pierce_damage_armor;
+	float	impulse					= 0.f;
+	float	main_damage				= 0.f;
+	float	pierce_damage			= 0.f;
+	float	armor_pierce_damage		= 0.f;
 };
 
 //структура, описывающая пулю и ее свойства в полете
@@ -29,37 +28,35 @@ struct SBullet
 			u16			allow_ricochet	: 1	;			//разрешить рикошет
 			u16			allow_sendhit	: 1	;			//statistics
 			u16			magnetic_beam	: 1 ;			//магнитный луч (нет отклонения после пробивания, не падает скорость после пробивания)
+			u16			piercing_was	: 1	;
 		};
 		u16				_storage			;
 	}				flags				;
 	u16				bullet_material_idx	;
 
-	Fvector			bullet_pos			;			//текущая позиция
-	Fvector			dir					;			
+	Fvector			pos					;			//текущая позиция
+	Fvector			dir					;
 	float			speed				;			//текущая скорость
 	
 	u16				parent_id			;			//ID персонажа который иницировал действие
 	u16				weapon_id			;			//ID оружия из которого была выпущены пуля
 	
 	float			fly_dist			;			//дистанция которую пуля пролетела
+	float			fly_time			;			//Время которое пуля летит
 	Fvector			tracer_start_position;
-	
-	Fvector			start_position		;
-	Fvector			start_velocity		;
-	u32				born_time			;
-	float			life_time			;
-	u32				change_rajectory_count;
 
 	//коэфициенты и параметры патрона
 	SBullet_Hit     hit_param;
 	//-------------------------------------------------------------------
 	float			air_resistance		;
 	//-------------------------------------------------------------------
-	float			max_speed			;			// maxspeed*cartridge
-	float			max_dist			;			// maxdist*cartridge
+	u16				updates				;
 	float			wallmark_size		;
-	float			bullet_mass			;
-	float			bullet_resist		;
+	float			mass				;
+	int				buck_shot			;
+	float			resist				;
+	float			penetration			;
+	float			k_ap				;
 	bool			hollow_point		;
 	//-------------------------------------------------------------------
 	u8				m_u8ColorID			;
@@ -73,9 +70,7 @@ struct SBullet
 	//---------------------------------
 	u16				targetID			;
 	//---------------------------------
-	bool			density_mode		;
 	float			density				;
-	Fvector			begin_density		;
 	bool			operator	==		(u32 ID){return	ID == m_dwID;}
 public:
 					SBullet				();
@@ -85,7 +80,7 @@ public:
 
 	void			Init				(const	Fvector& position,
 										const	Fvector& direction,
-										float	start_speed,
+										float	barrel_length,
 										u16		sender_id,
 										u16		sendersweapon_id,
 										ALife::EHitType e_hit_type,
@@ -93,8 +88,10 @@ public:
 										const	CCartridge& cartridge,
 										bool	SendHit,
 										float	power,
-										float	impulse,
-										int iShotNum = 0);
+										float	impulse);
+
+	u32 id = 0;
+	float flush_time = 0.f;
 };
 
 class CLevel;
@@ -151,9 +148,6 @@ protected:
 	//отрисовка трассеров от пуль
 	CTracer					tracers;
 
-	//минимальная скорость, на которой пуля еще считается
-	static float			m_fMinBulletSpeed;
-
 	float					m_fHPMaxDist;
 
 	//константа G
@@ -185,8 +179,8 @@ protected:
 	void					StaticObjectHit		(_event& E);
 
 	//попадание по любому объекту, на выходе - импульс и сила переданные пулей объекту
-	bool					ObjectHit			(SBullet_Hit* hit_res, SBullet* bullet, const Fvector& end_point, 
-												collide::rq_result& R, u16 target_material, Fvector& hit_normal);
+	void					ObjectHit			(_event& E, SBullet* bullet, const Fvector& end_point, collide::rq_result& R, u16 target_material);
+
 	//отметка на пораженном объекте
 	void					FireShotmark		(SBullet* bullet, const Fvector& vDir, 
 												const Fvector &vEnd,    collide::rq_result& R,  u16 target_material,
@@ -196,74 +190,77 @@ protected:
 	//и равномерно, а после просчета также изменяется текущая
 	//скорость и положение с учетом гравитации и ветра
 	//возвращаем true если пуля продолжает полет
-	bool					trajectory_check_error	(
-								Fvector& previous_position,
+	bool					update_bullet(
 								collide::rq_results& rq_storage, 
 								SBullet& bullet,
-								float& low,
-								float& high,
-								Fvector const& gravity,
-								float const air_resistance
-							);
-	void					add_bullet_point	(
-								Fvector const& start_position,
-								Fvector& previous_position,
-								Fvector const& start_velocity,
-								Fvector const& gravity,
-								float const ait_resistance,
-								float const current_time
-							);
-	bool					process_bullet		(
+								float time_delta);
+	bool					process_bullet(
 								collide::rq_results& rq_storage,
 								SBullet& bullet,
-								u32 delta_time
-							);
+								float time_delta);
 	void 		__stdcall	UpdateWorkload		();
+
 public:
 							CBulletManager		();
 	virtual					~CBulletManager		();
 
 	void 					Load				();
 	void 					Clear				();
-	void 					AddBullet			(const Fvector& position, const Fvector& direction, float starting_speed, 
+	void 					AddBullet			(const Fvector& position, const Fvector& direction, float barrel_length,
 												u16	sender_id, u16 sendersweapon_id,
 												ALife::EHitType e_hit_type, float maximum_distance, 
 												const CCartridge& cartridge, bool SendHit,
-												float power, float impulse, int iShotNum = 0);
+												float power, float impulse);
 
 	void					CommitEvents		();	// @ the start of frame
 	void					CommitRenderSet		();	// @ the end of frame
 	void 					Render				();
 
-	float					m_fBulletAirResistanceScale;
-	float					m_fBulletWallMarkSizeScale;
-	float					m_fBulletFireDistanceScale;
+private:
+	float								m_min_bullet_speed;
+	float								m_max_bullet_fly_time;
+	Fvector								m_gravity;
+	float								m_global_ap_scale;
 
-	float					m_fBulletArmorPiercingScale;
-	float					m_fBulletHollowPointAPFactor;
-	float					m_fBulletHollowPointResistFactor;
-	float					m_fBulletArmorPiercingLose;
+	float								calculate_hit_damage				C$	(float bullet_ap, float armor, float bone_density, SBullet_Hit& hit_res, SBullet* bullet,
+		float k_speed_in = 0.f, float k_speed_out = 0.f, bool inwards = true, bool log = false);
 
-	float					m_fBulletHitImpulseScale;
-	float					m_fBulletArmorDamageScale;
+public:
+	float								m_fBulletAirResistanceScale;
+	float								m_fBulletWallMarkSizeScale;
 
-	float					m_fBulletPierceDamageResistFactor;
-	float					m_fBulletPierceDamageResistPower;
-	float					m_fBulletPierceDamageSpeedFactor;
-	float					m_fBulletPierceDamageSpeedPower;
-	float					m_fBulletPierceDamageDensityFactor;
-	float					m_fBulletPierceDamageDensityPower;
+	float								m_fZeroingAirResistCorrectionK1;
+	float								m_fZeroingAirResistCorrectionK2;
+	float								m_fZeroingAirResistCorrectionK3;
 
-	float					m_fBulletPierceDamageScale;
-	float					m_fBulletPierceDamageArmorScale;
+	float								m_fBulletHollowPointResistFactor;
+	float								m_fBulletAPLossOnPierce;
+
+	float								m_fBulletHitImpulseScale;
+	float								m_fBulletArmorDamageScale;
+	float								m_fBulletPierceDamageScale;
+	float								m_fBulletArmorPierceDamageScale;
+
+	CPowerDependency					m_fBulletPierceDamageFromResist;
+	CPowerDependency					m_fBulletPierceDamageFromKAP;
+	CPowerDependency					m_fBulletPierceDamageFromSpeed;
+
+	CPowerDependency					m_fBulletPierceDamageFromSpeedScale;
+	CPowerDependency					m_fBulletPierceDamageFromStability;
+	CPowerDependency					m_fBulletPierceDamageFromPierce;
+
+	float								GravityConst						C$	()		{ return m_fGravityConst; }
+
+	float								CalcZeroingCorrection				C$	(float k, float z);
+	float								calculateAP							C$	(float penetration, float speed);
 };
 
 struct bullet_test_callback_data
 {
-	Fvector			collide_position;
 	SBullet*		pBullet;
 	float			collide_time;
-#if 1//def DEBUG
-	float			high_time;
-#endif // #ifdef DEBUG
+	float			dt;
+	Fvector			start_velocity;
+	Fvector			end_velocity;
+	Fvector			avg_velocity;
 };

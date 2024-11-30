@@ -25,7 +25,7 @@ void CUIActorMenu::InitUpgradeMode()
 	m_PartnerMoney->Show( false );
 	m_pUpgradeWnd->Show( true );
 	
-	InitInventoryContents( m_pInventoryBagList );
+	InitInventoryContents();
 	UpdatePocketsPresence();
 	VERIFY( m_pPartnerInvOwner );
 	m_pPartnerInvOwner->StartTrading();

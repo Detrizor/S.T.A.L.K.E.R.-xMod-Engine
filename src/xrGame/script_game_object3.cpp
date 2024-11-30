@@ -1171,7 +1171,7 @@ u16 CScriptGameObject::AmmoGetCount()
 	if (!ammo)
 		return 0;
 
-	return ammo->m_boxCurr;
+	return ammo->GetAmmoCount();
 }
 
 void CScriptGameObject::AmmoSetCount(u16 count)
@@ -1180,7 +1180,7 @@ void CScriptGameObject::AmmoSetCount(u16 count)
 	if (!ammo)
 		return;
 
-	ammo->m_boxCurr = count;
+	ammo->SetAmmoCount(count);
 }
 
 u16 CScriptGameObject::AmmoBoxSize()
@@ -1238,7 +1238,7 @@ u32 CScriptGameObject::PlayHudMotion(LPCSTR M, bool bMixIn, u32 state)
 		if (!Weapon->HudAnimationExist(M))
 			return 0;
 
-		return Weapon->PlayHUDMotion(M, bMixIn, Weapon, state);
+		return Weapon->PlayHUDMotion(M, bMixIn, state);
 	}
 
 	CHudItem* itm = object().cast_inventory_item()->cast_hud_item();
@@ -1248,7 +1248,7 @@ u32 CScriptGameObject::PlayHudMotion(LPCSTR M, bool bMixIn, u32 state)
 	if (!itm->HudAnimationExist(M))
 		return 0;
 
-	return itm->PlayHUDMotion(M, bMixIn, itm, state);
+	return itm->PlayHUDMotion(M, bMixIn, state);
 }
 
 void CScriptGameObject::SwitchState(u32 state)
@@ -1290,11 +1290,9 @@ u32 CScriptGameObject::GetState()
 
 bool CScriptGameObject::WeaponInGrenadeMode()
 {
-	CWeaponMagazinedWGrenade* wpn = smart_cast<CWeaponMagazinedWGrenade*>(&object());
-	if (!wpn)
-		return false;
-	
-	return wpn->m_bGrenadeMode;
+	if (auto wpn = smart_cast<CWeaponMagazinedWGrenade*>(&object()))
+		return wpn->isGrenadeMode();
+	return false;
 }
 
 void CScriptGameObject::SetBoneVisible(LPCSTR bone_name, bool bVisibility, bool bRecursive)
@@ -1369,58 +1367,6 @@ void CScriptGameObject::ForceSetPosition(Fvector pos, bool bActivate)
 	}
 	else
 		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "force_set_position: object %s has no physics shell!", *object().cName());
-}
-
-u8 CScriptGameObject::GetMaxUses()
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return 0;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return 0;
-
-	return eItm->GetMaxUses();
-}
-
-u8 CScriptGameObject::GetRemainingUses()
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return 0;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return 0;
-
-	return eItm->GetRemainingUses();
-}
-
-void CScriptGameObject::SetRemainingUses(u8 value)
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return;
-
-	eItm->SetRemainingUses(value);
-}
-
-void CScriptGameObject::ChangeRemainingUses(int value)
-{
-	CInventoryItem* IItm = object().cast_inventory_item();
-	if (!IItm)
-		return;
-
-	CEatableItem* eItm = IItm->cast_eatable_item();
-	if (!eItm)
-		return;
-
-	eItm->ChangeRemainingUses(value);
 }
 
 void CScriptGameObject::IterateFeelTouch(const luabind::functor<bool> &functor)

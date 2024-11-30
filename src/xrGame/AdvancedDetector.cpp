@@ -5,25 +5,21 @@
 #include "player_hud.h"
 #include "game_object_space.h"
 
-
 CAdvancedDetector::CAdvancedDetector()
 {
 	m_artefacts.m_af_rank = 2;
 }
 
-CAdvancedDetector::~CAdvancedDetector()
-{}
-
 void CAdvancedDetector::CreateUI()
 {
 	R_ASSERT			(NULL==m_ui);
-	m_ui				= xr_new<CUIArtefactDetectorAdv>();
+	m_ui.construct<CUIArtefactDetectorAdv>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorAdv&  CAdvancedDetector::ui()
 {
-	return *((CUIArtefactDetectorAdv*)m_ui);
+	return *static_cast<CUIArtefactDetectorAdv*>(m_ui.get());
 }
 
 void CAdvancedDetector::UpdateAf()
@@ -67,10 +63,10 @@ void CAdvancedDetector::UpdateAf()
 
 	//direction
 	Fvector					dir_to_artefact;
-	dir_to_artefact.sub		(pCurrentAf->Position(), Device.vCameraPosition);
+	dir_to_artefact.sub		(pCurrentAf->Position(), Device.camera.position);
 	dir_to_artefact.normalize();
 	float _ang_af			= dir_to_artefact.getH();
-	float _ang_cam			= Device.vCameraDirection.getH();
+	float _ang_cam			= Device.camera.direction.getH();
 	
 	float _diff				= angle_difference_signed(_ang_af, _ang_cam);
 
@@ -105,10 +101,6 @@ void CUIArtefactDetectorAdv::construct(CAdvancedDetector* p)
 	m_bid				= u16(-1);
 }
 
-CUIArtefactDetectorAdv::~CUIArtefactDetectorAdv()
-{
-}
-
 void CUIArtefactDetectorAdv::SetValue(const float val1, const Fvector& val2)
 {
 	m_target_dir			= val2;
@@ -131,7 +123,7 @@ void CUIArtefactDetectorAdv::update()
 	
 	Fvector							dest;
 	Fmatrix							Mi;
-	Mi.invert						(itm->m_item_transform);
+	Mi.invert						(static_cast<Fmatrix>(itm->m_transform));
 	Mi.transform_dir				(dest, m_target_dir);
 
 	float dest_y_rot				= -dest.getH();

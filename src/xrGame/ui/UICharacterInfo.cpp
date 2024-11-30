@@ -46,11 +46,8 @@ CUICharacterInfo::CUICharacterInfo()
 CUICharacterInfo::~CUICharacterInfo()
 {}
 
-void CUICharacterInfo::InitCharacterInfo(Fvector2 pos, Fvector2 size, CUIXml* xml_doc)
+void CUICharacterInfo::InitCharacterInfo(CUIXml* xml_doc)
 {
-	inherited::SetWndPos(pos);
-	inherited::SetWndSize(size);
-
 	Init_IconInfoItem( *xml_doc, "icon",                eIcon         );
 	Init_IconInfoItem( *xml_doc, "icon_over",           eIconOver     );
 
@@ -121,24 +118,13 @@ void CUICharacterInfo::Init_IconInfoItem( CUIXml& xml_doc, LPCSTR item_str, UIIt
 	}
 }
 
-void CUICharacterInfo::InitCharacterInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
-{
-	CUIXml						uiXml;
-	uiXml.Load					(CONFIG_PATH, UI_PATH, xml_name);
-	InitCharacterInfo			(pos, size,&uiXml);
-}
-
 void CUICharacterInfo::InitCharacterInfo(CUIXml* xml_doc, LPCSTR node_str)
 {
-	Fvector2 pos, size;
+	CUIXmlInit::InitWindow		(*xml_doc, node_str, 0, this);
 	XML_NODE* stored_root		= xml_doc->GetLocalRoot();
 	XML_NODE* ch_node			= xml_doc->NavigateToNode(node_str,0);
 	xml_doc->SetLocalRoot		(ch_node);
-	pos.x						= xml_doc->ReadAttribFlt(ch_node, "x");
-	pos.y						= xml_doc->ReadAttribFlt(ch_node, "y");
-	size.x						= xml_doc->ReadAttribFlt(ch_node, "width");
-	size.y						= xml_doc->ReadAttribFlt(ch_node, "height");
-	InitCharacterInfo			(pos, size, xml_doc);
+	InitCharacterInfo			(xml_doc);
 	xml_doc->SetLocalRoot		(stored_root);
 }
 

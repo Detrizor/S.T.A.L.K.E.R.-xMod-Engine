@@ -65,28 +65,19 @@ void	game_sv_Single::OnCreate		(u16 id_who)
 
 	alife_object->m_bOnline	= true;
 
-	if (alife_object->ID_Parent != 0xffff) {
-		CSE_ALifeDynamicObject			*parent = ai().alife().objects().object(alife_object->ID_Parent,true);
-		if (parent) {
-			CSE_ALifeTraderAbstract		*trader = smart_cast<CSE_ALifeTraderAbstract*>(parent);
-			if (trader)
-				alife().create			(alife_object);
-			else {
-				CSE_ALifeInventoryBox* const	box = smart_cast<CSE_ALifeInventoryBox*>(parent);
-				if (box)
-					alife().create		(alife_object);
-				else
-					alife_object->m_bALifeControl	= false;
-			}
-		}
+	if (alife_object->ID_Parent != 0xffff)
+	{
+		CSE_ALifeDynamicObject* parent	= ai().alife().objects().object(alife_object->ID_Parent,true);
+		if (parent)
+			alife().create					(alife_object);
 		else
-			alife_object->m_bALifeControl		= false;
+			alife_object->m_bALifeControl	= false;
 	}
 	else
-		alife().create					(alife_object);
+		alife().create						(alife_object);
 }
 
-BOOL	game_sv_Single::OnTouch			(u16 eid_who, u16 eid_what, BOOL bForced)
+BOOL game_sv_Single::OnTouch(u16 eid_who, u16 eid_what, BOOL bForced)
 {
 	CSE_Abstract*		e_who	= get_entity_from_eid(eid_who);		VERIFY(e_who	);
 	CSE_Abstract*		e_what	= get_entity_from_eid(eid_what);	VERIFY(e_what	);

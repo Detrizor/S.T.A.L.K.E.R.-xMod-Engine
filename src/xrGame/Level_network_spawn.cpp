@@ -170,11 +170,6 @@ CSE_Abstract *CLevel::spawn_item		(LPCSTR section, const Fvector &position, u32 
 		if (ai().level_graph().valid_vertex_id(level_vertex_id) && ai().get_game_graph() && ai().get_cross_table())
 			dynamic_object->m_tGraphID	= ai().cross_table().vertex(level_vertex_id).game_vertex_id();
 	}
-
-	//оружие спавним с полным магазинои
-	CSE_ALifeItemWeapon* weapon = smart_cast<CSE_ALifeItemWeapon*>(abstract);
-	if (weapon)
-		weapon->a_elapsed	= weapon->get_ammo_magsize();
 	
 	// Fill
 	abstract->s_name		= section;

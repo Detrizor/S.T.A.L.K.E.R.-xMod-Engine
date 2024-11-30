@@ -1,29 +1,36 @@
 #include "stdafx.h"
 #include "actor.h"
 #include "weapon.h"
-#include "mercuryball.h"
 #include "inventory.h"
-#include "character_info.h"
-#include "xr_level_controller.h"
 #include "UsableScriptObject.h"
-#include "customzone.h"
-#include "../xrEngine/gamemtllib.h"
-#include "ui/UIMainIngameWnd.h"
 #include "UIGameCustom.h"
 #include "Grenade.h"
-#include "WeaponRPG7.h"
 #include "ExplosiveRocket.h"
 #include "game_cl_base.h"
 #include "Level.h"
-#include "clsid_game.h"
-#include "hudmanager.h"
-#include "ui/UIActorMenu.h"
-#include "ui/UIDragDropListEx.h"
-#include "ui/UICellItemFactory.h"
-#include "ui/UICellItem.h"
-#include "ui/UICellCustomItems.h"
+
+#include "ui/UIMainIngameWnd.h"
+
+#include "../xrEngine/gamemtllib.h"
+#include "../xrEngine/CameraBase.h"
 
 #define PICKUP_INFO_COLOR 0xFFDDDDDD
+
+static bool validate_object(CObject* obj)
+{
+	PIItem item = obj->scast<PIItem>();
+	if (!item);
+	else if (!obj->getVisible());
+	else if (Level().m_feel_deny.is_object_denied(obj));
+	else if (obj->H_Parent());
+	else if (obj->getDestroy());
+	else if (!item->CanTake());
+	else if (smart_cast<CExplosiveRocket*>(obj));
+	else if (item->BaseSlot() != BOLT_SLOT && smart_cast<CGrenade*>(item) && !smart_cast<CGrenade*>(item)->Useful());
+	else if (item->BaseSlot() != BOLT_SLOT && smart_cast<CMissile*>(item) && !smart_cast<CMissile*>(item)->Useful());
+	else return true;
+	return false;
+}
 
 void CActor::feel_touch_new				(CObject* O)
 {
@@ -66,7 +73,7 @@ bool CActor::feel_touch_on_contact	(CObject *O)
 	Center		(sphere.P);
 	sphere.R	= 0.1f;
 	if (custom_zone->inside(sphere))
-        return	(true);
+		return	(true);
 
 	return		(false);
 }
@@ -103,145 +110,47 @@ void CActor::feel_sound_new(CObject* who, int type, CSound_UserDataPtr user_data
 		m_snd_noise = _max(m_snd_noise, power);
 }
 
-bool CheckCellVicinity(Fvector center, float radius, CUIDragDropListEx* vicinity, CUICellItem* ci)
-{
-	if (PIItem(ci->m_pData)->object().Position().distance_to(center) < radius)
-		return					true;
-	CUICellItem* dying_cell		= vicinity->RemoveItem(ci, false);
-	xr_delete					(dying_cell);
-	return						false;
-}
-
-bool ValidateItem(PIItem item)
-{
-	if (!item)																	return false;
-	if (item->object().H_Parent())												return false;
-	if (item->object().getDestroy())											return false;
-	if (!item->CanTake())														return false;
-	if (smart_cast<CExplosiveRocket*>(&item->object()))							return false;
-	if (item->BaseSlot() != BOLT_SLOT)
-	{
-		CGrenade* pGrenade		= smart_cast<CGrenade*>(item);
-		if (pGrenade && !pGrenade->Useful())									return false;
-		CMissile* pMissile		= smart_cast<CMissile*>(item);
-		if (pMissile && !pMissile->Useful())									return false;
-	}
-	return						true;
-}
-
-bool FindItemInList(CUIDragDropListEx* lst, PIItem pItem)
-{
-	for (u32 i = 0, count = lst->ItemsCount(); i < count; ++i)
-	{
-		CUICellItem* ci = lst->GetItemIdx(i);
-		for (u32 j = 0, ccount = ci->ChildsCount(); j < ccount; ++j)
-		{
-			if ((PIItem)ci->Child(j)->m_pData == pItem)
-				return true;
-		}
-
-		if ((PIItem)ci->m_pData == pItem)
-			return true;
-	}
-	return false;
-}
-
-void CActor::VicinityUpdate()
-{
-	CUIActorMenu& actor_menu				= CurrentGameUI()->GetActorMenu();
-	if (actor_menu.GetMenuMode() == mmUndefined)
-		return;
-	
-	Fvector									center;
-	Center									(center);
-	CUIDragDropListEx* vicinity				= actor_menu.m_pTrashList;
-	for (u32 i = 0; i < vicinity->ItemsCount(); ++i)
-	{
-		CUICellItem* cell_item				= vicinity->GetItemIdx(i);
-		for (u32 j = 0; j < cell_item->ChildsCount(); ++j)
-		{
-			if (!CheckCellVicinity(center, m_fVicinityRadius, vicinity, cell_item->Child(j)))
-				j--;
-		}
-		if (!CheckCellVicinity(center, m_fVicinityRadius, vicinity, cell_item))
-			i--;
-	}
-
-	ISpatialResultVicinity.clear_not_free	();
-	g_SpatialSpace->q_sphere				(ISpatialResultVicinity, 0, STYPE_COLLIDEABLE, center, m_fVicinityRadius);
-
-	for (u32 it = 0, it_e = ISpatialResultVicinity.size(); it < it_e; it++)
-	{
-		ISpatial*							spatial = ISpatialResultVicinity[it];
-		CObject*							pObj = spatial->dcast_CObject();
-		CInventoryItem*						pIItem = smart_cast<CInventoryItem*>(pObj);
-
-		if (!ValidateItem(pIItem))
-			continue;
-
-		if ((pObj->Position().distance_to(center) < m_fVicinityRadius) && !FindItemInList(vicinity, pIItem))
-			vicinity->SetItem				(create_cell_item(pIItem));
-	}
-}
-
-#include "../xrEngine/CameraBase.h"
-
 void CActor::PickupModeUpdate_COD()
 {
-	if (m_pPersonWeLookingAt || Level().CurrentViewEntity() != this)
+	if (!m_bPickupMode || m_pPersonWeLookingAt || Level().CurrentViewEntity() != this)
 		return;
 
-	CFrustum						frustum;
-	frustum.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
-
-	ISpatialResult.clear_not_free	();
-	g_SpatialSpace->q_frustum		(ISpatialResult, 0, STYPE_COLLIDEABLE, frustum);
-
-	float maxlen					= m_fVicinityRadius;
-	CInventoryItem* pNearestItem	= NULL;
-
-	for (u32 it = 0, it_e = ISpatialResult.size(); it != it_e; it++)
+	CObject* item_to_pickup					= validate_object(m_pObjectWeLookingAt) ? m_pObjectWeLookingAt : NULL;
+	if (!item_to_pickup)
 	{
-		ISpatial* spatial			= ISpatialResult[it];
-		CInventoryItem*	pIItem		= smart_cast<CInventoryItem*>(spatial->dcast_CObject());
+		CFrustum							frustum;
+		frustum.CreateFromMatrix			(Device.camera.full_transform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
 
-		if (!ValidateItem(pIItem))
-			continue;
-		
-		Fvector						A; 
-		pIItem->object().Center		(A);
-		if (A.distance_to_sqr(Position()) > 4)
-			continue;
+		ISpatialResult.clear_not_free		();
+		g_SpatialSpace->q_frustum			(ISpatialResult, 0, STYPE_COLLIDEABLE, frustum);
 
-		Fvector						B, tmp;
-		tmp.sub						(A, cam_Active()->vPosition);
-		B.mad						(cam_Active()->vPosition, cam_Active()->vDirection, tmp.dotproduct(cam_Active()->vDirection));
-		float len					= B.distance_to_sqr(A);
-		if (len < maxlen)
+		float maxlen						= m_fPickupRadius;
+		for (u32 it = 0, it_e = ISpatialResult.size(); it != it_e; it++)
 		{
-			maxlen					= len;
-			pNearestItem			= pIItem;
+			ISpatial* spatial				= ISpatialResult[it];
+			CObject* obj					= spatial->dcast_CObject();
+			if (!CanPickItem(frustum, Device.camera.position, obj) || !validate_object(obj))
+				continue;
+
+			Fvector							A; 
+			obj->Center						(A);
+			if (m_fUseRadius < A.distance_to(cam_Active()->vPosition))
+				continue;
+
+			Fvector							B, tmp;
+			tmp.sub							(A, cam_Active()->vPosition);
+			B.mad							(cam_Active()->vPosition, cam_Active()->vDirection, tmp.dotproduct(cam_Active()->vDirection));
+			float len						= B.distance_to(A);
+			if (len < maxlen)
+			{
+				maxlen						= len;
+				item_to_pickup				= obj;
+			}
 		}
 	}
 
-	if (pNearestItem)
-	{
-		CFrustum					frustum;
-		frustum.CreateFromMatrix	(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
-		CGameObject* go				= pNearestItem->cast_game_object();
-		if (!CanPickItem(frustum, Device.vCameraPosition, &pNearestItem->object()) || (go && (Level().m_feel_deny.is_object_denied(go) || !go->getVisible())))
-			pNearestItem			= NULL;
-	}
-
-	if (pNearestItem && m_bPickupMode && CurrentGameUI()->GetActorMenu().GetMenuMode() == mmUndefined)
-	{
-		CUsableScriptObject*		pUsableObject = smart_cast<CUsableScriptObject*>(pNearestItem);
-		if(pUsableObject && (!m_pUsableObject))
-			pUsableObject->use		(this);
-
-		//подбирание объекта
-		Game().SendPickUpEvent		(ID(), pNearestItem->object().ID());
-	}
+	if (item_to_pickup)
+		Game().SendPickUpEvent				(ID(), item_to_pickup->ID());
 }
 
 void CActor::PickupModeUpdate()
@@ -249,39 +158,35 @@ void CActor::PickupModeUpdate()
 	if (!m_bInfoDraw)
 		return;
 
-	feel_touch_update(Position(), m_fVicinityRadius);
-
-	CFrustum frustum;
-	frustum.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB | FRUSTUM_P_FAR);
+	feel_touch_update						(cam_Active()->vPosition, m_fPickupInfoRadius);
+	CFrustum								frustum;
+	frustum.CreateFromMatrix				(Device.camera.full_transform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
 
 	for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
 	{
-		if (CanPickItem(frustum, Device.vCameraPosition, *it))
-			PickupInfoDraw(*it);
+		if (CanPickItem(frustum, Device.camera.position, *it) && validate_object(*it))
+			PickupInfoDraw					(*it);
 	}
 }
 
-BOOL CActor::CanPickItem(const CFrustum& frustum, const Fvector& from, CObject* item)
-{
-	if(!item->getVisible())
-		return FALSE;
-
-	BOOL	bOverlaped		= FALSE;
-	Fvector dir,to; 
-	item->Center			(to);
-	float range				= dir.sub(to,from).magnitude();
-	if (range>0.25f)
+BOOL CActor::CanPickItem(const CFrustum& frustum, const Fvector& from, CObject* obj)
+{						FALSE;
+	BOOL bOverlaped							= FALSE;
+	Fvector									dir, to; 
+	obj->Center								(to);
+	float range								= dir.sub(to,from).magnitude();
+	if (range > 0.25f)
 	{
-		if (frustum.testSphere_dirty(to,item->Radius()))
+		if (frustum.testSphere_dirty(to, obj->Radius()))
 		{
-			dir.div						(range);
-			collide::ray_defs			RD(from, dir, range, CDB::OPT_CULL, collide::rqtBoth);
-			VERIFY						(!fis_zero(RD.dir.square_magnitude()));
-			RQR.r_clear					();
-			Level().ObjectSpace.RayQuery(RQR, RD, info_trace_callback, &bOverlaped, NULL, item);
+			dir.div							(range);
+			collide::ray_defs RD			(from, dir, range, CDB::OPT_CULL, collide::rqtBoth);
+			VERIFY							(!fis_zero(RD.dir.square_magnitude()));
+			RQR.r_clear						();
+			Level().ObjectSpace.RayQuery	(RQR, RD, info_trace_callback, &bOverlaped, NULL, obj);
 		}
 	}
-	return !bOverlaped;
+	return									!bOverlaped;
 }
 
 void CActor::PickupInfoDraw(CObject* object)
@@ -292,11 +197,11 @@ void CActor::PickupInfoDraw(CObject* object)
 	if(!item)		return;
 
 	Fmatrix			res;
-	res.mul			(Device.mFullTransform,object->XFORM());
+	res.mul			(Device.camera.full_transform,object->XFORM());
 	Fvector4		v_res;
 	Fvector			shift;
 
-	draw_str = item->NameItem();
+	draw_str = item->getName();
 	shift.set(0,0,0);
 
 	res.transform(v_res,shift);
@@ -310,4 +215,50 @@ void CActor::PickupInfoDraw(CObject* object)
 	UI().Font().pFontLetterica16Russian->SetAligment	(CGameFont::alCenter);
 	UI().Font().pFontLetterica16Russian->SetColor		(PICKUP_INFO_COLOR);
 	UI().Font().pFontLetterica16Russian->Out			(x,y,draw_str);
+}
+
+void CActor::VicinityUpdate()
+{
+	auto it								= m_vicinity.begin();
+	while (it != m_vicinity.end())
+	{
+		if (!(*it)->O.H_Parent() && check_item(*it))
+			++it;
+		else
+		{
+			(*it)->onInventoryAction	();
+			m_vicinity.erase			(it);
+		}
+	}
+	
+	ISpatialResultVicinity.clear		();
+	Fvector								center;
+	Center								(center);
+	g_SpatialSpace->q_sphere			(ISpatialResultVicinity, 0, STYPE_COLLIDEABLE, center, m_fVicinityRadius);
+	for (auto spatial : ISpatialResultVicinity)
+	{
+		CObject* obj					= spatial->dcast_CObject();
+		if (validate_object(obj))
+		{
+			auto item					= obj->scast<PIItem>();
+			if (check_item(item) && !m_vicinity.contains(item))
+			{
+				m_vicinity.push_back	(item);
+				item->onInventoryAction	();
+			}
+		}
+	}
+}
+
+bool CActor::check_item(PIItem item) const
+{
+	Fvector								A;
+	item->object().Center				(A);
+	float distance						= A.distance_to(cameras[cam_active]->vPosition);
+	return								(distance - item->object().Radius() < m_fVicinityRadius);
+}
+
+void CActor::resetVicinity()
+{
+	m_vicinity.clear					();
 }

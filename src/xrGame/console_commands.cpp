@@ -73,7 +73,6 @@ extern	u64		g_qwStartGameTime;
 extern	u64		g_qwEStartGameTime;
 
 ENGINE_API
-extern	float	psHUD_FOV;
 extern	float	psSqueezeVelocity;
 extern	int		psLUA_GCSTEP;
 
@@ -91,7 +90,6 @@ extern	ESingleGameDifficulty g_SingleGameDifficulty;
 extern	BOOL	g_show_wnd_rect2;
 //-----------------------------------------------------------
 extern	float	g_fTimeFactor;
-extern	BOOL	b_toggle_weapon_aim;
 //extern  BOOL	g_old_style_ui_hud;
 
 extern float	g_smart_cover_factor;
@@ -99,13 +97,15 @@ extern int		g_upgrades_log;
 extern float	g_smart_cover_animation_speed_factor;
 
 extern	BOOL	g_ai_use_old_vision;
-float			g_aim_predict_time = 0.40f;
+float			g_aim_predict_time = .00001f;
 int				g_keypress_on_start = 1;
 
 extern BOOL		g_ai_die_in_anomaly; //Alundaio
 extern BOOL		g_invert_zoom; //Alundaio
 
 ENGINE_API extern float	g_console_sensitive;
+
+BOOL			g_hud_adjusment_mode = FALSE;
 
 void register_mp_console_commands();
 //-----------------------------------------------------------
@@ -1389,6 +1389,44 @@ public:
 	}
 };
 
+// Change weather immediately
+class CCC_SetWeather : public IConsole_Command
+{
+public:
+	CCC_SetWeather(LPCSTR N) : IConsole_Command(N) {};
+	virtual void Execute(LPCSTR args)
+	{
+		if (!xr_strlen(args))
+			return;
+		if (!g_pGamePersistent || !g_pGameLevel)
+			return;
+		g_pGamePersistent->Environment().SetWeather(args, true);
+	}
+
+	void fill_tips(vecTips& tips, u32 mode) override
+	{
+		if (!g_pGamePersistent || !g_pGameLevel)
+		{
+			IConsole_Command::fill_tips(tips, mode);
+			return;
+		}
+
+		string128 buff = {};
+		shared_str currWeather = g_pGamePersistent->Environment().GetWeather();
+
+		for (auto& pair : g_pGamePersistent->Environment().WeatherCycles)
+		{
+			if (currWeather == pair.first)
+			{
+				xr_sprintf(buff, sizeof(buff), "%s (current)", currWeather.c_str());
+				tips.push_back(buff);
+				continue;
+			}
+			tips.push_back(pair.first);
+		}
+	}
+};
+
 class CCC_TimeFactor : public IConsole_Command
 {
 public:
@@ -1923,13 +1961,20 @@ void CCC_RegisterCommands()
 
 	CMD3(CCC_Mask, "hud_crosshair", &psHUD_Flags, HUD_CROSSHAIR);
 	CMD3(CCC_Mask, "hud_crosshair_dist", &psHUD_Flags, HUD_CROSSHAIR_DIST);
-
-	//#ifdef DEBUG
-	CMD4(CCC_Float, "hud_fov", &psHUD_FOV, 0.1f, 1.0f);
-	CMD4(CCC_Float, "fov", &g_fov, 5.0f, 180.0f);
-	CMD4(CCC_Float, "scope_fov", &g_scope_fov, 5.0f, 180.0f);
+	
+	class CCC_AimFOV : public CCC_Float
+	{
+	public:
+		CCC_AimFOV(LPCSTR N, float* V, float _min, float _max) : CCC_Float(N, V, _min, _max) {}
+		void Execute(LPCSTR args) override
+		{
+			__super::Execute(args);
+			Device.aimFOVTan = tanf(deg2radHalf(Device.aimFOV));
+		}
+	};
+	CMD4(CCC_AimFOV, "g_aim_fov", &Device.aimFOV, 1.f, 180.0f);
+	CMD4(CCC_Float, "g_fov", &Device.gFOV, 1.0f, 180.0f);
 	CMD4(CCC_Integer, "objects_per_client_update", &g_objects_per_client_update, 1, 65535)
-	//#endif // DEBUG
 
 	// Demo
 	//#ifndef MASTER_GOLD
@@ -2054,35 +2099,25 @@ void CCC_RegisterCommands()
 	CMD1(CCC_PHFps, "ph_frequency");
 	CMD1(CCC_PHIterations, "ph_iterations");
 
-#ifdef DEBUG
-	CMD1(CCC_PHGravity, "ph_gravity");
-	CMD4(CCC_FloatBlock, "ph_timefactor", &phTimefactor, 0.000001f, 1000.f);
-	CMD4(CCC_FloatBlock, "ph_break_common_factor", &ph_console::phBreakCommonFactor, 0.f, 1000000000.f);
-	CMD4(CCC_FloatBlock, "ph_rigid_break_weapon_factor", &ph_console::phRigidBreakWeaponFactor, 0.f, 1000000000.f);
-	CMD4(CCC_Integer, "ph_tri_clear_disable_count", &ph_console::ph_tri_clear_disable_count, 0, 255);
-	CMD4(CCC_FloatBlock, "ph_tri_query_ex_aabb_rate", &ph_console::ph_tri_query_ex_aabb_rate, 1.01f, 3.f);
-	CMD3(CCC_Mask, "g_no_clip", &psActorFlags, AF_NO_CLIP);
-	CMD1(CCC_JumpToLevel, "jump_to_level");
-	CMD3(CCC_Mask, "g_god", &psActorFlags, AF_GODMODE);
-	CMD3(CCC_Mask, "g_unlimitedammo", &psActorFlags, AF_UNLIMITEDAMMO);
-	CMD1(CCC_Script, "run_script");
-	CMD1(CCC_ScriptCommand, "run_string");
-	CMD1(CCC_TimeFactor, "time_factor");
-#endif // DEBUG
-
 	/* AVO: changing restriction to -dbg key instead of DEBUG */
 	//#ifndef MASTER_GOLD
 #ifdef MASTER_GOLD
 	if (Core.ParamFlags.test(Core.dbg))
 	{
+		CMD1(CCC_PHGravity, "ph_gravity");
+		CMD4(CCC_FloatBlock, "ph_timefactor", &phTimefactor, 0.000001f, 1000.f);
+		CMD4(CCC_FloatBlock, "ph_break_common_factor", &ph_console::phBreakCommonFactor, 0.f, 1000000000.f);
+		CMD4(CCC_FloatBlock, "ph_rigid_break_weapon_factor", &ph_console::phRigidBreakWeaponFactor, 0.f, 1000000000.f);
+		CMD4(CCC_Integer, "ph_tri_clear_disable_count", &ph_console::ph_tri_clear_disable_count, 0, 255);
+		CMD4(CCC_FloatBlock, "ph_tri_query_ex_aabb_rate", &ph_console::ph_tri_query_ex_aabb_rate, 1.01f, 3.f);
+		CMD3(CCC_Mask, "g_no_clip", &psActorFlags, AF_NO_CLIP);
 		CMD1(CCC_JumpToLevel, "jump_to_level");
 		CMD3(CCC_Mask, "g_god", &psActorFlags, AF_GODMODE);
 		CMD3(CCC_Mask, "g_unlimitedammo", &psActorFlags, AF_UNLIMITEDAMMO);
 		CMD1(CCC_Script, "run_script");
 		CMD1(CCC_ScriptCommand, "run_string");
 		CMD1(CCC_TimeFactor, "time_factor");
-		//CMD3(CCC_Mask, "g_no_clip", &psActorFlags, AF_NO_CLIP);
-		CMD1(CCC_PHGravity, "ph_gravity");
+		CMD1(CCC_SetWeather, "set_weather");
 	}
 #endif // MASTER_GOLD
 	//#endif // MASTER_GOLD
@@ -2260,8 +2295,6 @@ void CCC_RegisterCommands()
 
 //#ifndef MASTER_GOLD
 	CMD4(CCC_Vector3, "psp_cam_offset", &CCameraLook2::m_cam_offset, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
-	CMD4(CCC_Vector3, "hud_offset_pos", &player_hud::m_hud_offset_pos, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
-	CMD4(CCC_Vector3, "hand_offset_pos", &player_hud::m_hand_offset_pos, Fvector().set(-1000, -1000, -1000), Fvector().set(1000, 1000, 1000));
 //#endif // MASTER_GOLD
 
 	CMD1(CCC_GSCheckForUpdates, "check_for_updates");
@@ -2289,7 +2322,6 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Integer, "dbg_bones_snd_player", &dbg_moving_bones_snd_player, FALSE, TRUE);
 #endif
 	CMD4(CCC_Float, "con_sensitive", &g_console_sensitive, 0.01f, 1.0f);
-	CMD4(CCC_Integer, "wpn_aim_toggle", &b_toggle_weapon_aim, 0, 1);
 	//	CMD4(CCC_Integer,	"hud_old_style",			&g_old_style_ui_hud, 0, 1);
 
 #ifdef DEBUG
@@ -2347,4 +2379,6 @@ void CCC_RegisterCommands()
 
 	CMD4(CCC_Integer, "keypress_on_start", &g_keypress_on_start, 0, 1);
 	register_mp_console_commands();
+
+	CMD4(CCC_Integer, "hud_mode", &g_hud_adjusment_mode, 0, 1);
 }

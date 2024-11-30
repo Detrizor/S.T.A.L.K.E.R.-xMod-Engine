@@ -11,28 +11,33 @@ class CUICellItem;
 class CUIBoosterInfo : public CUIWindow
 {
 public:
-					CUIBoosterInfo		();
-	virtual			~CUIBoosterInfo		();
 			void	InitFromXml				(CUIXml& xml);
 			void	SetInfo					(CUICellItem* itm);
 
 protected:
-	UIBoosterInfoItem*	m_boosts[eBoostMaxCount];
-	UIBoosterInfoItem*	m_need_hydration;
-	UIBoosterInfoItem*	m_need_satiety;
-	UIBoosterInfoItem*	m_health_outer;
-	UIBoosterInfoItem*	m_health_neural;
-	UIBoosterInfoItem*	m_power_short;
-	UIBoosterInfoItem*	m_booster_anabiotic;
+	xptr<UIBoosterInfoItem>	m_boosts[eBoostMaxCount];
+	xptr<UIBoosterInfoItem>	m_need_hydration;
+	xptr<UIBoosterInfoItem>	m_need_satiety;
+	xptr<UIBoosterInfoItem>	m_health_outer;
+	xptr<UIBoosterInfoItem>	m_health_neural;
+	xptr<UIBoosterInfoItem>	m_power_short;
+	xptr<UIBoosterInfoItem>	m_booster_anabiotic;
+	
+	xptr<CUIStatic>			m_disclaimer;
+	xptr<UIBoosterInfoItem>	m_bullet_speed;
+	xptr<UIBoosterInfoItem>	m_bullet_pulse;
+	xptr<UIBoosterInfoItem>	m_armor_piercing;
+	xptr<UIBoosterInfoItem>	m_impair;
 
-	UIBoosterInfoItem*	m_bullet_speed;
-	UIBoosterInfoItem*	m_armor_piercing;
-	UIBoosterInfoItem*	m_bullet_pulse;
+	xptr<UIBoosterInfoItem>	m_ammo_type;
+	xptr<UIBoosterInfoItem>	m_magazine_capacity;
 
-	UIBoosterInfoItem*	m_ammo_type;
-	UIBoosterInfoItem*	m_capacity;
+	xptr<UIBoosterInfoItem>	m_capacity;
+	xptr<UIBoosterInfoItem>	m_artefact_isolation;
+	xptr<UIBoosterInfoItem>	m_radiation_protection;
+	xptr<UIBoosterInfoItem>	m_radiation;
 
-	CUIStatic*			m_Prop_line;
+	xptr<CUIStatic>			m_Prop_line;
 
 }; // class CUIBoosterInfo
 
@@ -41,22 +46,19 @@ protected:
 class UIBoosterInfoItem : public CUIWindow
 {
 public:
-				UIBoosterInfoItem	();
-	virtual		~UIBoosterInfoItem();
-		
-		void	Init				( CUIXml& xml, LPCSTR section );
-		void	SetCaption			( LPCSTR name );
-		void	SetValue			( float value );
-		void	SetStrValue			( LPCSTR value );
+	void								Init									(CUIXml& xml, LPCSTR section);
+	void								SetCaption								(LPCSTR name);
+	void								SetValue								(float value);
+	void								SetStrValue								(LPCSTR value);
 	
 private:
-	CUIStatic*	m_caption;
-	CUITextWnd*	m_value;
-	float		m_magnitude;
-	bool		m_show_sign;
-	bool		m_perc_unit;
-	shared_str	m_unit_str;
-	shared_str	m_texture_minus;
-	shared_str	m_texture_plus;
+	CUIStatic*							m_caption								= nullptr;
+	CUITextWnd*							m_value									= nullptr;
+	float								m_magnitude								= 1.f;
+	bool								m_show_sign								= false;
+	bool								m_perc_unit								= false;
+	shared_str							m_unit_str								= "";
+	shared_str							m_texture_minus							= "";
+	shared_str							m_texture_plus							= "";
 
-}; // class UIBoosterInfoItem
+};

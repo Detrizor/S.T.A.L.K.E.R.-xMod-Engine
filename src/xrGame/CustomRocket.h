@@ -39,7 +39,6 @@ public:
 	virtual void Load(LPCSTR section);
 	virtual BOOL net_Spawn(CSE_Abstract* DC);
 	virtual void net_Destroy();
-	virtual BOOL						AlwaysTheCrow				()				{ return TRUE; }
 
 	virtual void reinit		();
 	virtual void reload		(LPCSTR section);
@@ -167,4 +166,7 @@ protected:
 #ifdef DEBUG
 	virtual void		deactivate_physics_shell ();
 #endif
+	
+protected:
+	bool								alwaysUpdate						O$	()		{ return true; }
 };

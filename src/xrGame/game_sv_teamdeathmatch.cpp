@@ -640,7 +640,7 @@ BOOL game_sv_TeamDeathmatch::OnTouchItem(CSE_ActorMP *actor, CSE_Abstract *item)
 						u_EventGen(P,GE_OWNERSHIP_REJECT, item->ID);
 						P.w_u16(e_child_item->ID);
 
-						m_server->Process_event_reject(P, m_server->GetServerClient()->ID, 0, item->ID, e_child_item->ID);
+						m_server->Process_event_reject(P, item->ID, e_child_item->ID);
 						continue;
 					}
 				}

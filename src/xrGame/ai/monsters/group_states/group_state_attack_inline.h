@@ -95,7 +95,7 @@ void CStateGroupAttackAbstract::critical_finalize()
 {
 	inherited::critical_finalize();
 
-	if ( m_enemy && !m_enemy->g_Alive() )
+	if (Level().bReady && m_enemy && !m_enemy->g_Alive())
 	{
 		CEntityAlive* enemy	= const_cast<CEntityAlive*>(m_enemy);
 		enemy->is_agresive(false);

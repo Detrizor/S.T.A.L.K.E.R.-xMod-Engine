@@ -54,7 +54,7 @@ public:
 			return;
 
 		u32 tmp_ammo_count	= tmp_weapon->GetAmmoElapsed();
-		u32 tmp_cost		= tmp_weapon->Cost();
+		u32 tmp_cost		= tmp_weapon->CInventoryItem::Cost();
 
 		if (!tmp_ammo_count && !m_ignore_ammo)
 			return;
@@ -62,7 +62,7 @@ public:
 		if (!m_best_fit)
 		{
 			m_best_fit				= item;
-			m_best_fit_cost			= tmp_weapon->Cost();
+			m_best_fit_cost			= tmp_weapon->CInventoryItem::Cost();
 			m_best_fit_ammo_elapsed	= tmp_weapon->GetAmmoElapsed();
 			return;
 		}
@@ -71,7 +71,7 @@ public:
 			(m_best_fit_cost + (m_best_fit_ammo_elapsed*ammo_to_cost_map_koef)))
 		{
 			m_best_fit				= item;
-			m_best_fit_cost			= tmp_weapon->Cost();
+			m_best_fit_cost			= tmp_weapon->CInventoryItem::Cost();
 			m_best_fit_ammo_elapsed	= tmp_weapon->GetAmmoElapsed();
 			return;
 		}
@@ -85,96 +85,6 @@ private:
 	u32					m_best_fit_ammo_elapsed;
 	bool				m_ignore_ammo;
 };// class next_weapon_searcher
-
-static u32 const exception_items_clear_time = 2000; //2 seconds
-PIItem CInventory::GetNextItemInActiveSlot(u8 const priority_value, bool ignore_ammo)
-{
-	if (m_next_item_iteration_time + exception_items_clear_time <= Device.dwTimeGlobal)
-	{
-		m_next_items_exceptions.clear();
-		m_next_items_exceptions.insert(ActiveItem());
-	}
-	PIItem best_fit = NULL;
-	priority_group & tmp_prior_group = GetPriorityGroup(priority_value, m_iActiveSlot);
-	next_weapon_searcher tmp_predicate(
-		tmp_prior_group,
-		best_fit,
-		m_next_items_exceptions,
-		ignore_ammo
-	);
-
-	std::for_each(m_ruck.begin(), m_ruck.end(), tmp_predicate);
-	if (best_fit)
-	{
-		m_next_items_exceptions.insert(best_fit);
-		m_next_item_iteration_time = Device.dwTimeGlobal;
-		return best_fit;
-	}
-
-	u8 next_priority_group = priority_value + 1;
-	if (next_priority_group == qs_priorities_count)
-	{
-		if (ignore_ammo)
-		{
-			m_next_items_exceptions.clear		();
-			m_next_items_exceptions.insert		(ActiveItem());
-			return NULL;
-		}
-		return GetNextItemInActiveSlot(0, true);
-	}
-	return GetNextItemInActiveSlot(next_priority_group, ignore_ammo);
-};
-
-bool CInventory::ActivateNextItemInActiveSlot()
-{
-	if ( m_iActiveSlot == NO_ACTIVE_SLOT )
-	{
-		return false;
-	}
-	
-	CObject* pActor_owner = smart_cast<CObject*>(m_pOwner);
-	if ( Level().CurrentViewEntity() != pActor_owner )
-	{
-		return false;
-	}
-
-	PIItem new_item = GetNextItemInActiveSlot(0, false);
-
-	if ( new_item == NULL )
-	{
-		return false; //only 1 item for this slot
-	}
-
-	m_activ_last_items.push_back		( new_item );
-	PIItem current_item					= ActiveItem();
-	
-	NET_Packet	P;
-	bool		res;
-	if ( current_item )
-	{
-		res = Ruck							(current_item);
-		R_ASSERT							(res);
-		current_item->object().u_EventGen	(P, GEG_PLAYER_ITEM2RUCK, current_item->object().H_Parent()->ID());
-		P.w_u16								(current_item->object().ID());
-		current_item->object().u_EventSend	(P);
-	}
-
-	res = Slot							(m_iActiveSlot, new_item);
-	R_ASSERT							(res);
-	new_item->object().u_EventGen		(P, GEG_PLAYER_ITEM2SLOT, new_item->object().H_Parent()->ID());
-	P.w_u16								(new_item->object().ID());
-	P.w_u16								(m_iActiveSlot);
-	new_item->object().u_EventSend		(P);
-
-	//activate
-	new_item->object().u_EventGen		(P, GEG_PLAYER_ACTIVATE_SLOT, new_item->object().H_Parent()->ID());
-	P.w_u16								(m_iActiveSlot);
-	new_item->object().u_EventSend		(P);
-
-//	Msg( "Weapon change" );
-	return true;
-}
-
 
 priority_group & CInventory::GetPriorityGroup	(u8 const priority_value, u16 slot)
 {
@@ -311,7 +221,7 @@ PIItem CInventory::GetNextActiveGrenade()
 	if (count_types > 1)
 	{
 		int curr_num = 0;        // номер типа текущей гранаты
-		std::sort(types_sect_grn.begin(), types_sect_grn.end());
+		types_sect_grn.sort();
 		xr_vector<shared_str>::const_iterator I = types_sect_grn.begin();
 		xr_vector<shared_str>::const_iterator E = types_sect_grn.end();
 		for (; I != E; ++I)

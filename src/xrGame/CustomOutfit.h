@@ -5,9 +5,11 @@
 
 struct SBoneProtections;
 
-class CCustomOutfit: public CInventoryItemObject {
+class CCustomOutfit : public CInventoryItemObject
+{
 private:
-    typedef	CInventoryItemObject inherited;
+	typedef	CInventoryItemObject inherited;
+
 public:
 								CCustomOutfit			();
 	virtual						~CCustomOutfit			();
@@ -25,8 +27,6 @@ public:
 	float						GetBoneArmorLevel		(s16 element);
 
 	virtual void				OnMoveToSlot			(const SInvItemPlace& prev);
-	virtual void				OnMoveToRuck			(const SInvItemPlace& previous_place);
-	virtual void				OnH_A_Chield			();
 
 	void						GetPockets				(LPCSTR pockets);
 
@@ -57,8 +57,6 @@ public:
 	u32							get_artefact_count		() const	{ return m_artefact_count; }
 
 	virtual BOOL				net_Spawn				(CSE_Abstract* DC);
-	virtual void				net_Export				(NET_Packet& P);
-	virtual void				net_Import				(NET_Packet& P);
 			void				ApplySkinModel			(CActor* pActor, bool bDress, bool bHUDOnly);
 			void				ReloadBonesProtection	();
 			void				AddBonesProtection		(LPCSTR bones_section, float value);
@@ -67,6 +65,15 @@ protected:
 	virtual bool				install_upgrade_impl	( LPCSTR section, bool test );
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+protected:
+	xoptional<float>					sGetBar								O$	()		{ return (fLess(GetCondition(), 1.f)) ? GetCondition() : -1.f; }
+
+private:
+	float								m_fHealth;
+
+public:
+	float								Health								C$	()		{ return m_fHealth; }
 };
 
 add_to_type_list(CCustomOutfit)

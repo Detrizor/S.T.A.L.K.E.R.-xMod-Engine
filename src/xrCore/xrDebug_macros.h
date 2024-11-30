@@ -1,8 +1,4 @@
-#ifndef xrDebug_macrosH
-#define xrDebug_macrosH
 #pragma once
-
-//#define ANONYMOUS_BUILD
 
 #ifndef __BORLANDC__
 # ifndef ANONYMOUS_BUILD
@@ -19,7 +15,6 @@
 #else
  #define _TRE(arg) arg
 #endif
-
 
 # define CHECK_OR_EXIT(expr,message) do {if (!(expr)) ::Debug.do_exit(message);} while (0)
 
@@ -56,11 +51,8 @@
 # endif // NON_FATAL_VERIFY
 //-AVO
 # else // DEBUG
-# ifdef __BORLANDC__
-# define NODEFAULT
-# else
-# define NODEFAULT __assume(0)
-# endif
+# define NODEFAULT FATAL("NODEFAULT reached!"); __assume(0)
+# define NODEFAULT2(info) FATAL(info); __assume(0)
 /*
 # define VERIFY(expr) do {} while (0)
 # define VERIFY2(expr, e2) do {} while (0)
@@ -103,4 +95,3 @@ template<> struct CompileTimeError<true> {};
  CompileTimeError<((expr) != 0)> ERROR_##msg; \
  (void)ERROR_##msg; \
 }
-#endif // xrDebug_macrosH

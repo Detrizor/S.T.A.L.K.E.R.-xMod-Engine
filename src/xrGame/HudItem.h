@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class CSE_Abstract;
 class CPhysicItem;
@@ -13,6 +13,17 @@ class CMotionDef;
 
 struct attachable_hud_item;
 class motion_marks;
+struct script_layer;
+
+struct SScriptAnm
+{
+	shared_str							anm										= 0;
+	float								power									= 1.f;
+	float								speed									= 1.f;
+
+	void								load									(shared_str CR$ section, LPCSTR name);
+	bool								loaded								C$	()		{ return anm.size(); }
+};
 
 class CHUDState
 {
@@ -28,17 +39,16 @@ enum EHudStates {
 
 private:
 	u32						m_hud_item_state;
-	u32						m_nextState;
 	u32						m_dw_curr_state_time;
+
 protected:
 	u32						m_dw_curr_substate_time;
+
 public:
-							CHUDState			():m_nextState(0) 		{SetState(eHidden);}
-	IC		u32				GetNextState		() const				{return		m_nextState;}
+							CHUDState			() 						{SetState(eHidden);}
 	IC		u32				GetState			() const				{return		m_hud_item_state;}
 	
 	IC		void			SetState			(u32 v)					{m_hud_item_state = v; m_dw_curr_state_time=Device.dwTimeGlobal;ResetSubStateTime();}
-	IC		void			SetNextState		(u32 v)					{m_nextState = v;}
 	IC		u32				CurrStateTime		() const				{return Device.dwTimeGlobal-m_dw_curr_state_time;}
 	IC		void			ResetSubStateTime	()						{m_dw_curr_substate_time=Device.dwTimeGlobal;}
 	virtual void			SwitchState			(u32 S)					= 0;
@@ -49,7 +59,6 @@ class CHudItem :public CHUDState
 {
 public:
 							CHudItem			();
-	virtual					~CHudItem			();
 	virtual DLL_Pure*		_construct			();
 protected:
 	Flags16					m_huditem_flags;
@@ -70,11 +79,11 @@ protected:
 		u8						m_started_rnd_anim_idx;
 		bool					m_bStopAtEndAnimIsRunning;
 	};
+
 public:
 	virtual void				Load				(LPCSTR section);
 	virtual	BOOL				net_Spawn			(CSE_Abstract* DC)				{return TRUE;};
 	virtual void				net_Destroy			()								{};
-	virtual void				OnEvent				(NET_Packet& P, u16 type);
 
 	virtual void				OnH_A_Chield		();
 	virtual void				OnH_B_Chield		();
@@ -85,19 +94,17 @@ public:
 	virtual void				PlaySound			(LPCSTR alias, const Fvector& position, u8 index); //Alundaio: Play at index
 
 	virtual bool				Action				(u16 cmd, u32 flags)			{return false;}
-			void				OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
-	
-	virtual	u8					GetCurrentHudOffsetIdx ()							{return 0;}
 
 	BOOL						GetHUDmode			();
 	IC BOOL						IsPending			()		const					{ return !!m_huditem_flags.test(fl_pending);}
 
-	virtual bool				ActivateItem		();
-	virtual void				DeactivateItem		();
-	virtual void				SendDeactivateItem	();
-	virtual void				OnActiveItem		()				{};
-	virtual void				OnHiddenItem		()				{};
-	virtual void				SendHiddenItem		();			//same as OnHiddenItem but for client... (sends message to a server)...
+	bool						activateItem		(u16 prev_slot = u16_max);
+	void						deactivateItem		(u16 slot = u16_max);
+	void						hideItem			();
+	void						restoreItem			();
+
+	virtual void				OnActiveItem		();
+	virtual void				OnHiddenItem		()				{ SwitchState(eHiding); }
 	virtual void				OnMoveToRuck		(const SInvItemPlace& prev);
 
 	bool						IsHidden			()	const		{	return GetState() == eHidden;}						// Does weapon is in hidden state
@@ -112,44 +119,39 @@ public:
 
 	virtual void				PlayAnimIdle		();
 	virtual void				PlayAnimBore		();
-	bool						TryPlayAnimIdle		();
-	virtual bool				MovingAnimAllowedNow ()				{return true;}
-
-	virtual void				PlayAnimIdleMoving	();
-	virtual void				PlayAnimIdleSprint	();
 
 	virtual void				UpdateCL			();
-	virtual void				renderable_Render	();
 
-
-	virtual void				UpdateHudAdditonal	(Fmatrix&);
-
+	virtual void				UpdateHudAdditional	(Dmatrix&);
 
 	virtual	void				UpdateXForm			()						= 0;
+	virtual void				activate_physic_shell();
+	virtual void				on_activate_physic_shell() { R_ASSERT2(0, "failed call of virtual function!"); }
 
-	u32							PlayHUDMotion		(const shared_str& M, BOOL bMixIn, CHudItem*  W, u32 state);
-	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn);
+	u32							PlayHUDMotion		(shared_str name, BOOL bMixIn, u32 state, bool ignore_anm_type = false);
+	u32							PlayHUDMotion_noCB	(const shared_str& M, BOOL bMixIn, bool ignore_anm_type);
 	void						StopCurrentAnimWithoutCallback();
 
 	IC void						RenderHud				(BOOL B)	{ m_huditem_flags.set(fl_renderhud, B);}
 	IC BOOL						RenderHud				()			{ return m_huditem_flags.test(fl_renderhud);}
-	attachable_hud_item*		HudItemData				();
+	attachable_hud_item*		HudItemData				() const;
 	virtual void				on_a_hud_attach			();
 	virtual void				on_b_hud_detach			();
 	IC BOOL						HudInertionEnabled		()	const			{ return m_huditem_flags.test(fl_inertion_enable);}
 	IC BOOL						HudInertionAllowed		()	const			{ return m_huditem_flags.test(fl_inertion_allow);}
-	virtual void				render_hud_mode			()					{};
+	virtual void				render_hud_mode			();
 	virtual bool				need_renderable			()					{return true;};
 	virtual void				render_item_3d_ui		()					{}
 	virtual bool				render_item_3d_ui_query	()					{return false;}
 
 	virtual bool				CheckCompatibility		(CHudItem*)			{return true;}
+
 protected:
 
 	IC		void				SetPending			(BOOL H)			{ m_huditem_flags.set(fl_pending, H);}
 	shared_str					hud_sect;
 
-	//����� ������� ��������� XFORM � FirePos
+	//кадры момента пересчета XFORM и FirePos
 	u32							dwFP_Frame;
 	u32							dwXF_Frame;
 
@@ -165,21 +167,47 @@ private:
 	CInventoryItem				*m_item;
 
 public:
-	shared_str					hud_section;
-
 	const shared_str&			HudSection				() const		{ return hud_sect;}
 	IC CPhysicItem&				object					() const		{ VERIFY(m_object); return(*m_object);}
 	IC CInventoryItem&			item					() const		{ VERIFY(m_item); return(*m_item);}
-	IC		u32					animation_slot			()				{ return m_animation_slot;}
-
-	virtual void				on_renderable_Render	() = 0;
-	virtual void				debug_draw_firedeps		() {};
+	virtual	u32					animation_slot			() const		{ return m_animation_slot;}
 
 	virtual CHudItem*			cast_hud_item			()				{ return this; }
-    void PlayAnimCrouchIdleMoving(); //AVO: new crouch idle animation
-    bool HudAnimationExist(LPCSTR anim_name);
+	bool HudAnimationExist(LPCSTR anim_name);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	SScriptAnm							m_show_anm;
+	SScriptAnm							m_hide_anm;
+	SScriptAnm							m_draw_anm_primary;
+	SScriptAnm							m_draw_anm_secondary;
+	SScriptAnm							m_holster_anm_primary;
+	SScriptAnm							m_holster_anm_secondary;
+
+	u16									anm_slot								= u16_max;
+	shared_str							m_current_anm							= 0;
+
+protected:
+	float								m_fLR_CameraFactor; // Фактор бокового наклона худа при ходьбе [-1; +1]
+	float								m_fLR_MovingFactor; // Фактор бокового наклона худа при движении камеры [-1; +1]
+	float								m_fLR_InertiaFactor; // Фактор горизонтальной инерции худа при движении камеры [-1; +1]
+	float								m_fUD_InertiaFactor; // Фактор вертикальной инерции худа при движении камеры [-1; +1]
+
+	shared_str							m_anm_prefix							= 0;
+
+	void								playBlendAnm							(SScriptAnm CR$ anm, u32 state = 0, bool full_blend = false, float power_k = 1.f);
+
+	LPCSTR							V$	get_anm_prefix						C$	()		{ return *m_anm_prefix; }
+
+public:
+	bool								motionPartPassed					C$	(float part);
+
+	void								UpdateSlotsTransform					(); // Обновление положения аддонов на худе каждый кадр
+	void								UpdateHudBonesVisibility				();
+
+	virtual LPCSTR						anmType								C$	()		{ return ""; }
+	virtual void						onMovementChanged						();
 };
 
 add_to_type_list(CHudItem)

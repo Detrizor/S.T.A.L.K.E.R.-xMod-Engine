@@ -38,7 +38,6 @@ public:
 
 	void					dump_config			(complete_callback_t complete_cb);
 private:
-	void					write_configs		();
 	void					sign_configs		();
 	void					compress_configs	();
 

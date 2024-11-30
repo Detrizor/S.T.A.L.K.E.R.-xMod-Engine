@@ -21,37 +21,35 @@
 
 #include "../xrRender/ShaderResourceTraits.h"
 
-#ifdef USE_DX11
-	SHS*	CResourceManager::_CreateHS			(LPCSTR Name)
-	{
-		return CreateShader<SHS>(Name);
-	}
+SHS*	CResourceManager::_CreateHS			(LPCSTR Name)
+{
+	return CreateShader<SHS>(Name);
+}
 
-	void	CResourceManager::_DeleteHS			(const SHS*	HS	)
-	{
-		DestroyShader(HS);
-	}
+void	CResourceManager::_DeleteHS			(const SHS*	HS	)
+{
+	DestroyShader(HS);
+}
 
-	SDS*	CResourceManager::_CreateDS			(LPCSTR Name)
-	{
-		return CreateShader<SDS>(Name);
-	}
+SDS*	CResourceManager::_CreateDS			(LPCSTR Name)
+{
+	return CreateShader<SDS>(Name);
+}
 
-	void	CResourceManager::_DeleteDS			(const SDS*	DS	)
-	{
-		DestroyShader(DS);
-	}
+void	CResourceManager::_DeleteDS			(const SDS*	DS	)
+{
+	DestroyShader(DS);
+}
 
-    SCS*	CResourceManager::_CreateCS			(LPCSTR Name)
-	{
-		return CreateShader<SCS>(Name);
-	}
+SCS*	CResourceManager::_CreateCS			(LPCSTR Name)
+{
+	return CreateShader<SCS>(Name);
+}
 
-	void	CResourceManager::_DeleteCS			(const SCS*	CS	)
-	{
-		DestroyShader(CS);
-	}
-#endif	//	USE_DX10
+void	CResourceManager::_DeleteCS			(const SCS*	CS	)
+{
+	DestroyShader(CS);
+}
 
 void fix_texture_name(LPSTR fn);
 
@@ -79,11 +77,7 @@ SState*		CResourceManager::_CreateState		(SimulatorStates& state_code)
 	// Create New
 	v_states.push_back				(xr_new<SState>());
 	v_states.back()->dwFlags		|= xr_resource_flagged::RF_REGISTERED;
-#if defined(USE_DX10) || defined(USE_DX11)
 	v_states.back()->state			= ID3DState::Create(state_code);
-#else	//	USE_DX10
-	v_states.back()->state			= state_code.record();
-#endif	//	USE_DX10
 	v_states.back()->state_code		= state_code;
 	return v_states.back();
 }
@@ -107,11 +101,9 @@ SPass*		CResourceManager::_CreatePass			(const SPass& proto)
 	P->ps						=	proto.ps;
 	P->vs						=	proto.vs;
 	P->gs						=	proto.gs;
-#ifdef USE_DX11
 	P->hs						=	proto.hs;
 	P->ds						=	proto.ds;
 	P->cs						=	proto.cs;
-#endif
 	P->constants				=	proto.constants;
 	P->T						=	proto.T;
 #ifdef _EDITOR
@@ -450,11 +442,7 @@ void				CResourceManager::_DeleteConstantTable	(const R_constant_table* C)
 }
 
 //--------------------------------------------------------------------------------------------------------------
-#ifdef USE_DX11
 CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 SampleCount, bool useUAV )
-#else
-CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 SampleCount )
-#endif
 {
 	R_ASSERT(Name && Name[0] && w && h);
 
@@ -467,11 +455,7 @@ CRT*	CResourceManager::_CreateRT		(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f, u32 S
 		CRT *RT					=	xr_new<CRT>();
 		RT->dwFlags				|=	xr_resource_flagged::RF_REGISTERED;
 		m_rtargets.insert		(mk_pair(RT->set_name(Name),RT));
-#ifdef USE_DX11
 		if (Device.b_is_Ready)	RT->create	(Name,w,h,f, SampleCount, useUAV );
-#else
-		if (Device.b_is_Ready)	RT->create	(Name,w,h,f, SampleCount );
-#endif
 		return					RT;
 	}
 }
@@ -574,29 +558,52 @@ void		CResourceManager::DeleteGeom		(const SGeometry* Geom)
 }
 
 //--------------------------------------------------------------------------------------------------------------
-CTexture* CResourceManager::_CreateTexture	(LPCSTR _Name)
+CTexture* CResourceManager::_CreateTexture(LPCSTR _Name)
 {
 	// DBG_VerifyTextures	();
 	if (0==xr_strcmp(_Name,"null"))	return 0;
-    //Msg("texture %s", _Name);
+	//Msg("texture %s", _Name);
 	R_ASSERT		(_Name && _Name[0]);
 	string_path		Name;
 	xr_strcpy			(Name,_Name); //. andy if (strext(Name)) *strext(Name)=0;
 	fix_texture_name (Name);
 	// ***** first pass - search already loaded texture
-	LPSTR N			= LPSTR(Name);
-	map_TextureIt I = m_textures.find	(N);
-	if (I!=m_textures.end())	return	I->second;
-	else
+
+	map_TextureIt I						= m_textures.find(Name);
+	if (I != m_textures.end())
+		return							I->second;
+	
+	CTexture* T							= xr_new<CTexture>();
+	T->dwFlags							|= xr_resource_flagged::RF_REGISTERED;
+	shared_str name						= T->set_name(Name);
+	m_textures.emplace					(name.c_str(), T);
+
+	T->Preload							();
+	auto texload						= [this, name]()
 	{
-		CTexture *	T		=	xr_new<CTexture>();
-		T->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
-		m_textures.insert	(mk_pair(T->set_name(Name),T));
-		T->Preload			();
-		if (Device.b_is_Ready && !bDeferredLoad) T->Load();
-		return		T;
-	}
+		while (!Device.b_is_Ready)
+			_STD this_thread::yield		();
+
+		int count						= 0;
+		while (count++ < 10)
+		{
+			auto& I						= m_textures.find(name.c_str());
+			if (I == m_textures.end())
+				_STD this_thread::yield	();
+			else
+			{
+				I->second->Load			();
+				break;
+			}
+		}
+
+		VERIFY3							(count <= 10, "not found texture", name.c_str());
+	};
+	m_parallel_tex_loader.run			(texload);
+
+	return								T;
 }
+
 void	CResourceManager::_DeleteTexture		(const CTexture* T)
 {
 	// DBG_VerifyTextures	();
@@ -700,25 +707,26 @@ void	CResourceManager::ED_UpdateConstant	(LPCSTR Name, CConstant* data)
 bool	cmp_tl	(const std::pair<u32,ref_texture>& _1, const std::pair<u32,ref_texture>& _2)	{
 	return _1.first < _2.first;
 }
-STextureList*	CResourceManager::_CreateTextureList(STextureList& L)
+
+STextureList* CResourceManager::_CreateTextureList(STextureList& L)
 {
-	std::sort	(L.begin(),L.end(),cmp_tl);
-	for (u32 it=0; it<lst_textures.size(); it++)
-	{
-		STextureList*	base		= lst_textures[it];
+	L.sort							(cmp_tl);
+	for (auto base : lst_textures)
 		if (L.equal(*base))			return base;
-	}
+
 	STextureList*	lst		=	xr_new<STextureList>(L);
 	lst->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
 	lst_textures.push_back	(lst);
 	return lst;
 }
-void			CResourceManager::_DeleteTextureList(const STextureList* L)
+
+void CResourceManager::_DeleteTextureList(const STextureList* L)
 {
 	if (0==(L->dwFlags&xr_resource_flagged::RF_REGISTERED))	return;
 	if (reclaim(lst_textures,L))					return;
 	Msg	("! ERROR: Failed to find compiled list of textures");
 }
+
 //--------------------------------------------------------------------------------------------------------------
 SMatrixList*	CResourceManager::_CreateMatrixList(SMatrixList& L)
 {

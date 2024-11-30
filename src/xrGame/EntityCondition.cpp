@@ -14,35 +14,33 @@
 #include "ai/monsters/basemonster/base_monster.h"
 #include "actor.h"
 #include "artefact.h"
-
-#define DAMAGE_MANAGER_SECTION "damage_manager"
+#include "Level.h"
+#include "Level_Bullet_Manager.h"
 
 #define MAX_HEALTH 1.0f
 #define MIN_HEALTH -0.01f
 
+#define OUTFIT_MAIN_BONE 11
+#define HELMET_MAIN_BONE 15
 
 #define MAX_POWER 1.0f
 #define MAX_RADIATION 1.0f
 #define MAX_PSY_HEALTH 1.0f
 
-#define ARMOR_HIT_TYPE(type) (type == ALife::eHitTypeFireWound || type == ALife::eHitTypeStrike || type == ALife::eHitTypeWound)
+HitImmunity::HitTypeSVec CEntityCondition::HitTypeHeadPart;
+HitImmunity::HitTypeSVec CEntityCondition::HitTypeScale;
 
-#define OUTFIT_MAIN_BONE 11
-#define HELMET_MAIN_BONE 15
+float CEntityCondition::m_fMeleeOnPierceDamageMultiplier;
+float CEntityCondition::m_fMeleeOnPierceArmorDamageFactor;
 
-static const float DAMAGE_RESISTANCE_FACTOR				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "damage_resistance_factor");
-static const float DAMAGE_RESISTANCE_POWER				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "damage_resistance_power");
-static const float MASS_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_damage_resistance_factor");
-static const float MASS_DAMAGE_RESISTANCE_POWER			= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_damage_resistance_power");
-static const float ARMOR_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_damage_resistance_factor");
-static const float ARMOR_DAMAGE_RESISTANCE_POWER		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_damage_resistance_power");
-static const float ARMOR_PROTECTION_FACTOR				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_protection_factor");
-static const float ARMOR_PROTECTION_POWER				= pSettings->r_float(DAMAGE_MANAGER_SECTION, "armor_protection_power");
+CPowerDependency CEntityCondition::ArmorDamageResistance;
+CPowerDependency CEntityCondition::StrikeDamageThreshold;
+CPowerDependency CEntityCondition::StrikeDamageResistance;
+CPowerDependency CEntityCondition::ExplDamageResistance;
 
-static const float MASS_EXPL_FACTOR						= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_expl_factor");
-static const float MASS_EXPL_POWER						= pSettings->r_float(DAMAGE_MANAGER_SECTION, "mass_expl_power");
-static const float EXPL_DAMAGE_RESISTANCE_FACTOR		= pSettings->r_float(DAMAGE_MANAGER_SECTION, "expl_damage_resistance_factor");
-static const float EXPL_DAMAGE_RESISTANCE_POWER			= pSettings->r_float(DAMAGE_MANAGER_SECTION, "expl_damage_resistance_power");
+CPowerDependency CEntityCondition::AnomalyDamageThreshold;
+CPowerDependency CEntityCondition::AnomalyDamageResistance;
+CPowerDependency CEntityCondition::ProtectionDamageResistance;
 
 CEntityConditionSimple::CEntityConditionSimple()
 {
@@ -127,7 +125,7 @@ void CEntityCondition::LoadCondition(LPCSTR entity_section)
 	m_fHealthHitPart		= pSettings->r_float(section,"health_hit_part");
 	m_fPowerHitPart			= pSettings->r_float(section,"power_hit_part");
 
-	m_use_limping_state		= !!(READ_IF_EXISTS(pSettings,r_bool,section,"use_limping_state",FALSE));
+	m_use_limping_state		= !!(READ_IF_EXISTS(pSettings,r_BOOL,section,"use_limping_state",FALSE));
 	m_limping_threshold		= READ_IF_EXISTS(pSettings,r_float,section,"limping_threshold",.5f);
 
 	m_fKillHitTreshold		= READ_IF_EXISTS(pSettings,r_float,section,"killing_hit_treshold",0.0f);
@@ -350,178 +348,121 @@ CHelmet* CEntityCondition::GetHelmet()
 	return						(pInvOwner) ? pInvOwner->GetHelmet() : false;
 }
 
-float CEntityCondition::GetArtefactArmor()
+template <typename T>
+float CEntityCondition::GearExplEffect(T gear, float damage, float protection, CInventoryOwner* io, bool head)
 {
-	CActor* actor = smart_cast<CActor*>(m_object);
-	if (actor)
-	{
-		float armor = 0.f;
-		for (TIItemContainer::iterator it = actor->inventory().m_all.begin(), it_e = actor->inventory().m_all.end(); it != it_e; ++it)
-		{
-			CArtefact* artefact = smart_cast<CArtefact*>(*it);
-			if (artefact && artefact->IsActivated())
-				armor += artefact->GetArmor();
-		}
-		return armor;
-	}
-	return 0.f;
+	damage								*= head ? HitTypeHeadPart[ALife::eHitTypeExplosion] : 1.f - HitTypeHeadPart[ALife::eHitTypeExplosion];
+	if (fEqual(damage, 0.f))
+		return							damage;
+
+	if (gear)
+		protection						+= gear->GetBoneArmor(0);
+	float armor_damage					= damage * ArmorDamageResistance.Calc(protection);
+	if (gear)
+		gear->Hit						(armor_damage, ALife::eHitTypeExplosion);
+	io->HitArtefacts					(armor_damage, ALife::eHitTypeExplosion);
+
+	return								damage * ExplDamageResistance.Calc(protection);
 }
 
-float CEntityCondition::GetBoneArmor(u16 element)
+template <typename T>
+float CEntityCondition::GearProtectionEffect(T gear, const ALife::EHitType& hit_type, float damage, bool head)
 {
-	CCustomOutfit* pOutfit = GetOutfit();
-	CHelmet* pHelmet = GetHelmet();
-	if (!pOutfit && !pHelmet)
-	{
-		CBaseMonster* pBaseMonster = smart_cast<CBaseMonster*>(m_object);
-		return pBaseMonster ? pBaseMonster->GetSkinArmor() : 0.f;
-	}
+	damage								*= (head) ? HitTypeHeadPart[hit_type] : 1.f - HitTypeHeadPart[hit_type];
+	if (!gear || fEqual(damage, 0.f))
+		return							damage;
 
-	float bone_armor = -1.f, cond = 0.f;
-	if (pHelmet)
-	{
-		bone_armor = pHelmet->GetBoneArmor(element);
-		cond = pHelmet->GetConditionToWork();
-	}
-	if (bone_armor == -1.f)
-	{
-		bone_armor = pOutfit->GetBoneArmor(element);
-		cond = pOutfit->GetConditionToWork();
-	}
-	bone_armor *= (bone_armor == -1.f) ? 0.f : sqrt(cond);
-	bone_armor += GetArtefactArmor();
+	float protection					= gear->GetHitTypeProtection(hit_type);
+	gear->Hit							(damage * ProtectionDamageResistance.Calc(protection), hit_type);
+	damage								*= AnomalyDamageResistance.Calc(protection);
+	damage								-= min(damage, AnomalyDamageThreshold.Calc(protection));
 
-	return bone_armor;
+	return								damage;
 }
 
 void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 {
-    CInventoryOwner* pInvOwner		= smart_cast<CInventoryOwner*>(m_object);
-	if (!pInvOwner)
-	{
-		CBaseMonster* pMonster		= smart_cast<CBaseMonster*>(m_object);
-		if (pMonster)
-			HitThroughArmor			(pHDS, pMonster->GetSkinArmor());
-		return;
-	}
+	CCustomOutfit* outfit				= nullptr;
+	CHelmet* helmet						= nullptr;
+	float protection					= m_object->GetProtection(outfit, helmet, pHDS->boneID, pHDS->hit_type);
+	CInventoryOwner* io					= smart_cast<CInventoryOwner*>(m_object);
 
-	CCustomOutfit* outfit			= pInvOwner->GetOutfit();
-	CHelmet* helmet					= pInvOwner->GetHelmet();
-	bool armor_type					= ARMOR_HIT_TYPE(pHDS->hit_type);
-	if (armor_type)
-	{
-		if (!HitThroughGear(pHDS, outfit, 11, armor_type))
-			HitThroughGear			(pHDS, helmet, HELMET_MAIN_BONE, armor_type);
-	}
-	else
-	{
-		HitThroughGear				(pHDS, outfit, OUTFIT_MAIN_BONE, armor_type);
-		if (outfit->bIsHelmetAvaliable)
-			HitThroughGear			(pHDS, helmet, HELMET_MAIN_BONE, armor_type);
-	}
-}
+	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::HitProtectionEffect frame [%d] main_damage [%.5f] pierce_damage [%.5f] protection [%.5f]",
+		Device.dwFrame, pHDS->main_damage, pHDS->pierce_damage, protection);		//--xd отладка
 
-template<typename T>
-bool CEntityCondition::HitThroughGear(SHit* pHDS, T pGear, u16 main_bone, bool armor_type)
-{
-	if (pGear)
+	if (pHDS->DamageType() == 1)
 	{
-		float bone_armor		= pGear->GetBoneArmor((pHDS->boneID == 0) ? main_bone : pHDS->boneID);
-		if (armor_type && bone_armor == -1.f)
-			return				false;
-		else
+		if (pHDS->hit_type != ALife::eHitTypeRadiationGamma)
 		{
-			bone_armor			*= sqrt(pGear->GetConditionToWork());
-			bone_armor			+= GetArtefactArmor();
-			HitThroughArmor		(pHDS, bone_armor, smart_cast<CCustomOutfit*>(pGear), smart_cast<CHelmet*>(pGear));
+			pHDS->pierce_hit_type		= pHDS->hit_type;
+			pHDS->hit_type				= ALife::eHitTypeStrike;
+		
+			if (pHDS->pierce_hit_type == ALife::eHitTypeWound || pHDS->pierce_hit_type == ALife::eHitTypeWound_2)
+			{
+				float ap				= pHDS->main_damage * (pHDS->pierce_hit_type == ALife::eHitTypeWound_2 ? 20.f : 10.f);
+				float k_speed_in		= (ap >= protection) ? sqrt(1.f - Level().BulletManager().m_fBulletAPLossOnPierce * protection / ap) : 0.f;
+				if (fMore(k_speed_in, 0.f))
+				{
+					float full_damage	= pHDS->main_damage * m_fMeleeOnPierceDamageMultiplier;
+					pHDS->main_damage	*= 1.f - k_speed_in;
+					pHDS->pierce_damage	= full_damage - pHDS->main_damage;
+					pHDS->armor_pierce_damage = pHDS->pierce_damage * m_fMeleeOnPierceArmorDamageFactor;
+				}
+			}
+		
+			if (io)
+			{
+				float armor_damage		= pHDS->main_damage * ArmorDamageResistance.Calc(protection);
+				if (outfit)
+				{
+					outfit->Hit			(armor_damage, pHDS->hit_type);
+					outfit->Hit			(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
+				}
+				else if (helmet)
+				{
+					helmet->Hit			(armor_damage, pHDS->hit_type);
+					helmet->Hit			(pHDS->armor_pierce_damage, pHDS->pierce_hit_type);
+				}
+				io->HitArtefacts		(armor_damage, pHDS->hit_type);
+			}
+		
+			pHDS->main_damage			*= m_fArmorDamageBoneScale;
+			pHDS->pierce_damage			*= m_fPierceDamageBoneScale;
 		}
-	}
-	else
-		HitThroughArmor(pHDS, 0.f);
-	return true;
-}
 
-void CEntityCondition::HitThroughArmor(SHit* pHDS, float bone_armor, CCustomOutfit* pOutfit, CHelmet* pHelmet)
-{
-	ALife::EHitType& hit_type				= pHDS->hit_type;
-	if (ARMOR_HIT_TYPE(hit_type))
-	{
-		ALife::EHitType& pierce_hit_type	= pHDS->pierce_hit_type;
-		pierce_hit_type						= hit_type;
-		hit_type							= ALife::eHitTypeStrike;
-		float& armor_damage					= pHDS->main_damage;
-		float& pierce_damage				= pHDS->pierce_damage;
-		float& pierce_damage_armor			= pHDS->pierce_damage_armor;
-		if (pierce_hit_type == ALife::eHitTypeWound)
-		{
-			float ap						= armor_damage * 10.f;
-			float armor_factor				= ((ap < bone_armor) ? 1.f : (0.5f * bone_armor / ap));
-			armor_damage					*= armor_factor;
-			pierce_damage_armor				= armor_damage * (1.f - armor_factor);
-			pierce_damage					= pierce_damage_armor * 1.5f;
-		}
-		float armor_damage_resistance		= pow(1.f + ARMOR_DAMAGE_RESISTANCE_FACTOR * bone_armor, -ARMOR_DAMAGE_RESISTANCE_POWER);
-		float damage_resistance				= pow(1.f + DAMAGE_RESISTANCE_FACTOR * bone_armor, -DAMAGE_RESISTANCE_POWER);
-		if (pOutfit)
-		{
-			pOutfit->Hit					(armor_damage * armor_damage_resistance, hit_type);
-			pOutfit->Hit					(pierce_damage_armor, pierce_hit_type);
-		}
-		else if (pHelmet)
-		{
-			pHelmet->Hit					(armor_damage * armor_damage_resistance, hit_type);
-			pHelmet->Hit					(pierce_damage_armor, pierce_hit_type);
-		}
-		else
-			damage_resistance				= pow(MASS_DAMAGE_RESISTANCE_FACTOR * pSettings->r_float(m_object->cNameSect(), "ph_mass"), -MASS_DAMAGE_RESISTANCE_POWER);
-		armor_damage						*= damage_resistance;
-		armor_damage						*= m_fArmorDamageBoneScale;
-		pierce_damage						*= m_fPierceDamageBoneScale;
+		pHDS->main_damage				-= min(pHDS->main_damage, StrikeDamageThreshold.Calc(protection));
+		if (fMore(pHDS->main_damage, 0.f))
+			pHDS->main_damage			/= (1.f + StrikeDamageResistance.Calc(protection));
 	}
-	else if (hit_type == ALife::eHitTypeExplosion)
+	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{
-		float armor							= 0.f;
-		float armor2						= (pHelmet) ? 0.1f * pHelmet->GetBoneArmor(HELMET_MAIN_BONE) : 0.f;
-		if (pOutfit)
+		if (smart_cast<const CBaseMonster*>(m_object))
+			pHDS->main_damage			*= ExplDamageResistance.Calc(protection);
+		else if (io)
 		{
-			armor							= pOutfit->GetBoneArmor(OUTFIT_MAIN_BONE);
-			if (!pOutfit->bIsHelmetAvaliable)
-				armor2						= armor * 0.1f;
-		}
-		armor								+= GetArtefactArmor();
-		if (smart_cast<CBaseMonster*>(m_object))
-			armor							= pow(MASS_EXPL_FACTOR * pSettings->r_float(m_object->cNameSect(), "ph_mass"), MASS_EXPL_POWER);
-		if (armor > 0.f)
-			ExplProcess						(pHDS->main_damage, armor, pOutfit, pHelmet, hit_type);
-		if (armor2 > 0.f)
-			ExplProcess						(pHDS->main_damage, armor2, pOutfit, pHelmet, hit_type);
-	}
-	else
-	{
-		float protection					= (pOutfit) ? pOutfit->GetHitTypeProtection(hit_type) : ((pHelmet) ? pHelmet->GetHitTypeProtection(hit_type) : 0.f);
-		if (protection > 0.f)
-		{
-			float& damage					= pHDS->main_damage;				
-			protection						*= 0.1f;
-			float resistance				=  pow(1.f + ARMOR_PROTECTION_FACTOR * protection, -ARMOR_PROTECTION_POWER);
-			if (pOutfit)
-				pOutfit->Hit				(damage * resistance, hit_type);
-			else
-				pHelmet->Hit				(damage * resistance, hit_type);
-			damage							-= protection;
-			if (damage < 0.f)
-				damage						= 0.f;
+			float outfit_part			= GearExplEffect(outfit, pHDS->main_damage, protection, io, false);
+			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
+			pHDS->main_damage			= outfit_part + helmet_part;
 		}
 	}
-}
+	else if (io)
+	{
+		if (fMore(protection, 0.f))
+		{
+			io->HitArtefacts			(pHDS->main_damage * ProtectionDamageResistance.Calc(protection), pHDS->hit_type);
+			pHDS->main_damage			*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
+			pHDS->main_damage			-= min(pHDS->main_damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
+		}
 
-void CEntityCondition::ExplProcess(float& damage, float& armor, CCustomOutfit* pOutfit, CHelmet* pHelmet, ALife::EHitType& hit_type)
-{
-	damage					*= pow(1.f + EXPL_DAMAGE_RESISTANCE_FACTOR * armor, -EXPL_DAMAGE_RESISTANCE_POWER);
-	if (pOutfit)
-		pOutfit->Hit		(damage * 0.1f, hit_type);
-	else if (pHelmet)
-		pHelmet->Hit		(damage * 0.1f, hit_type);
+		if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd after anom arts main_damage [%.5f]", pHDS->main_damage);
+
+		if (fMore(pHDS->main_damage, 0.f))
+		{
+			float outfit_part			= GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, false);
+			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ? GearProtectionEffect(outfit, pHDS->hit_type, pHDS->main_damage, true) : GearProtectionEffect(helmet, pHDS->hit_type, pHDS->main_damage, true);
+			pHDS->main_damage			= outfit_part + helmet_part;
+		}
+	}
 }
 
 float CEntityCondition::HitPowerEffect(float power_loss)
@@ -569,6 +510,7 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	if (!CanBeHarmed())
 		return				NULL;
 	
+	pHDS->main_damage		*= HitTypeScale[pHDS->hit_type];
 	HitProtectionEffect		(pHDS);
 	float main_damage		= pHDS->main_damage * GetHitImmunity(pHDS->hit_type) * m_fHealthHitPart;
 
@@ -577,27 +519,22 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 
 	switch(pHDS->hit_type)
 	{
-	case ALife::eHitTypeTelepatic:
-		d_neural			*= 1.f;
-		d_outer				*= 0.f;
-		d_inner				*= 0.f;
-		d_radiation			*= 0.f;
-		break;
 	case ALife::eHitTypeBurn:
+	case ALife::eHitTypeLightBurn:
 		d_neural			*= 1.f;
 		d_outer				*= 1.f;
 		d_inner				*= 1.f;
 		d_radiation			*= 0.f;
 		break;
+	case ALife::eHitTypeShock:
+		d_neural *= 1.f;
+		d_outer *= 0.25f;
+		d_inner *= 1.f;
+		d_radiation *= 0.f;
+		break;
 	case ALife::eHitTypeChemicalBurn:
 		d_neural			*= 1.f;
 		d_outer				*= 0.75f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
-		break;
-	case ALife::eHitTypeShock:
-		d_neural			*= 1.f;
-		d_outer				*= 0.25f;
 		d_inner				*= 1.f;
 		d_radiation			*= 0.f;
 		break;
@@ -607,15 +544,27 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 		d_inner				*= 0.f;
 		d_radiation			*= 1.f;
 		break;
+	case ALife::eHitTypeTelepatic:
+		d_neural *= 1.f;
+		d_outer *= 0.f;
+		d_inner *= 0.f;
+		d_radiation *= 0.f;
+		break;
 	case ALife::eHitTypeExplosion:
 		d_neural			*= 1.f;
-		d_outer				*= 0.25f;
+		d_outer				*= 0.5f;
 		d_inner				*= 1.f;
 		d_radiation			*= 0.f;
 		break;
 	case ALife::eHitTypeStrike:
 		d_neural			*= 1.f;
-		d_outer				*= 0.5f;
+		d_outer				*= 0.75f;
+		d_inner				*= 1.f;
+		d_radiation			*= 0.f;
+		break;
+	case ALife::eHitTypeRadiationGamma:
+		d_neural			*= 0.f;
+		d_outer				*= 0.f;
 		d_inner				*= 1.f;
 		d_radiation			*= 0.f;
 		break;
@@ -632,6 +581,9 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 		d_outer				+= pierce_damage;
 		d_inner				+= pierce_damage;
 	}
+
+	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor()))
+		Msg("--xd CEntityCondition::ConditionHit health [%f] main_damage [%.5f] pierce_damage [%.5f]", GetHealth(), main_damage, pierce_damage);
 
 	if (m_object->cast_actor())
 	{
@@ -795,17 +747,17 @@ bool CEntityCondition::ApplyBooster(const SBooster& B, const shared_str& sect)
 	return true;
 }
 
-void SMedicineInfluenceValues::Load(const shared_str& sect)
+void SMedicineInfluenceValues::Load(const shared_str& sect, float depletion_rate)
 {
-	fHealth			= pSettings->r_float(sect.c_str(), "eat_health");
-	fPower			= pSettings->r_float(sect.c_str(), "eat_power");
-	fSatiety		= pSettings->r_float(sect.c_str(), "eat_satiety");
-	fRadiation		= pSettings->r_float(sect.c_str(), "eat_radiation");
-	fWoundsHeal		= pSettings->r_float(sect.c_str(), "wounds_heal_perc");
+	fHealth			= depletion_rate * pSettings->r_float(sect.c_str(), "eat_health");
+	fPower			= depletion_rate * pSettings->r_float(sect.c_str(), "eat_power");
+	fSatiety		= depletion_rate * pSettings->r_float(sect.c_str(), "eat_satiety");
+	fRadiation		= depletion_rate * pSettings->r_float(sect.c_str(), "eat_radiation");
+	fWoundsHeal		= depletion_rate * pSettings->r_float(sect.c_str(), "wounds_heal_perc");
 	clamp			(fWoundsHeal, 0.f, 1.f);
-	fMaxPowerUp		= READ_IF_EXISTS	(pSettings,r_float,sect.c_str(),	"eat_max_power",0.0f);
-	fAlcohol		= READ_IF_EXISTS	(pSettings, r_float, sect.c_str(),	"eat_alcohol", 0.0f);
-	fTimeTotal		= READ_IF_EXISTS	(pSettings, r_float, sect.c_str(),	"apply_time_sec", -1.0f);
+	fMaxPowerUp		= depletion_rate * READ_IF_EXISTS	(pSettings,r_float,sect.c_str(),	"eat_max_power",0.0f);
+	fAlcohol		= depletion_rate * READ_IF_EXISTS	(pSettings, r_float, sect.c_str(),	"eat_alcohol", 0.0f);
+	fTimeTotal		= depletion_rate * READ_IF_EXISTS	(pSettings, r_float, sect.c_str(),	"apply_time_sec", -1.0f);
 }
 
 void SBooster::Load(const shared_str& sect, EBoostParams type)
@@ -813,4 +765,46 @@ void SBooster::Load(const shared_str& sect, EBoostParams type)
 	fBoostTime		= pSettings->r_float(sect, "boost_time");
 	fBoostValue		= pSettings->r_float(sect, ef_boosters_section_names[type]);
 	m_type			= type;
+}
+
+void CEntityCondition::loadStaticData()
+{
+	using namespace ALife;
+
+	HitTypeHeadPart.resize				(eHitTypeMax);
+	for (int i = 0; i < eHitTypeMax; i++)
+		HitTypeHeadPart[i]				= 0.f;
+	HitTypeHeadPart[eHitTypeBurn]		= pSettings->r_float("hit_type_head_part", "burn");
+	HitTypeHeadPart[eHitTypeShock]		= pSettings->r_float("hit_type_head_part", "shock");
+	HitTypeHeadPart[eHitTypeRadiation]	= pSettings->r_float("hit_type_head_part", "radiation");
+	HitTypeHeadPart[eHitTypeChemicalBurn] = pSettings->r_float("hit_type_head_part", "chemical_burn");
+	HitTypeHeadPart[eHitTypeTelepatic]	= pSettings->r_float("hit_type_head_part", "telepatic");
+	HitTypeHeadPart[eHitTypeLightBurn]	= HitTypeHeadPart[eHitTypeBurn];
+	HitTypeHeadPart[eHitTypeExplosion]	= pSettings->r_float("hit_type_head_part", "explosion");
+	
+	HitTypeScale.resize					(eHitTypeMax);
+	HitTypeScale[eHitTypeBurn]			= pSettings->r_float("hit_type_global_scale", "burn");
+	HitTypeScale[eHitTypeShock]			= pSettings->r_float("hit_type_global_scale", "shock");
+	HitTypeScale[eHitTypeChemicalBurn]	= pSettings->r_float("hit_type_global_scale", "chemical_burn");
+	HitTypeScale[eHitTypeRadiation]		= pSettings->r_float("hit_type_global_scale", "radiation");
+	HitTypeScale[eHitTypeTelepatic]		= pSettings->r_float("hit_type_global_scale", "telepatic");
+	HitTypeScale[eHitTypeWound]			= pSettings->r_float("hit_type_global_scale", "wound");
+	HitTypeScale[eHitTypeFireWound]		= pSettings->r_float("hit_type_global_scale", "fire_wound");
+	HitTypeScale[eHitTypeStrike]		= pSettings->r_float("hit_type_global_scale", "strike");
+	HitTypeScale[eHitTypeExplosion]		= pSettings->r_float("hit_type_global_scale", "explosion");
+	HitTypeScale[eHitTypeWound_2]		= pSettings->r_float("hit_type_global_scale", "wound_2");
+	HitTypeScale[eHitTypeLightBurn]		= pSettings->r_float("hit_type_global_scale", "light_burn");
+	HitTypeScale[eHitTypeRadiationGamma]= pSettings->r_float("hit_type_global_scale", "radiation_gamma");
+	
+	m_fMeleeOnPierceDamageMultiplier	= pSettings->r_float("damage_manager", "melee_on_pierce_damage_multiplier");
+	m_fMeleeOnPierceArmorDamageFactor	= pSettings->r_float("damage_manager", "melee_on_pierce_armor_damage_factor");
+
+	StrikeDamageThreshold.Load			("damage_manager", "strike_damage_threshold");
+	StrikeDamageResistance.Load			("damage_manager", "strike_damage_resistance");
+	ExplDamageResistance.Load			("damage_manager", "expl_damage_resistance");
+	ArmorDamageResistance.Load			("damage_manager", "armor_damage_resistance");
+	
+	AnomalyDamageThreshold.Load			("damage_manager", "anomaly_damage_threshold");
+	AnomalyDamageResistance.Load		("damage_manager", "anomaly_damage_resistance");
+	ProtectionDamageResistance.Load		("damage_manager", "protection_damage_resistance");
 }

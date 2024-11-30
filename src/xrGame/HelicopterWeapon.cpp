@@ -46,7 +46,7 @@ void CHelicopter::OnEvent(	NET_Packet& P, u16 type)
 void CHelicopter::MGunUpdateFire()
 {
 
-	fShotTimeCounter -= Device.fTimeDelta;
+	fShotTimeCounter -= time_delta();
 	if (delta_t < 0){
 		delta_t = Device.fTimeGlobal;
 		flag_by_fire = 0;
@@ -133,19 +133,15 @@ void CHelicopter::OnShot		()
 		fire_dir.sub(enemy_pos,fire_pos).normalize_safe();
 	};
 
-	FireBullet(fire_pos, fire_dir, fireDispersionBase, m_CurrentAmmo, ID(), ID(), OnServer(), ::Random.randI(0,30));
+	FireBullet(fire_pos, fire_dir, fireDispersionBase, m_CurrentAmmo, ID(), ID(), OnServer());
 
-	StartShotParticles	();
-	if(m_bLightShotEnabled) 
-		Light_Start			();
-
-
+	StartShotParticles		();
+	Light_Start				();
 	StartFlameParticles		();
 	StartSmokeParticles		(fire_pos, zero_vel);
 	OnShellDrop				(fire_pos, zero_vel);
 
 	HUD_SOUND_ITEM::PlaySound	(m_sndShot, fire_pos, this, false);
-
 }
 
 void CHelicopter::MGunFireStart()
@@ -196,8 +192,8 @@ void CHelicopter::UpdateWeapons		()
 	};
 
 	// lerp angle
-	angle_lerp	(m_cur_rot.x, m_tgt_rot.x, PI, Device.fTimeDelta);
-	angle_lerp	(m_cur_rot.y, m_tgt_rot.y, PI, Device.fTimeDelta);
+	angle_lerp	(m_cur_rot.x, m_tgt_rot.x, PI, time_delta());
+	angle_lerp	(m_cur_rot.y, m_tgt_rot.y, PI, time_delta());
 	
 
 	if( isOnAttack() ){

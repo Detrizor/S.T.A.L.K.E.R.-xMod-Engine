@@ -62,8 +62,7 @@ void init_game_globals()
 	MONSTER_COMMUNITY::InitInternal					();
 }
 
-extern CUIXml*	g_uiSpotXml;
-extern CUIXml*	pWpnScopeXml;
+extern CUIXml*		g_uiSpotXml;
 
 void clean_game_globals()
 {
@@ -128,6 +127,5 @@ void clean_game_globals()
 	xr_delete										(g_uiSpotXml);
 	dump_list_xmls									();
 	DestroyUIGeom									();
-	xr_delete										(pWpnScopeXml);
 	CUITextureMaster::FreeTexInfo					();
 }

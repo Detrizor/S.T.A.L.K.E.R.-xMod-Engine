@@ -10,7 +10,7 @@
 #include "xrServer_Objects_ALife_Items.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 
-void xrServer::Process_event	(NET_Packet& P, ClientID sender)
+void xrServer::Process_event	(NET_Packet& P, ClientID sender, bool straight)
 {
 #	ifdef SLOW_VERIFY_ENTITIES
 			VERIFY					(verify_entities());
@@ -45,7 +45,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			game->AddDelayedEvent(P,game_event_type,timestamp,sender);
 		}break;
 	case GE_INFO_TRANSFER:
-	case GE_WPN_STATE_CHANGE:
 	case GE_ZONE_STATE_CHANGE:
 	case GE_ACTOR_JUMPING:
 	case GEG_PLAYER_PLAY_HEADSHOT_PARTICLE:
@@ -84,35 +83,30 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 		break;
 	case GE_TRADE_BUY:
 	case GE_OWNERSHIP_TAKE:
-		{
-			Process_event_ownership	(P,sender,timestamp,destination);
+		Process_event_ownership			(P, destination, P.r_u16(), straight);
 #ifdef DEBUG
-			VERIFY					(verify_entities());
+		VERIFY							(verify_entities());
 #endif
-		}break;
+		break;
 	case GE_OWNERSHIP_TAKE_MP_FORCED:
-		{
-			Process_event_ownership	(P,sender,timestamp,destination,TRUE);
+		Process_event_ownership			(P, destination, P.r_u16(), straight);
 #ifdef DEBUG
-			VERIFY(verify_entities());
+		VERIFY							(verify_entities());
 #endif
-		}break;
+		break;
 	case GE_TRADE_SELL:
 	case GE_OWNERSHIP_REJECT:
 	case GE_LAUNCH_ROCKET:
-		{
-			Process_event_reject	(P,sender,timestamp,destination,P.r_u16());
+		Process_event_reject			(P, destination, P.r_u16(), straight);
 #ifdef DEBUG
-			VERIFY(verify_entities());
+		VERIFY							(verify_entities());
 #endif
-		}break;
+		break;
 	case GE_DESTROY:
-		{
-			Process_event_destroy	(P,sender,timestamp,destination, NULL);
+		Process_event_destroy			(P, destination, straight);
 #ifdef DEBUG
-			VERIFY(verify_entities());
+		VERIFY							(verify_entities());
 #endif
-		}
 		break;
 	case GE_TRANSFER_AMMO:
 		{
@@ -230,11 +224,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 #endif
 		}
 		break;
-	case GE_ADDON_ATTACH:
-	case GE_ADDON_DETACH:
-		{
-			SendBroadcast	(BroadcastCID, P, net_flags(TRUE, TRUE));
-		}break;
 	case GE_CHANGE_POS:
 		{			
 			SendTo		(SV_Client->ID, P, net_flags(TRUE, TRUE));

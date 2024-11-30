@@ -25,7 +25,6 @@ public:
 
 	static void					Destroy					();
 	
-	STRING_VALUE				translate				(const STRING_ID& str_id)		const;
 			void				rescan					();
 
 	static	BOOL				m_bWriteErrorsToLog;
@@ -37,4 +36,8 @@ private:
 			void				Load					(LPCSTR xml_file);
 	static STRING_VALUE			ParseLine				(LPCSTR str, LPCSTR key, bool bFirst);
 	static STRING_TABLE_DATA*	pData;
+
+public:
+	bool								exists								C$	(STRING_ID CR$ str_id);
+	STRING_VALUE						translate							C$	(STRING_ID CR$ str_id);
 };

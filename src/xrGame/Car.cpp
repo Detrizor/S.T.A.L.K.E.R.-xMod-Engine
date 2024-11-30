@@ -74,8 +74,6 @@ CCar::CCar()
 	m_car_sound			=xr_new<SCarSound>	(this);
 
 	//у машины слотов в инвентаре нет
-	inventory			= xr_new<CInventory>();
-	inventory->SetSlotsUseful(false);
 	m_doors_torque_factor = 2.f;
 	m_power_increment_factor=0.5f;
 	m_rpm_increment_factor=0.5f;
@@ -102,7 +100,6 @@ CCar::~CCar(void)
 	xr_delete			(camera[2]);
 	xr_delete			(m_car_sound);
 	ClearExhausts		();
-	xr_delete			(inventory);
 	xr_delete			(m_car_weapon);
 	xr_delete			(m_memory);
  //	xr_delete			(l_tpEntityAction);
@@ -150,7 +147,10 @@ void	CCar::Load					( LPCSTR section )
 	inherited::Load					(section);
 	//CPHSkeleton::Load(section);
 	ISpatial*		self				=	smart_cast<ISpatial*> (this);
-	if (self)		self->spatial.type	|=	STYPE_VISIBLEFORAI;	
+	if (self)		self->spatial.type	|=	STYPE_VISIBLEFORAI;
+
+	inventory.construct(nullptr);
+	inventory->SetSlotsUseful(false);
 }
 
 BOOL	CCar::net_Spawn				(CSE_Abstract* DC)
@@ -420,9 +420,9 @@ void CCar::UpdateEx			(float fov)
 	
 }
 
-BOOL CCar::AlwaysTheCrow()
+bool CCar::alwaysUpdate()
 {
-	return (m_car_weapon && m_car_weapon->IsActive() );
+	return (m_car_weapon && m_car_weapon->IsActive());
 }
 
 void CCar::UpdateCL				( )
@@ -437,7 +437,7 @@ void CCar::UpdateCL				( )
 	}
 	ASCUpdate			();
 	if(Owner()) return;
-//	UpdateEx			(g_fov);
+//	UpdateEx			(Device.gFOV);
 	VisualUpdate(90);
 	if (GetScriptControl())
 			ProcessScripts();
@@ -766,7 +766,7 @@ void CCar::ParseDefinitions()
 		m_exhaust_particles =ini->r_string("car_definition","exhaust_particles");
 	}
 			
-	b_auto_switch_transmission= !!ini->r_bool("car_definition","auto_transmission");
+	b_auto_switch_transmission= !!ini->r_BOOL("car_definition","auto_transmission");
 
 	InitParabola		();
 
@@ -1687,7 +1687,7 @@ void CCar::OnEvent(NET_Packet& P, u16 type)
 			if( GetInventory()->CanTakeItem(smart_cast<CInventoryItem*>(O)) ) 
 			{
 				O->H_SetParent(this);
-				GetInventory()->Take(smart_cast<CGameObject*>(O), false, false);
+				GetInventory()->Take(smart_cast<CGameObject*>(O), false);
 			}
 			else 
 			{

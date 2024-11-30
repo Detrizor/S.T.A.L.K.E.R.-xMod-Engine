@@ -42,63 +42,40 @@ struct remove_non_savable_predicate {
 	}
 };
 
-CALifeSwitchManager::~CALifeSwitchManager	()
-{
-}
-
 void CALifeSwitchManager::add_online(CSE_ALifeDynamicObject *object, bool update_registries)
 {
-	START_PROFILE("ALife/switch/add_online")
-	VERIFY							((ai().game_graph().vertex(object->m_tGraphID)->level_id() == graph().level().level_id()));
+	START_PROFILE						("ALife/switch/add_online")
+	VERIFY								((ai().game_graph().vertex(object->m_tGraphID)->level_id() == graph().level().level_id()));
 
-	object->m_bOnline				= true;
+	object->m_bOnline					= true;
+	CSE_Abstract* l_tpAbstract			= smart_cast<CSE_Abstract*>(object);
+	server().entity_Destroy				(l_tpAbstract);
+	object->s_flags.or					(M_SPAWN_UPDATE);
+	server().Process_spawn				(NET_Packet(), ClientID(), false, l_tpAbstract);
+	object->s_flags.and					(u16(-1) ^ M_SPAWN_UPDATE);
+	object->add_online					(update_registries);
 
-	NET_Packet						tNetPacket;
-	CSE_Abstract					*l_tpAbstract = smart_cast<CSE_Abstract*>(object);
-	server().entity_Destroy			(l_tpAbstract);
-	object->s_flags.or				(M_SPAWN_UPDATE);
-	ClientID						clientID;
-	clientID.set					(server().GetServerClient() ? server().GetServerClient()->ID.value() : 0);
-	server().Process_spawn			(tNetPacket,clientID,FALSE,l_tpAbstract);
-	object->s_flags.and				(u16(-1) ^ M_SPAWN_UPDATE);
-
-	//Alundaio: Workaround for crash with corpses that end up outside AI map
-	//R_ASSERT2(!object->used_ai_locations() || ai().level_graph().valid_vertex_id(object->m_tNodeID), make_string("Invalid vertex for object %s", object->name_replace()));
-
-	object->add_online				(update_registries);
 	STOP_PROFILE
 }
 
 void CALifeSwitchManager::remove_online(CSE_ALifeDynamicObject *object, bool update_registries)
 {
-	START_PROFILE("ALife/switch/remove_online")
-	object->m_bOnline			= false;
-	
-	m_saved_chidren				= object->children;
-	CSE_ALifeTraderAbstract		*inventory_owner = smart_cast<CSE_ALifeTraderAbstract*>(object);
-	if (inventory_owner) {
-		m_saved_chidren.erase	(
-			std::remove_if(
-				m_saved_chidren.begin(),
-				m_saved_chidren.end(),
-				remove_non_savable_predicate(&server())
-			),
-			m_saved_chidren.end()
-		);
+	START_PROFILE						("ALife/switch/remove_online")
+
+	object->m_bOnline					= false;
+	OBJECT_VECTOR saved_chidren			= object->children;
+	while (!object->children.empty())
+	{
+		CSE_Abstract* child				= server().game->get_entity_from_eid(object->children.back());
+		R_ASSERT2						(child, make_string("child registered but not found [%d]", object->children.back()));
+		server().Perform_reject			(object->ID, child->ID, xrServer::offline_switch);
+		remove_online					(smart_cast<CSE_ALifeDynamicObject*>(child), false);
 	}
+	server().Perform_destroy			(object, xrServer::offline_switch);
+	VERIFY								(object->children.empty());
+	object->ID							= server().PerformIDgen(object->ID);
+	object->add_offline					(saved_chidren, update_registries);
 
-	server().Perform_destroy	(object,net_flags(TRUE,TRUE));
-	VERIFY						(object->children.empty());
-
-	_OBJECT_ID					object_id = object->ID;
-	object->ID					= server().PerformIDgen(object_id);
-
-#ifdef DEBUG
-	if (psAI_Flags.test(aiALife))
-		Msg						("[LSS] Destroying object [%s][%s][%d]",object->name_replace(),*object->s_name,object->ID);
-#endif
-
-	object->add_offline			(m_saved_chidren,update_registries);
 	STOP_PROFILE
 }
 
@@ -159,38 +136,16 @@ bool CALifeSwitchManager::synchronize_location(CSE_ALifeDynamicObject *I)
 void CALifeSwitchManager::try_switch_online	(CSE_ALifeDynamicObject	*I)
 {
 	START_PROFILE("ALife/switch/try_switch_online")
-	// so, the object is offline
-	// checking if the object is not attached
-	if (0xffff != I->ID_Parent) {
-		// so, object is attached
-		// checking if parent is offline too
-#ifdef DEBUG
-		if (psAI_Flags.test(aiALife)) {
-			CSE_ALifeCreatureAbstract	*l_tpALifeCreatureAbstract = smart_cast<CSE_ALifeCreatureAbstract*>(objects().object(I->ID_Parent));
-			if (l_tpALifeCreatureAbstract && (l_tpALifeCreatureAbstract->get_health() < EPS_L))
-				Msg				("! uncontrolled situation [%d][%d][%s][%f]",I->ID,I->ID_Parent,l_tpALifeCreatureAbstract->name_replace(),l_tpALifeCreatureAbstract->get_health());
-			VERIFY2				(!l_tpALifeCreatureAbstract || (l_tpALifeCreatureAbstract->get_health() >= EPS_L),"Parent online, item offline...");
-			if (objects().object(I->ID_Parent)->m_bOnline)
-				Msg				("! uncontrolled situation [%d][%d][%s][%f]",I->ID,I->ID_Parent,l_tpALifeCreatureAbstract->name_replace(),l_tpALifeCreatureAbstract->get_health());
-		}
-		VERIFY2					(!objects().object(I->ID_Parent)->m_bOnline,"Parent online, item offline...");
-#endif
-		return;
-	}
-#ifdef DEBUG
-	VERIFY2						(
-		(
-			ai().game_graph().vertex(I->m_tGraphID)->level_id()
-			!=
-			ai().level_graph().level_id()
-		) ||
-		!Level().Objects.net_Find(I->ID) ||
-		Level().Objects.dump_all_objects(),
-		make_string("frame [%d] time [%d] object [%s] with id [%d] is offline, but is on the level",Device.dwFrame,Device.dwTimeGlobal,I->name_replace(),I->ID)
-	);
-#endif
-	I->try_switch_online		();
 
+	if (I->ID_Parent != u16_max)
+	{
+		auto parent = objects().object(I->ID_Parent);
+		R_ASSERT(parent);
+		if (!parent->m_bOnline)
+			return;
+	}
+
+	I->try_switch_online();
 	if (!I->m_bOnline && !I->keep_saved_data_anyway())
 		I->clear_client_data();
 
@@ -200,25 +155,10 @@ void CALifeSwitchManager::try_switch_online	(CSE_ALifeDynamicObject	*I)
 void CALifeSwitchManager::try_switch_offline(CSE_ALifeDynamicObject	*I)
 {
 	START_PROFILE("ALife/switch/try_switch_offline")
-	// checking if the object is not attached
-	if (0xffff != I->ID_Parent) {
-#ifdef DEBUG
-		// checking if parent is online too
-		CSE_ALifeCreatureAbstract	*l_tpALifeCreatureAbstract = smart_cast<CSE_ALifeCreatureAbstract*>(objects().object(I->ID_Parent));
-		if (l_tpALifeCreatureAbstract && (l_tpALifeCreatureAbstract->get_health() < EPS_L))
-			Msg				("! uncontrolled situation [%d][%d][%s][%f]",I->ID,I->ID_Parent,l_tpALifeCreatureAbstract->name_replace(),l_tpALifeCreatureAbstract->get_health());
 
-		VERIFY2				(!smart_cast<CSE_ALifeCreatureAbstract*>(objects().object(I->ID_Parent)) || (smart_cast<CSE_ALifeCreatureAbstract*>(objects().object(I->ID_Parent))->get_health() >= EPS_L),"Parent offline, item online...");
+	if (I->ID_Parent == u16_max)
+		I->try_switch_offline();
 
-		if (!objects().object(I->ID_Parent)->m_bOnline)
-			Msg				("! uncontrolled situation [%d][%d][%s][%f]",I->ID,I->ID_Parent,l_tpALifeCreatureAbstract->name_replace(),l_tpALifeCreatureAbstract->get_health());
-
-		VERIFY2				(objects().object(I->ID_Parent)->m_bOnline,"Parent offline, item online...");
-#endif
-		return;
-	}
-
-	I->try_switch_offline	();
 	STOP_PROFILE
 }
 

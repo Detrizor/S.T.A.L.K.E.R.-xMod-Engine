@@ -1,9 +1,3 @@
-// GameObject.h: interface for the CGameObject class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#if !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)
-#define AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_
 #pragma once
 
 #include "../xrEngine/xr_object.h"
@@ -13,6 +7,7 @@
 #include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
+#include "module_owner.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
@@ -42,16 +37,16 @@ class CAttachableItem;
 class animation_movement_controller;
 class CBlend;
 class ai_obstacle;
-
 class IKinematics;
 
 template <typename _return_type>
 class CScriptCallbackEx;
 
-class CGameObject : 
+class CGameObject :
 	public CObject, 
 	public CUsableScriptObject,
-	public CScriptBinder
+	public CScriptBinder,
+	public CModuleOwner
 {
 	typedef CObject inherited;
 	bool							m_spawned;
@@ -99,13 +94,13 @@ public:
 	// Utilities
 	static void				u_EventGen			(NET_Packet& P, u32 type, u32 dest	);
 	static void				u_EventSend			(NET_Packet& P, u32 dwFlags = DPNSEND_GUARANTEED	);
+	static void				sendEvent			(u16 type, u16 dest, u16 additional, bool straight);
 	
 	// Methods
 	virtual void			Load				(LPCSTR section);
 	virtual BOOL			net_Spawn			(CSE_Abstract* DC);
 	virtual void			net_Destroy			();
-	virtual	void			net_Relcase			( CObject* O );	
-	virtual void			UpdateCL			( );
+	virtual	void			net_Relcase			( CObject* O );
 	virtual void			OnChangeVisual		( );
 	//object serialization
 	virtual void			net_Save			(NET_Packet &net_packet);
@@ -130,14 +125,12 @@ public:
 	//игровое имя объекта
 	virtual LPCSTR			Name                () const;
 	
-	//virtual void			OnH_A_Independent	();
-	virtual void			OnH_B_Chield		();
 	virtual void			OnH_B_Independent	(bool just_before_destroy);
 
 	virtual bool			IsVisibleForZones	() { return true; }
 ///////////////////////////////////////////////////////////////////////
 	virtual bool			NeedToDestroyObject	() const;
-	virtual void			DestroyObject		();
+	void					DestroyObject		(bool straight = false);
 ///////////////////////////////////////////////////////////////////////
 
 	// Position stack
@@ -308,6 +301,20 @@ public:
 	}
 
 	virtual void			on_matrix_change	(const Fmatrix &previous);
-};
 
-#endif // !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)
+//xMod added
+private:
+	void								update_bone_visibility					(IKinematics* visual, shared_str CR$ bone_name, bool status);
+
+protected:
+	void								UpdateCL							O$	();
+
+public:
+	static void							transfer								(u16 id_from, u16 id_what, u16 id_to = u16_max, bool straight = false);
+
+	void								UpdateBoneVisibility					(shared_str CR$ bone_name, bool status);
+	
+	void								transfer							C$	(u16 id = u16_max, bool straight = false);
+	CSE_Abstract*						giveItem							C$	(LPCSTR section, float condition = 1.f, bool straight = false);
+	xr_vector<CSE_Abstract*>			giveItems							C$	(LPCSTR section, u16 count, float condition = 1.f, bool straight = false);
+};

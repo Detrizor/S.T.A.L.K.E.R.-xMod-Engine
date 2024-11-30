@@ -20,12 +20,12 @@ void CMonsterSquad::ProcessIdle()
 
 }
 
-struct CPredicateSideSort {
+struct CPredicateSideSort
+{
 	Fvector target;
-
-			CPredicateSideSort	(Fvector pos) {target = pos;} 
-
-	bool	operator()			(CEntity *e1, CEntity *e2) {
+	CPredicateSideSort(Fvector pos) { target = pos; }
+	bool operator() (CEntity *e1, CEntity *e2) const
+	{
 		return (e1->Position().distance_to_sqr(target) > e2->Position().distance_to_sqr(target));
 	}
 };
@@ -59,19 +59,19 @@ void CMonsterSquad::Idle_AssignAction(ENTITY_VEC &members)
 
 		Fvector dir = leader->Direction();
 		front_pos.mad(leader->Position(), dir, CENTER_CIRCLE_DIST);
-		std::sort(front.begin(),front.end(), CPredicateSideSort(front_pos));
+		front.sort(CPredicateSideSort(front_pos));
 
 		dir.invert();
 		back_pos.mad(leader->Position(), dir, CENTER_CIRCLE_DIST);
-		std::sort(back.begin(),back.end(), CPredicateSideSort(back_pos));
+		back.sort(CPredicateSideSort(back_pos));
 
 		dir = leader->XFORM().i;
 		right_pos.mad(leader->Position(), dir, CENTER_CIRCLE_DIST);
-		std::sort(right.begin(),right.end(), CPredicateSideSort(right_pos));
+		right.sort(CPredicateSideSort(right_pos));
 
 		dir.invert();
 		left_pos.mad(leader->Position(), dir, CENTER_CIRCLE_DIST);
-		std::sort(left.begin(),left.end(), CPredicateSideSort(left_pos));
+		left.sort(CPredicateSideSort(left_pos));
 
 		SSquadCommand command;
 		command.type		= SC_FOLLOW;

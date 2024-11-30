@@ -40,9 +40,7 @@ xr_token							qssao_token									[ ]={
 	{ "st_opt_low",					1												},
 	{ "st_opt_medium",				2												},
 	{ "st_opt_high",				3												},
-#if defined(USE_DX10) || defined(USE_DX11)
 	{ "st_opt_ultra",				4												},
-#endif
 	{ 0,							0												}
 };
 
@@ -51,10 +49,8 @@ xr_token							qsun_quality_token							[ ]={
 	{ "st_opt_low",					0												},
 	{ "st_opt_medium",				1												},
 	{ "st_opt_high",				2												},
-#if defined(USE_DX10) || defined(USE_DX11)
 	{ "st_opt_ultra",				3												},
 	{ "st_opt_extreme",				4												},
-#endif	//	USE_DX10
 	{ 0,							0												}
 };
 
@@ -140,6 +136,9 @@ float		ps_r2_ssaLOD_A				= 64.f	;
 float		ps_r2_ssaLOD_B				= 48.f	;
 float		ps_r2_tf_Mipbias			= 0.0f	;
 
+float		ps_r__render_distance		= 500.f	;
+float		ps_r__render_distance_sqr	= 250000.f;
+
 // R2-specific
 Flags32		ps_r2_ls_flags				= { R2FLAG_SUN 
 	//| R2FLAG_SUN_IGNORE_PORTALS
@@ -220,9 +219,9 @@ float		ps_r2_lt_smooth				= 1.f;				// 1.f
 float		ps_r2_slight_fade			= 0.5f;				// 1.f
 
 //	x - min (0), y - focus (1.4), z - max (100)
-Fvector3	ps_r2_dof					= Fvector3().set(-1.25f, 1.4f, 600.f);
-float		ps_r2_dof_sky				= 30;				//	distance to sky
-float		ps_r2_dof_kernel_size		= 5.0f;						//	7.0f
+Fvector3	ps_r2_dof					= { -10000.f, 0.f, 10000.f };
+float		ps_r2_dof_sky				= 0.f;				//	distance to sky
+float		ps_r2_dof_kernel_size		= 2.f;				//	7.0f
 
 float		ps_r3_dyn_wet_surf_near		= 10.f;				// 10.0f
 float		ps_r3_dyn_wet_surf_far		= 30.f;				// 30.0f
@@ -246,28 +245,26 @@ u32			dm_current_cache_line = 49;	//dm_current_size+1+dm_current_size
 u32			dm_current_cache_size = 2401;	//dm_current_cache_line*dm_current_cache_line
 float		dm_current_fade = 47.5;	//float(2*dm_current_size)-.5f;
 #endif
-float		ps_current_detail_density = 0.3f;
+float		ps_current_detail_density = .3f;
 float		ps_current_detail_scale = 1.f;
+
 xr_token							ext_quality_token[] = {
-    {"qt_off", 0},
-    {"qt_low", 1},
-    {"qt_medium", 2},
-    {"qt_high", 3},
-    {"qt_extreme", 4},
-    {0, 0}
+	{"qt_off", 0},
+	{"qt_low", 1},
+	{"qt_medium", 2},
+	{"qt_high", 3},
+	{"qt_extreme", 4},
+	{0, 0}
 };
 //-AVO
 
 //- Mad Max
-float		ps_r2_gloss_factor			= 0.5f;
+float		ps_r2_gloss_factor			= 3.f;
 //- Mad Max
 #ifndef _EDITOR
 #include	"../../xrEngine/xr_ioconsole.h"
 #include	"../../xrEngine/xr_ioc_cmd.h"
-
-#if defined(USE_DX10) || defined(USE_DX11)
 #include "../xrRenderDX10/StateManager/dx10SamplerStateCache.h"
-#endif	//	USE_DX10
 
 //-----------------------------------------------------------------------
 //AVO: detail draw radius
@@ -275,25 +272,25 @@ float		ps_r2_gloss_factor			= 0.5f;
 class CCC_detail_radius : public CCC_Integer
 {
 public:
-    void	apply()
-    {
-        dm_current_size = iFloor((float) ps_r__detail_radius / 4) * 2;
-        dm_current_cache1_line = dm_current_size * 2 / 4;		// assuming cache1_count = 4
-        dm_current_cache_line = dm_current_size + 1 + dm_current_size;
-        dm_current_cache_size = dm_current_cache_line*dm_current_cache_line;
-        dm_current_fade = float(2 * dm_current_size) - .5f;
-    }
-    CCC_detail_radius(LPCSTR N, int* V, int _min = 0, int _max = 999) : CCC_Integer(N, V, _min, _max)
-    {};
-    virtual void Execute(LPCSTR args)
-    {
-        CCC_Integer::Execute(args);
-        apply();
-    }
-    virtual void	Status(TStatus& S)
-    {
-        CCC_Integer::Status(S);
-    }
+	void	apply()
+	{
+		dm_current_size = iFloor((float) ps_r__detail_radius / 4) * 2;
+		dm_current_cache1_line = dm_current_size * 2 / 4;		// assuming cache1_count = 4
+		dm_current_cache_line = dm_current_size + 1 + dm_current_size;
+		dm_current_cache_size = dm_current_cache_line*dm_current_cache_line;
+		dm_current_fade = float(2 * dm_current_size) - .5f;
+	}
+	CCC_detail_radius(LPCSTR N, int* V, int _min = 0, int _max = 999) : CCC_Integer(N, V, _min, _max)
+	{};
+	virtual void Execute(LPCSTR args)
+	{
+		CCC_Integer::Execute(args);
+		apply();
+	}
+	virtual void	Status(TStatus& S)
+	{
+		CCC_Integer::Status(S);
+	}
 };
 //-AVO
 #endif
@@ -304,12 +301,7 @@ public:
 	void	apply	()	{
 		if (0==HW.pDevice)	return	;
 		int	val = *value;	clamp(val,1,16);
-#if defined(USE_DX10) || defined(USE_DX11)
 		SSManager.SetMaxAnisotropy(val);
-#else	//	USE_DX10
-		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
-			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MAXANISOTROPY, val	));
-#endif	//	USE_DX10
 	}
 	CCC_tf_Aniso(LPCSTR N, int*	v) : CCC_Integer(N, v, 1, 16)		{ };
 	virtual void Execute	(LPCSTR args)
@@ -329,13 +321,8 @@ public:
 	void	apply	()	{
 		if (0==HW.pDevice)	return	;
 
-#if defined(USE_DX10) || defined(USE_DX11)
 		//	TODO: DX10: Implement mip bias control
 		//VERIFY(!"apply not implmemented.");
-#else	//	USE_DX10
-		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
-			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) value)));
-#endif	//	USE_DX10
 	}
 
 	CCC_tf_MipBias(LPCSTR N, float*	v) : CCC_Float(N, v, -0.5f, +0.5f)	{ };
@@ -530,8 +517,6 @@ public		:
 
 };
 
-
-#if RENDER!=R_R1
 #include "r__pixel_calculator.h"
 class CCC_BuildSSA : public IConsole_Command
 {
@@ -539,14 +524,8 @@ public:
 	CCC_BuildSSA(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = TRUE; };
 	virtual void Execute(LPCSTR args) 
 	{
-#if !defined(USE_DX10) && !defined(USE_DX11)
-		//	TODO: DX10: Implement pixel calculator
-		r_pixel_calculator	c;
-		c.run				();
-#endif	//	USE_DX10
 	}
 };
-#endif
 
 class CCC_DofFar : public CCC_Float
 {
@@ -691,7 +670,6 @@ public:
 };
 
 //	Allow real-time fog config reload
-#if	(RENDER == R_R3) || (RENDER == R_R4)
 #ifdef	DEBUG
 
 #include "../xrRenderDX10/3DFluid/dx103DFluidManager.h"
@@ -706,7 +684,6 @@ public:
 	}
 };
 #endif	//	DEBUG
-#endif	//	(RENDER == R_R3) || (RENDER == R_R4)
 
 //-----------------------------------------------------------------------
 void		xrRender_initconsole	()
@@ -726,9 +703,7 @@ void		xrRender_initconsole	()
 	//	Igor: just to test bug with rain/particles corruption
 	CMD1(CCC_RestoreQuadIBData,	"r_restore_quad_ib_data");
 #ifdef DEBUG
-#if RENDER!=R_R1
 	CMD1(CCC_BuildSSA,	"build_ssa"				);
-#endif
 	CMD4(CCC_Integer,	"r__lsleep_frames",		&ps_r__LightSleepFrames,	4,		30		);
 	CMD4(CCC_Float,		"r__ssa_glod_start",	&ps_r__GLOD_ssa_start,		128,	512		);
 	CMD4(CCC_Float,		"r__ssa_glod_end",		&ps_r__GLOD_ssa_end,		16,		96		);
@@ -808,7 +783,7 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r2_zfill_depth",		&ps_r2_zfill,				.001f,	.5f		);
 	CMD3(CCC_Mask,		"r2_allow_r1_lights",	&ps_r2_ls_flags,			R2FLAG_R1LIGHTS	);
 
-    CMD3(CCC_Mask, "r__actor_shadow", &ps_actor_shadow_flags, RFLAG_ACTOR_SHADOW);  //Swartz: actor shadow
+	CMD3(CCC_Mask, "r__actor_shadow", &ps_actor_shadow_flags, RFLAG_ACTOR_SHADOW);  //Swartz: actor shadow
 
 	//- Mad Max
 	CMD4(CCC_Float,		"r2_gloss_factor",		&ps_r2_gloss_factor,		.0f,	10.f	);
@@ -822,7 +797,7 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Mask,		"r2_sun",				&ps_r2_ls_flags,			R2FLAG_SUN		);
 	CMD3(CCC_Mask,		"r2_sun_details",		&ps_r2_ls_flags,			R2FLAG_SUN_DETAILS);
 	CMD3(CCC_Mask,		"r2_sun_focus",			&ps_r2_ls_flags,			R2FLAG_SUN_FOCUS);
-//	CMD3(CCC_Mask,		"r2_sun_static",		&ps_r2_ls_flags,			R2FLAG_SUN_STATIC);
+	CMD3(CCC_Mask,		"r2_sun_static",		&ps_r2_ls_flags,			R2FLAG_SUN_STATIC);
 //	CMD3(CCC_Mask,		"r2_exp_splitscene",	&ps_r2_ls_flags,			R2FLAG_EXP_SPLIT_SCENE);
 //	CMD3(CCC_Mask,		"r2_exp_donttest_uns",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_UNSHADOWED);
 	CMD3(CCC_Mask,		"r2_exp_donttest_shad",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_SHADOWED);
@@ -831,9 +806,7 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r2_sun_tsm_proj",		&ps_r2_sun_tsm_projection,	.001f,	0.8f	);
 	CMD4(CCC_Float,		"r2_sun_tsm_bias",		&ps_r2_sun_tsm_bias,		-0.5,	+0.5	);
 	CMD4(CCC_Float,		"r2_sun_near",			&ps_r2_sun_near,			1.f,	/*50.f*/150.f	); //AVO: extended from 50 to 150
-#if RENDER!=R_R1
 	CMD4(CCC_Float,		"r2_sun_far",			&OLES_SUN_LIMIT_27_01_07,	51.f,	180.f	);
-#endif
 	CMD4(CCC_Float,		"r2_sun_near_border",	&ps_r2_sun_near_border,		.5f,	1.0f	);
 	CMD4(CCC_Float,		"r2_sun_depth_far_scale",&ps_r2_sun_depth_far_scale,0.5,	1.5		);
 	CMD4(CCC_Float,		"r2_sun_depth_far_bias",&ps_r2_sun_depth_far_bias,	-0.5,	+0.5	);
@@ -928,38 +901,50 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Token,		"r3_minmax_sm",					&ps_r3_minmax_sm,			qminmax_sm_token);
 
 #ifdef DETAIL_RADIUS
-    CMD4(CCC_detail_radius, "r__detail_radius", &ps_r__detail_radius, 50, 250);
+	CMD4(CCC_detail_radius, "r__detail_radius", &ps_r__detail_radius, 50, 500);
+	CMD4(CCC_Float, "r__detail_density", &ps_current_detail_density, 0, 10);
+	CMD4(CCC_Float, "r__detail_scale", &ps_current_detail_scale, 0, 10);
 	CMD4(CCC_Integer, "r__clear_models_on_unload", &ps_clear_models_on_unload, 0, 1); //Alundaio
 	CMD4(CCC_Integer, "r__no_scale_on_fade", &ps_no_scale_on_fade, 0, 1); //Alundaio
 #endif
 
 	//	Allow real-time fog config reload
-#if	(RENDER == R_R3) || (RENDER == R_R4)
 #ifdef	DEBUG
 	CMD1(CCC_Fog_Reload,"r3_fog_reload");
 #endif	//	DEBUG
-#endif	//	(RENDER == R_R3) || (RENDER == R_R4)
 
 	CMD3(CCC_Mask,		"r3_dynamic_wet_surfaces",		&ps_r2_ls_flags,			R3FLAG_DYN_WET_SURF);
 	CMD4(CCC_Float,		"r3_dynamic_wet_surfaces_near",	&ps_r3_dyn_wet_surf_near,	10,	70		);
 	CMD4(CCC_Float,		"r3_dynamic_wet_surfaces_far",	&ps_r3_dyn_wet_surf_far,	30,	100		);
 	CMD4(CCC_Integer,	"r3_dynamic_wet_surfaces_sm_res",&ps_r3_dyn_wet_surf_sm_res,64,	2048	);
 
-	CMD3(CCC_Mask,			"r3_volumetric_smoke",			&ps_r2_ls_flags,			R3FLAG_VOLUMETRIC_SMOKE);
+	CMD3(CCC_Mask,			"r3_volumetric_smoke",		&ps_r2_ls_flags,			R3FLAG_VOLUMETRIC_SMOKE);
 	CMD1(CCC_memory_stats,	"render_memory_stats" );
 	
 
 //	CMD3(CCC_Mask,		"r2_sun_ignore_portals",		&ps_r2_ls_flags,			R2FLAG_SUN_IGNORE_PORTALS);
+
+
+	class CCC_RenderDistance : public CCC_Float
+	{
+	public:
+		CCC_RenderDistance(LPCSTR N, float* V, float _min, float _max) : CCC_Float(N, V, _min, _max) {}
+
+		void Execute(LPCSTR args) override
+		{
+			float v = static_cast<float>(atof(args));
+			ps_r__render_distance_sqr = _sqr(v);
+			__super::Execute(args);
+		}
+	};
+	
+	CMD4(CCC_RenderDistance, "r__render_distance", &ps_r__render_distance, 0.f, 3000.f);
 }
 
 void	xrRender_apply_tf		()
 {
 	Console->Execute	("r__tf_aniso"	);
-#if RENDER==R_R1
-	Console->Execute	("r1_tf_mipbias");
-#else
 	Console->Execute	("r2_tf_mipbias");
-#endif
 }
 
 #endif

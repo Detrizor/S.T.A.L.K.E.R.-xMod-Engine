@@ -160,7 +160,7 @@ void xrMU_Model::calc_lighting	(xr_vector<base_color>& dest, const Fmatrix& xfor
 	{
 		// Unique
 		v_vertices&	VL		= it->second;
-		std::sort			(VL.begin(),VL.end());
+		VL.sort				();
 		VL.erase			(std::unique(VL.begin(),VL.end()),VL.end());
 
 		// Calc summary color

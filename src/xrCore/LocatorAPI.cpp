@@ -469,7 +469,7 @@ void CLocatorAPI::ProcessArchive(LPCSTR _path)
     {
         A.header = xr_new<CInifile>(hdr, "archive_header");
         hdr->close();
-        bProcessArchiveLoading = A.header->r_bool("header", "auto_load");
+        bProcessArchiveLoading = A.header->r_BOOL("header", "auto_load");
     }
     // g_temporary_stuff = g_temporary_stuff_subst;
 

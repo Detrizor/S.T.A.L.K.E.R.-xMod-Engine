@@ -81,7 +81,6 @@ public:
 	virtual bool					bfUseful();
 
 	/////////// network ///////////////
-	u8								m_u8NumItems;
 	SPHNetState						State;
 	///////////////////////////////////
 SERVER_ENTITY_DECLARE_END
@@ -122,127 +121,127 @@ SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeItemTorch)
 #define script_type_list save_type_list(CSE_ALifeItemTorch)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemAmmo,CSE_ALifeItem)
-	u16								a_elapsed;
-	u16								m_boxSize;
+class CSE_ALifeItemAmmo : public CSE_ALifeItem
+{
+typedef CSE_ALifeItem inherited;
 
+public:
 									CSE_ALifeItemAmmo	(LPCSTR caSection);
-	virtual							~CSE_ALifeItemAmmo	();
-	virtual CSE_ALifeItemAmmo		*cast_item_ammo		()  {return this;};
-	virtual bool					can_switch_online	() const;
-	virtual bool					can_switch_offline	() const;
-SERVER_ENTITY_DECLARE_END
+
+	CSE_ALifeItemAmmo*				cast_item_ammo		() override { return this; };
+
+public:
+	u16								a_elapsed			= 1;
+	u16								m_boxSize			= 1;
+	u8								m_mag_pos			= u8_max;
+
+public:
+	void UPDATE_Read(NET_Packet& P) override;
+	void UPDATE_Write(NET_Packet& P) override;
+	void STATE_Read(NET_Packet& P, u16 size) override;
+	void STATE_Write(NET_Packet& P) override;
+	bool can_switch_offline() const override;
+	
+	static void script_register(lua_State*);
+};
+
 add_to_type_list(CSE_ALifeItemAmmo)
 #define script_type_list save_type_list(CSE_ALifeItemAmmo)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeapon,CSE_ALifeItem)
+class CSE_ALifeItemWeapon : public CSE_ALifeItem
+{
+typedef CSE_ALifeItem inherited;
 
-	typedef	ALife::EWeaponAddonStatus	EWeaponAddonStatus;
-	
-	//текущее состояние аддонов
-	enum EWeaponAddonState 
-	{
-		eWeaponAddonScope = 0x01,
-		eWeaponAddonGrenadeLauncher = 0x02,
-		eWeaponAddonSilencer = 0x04
-	};
+public:
+	u8								wpn_flags			= 0;
 
-	EWeaponAddonStatus				m_scope_status;
-	EWeaponAddonStatus				m_silencer_status;				
-	EWeaponAddonStatus				m_grenade_launcher_status;
-
-	u32								timestamp;
-	u8								wpn_flags;
-	u8								wpn_state;
-	u8								ammo_type;
-	u16								a_current;
-	u16								a_elapsed;
-	//count of grenades to spawn in grenade launcher [ttcccccc]
-	//WARNING! hight 2 bits (tt bits) indicate type of grenade, so maximum grenade count is 2^6 = 64
-	struct grenade_count_t
-	{
-		u8	grenades_count	:	6;
-		u8	grenades_type	:	2;
-		u8	pack_to_byte() const
-		{
-			return (grenades_type << 6) | grenades_count;
-		}
-		void unpack_from_byte(u8 const b)
-		{
-			grenades_type	=	(b >> 6);
-			grenades_count	=	b & 0x3f; //111111
-		}
-	}; //struct grenade_count_t
-	grenade_count_t					a_elapsed_grenades;
-
-	float							m_fHitPower;
-	ALife::EHitType					m_tHitType;
 	LPCSTR							m_caAmmoSections;
 	u32								m_dwAmmoAvailable;
-	Flags8							m_addon_flags;
-	u8								m_bZoom;
 	u32								m_ef_main_weapon_type;
 	u32								m_ef_weapon_type;
 
 									CSE_ALifeItemWeapon	(LPCSTR caSection);
-	virtual							~CSE_ALifeItemWeapon();
-	virtual void					OnEvent				(NET_Packet& P, u16 type, u32 time, ClientID sender );
 	virtual u32						ef_main_weapon_type	() const;
 	virtual u32						ef_weapon_type		() const;
 	u8								get_slot			();
-	u16								get_ammo_total		();
-	u16								get_ammo_elapsed	();
-	void							set_ammo_elapsed	(u16 count);
-	u16								get_ammo_magsize	();
-
-	Flags8&							get_addon_flags() { return m_addon_flags; }
-	//void							set_addon_flags(const Flags8 &_flags) { m_addon_flags.flags = _flags.flags; }
-
-	void							clone_addons		(CSE_ALifeItemWeapon* parent);
 
 	virtual BOOL					Net_Relevant		();
 
 	virtual CSE_ALifeItemWeapon		*cast_item_weapon	() {return this;}
-SERVER_ENTITY_DECLARE_END
+
+public:
+	void STATE_Read(NET_Packet& P, u16 size) override;
+
+	static void script_register(lua_State*);
+};
+
 add_to_type_list(CSE_ALifeItemWeapon)
 #define script_type_list save_type_list(CSE_ALifeItemWeapon)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeaponMagazined,CSE_ALifeItemWeapon)
-u8			m_u8CurFireMode;
-CSE_ALifeItemWeaponMagazined(LPCSTR caSection);
-virtual							~CSE_ALifeItemWeaponMagazined();
+class CSE_ALifeItemWeaponMagazined : public CSE_ALifeItemWeapon
+{
+typedef CSE_ALifeItemWeapon inherited;
 
-virtual CSE_ALifeItemWeapon		*cast_item_weapon	() {return this;}
-SERVER_ENTITY_DECLARE_END
+public:
+	static void script_register(lua_State*);
+	CSE_ALifeItemWeaponMagazined(LPCSTR caSection) : CSE_ALifeItemWeapon(caSection) {}
+	~CSE_ALifeItemWeaponMagazined() override {}
+	CSE_ALifeItemWeapon* cast_item_weapon() override {return this;}
+
+private:
+	u8 m_u8CurFireMode = 0;
+	float m_ads_shift = 0.f;
+	bool m_locked = false;
+	bool m_cocked = false;
+
+public:
+	void STATE_Read(NET_Packet& P, u16 size) override;
+	void STATE_Write(NET_Packet& P) override;
+
+	friend class CWeaponMagazined;
+};
+
 add_to_type_list(CSE_ALifeItemWeaponMagazined)
 #define script_type_list save_type_list(CSE_ALifeItemWeaponMagazined)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeaponMagazinedWGL, CSE_ALifeItemWeaponMagazined)
-bool			m_bGrenadeMode;
-CSE_ALifeItemWeaponMagazinedWGL(LPCSTR caSection);
-virtual							~CSE_ALifeItemWeaponMagazinedWGL();
+class CSE_ALifeItemWeaponMagazinedWGL : public CSE_ALifeItemWeaponMagazined
+{
+typedef CSE_ALifeItemWeaponMagazined inherited;
 
-virtual CSE_ALifeItemWeapon		*cast_item_weapon	() {return this;}
-SERVER_ENTITY_DECLARE_END
+public:
+	static void script_register(lua_State*);
+	CSE_ALifeItemWeaponMagazinedWGL(LPCSTR caSection) : CSE_ALifeItemWeaponMagazined(caSection) {}
+	~CSE_ALifeItemWeaponMagazinedWGL() override {}
+	CSE_ALifeItemWeapon* cast_item_weapon() override {return this;}
+
+private:
+	u8 m_bGrenadeMode = 0;
+
+public:
+	void STATE_Read(NET_Packet& P, u16 size) override;
+	void STATE_Write(NET_Packet& P) override;
+
+	friend class CWeaponMagazinedWGrenade;
+};
+
 add_to_type_list(CSE_ALifeItemWeaponMagazinedWGL)
 #define script_type_list save_type_list(CSE_ALifeItemWeaponMagazinedWGL)
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeaponShotGun,CSE_ALifeItemWeaponMagazined)
-	xr_vector<u8>				m_AmmoIDs;
-								CSE_ALifeItemWeaponShotGun(LPCSTR caSection);
-virtual							~CSE_ALifeItemWeaponShotGun();
+class CSE_ALifeItemWeaponAutoShotGun : public CSE_ALifeItemWeaponMagazined
+{
+typedef CSE_ALifeItemWeaponMagazined inherited;
 
-virtual CSE_ALifeItemWeapon		*cast_item_weapon	() {return this;}
-SERVER_ENTITY_DECLARE_END
-add_to_type_list(CSE_ALifeItemWeaponShotGun)
-#define script_type_list save_type_list(CSE_ALifeItemWeaponShotGun)
+public:
+	static void script_register(lua_State*);
+	CSE_ALifeItemWeaponAutoShotGun(LPCSTR caSection) : CSE_ALifeItemWeaponMagazined(caSection) {}
+	CSE_ALifeItemWeapon* cast_item_weapon() override {return this;}
 
-SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemWeaponAutoShotGun,CSE_ALifeItemWeaponShotGun)
-								CSE_ALifeItemWeaponAutoShotGun(LPCSTR caSection);
-virtual							~CSE_ALifeItemWeaponAutoShotGun();
+public:
+	void STATE_Read(NET_Packet& P, u16 size) override;
 
-virtual CSE_ALifeItemWeapon		*cast_item_weapon	() {return this;}
-SERVER_ENTITY_DECLARE_END
+	friend class CWeaponAutomaticShotgun;
+};
+
 add_to_type_list(CSE_ALifeItemWeaponAutoShotGun)
 #define script_type_list save_type_list(CSE_ALifeItemWeaponAutoShotGun)
 

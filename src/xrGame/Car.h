@@ -612,7 +612,7 @@ public:
 	void					SetExplodeTime				(u32 et)	;
 			u32				ExplodeTime					()			;
 	// Inventory for the car	
-	CInventory*						GetInventory						(){return inventory;}
+	CInventory*						GetInventory						(){return inventory.get();}
 		  void						VisualUpdate						(float fov=90.0f);
 
 protected:
@@ -628,7 +628,6 @@ protected:
 public:
 	CCar(void);
 	virtual ~CCar(void);
-	virtual BOOL					AlwaysTheCrow						();
 
 public:
 	virtual CEntity*					cast_entity				()						{return this;}
@@ -638,7 +637,7 @@ private:
 	IC void fill_doors_map(LPCSTR S,xr_map<u16,SDoor>& doors);
 
 	//Inventory for the car
-	CInventory	*inventory;
+	xptr<CInventory> inventory{ nullptr };
 	
 	virtual	void reinit			();
 	virtual	void reload			(LPCSTR section);
@@ -655,10 +654,11 @@ private:
 
 public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+	
+protected:
+	bool								alwaysUpdate						O$	();
 };
+
 add_to_type_list(CCar)
 #undef script_type_list
 #define script_type_list save_type_list(CCar)
-
-//#endif // #if 0
-

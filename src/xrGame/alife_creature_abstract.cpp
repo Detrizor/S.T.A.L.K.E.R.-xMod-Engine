@@ -31,13 +31,3 @@ void CSE_ALifeCreatureAbstract::on_spawn	()
 	if (!g_Alive())
 		m_game_death_time				= 0;//alife().time_manager().game_time();
 }
-
-void CSE_ALifeCreatureActor::add_online		(const bool &update_registries)
-{
-	CSE_ALifeTraderAbstract::add_online	(update_registries);
-}
-
-void CSE_ALifeCreatureActor::add_offline	(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
-{
-	CSE_ALifeTraderAbstract::add_offline(saved_children,update_registries);
-}

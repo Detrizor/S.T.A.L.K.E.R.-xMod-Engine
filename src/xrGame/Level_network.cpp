@@ -28,86 +28,39 @@ const int max_objects_size_in_save	= 8*1024;
 
 extern bool	g_b_ClearGameCaptions;
 
-void CLevel::remove_objects	()
+void CLevel::remove_objects()
 {
-	BOOL						b_stored = psDeviceFlags.test(rsDisableObjectsAsCrows);
-	
-	int loop = 5;
-	while(loop)
-	{
-		if (OnServer()) 
-		{
-			R_ASSERT				(Server);
-			Server->SLS_Clear		();
-		}
+	bReady								= false;
+	Server->SLS_Clear					();
+	snd_Events.clear					();
 
-		if (OnClient())
-			ClearAllObjects			();
+	// ugly hack for checks that update is twice on frame
+	// we need it since we do updates for checking network messages
+	++Device.dwFrame;
+	psNET_Flags.set						(NETFLAG_MINIMIZEUPDATES, FALSE);
 
-		for (int i=0; i<20; ++i) 
-		{
-			snd_Events.clear		();
-			psNET_Flags.set			(NETFLAG_MINIMIZEUPDATES,FALSE);
-			// ugly hack for checks that update is twice on frame
-			// we need it since we do updates for checking network messages
-			++(Device.dwFrame);
-			psDeviceFlags.set		(rsDisableObjectsAsCrows,TRUE);
-			ClientReceive			();
-			ProcessGameEvents		();
-			Objects.Update			(false);
-			#ifdef DEBUG
-			Msg						("Update objects list...");
-			#endif // #ifdef DEBUG
-			Objects.dump_all_objects();
-		}
+	ClientReceive						();
+	ProcessGameEvents					();
+	Objects.Update						();
 
-		if(Objects.o_count()==0)
-			break;
-		else
-		{
-			--loop;
-			Msg						("Objects removal next loop. Active objects count=%d", Objects.o_count());
-		}
+	#ifdef DEBUG
+	Msg									("Update objects list...");
+	Objects.dump_all_objects			();
+	#endif
 
-	}
+	R_ASSERT							(!Objects.o_count());
 
-	BulletManager().Clear		();
-	ph_commander().clear		();
-	ph_commander_scripts().clear();
-
-	if(!g_dedicated_server)
-		space_restriction_manager().clear	();
-
-	psDeviceFlags.set			(rsDisableObjectsAsCrows, b_stored);
-	g_b_ClearGameCaptions		= true;
-
-	if (!g_dedicated_server)
-		ai().script_engine().collect_all_garbage	();
-
-	stalker_animation_data_storage().clear		();
-	
-	VERIFY										(Render);
-	Render->models_Clear						(FALSE);
-	
-	Render->clear_static_wallmarks				();
-
-#ifdef DEBUG
-	if(!g_dedicated_server)
-		if (!client_spawn_manager().registry().empty())
-			client_spawn_manager().dump				();
-#endif // DEBUG
-	if(!g_dedicated_server)
-	{
-#ifdef DEBUG
-		VERIFY										(client_spawn_manager().registry().empty());
-#endif
-		client_spawn_manager().clear			();
-	}
-
-	g_pGamePersistent->destroy_particles		(false);
-
-//.	xr_delete									(m_seniority_hierarchy_holder);
-//.	m_seniority_hierarchy_holder				= xr_new<CSeniorityHierarchyHolder>();
+	BulletManager().Clear				();
+	ph_commander().clear				();
+	ph_commander_scripts().clear		();
+	space_restriction_manager().clear	();
+	g_b_ClearGameCaptions				= true;
+	ai().script_engine().collect_all_garbage();
+	stalker_animation_data_storage().clear();
+	Render->models_Clear				(FALSE);
+	Render->clear_static_wallmarks		();
+	client_spawn_manager().clear		();
+	g_pGamePersistent->destroy_particles(false);
 }
 
 #ifdef DEBUG
@@ -133,7 +86,6 @@ void CLevel::net_Stop		()
 	if(g_tutorial2 && !g_tutorial->Persistent())
 		g_tutorial2->Stop();
 
-	bReady						= false;
 	m_bGameConfigStarted		= FALSE;
 
 	if (m_file_transfer)
@@ -163,8 +115,7 @@ void CLevel::net_Stop		()
 		xr_delete				(Server);
 	}
 
-	if (!g_dedicated_server)
-		ai().script_engine().collect_all_garbage	();
+	ai().script_engine().collect_all_garbage();
 
 #ifdef DEBUG
 	show_animation_stats		();
@@ -209,38 +160,7 @@ void CLevel::ClientSend(bool bForce)
 	}
 }
 
-u32	CLevel::Objects_net_Save	(NET_Packet* _Packet, u32 start, u32 max_object_size)
-{
-	NET_Packet& Packet	= *_Packet;
-	u32			position;
-	for (; start<Objects.o_count(); start++)	{
-		CObject		*_P = Objects.o_get_by_iterator(start);
-		CGameObject *P = smart_cast<CGameObject*>(_P);
-//		Msg			("save:iterating:%d:%s, size[%d]",P->ID(),*P->cName(), Packet.w_tell() );
-		if (P && !P->getDestroy() && P->net_SaveRelevant())	{
-			Packet.w_u16			(u16(P->ID())	);
-			Packet.w_chunk_open16	(position);
-//			Msg						("save:saving:%d:%s",P->ID(),*P->cName());
-			P->net_Save				(Packet);
-#ifdef DEBUG
-			u32 size				= u32		(Packet.w_tell()-position)-sizeof(u16);
-//			Msg						("save:saved:%d bytes:%d:%s",size,P->ID(),*P->cName());
-			if				(size>=65536)			{
-				Debug.fatal	(DEBUG_INFO,"Object [%s][%d] exceed network-data limit\n size=%d, Pend=%d, Pstart=%d",
-					*P->cName(), P->ID(), size, Packet.w_tell(), position);
-			}
-#endif
-			Packet.w_chunk_close16	(position);
-//			if (0==(--count))		
-//				break;
-			if (max_object_size >= (NET_PacketSizeLimit - Packet.w_tell()))
-				break;
-		}
-	}
-	return	++start;
-}
-
-void CLevel::ClientSave	()
+void CLevel::ClientSave()
 {
 	u32 position;
 	for (u32 start = 0; start < Objects.o_count(); start++) 

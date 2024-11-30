@@ -119,16 +119,14 @@ void CUILine::ProcessNewLines()
 	}
 }
 
-void CUILine::Draw(CGameFont* pFont, float x, float y) const{
-	float length = 0;
-	int size = m_subLines.size();
-
-	for (int i=0; i<size; i++)
+void CUILine::Draw(CGameFont* pFont, float x, float y) const
+{
+	float length			= 0;
+	int size				= m_subLines.size();
+	for (int i=0; i < size; i++)
 	{
-		m_subLines[i].Draw(pFont, x+length, y);
-		float ll = pFont->SizeOf_(m_subLines[i].m_text.c_str()); //. all ok
-		UI().ClientToScreenScaledWidth(ll);
-		length	+= ll;
+		m_subLines[i].Draw	(pFont, x+length, y);
+		length				+= pFont->SizeOf_(m_subLines[i].m_text.c_str()) * UI().GetTextScaleFactor(); //. all ok
 	}
 }
 

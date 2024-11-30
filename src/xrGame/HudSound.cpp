@@ -200,7 +200,7 @@ void HUD_SOUND_COLLECTION::StopSound(LPCSTR alias)
 void HUD_SOUND_COLLECTION::SetPosition(LPCSTR alias, const Fvector& pos)
 {
 	HUD_SOUND_ITEM* snd_item		= FindSoundItem(alias, false);
-	if(snd_item && snd_item->playing())
+	if (snd_item && snd_item->playing())
 		snd_item->set_position		(pos);
 }
 
@@ -217,12 +217,19 @@ void HUD_SOUND_COLLECTION::StopAllSounds()
 
 void HUD_SOUND_COLLECTION::LoadSound(LPCSTR section, LPCSTR line, LPCSTR alias, bool exclusive, int type)
 {
-	R_ASSERT					(NULL==FindSoundItem(alias, false));
-	m_sound_items.resize		(m_sound_items.size()+1);
-	HUD_SOUND_ITEM& snd_item	= m_sound_items.back();
-	HUD_SOUND_ITEM::LoadSound	(section, line, snd_item, type);
-	snd_item.m_alias			= alias;
-	snd_item.m_b_exclusive		= exclusive;
+	HUD_SOUND_ITEM*				snd_item;
+	auto it						= std::find(m_sound_items.begin(), m_sound_items.end(), alias);
+	if (it != m_sound_items.end())
+		snd_item				= &(*it);
+	else
+	{
+		m_sound_items.resize	(m_sound_items.size() + 1);
+		snd_item				= &m_sound_items.back();
+	}
+
+	HUD_SOUND_ITEM::LoadSound	(section, line, *snd_item, type);
+	snd_item->m_alias			= alias;
+	snd_item->m_b_exclusive		= exclusive;
 }
 
 //Alundaio:

@@ -25,16 +25,42 @@
 #include "ai_object_location.h"
 #include "object_broker.h"
 #include "../xrEngine/igame_persistent.h"
+#include "ui\UICellCustomItems.h"
 
 #include "ai/trader/ai_trader.h"
 #include "inventory.h"
+#include "uigamecustom.h"
+#include "ui/UIActorMenu.h"
+#include "WeaponAutomaticShotgun.h"
 
+#include "item_container.h"
+#include "addon.h"
+#include "addon_owner.h"
+#include "inventory_item_amountable.h"
+#include "item_usable.h"
+#include "foldable.h"
+#include "magazine.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
 #endif
 
 #define ITEM_REMOVE_TIME		30000
+
+const float	CInventoryItem::s_max_repair_condition = pSettings->r_float("miscellaneous", "max_repair_condition");
+
+bool ItemCategory(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "category"), cmp);
+}
+bool ItemSubcategory(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "subcategory"), cmp);
+}
+bool ItemDivision(const shared_str& section, LPCSTR cmp)
+{
+	return !xr_strcmp(pSettings->r_string(section, "division"), cmp);
+}
 
 net_updateInvData* CInventoryItem::NetSync()
 {
@@ -43,11 +69,11 @@ net_updateInvData* CInventoryItem::NetSync()
 	return m_net_updateData;
 }
 
-CInventoryItem::CInventoryItem()
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CInventoryItem::CInventoryItem(CGameObject* obj) : O(*obj)
 {
 	m_net_updateData = NULL;
-	m_flags.set(Fruck, TRUE);
-	m_flags.set(FRuckDefault, TRUE);
 	m_pInventory = NULL;
 
 	SetDropManual(FALSE);
@@ -57,9 +83,6 @@ CInventoryItem::CInventoryItem()
 	m_flags.set(FCanTrade, m_can_trade);
 	m_flags.set(FUsingCondition, FALSE);
 	m_flags.set(FShowFullCondition, FALSE);
-	m_fCondition = 1.0f;
-
-	m_name = m_nameShort = NULL;
 
 	m_ItemCurrPlace.value = 0;
 	m_ItemCurrPlace.type = eItemPlaceUndefined;
@@ -67,13 +90,7 @@ CInventoryItem::CInventoryItem()
 	m_ItemCurrPlace.hand_slot_id = NO_ACTIVE_SLOT;
 	m_ItemCurrPlace.slot_id = NO_ACTIVE_SLOT;
 
-	m_ItemCurrPlaceBackup.type = eItemPlaceUndefined;
-
-	m_Description = "";
 	m_section_id = 0;
-	m_main_class = 0;
-	m_subclass = 0;
-	m_division = 0;
 	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
 }
@@ -103,77 +120,116 @@ CInventoryItem::~CInventoryItem()
 
 void CInventoryItem::Load(LPCSTR section)
 {
-	CHitImmunity::LoadImmunities	(pSettings->r_string(section, "immunities_sect"), pSettings);
+	CHitImmunity::LoadImmunities		(pSettings->r_string(section, "immunities_sect"), pSettings);
 
-	ISpatial*						self = smart_cast<ISpatial*> (this);
-	if (self)						self->spatial.type |= STYPE_VISIBLEFORAI;
+	ISpatial*							self = smart_cast<ISpatial*> (this);
+	if (self)							self->spatial.type |= STYPE_VISIBLEFORAI;
 
-	m_section_id._set				(section);
-	m_main_class._set				(READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil"));
-	m_subclass._set					(READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil"));
-	m_division._set					(READ_IF_EXISTS(pSettings, r_string, section, "division", "nil"));
-	m_name							= CStringTable().translate(pSettings->r_string(section, "inv_name"));
-	m_nameShort._set				(pSettings->line_exist(section, "inv_name_short") ? CStringTable().translate(pSettings->r_string(section, "inv_name_short")) : m_name);
-	m_Description._set				(pSettings->line_exist(section, "description") ? CStringTable().translate(pSettings->r_string(section, "description")) : "");
+	m_section_id._set					(section);
 
-	m_weight						= pSettings->r_float(section, "inv_weight");
-	R_ASSERT						(m_weight >= 0.f);
-	m_volume						= READ_IF_EXISTS(pSettings, r_float, section, "inv_volume", 0.f);
+	LPCSTR sl							= pSettings->r_string(section, "slot");
+	m_ItemCurrPlace.base_slot_id		= pSettings->r_u16("slot_ids", sl);
+	sl									= pSettings->r_string(section, "hand_slot");
+	m_ItemCurrPlace.hand_slot_id		= pSettings->r_u16("slot_ids", sl);
 
-	LPCSTR sl						= pSettings->r_string(section, "slot");
-	m_ItemCurrPlace.base_slot_id	= pSettings->r_u16("slot_ids", sl);
-	sl								= READ_IF_EXISTS(pSettings, r_string, section, "hand_slot", "none");
-	m_ItemCurrPlace.hand_slot_id	= pSettings->r_u16("slot_ids", sl);
-
-	m_can_trade						= READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
-	m_flags.set						(FCanTake, READ_IF_EXISTS(pSettings, r_bool, section, "can_take", TRUE));
-	m_flags.set						(FCanTrade, m_can_trade);
-	m_flags.set						(FIsQuestItem, READ_IF_EXISTS(pSettings, r_bool, section, "quest_item", FALSE));
-	m_flags.set						(FCanStack, READ_IF_EXISTS(pSettings, r_bool, section, "can_stack", TRUE));
+	m_can_trade							= READ_IF_EXISTS(pSettings, r_BOOL, section, "can_trade", TRUE);
+	m_flags.set							(FCanTake, READ_IF_EXISTS(pSettings, r_BOOL, section, "can_take", TRUE));
+	m_flags.set							(FCanTrade, m_can_trade);
+	m_flags.set							(FIsQuestItem, READ_IF_EXISTS(pSettings, r_BOOL, section, "quest_item", FALSE));
+	m_flags.set							(FCanStack, READ_IF_EXISTS(pSettings, r_BOOL, section, "can_stack", TRUE));
 	// Added by Axel, to enable optional condition use on any item
-	m_flags.set						(FUsingCondition, READ_IF_EXISTS(pSettings, r_bool, section, "use_condition", FALSE));
-	m_flags.set						(FShowFullCondition, READ_IF_EXISTS(pSettings, r_bool, section, "show_full_condition", FALSE));
-	m_bPercentCondition				= !!READ_IF_EXISTS(pSettings, r_bool, section, "percent_condition", false);
+	m_flags.set							(FUsingCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "use_condition", FALSE));
+	m_flags.set							(FShowFullCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "show_full_condition", FALSE));
 
-	m_highlight_equipped			= !!READ_IF_EXISTS(pSettings, r_bool, section, "highlight_equipped", FALSE);
-	m_icon_name						= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
+	m_highlight_equipped				= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "highlight_equipped", FALSE);
+	m_icon_name							= READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
 
-	if (BaseSlot() != NO_ACTIVE_SLOT || HandSlot() != NO_ACTIVE_SLOT)
-	{
-		m_flags.set					(FRuckDefault, pSettings->r_bool(section, "default_to_ruck"));
-		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed"));
-		m_fControlInertionFactor	= pSettings->r_float(section, "control_inertion_factor");
-	}
+	m_flags.set							(FAllowSprint, pSettings->r_BOOL(section, "sprint_allowed"));
+	m_fControlInertionFactor			= pSettings->r_float(section, "control_inertion_factor");
+
+	m_category							= pSettings->r_string(section, "category");
+	m_subcategory						= pSettings->r_string(section, "subcategory");
+	m_division							= pSettings->r_string(section, "division");
 	
-	m_cost_factor					= READ_IF_EXISTS(pSettings, r_float, section, "cost_factor", 1.f);
-	if (pSettings->line_exist("costs", section))
-		m_cost						= pSettings->r_float("costs", section);
-	else if (pSettings->line_exist(section, "cost"))
-		m_cost						= pSettings->r_float(section, "cost");
+	m_name								= readName(section);
+	m_name_short						= readNameShort(section);
+	m_description						= (pSettings->line_exist(section, "description")) ? CStringTable().translate(pSettings->r_string(section, "description")) : "";
+	m_weight							= pSettings->r_float(section, "inv_weight");
+	R_ASSERT							(m_weight >= 0.f);
+	m_volume							= pSettings->r_float(section, "inv_volume");
+	R_ASSERT							(m_volume >= 0.f);
+	m_cost								= readBaseCost(section);
+	
+	m_inv_icon_types					= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "inv_icon_types", FALSE);
+	m_inv_icon_type_default				= READ_IF_EXISTS(pSettings, r_u8, section, "inv_icon_type_default", 0);
+	set_inv_icon						();
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "addon_owner", FALSE))
+		O.addModule<MAddonOwner>		();
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "addon", FALSE))
+		O.addModule<MAddon>				(section);
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "amountable", FALSE))
+		O.addModule<MAmountable>		();
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "usable", FALSE))
+		O.addModule<MUsable>			();
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "foldable", FALSE))
+		O.addModule<MFoldable>			();
+
+	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE))
+		O.addModule<MContainer>			();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CInventoryItem::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+{
+	auto m								= se_obj->getModule<CSE_ALifeModuleInventoryItem>(save);
+	auto se_item						= smart_cast<CSE_ALifeItem*>(se_obj);
+	if (save)
+	{
+		se_item->m_fCondition			= m_condition;
+		m->m_icon_index					= m_inv_icon_index;
+	}
 	else
 	{
-		if (FullClass() == "ammo.box")
-		{
-			LPCSTR ammo_section		= pSettings->r_string(section, "ammo_section");
-			float uses				= pSettings->r_float(section, "max_uses");
-			m_cost					= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost", 0.f) * uses;
-			m_cost_factor			= READ_IF_EXISTS(pSettings, r_float, ammo_section, "cost_factor", 1.f);
-		}
-		else
-			m_cost					= 0.f;
+		m_condition						= se_item->m_fCondition;
+		if (m)
+			SetInvIconIndex				(m->m_icon_index);
 	}
 }
 
-float  CInventoryItem::GetConditionToWork() const
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float CInventoryItem::GetConditionToWork() const
 {
-	float condition		= 0.2f + m_fCondition;
-	return				(condition < 1.f) ? condition : 1.f;
+	float condition						= m_condition / s_max_repair_condition;
+	return								(condition < 1.f) ? condition : 1.f;
 }
 
-void  CInventoryItem::ChangeCondition(float fDeltaCondition)
+void CInventoryItem::SetCondition(float val, bool recursive)
 {
-	m_fCondition += fDeltaCondition;
-	clamp(m_fCondition, 0.f, 1.f);
+	m_condition							= val;
+
+	if (recursive)
+	{
+		if (auto ao = O.getModule<MAddonOwner>())
+			for (auto& s : ao->AddonSlots())
+				for (auto a : s->addons)
+					a->I->SetCondition	(val, true);
+
+		if (auto mag = O.getModule<MMagazine>())
+			mag->setCondition			(val, true);
+	}
+}
+
+void CInventoryItem::ChangeCondition(float fDeltaCondition)
+{
+	m_condition							+= fDeltaCondition;
+	clamp								(m_condition, 0.f, 1.f);
 }
 
 void	CInventoryItem::Hit(SHit* pHDS)
@@ -186,54 +242,14 @@ void	CInventoryItem::Hit(SHit* pHDS)
 	ChangeCondition(-hit_power);
 }
 
-LPCSTR CInventoryItem::NameItem()
-{
-	return m_name.c_str();
-}
-
-LPCSTR CInventoryItem::NameShort()
-{
-	return m_nameShort.c_str();
-}
-/*
-LPCSTR CInventoryItem::NameComplex()
-{
-const char *l_name = Name();
-if(l_name) 	m_nameComplex = l_name;
-else 		m_nameComplex = 0;
-
-if( m_flags.test(FUsingCondition) ){
-string32		cond;
-if(GetCondition()<0.33)		xr_strcpy		(cond,	"[poor]");
-else if(GetCondition()<0.66)xr_strcpy		(cond,	"[bad]"	);
-else						xr_strcpy		(cond,	"[good]");
-string256		temp;
-strconcat		(temp,*m_nameComplex," ",cond)	;
-// xr_sprintf			(temp,"%s %s",*m_nameComplex,cond);
-m_nameComplex	= temp;
-}
-
-return *m_nameComplex;
-}
-*/
 bool CInventoryItem::Useful() const
 {
 	return CanTake();
 }
 
-bool CInventoryItem::ActivateItem()
-{
-	return false;
-}
-
-void CInventoryItem::DeactivateItem()
-{
-}
-
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
-	UpdateXForm();
-	m_ItemCurrPlace.type = eItemPlaceUndefined;
+	onInventoryAction();
 }
 
 void CInventoryItem::OnH_A_Independent()
@@ -252,6 +268,7 @@ void CInventoryItem::OnH_A_Chield()
 {
 	inherited::OnH_A_Chield();
 }
+
 #ifdef DEBUG
 extern	Flags32	dbg_net_Draw_Flags;
 #endif
@@ -259,7 +276,8 @@ extern	Flags32	dbg_net_Draw_Flags;
 void CInventoryItem::UpdateCL()
 {
 #ifdef DEBUG
-	if (bDebug){
+	if (bDebug)
+	{
 		if (dbg_net_Draw_Flags.test(dbg_draw_invitem))
 		{
 			Device.seqRender.Remove(this);
@@ -270,31 +288,14 @@ void CInventoryItem::UpdateCL()
 			Device.seqRender.Remove(this);
 		}
 	}
-
 #endif
-
 }
 
 void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
 {
 	switch (type)
 	{
-	case GE_ADDON_ATTACH:
-	{
-		u16 ItemID;
-		P.r_u16(ItemID);
-		CInventoryItem*	 ItemToAttach = smart_cast<CInventoryItem*>(Level().Objects.net_Find(ItemID));
-		if (!ItemToAttach) break;
-		Attach(ItemToAttach, true);
-	}break;
-	case GE_ADDON_DETACH:
-	{
-		string64			i_name;
-		P.r_stringZ(i_name);
-		Detach(i_name, true);
-	}break;
-	case GE_CHANGE_POS:
-	{
+	case GE_CHANGE_POS:{
 		Fvector p;
 		P.r_vec3(p);
 		CPHSynchronize* pSyncObj = NULL;
@@ -305,46 +306,8 @@ void CInventoryItem::OnEvent(NET_Packet& P, u16 type)
 		state.position = p;
 		state.previous_position = p;
 		pSyncObj->set_State(state);
-
-	}break;
+		}break;
 	}
-}
-
-//процесс отсоединения вещи заключается в спауне новой вещи 
-//в инвентаре и установке соответствующих флагов в родительском
-//объекте, поэтому функция должна быть переопределена
-bool CInventoryItem::Detach(const char* item_section_name, bool b_spawn_item)
-{
-	if (OnClient()) return true;
-	if (b_spawn_item)
-	{
-		CSE_Abstract*		D = F_entity_Create(item_section_name);
-		R_ASSERT(D);
-		CSE_ALifeDynamicObject	*l_tpALifeDynamicObject =
-			smart_cast<CSE_ALifeDynamicObject*>(D);
-		R_ASSERT(l_tpALifeDynamicObject);
-
-		l_tpALifeDynamicObject->m_tNodeID = (g_dedicated_server) ? u32(-1) : object().ai_location().level_vertex_id();
-
-		// Fill
-		D->s_name = item_section_name;
-		D->set_name_replace("");
-		//.		D->s_gameid			=	u8(GameID());
-		D->s_RP = 0xff;
-		D->ID = 0xffff;
-		D->ID_Parent = u16(object().H_Parent()->ID());
-		D->ID_Phantom = 0xffff;
-		D->o_Position = object().Position();
-		D->s_flags.assign(M_SPAWN_OBJECT_LOCAL);
-		D->RespawnTime = 0;
-		// Send
-		NET_Packet			P;
-		D->Spawn_Write(P, TRUE);
-		Level().Send(P, net_flags(TRUE));
-		// Destroy
-		F_entity_Destroy(D);
-	}
-	return true;
 }
 
 /////////// network ///////////////////////////////
@@ -367,36 +330,44 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 	CSE_ALifeInventoryItem			*pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e);
 	if (!pSE_InventoryItem)			return TRUE;
 
-	//!!!
-	m_fCondition = pSE_InventoryItem->m_fCondition;
-
 	net_Spawn_install_upgrades(pSE_InventoryItem->m_upgrades);
 
 	m_dwItemIndependencyTime = 0;
 
 	m_just_after_spawn = true;
 	m_activated = false;
+
+	LPCSTR s_vis_name					= pSettings->r_string(m_section_id, "visual");
+	if (xr_strcmp(s_vis_name, O.visual_name(e)))
+	{
+		O.cNameVisual_set				(s_vis_name);
+		CSE_Visual* visual				= smart_cast<CSE_Visual*>(e);
+		visual->set_visual				(s_vis_name);
+	}
+
 	return							TRUE;
 }
 
 void CInventoryItem::net_Destroy()
 {
-	if (m_pInventory){
-		VERIFY(std::find(m_pInventory->m_all.begin(), m_pInventory->m_all.end(), this) == m_pInventory->m_all.end());
-	}
+	if (m_pInventory)
+		VERIFY(!m_pInventory->m_all.contains(this));
 
-	//инвентарь которому мы принадлежали
-	//.	m_pInventory = NULL;
+	if (m_icon)
+	{
+		auto& actor_menu = CurrentGameUI()->GetActorMenu();
+		if (actor_menu.CurrentItem() == m_icon.get())
+			actor_menu.SetCurrentItem(nullptr);
+	}
 }
 
 void CInventoryItem::save(NET_Packet &packet)
 {
 	packet.w_u16(m_ItemCurrPlace.value);
-	packet.w_float(m_fCondition);
+	packet.w_float(0.f);
 
-	//--	save_data				(m_upgrades, packet);
-
-	if (object().H_Parent()) {
+	if (object().H_Parent())
+	{
 		packet.w_u8(0);
 		return;
 	}
@@ -406,150 +377,44 @@ void CInventoryItem::save(NET_Packet &packet)
 	object().PHSaveState(packet);
 }
 
+void CInventoryItem::load(IReader& packet)
+{
+	m_ItemCurrPlace.value = packet.r_u16();
+	packet.r_float();
+
+	if (!packet.r_u8())
+		return;
+
+	if (!object().PPhysicsShell()) {
+		object().setup_physic_shell();
+		object().PPhysicsShell()->Disable();
+	}
+
+	object().PHLoadState(packet);
+	object().PPhysicsShell()->Disable();
+}
+
 void CInventoryItem::net_Import(NET_Packet& P)
 {
-	//copy from CPhysicObject
-	//Msg("Inventory item [%d][%s] net_Import...", object().ID(), object().cName().c_str());
-	u8							NumItems = 0;
-	NumItems = P.r_u8();
-	if (!NumItems)
-		return;
+	P.r_u8();
+}
 
-	mask_inv_num_items			num_items;
-	num_items.common = NumItems;
-	NumItems = num_items.num_items;
-
-	/*if (num_items.mask & CSE_ALifeObjectPhysic::animated)
-	{
-	net_Import_Anim_Params(P);
-	}*/
-
-	net_update_IItem			N;
-	N.dwTimeStamp = Device.dwTimeGlobal;
-
-	net_Import_PH_Params(P, N, num_items);
-	////////////////////////////////////////////
-	P.r_u8();	//active (not freezed ot not)
-
-	if (this->cast_game_object()->Local())
-	{
-		return;
-	}
-
-	net_updateInvData				*p = NetSync();
-
-	//	if (!p->NET_IItem.empty() && (p->NET_IItem.back().dwTimeStamp>=N.dwTimeStamp))
-	//		return;
-
-	//if (!p->NET_IItem.empty())
-	//m_flags.set							(FInInterpolate, TRUE);
-
-	Level().AddObject_To_Objects4CrPr(m_object);
-	//this->CrPr_SetActivated				(false);
-	//this->CrPr_SetActivationStep			(0);
-
-	p->NET_IItem.push_back(N);
-
-	while (p->NET_IItem.size() > 2)
-	{
-		p->NET_IItem.pop_front();
-	}
-	if (!m_activated)
-	{
-#ifdef DEBUG
-		Msg("Activating object [%d] before interpolation starts", object().ID());
-#endif // #ifdef DEBUG
-		object().processing_activate();
-		m_activated = true;
-	}
-
-	/*u8							NumItems = 0;
-	NumItems					= P.r_u8();
-	if (!NumItems)
-	return;
-
-	net_update_IItem			N;
-	N.State.force.set			(0.f,0.f,0.f);
-	N.State.torque.set			(0.f,0.f,0.f);
-
-	P.r_vec3					(N.State.position);
-
-	N.State.quaternion.x		= P.r_float_q8(-1.f, 1.f);
-	N.State.quaternion.y		= P.r_float_q8(-1.f, 1.f);
-	N.State.quaternion.z		= P.r_float_q8(-1.f, 1.f);
-	N.State.quaternion.w		= P.r_float_q8(-1.f, 1.f);
-
-	mask_num_items				num_items;
-	num_items.common			= NumItems;
-	NumItems					= num_items.num_items;
-
-	N.State.enabled				= num_items.mask & CSE_ALifeInventoryItem::inventory_item_state_enabled;
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null)) {
-	N.State.angular_vel.x	= P.r_float_q8(0.f,10.f*PI_MUL_2);
-	N.State.angular_vel.y	= P.r_float_q8(0.f,10.f*PI_MUL_2);
-	N.State.angular_vel.z	= P.r_float_q8(0.f,10.f*PI_MUL_2);
-	}
-	else
-	N.State.angular_vel.set	(0.f,0.f,0.f);
-
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_linear_null)) {
-	N.State.linear_vel.x	= P.r_float_q8(-32.f,32.f);
-	N.State.linear_vel.y	= P.r_float_q8(-32.f,32.f);
-	N.State.linear_vel.z	= P.r_float_q8(-32.f,32.f);
-	}
-	else
-	N.State.linear_vel.set	(0.f,0.f,0.f);
-	////////////////////////////////////////////
-
-	N.State.previous_position	= N.State.position;
-	N.State.previous_quaternion	= N.State.quaternion;
-
-	net_updateData				*p = NetSync();
-
-	if (!p->NET_IItem.empty())
-	{
-	//if (p->NET_IItem.back().dwTimeStamp>=N.dwTimeStamp)
-	//{
-	//	return;
-	//}
-	//m_flags.set				(FInInterpolate, TRUE);
-	}
-
-	Level().AddObject_To_Objects4CrPr		(m_object);
-	object().CrPr_SetActivated				(false);
-	object().CrPr_SetActivationStep			(0);
-
-	p->NET_IItem.push_back					(N);
-	while (p->NET_IItem.size() > 2)
-	{
-	p->NET_IItem.pop_front				();
-	};
-
-	P.r_u8();	//enabled or not*/
-};
+void CInventoryItem::net_Export(NET_Packet& P)
+{
+	P.w_u8(0);
+}
 
 void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, mask_inv_num_items& num_items)
 {
-
-	//N.State.force.set			(0.f,0.f,0.f);
-	//N.State.torque.set			(0.f,0.f,0.f);
-	//UI().Font().pFontStat->OutSet(100.0f,100.0f);
 	P.r_vec3(N.State.force);
-	//Msg("Import N.State.force.y:%4.6f",N.State.force.y);
 	P.r_vec3(N.State.torque);
-
 	P.r_vec3(N.State.position);
-	//Msg("Import N.State.position.y:%4.6f",N.State.position.y);
-
 	P.r_float(N.State.quaternion.x);
 	P.r_float(N.State.quaternion.y);
 	P.r_float(N.State.quaternion.z);
 	P.r_float(N.State.quaternion.w);
 
-
-
 	N.State.enabled = num_items.mask & CSE_ALifeInventoryItem::inventory_item_state_enabled;
-	//UI().Font().pFontStat->OutNext("Import N.State.enabled:%i",int(N.State.enabled));
 	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null)) {
 		N.State.angular_vel.x = P.r_float();
 		N.State.angular_vel.y = P.r_float();
@@ -565,7 +430,6 @@ void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, ma
 	}
 	else
 		N.State.linear_vel.set(0.f, 0.f, 0.f);
-	//Msg("Import N.State.linear_vel.y:%4.6f",N.State.linear_vel.y);
 
 	N.State.previous_position = N.State.position;
 	N.State.previous_quaternion = N.State.quaternion;
@@ -573,14 +437,9 @@ void CInventoryItem::net_Import_PH_Params(NET_Packet& P, net_update_IItem& N, ma
 
 void CInventoryItem::net_Export_PH_Params(NET_Packet& P, SPHNetState& State, mask_inv_num_items&	num_items)
 {
-	//UI().Font().pFontStat->OutSet(100.0f,100.0f);
 	P.w_vec3(State.force);
-	//Msg("Export State.force.y:%4.6f",State.force.y);
 	P.w_vec3(State.torque);
-	//UI().Font().pFontStat->OutNext("Export State.torque:%4.6f",State.torque.magnitude());
 	P.w_vec3(State.position);
-	//Msg("Export State.position.y:%4.6f",State.position.y);
-	//Msg("Export State.enabled:%i",int(State.enabled));
 
 	float					magnitude = _sqrt(State.quaternion.magnitude());
 	if (fis_zero(magnitude)) {
@@ -590,162 +449,28 @@ void CInventoryItem::net_Export_PH_Params(NET_Packet& P, SPHNetState& State, mas
 		State.quaternion.z = 1.f;
 		State.quaternion.w = 0.f;
 	}
-	else {
-		/*		float				invert_magnitude = 1.f/magnitude;
-
-		State.quaternion.x	*= invert_magnitude;
-		State.quaternion.y	*= invert_magnitude;
-		State.quaternion.z	*= invert_magnitude;
-		State.quaternion.w	*= invert_magnitude;
-
-		clamp				(State.quaternion.x,-1.f,1.f);
-		clamp				(State.quaternion.y,-1.f,1.f);
-		clamp				(State.quaternion.z,-1.f,1.f);
-		clamp				(State.quaternion.w,-1.f,1.f);*/
-	}
 
 	P.w_float(State.quaternion.x);
 	P.w_float(State.quaternion.y);
 	P.w_float(State.quaternion.z);
 	P.w_float(State.quaternion.w);
 
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null)) {
-		/*	clamp				(State.angular_vel.x,-10.f*PI_MUL_2,10.f*PI_MUL_2);
-		clamp				(State.angular_vel.y,-10.f*PI_MUL_2,10.f*PI_MUL_2);
-		clamp				(State.angular_vel.z,-10.f*PI_MUL_2,10.f*PI_MUL_2);*/
-
+	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_angular_null))
+	{
 		P.w_float(State.angular_vel.x);
 		P.w_float(State.angular_vel.y);
 		P.w_float(State.angular_vel.z);
 	}
 
-	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_linear_null)) {
-		/*clamp				(State.linear_vel.x,-32.f,32.f);
-		clamp				(State.linear_vel.y,-32.f,32.f);
-		clamp				(State.linear_vel.z,-32.f,32.f);*/
-
+	if (!(num_items.mask & CSE_ALifeInventoryItem::inventory_item_linear_null))
+	{
 		P.w_float(State.linear_vel.x);
 		P.w_float(State.linear_vel.y);
 		P.w_float(State.linear_vel.z);
-		//Msg("Export State.linear_vel.y:%4.6f",State.linear_vel.y);
 	}
-	else
-	{
-		//Msg("Export State.linear_vel.y:%4.6f",0.0f);
-	}
-}
-
-void CInventoryItem::net_Export(NET_Packet& P)
-{
-	P.w_u8(0);
-	return;
-};
-
-void CInventoryItem::load(IReader &packet)
-{
-	m_ItemCurrPlace.value = packet.r_u16();
-	m_fCondition = packet.r_float();
-
-	//--	load_data( m_upgrades, packet );
-	//--	install_loaded_upgrades();
-
-	u8						tmp = packet.r_u8();
-	if (!tmp)
-		return;
-
-	if (!object().PPhysicsShell()) {
-		object().setup_physic_shell();
-		object().PPhysicsShell()->Disable();
-	}
-
-	object().PHLoadState(packet);
-	object().PPhysicsShell()->Disable();
 }
 
 ///////////////////////////////////////////////
-void CInventoryItem::PH_B_CrPr()
-{
-	/*net_updateData* p		= NetSync();
-	//just set last update data for now
-	if (object().CrPr_IsActivated()) return;
-	if (object().CrPr_GetActivationStep() > ph_world->m_steps_num) return;
-	object().CrPr_SetActivated(true);
-
-	///////////////////////////////////////////////
-	CPHSynchronize* pSyncObj				= NULL;
-	pSyncObj = object().PHGetSyncItem		(0);
-	if (!pSyncObj)							return;
-	///////////////////////////////////////////////
-	pSyncObj->get_State						(p->LastState);
-	///////////////////////////////////////////////
-	net_update_IItem N_I	= p->NET_IItem.back();
-
-	pSyncObj->set_State						(N_I.State);
-
-	object().PHUnFreeze						();
-	///////////////////////////////////////////////
-	if (Level().InterpolationDisabled())
-	{
-	m_flags.set			(FInInterpolation, FALSE);
-	//		m_bInInterpolation = false;
-	};*/
-	///////////////////////////////////////////////
-};
-
-void CInventoryItem::PH_I_CrPr()		// actions & operations between two phisic prediction steps
-{
-	/*net_updateData* p					= NetSync();
-	//store recalculated data, then we able to restore it after small future prediction
-	if (!object().CrPr_IsActivated())	return;
-	////////////////////////////////////
-	CPHSynchronize* pSyncObj			= NULL;
-	pSyncObj = object().PHGetSyncItem	(0);
-	if (!pSyncObj)						return;
-	////////////////////////////////////
-	pSyncObj->get_State					(p->RecalculatedState);
-	///////////////////////////////////////////////
-	Fmatrix xformX;
-	pSyncObj->cv2obj_Xfrom(p->RecalculatedState.quaternion, p->RecalculatedState.position, xformX);
-
-	VERIFY2								(_valid(xformX),*object().cName());
-	pSyncObj->cv2obj_Xfrom				(p->RecalculatedState.quaternion, p->RecalculatedState.position, xformX);
-
-	p->IRecRot.set(xformX);
-	p->IRecPos.set(xformX.c);
-	VERIFY2								(_valid(p->IRecPos),*object().cName());*/
-};
-
-#ifdef DEBUG
-void CInventoryItem::PH_Ch_CrPr()
-{
-	/*net_updateData* p					= NetSync();
-	//restore recalculated data and get data for interpolation
-	if (!object().CrPr_IsActivated())	return;
-	////////////////////////////////////
-	CPHSynchronize* pSyncObj			= NULL;
-	pSyncObj = object().PHGetSyncItem	(0);
-	if (!pSyncObj)						return;
-	////////////////////////////////////
-	pSyncObj->get_State					(p->CheckState);
-
-	if (!object().H_Parent() && object().getVisible())
-	{
-	if (p->CheckState.enabled == false && p->RecalculatedState.enabled == true)
-	{
-	///////////////////////////////////////////////////////////////////
-	pSyncObj->set_State			(p->LastState);
-	pSyncObj->set_State			(p->RecalculatedState);//, N_A.State.enabled);
-
-	object().PHUnFreeze			();
-	///////////////////////////////////////////////////////////////////
-	ph_world->Step				();
-	///////////////////////////////////////////////////////////////////
-	PH_Ch_CrPr					();
-	////////////////////////////////////
-	};
-	};*/
-};
-#endif
 
 void CInventoryItem::PH_A_CrPr()
 {
@@ -789,226 +514,8 @@ void CInventoryItem::PH_A_CrPr()
 
 		object().PPhysicsShell()->get_ElementByStoreOrder(0)->Fix();
 		object().PPhysicsShell()->SetIgnoreStatic();
-		//object().PPhysicsShell()->SetIgnoreDynamic	();
-		//PPhysicsShell()->DisableCollision();
 	}
-	/*net_updateData* p					= NetSync();
-	//restore recalculated data and get data for interpolation
-	if (!object().CrPr_IsActivated())	return;
-	////////////////////////////////////
-	CPHSynchronize* pSyncObj			= NULL;
-	pSyncObj = object().PHGetSyncItem	(0);
-	if (!pSyncObj)						return;
-	////////////////////////////////////
-	pSyncObj->get_State					(p->PredictedState);
-	////////////////////////////////////
-	pSyncObj->set_State					(p->RecalculatedState);
-	////////////////////////////////////
-
-	if (!m_flags.test(FInInterpolate)) return;
-	////////////////////////////////////
-	Fmatrix xformX;
-	pSyncObj->cv2obj_Xfrom(p->PredictedState.quaternion, p->PredictedState.position, xformX);
-
-	VERIFY2								(_valid(xformX),*object().cName());
-	pSyncObj->cv2obj_Xfrom				(p->PredictedState.quaternion, p->PredictedState.position, xformX);
-
-	p->IEndRot.set						(xformX);
-	p->IEndPos.set						(xformX.c);
-	VERIFY2								(_valid(p->IEndPos),*object().cName());
-	/////////////////////////////////////////////////////////////////////////
-	CalculateInterpolationParams		();
-	///////////////////////////////////////////////////*/
-};
-/*
-extern	float		g_cl_lvInterp;
-
-void CInventoryItem::CalculateInterpolationParams()
-{
-net_updateData* p = NetSync();
-p->IStartPos.set(object().Position());
-p->IStartRot.set(object().XFORM());
-
-Fvector P0, P1, P2, P3;
-
-CPHSynchronize* pSyncObj = NULL;
-pSyncObj = object().PHGetSyncItem(0);
-
-Fmatrix xformX0, xformX1;
-
-if (m_flags.test(FInInterpolation))
-{
-u32 CurTime = Level().timeServer();
-float factor	= float(CurTime - p->m_dwIStartTime)/(p->m_dwIEndTime - p->m_dwIStartTime);
-if (factor > 1.0f) factor = 1.0f;
-
-float c = factor;
-for (u32 k=0; k<3; k++)
-{
-P0[k] = c*(c*(c*p->SCoeff[k][0]+p->SCoeff[k][1])+p->SCoeff[k][2])+p->SCoeff[k][3];
-P1[k] = (c*c*p->SCoeff[k][0]*3+c*p->SCoeff[k][1]*2+p->SCoeff[k][2])/3; // сокрость из формулы в 3 раза превышает скорость при расчете коэффициентов !!!!
-};
-P0.set(p->IStartPos);
-P1.add(p->IStartPos);
 }
-else
-{
-P0 = p->IStartPos;
-
-if (p->LastState.linear_vel.x == 0 &&
-p->LastState.linear_vel.y == 0 &&
-p->LastState.linear_vel.z == 0)
-{
-pSyncObj->cv2obj_Xfrom(p->RecalculatedState.previous_quaternion, p->RecalculatedState.previous_position, xformX0);
-pSyncObj->cv2obj_Xfrom(p->RecalculatedState.quaternion, p->RecalculatedState.position, xformX1);
-}
-else
-{
-pSyncObj->cv2obj_Xfrom(p->LastState.previous_quaternion, p->LastState.previous_position, xformX0);
-pSyncObj->cv2obj_Xfrom(p->LastState.quaternion, p->LastState.position, xformX1);
-};
-
-P1.sub(xformX1.c, xformX0.c);
-P1.add(p->IStartPos);
-}
-
-P2.sub(p->PredictedState.position, p->PredictedState.linear_vel);
-pSyncObj->cv2obj_Xfrom(p->PredictedState.quaternion, P2, xformX0);
-P2.set(xformX0.c);
-
-pSyncObj->cv2obj_Xfrom(p->PredictedState.quaternion, p->PredictedState.position, xformX1);
-P3.set(xformX1.c);
-/////////////////////////////////////////////////////////////////////////////
-Fvector TotalPath;
-TotalPath.sub(P3, P0);
-float TotalLen = TotalPath.magnitude();
-
-SPHNetState	State0 = (p->NET_IItem.back()).State;
-SPHNetState	State1 = p->PredictedState;
-
-float lV0 = State0.linear_vel.magnitude();
-float lV1 = State1.linear_vel.magnitude();
-
-u32		ConstTime = u32((fixed_step - ph_world->m_frame_time)*1000)+ Level().GetInterpolationSteps()*u32(fixed_step*1000);
-
-p->m_dwIStartTime = p->m_dwILastUpdateTime;
-
-if (( lV0 + lV1) > 0.000001 && g_cl_lvInterp == 0)
-{
-u32		CulcTime = iCeil(TotalLen*2000/( lV0 + lV1));
-p->m_dwIEndTime = p->m_dwIStartTime + min(CulcTime, ConstTime);
-}
-else
-p->m_dwIEndTime = p->m_dwIStartTime + ConstTime;
-/////////////////////////////////////////////////////////////////////////////
-Fvector V0, V1;
-V0.sub(P1, P0);
-V1.sub(P3, P2);
-lV0 = V0.magnitude();
-lV1 = V1.magnitude();
-
-if (TotalLen != 0)
-{
-if (V0.x != 0 || V0.y != 0 || V0.z != 0)
-{
-if (lV0 > TotalLen/3)
-{
-V0.normalize();
-V0.mul(TotalLen/3);
-P1.add(V0, P0);
-}
-}
-
-if (V1.x != 0 || V1.y != 0 || V1.z != 0)
-{
-if (lV1 > TotalLen/3)
-{
-V1.normalize();
-V1.mul(TotalLen/3);
-P2.sub(P3, V1);
-};
-}
-};
-/////////////////////////////////////////////////////////////////////////////
-for( u32 i =0; i<3; i++)
-{
-p->SCoeff[i][0] = P3[i]	- 3*P2[i] + 3*P1[i] - P0[i];
-p->SCoeff[i][1] = 3*P2[i]	- 6*P1[i] + 3*P0[i];
-p->SCoeff[i][2] = 3*P1[i]	- 3*P0[i];
-p->SCoeff[i][3] = P0[i];
-};
-/////////////////////////////////////////////////////////////////////////////
-m_flags.set	(FInInterpolation, TRUE);
-
-if (object().m_pPhysicsShell) object().m_pPhysicsShell->NetInterpolationModeON();
-
-};
-
-void CInventoryItem::make_Interpolation	()
-{
-net_updateData* p		= NetSync();
-p->m_dwILastUpdateTime = Level().timeServer();
-
-if(!object().H_Parent() && object().getVisible() && object().m_pPhysicsShell && m_flags.test(FInInterpolation) )
-{
-
-u32 CurTime = Level().timeServer();
-if (CurTime >= p->m_dwIEndTime)
-{
-m_flags.set(FInInterpolation, FALSE);
-
-object().m_pPhysicsShell->NetInterpolationModeOFF();
-
-CPHSynchronize* pSyncObj		= NULL;
-pSyncObj						= object().PHGetSyncItem(0);
-pSyncObj->set_State				(p->PredictedState);
-Fmatrix xformI;
-pSyncObj->cv2obj_Xfrom			(p->PredictedState.quaternion, p->PredictedState.position, xformI);
-VERIFY2							(_valid(object().renderable.xform),*object().cName());
-object().XFORM().set			(xformI);
-VERIFY2								(_valid(object().renderable.xform),*object().cName());
-}
-else
-{
-VERIFY			(CurTime <= p->m_dwIEndTime);
-float factor	= float(CurTime - p->m_dwIStartTime)/(p->m_dwIEndTime - p->m_dwIStartTime);
-if (factor > 1) factor = 1.0f;
-else if (factor < 0) factor = 0;
-
-Fvector IPos;
-Fquaternion IRot;
-
-float c = factor;
-for (u32 k=0; k<3; k++)
-{
-IPos[k] = c*(c*(c*p->SCoeff[k][0]+p->SCoeff[k][1])+p->SCoeff[k][2])+p->SCoeff[k][3];
-};
-
-VERIFY2								(_valid(IPos),*object().cName());
-VERIFY			(factor>=0.f && factor<=1.f);
-IRot.slerp(p->IStartRot, p->IEndRot, factor);
-VERIFY2								(_valid(IRot),*object().cName());
-object().XFORM().rotation(IRot);
-VERIFY2								(_valid(object().renderable.xform),*object().cName());
-object().Position().set(IPos);
-VERIFY2								(_valid(object().renderable.xform),*object().cName());
-};
-}
-else
-{
-m_flags.set(FInInterpolation,FALSE);
-};
-
-#ifdef DEBUG
-Fvector iPos = object().Position();
-
-if (!object().H_Parent() && object().getVisible())
-{
-if(m_net_updateData)
-m_net_updateData->LastVisPos.push_back(iPos);
-};
-#endif
-}*/
 
 void CInventoryItem::Interpolate()
 {
@@ -1080,8 +587,6 @@ float CInventoryItem::interpolate_states(net_update_IItem const & first, net_upd
 void CInventoryItem::reload(LPCSTR section)
 {
 	inherited::reload(section);
-	m_holder_range_modifier = READ_IF_EXISTS(pSettings, r_float, section, "holder_range_modifier", 1.f);
-	m_holder_fov_modifier = READ_IF_EXISTS(pSettings, r_float, section, "holder_fov_modifier", 1.f);
 }
 
 void CInventoryItem::reinit()
@@ -1113,19 +618,6 @@ CInventoryItem *CInventoryItem::can_make_killing(const CInventory *inventory) co
 bool CInventoryItem::ready_to_kill() const
 {
 	return				(false);
-}
-
-void CInventoryItem::activate_physic_shell()
-{
-	CEntityAlive*	E = smart_cast<CEntityAlive*>(object().H_Parent());
-	if (!E) {
-		on_activate_physic_shell();
-		return;
-	};
-
-	UpdateXForm();
-
-	object().CPhysicsShellHolder::activate_physic_shell();
 }
 
 void CInventoryItem::UpdateXForm()
@@ -1185,105 +677,11 @@ void CInventoryItem::UpdateXForm()
 	object().Position().set(mRes.c);
 }
 
-
-
-#ifdef DEBUG
-
-void CInventoryItem::OnRender()
-{
-	if (bDebug && object().Visual())
-	{
-		if (!(dbg_net_Draw_Flags.is_any(dbg_draw_invitem))) return;
-
-		Fvector bc, bd;
-		object().Visual()->getVisData().box.get_CD(bc, bd);
-		Fmatrix	M = object().XFORM();
-		M.c.add(bc);
-		Level().debug_renderer().draw_obb(M, bd, color_rgba(0, 0, 255, 255));
-		/*
-		u32 Color;
-		if (processing_enabled())
-		{
-		if (m_bInInterpolation)
-		Color = color_rgba(0,255,255, 255);
-		else
-		Color = color_rgba(0,255,0, 255);
-		}
-		else
-		{
-		if (m_bInInterpolation)
-		Color = color_rgba(255,0,255, 255);
-		else
-		Color = color_rgba(255, 0, 0, 255);
-		};
-
-		//		Level().debug_renderer().draw_obb			(M,bd,Color);
-		float size = 0.01f;
-		if (!H_Parent())
-		{
-		Level().debug_renderer().draw_aabb			(Position(), size, size, size, color_rgba(0, 255, 0, 255));
-
-		Fvector Pos1, Pos2;
-		VIS_POSITION_it It = LastVisPos.begin();
-		Pos1 = *It;
-		for (; It != LastVisPos.end(); It++)
-		{
-		Pos2 = *It;
-		Level().debug_renderer().draw_line(Fidentity, Pos1, Pos2, color_rgba(255, 255, 0, 255));
-		Pos1 = Pos2;
-		};
-
-		}
-		//---------------------------------------------------------
-		if (OnClient() && !H_Parent() && m_bInInterpolation)
-		{
-
-		Fmatrix xformI;
-
-		xformI.rotation(IRecRot);
-		xformI.c.set(IRecPos);
-		Level().debug_renderer().draw_aabb			(IRecPos, size, size, size, color_rgba(255, 0, 255, 255));
-
-		xformI.rotation(IEndRot);
-		xformI.c.set(IEndPos);
-		Level().debug_renderer().draw_obb			(xformI,bd,color_rgba(0, 255, 0, 255));
-
-		///////////////////////////////////////////////////////////////////////////
-		Fvector point0 = IStartPos, point1;
-
-		float c = 0;
-		for (float i=0.1f; i<1.1f; i+= 0.1f)
-		{
-		c = i;// * 0.1f;
-		for (u32 k=0; k<3; k++)
-		{
-		point1[k] = c*(c*(c*SCoeff[k][0]+SCoeff[k][1])+SCoeff[k][2])+SCoeff[k][3];
-		};
-		Level().debug_renderer().draw_line(Fidentity, point0, point1, color_rgba(0, 0, 255, 255));
-		point0.set(point1);
-		};
-		};
-		*/
-	};
-}
-#endif
-
 DLL_Pure *CInventoryItem::_construct()
 {
 	m_object = smart_cast<CPhysicsShellHolder*>(this);
 	VERIFY(m_object);
 	return		(inherited::_construct());
-}
-
-void CInventoryItem::modify_holder_params(float &range, float &fov) const
-{
-	range *= m_holder_range_modifier;
-	fov *= m_holder_fov_modifier;
-}
-
-bool CInventoryItem::NeedToDestroyObject()	const
-{
-	return false;
 }
 
 ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
@@ -1296,7 +694,7 @@ ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
 
 bool CInventoryItem::CanTrade() const
 {
-	bool res	= inventory_owner().AllowItemToTrade(m_section_id, m_ItemCurrPlace);
+	bool res	= (m_pInventory) ? inventory_owner().AllowItemToTrade(m_section_id, m_ItemCurrPlace) : true;
 	return		(res && m_flags.test(FCanTrade) && !IsQuestItem());
 }
 
@@ -1312,16 +710,40 @@ Frect CInventoryItem::GetKillMsgRect() const
 	return Frect().set(x, y, w, h);
 }
 
-Irect CInventoryItem::GetInvGridRect() const
+void CInventoryItem::OnMoveToSlot(SInvItemPlace CR$ prev)
 {
-	u32 x, y, w, h;
+	if (O.H_Parent() == Actor())
+	{
+		if (CurrSlot() == HandSlot())
+		{
+			switch (prev.type)
+			{
+			case eItemPlaceSlot:
+				ActivateItem(prev.slot_id);
+				break;
+			case eItemPlacePocket:
+				ActivateItem(1);
+				break;
+			default:
+				ActivateItem(0);
+			}
+		}
+		else
+			CurrentGameUI()->GetActorMenu().PlaySnd(eItemToSlot);
+	}
+	onInventoryAction					(&prev);
+}
 
-	x = pSettings->r_u32(m_object->cNameSect(), "inv_grid_x");
-	y = pSettings->r_u32(m_object->cNameSect(), "inv_grid_y");
-	w = pSettings->r_u32(m_object->cNameSect(), "inv_grid_width");
-	h = pSettings->r_u32(m_object->cNameSect(), "inv_grid_height");
+void CInventoryItem::OnMoveToRuck(SInvItemPlace CR$ prev)
+{
+	if (O.H_Parent() == Actor() && CurrPlace() == eItemPlacePocket)
+		CurrentGameUI()->GetActorMenu().PlaySnd(eItemToRuck);
+	onInventoryAction					(&prev);
+}
 
-	return Irect().set(x, y, w, h);
+Frect CInventoryItem::GetIconRect() const
+{
+	return m_inv_icon;
 }
 
 Irect CInventoryItem::GetUpgrIconRect() const
@@ -1353,7 +775,7 @@ u16 CInventoryItem::object_id()const
 
 u16 CInventoryItem::parent_id() const
 {
-	return (object().H_Parent()) ? object().H_Parent()->ID() : u16(-1);
+	return (object().H_Parent()) ? object().H_Parent()->ID() : u16_max;
 }
 
 void CInventoryItem::SetDropManual(BOOL val)
@@ -1371,26 +793,6 @@ bool CInventoryItem::CanStack() const
 	return (m_flags.test(FCanStack) > 0);
 }
 
-shared_str CInventoryItem::FullClass(bool with_division)
-{
-	shared_str			result;
-	LPCSTR main_class	= m_main_class.c_str();
-	LPCSTR subclass		= m_subclass.c_str();
-	LPCSTR division		= m_division.c_str();
-	result.printf		((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
-	return				result;
-}
-
-shared_str FullClass(LPCSTR section, bool with_division)
-{
-	shared_str				result;
-	LPCSTR main_class		= READ_IF_EXISTS(pSettings, r_string, section, "main_class", "nil");
-	LPCSTR subclass			= READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
-	LPCSTR division			= READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
-	result.printf			((with_division) ? "%s.%s.%s" : "%s.%s", main_class, subclass, division);
-	return					result;
-}
-
 bool CInventoryItem::InHands() const
 {
 	CObject* parent = object().H_Parent();
@@ -1400,7 +802,253 @@ bool CInventoryItem::InHands() const
 	return (io) ? m_pInventory->InHands(const_cast<PIItem>(this)) : false;
 }
 
+float CInventoryItem::readBaseCost(LPCSTR section, bool for_sale)
+{
+	float								cost;
+	bool								from_costs;
+	if (from_costs = pSettings->line_exist("costs", section))
+		cost							= pSettings->r_float("costs", section);
+	else
+		cost							= pSettings->r_float(section, "cost");
+	
+	if (from_costs != for_sale)
+	{
+		auto supplies					= READ_IF_EXISTS(pSettings, r_string, section, "supplies", 0);
+		if (supplies && supplies[0])
+		{
+			if (auto count = READ_IF_EXISTS(pSettings, r_u16, section, "supplies_count", 0))
+			{
+				float scost				= count * readBaseCost(supplies);
+				cost					+= (from_costs) ? -scost : scost;
+			}
+			else
+			{
+				string128				sect;
+				for (int i = 0, e = _GetItemCount(supplies); i < e; ++i)
+				{
+					_GetItem			(supplies, i, sect);
+					float scost			= readBaseCost(sect);
+					cost				+= (from_costs) ? -scost : scost;
+				}
+			}
+			R_ASSERT2					(cost > 0.f, section);
+		}
+	}
+
+	if (pSettings->line_exist(section, "cost_factor"))
+		cost							*= pSettings->r_float(section, "cost_factor");
+
+	return								cost;
+}
+
+void CInventoryItem::readIcon(Frect& destination, LPCSTR section, u8 type, u8 idx)
+{
+	Fvector4 icon_rect					= pSettings->r_fvector4(section, "inv_icon");
+	if (type)
+	{
+		shared_str						tmp;
+		tmp.printf						("inv_icon_%d", type);
+		if (pSettings->line_exist(section, *tmp))
+			icon_rect					= pSettings->r_fvector4(section, *tmp);
+		else
+			icon_rect.x					+= type * icon_rect.z;
+	}
+
+	if (idx)
+		icon_rect.y						+= idx * pSettings->r_u16(section, "icon_index_step");
+
+	destination.set						(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
+}
+
+LPCSTR CInventoryItem::readName(shared_str CR$ section)
+{
+	if (pSettings->line_exist(section, "inv_name"))
+		return							CStringTable().translate(pSettings->r_string(section, "inv_name")).c_str();
+	return								CStringTable().translate(shared_str().printf("st_%s_name", *section)).c_str();
+}
+
+LPCSTR CInventoryItem::readNameShort(shared_str CR$ section)
+{
+	if (pSettings->line_exist(section, "inv_name_short"))
+		return							CStringTable().translate(pSettings->r_string(section, "inv_name_short")).c_str();
+
+	shared_str							tmp;
+	tmp.printf							("st_%s_name_s", *section);
+	if (CStringTable().exists(tmp))
+		return							CStringTable().translate(tmp).c_str();
+
+	return								readName(section);
+}
+
+void CInventoryItem::swapIcon(PIItem item)
+{
+	if (this)
+	{
+		_STD swap						(m_icon, item->m_icon);
+		_STD swap						(m_icon->m_pData, item->m_icon->m_pData);
+	}
+}
+
+void CInventoryItem::SetInvIconType(u8 type)
+{
+	if (m_inv_icon_types)
+	{
+		m_inv_icon_type					= type;
+		set_inv_icon					();
+	}
+}
+
+void CInventoryItem::SetInvIconIndex(u8 idx)
+{
+	m_inv_icon_index					= idx;
+	set_inv_icon						();
+}
+
+u8 CInventoryItem::getInvIconType() const
+{
+	if (m_inv_icon_type != u8_max)
+		return							m_inv_icon_type;
+	if (auto addon = O.getModule<MAddon>())
+		if (addon->getSlot())
+			return						0;
+	return								m_inv_icon_type_default;
+}
+
+void CInventoryItem::set_inv_icon()
+{
+	readIcon							(m_inv_icon, *m_section_id, getInvIconType(), m_inv_icon_index);
+	invalidateIcon						();
+}
+
+void CInventoryItem::setup_icon()
+{
+	if (auto icon = O.emitSignalGet(sCreateIcon()))
+		m_icon.capture					(icon.get());
+	else
+		m_icon.capture					(xr_new<CUIInventoryCellItem>(this));
+	m_icon_valid						= true;
+	onInventoryAction					();
+}
+
+void CInventoryItem::onInventoryAction(const SInvItemPlace* prev)
+{
+	if (auto ui = CurrentGameUI())
+		ui->GetActorMenu().onInventoryAction(this, prev);
+}
+
+void CInventoryItem::shedule_Update(u32 T)
+{
+	if (!m_icon_valid)
+		setup_icon						();
+}
+
+CUICellItem* CInventoryItem::getIcon()
+{
+	if (!m_icon_valid)
+		setup_icon						();
+	return								m_icon.get();
+}
+
+bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)
+{
+	return (cmpc[0] == '*' || m_category == cmpc)
+		&& (cmps[0] == '*' || m_subcategory == cmps)
+		&& (cmpd[0] == '*' || m_division == cmpd);
+}
+
+shared_str CInventoryItem::Section(bool full) const
+{
+	return (full) ? shared_str().printf("%s_%d", *m_section_id, m_inv_icon_index) : m_section_id;
+}
+
+float CInventoryItem::Price() const
+{
+	return								Cost() * sqrt(GetCondition()) + m_upgrades_cost;
+}
+
+float CInventoryItem::getData(EItemDataTypes type) const
+{
+	return								O.emitSignalSum(sSumItemData(type));
+}
+
+float CInventoryItem::sSumItemData(EItemDataTypes type) const
+{
+	switch (type)
+	{
+	case eWeight:
+		return							m_weight;
+	case eVolume:
+		return							m_volume;
+	case eCost:
+		return							m_cost;
+	default:
+		NODEFAULT2						("wrong item data type");
+	}
+}
+
+float CInventoryItem::Weight() const
+{
+	return								getData(eWeight);
+}
+
+float CInventoryItem::Volume() const
+{
+	return								getData(eVolume);
+}
+
 float CInventoryItem::Cost() const
 {
-	return m_cost * m_cost_factor;
+	return								getData(eCost);
+}
+
+float CInventoryItem::GetAmount() const
+{
+	auto res							= O.emitSignalGet(sGetAmount());
+	return								(res) ? res.get() : 1.f;
+}
+
+float CInventoryItem::GetFill() const
+{
+	auto res							= O.emitSignalGet(sGetFill());
+	return								(res) ? res.get() : 1.f;
+}
+
+float CInventoryItem::getFillBar() const
+{
+	if (auto res = O.emitSignalGet(sGetBar()))
+		return							res.get();
+	return								-1.f;
+}
+
+bool CInventoryItem::tryCustomUse() const
+{
+	if (auto active_item = Actor()->inventory().ActiveItem())
+	{
+		if (auto ammo = O.scast<CWeaponAmmo*>())
+			if (active_item)
+				if (auto wpn = active_item->O.scast<CWeaponAutomaticShotgun*>())
+					if (wpn->tryChargeMagazine(ammo))
+						return			true;
+
+		if (auto addon = O.getModule<MAddon>())
+			if (active_item)
+				if (auto ao = active_item->O.getModule<MAddonOwner>())
+					if (ao->tryAttach(addon, true))
+						return			true;
+	}
+	
+	if (auto usable = O.getModule<MUsable>())
+		for (auto& action : usable->getActions())
+			if (usable->performAction(action->num))
+				return					true;
+
+	return								false;
+}
+
+bool CInventoryItem::isGear(bool check_equipped) const
+{
+	bool res							= (BaseSlot() == OUTFIT_SLOT || BaseSlot() == HELMET_SLOT || BaseSlot() == BACKPACK_SLOT);
+	if (res && check_equipped)
+		res								&= (CurrSlot() == BaseSlot() && parent_id() == Actor()->ID());
+	return								res;
 }

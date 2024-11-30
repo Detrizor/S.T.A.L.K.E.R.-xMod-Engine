@@ -63,7 +63,7 @@ public:
 	static CUIDragItem*		m_drag_item;
 							CUIDragDropListEx	();
 	virtual					~CUIDragDropListEx	();
-				void		InitDragDropList		(Fvector2 pos, Fvector2 size);
+				void		InitDragDropList		();
 
 	typedef					fastdelegate::FastDelegate1<CUICellItem*, bool>			DRAG_CELL_EVENT;
 	typedef					fastdelegate::FastDelegate2<CUIDragItem*, bool, void>	DRAG_ITEM_EVENT;
@@ -84,11 +84,11 @@ public:
 	const	Ivector2&		CellsCapacity		();
 			void			SetCellsCapacity	(const Ivector2 c);
 			void			SetStartCellsCapacity(const Ivector2 c){m_orig_cell_capacity=c;SetCellsCapacity(c);};
-			void			ResetCellsCapacity	(){VERIFY(ItemsCount()==0);SetCellsCapacity(m_orig_cell_capacity);};
+			void			ResetCellsCapacity	();
 	 const	Ivector2&		CellSize			();
-			void			SetCellSize			(const Ivector2 new_sz);
+			void			SetCellSize			(const float& size, const EScaling& scaling);
 	const	Ivector2&		CellsSpacing		();
-			void			SetCellsSpacing		(const Ivector2& new_sz);
+			void			SetCellsSpacing		(const float& size, const EScaling& scaling);
 			void			SetCellsVertAlignment(xr_string alignment);
 			void			SetCellsHorizAlignment(xr_string alignment);
 
@@ -142,9 +142,16 @@ public:
 	virtual		void		SendMessage			(CUIWindow* pWnd, s16 msg, void* pData = NULL);
 
 				void		OnDragEvent			(CUIDragItem* drag_item, bool b_receive);
+
+private:
+	bool								m_valid									= true;
+
+public:
+	bool								isValid								C$	()				{ return m_valid; }
+	void								setValid								(bool v)		{ m_valid = v; }
 };
 
-class CUICellContainer :public CUIWindow
+class CUICellContainer : public CUIWindow
 {
 	friend class CUIDragDropListEx;
 	friend class CUIDragDropReferenceList;
@@ -153,12 +160,17 @@ private:
 	typedef CUIWindow inherited;
 	ui_shader					hShader;
 	UI_CELLS_VEC				m_cells_to_draw;
+
 protected:
 	CUIDragDropListEx*			m_pParentDragDropList;
 
-	Ivector2					m_cellsCapacity;			//count		(col,	row)
-	Ivector2					m_cellSize;					//pixels	(width, height)
-	Ivector2					m_cellSpacing;				//pixels	(width, height)
+	Ivector2					m_cellsCapacity;
+	
+	float						m_cellSize;
+	EScaling					m_cellScaling;
+	
+	float						m_spacingSize;
+	EScaling					m_spacingScaling;
 
 	UI_CELLS_VEC				m_cells;
 
@@ -178,10 +190,10 @@ protected:
 
 	IC const	Ivector2&		CellsCapacity		()								{return m_cellsCapacity;};	
 				void			SetCellsCapacity	(const Ivector2& c);
-	IC const	Ivector2&		CellSize			()								{return m_cellSize;};	
-				void			SetCellSize			(const Ivector2& new_sz);
-	IC const	Ivector2&		CellsSpacing		()								{return m_cellSpacing;};	
-				void			SetCellsSpacing		(const Ivector2& new_sz);
+		const	Ivector2		CellSize			()								{int size = iFloor(m_cellSize * UI().GetScale(m_cellScaling)); return Ivector2().set(size, size);}
+				void			SetCellSize			(const float& size, const EScaling& scaling);
+		const	Ivector2		CellsSpacing		()								{int size = iFloor(m_spacingSize * UI().GetScale(m_spacingScaling)); return Ivector2().set(size, size);}
+				void			SetCellsSpacing		(const float& size, const EScaling& scaling);
 				Ivector2		TopVisibleCell		();
 				
 
@@ -202,5 +214,6 @@ protected:
 				void			ClearAll			(bool bDestroy);
 				void			clear_select_armament();
 
-
+private:
+	void								render_grid								(Irect CR$ tgt_cells, Ivector2 CR$ cell_size, Ivector2 CR$ cell_spacing, bool with_empty);
 };

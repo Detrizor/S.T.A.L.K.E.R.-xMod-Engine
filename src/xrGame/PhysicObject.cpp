@@ -97,7 +97,7 @@ void CPhysicObject::create_collision_model			( )
 	VERIFY( K );
 	
 	CInifile* ini = K->LL_UserData();
-	if( ini && ini->section_exist( "collide" ) && ini->line_exist("collide", "mesh" ) && ini->r_bool("collide", "mesh" ) )
+	if( ini && ini->section_exist( "collide" ) && ini->line_exist("collide", "mesh" ) && ini->r_BOOL("collide", "mesh" ) )
 	{
 		collidable.model = xr_new<CCF_DynamicMesh>( this );
 		return;
@@ -362,7 +362,7 @@ if(dbg_draw_doors)
 
 	if( !is_active( bones_snd_player ) )
 		return;
-	bones_snd_player->update( Device.fTimeDelta, *this );
+	bones_snd_player->update( time_delta(), *this );
 
 }
 void CPhysicObject::PHObjectPositionUpdate	()
@@ -532,7 +532,7 @@ Msg("%s",(*I).first);
 //////////////////////////////////////////////////////////////////////////
 bool CPhysicObject::is_ai_obstacle		() const
 {
-	return							!!( READ_IF_EXISTS(pSettings, r_bool, cNameSect(), "is_ai_obstacle", true ) );
+	return							!!( READ_IF_EXISTS(pSettings, r_BOOL, cNameSect(), "is_ai_obstacle", true ) );
 }
 
 // network synchronization ----------------------------

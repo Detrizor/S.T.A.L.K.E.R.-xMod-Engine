@@ -14,6 +14,7 @@ class CUIFrameWindow;
 class UIInvUpgPropertiesWnd;
 class CUIOutfitInfo;
 class CUIBoosterInfo;
+class CUIAddonInfo;
 class CUICellItem;
 
 extern const char * const 		fieldsCaptionColor;
@@ -38,29 +39,26 @@ public:
 	void				InitItemInfo		(LPCSTR xml_name);
 	void				InitItem			(CUICellItem* pCellItem, u32 item_price = u32(-1), LPCSTR trade_tip = NULL);
 
-	void				TryAddConditionInfo	(CUICellItem* item);
 	void				TryAddWpnInfo		(CUICellItem* item);
 	void				TryAddArtefactInfo	(CUICellItem* item);
 	void				TryAddOutfitInfo	(CUICellItem* item);
 	void				TryAddUpgradeInfo	(CUICellItem* item);
 	void				TryAddBoosterInfo	(CUICellItem* item);
+	void				tryAddAddonInfo		(CUICellItem* itm);
 	
 	virtual void		Draw				();
 	bool				m_b_FitToHeight;
 	u32					delay;
 	
-	CUIFrameWindow*		UIBackground;
 	CUITextWnd*			UIName;
 	CUITextWnd*			UIWeight;
 	CUITextWnd*			UIVolume;
 	CUITextWnd*			UICondition;
+	CUITextWnd*			UIAmount;
 	CUITextWnd*			UICost;
 	CUITextWnd*			UITradeTip;
-//	CUIStatic*			UIDesc_line;
 	CUIScrollView*		UIDesc;
-	bool				m_complex_desc;
 
-//	CUIConditionParams*		UIConditionWnd;
 	CUIWpnParams*			UIWpnParams;
 	CUIArtefactParams*		UIArtefactParams;
 	UIInvUpgPropertiesWnd*	UIProperties;
@@ -69,4 +67,13 @@ public:
 
 	Fvector2			UIItemImageSize; 
 	CUIStatic*			UIItemImage;
+
+private:
+	xptr<CUIFrameWindow>				m_frame									= {};
+	xptr<CUIStatic>						m_background							= {};
+	xptr<CUIAddonInfo>					m_addon_info							= {};
+	CUICellItem*						m_itm									= nullptr;
+
+public:
+	CUICellItem*						getItem								C$	()		{ return m_itm; }
 };

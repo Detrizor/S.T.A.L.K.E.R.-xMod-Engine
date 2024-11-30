@@ -22,7 +22,7 @@
 //Alundaio
 #include "RadioactiveZone.h"
 #include "ZoneCampfire.h"
-BOOL g_ai_die_in_anomaly = 1;
+BOOL g_ai_die_in_anomaly = FALSE;
 //-Alundaio 
 
 CSpaceRestrictor::~CSpaceRestrictor	()
@@ -266,7 +266,7 @@ void CSpaceRestrictor::OnRender	()
 //DRAW name
 
 		Fmatrix		res;
-		res.mul		(Device.mFullTransform, XFORM());
+		res.mul		(Device.camera.full_transform, XFORM());
 
 		Fvector4	v_res;
 

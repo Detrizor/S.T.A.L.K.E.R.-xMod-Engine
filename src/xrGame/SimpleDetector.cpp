@@ -10,19 +10,16 @@ CSimpleDetector::CSimpleDetector(void)
 	m_artefacts.m_af_rank = 1;
 }
 
-CSimpleDetector::~CSimpleDetector(void)
-{}
-
 void CSimpleDetector::CreateUI()
 {
 	R_ASSERT(NULL==m_ui);
-	m_ui				= xr_new<CUIArtefactDetectorSimple>();
+	m_ui.construct<CUIArtefactDetectorSimple>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorSimple&  CSimpleDetector::ui()
 {
-	return *((CUIArtefactDetectorSimple*)m_ui);
+	return *static_cast<CUIArtefactDetectorSimple*>(m_ui.get());
 }
 
 void CSimpleDetector::UpdateAf()
@@ -125,14 +122,14 @@ void CUIArtefactDetectorSimple::setup_internals()
 	m_flash_light					= ::Render->light_create();
 	m_flash_light->set_shadow		(false);
 	m_flash_light->set_type			(IRender_Light::POINT);
-	m_flash_light->set_range		(pSettings->r_float(m_parent->HudItemData()->m_sect_name,"flash_light_range"));
+	m_flash_light->set_range		(pSettings->r_float(m_parent->HudItemData()->m_hud_section, "flash_light_range"));
 	m_flash_light->set_hud_mode		(true);
 	
 	R_ASSERT						(!m_on_off_light);
 	m_on_off_light					= ::Render->light_create();
 	m_on_off_light->set_shadow		(false);
 	m_on_off_light->set_type		(IRender_Light::POINT);
-	m_on_off_light->set_range		(pSettings->r_float(m_parent->HudItemData()->m_sect_name,"onoff_light_range"));
+	m_on_off_light->set_range		(pSettings->r_float(m_parent->HudItemData()->m_hud_section, "onoff_light_range"));
 	m_on_off_light->set_hud_mode	(true);
 
 	IKinematics* K					= m_parent->HudItemData()->m_model;

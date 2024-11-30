@@ -561,7 +561,7 @@ void CGameGraphBuilder::create_tripples		(const float &start, const float &amoun
 		}
 	}
 
-	std::sort				(m_tripples.begin(),m_tripples.end(),sort_predicate_greater<TRIPPLE>);
+	m_tripples.sort					(sort_predicate_greater<TRIPPLE>);
 }
 
 void CGameGraphBuilder::process_tripple		(const TRIPPLE &tripple)

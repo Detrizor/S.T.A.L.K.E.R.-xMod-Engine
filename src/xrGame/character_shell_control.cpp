@@ -40,7 +40,7 @@ void	character_shell_control::Load( LPCSTR section )
 	//gray_wolf<
 	skeleton_skin_friction_start	= pSettings->r_float(section,"ph_skeleton_skin_friction_start");
 	skeleton_skin_friction_end		= pSettings->r_float(section,"ph_skeleton_skin_friction_end");
-	character_have_wounded_state	= pSettings->r_bool(section,"ph_character_have_wounded_state");
+	character_have_wounded_state	= pSettings->r_BOOL(section,"ph_character_have_wounded_state");
 	skeleton_skin_ddelay_after_wound= pSettings->r_float(section,"ph_skeleton_skin_ddelay_after_wound");
 	skeleton_skin_remain_time_after_wound= skeleton_skin_ddelay_after_wound;
 	pelvis_factor_low_pose_detect= pSettings->r_float(section,"ph_pelvis_factor_low_pose_detect");

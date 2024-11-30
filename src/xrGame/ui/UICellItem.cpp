@@ -20,6 +20,8 @@
 #include "Weapon.h"
 #include "CustomOutfit.h"
 #include "ActorHelmet.h"
+#include "Magazine.h"
+#include "../item_container.h"
 
 CUICellItem* CUICellItem::m_mouse_selected_item = NULL;
 
@@ -46,10 +48,10 @@ CUICellItem::CUICellItem()
 
 CUICellItem::~CUICellItem()
 {
-	if(m_b_destroy_childs)
-		delete_data	(m_childs);
-
-	delete_data		(m_custom_draw);
+	if (m_b_destroy_childs)
+		for (auto child : m_childs)
+			child->destroy(true);
+	delete_data(m_custom_draw);
 }
 
 void CUICellItem::init()
@@ -75,24 +77,33 @@ void CUICellItem::init()
 	AttachChild							(m_pConditionState);
 	CUIXmlInit::InitProgressBar			(uiXml, "cell_item_condition", 0, m_pConditionState);
 	m_pConditionState->Show				(false);
+	m_pConditionState->ShowBackground	(true);
+	m_pConditionState->m_bUseGradient	= true;
+
+	m_fill_bar							= xr_new<CUIProgressBar>();
+	m_fill_bar->SetAutoDelete			(true);
+	AttachChild							(m_fill_bar);
+	CUIXmlInit::InitProgressBar			(uiXml, "cell_item_fill", 0, m_fill_bar);
+	m_fill_bar->Show					(false);
+	m_fill_bar->ShowBackground			(true);
+	m_fill_bar->m_bUseGradient			= true;
 }
 
 void CUICellItem::Draw()
 {	
-	m_drawn_frame		= Device.dwFrame;
-	
-	inherited::Draw();
-	if(m_custom_draw) 
-		m_custom_draw->OnDraw(this);
-};
+	m_drawn_frame						= Device.dwFrame;
+	inherited::Draw						();
+	if (m_custom_draw) 
+		m_custom_draw->OnDraw			(this);
+}
 
 void CUICellItem::Update()
 {
 	EnableHeading(m_pParentList->GetVerticalPlacement());
 	if(Heading())
 	{
-		SetHeading			( 90.0f * (PI/180.0f) );
-		SetHeadingPivot		(Fvector2().set(0.0f,0.0f), Fvector2().set(0.0f,GetWndSize().y), true);
+		SetHeading			( -90.f * (PI/180.0f) );
+		SetHeadingPivot		(Fvector2().set(0.0f,0.0f), Fvector2().set(GetWidth() * (1.f - m_TextureMargin.top - m_TextureMargin.bottom), 0.f), true);
 	}else
 		ResetHeadingPivot	();
 
@@ -175,6 +186,11 @@ CUIDragItem* CUICellItem::CreateDragItem()
 	Frect r;
 	GetAbsoluteRect(r);
 
+	r.left += GetWidth() * (Heading() ? m_TextureMargin.bottom : m_TextureMargin.left);
+	r.top += GetHeight() * (Heading() ? m_TextureMargin.left : m_TextureMargin.top);
+	r.right -= GetWidth() * (Heading() ? m_TextureMargin.top : m_TextureMargin.right);
+	r.bottom -= GetHeight() * (Heading() ? m_TextureMargin.right : m_TextureMargin.bottom);
+
 	if( m_UIStaticItem.GetFixedLTWhileHeading() )
 	{
 		float t1,t2;
@@ -199,31 +215,57 @@ void CUICellItem::SetOwnerList(CUIDragDropListEx* p)
 
 void CUICellItem::UpdateConditionProgressBar()
 {
-	PIItem item									= (PIItem)m_pData;
-	CEatableItem* eitem							= (CEatableItem*)item;
-	if (m_pParentList && m_pParentList->GetConditionProgBarVisibility() && item && item->IsUsingCondition() && ((item->GetCondition() < (1.f - EPS)) || item->ShowFullCondition()))
+	m_pConditionState->Show				(false);
+	m_fill_bar->Show					(false);
+	if (!m_pParentList || !m_pParentList->GetConditionProgBarVisibility())
+		return;
+
+	PIItem item							= static_cast<PIItem>(m_pData);
+	if (!item)
+		return;
+
+	float fill							= item->getFillBar();
+	float condition						= item->GetCondition();
+	bool show_fill_bar					= (fill != -1.f);
+	bool show_condition_bar				= !fEqual(condition, 1.f);
+	if (!show_fill_bar && !show_condition_bar)
+		return;
+
+	Ivector2 itm_grid_size				= GetGridSize();
+	if (m_pParentList->GetVerticalPlacement())
+		_STD swap						(itm_grid_size.x, itm_grid_size.y);
+	Ivector2 cell_size					= m_pParentList->CellSize();
+	Ivector2 cell_space					= m_pParentList->CellsSpacing();
+
+	if (show_fill_bar)
 	{
-		m_pConditionState->ShowBackground		(true);
-		m_pConditionState->m_bUseGradient		= true;
+		float indent					= m_pConditionState->GetHeight() + 2.f;
+		m_fill_bar->SetX				(1.f);
+		m_fill_bar->SetY				(indent);
 
-		Ivector2 itm_grid_size		= GetGridSize();
-		if (m_pParentList->GetVerticalPlacement())
-			std::swap				(itm_grid_size.x, itm_grid_size.y);
-		Ivector2 cell_size			= m_pParentList->CellSize();
-		Ivector2 cell_space			= m_pParentList->CellsSpacing();
-		float x						= 1.f;
-		float y						= itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f;
+		float height					= itm_grid_size.y * (cell_size.y + cell_space.y) - 2.f * indent;
+		m_fill_bar->SetHeight			(height);
+		m_fill_bar->m_UIProgressItem.SetHeight(height);
+		m_fill_bar->m_UIBackgroundItem.SetHeight(height);
 
-		m_pConditionState->SetWndPos					(Fvector2().set(x, y));
-		float width										= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f;
-		m_pConditionState->SetWidth						(width);
-		m_pConditionState->m_UIProgressItem.SetWidth	(width);
-		m_pConditionState->m_UIBackgroundItem.SetWidth	(width);
-		m_pConditionState->SetProgressPos				(item->GetCondition());
-		m_pConditionState->Show							(true);
+		m_fill_bar->SetProgressPos		(fill);
+		m_fill_bar->Show				(true);
 	}
-	else
-		m_pConditionState->Show(false);
+
+	if (show_condition_bar)
+	{
+		float indent					= m_fill_bar->GetWidth() + 2.f;
+		m_pConditionState->SetX			(indent);
+		m_pConditionState->SetY			(itm_grid_size.y * (cell_size.y + cell_space.y) - m_pConditionState->GetHeight() - 1.f);
+
+		float width						= itm_grid_size.x * (cell_size.x + cell_space.x) - 2.f * indent;
+		m_pConditionState->SetWidth		(width);
+		m_pConditionState->m_UIProgressItem.SetWidth(width);
+		m_pConditionState->m_UIBackgroundItem.SetWidth(width);
+
+		m_pConditionState->SetProgressPos(condition);
+		m_pConditionState->Show			(true);
+	}
 }
 
 bool CUICellItem::EqualTo(CUICellItem* itm)
@@ -249,14 +291,11 @@ CUICellItem* CUICellItem::PopChild(CUICellItem* needed)
 	CUICellItem* itm	= m_childs.back();
 	m_childs.pop_back	();
 	
-	if(needed)
-	{	
-	  if(itm!=needed)
-		std::swap		(itm->m_pData, needed->m_pData);
-	}else
-	{
-		std::swap		(itm->m_pData, m_pData);
-	}
+	if (!needed)
+		needed			= this;
+	if (itm != needed)
+		static_cast<PIItem>(itm->m_pData)->swapIcon(static_cast<PIItem>(needed->m_pData));
+
 	UpdateItemText		();
 	R_ASSERT			(itm->ChildsCount()==0);
 	itm->SetOwnerList	(NULL);
@@ -293,6 +332,18 @@ void CUICellItem::SetCustomDraw(ICustomDrawCellItem* c)
 	if (m_custom_draw)
 		xr_delete(m_custom_draw);
 	m_custom_draw = c;
+}
+
+bool CUICellItem::destroy(bool force)
+{
+	if (!m_pData || force)
+	{
+		void* _real_ptr = dynamic_cast<void*>(this);
+		this->~CUICellItem();
+		Memory.mem_free(_real_ptr);
+		return true;
+	}
+	return false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -382,4 +433,3 @@ Fvector2 CUIDragItem::GetPosition()
 {
 	return Fvector2().add(m_pos_offset, GetUICursor().GetCursorPosition());
 }
-

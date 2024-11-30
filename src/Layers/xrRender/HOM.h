@@ -7,7 +7,7 @@
 
 class occTri;
 
-class CHOM  
+class CHOM
 #ifdef DEBUG
 	: public pureRender
 #endif
@@ -19,33 +19,22 @@ private:
 	BOOL					bEnabled;
 	Fmatrix					m_xform;
 	Fmatrix					m_xform_01;
+
 #ifdef DEBUG
 	u32						tris_in_frame_visible	;
 	u32						tris_in_frame			;
 #endif
 
-	xrCriticalSection		MT;
-	volatile u32			MT_frame_rendered;
-
 	void					Render_DB	(CFrustum&	base);
+
 public:
 	void					Load		();
 	void					Unload		();
 	void					Render		(CFrustum&	base);
-	void					Render_ZB	();
-//	void					Debug		();
 
 	void					occlude		(Fbox2&		space) { }
 	void					Disable		();
 	void					Enable		();
-
-	void	__stdcall		MT_RENDER	();
-	ICF	void				MT_SYNC		()			{ 
-		if (g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive())
-			return;
-
-		MT_RENDER			(); 
-	}
 
 	BOOL					visible		(vis_data&	vis);
 	BOOL					visible		(Fbox3&		B);

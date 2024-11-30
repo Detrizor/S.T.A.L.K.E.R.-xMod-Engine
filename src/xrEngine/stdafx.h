@@ -99,5 +99,11 @@ extern ENGINE_API CInifile* pGameIni;
 #define READ_IF_EXISTS(ltx,method,section,name,default_value)\
  (((ltx)->line_exist(section, name)) ? ((ltx)->method(section, name)) : (default_value))
 
+#define readEx(method, section, line, default_value)\
+ ((pSettings->line_exist(section, line)) ? pSettings->method(section, line) : default_value)
+
+#define writeEx(destination, method, section, line)\
+if (pSettings->line_exist(section, line)) destination = pSettings->method(section, line)
+
 #endif // !M_BORLAND
 #endif // !defined STDAFX_3DA

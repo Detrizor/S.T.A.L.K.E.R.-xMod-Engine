@@ -5,6 +5,7 @@
 #include "customzone.h"
 #include "artefact.h"
 #include "ai_sounds.h"
+#include "inventory_item_amountable.h"
 //#include "ui/ArtefactDetectorUI.h"
 
 class CCustomZone;
@@ -111,11 +112,12 @@ public:
 
 class CUIArtefactDetectorBase;
 
-class CCustomDetector :		public CHudItemObject
+class CCustomDetector : public CInventoryItemObject
 {
-	typedef	CHudItemObject	inherited;
+	typedef	CInventoryItemObject inherited;
+
 protected:
-	CUIArtefactDetectorBase*			m_ui;
+	xptr<CUIArtefactDetectorBase>		m_ui = nullptr;
 	bool			m_bFastAnimMode;
 	bool			m_bNeedActivation;
 
@@ -126,7 +128,6 @@ public:
 	virtual BOOL 	net_Spawn			(CSE_Abstract* DC);
 	virtual void 	Load				(LPCSTR section);
 
-	virtual void 	OnH_A_Chield		();
 	virtual void 	OnH_B_Independent	(bool just_before_destroy);
 
 	virtual void 	shedule_Update		(u32 dt);
@@ -135,18 +136,11 @@ public:
 
 			bool 	IsWorking			();
 
-	virtual void 	OnMoveToSlot		(const SInvItemPlace& prev);
-	virtual void 	OnMoveToRuck		(const SInvItemPlace& prev);
-
-	virtual void	OnActiveItem		();
-	virtual void	OnHiddenItem		();
 	virtual void	OnStateSwitch		(u32 S, u32 oldState);
-	virtual void	OnAnimationEnd		(u32 state);
 	virtual	void	UpdateXForm			();
-
-	void			ToggleDetector		(bool bFastMode);
-	void			HideDetector		(bool bFastMode);
-	void			ShowDetector		(bool bFastMode);
+	
+			void	OnActiveItem		() override;
+			void	OnHiddenItem		() override;
 	virtual bool	CheckCompatibility	(CHudItem* itm);
 
 	virtual u32		ef_detector_type	() const	{return 1;};
@@ -155,20 +149,23 @@ public:
 	float			m_fAfVisRadius;
 
 protected:
+			void 	TurnDetectorInternal		(bool b)		 { m_bWorking = b; }
+
 			bool	CheckCompatibilityInt		(CHudItem* itm, u16* slot_to_activate);
-			void 	TurnDetectorInternal		(bool b);
-	void 			UpdateNightVisionMode		(bool b_off);
 	void			UpdateVisibility			();
 	virtual void	UpfateWork					();
 	virtual void 	UpdateAf					()				{};
 	virtual void 	CreateUI					()				{};
 	
-    virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
+	virtual bool	install_upgrade_impl		(LPCSTR section, bool test);
 
-	bool			m_bWorking;
-	float			m_fDecayRate; //Alundaio
+	bool			m_bWorking			= false;
+	CAfList			m_artefacts			= {};
 
-	CAfList			m_artefacts;
+private:
+	bool toggle(bool status, bool bFastMode);
+	void hide(bool bFastMode);
+	void show(bool bFastMode);
 };
 
 class CZoneList : public CDetectList<CCustomZone>

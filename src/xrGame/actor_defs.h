@@ -62,7 +62,7 @@ enum EActorAction
 
 typedef const char*		EActorSleep;
 extern EActorSleep		easCanSleepResult;
-extern 	string32		g_quick_use_slots[10];
+extern 	string64		g_quick_use_slots[10];
 
 /*
 //результат функции GoSleep у актера

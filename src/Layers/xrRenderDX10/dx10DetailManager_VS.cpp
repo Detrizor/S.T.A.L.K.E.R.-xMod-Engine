@@ -95,7 +95,7 @@ void CDetailManager::hw_Render()
 	// Still
 	consts.set				(scale,		scale,		scale,				1.f);
 	//RCache.set_c			(&*hwc_s_consts,scale,		scale,		scale,				1.f);
-	//RCache.set_c			(&*hwc_s_xform,	Device.mFullTransform);
+	//RCache.set_c			(&*hwc_s_xform,	Device.camera.full_transform);
 	//hw_Render_dump			(&*hwc_s_array,	0, 1, c_hdr );
 	hw_Render_dump(consts, wave.div(PI_MUL_2), dir2, 0, 1);
 }
@@ -141,7 +141,7 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 				RCache.set_c(strConsts, consts);
 				RCache.set_c(strWave, wave);
 				RCache.set_c(strDir2D, wind);
-				RCache.set_c(strXForm, Device.mFullTransform);
+				RCache.set_c(strXForm, Device.camera.full_transform);
 
 				//ref_constant constArray = RCache.get_c(strArray);
 				//VERIFY(constArray);

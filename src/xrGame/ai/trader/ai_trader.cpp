@@ -38,6 +38,7 @@ CAI_Trader::~CAI_Trader()
 void CAI_Trader::Load(LPCSTR section)
 {
 	inherited::Load					(section);
+	CInventoryOwner::Load			(section);
 	SetfHealth( pSettings->r_float	(section,"Health") );
 	inventory().CalcTotalWeight();
 	inventory().CalcTotalVolume();
@@ -171,7 +172,7 @@ void CAI_Trader::OnEvent		(NET_Packet& P, u16 type)
 			Obj = Level().Objects.net_Find	(id);
 			if(inventory().CanTakeItem(smart_cast<CInventoryItem*>(Obj))){
 				Obj->H_SetParent(this);
-				inventory().Take(smart_cast<CGameObject*>(Obj), false, false);
+				inventory().Take(smart_cast<CGameObject*>(Obj), false);
 			}else
 			{
 				NET_Packet				P;
@@ -273,7 +274,7 @@ void CAI_Trader::net_Destroy()
 void CAI_Trader::UpdateCL()
 { 
 	inherited::UpdateCL		();
-	sound().update			(Device.fTimeDelta);
+	sound().update			(time_delta());
 
 
 	if (!GetScriptControl() && !bfScriptAnimation()) 
@@ -332,7 +333,7 @@ void CAI_Trader::load (IReader &input_packet)
 //проверяет список артефактов в заказах
 u32 CAI_Trader::ArtefactPrice (CArtefact* pArtefact)
 {
-	return pArtefact->Cost();
+	return pArtefact->CInventoryItem::Cost();
 }
 
 //продажа артефакта, с последуещим изменением списка заказов (true - если артефакт был в списке)

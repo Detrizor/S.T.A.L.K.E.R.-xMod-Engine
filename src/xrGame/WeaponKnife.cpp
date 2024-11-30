@@ -25,7 +25,6 @@
 CWeaponKnife::CWeaponKnife()
 {
 	SetState				( eHidden );
-	SetNextState			( eHidden );
 	knife_material_idx		= (u16)-1;
 	fHitImpulse_cur			= 0.0f;
 
@@ -112,7 +111,6 @@ void CWeaponKnife::OnStateSwitch	(u32 S, u32 oldState)
 	}
 }
 
-
 void CWeaponKnife::KnifeStrike(const Fvector& pos, const Fvector& dir)
 {
 	CObject* real_victim = TryPick(pos, dir, m_hit_dist);
@@ -159,15 +157,13 @@ void CWeaponKnife::MakeShot(Fvector const & pos, Fvector const & dir, float cons
 	cartridge.param_s.fWMS				= fWallmarkSize;
 	cartridge.bullet_material_idx		= knife_material_idx;
 
-	/*while(m_magazine.size() < 2)*/	m_magazine.push_back(cartridge);
-	iAmmoElapsed						= m_magazine.size();
 	bool SendHit						= SendHitAllowed(H_Parent());
 
 	PlaySound							("sndShot", pos);
 
 	Level().BulletManager().AddBullet(	pos,
 										dir,
-										m_fStartBulletSpeed,
+										m_barrel_len,
 										H_Parent()->ID(),
 										ID(),
 										m_eHitType,
@@ -237,9 +233,9 @@ void CWeaponKnife::switch2_Attacking	(u32 state)
 	if(IsPending())	return;
 
 	if(state==eFire)
-		PlayHUDMotion("anm_attack",		FALSE, this, state);
+		PlayHUDMotion("anm_attack",		FALSE, state);
 	else //eFire2
-		PlayHUDMotion("anm_attack2",	FALSE, this, state);
+		PlayHUDMotion("anm_attack2",	FALSE, state);
 
 	SetPending			(TRUE);
 }
@@ -256,7 +252,7 @@ void CWeaponKnife::switch2_Hiding	()
 {
 	FireEnd					();
 	VERIFY(GetState()==eHiding);
-	PlayHUDMotion("anm_hide", TRUE, this, GetState());
+	PlayHUDMotion("anm_hide", TRUE, GetState());
 }
 
 void CWeaponKnife::switch2_Hidden()
@@ -267,14 +263,13 @@ void CWeaponKnife::switch2_Hidden()
 
 void CWeaponKnife::switch2_Showing	()
 {
-	VERIFY(GetState()==eShowing);
-	PlayHUDMotion("anm_show", FALSE, this, GetState());
+	VERIFY(GetState() == eShowing);
+	if (m_actor) g_player_hud->attach_item(this);
+	PlayHUDMotion("anm_show", FALSE, GetState());
 }
 
-
 void CWeaponKnife::FireStart()
-{	
-	inherited::FireStart();
+{
 	SwitchState			(eFire);
 }
 
@@ -283,19 +278,24 @@ void CWeaponKnife::Fire2Start ()
 	SwitchState(eFire2);
 }
 
-
-bool CWeaponKnife::Action(u16 cmd, u32 flags) 
+bool CWeaponKnife::Action(u16 cmd, u32 flags)
 {
-	if(inherited::Action(cmd, flags)) return true;
-	switch(cmd) 
+	switch (cmd)
 	{
+	case kWPN_FIRE:
+		if (flags & CMD_START && !IsPending())
+			FireStart();
+		return true;
 
-		case kWPN_ZOOM : 
-			if(flags&CMD_START) 
-				Fire2Start			();
+	case kWPN_ZOOM:
+		if (flags & CMD_START && !IsPending())
+			Fire2Start();
 
-			return true;
+		return true;
 	}
+
+	if (inherited::Action(cmd, flags)) return true;
+
 	return false;
 }
 
@@ -310,13 +310,6 @@ void CWeaponKnife::LoadFireParams(LPCSTR section)
 	fHitPower_1			= pSettings->r_float		(section, "hit_power_2");
 	fHitImpulse_2		= pSettings->r_float		(section, "hit_impulse_2" );
 	m_eHitType_2		= ALife::g_tfString2HitType	(pSettings->r_string(section, "hit_type_2"));
-}
-
-bool CWeaponKnife::GetBriefInfo( II_BriefInfo& info )
-{
-	info.clear();
-	info.icon._set( cNameSect() );
-	return true;
 }
 
 #ifdef DEBUG

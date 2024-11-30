@@ -755,6 +755,29 @@ void xrServer::SendBroadcast(ClientID exclude, NET_Packet& P, u32 dwFlags)
 	ClientSenderFunctor temp_functor(this, P.B.data, P.B.count, dwFlags);
 	net_players.ForFoundClientsDo(ClientExcluderPredicate(exclude), temp_functor);
 }
+
+void xrServer::emitEvent(NET_Packet& P, bool straight)
+{
+	if (straight)
+	{
+		u16								type, destination;
+		P.r_begin						(type);
+		P.r_u32							();
+		P.r_u16							(type);
+		P.r_u16							(destination);
+		Level().cl_Process_Event		(destination, type, P);
+	}
+	else
+		SendBroadcast					(BroadcastCID, P, net_flags(TRUE, TRUE, FALSE, TRUE));
+}
+
+void xrServer::emitSpawn(NET_Packet& P)
+{
+	u16									dummy16;
+	P.r_begin							(dummy16);
+	Level().cl_Process_Spawn			(P);
+}
+
 //--------------------------------------------------------------------
 CSE_Abstract*	xrServer::entity_Create		(LPCSTR name)
 {

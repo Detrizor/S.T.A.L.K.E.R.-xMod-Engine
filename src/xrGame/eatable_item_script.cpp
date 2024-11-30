@@ -11,16 +11,5 @@ void CEatableItem::script_register(lua_State *L)
 		[
 			class_<CEatableItem, CInventoryItem>("CEatableItem")
 			//.def(constructor<>())
-			.def("Empty", &CEatableItem::Empty)
-			.def("CanDelete", &CEatableItem::CanDelete)
-			.def("GetMaxUses", &CEatableItem::GetMaxUses)
-			.def("GetRemainingUses", &CEatableItem::GetRemainingUses)
-			.def("SetRemainingUses", &CEatableItem::SetRemainingUses)
-			.def_readwrite("m_bRemoveAfterUse", &CEatableItem::m_bRemoveAfterUse)
-			.def_readwrite("m_fWeightFull", &CEatableItem::m_fWeightFull)
-			.def_readwrite("m_fWeightEmpty", &CEatableItem::m_fWeightEmpty)
-			.def("Weight", &CEatableItem::Weight)
-			.def("Volume", &CEatableItem::Volume)
-			.def("Cost", &CEatableItem::Cost)
 		];
 }

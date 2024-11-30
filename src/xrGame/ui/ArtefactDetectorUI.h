@@ -44,6 +44,7 @@ class CUIArtefactDetectorSimple :public CUIArtefactDetectorBase
 	CLAItem*			m_pOnOfLAnim;
 	CLAItem*			m_pFlashLAnim;
 	void				setup_internals			();
+
 public:
 	virtual				~CUIArtefactDetectorSimple	();
 	void				update						();
@@ -70,6 +71,7 @@ class CUIArtefactDetectorElite :public CUIArtefactDetectorBase, public CUIWindow
 	Fmatrix					m_map_attach_offset;
 
 	void				GetUILocatorMatrix			(Fmatrix& _m);
+
 public:
 
 	virtual void	update			();
@@ -79,7 +81,6 @@ public:
 	void		Clear				();
 	void		RegisterItemToDraw	(const Fvector& p, const shared_str& palette_idx);
 };
-
 
 class CUIArtefactDetectorAdv :public CUIArtefactDetectorBase
 {
@@ -92,7 +93,6 @@ class CUIArtefactDetectorAdv :public CUIArtefactDetectorBase
 	u16						m_bid;
 
 public:
-	virtual					~CUIArtefactDetectorAdv			();
 	virtual void			update							();
 	void					construct						(CAdvancedDetector* p);
 	void					SetValue						(const float v1, const Fvector& v2);

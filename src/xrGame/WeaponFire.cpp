@@ -50,73 +50,46 @@ void random_dir(Fvector& tgt_dir, const Fvector& src_dir, float dispersion)
 float CWeapon::GetWeaponDeterioration	()
 {
 	return conditionDecreasePerShot;
-};
+}
 
-void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
+void CWeapon::FireTrace()
 {
-	VERIFY		(m_magazine.size());
+	prepare_cartridge_to_shoot			();
+	VERIFY								(m_cartridge.bullet_material_idx != u16_max);
 
-	CCartridge &l_cartridge = m_magazine.back();
-//	Msg("ammo - %s", l_cartridge.m_ammoSect.c_str());
-	VERIFY		(u16(-1) != l_cartridge.bullet_material_idx);
-	//-------------------------------------------------------------	
-	bool is_tracer	= m_bHasTracers && !!l_cartridge.m_flags.test(CCartridge::cfTracer);
+	Fvector p							= get_LastFP();
+	Fvector d							= getFullFireDirection(m_cartridge);
+	float disp							= GetFireDispersion();
+	bool SendHit						= SendHitAllowed(H_Parent());
 
-	l_cartridge.m_flags.set	(CCartridge::cfTracer, is_tracer );
-	if (m_u8TracerColorID != u8(-1))
-		l_cartridge.param_s.u8ColorID	= m_u8TracerColorID;
-	//-------------------------------------------------------------
-	//повысить изношенность оружия с учетом влияния конкретного патрона
-//	float Deterioration = GetWeaponDeterioration();
-//	Msg("Deterioration = %f", Deterioration);
-	ChangeCondition(-GetWeaponDeterioration()*l_cartridge.param_s.impair);
-
-	
-	float fire_disp = 0.f;
-	CActor* tmp_actor = NULL;
-	if (fsimilar(fire_disp, 0.f))
+	if (!HudItemData())
 	{
-		//CActor* tmp_actor = smart_cast<CActor*>(Level().CurrentControlEntity());
-		if (H_Parent() && (H_Parent() == tmp_actor))
-		{
-			fire_disp = tmp_actor->GetFireDispertion();
-		} else
-		{
-			fire_disp = GetFireDispersion(true);
-		}
+		auto E							= H_Parent()->scast< CEntity*>();
+		E->g_fireParams					(this, p, d);
 	}
-	
 
-	bool SendHit = SendHitAllowed(H_Parent());
 	//выстерлить пулю (с учетом возможной стрельбы дробью)
-	for(int i = 0; i < l_cartridge.param_s.buckShot; ++i) 
-	{
-		FireBullet(P, D, fire_disp, l_cartridge, H_Parent()->ID(), ID(), SendHit, iAmmoElapsed);
-	}
+	for (int i = 0; i < m_cartridge.param_s.buckShot; ++i)
+		FireBullet						(p, d, disp, m_cartridge, H_Parent()->ID(), ID(), SendHit);
 
-	StartShotParticles		();
-	
-	if(m_bLightShotEnabled) 
-		Light_Start			();
+	StartShotParticles					();
+	Light_Start							();
 
-	
-	// Ammo
-	m_magazine.pop_back	();
-	--iAmmoElapsed;
+	float shot_speed					= m_barrel_len * m_muzzle_koefs.bullet_speed * m_cartridge.param_s.bullet_speed_per_barrel_len;
+	float shot_mass						= m_cartridge.param_s.fBulletMass * m_cartridge.param_s.buckShot;
+	appendRecoil						(shot_speed * shot_mass);
 
-	VERIFY((u32)iAmmoElapsed == m_magazine.size());
+	if (!unlimited_ammo())
+		ChangeCondition					(-GetWeaponDeterioration() * m_cartridge.param_s.impair);
 }
 
 void CWeapon::StopShooting()
 {
-//	SetPending			(TRUE);
-
 	//принудительно останавливать зацикленные партиклы
-	if(m_pFlameParticles && m_pFlameParticles->IsLooped())
+	if (m_flame_particles && m_flame_particles->IsLooped())
 		StopFlameParticles	();	
 
 	SwitchState(eIdle);
-
 	bWorking = false;
 }
 
@@ -126,16 +99,41 @@ void CWeapon::FireEnd()
 	StopShotEffector();
 }
 
+void CWeapon::appendRecoil(float impulse_magnitude)
+{
+	m_recoil_to_process			= true;
 
-void CWeapon::StartFlameParticles2	()
-{
-	CShootingObject::StartParticles (m_pFlameParticles2, *m_sFlameParticles2, get_LastFP2());
+	Fvector pattern				= m_mechanic_recoil_pattern;
+	pattern.mul					(m_layout_recoil_pattern);
+	pattern.mul					((IsZoomed()) ? m_stock_recoil_pattern : m_stock_recoil_pattern_absent);
+	pattern.mul					(m_muzzle_recoil_pattern);
+	pattern.mul					(m_foregrip_recoil_pattern);
+
+	if ((ShotsFired() == 1) || (Random.randF() < s_recoil_tremble_mean_change_chance))
+		m_recoil_tremble_mean	= Random.randFs(s_recoil_tremble_mean_dispersion);
+
+	float tremble				= pattern.x * Random.randFs(s_recoil_tremble_dispersion, m_recoil_tremble_mean);
+	float kick					= pattern.y * Random.randFs(s_recoil_kick_dispersion, 1.f);
+	float roll					= pattern.z * Random.randFs(s_recoil_roll_dispersion);
+	Fvector shot_impulse		= {
+		tremble * s_recoil_tremble_weight,
+		kick * s_recoil_kick_weight,
+		roll * s_recoil_roll_weight
+	};
+
+	shot_impulse.mul			(impulse_magnitude);
+	Fvector4 shot_impulse_full	= {
+		shot_impulse.x,
+		shot_impulse.y,
+		shot_impulse.z,
+		impulse_magnitude - shot_impulse.x - shot_impulse.y - shot_impulse.z
+	};
+	m_recoil_hud_impulse.add	(shot_impulse_full);
+	m_recoil_cam_impulse.add	(shot_impulse);
+	m_recoil_cam_last_impulse	= shot_impulse;
 }
-void CWeapon::StopFlameParticles2	()
+
+bool CWeapon::isCamRecoilRelaxed() const
 {
-	CShootingObject::StopParticles (m_pFlameParticles2);
-}
-void CWeapon::UpdateFlameParticles2	()
-{
-	if (m_pFlameParticles2)			CShootingObject::UpdateParticles (m_pFlameParticles2, get_LastFP2());
+	return (m_recoil_cam_last_impulse == vZero) && (m_recoil_cam_impulse == vZero);
 }

@@ -44,13 +44,13 @@ IC	CTradeFactorParameters::CFI CTradeFactorParameters::find	(const shared_str& s
 	if (I != E)
 		return				I;
 
-	LPCSTR					main_class = READ_IF_EXISTS(pSettings, r_string, section, "main_class", false);
-	if (!main_class)
+	LPCSTR category			= READ_IF_EXISTS(pSettings, r_string, section, "category", false);
+	if (!category)
 		return				I;
-	LPCSTR					subclass = READ_IF_EXISTS(pSettings, r_string, section, "subclass", "nil");
-	LPCSTR					division = READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
+	LPCSTR subcategory		= READ_IF_EXISTS(pSettings, r_string, section, "subcategory", "nil");
+	LPCSTR division			= READ_IF_EXISTS(pSettings, r_string, section, "division", "nil");
 	string256				tmp0, tmp1;
-	LPCSTR					class0 = strconcat(sizeof(tmp0), tmp0, main_class, ".", subclass);
+	LPCSTR					class0 = strconcat(sizeof(tmp0), tmp0, category, ".", subcategory);
 	LPCSTR					class1 = strconcat(sizeof(tmp1), tmp1, class0, ".", division);
 
 	I						= m_factors.find(class1);
@@ -59,6 +59,6 @@ IC	CTradeFactorParameters::CFI CTradeFactorParameters::find	(const shared_str& s
 	I						= m_factors.find(class0);
 	if (I != E)
 		return				I;
-	I						= m_factors.find(main_class);
+	I						= m_factors.find(category);
 	return					I;
 }

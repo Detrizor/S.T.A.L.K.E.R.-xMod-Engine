@@ -212,7 +212,7 @@ bool	CLevel::net_start_client5				()
 			//Device.Resources->DeferredLoad	(FALSE);
 			Device.m_pRender->DeferredLoad		(FALSE);
 			//Device.Resources->DeferredUpload	();
-			Device.m_pRender->ResourcesDeferredUpload();
+			//Device.m_pRender->ResourcesDeferredUpload();
 			LL_CheckTextures					();
 		}
 		sended_request_connection_data	= FALSE;

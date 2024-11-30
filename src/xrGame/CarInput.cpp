@@ -22,7 +22,7 @@ void	CCar::OnMouseMove(int dx, int dy)
 	if (Remote())					return;
 
 	CCameraBase* C	= active_camera;
-	float scale		= (C->f_fov/g_fov)*psMouseSens * psMouseSensScale/50.f;
+	float scale		= (C->f_fov / Device.gFOV) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d		= float(dx)*scale;
 		C->Move		((d<0)?kLEFT:kRIGHT, _abs(d));
@@ -40,13 +40,13 @@ bool CCar::bfAssignMovement(CScriptEntityAction *tpEntityAction)
 
 	u32		l_tInput = tpEntityAction->m_tMovementAction.m_tInputKeys;
 
-	vfProcessInputKey(kFWD		,	!!(l_tInput & CScriptMovementAction::eInputKeyForward		));
+	vfProcessInputKey(kFWD		,	!!(l_tInput & CScriptMovementAction::eInputKeyForward	));
 	vfProcessInputKey(kBACK		,	!!(l_tInput & CScriptMovementAction::eInputKeyBack		));
 	vfProcessInputKey(kL_STRAFE	,	!!(l_tInput & CScriptMovementAction::eInputKeyLeft		));
 	vfProcessInputKey(kR_STRAFE	,	!!(l_tInput & CScriptMovementAction::eInputKeyRight		));
-	vfProcessInputKey(kACCEL	,	!!(l_tInput & CScriptMovementAction::eInputKeyShiftUp		));
-	vfProcessInputKey(kCROUCH	,	!!(l_tInput & CScriptMovementAction::eInputKeyShiftDown	));
-	vfProcessInputKey(kJUMP		,	!!(l_tInput & CScriptMovementAction::eInputKeyBreaks		));
+	vfProcessInputKey(kR_LOOKOUT,	!!(l_tInput & CScriptMovementAction::eInputKeyShiftUp	));
+	vfProcessInputKey(kL_LOOKOUT,	!!(l_tInput & CScriptMovementAction::eInputKeyShiftDown	));
+	vfProcessInputKey(kJUMP		,	!!(l_tInput & CScriptMovementAction::eInputKeyBreaks	));
 	if (!!(l_tInput & CScriptMovementAction::eInputKeyEngineOn))	StartEngine();
 	if (!!(l_tInput & CScriptMovementAction::eInputKeyEngineOff)) StopEngine();
 
@@ -123,21 +123,20 @@ void CCar::OnKeyboardPress(int cmd)
 
 	switch (cmd)	
 	{
-	case kCAM_1:	OnCameraChange(ectFirst);	break;
-	case kCAM_2:	OnCameraChange(ectChase);	break;
-	case kCAM_3:	OnCameraChange(ectFree);	break;
-	case kACCEL:	TransmissionUp();			break;
-	case kCROUCH:	TransmissionDown();			break;
-	case kFWD:		PressForward();				break;
-	case kBACK:		PressBack();				break;
-	case kR_STRAFE:	PressRight();				if (OwnerActor()) OwnerActor()->steer_Vehicle(1);	break;
-	case kL_STRAFE:	PressLeft();				if (OwnerActor()) OwnerActor()->steer_Vehicle(-1);break;
-	case kJUMP:		PressBreaks();				break;
-	case kDETECTOR:	SwitchEngine();				break;
-	case kTORCH:	m_lights.SwitchHeadLights();break;
-	case kUSE:									break;
+	case kCAM_1:			OnCameraChange(ectFirst);	break;
+	case kCAM_2:			OnCameraChange(ectChase);	break;
+	case kCAM_3:			OnCameraChange(ectFree);	break;
+	case kR_LOOKOUT:		TransmissionUp();			break;
+	case kL_LOOKOUT:		TransmissionDown();			break;
+	case kFWD:				PressForward();				break;
+	case kBACK:				PressBack();				break;
+	case kR_STRAFE:			PressRight();				if (OwnerActor()) OwnerActor()->steer_Vehicle(1);	break;
+	case kL_STRAFE:			PressLeft();				if (OwnerActor()) OwnerActor()->steer_Vehicle(-1);break;
+	case kJUMP:				PressBreaks();				break;
+	case kNIGHT_VISION:		SwitchEngine();				break;
+	case kTORCH:			m_lights.SwitchHeadLights();break;
+	case kUSE:											break;
 	};
-
 }
 
 void	CCar::OnKeyboardRelease(int cmd)

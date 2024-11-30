@@ -49,10 +49,10 @@ static void	calc_normals( vecVertex &vertices, vecFace &faces )
 		type_vertex* pTestVertex = vertices[I];
 		for (vecAdjIt AFit = pTestVertex->m_adjacents.begin(); AFit!=pTestVertex->m_adjacents.end(); ++AFit)
 		{
-			type_face*	F					= *AFit;
+			type_face*	F				= *AFit;
 			F->flags.bSplitted			= false;
 		}
-		std::sort( pTestVertex->m_adjacents.begin(), pTestVertex->m_adjacents.end() );
+		pTestVertex->m_adjacents.sort	();
 
 		while ( pTestVertex->m_adjacents.size() )	
 		{

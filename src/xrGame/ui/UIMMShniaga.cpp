@@ -15,19 +15,20 @@
 #include "../login_manager.h"
 #include "MainMenu.h"
 #include "../gamespy/GameSpy_Full.h"
+#include "UIFrameWindow.h"
 
 extern string_path g_last_saved_game;
 
 CUIMMShniaga::CUIMMShniaga()
 {
-	m_sound			= xr_new<CMMSound>();
-
-	m_view			= xr_new<CUIScrollView>();	AttachChild(m_view);
-	m_shniaga		= xr_new<CUIStatic>();	AttachChild(m_shniaga);
-	m_magnifier		= xr_new<CUIStatic>();	m_shniaga->AttachChild(m_magnifier);	m_magnifier->SetPPMode();
+	AttachChild(m_background.get());
+	AttachChild(m_view.get());
+	AttachChild(m_shniaga.get());
+	m_shniaga->AttachChild(m_magnifier.get());
+	m_magnifier->SetPPMode();
 	m_mag_pos		= 0;
 
-	m_selected		= NULL;
+	m_selected		= nullptr;
 
 	m_start_time	= 0;
 	m_origin		= 0;
@@ -42,10 +43,6 @@ CUIMMShniaga::CUIMMShniaga()
 
 CUIMMShniaga::~CUIMMShniaga()
 {
-	xr_delete(m_magnifier);
-	xr_delete(m_shniaga);
-	xr_delete(m_view);
-	xr_delete(m_sound);
 	delete_data(m_buttons);
 }
 
@@ -55,19 +52,30 @@ extern CActor* g_actor;
 void CUIMMShniaga::InitShniaga(CUIXml& xml_doc, LPCSTR path)
 {
 	string256 _path;
-
 	CUIXmlInit::InitWindow(xml_doc, path, 0, this);
+
+	strconcat				(sizeof(_path),_path,path,":background");
+	CUIXmlInit::InitFrameWindow(xml_doc, _path, 0, m_background.get());
+
 	strconcat				(sizeof(_path),_path,path,":shniaga:magnifire");
-	CUIXmlInit::InitStatic(xml_doc, _path,0,m_magnifier); 
+	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_magnifier.get());
 	m_mag_pos				= m_magnifier->GetWndPos().x;
 	strconcat				(sizeof(_path),_path,path,":shniaga");
-	CUIXmlInit::InitStatic(xml_doc, _path,0,m_shniaga);
+	CUIXmlInit::InitStatic	(xml_doc, _path,0,m_shniaga.get());
 	strconcat				(sizeof(_path),_path,path,":buttons_region");
-	CUIXmlInit::InitScrollView(xml_doc, _path,0,m_view);
+	CUIXmlInit::InitScrollView(xml_doc, _path,0,m_view.get());
 	strconcat				(sizeof(_path),_path,path,":shniaga:magnifire:y_offset");
 	m_offset = xml_doc.ReadFlt(_path,0,0);
 
-	if (!g_pGameLevel || !g_pGameLevel->bReady) 
+	if (Device.isLevelReady())
+	{
+		VERIFY			(Actor());
+		if (g_actor && !Actor()->g_Alive())
+			CreateList	(m_buttons, xml_doc, "menu_main_single_dead");
+		else
+			CreateList	(m_buttons, xml_doc, "menu_main_single");
+	}
+	else
 	{
 		FS_FileSet		files;
 		FS.file_list	(files, "$game_saves$", (int(FS_ListFiles) | int(FS_RootOnly)), "*.scop");
@@ -76,16 +84,8 @@ void CUIMMShniaga::InitShniaga(CUIXml& xml_doc, LPCSTR path)
 		else
 			CreateList		(m_buttons, xml_doc, "menu_main_last_save");
 	}
-	else
-	{
-		VERIFY			(Actor());
-		if (g_actor && !Actor()->g_Alive())
-			CreateList	(m_buttons, xml_doc, "menu_main_single_dead");
-		else
-			CreateList	(m_buttons, xml_doc, "menu_main_single");
-	}
 
-    ShowMain				();
+	ShowMain				();
 
 	m_sound->Init(xml_doc, "menu_sound");
 	m_sound->music_Play();
@@ -99,10 +99,8 @@ extern CActor*		g_actor;
 
 void CUIMMShniaga::CreateList(xr_vector<CUITextWnd*>& lst, CUIXml& xml_doc, LPCSTR path)
 {
-	CGameFont* pF;
-	u32	color;
-	float button_height				= xml_doc.ReadAttribFlt("button", 0, "h");
-	R_ASSERT						(button_height);
+	CGameFont*						pF;
+	u32								color;
 
 	CUIXmlInit::InitFont			(xml_doc, path, 0, color, pF);
 	R_ASSERT						(pF);
@@ -117,8 +115,9 @@ void CUIMMShniaga::CreateList(xr_vector<CUITextWnd*>& lst, CUIXml& xml_doc, LPCS
 	for (int i = 0; i < nodes_num; ++i)
 	{		
 		st							= xr_new<CUITextWnd>();
-		st->SetWndPos				(Fvector2().set(0,0));
-		st->SetWndSize				(Fvector2().set(m_view->GetDesiredChildWidth(), button_height));
+		//AttachChild					(st);
+		st->SetWidth				(m_view->GetDesiredChildWidth());
+		st->SetHeight				(m_shniaga->GetHeight());
 		st->SetFont					(pF);
 		st->SetTextComplexMode		(false);
 		st->SetTextST				(xml_doc.ReadAttrib	("btn", i, "caption"));
@@ -200,7 +199,7 @@ void CUIMMShniaga::SelectBtn(int btn)
 
 	R_ASSERT(btn >= 0);
 	if (m_page == epi_main)
-        m_selected = m_buttons[btn];
+		m_selected = m_buttons[btn];
 	
 	m_selected_btn = btn;
 	ProcessEvent(E_Begin);
@@ -253,7 +252,7 @@ bool CUIMMShniaga::OnMouseAction(float x, float y, EUIMessages mouse_action)
 {
 	
 	Fvector2 pos = UI().GetUICursor().GetCursorPosition();
-    Frect r;
+	Frect r;
 	m_magnifier->GetAbsoluteRect(r);
 	if (WINDOW_LBUTTON_DOWN == mouse_action && r.in(pos.x, pos.y))
 	{
@@ -309,8 +308,8 @@ float CUIMMShniaga::pos(float x1, float x2, u32 t)
 {
 	float x = 0;
 
-    if (t>=0 && t<=m_run_time)
-        x = log(1 + (t*10.0f)/m_run_time)/log(11.0f);
+	if (t>=0 && t<=m_run_time)
+		x = log(1 + (t*10.0f)/m_run_time)/log(11.0f);
 	else if (t<=0)
 		x = 0;
 	else if (t>m_run_time)
@@ -321,7 +320,7 @@ float CUIMMShniaga::pos(float x1, float x2, u32 t)
 	if (x2 - x1 < 0)
 		return x1 - x;
 	else
-        return x1 + x;
+		return x1 + x;
 }
 
 bool b_shniaganeed_pp = true;
@@ -344,7 +343,7 @@ void CUIMMShniaga::ProcessEvent(EVENT ev)
 				// init whell sound
 				m_sound->whell_Play();
 
-                // calculate moving params
+				// calculate moving params
 				m_start_time = Device.dwTimeContinual;
 				m_origin = m_shniaga->GetWndPos().y;
 				m_destination = m_selected->GetWndPos().y - m_magnifier->GetWndPos().y;
@@ -353,7 +352,7 @@ void CUIMMShniaga::ProcessEvent(EVENT ev)
 				if (m_run_time < 100)
 					m_run_time = 100;*/
 
-                // reset flags
+				// reset flags
 				m_flags.set(fl_SoundFinalized,	FALSE);
 				m_flags.set(fl_MovingStoped,	FALSE);
 			}	break;
@@ -374,7 +373,7 @@ void CUIMMShniaga::ProcessEvent(EVENT ev)
 				pos.y = m_destination;
 				m_shniaga->SetWndPos(pos);		
 
-                m_flags.set(fl_MovingStoped, TRUE);
+				m_flags.set(fl_MovingStoped, TRUE);
 			}	break;
 		case E_Update:		m_sound->music_Update();
 			break;

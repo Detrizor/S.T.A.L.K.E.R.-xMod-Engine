@@ -431,19 +431,21 @@ CTexture* CResourceManager::_CreateTexture	(LPCSTR _Name)
 #endif	//	DEBUG
 
 	// ***** first pass - search already loaded texture
-	LPSTR N			= LPSTR(Name);
-	map_TextureIt I = m_textures.find	(N);
-	if (I!=m_textures.end())	return	I->second;
-	else
-	{
-		CTexture *	T		=	xr_new<CTexture>();
-		T->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
-		m_textures.insert	(mk_pair(T->set_name(Name),T));
-		T->Preload			();
-		if (RDEVICE.b_is_Ready && !bDeferredLoad) T->Load();
-		return		T;
-	}
+	
+	map_TextureIt I						= m_textures.find(Name);
+	if (I != m_textures.end())
+		return							I->second;
+	
+	CTexture* T							= xr_new<CTexture>();
+	T->dwFlags							|= xr_resource_flagged::RF_REGISTERED;
+	m_textures.emplace					(T->set_name(Name), T);
+	
+	T->Preload							();
+	m_parallel_tex_loader.run			([T]{ while (!Device.b_is_Ready) _STD this_thread::yield(); T->Load(); });
+
+	return								T;
 }
+
 void	CResourceManager::_DeleteTexture		(const CTexture* T)
 {
 	// DBG_VerifyTextures	();
@@ -547,25 +549,27 @@ void	CResourceManager::ED_UpdateConstant	(LPCSTR Name, CConstant* data)
 bool	cmp_tl	(const std::pair<u32,ref_texture>& _1, const std::pair<u32,ref_texture>& _2)	{
 	return _1.first < _2.first;
 }
-STextureList*	CResourceManager::_CreateTextureList(STextureList& L)
+
+STextureList* CResourceManager::_CreateTextureList(STextureList& L)
 {
-	std::sort	(L.begin(),L.end(),cmp_tl);
-	for (u32 it=0; it<lst_textures.size(); it++)
-	{
-		STextureList*	base		= lst_textures[it];
-		if (L.equal(*base))			return base;
-	}
+	L.sort(cmp_tl);
+	for (auto base : lst_textures)
+		if (L.equal(*base))
+			return base;
+
 	STextureList*	lst		=	xr_new<STextureList>(L);
 	lst->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
 	lst_textures.push_back	(lst);
 	return lst;
 }
+
 void			CResourceManager::_DeleteTextureList(const STextureList* L)
 {
 	if (0==(L->dwFlags&xr_resource_flagged::RF_REGISTERED))	return;
 	if (reclaim(lst_textures,L))					return;
 	Msg	("! ERROR: Failed to find compiled list of textures");
 }
+
 //--------------------------------------------------------------------------------------------------------------
 SMatrixList*	CResourceManager::_CreateMatrixList(SMatrixList& L)
 {

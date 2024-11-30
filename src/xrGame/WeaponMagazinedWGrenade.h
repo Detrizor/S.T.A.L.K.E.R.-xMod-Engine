@@ -2,101 +2,66 @@
 #include "weaponmagazined.h"
 #include "rocketlauncher.h"
 
-
 class CWeaponFakeGrenade;
 
-
-class CWeaponMagazinedWGrenade : public CWeaponMagazined,
-								 public CRocketLauncher
+class CWeaponMagazinedWGrenade :
+	public CWeaponMagazined,
+	public CRocketLauncher
 {
 	typedef CWeaponMagazined inherited;
+
 public:
-					CWeaponMagazinedWGrenade	(ESoundTypes eSoundType=SOUND_TYPE_WEAPON_SUBMACHINEGUN);
-	virtual			~CWeaponMagazinedWGrenade	();
+										CWeaponMagazinedWGrenade				(ESoundTypes eSoundType = SOUND_TYPE_WEAPON_SUBMACHINEGUN) {}
 
-	virtual void	Load				(LPCSTR section);
+	void								Load								O$	(LPCSTR section);
+
+protected:
+	void								sOnChild							O$	(CGameObject* obj, bool take);
+	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
+	void								sOnAddon							O$	(MAddon* addon, int attach_type);
+
+protected:
+	void								net_Destroy							O$	();
+	void								UpdateCL							O$	();
+	void								OnEvent								O$	(NET_Packet& P, u16 type);
+	bool								Action								O$	(u16 cmd, u32 flags);
 	
-	virtual BOOL	net_Spawn			(CSE_Abstract* DC);
-	virtual void	net_Destroy			();
-	virtual void	net_Export			(NET_Packet& P);
-	virtual void	net_Import			(NET_Packet& P);
-	
-	virtual void	OnH_B_Independent	(bool just_before_destroy);
+	void								OnStateSwitch						O$	(u32 S, u32 oldState);
+	void								UpdateSounds						O$	();
+	void								OnAnimationEnd						O$	(u32 state);
+	bool								IsNecessaryItem						O$	(const shared_str& item_sect);
+	void								PlayAnimReload						O$	();
 
-	virtual void	save				(NET_Packet &output_packet);
-	virtual void	load				(IReader &input_packet);
+	bool								HasAltAim							CO$	();
+	int									ADS									CO$	();
 
+	void								process_addon_modules				O$	(CGameObject& obj, bool attach);
+	void								process_foregrip					O$	(CGameObject& obj, LPCSTR type, bool attach);
 
-	virtual bool	Attach					(PIItem pIItem, bool b_send_event);
-	virtual bool	Detach					(const char* item_section_name, bool b_spawn_item);
-	virtual bool	CanAttach				(PIItem pIItem);
-	virtual bool	CanDetach				(const char* item_section_name);
-	virtual void	InitAddons				();
-	virtual bool	UseScopeTexture			();
-	virtual	float	GetZoomFactor			();
-	virtual	float	GetMinZoomFactor		();
-	virtual	u8		GetCurrentHudOffsetIdx	();
-	virtual void	FireEnd					();
-			void	LaunchGrenade			();
-	
-	virtual void	OnStateSwitch	(u32 S, u32 oldState);
-	
-	virtual void	switch2_Reload	();
-	virtual void	state_Fire		(float dt);
-	virtual void	OnShot			();
-	virtual void	OnEvent			(NET_Packet& P, u16 type);
-	virtual void	ReloadMagazine	();
-			bool	LoadGrenade		(CWeaponAmmo* grenade);
-	virtual bool	LoadMagazine	(CEatableItem* mag);
-	virtual bool	LoadCartridge	(CWeaponAmmo* cartridge);
-
-	virtual bool	Action			(u16 cmd, u32 flags);
-
-	virtual void	UpdateSounds	();
-
-	//переключение в режим подствольника
-	virtual bool	SwitchMode		();
-	void			PerformSwitchGL	();
-	void			OnAnimationEnd	(u32 state);
-	virtual void	OnMagazineEmpty	();
-	virtual bool	GetBriefInfo			(II_BriefInfo& info);
-
-	virtual bool	IsNecessaryItem	    (const shared_str& item_sect);
-	virtual float	Weight() const;
-
-	//виртуальные функции для проигрывания анимации HUD
-	virtual void	PlayAnimShow		();
-	virtual void	PlayAnimHide		();
-	virtual void	PlayAnimReload		();
-	virtual void	PlayAnimIdle		();
-	virtual void	PlayAnimShoot		();
-	virtual void	PlayAnimModeSwitch	();
-	virtual void	PlayAnimBore		();
-	
 private:
-	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
-	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
-	virtual	bool	install_upgrade_ammo_class	( LPCSTR section, bool test );
+	bool								m_bGrenadeMode							= false;
+	MGrenadeLauncher CP$				m_pLauncher								= nullptr;
+	shared_str							m_flame_particles_gl_name				= 0;
+	CParticlesObject*					m_flame_particles_gl					= nullptr;
+	CWeaponAmmo*						m_grenade								= nullptr;
+	Fvector								m_muzzle_point_gl						= vZero;
+	Fvector								m_fire_point_gl							= vZero;
+	u32									m_fire_point_gl_update_frame			= 0;
+
+
+	void								start_flame_particles_gl				();
+	void								stop_flame_particles_gl					();
+	void								update_flame_particles_gl				();
+	bool								switch_mode								();
+	void								launch_grenade							();
+	void								process_gl								(MGrenadeLauncher* gl, bool attach);
+	Fvector CR$							fire_point_gl							();
 	
-			int		GetAmmoCount2				( u8 ammo2_type ) const;
+	bool								tryTransfer							O$	(MAddon* addon, bool attach);
+
+protected:
+	LPCSTR								get_anm_prefix						CO$	();
 
 public:
-	//дополнительные параметры патронов 
-	//для подствольника
-//-	CWeaponAmmo*			m_pAmmo2;
-	xr_vector<shared_str>	m_ammoTypes2;
-	u8						m_ammoType2;
-
-	int						iMagazineSize2;
-	xr_vector<CCartridge>	m_magazine2;
-
-	bool					m_bGrenadeMode;
-
-	CCartridge				m_DefaultCartridge2;
-
-	virtual void UpdateGrenadeVisibility(bool visibility);
-
-	virtual	xr_vector<CCartridge>&	Magazine();
-			u8						GetGrenade();
-			void					SetGrenade(u8 cnt);
+	bool								isGrenadeMode						C$	()		{ return m_bGrenadeMode; }
 };

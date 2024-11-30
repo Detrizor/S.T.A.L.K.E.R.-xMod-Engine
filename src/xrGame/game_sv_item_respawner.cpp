@@ -114,17 +114,7 @@ CSE_Abstract* item_respawn_manager::make_respawn_entity(shared_str const & secti
 	temp_entity->ID_Parent			=	0xffff;								// no-parent
 	temp_entity->ID_Phantom			=	0xffff;								// no-phantom
 	temp_entity->RespawnTime		=	0;									// no-respawn
-	CSE_ALifeItemWeapon*	pWeapon	=	smart_cast<CSE_ALifeItemWeapon*>(temp_entity);
 	
-	if (pWeapon)
-	{
-		pWeapon->a_elapsed	= 0;
-		
-		if (count_of_ammo < pWeapon->a_elapsed)
-			pWeapon->a_elapsed = count_of_ammo;
-
-		pWeapon->m_addon_flags.assign(addons);
-	};
 	return temp_entity;
 }
 
@@ -356,7 +346,7 @@ void item_respawn_manager::clear_level_items()
 #ifndef MASTER_GOLD
 		Msg("---Destroying level item [%d] before respawn...", *i);
 #endif // #ifndef MASTER_GOLD
-		m_server->Perform_destroy(entity, net_flags(TRUE,TRUE));
+		m_server->Perform_destroy(entity, xrServer::sls_clear);
 	}
 	level_items_respawn.clear();
 }

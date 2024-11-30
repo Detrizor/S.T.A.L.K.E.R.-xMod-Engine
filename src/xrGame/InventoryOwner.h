@@ -12,6 +12,7 @@
 #include "inventory_space.h"
 #include "script_export_space.h"
 #include "Inventory.h"
+#include "GameObject.h"
 
 class CSE_Abstract;
 class CInventory;
@@ -30,22 +31,26 @@ class CPurchaseList;
 class CWeapon;
 class CCustomOutfit;
 class CHelmet;
+class CCartridge;
+class MMagazine;
 
-class CInventoryOwner : public CAttachmentOwner {							
+class CInventoryOwner : public CAttachmentOwner
+{
 public:
 					CInventoryOwner				();
 	virtual			~CInventoryOwner			();
 
 public:
 	virtual CInventoryOwner*	cast_inventory_owner	()						{return this;}
+
 public:
+	CGameObject*		O;
 
 	virtual DLL_Pure	*_construct				();
 	virtual BOOL		net_Spawn				(CSE_Abstract* DC);
 	virtual void		net_Destroy				();
 			void		Init					();
 	virtual void		Load					(LPCSTR section);
-	virtual void		reinit					();
 	virtual void		reload					(LPCSTR section);
 	virtual void		OnEvent					(NET_Packet& P, u16 type);
 
@@ -61,8 +66,8 @@ public:
 	CPda* GetPDA		() const;
 
 	// инвентарь
-	CInventory	*m_inventory;			
-	
+	xptr<CInventory> m_inventory{ nullptr };
+
 	////////////////////////////////////
 	//торговля и общение с персонажем
 
@@ -147,16 +152,15 @@ public:
 	CInventory		 &inventory()		{VERIFY (m_inventory); return(*m_inventory);}
 
 	//возвращает текуший разброс стрельбы (в радианах) с учетом движения
-	virtual float GetWeaponAccuracy			() const;
+	virtual float getWeaponDispersion			() const { return 0.f; }
 	//вместимость инвентаря
 	virtual float InventoryCapacity			() const;
 
 	CCustomOutfit*	GetOutfit				() const;
 	CHelmet*		GetHelmet				() const;
 
-	CSE_Abstract*	GiveObjects				(LPCSTR section, u16 count, float condition = 1.f, bool dont_reg = false);
-	CSE_Abstract*	GiveObject				(LPCSTR section, float condition = 1.f, bool dont_reg = false)					{ return GiveObjects(section, 1, condition, dont_reg); };
-	CSE_Abstract*	GiveAmmo				(LPCSTR section, u16 count = 1);
+	bool			pushCartridge			(CCartridge& cartridge) const;
+	bool			discharge				(MMagazine* mag) const;
 
 	bool CanPlayShHdRldSounds				() const {return m_play_show_hide_reload_sounds;};
 	void SetPlayShHdRldSounds				(bool play) {m_play_show_hide_reload_sounds = play;};
@@ -191,7 +195,6 @@ public:
 	virtual void			renderable_Render		();
 	virtual void			OnItemTake				(CInventoryItem *inventory_item);
 	
-	virtual void			OnItemBelt				(CInventoryItem *inventory_item, const SInvItemPlace& previous_place);
 	virtual void			OnItemRuck				(CInventoryItem *inventory_item, const SInvItemPlace& previous_place);
 	virtual void			OnItemSlot				(CInventoryItem *inventory_item, const SInvItemPlace& previous_place);
 	
@@ -199,14 +202,6 @@ public:
 	virtual void			OnItemDropUpdate		();
 	virtual bool			use_bolts				() const {return(true);}
 	virtual	void			spawn_supplies			();
-
-protected:
-	shared_str					m_item_to_spawn;
-	u32							m_ammo_in_box_to_spawn;
-
-public:
-	IC		const shared_str	&item_to_spawn			() const {return m_item_to_spawn;}
-	IC		const u32			&ammo_in_box_to_spawn	() const {return m_ammo_in_box_to_spawn;}
 
 public:
 	virtual bool				unlimited_ammo			()	= 0;
@@ -246,6 +241,13 @@ public:
 	IC		bool				deadbody_closed_status	() const { return m_deadbody_closed; }
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+public:
+	RStringVec							suppliesList							= {};
+
+	float								GetProtection						C$	(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type);
+	float								GetProtectionArtefacts				C$	(ALife::EHitType hit_type);
+	void								HitArtefacts						C$	(float d_damage, ALife::EHitType hit_type);
 };
 
 #include "inventory_owner_inline.h"

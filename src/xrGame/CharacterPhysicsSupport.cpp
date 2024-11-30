@@ -244,7 +244,7 @@ void CCharacterPhysicsSupport::in_NetSpawn( CSE_Abstract* e )
 	anim_mov_state.active = m_EntityAlife.animation_movement_controlled( );
 	CInifile * ini = m_EntityAlife.spawn_ini			();
 	if(ini && ini->section_exist("physics") && ini->line_exist("physics","controller_can_be_moved_by_player") )
-		m_PhysicMovementControl->SetActorMovable(!! ini->r_bool("physics","controller_can_be_moved_by_player") );
+		m_PhysicMovementControl->SetActorMovable(!! ini->r_BOOL("physics","controller_can_be_moved_by_player") );
 
 		
 }
@@ -271,7 +271,7 @@ void	CCharacterPhysicsSupport::CreateCharacter					( )
 bool HACK_TERRIBLE_DONOT_COLLIDE_ON_SPAWN( CEntityAlive &ea )
 {
 	if( pSettings->line_exist( ea.cNameSect().c_str(), "hack_terrible_donot_collide_on_spawn") &&
-		pSettings->r_bool( ea.cNameSect().c_str(), "hack_terrible_donot_collide_on_spawn") 
+		pSettings->r_BOOL( ea.cNameSect().c_str(), "hack_terrible_donot_collide_on_spawn") 
 		) return true;
 	return false;
 }

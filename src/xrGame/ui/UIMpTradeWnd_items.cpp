@@ -18,10 +18,6 @@ DLL_Pure*	__cdecl xrFactory_Create		(CLASS_ID clsid);
 extern "C"
 void	__cdecl xrFactory_Destroy		(DLL_Pure* O);
 
-CUICellItem*	create_cell_item(CInventoryItem* itm);
-
-
-
 SBuyItemInfo::SBuyItemInfo()
 {
 	m_item_state = e_undefined;
@@ -29,9 +25,8 @@ SBuyItemInfo::SBuyItemInfo()
 
 SBuyItemInfo::~SBuyItemInfo()
 {
-	CInventoryItem*			iitem = (CInventoryItem*)m_cell_item->m_pData;
-	xrFactory_Destroy		(&iitem->object());
-	delete_data				(m_cell_item);
+	CInventoryItem* iitem = static_cast<CInventoryItem*>(m_cell_item->m_pData);
+	xrFactory_Destroy(&iitem->object());
 }
 
 void SBuyItemInfo::SetState	(const EItmState& s)
@@ -115,7 +110,7 @@ SBuyItemInfo* CUIMpTradeWnd::CreateItem(const shared_str& name_sect, SBuyItemInf
 	m_all_items.push_back		( iinfo );
 	iinfo->m_name_sect			= name_sect;
 	iinfo->SetState				(type);
-	iinfo->m_cell_item			= create_cell_item(CreateItem_internal(name_sect));
+	iinfo->m_cell_item			= CreateItem_internal(name_sect)->getIcon();
 	iinfo->m_cell_item->m_b_destroy_childs = false;
 	return						iinfo;
 }
@@ -285,42 +280,6 @@ void CUIMpTradeWnd::CreateHelperItems (CUIDragDropListEx* list, const CStoreHier
 
 void CUIMpTradeWnd::CreateHelperItems (CUIDragDropListEx* list)
 {
-	CUIDragDropListEx* parent_list = NULL;
-
-	if ( list == m_list[e_pistol_ammo] )
-	{
-		parent_list								=	m_list[e_pistol];
-	}
-	else if ( list == m_list[e_rifle_ammo] )
-	{
-		parent_list								=	m_list[e_rifle];
-	}
-
-	if ( list == m_list[e_medkit] || list == m_list[e_granade] )
-	{
-		CreateHelperItems(list, &m_store_hierarchy->GetRoot());
-		return;
-	}
-
-	VERIFY(parent_list);
-	if ( !parent_list->ItemsCount() )
-	{
-		return;
-	}
-
-	CInventoryItem* parent_item					=	(CInventoryItem*)parent_list->GetItemIdx(0)->m_pData;
-	CWeapon*		wpn							=	smart_cast<CWeapon*>(parent_item);
-	R_ASSERT	   (wpn);
-
-	CreateHelperItems								(wpn->m_ammoTypes);
-
-	if ( CWeaponMagazinedWGrenade* wpn2			=	smart_cast<CWeaponMagazinedWGrenade*>(parent_item) )
-	{
-		if ( wpn2->IsGrenadeLauncherAttached() )
-		{
-			CreateHelperItems						(wpn2->m_ammoTypes2);
-		}
-	}
 }
 
 void CUIMpTradeWnd::UpdateCorrespondingItemsForList(CUIDragDropListEx* _list)
@@ -534,25 +493,27 @@ u32 _list_prio[]={
 	0,
 };
 
-struct preset_sorter {
+struct preset_sorter
+{
 	CItemMgr* m_mgr;
 	preset_sorter(CItemMgr* mgr):m_mgr(mgr){};
-	bool operator() (const _preset_item& i1, const _preset_item& i2)
+	bool operator() (const _preset_item& i1, const _preset_item& i2) const
 	{
 		u8 list_idx1	= m_mgr->GetItemSlotIdx(i1.sect_name);
 		u8 list_idx2	= m_mgr->GetItemSlotIdx(i2.sect_name);
-		
 		return		(_list_prio[list_idx1] > _list_prio[list_idx2]);
-	};
+	}
 };
-struct preset_eq {
+
+struct preset_eq
+{
 	shared_str		m_name;
 	u8				m_addon;
 	preset_eq(const shared_str& _name, u8 ad):m_name(_name),m_addon(ad){};
-	bool operator() (const _preset_item& pitem)
+	bool operator() (const _preset_item& pitem) const
 	{
 		return (pitem.sect_name==m_name)&&(pitem.addon_state==m_addon);
-	};
+	}
 };
 
 void CUIMpTradeWnd::StorePreset(ETradePreset idx, bool bSilent, bool check_allowed_items, bool flush_helpers)
@@ -617,13 +578,10 @@ void CUIMpTradeWnd::StorePreset(ETradePreset idx, bool bSilent, bool check_allow
 			_one.addon_names[2]			= GetAddonNameSect(iinfo, at_silencer);
 	}
 
-	std::sort						(v.begin(), v.end(), preset_sorter(m_item_mngr));
+	v.sort								(preset_sorter(m_item_mngr));
 
-	if ( flush_helpers )
-	{
-		UpdateHelperItems();
-	}
-
+	if (flush_helpers)
+		UpdateHelperItems				();
 }
 
 void CUIMpTradeWnd::ApplyPreset(ETradePreset idx)
@@ -833,20 +791,15 @@ void CUIMpTradeWnd::CheckDragItemToDestroy()
 	}
 }
 
-struct items_sorter {
-	items_sorter(){};
-	bool operator() (SBuyItemInfo* i1, SBuyItemInfo* i2)
-	{
-		if(i1->m_name_sect == i2->m_name_sect)
-			return i1->GetState()<i2->GetState();
-
-		return		i1->m_name_sect < i2->m_name_sect;
-	};
-};
-
 void CUIMpTradeWnd::DumpAllItems(LPCSTR s)
 {
-	std::sort		(m_all_items.begin(), m_all_items.end(), items_sorter());
+	auto items_sorter = [](SBuyItemInfo* i1, SBuyItemInfo* i2)
+	{
+		if (i1->m_name_sect == i2->m_name_sect)
+			return i1->GetState() < i2->GetState();
+		return		i1->m_name_sect < i2->m_name_sect;
+	};
+	m_all_items.sort(items_sorter);
 
 #ifndef MASTER_GOLD
 	Msg("CUIMpTradeWnd::DumpAllItems.total[%d] reason [%s]", m_all_items.size(), s);

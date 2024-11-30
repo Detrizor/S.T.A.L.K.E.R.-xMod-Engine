@@ -43,7 +43,7 @@ void CAI_Stalker::OnEvent		(NET_Packet& P, u16 type)
 			CGameObject	*_O = smart_cast<CGameObject*>(O);
 			if (inventory().CanTakeItem(smart_cast<CInventoryItem*>(_O))) {
 				O->H_SetParent(this);
-				inventory().Take(_O,true, false);
+				inventory().Take(_O, false);
 				if (!inventory().ActiveItem() && GetScriptControl() && smart_cast<CShootingObject*>(O))
 					CObjectHandler::set_goal	(eObjectActionIdle,_O);
 

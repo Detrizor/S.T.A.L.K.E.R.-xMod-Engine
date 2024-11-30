@@ -175,7 +175,6 @@ void CAI_Stalker::script_register(lua_State *L)
 		class_<CAI_Stalker,CGameObject>("CAI_Stalker")
 			.def(constructor<>())
 			.def("inside_anomaly", &CAI_Stalker::inside_anomaly)
-			.def("GetWeaponAccuracy", &CAI_Stalker::GetWeaponAccuracy)
 			.def("conditions", &CAI_Stalker::conditions)
 	];
 }

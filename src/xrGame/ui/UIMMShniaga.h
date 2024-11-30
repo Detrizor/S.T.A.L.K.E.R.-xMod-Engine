@@ -7,6 +7,7 @@ class CUITextWnd;
 class CUIXml;
 class CUIScrollView;
 class CMMSound;
+class CUIFrameWindow;
 
 class CUIMMShniaga :	public CUIWindow,
 						public CDeviceResetNotifier
@@ -51,14 +52,15 @@ protected:
 	void 				CreateList				(xr_vector<CUITextWnd*>& lst, CUIXml& xml_doc, LPCSTR path);
 	void 				ShowMain				();
 	float				pos						(float x1, float x2, u32 t);
+	
+	xptr<CUIFrameWindow>m_background;
+	xptr<CUIStatic>		m_shniaga;
+	xptr<CUIStatic>		m_magnifier;
+	xptr<CUIScrollView>	m_view;
 
-    CUIStatic*			m_shniaga;
-	CUIStatic*			m_magnifier;
-	CUIScrollView*		m_view;
-
-    u32					m_start_time;
+	u32					m_start_time;
 	u32					m_run_time;
-    float				m_origin;
+	float				m_origin;
 	float				m_destination;
 	float				m_mag_pos;
 	float				m_offset;
@@ -67,8 +69,8 @@ protected:
 
 	int						m_selected_btn;
 	enum_page_id			m_page;
-    CUIWindow*				m_selected;
-	CMMSound*				m_sound;
+	CUIWindow*				m_selected;
+	xptr<CMMSound>			m_sound;
 //	Fvector2				m_wheel_size[2];
 	enum {fl_SoundFinalized	= 1, fl_MovingStoped = 2	};
 

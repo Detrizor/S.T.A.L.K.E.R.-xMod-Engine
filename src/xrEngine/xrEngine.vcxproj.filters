@@ -618,6 +618,9 @@
     <ClInclude Include="xrSASH.h">
       <Filter>OpenAutomate</Filter>
     </ClInclude>
+    <ClInclude Include="ShadersExternalData.h">
+      <Filter>Game API\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="defines.cpp">
@@ -986,6 +989,7 @@
     <None Include="My Amplifier Results\r002cc\r002cc.ampl">
       <Filter>My Amplifier Results</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ClientServer.txt" />

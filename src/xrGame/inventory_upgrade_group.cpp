@@ -104,6 +104,25 @@ UpgradeStateResult Group::can_install( CInventoryItem& item, UpgradeBase& test_u
 		}
 	}
 
+	ib = m_included_upgrades.begin();
+	ie = m_included_upgrades.end();
+	for (; ib != ie; ++ib)
+	{
+		if ((*ib) == &test_upgrade)
+		{
+			continue;
+		}
+		if (item.has_upgrade((*ib)->id()))
+		{
+			if (loading)
+			{
+				FATAL(make_string("Loading item: Upgrade <%s> of inventory item [%s] (id = %d) can`t be installed! Error = result_e_group",
+					test_upgrade.id_str(), item.m_section_id.c_str(), item.object_id()).c_str());
+			}
+			return result_e_group;
+		}
+	}
+
 	return result_ok;
 }
 

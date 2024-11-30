@@ -161,12 +161,13 @@ STRING_VALUE CStringTable::ParseLine(LPCSTR str, LPCSTR skey, bool bFirst)
 	return STRING_VALUE(res.c_str());
 }
 
-STRING_VALUE CStringTable::translate (const STRING_ID& str_id) const
+STRING_VALUE CStringTable::translate(STRING_ID CR$ str_id) const
 {
-	VERIFY					(pData);
+	VERIFY								(pData);
+	return								(exists(str_id)) ? pData->m_StringTable[str_id] : str_id;
+}
 
-	if(pData->m_StringTable.find(str_id)!=pData->m_StringTable.end())
-		return  pData->m_StringTable[str_id];
-	else
-		return str_id;
+bool CStringTable::exists(STRING_ID CR$ str_id) const
+{
+	return								pData->m_StringTable.find(str_id) != pData->m_StringTable.end();
 }

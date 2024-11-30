@@ -3,7 +3,7 @@
 #define CMD_START	(1<<0)
 #define CMD_STOP	(1<<1)
 
-enum
+enum EInventorySlots
 {
 	NO_ACTIVE_SLOT	= 0,
 	LEFT_HAND_SLOT,
@@ -16,7 +16,6 @@ enum
 	OUTFIT_SLOT,
 	HELMET_SLOT,
 	BACKPACK_SLOT,
-	PATCH_SLOT,
 	HEADLAMP_SLOT,
 	PDA_SLOT,
 	TORCH_SLOT,
@@ -36,13 +35,13 @@ class CInventory;
 typedef CInventoryItem*				PIItem;
 typedef xr_vector<PIItem>			TIItemContainer;
 
-
 enum eItemPlace
 {			
 	eItemPlaceUndefined = 0,
 	eItemPlaceSlot,
 	eItemPlaceRuck,
-	eItemPlacePocket
+	eItemPlacePocket,
+	eItemPlaceTrade
 };
 
 struct SInvItemPlace
@@ -64,27 +63,10 @@ extern u16	INV_STATE_BLOCK_ALL;
 extern u16	INV_STATE_INV_WND;
 extern u16	INV_STATE_BUY_MENU;
 
-struct II_BriefInfo
+enum EItemDataTypes
 {
-	shared_str		icon;
-	shared_str		cur_ammo;
-	shared_str		fmj_ammo;
-	shared_str		ap_ammo;
-	shared_str		third_ammo; //Alundaio
-	shared_str		fire_mode;
-
-	shared_str		grenade;
-
-	II_BriefInfo() { clear(); }
-	
-	IC void clear()
-	{
-		icon		= "";
-		cur_ammo	= "";
-		fmj_ammo	= "";
-		ap_ammo		= "";
-		third_ammo = ""; //Alundaio
-		fire_mode	= "";
-		grenade		= "";
-	}
+	eWeight,
+	eVolume,
+	eCost,
+	eItemDataTypesSize
 };

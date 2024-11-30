@@ -8,6 +8,7 @@ class CTorridZone :public CMosquitoBald
 private:
 	typedef	CCustomZone	inherited;
 	CObjectAnimator		*m_animator;
+
 public:
 						CTorridZone			();
 	virtual				~CTorridZone		();
@@ -21,5 +22,7 @@ public:
 
 	// Lain: added
 	virtual bool        light_in_slow_mode  ();
-	virtual BOOL        AlwaysTheCrow       ();
+	
+protected:
+	bool								alwaysUpdate						O$	()		{ return true; }
 };

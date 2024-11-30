@@ -174,8 +174,9 @@ void CProfiler::show_stats			(CGameFont *game_font, bool show)
 
 	m_section.Enter				();
 
-	if (!m_portions.empty()) {
-		std::sort				(m_portions.begin(),m_portions.end(),CProfilePortionPredicate());
+	if (!m_portions.empty())
+	{
+		m_portions.sort			(CProfilePortionPredicate());
 		u64						timer_time = 0;
 		u32						call_count = 0;
 

@@ -234,15 +234,13 @@ void CPhysicsShellHolder::activate_physic_shell()
 //	XFORM().set					(l_p1);
 	correct_spawn_pos();
 
-	Fvector overriden_vel;
-	if ( ActivationSpeedOverriden (overriden_vel, true) )
+	if (m_activation_speed_is_overriden)
 	{
-		m_pPhysicsShell->set_LinearVel(overriden_vel);
+		m_pPhysicsShell->set_LinearVel(m_overriden_activation_speed);
+		m_activation_speed_is_overriden = false;
 	}
 	else
-	{
 		m_pPhysicsShell->set_LinearVel(l_fw);
-	}
 	m_pPhysicsShell->GetGlobalTransformDynamic(&XFORM());
 
 	if(H_Parent()&&H_Parent()->Visual())

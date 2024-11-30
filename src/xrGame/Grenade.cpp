@@ -21,10 +21,6 @@ CGrenade::CGrenade(void)
 	m_eSoundCheckout = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING);
 }
 
-CGrenade::~CGrenade(void) 
-{
-}
-
 void CGrenade::Load(LPCSTR section) 
 {
 	inherited::Load(section);
@@ -74,11 +70,6 @@ void CGrenade::net_Destroy()
 
 	inherited::net_Destroy				();
 	CExplosive::net_Destroy				();
-}
-
-void CGrenade::OnH_B_Independent(bool just_before_destroy) 
-{
-	inherited::OnH_B_Independent(just_before_destroy);
 }
 
 void CGrenade::OnH_A_Independent() 
@@ -151,22 +142,6 @@ void CGrenade::DiscardState()
 	}
 }
 
-void CGrenade::SendHiddenItem						()
-{
-	if (GetState()==eThrow)
-	{
-//		Msg("MotionMarks !!![%d][%d]", ID(), Device.dwFrame);
-		Throw				();
-	}
-	CActor* pActor = smart_cast<CActor*>( m_pInventory->GetOwner());
-	if (pActor && (GetState()==eReady || GetState()==eThrow))
-	{
-		return;
-	}
-
-	inherited::SendHiddenItem();
-}
-
 void CGrenade::Throw() 
 {
 	if (m_thrown)
@@ -189,8 +164,6 @@ void CGrenade::Throw()
 	m_thrown = true;
 }
 
-
-
 void CGrenade::Destroy() 
 {
 	//Generate Expode event
@@ -205,8 +178,6 @@ void CGrenade::Destroy()
 	FindNormal					(normal);
 	CExplosive::GenExplodeEvent	(Position(), normal);
 }
-
-
 
 bool CGrenade::Useful() const
 {
@@ -224,41 +195,15 @@ void CGrenade::OnEvent(NET_Packet& P, u16 type)
 
 void CGrenade::PutNextToSlot()
 {
-	if (OnClient()) return;
-
-	VERIFY									(!getDestroy());
+	VERIFY								(!getDestroy());
 	//выкинуть гранату из инвентаря
-	NET_Packet						P;
 	if (m_pInventory)
 	{
-		m_pInventory->Ruck					(this);
-
-		this->u_EventGen				(P, GEG_PLAYER_ITEM2RUCK, this->H_Parent()->ID());
-		P.w_u16							(this->ID());
-		this->u_EventSend				(P);
+		m_pInventory->Ruck				(this);
+		m_thrown						= false;
 	}
 	else
-		Msg ("! PutNextToSlot : m_pInventory = NULL [%d][%d]", ID(), Device.dwFrame);	
-
-	if (smart_cast<CInventoryOwner*>(H_Parent()) && m_pInventory)
-	{
-		CGrenade* pNext						= smart_cast<CGrenade*>(m_pInventory->Same(this));
-		if (!pNext)
-			pNext							= smart_cast<CGrenade*>(m_pInventory->SameSlot(GRENADE_SLOT, this));
-
-		VERIFY								(pNext != this);
-
-		if(pNext && m_pInventory->Slot(pNext->BaseSlot(),pNext) )
-		{
-			pNext->u_EventGen				(P, GEG_PLAYER_ITEM2SLOT, pNext->H_Parent()->ID());
-			P.w_u16							(pNext->ID());
-			P.w_u16							(pNext->BaseSlot());
-			pNext->u_EventSend				(P);
-			m_pInventory->SetActiveSlot		(pNext->BaseSlot());
-		}
-
-		m_thrown				= false;
-	}
+		Msg								("! PutNextToSlot : m_pInventory = NULL [%d][%d]", ID(), Device.dwFrame);	
 }
 
 void CGrenade::OnAnimationEnd(u32 state) 
@@ -270,38 +215,10 @@ void CGrenade::OnAnimationEnd(u32 state)
 	}
 }
 
-
 void CGrenade::UpdateCL() 
 {
 	inherited::UpdateCL			();
 	CExplosive::UpdateCL		();
-}
-
-
-bool CGrenade::Action(u16 cmd, u32 flags) 
-{
-	if(inherited::Action(cmd, flags)) return true;
-
-	switch(cmd) 
-	{
-	//переключение типа гранаты
-	case kWPN_NEXT:
-		{
-            if(flags&CMD_START) 
-			{
-				if (m_pInventory)
-					m_pInventory->ActivateDeffered();
-			}
-			return true;
-		};
-	}
-	return false;
-}
-
-
-bool CGrenade::NeedToDestroyObject()	const
-{
-	return false;
 }
 
 ALife::_TIME_ID	 CGrenade::TimePassedAfterIndependant()	const
@@ -324,7 +241,7 @@ void CGrenade::net_Relcase(CObject* O )
 	inherited::net_Relcase(O);
 }
 
-void CGrenade::DeactivateItem()
+void CGrenade::DeactivateItem(u16 slot)
 {
 	//Drop grenade if primed
 	StopCurrentAnimWithoutCallback();
@@ -352,20 +269,11 @@ void CGrenade::DeactivateItem()
 		};
 	};
 
-	inherited::DeactivateItem();
+	inherited::DeactivateItem(slot);
 }
 
-bool CGrenade::GetBriefInfo( II_BriefInfo& info )
+void CGrenade::onMovementChanged()
 {
-	VERIFY( m_pInventory );
-	info.clear();
-
-	info.icon._set( cNameSect() );
-
-	u32 ThisGrenadeCount	= m_pInventory->dwfGetSameItemCount( cNameSect().c_str(), true );
-	
-	string16 stmp;
-	xr_sprintf( stmp, "%d", ThisGrenadeCount );
-	info.cur_ammo._set( stmp );
-	return true;
+	if (GetState() < eThrowStart || GetState() > eThrowEnd)
+		__super::onMovementChanged();
 }

@@ -302,7 +302,6 @@ void UIUpgrade::update_item( CInventoryItem* inv_item )
 	switch( res )
 	{
 	case inventory::upgrade::result_ok:
-	case inventory::upgrade::result_e_group:
 		m_item->SetTextureColor(color_rgba(255,255,255,255));
 		m_state = STATE_ENABLED;
 		m_state_lock = false;
@@ -319,6 +318,11 @@ void UIUpgrade::update_item( CInventoryItem* inv_item )
 	case inventory::upgrade::result_e_parents:
 		m_state = STATE_DISABLED_PARENT;
 		m_state_lock = false;
+		break;
+	case inventory::upgrade::result_e_group:
+		m_item->SetTextureColor(color_rgba(255, 255, 255, 255));
+		m_state = STATE_DISABLED_GROUP;
+		m_state_lock = true;
 		break;
 	case inventory::upgrade::result_e_precondition_money:
 		m_state = STATE_DISABLED_PREC_MONEY;

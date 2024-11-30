@@ -1582,9 +1582,6 @@
     <Filter Include="Core\Client\Objects\inventory\EatableItem">
       <UniqueIdentifier>{2f2b6dff-3e8e-4897-9661-57c22b46abe5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\inventory\EatableItemObject">
-      <UniqueIdentifier>{a5bcec34-a466-4966-98cb-fdd42cfc160e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\inventory\InventoryItem">
       <UniqueIdentifier>{40d9024e-549a-4c4e-b72c-a3bf46abd4e9}</UniqueIdentifier>
     </Filter>
@@ -1719,9 +1716,6 @@
     </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular">
       <UniqueIdentifier>{796515d9-0128-43e7-a50f-2240ea2ead68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun">
-      <UniqueIdentifier>{56543b70-9f23-4592-8a9b-355ca9260866}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT">
       <UniqueIdentifier>{2bc95030-8551-4d1f-bbfa-97cfd87a0635}</UniqueIdentifier>
@@ -5310,9 +5304,6 @@
     <ClInclude Include="EffectorShot.h">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClInclude>
-    <ClInclude Include="EffectorShotX.h">
-      <Filter>Core\Client\Effectors\Weapon</Filter>
-    </ClInclude>
     <ClInclude Include="EffectorZoomInertion.h">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClInclude>
@@ -5443,9 +5434,6 @@
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClInclude>
     <ClInclude Include="ActorCondition.h">
-      <Filter>Core\Client\Objects\actor\base</Filter>
-    </ClInclude>
-    <ClInclude Include="fire_disp_controller.h">
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClInclude>
     <ClInclude Include="actor_memory.h">
@@ -5631,9 +5619,6 @@
     <ClInclude Include="eatable_item.h">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClInclude>
-    <ClInclude Include="eatable_item_object.h">
-      <Filter>Core\Client\Objects\inventory\EatableItemObject</Filter>
-    </ClInclude>
     <ClInclude Include="inventory_item.h">
       <Filter>Core\Client\Objects\inventory\InventoryItem</Filter>
     </ClInclude>
@@ -5644,9 +5629,6 @@
       <Filter>Core\Client\Objects\inventory\InventoryItem</Filter>
     </ClInclude>
     <ClInclude Include="inventory_item_object.h">
-      <Filter>Core\Client\Objects\inventory\InventoryItemObject</Filter>
-    </ClInclude>
-    <ClInclude Include="inventory_item_object_inline.h">
       <Filter>Core\Client\Objects\inventory\InventoryItemObject</Filter>
     </ClInclude>
     <ClInclude Include="inventory_owner_inline.h">
@@ -5733,12 +5715,6 @@
     <ClInclude Include="physic_item_inline.h">
       <Filter>Core\Client\Objects\inventory\PhysicItem</Filter>
     </ClInclude>
-    <ClInclude Include="CameraRecoil.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
-    </ClInclude>
-    <ClInclude Include="first_bullet_controller.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
-    </ClInclude>
     <ClInclude Include="ShootingObject.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
     </ClInclude>
@@ -5759,12 +5735,6 @@
     </ClInclude>
     <ClInclude Include="Missile.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
-    </ClInclude>
-    <ClInclude Include="Scope.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Scope</Filter>
-    </ClInclude>
-    <ClInclude Include="Silencer.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Silencer</Filter>
     </ClInclude>
     <ClInclude Include="GrenadeLauncher.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\GrenadeLauncher</Filter>
@@ -5840,9 +5810,6 @@
     </ClInclude>
     <ClInclude Include="WeaponBinocularsVision.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular</Filter>
-    </ClInclude>
-    <ClInclude Include="WeaponShotgun.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
     </ClInclude>
     <ClInclude Include="WeaponFORT.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT</Filter>
@@ -5940,16 +5907,7 @@
     <ClInclude Include="PdaMsg.h">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClInclude>
-    <ClInclude Include="antirad.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
     <ClInclude Include="BottleItem.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
-    <ClInclude Include="FoodItem.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClInclude>
-    <ClInclude Include="medkit.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
     </ClInclude>
     <ClInclude Include="ActorHelmet.h">
@@ -5963,9 +5921,6 @@
     </ClInclude>
     <ClInclude Include="InfoDocument.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Documents</Filter>
-    </ClInclude>
-    <ClInclude Include="hud_item_object.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
     </ClInclude>
     <ClInclude Include="HudItem.h">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
@@ -6181,15 +6136,6 @@
       <Filter>Core\Common\Shared</Filter>
     </ClInclude>
     <ClInclude Include="..\xrServerEntities\smart_cast.h">
-      <Filter>Core\Common\SmartCast</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl0.h">
-      <Filter>Core\Common\SmartCast</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl1.h">
-      <Filter>Core\Common\SmartCast</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl2.h">
       <Filter>Core\Common\SmartCast</Filter>
     </ClInclude>
     <ClInclude Include="string_table.h">
@@ -6978,9 +6924,6 @@
     <ClInclude Include="ui\UICellItem.h">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClInclude>
-    <ClInclude Include="ui\UICellItemFactory.h">
-      <Filter>UI\UIWindows\DragDrop</Filter>
-    </ClInclude>
     <ClInclude Include="ui\UIDragDropListEx.h">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClInclude>
@@ -7368,19 +7311,40 @@
     <ClInclude Include="WeaponCustomAuto.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClInclude>
-    <ClInclude Include="WeaponRevolver.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClInclude>
     <ClInclude Include="AmebaZone.h">
       <Filter>Core\Client\Objects\zones\Ameba</Filter>
     </ClInclude>
-    <ClInclude Include="HolderEntityObject.h" />
     <ClInclude Include="ActorBackpack.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Outfit</Filter>
     </ClInclude>
     <ClInclude Include="ui\UIPdaSpot.h">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClInclude>
+    <ClInclude Include="magazine.h" />
+    <ClInclude Include="inventory_item_amountable.h" />
+    <ClInclude Include="addon.h" />
+    <ClInclude Include="addon_owner.h" />
+    <ClInclude Include="scope.h" />
+    <ClInclude Include="silencer.h" />
+    <ClInclude Include="weapon_hud.h" />
+    <ClInclude Include="items_library.h" />
+    <ClInclude Include="HolderEntityObject.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="item_container.h" />
+    <ClInclude Include="module.h" />
+    <ClInclude Include="..\xrServerEntities\xrServer_Objects_Modules.h">
+      <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
+    </ClInclude>
+    <ClInclude Include="item_usable.h" />
+    <ClInclude Include="muzzle.h" />
+    <ClInclude Include="ui\CUIAddonInfo.h">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClInclude>
+    <ClInclude Include="foldable.h" />
+    <ClInclude Include="weapon_chamber.h" />
+    <ClInclude Include="module_owner.h" />
+    <ClInclude Include="signal_processor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -8865,9 +8829,6 @@
     <ClCompile Include="EffectorShot.cpp">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClCompile>
-    <ClCompile Include="EffectorShotX.cpp">
-      <Filter>Core\Client\Effectors\Weapon</Filter>
-    </ClCompile>
     <ClCompile Include="EffectorZoomInertion.cpp">
       <Filter>Core\Client\Effectors\Weapon</Filter>
     </ClCompile>
@@ -9066,9 +9027,6 @@
     <ClCompile Include="ActorVehicle.cpp">
       <Filter>Core\Client\Objects\actor\base</Filter>
     </ClCompile>
-    <ClCompile Include="fire_disp_controller.cpp">
-      <Filter>Core\Client\Objects\actor\base</Filter>
-    </ClCompile>
     <ClCompile Include="actor_memory.cpp">
       <Filter>Core\Client\Objects\actor\base\memory</Filter>
     </ClCompile>
@@ -9216,9 +9174,6 @@
     <ClCompile Include="eatable_item.cpp">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClCompile>
-    <ClCompile Include="eatable_item_object.cpp">
-      <Filter>Core\Client\Objects\inventory\EatableItemObject</Filter>
-    </ClCompile>
     <ClCompile Include="inventory_item.cpp">
       <Filter>Core\Client\Objects\inventory\InventoryItem</Filter>
     </ClCompile>
@@ -9270,9 +9225,6 @@
     <ClCompile Include="physic_item.cpp">
       <Filter>Core\Client\Objects\inventory\PhysicItem</Filter>
     </ClCompile>
-    <ClCompile Include="first_bullet_controller.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
-    </ClCompile>
     <ClCompile Include="ShootingObject.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Weapon Generic</Filter>
     </ClCompile>
@@ -9294,20 +9246,11 @@
     <ClCompile Include="WeaponCustomPistol.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponPistol.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClCompile>
     <ClCompile Include="Grenade.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
     </ClCompile>
     <ClCompile Include="Missile.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Grenades &amp; Missiles</Filter>
-    </ClCompile>
-    <ClCompile Include="Scope.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Scope</Filter>
-    </ClCompile>
-    <ClCompile Include="Silencer.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\Silencer</Filter>
     </ClCompile>
     <ClCompile Include="GrenadeLauncher.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Addons\GrenadeLauncher</Filter>
@@ -9395,12 +9338,6 @@
     </ClCompile>
     <ClCompile Include="WeaponBinocularsVision.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Binocular</Filter>
-    </ClCompile>
-    <ClCompile Include="WeaponShotgun.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
-    </ClCompile>
-    <ClCompile Include="weaponshotgun_script.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon Shotgun</Filter>
     </ClCompile>
     <ClCompile Include="WeaponFORT.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\FORT</Filter>
@@ -9510,16 +9447,7 @@
     <ClCompile Include="PDA.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClCompile>
-    <ClCompile Include="antirad.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
     <ClCompile Include="BottleItem.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
-    <ClCompile Include="FoodItem.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
-    </ClCompile>
-    <ClCompile Include="medkit.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
     </ClCompile>
     <ClCompile Include="ActorHelmet.cpp">
@@ -9533,9 +9461,6 @@
     </ClCompile>
     <ClCompile Include="InfoDocument.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Documents</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_item_object.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
     </ClCompile>
     <ClCompile Include="HudItem.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
@@ -9563,18 +9488,6 @@
     </ClCompile>
     <ClCompile Include="MPPlayersBag.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\MPPlayersBag</Filter>
-    </ClCompile>
-    <ClCompile Include="mpactor_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="shootingObject_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="weapon_ammo_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
-    </ClCompile>
-    <ClCompile Include="weapon_dump_impl.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\MPAnticheat</Filter>
     </ClCompile>
     <ClCompile Include="searchlight.cpp">
       <Filter>Core\Client\Objects\searchlight</Filter>
@@ -9758,12 +9671,6 @@
     </ClCompile>
     <ClCompile Include="random32.cpp">
       <Filter>Core\Common\Random\32bit</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrServerEntities\smart_cast.cpp">
-      <Filter>Core\Common\SmartCast</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrServerEntities\smart_cast_stats.cpp">
-      <Filter>Core\Common\SmartCast</Filter>
     </ClCompile>
     <ClCompile Include="string_table.cpp">
       <Filter>Core\Common\StringTable</Filter>
@@ -10608,9 +10515,6 @@
     <ClCompile Include="ui\UICellItem.cpp">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClCompile>
-    <ClCompile Include="ui\UICellItemFactory.cpp">
-      <Filter>UI\UIWindows\DragDrop</Filter>
-    </ClCompile>
     <ClCompile Include="ui\UIDragDropListEx.cpp">
       <Filter>UI\UIWindows\DragDrop</Filter>
     </ClCompile>
@@ -11013,27 +10917,21 @@
     <ClCompile Include="WeaponCustomAuto.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponRevolver.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Pistol</Filter>
-    </ClCompile>
     <ClCompile Include="raypick.cpp">
       <Filter>Core\Common</Filter>
     </ClCompile>
     <ClCompile Include="AmebaZone.cpp">
       <Filter>Core\Client\Objects\zones\Ameba</Filter>
     </ClCompile>
-    <ClCompile Include="HolderEntityObject.cpp" />
     <ClCompile Include="CustomOutfit_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Outfit</Filter>
     </ClCompile>
-    <ClCompile Include="medkit_script.cpp" />
     <ClCompile Include="WeaponAmmo_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Ammo</Filter>
     </ClCompile>
     <ClCompile Include="eatable_item_script.cpp">
       <Filter>Core\Client\Objects\inventory\EatableItem</Filter>
     </ClCompile>
-    <ClCompile Include="antirad_script.cpp" />
     <ClCompile Include="InventoryBox_script.cpp">
       <Filter>Core\Client\Objects\inventory_box</Filter>
     </ClCompile>
@@ -11048,9 +10946,6 @@
     </ClCompile>
     <ClCompile Include="HudItem_script.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\HudItem</Filter>
-    </ClCompile>
-    <ClCompile Include="FoodItem_script.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Food &amp; Drugs</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsShellHolder_script.cpp">
       <Filter>Core\Client\Objects\physics\PhysicsShellHolder</Filter>
@@ -11067,6 +10962,35 @@
     <ClCompile Include="ui\UIPdaSpot.cpp">
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClCompile>
+    <ClCompile Include="magazine.cpp" />
+    <ClCompile Include="inventory_item_amountable.cpp" />
+    <ClCompile Include="addon.cpp" />
+    <ClCompile Include="addon_owner.cpp" />
+    <ClCompile Include="scope.cpp" />
+    <ClCompile Include="silencer.cpp" />
+    <ClCompile Include="weapon_hud.cpp" />
+    <ClCompile Include="items_library.cpp" />
+    <ClCompile Include="HolderEntityObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="item_container.cpp" />
+    <ClCompile Include="module.cpp" />
+    <ClCompile Include="weaponautomaticshotgun_script.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Various weapons\Weapon AutomaticShotgun</Filter>
+    </ClCompile>
+    <ClCompile Include="weapon_animations.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Weapons\Custom Weapon\Automatic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrServerEntities\xrServer_Objects_Modules.cpp">
+      <Filter>Core\Server\ServerEntities\objects_alife_items</Filter>
+    </ClCompile>
+    <ClCompile Include="item_usable.cpp" />
+    <ClCompile Include="muzzle.cpp" />
+    <ClCompile Include="ui\CUIAddonInfo.cpp">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClCompile>
+    <ClCompile Include="foldable.cpp" />
+    <ClCompile Include="weapon_chamber.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">
@@ -11092,5 +11016,6 @@
     <None Include="Players.cd">
       <Filter>Class Diagrams</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

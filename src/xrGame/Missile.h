@@ -1,12 +1,13 @@
 #pragma once
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 #include "HudSound.h"
 
 struct dContact;
 struct SGameMtl;
-class CMissile : public CHudItemObject
+class CMissile : public CInventoryItemObject
 {
-	typedef CHudItemObject inherited;
+	typedef CInventoryItemObject inherited;
+
 public:
 	enum EMissileStates{
 		eThrowStart = eLastBaseState+1,
@@ -17,7 +18,6 @@ public:
 							CMissile					();
 	virtual					~CMissile					();
 
-	virtual BOOL			AlwaysTheCrow				()				{ return TRUE; }
 	virtual void			render_item_ui					();
 	virtual bool			render_item_ui_query					();
 
@@ -47,7 +47,6 @@ public:
 
 	virtual void 			State						(u32 state, u32 old_state);
 	virtual void 			OnStateSwitch				(u32 S, u32 oldState);
-	virtual bool			GetBriefInfo				(II_BriefInfo& info);
 
 protected:
 	virtual void			UpdateFireDependencies_internal	();
@@ -55,8 +54,7 @@ protected:
 	void					UpdatePosition					(const Fmatrix& trans);
 	void					spawn_fake_missile				();
 
-	virtual void			OnActiveItem		();
-	virtual void			OnHiddenItem		();
+	void					OnActiveItem					() override;
 
 	//для сети
 	virtual void			net_Relcase			(CObject* O );
@@ -93,7 +91,7 @@ public:
 	virtual void			activate_physic_shell	();
 	virtual void			setup_physic_shell		();
 	virtual void			create_physic_shell		();
-	IC		void			set_destroy_time		(u32 delta_destroy_time) {m_dwDestroyTime = delta_destroy_time + Device.dwTimeGlobal;}
+	IC		void			set_destroy_time		(u32 delta_destroy_time);
 	virtual void			PH_A_CrPr				();
 
 protected:
@@ -104,4 +102,7 @@ public:
 	IC		u32				destroy_time			() const { return m_dwDestroyTime; }
 	IC		int				time_from_begin_throw	() const { return (Device.dwTimeGlobal + m_dwDestroyTimeMax - m_dwDestroyTime); }
 	static	void			ExitContactCallback		(bool& do_colide,bool bo1,dContact& c,SGameMtl * /*material_1*/,SGameMtl * /*material_2*/);
+	
+protected:
+	bool								alwaysUpdate						O$	()		{ return true; }
 };

@@ -2,6 +2,10 @@
 #include "UICellItem.h"
 #include "../Weapon.h"
 
+class MAddonOwner;
+class CAddonSlot;
+
+typedef xr_vector<xptr<CAddonSlot>> VSlots;
 
 struct SIconLayer
 {
@@ -16,7 +20,8 @@ class CUIInventoryCellItem :public CUICellItem
 {
 	typedef  CUICellItem	inherited;
 public:
-											CUIInventoryCellItem		(CInventoryItem* itm);
+											CUIInventoryCellItem		(CInventoryItem* item);
+											CUIInventoryCellItem		(shared_str section, Frect* rect = nullptr);
 	virtual		bool						EqualTo						(CUICellItem* itm);
 	virtual		void						UpdateItemText				();
 				CUIDragItem*				CreateDragItem				();
@@ -47,37 +52,54 @@ public:
 				u32				 CalculateAmmoCount			();
 	virtual		bool			 EqualTo						(CUICellItem* itm);
 	virtual		CUIDragItem*	 CreateDragItem				();
-				CWeaponAmmo*	 object						() {return (CWeaponAmmo*)m_pData;}
+				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
 
-class CUIWeaponCellItem :public CUIInventoryCellItem
+class CUIAddonOwnerCellItem : public CUIInventoryCellItem
 {
-	typedef  CUIInventoryCellItem	inherited;
-public:
-	enum eAddonType{	eSilencer=0, eScope, eLauncher, eMaxAddon};
-protected:
-	CUIStatic*					m_addons					[eMaxAddon];
-	Fvector2					m_addon_offset				[eMaxAddon];
-	void						CreateIcon					(eAddonType);
-	void						DestroyIcon					(eAddonType);
-	void						RefreshOffset				();
-	CUIStatic*					GetIcon						(eAddonType);
-	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool use_heading);
-	bool						is_scope					();
-	bool						is_silencer					();
-	bool						is_launcher					();
-public:
-								CUIWeaponCellItem			(CWeapon* itm);
-				virtual			~CUIWeaponCellItem			();
-	virtual		void			Update						();
-	virtual		void			Draw						();
-	virtual		void			SetTextureColor				(u32 color);
+private:
+	typedef CUIInventoryCellItem		inherited;
 
-				CWeapon*		object						() {return (CWeapon*)m_pData;}
-	virtual		void			OnAfterChild				(CUIDragDropListEx* parent_list);
-	virtual		CUIDragItem*	CreateDragItem				();
-	virtual		bool			EqualTo						(CUICellItem* itm);
-	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
+	struct SUIAddonSlot
+	{
+		shared_str						name;
+		shared_str						type;
+		Fvector2						icon_offset;
+		float							icon_step;
+		bool							icon_background_draw;
+		bool							icon_foreground_draw;
+		
+		shared_str						addon_section							= 0;
+		u8								addon_type								= 0;
+		u8								addon_index								= 0;
+		xptr<CUIStatic>					addon_icon								= nullptr;
+
+		SUIAddonSlot					(xptr<CAddonSlot> CR$ slot);
+	};
+
+	typedef xr_vector<xptr<SUIAddonSlot>> VUISlots;
+
+public:
+										CUIAddonOwnerCellItem					(MAddonOwner* ao);
+										CUIAddonOwnerCellItem					(shared_str CR$ section);
+
+private:
+	VUISlots							m_slots									= {};
+	
+	void								calculate_grid							(shared_str CR$ sect);
+	void								process_slots							(VSlots CR$ slots, Fvector2 CR$ forwarded_offset);
+	void								InitAddon								(CUIStatic* s, LPCSTR section, u8 type, u8 index, Fvector2 offset, bool use_heading, bool drag = false);
+
+public:
+	VUISlots CR$						Slots								C$	()		{ return m_slots; }
+
+	bool								EqualTo								O$	(CUICellItem* itm) { return false; }
+
+	void								Update								O$	();
+	void								Draw								O$	();
+	CUIDragItem*						CreateDragItem						O$	();
+	void								SetTextureColor						O$	(u32 color);
+	void								OnAfterChild						O$	(CUIDragDropListEx* parent_list);
 };
 
 class CBuyItemCustomDrawCell :public ICustomDrawCellItem
@@ -88,11 +110,4 @@ public:
 						CBuyItemCustomDrawCell	(LPCSTR str, CGameFont* pFont);
 	virtual void		OnDraw					(CUICellItem* cell);
 
-};
-
-class CUISectionCellItem :public CUIInventoryCellItem
-{
-	typedef  CUIInventoryCellItem	inherited;
-public:
-	CUISectionCellItem				(shared_str section);
 };

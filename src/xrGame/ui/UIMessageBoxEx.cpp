@@ -21,9 +21,8 @@ void CUIMessageBoxEx::InitMessageBox(LPCSTR xml_template)
 	//CUIDialogWnd::SetWndRect(Frect().set(0.0f,0.0f,1024.0f,768.0f));
 	m_pMessageBox->InitMessageBox(xml_template);
 	
-	SetWndPos( m_pMessageBox->GetWndPos() );
-	SetWndSize( m_pMessageBox->GetWndSize() );
-	m_pMessageBox->SetWndPos( Fvector2().set(0,0) );
+	CopyAlignment				(*m_pMessageBox);
+	CopyPosSize					(*m_pMessageBox);
 
 	AddCallback( m_pMessageBox, MESSAGE_BOX_YES_CLICKED, CUIWndCallback::void_function( this, &CUIMessageBoxEx::OnOKClicked ) );
 	CUIMessageBox::E_MESSAGEBOX_STYLE style = m_pMessageBox->GetBoxStyle();

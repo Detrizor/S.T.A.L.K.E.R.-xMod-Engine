@@ -78,13 +78,14 @@ void CUIVote::Update()
 		items.push_back(I->second);
 	};
 
-    std::sort(items.begin(), items.end(), DM_Compare_Players);
+	items.sort(DM_Compare_Players);
 
 	list[0]->Clear();
 	list[1]->Clear();
 	list[2]->Clear();
 
-	for (u32 i = 0; i<items.size(); i++){
+	for (u32 i = 0; i<items.size(); i++)
+	{
 		game_PlayerState* p					= items[i];
 		if (p->m_bCurrentVoteAgreed == 1)
 			list[0]->AddTextItem(p->getName());
@@ -97,7 +98,7 @@ void CUIVote::Update()
 
 void CUIVote::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
 {
-    if (BUTTON_CLICKED == msg)
+	if (BUTTON_CLICKED == msg)
 	{
 		if (btn_yes == pWnd)
 			OnBtnYes();
@@ -110,13 +111,13 @@ void CUIVote::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
 
 void CUIVote::OnBtnYes()
 {
-    Console->Execute("cl_voteyes");
+	Console->Execute("cl_voteyes");
 	HideDialog							();
 }
 
 void CUIVote::OnBtnNo()
 {
-    Console->Execute("cl_voteno");
+	Console->Execute("cl_voteno");
 	HideDialog							();
 }
 

@@ -29,7 +29,7 @@ int	CompressSelected()
 {
 	if (g_selected.size()>1)
 	{
-		std::sort	(g_selected.begin(),g_selected.end());
+		g_selected.sort();
 		vecW_IT I = std::unique	(g_selected.begin(),g_selected.end());
 		g_selected.erase(I,g_selected.end());
 	}

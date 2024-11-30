@@ -18,8 +18,8 @@ void recalculation::load_calculation_params()
 				partial_calculate = false;
 		else
 		{
-			partial_calculate	 = !!ini.r_bool( "calculation" , "calculate_rect" );
-			force_recalculate	 = !!ini.r_bool( "calculation" , "force_recalculate" );
+			partial_calculate	 = !!ini.r_BOOL( "calculation" , "calculate_rect" );
+			force_recalculate	 = !!ini.r_BOOL( "calculation" , "force_recalculate" );
 			Fvector2 center_rect = ini.r_fvector2( "calculation", "center" );
 			float radius		 = ini.r_float( "calculation", "radius" );
 			calculation_rect.lt = center_rect;

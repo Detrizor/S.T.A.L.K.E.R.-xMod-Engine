@@ -10,6 +10,7 @@
 #include "../xrRender/HW.h"
 #include "../../xrEngine/XR_IOConsole.h"
 #include "../../Include/xrAPI/xrAPI.h"
+#include "../../xrEngine/xr_input.h"
 
 #include "StateManager\dx10SamplerStateCache.h"
 #include "StateManager\dx10StateCache.h"
@@ -18,13 +19,9 @@
 void	fill_vid_mode_list			(CHW* _hw);
 void	free_vid_mode_list			();
 
-void	fill_render_mode_list		();
-void	free_render_mode_list		();
 #else
 void	fill_vid_mode_list			(CHW* _hw)	{}
 void	free_vid_mode_list			()			{}
-void	fill_render_mode_list		()			{}
-void	free_render_mode_list		()			{}
 #endif
 
 CHW			HW;
@@ -328,44 +325,25 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 	// Create the device
 	//	DX10 don't need it?
 	//u32 GPU		= selectGPU();
-#ifdef USE_DX11
-    D3D_FEATURE_LEVEL pFeatureLevels[] =
-    {
-        D3D_FEATURE_LEVEL_11_0,
+	D3D_FEATURE_LEVEL pFeatureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
 //        D3D_FEATURE_LEVEL_10_1,
 //        D3D_FEATURE_LEVEL_10_0,
-    };
+	};
 
    R =  D3D11CreateDeviceAndSwapChain(   0,//m_pAdapter,//What wrong with adapter??? We should use another version of DXGI?????
-                                          m_DriverType,
-                                          NULL,
-                                          createDeviceFlags,
+										  m_DriverType,
+										  NULL,
+										  createDeviceFlags,
 										  pFeatureLevels,
 										  sizeof(pFeatureLevels)/sizeof(pFeatureLevels[0]),
 										  D3D11_SDK_VERSION,
-                                          &sd,
-                                          &m_pSwapChain,
-		                                  &pDevice,
+										  &sd,
+										  &m_pSwapChain,
+										  &pDevice,
 										  &FeatureLevel,		
 										  &pContext);
-#else
-   R =  D3DX10CreateDeviceAndSwapChain(   m_pAdapter,
-                                          m_DriverType,
-                                          NULL,
-                                          createDeviceFlags,
-                                          &sd,
-                                          &m_pSwapChain,
-		                                    &pDevice );
-
-   pContext = pDevice;
-   FeatureLevel = D3D_FEATURE_LEVEL_10_0;
-   if(!FAILED(R))
-   {
-      D3DX10GetFeatureLevel1( pDevice, &pDevice1 );
-	  FeatureLevel = D3D_FEATURE_LEVEL_10_1;
-   }
-   pContext1 = pDevice1;
-#endif
 
 	/*
 	if (FAILED(R))	{
@@ -451,14 +429,7 @@ void CHW::DestroyDevice()
 	if (!m_ChainDesc.Windowed) m_pSwapChain->SetFullscreenState( FALSE, NULL);
 	_SHOW_REF				("refCount:m_pSwapChain",m_pSwapChain);
 	_RELEASE				(m_pSwapChain);
-
-#ifdef USE_DX11
 	_RELEASE				(pContext);
-#endif
-
-#ifndef USE_DX11
-	_RELEASE				(HW.pDevice1);
-#endif
 	_SHOW_REF				("DeviceREF:",HW.pDevice);
 	_RELEASE				(HW.pDevice);
 
@@ -657,51 +628,44 @@ DXGI_RATIONAL CHW::selectRefresh(u32 dwWidth, u32 dwHeight, DXGI_FORMAT fmt)
 
 	float	CurrentFreq = 60.0f;
 
-	if (psDeviceFlags.is(rsRefresh60hz))	
+	xr_vector<DXGI_MODE_DESC>	modes;
+
+	IDXGIOutput *pOutput;
+	m_pAdapter->EnumOutputs(0, &pOutput);
+	VERIFY(pOutput);
+
+	UINT num = 0;
+	DXGI_FORMAT format = fmt;
+	UINT flags         = 0;
+
+	// Get the number of display modes available
+	pOutput->GetDisplayModeList( format, flags, &num, 0);
+
+	// Get the list of display modes
+	modes.resize(num);
+	pOutput->GetDisplayModeList( format, flags, &num, &modes.front());
+
+	_RELEASE(pOutput);
+
+	for (u32 i=0; i<num; ++i)
 	{
-		return res;
-	}
-	else
-	{
-		xr_vector<DXGI_MODE_DESC>	modes;
+		DXGI_MODE_DESC &desc = modes[i];
 
-		IDXGIOutput *pOutput;
-		m_pAdapter->EnumOutputs(0, &pOutput);
-		VERIFY(pOutput);
-
-		UINT num = 0;
-		DXGI_FORMAT format = fmt;
-		UINT flags         = 0;
-
-		// Get the number of display modes available
-		pOutput->GetDisplayModeList( format, flags, &num, 0);
-
-		// Get the list of display modes
-		modes.resize(num);
-		pOutput->GetDisplayModeList( format, flags, &num, &modes.front());
-
-		_RELEASE(pOutput);
-
-		for (u32 i=0; i<num; ++i)
+		if( (desc.Width == dwWidth) 
+			&& (desc.Height == dwHeight)
+			)
 		{
-			DXGI_MODE_DESC &desc = modes[i];
-
-			if( (desc.Width == dwWidth) 
-				&& (desc.Height == dwHeight)
-				)
+			VERIFY(desc.RefreshRate.Denominator);
+			float TempFreq = float(desc.RefreshRate.Numerator)/float(desc.RefreshRate.Denominator);
+			if ( TempFreq > CurrentFreq )
 			{
-				VERIFY(desc.RefreshRate.Denominator);
-				float TempFreq = float(desc.RefreshRate.Numerator)/float(desc.RefreshRate.Denominator);
-				if ( TempFreq > CurrentFreq )
-				{
-					CurrentFreq = TempFreq;
-					res = desc.RefreshRate;
-				}
+				CurrentFreq = TempFreq;
+				res = desc.RefreshRate;
 			}
 		}
-
-		return res;
 	}
+
+	return res;
 }
 
 void CHW::OnAppActivate()
@@ -737,57 +701,52 @@ BOOL CHW::support( D3DFORMAT fmt, DWORD type, DWORD usage)
 
 void CHW::updateWindowProps(HWND m_hWnd)
 {
-	//	BOOL	bWindowed				= strstr(Core.Params,"-dedicated") ? TRUE : !psDeviceFlags.is	(rsFullscreen);
-	BOOL	bWindowed				= !psDeviceFlags.is	(rsFullscreen);
-
-	u32		dwWindowStyle			= 0;
 	// Set window properties depending on what mode were in.
-	if (bWindowed)		{
-		if (m_move_window) {
-            dwWindowStyle = WS_BORDER | WS_VISIBLE;
-            if (!strstr(Core.Params, "-no_dialog_header"))
-                dwWindowStyle |= WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX;
-            SetWindowLong(m_hWnd, GWL_STYLE, dwWindowStyle);
-			// When moving from fullscreen to windowed mode, it is important to
-			// adjust the window size after recreating the device rather than
-			// beforehand to ensure that you get the window size you want.  For
-			// example, when switching from 640x480 fullscreen to windowed with
-			// a 1000x600 window on a 1024x768 desktop, it is impossible to set
-			// the window size to 1000x600 until after the display mode has
-			// changed to 1024x768, because windows cannot be larger than the
-			// desktop.
-
-			RECT			m_rcWindowBounds;
-			RECT				DesktopRect;
-
-			GetClientRect		(GetDesktopWindow(), &DesktopRect);
-
-			SetRect(			&m_rcWindowBounds, 
-				(DesktopRect.right-m_ChainDesc.BufferDesc.Width)/2, 
-				(DesktopRect.bottom-m_ChainDesc.BufferDesc.Height)/2, 
-				(DesktopRect.right+m_ChainDesc.BufferDesc.Width)/2, 
-				(DesktopRect.bottom+m_ChainDesc.BufferDesc.Height)/2);
-
-			AdjustWindowRect		(	&m_rcWindowBounds, dwWindowStyle, FALSE );
-
-			SetWindowPos			(	m_hWnd, 
-				HWND_NOTOPMOST,	
-                m_rcWindowBounds.left,
-                m_rcWindowBounds.top,
-				( m_rcWindowBounds.right - m_rcWindowBounds.left ),
-				( m_rcWindowBounds.bottom - m_rcWindowBounds.top ),
-				SWP_SHOWWINDOW|SWP_NOCOPYBITS|SWP_DRAWFRAME );
-		}
-	}
-	else
+	if (psDeviceFlags.is(rsFullscreen))
+		SetWindowLong					(m_hWnd, GWL_STYLE, (WS_POPUP | WS_VISIBLE));
+	else if (m_move_window)
 	{
-		SetWindowLong			( m_hWnd, GWL_STYLE, dwWindowStyle=(WS_POPUP|WS_VISIBLE) );
+		u32 dwWindowStyle				= WS_VISIBLE;
+		if (!strstr(Core.Params, "-no_dialog_header"))
+			dwWindowStyle				|= WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX;
+		SetWindowLong					(m_hWnd, GWL_STYLE, dwWindowStyle);
+		// When moving from fullscreen to windowed mode, it is important to
+		// adjust the window size after recreating the device rather than
+		// beforehand to ensure that you get the window size you want.  For
+		// example, when switching from 640x480 fullscreen to windowed with
+		// a 1000x600 window on a 1024x768 desktop, it is impossible to set
+		// the window size to 1000x600 until after the display mode has
+		// changed to 1024x768, because windows cannot be larger than the
+		// desktop.
+
+		RECT							m_rcWindowBounds;
+		RECT							DesktopRect;
+
+		GetClientRect					(GetDesktopWindow(), &DesktopRect);
+
+		SetRect							(
+			&m_rcWindowBounds,
+			(DesktopRect.right - m_ChainDesc.BufferDesc.Width) / 2.f,
+			(DesktopRect.bottom - m_ChainDesc.BufferDesc.Height) / 2.f,
+			(DesktopRect.right + m_ChainDesc.BufferDesc.Width) / 2.f,
+			(DesktopRect.bottom + m_ChainDesc.BufferDesc.Height) / 2.f
+		);
+
+		AdjustWindowRect				(&m_rcWindowBounds, dwWindowStyle, FALSE);
+
+		SetWindowPos					(
+			m_hWnd,
+			HWND_NOTOPMOST,
+			m_rcWindowBounds.left,
+			m_rcWindowBounds.top,
+			(m_rcWindowBounds.right - m_rcWindowBounds.left),
+			(m_rcWindowBounds.bottom - m_rcWindowBounds.top),
+			SWP_SHOWWINDOW | SWP_NOCOPYBITS | SWP_DRAWFRAME
+		);
 	}
 
-	ShowCursor	(FALSE);
-	SetForegroundWindow( m_hWnd );
+	SetForegroundWindow					(m_hWnd);
 }
-
 
 struct _uniq_mode
 {
@@ -797,80 +756,6 @@ struct _uniq_mode
 };
 
 #ifndef _EDITOR
-
-/*
-void free_render_mode_list()
-{
-for( int i=0; vid_quality_token[i].name; i++ )
-{
-xr_free					(vid_quality_token[i].name);
-}
-xr_free						(vid_quality_token);
-vid_quality_token			= NULL;
-}
-*/
-/*
-void	fill_render_mode_list()
-{
-if(vid_quality_token != NULL)		return;
-
-D3DCAPS9					caps;
-CHW							_HW;
-_HW.CreateD3D				();
-_HW.pD3D->GetDeviceCaps		(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&caps);
-_HW.DestroyD3D				();
-u16		ps_ver_major		= u16 ( u32(u32(caps.PixelShaderVersion)&u32(0xf << 8ul))>>8 );
-
-xr_vector<LPCSTR>			_tmp;
-u32 i						= 0;
-for(; i<5; ++i)
-{
-bool bBreakLoop = false;
-switch (i)
-{
-case 3:		//"renderer_r2.5"
-if (ps_ver_major < 3)
-bBreakLoop = true;
-break;
-case 4:		//"renderer_r_dx10"
-bBreakLoop = true;
-break;
-default:	;
-}
-
-if (bBreakLoop) break;
-
-_tmp.push_back				(NULL);
-LPCSTR val					= NULL;
-switch (i)
-{
-case 0: val ="renderer_r1";			break;
-case 1: val ="renderer_r2a";		break;
-case 2: val ="renderer_r2";			break;
-case 3: val ="renderer_r2.5";		break;
-case 4: val ="renderer_r_dx10";		break; //  -)
-}
-_tmp.back()					= xr_strdup(val);
-}
-u32 _cnt								= _tmp.size()+1;
-vid_quality_token						= xr_alloc<xr_token>(_cnt);
-
-vid_quality_token[_cnt-1].id			= -1;
-vid_quality_token[_cnt-1].name			= NULL;
-
-#ifdef DEBUG
-Msg("Available render modes[%d]:",_tmp.size());
-#endif // DEBUG
-for(u32 i=0; i<_tmp.size();++i)
-{
-vid_quality_token[i].id				= i;
-vid_quality_token[i].name			= _tmp[i];
-#ifdef DEBUG
-Msg							("[%s]",_tmp[i]);
-#endif // DEBUG
-}
-}
-*/
 void free_vid_mode_list()
 {
 	for( int i=0; vid_mode_token[i].name; i++ )
@@ -945,49 +830,6 @@ void fill_vid_mode_list(CHW* _hw)
 		Msg							("[%s]",_tmp[i]);
 #endif // DEBUG
 	}
-
-	/*	Old code
-	if(vid_mode_token != NULL)		return;
-	xr_vector<LPCSTR>	_tmp;
-	u32 cnt = _hw->pD3D->GetAdapterModeCount	(_hw->DevAdapter, _hw->Caps.fTarget);
-
-	u32 i;
-	for(i=0; i<cnt;++i)
-	{
-		D3DDISPLAYMODE	Mode;
-		string32		str;
-
-		_hw->pD3D->EnumAdapterModes(_hw->DevAdapter, _hw->Caps.fTarget, i, &Mode);
-		if(Mode.Width < 800)		continue;
-
-		xr_sprintf						(str,sizeof(str),"%dx%d", Mode.Width, Mode.Height);
-
-		if(_tmp.end() != std::find_if(_tmp.begin(), _tmp.end(), _uniq_mode(str)))
-			continue;
-
-		_tmp.push_back				(NULL);
-		_tmp.back()					= xr_strdup(str);
-	}
-
-	u32 _cnt						= _tmp.size()+1;
-
-	vid_mode_token					= xr_alloc<xr_token>(_cnt);
-
-	vid_mode_token[_cnt-1].id			= -1;
-	vid_mode_token[_cnt-1].name		= NULL;
-
-#ifdef DEBUG
-	Msg("Available video modes[%d]:",_tmp.size());
-#endif // DEBUG
-	for(i=0; i<_tmp.size();++i)
-	{
-		vid_mode_token[i].id		= i;
-		vid_mode_token[i].name		= _tmp[i];
-#ifdef DEBUG
-		Msg							("[%s]",_tmp[i]);
-#endif // DEBUG
-	}
-	*/
 }
 
 void CHW::UpdateViews()

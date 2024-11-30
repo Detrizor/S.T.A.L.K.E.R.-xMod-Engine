@@ -43,39 +43,34 @@ bool CFlare::IsFlareActive()
 
 void CFlare::OnStateSwitch(u32 S, u32 oldState)
 {
-	inherited::OnStateSwitch(S, oldState);
+	CHudItem::OnStateSwitch				(S, oldState);
 
 	switch(S)
 	{
 	case eFlareShowing:
-		{
-			g_player_hud->attach_item	(this);
-			PlayHUDMotion				("anm_show", TRUE, this, GetState());
-			SetPending					(TRUE);
-		}break;
+		g_player_hud->attach_item		(this);
+		PlayHUDMotion					("anm_show", TRUE, GetState());
+		SetPending						(TRUE);
+		break;
 	case eFlareHiding:
+		if (oldState != eFlareHiding)
 		{
-			if (oldState != eFlareHiding)
-			{
-				PlayHUDMotion				("anm_hide", TRUE, this, GetState());
-				SetPending					(TRUE);
-			}
-		}break;
-	case eFlareIdle:
-		{
-			light_lanim					= LALib.FindItem("flare_lanim_idle");
-			SetPending					(FALSE);
-		}break;
-	case eFlareHidden:
-		{
-			SetPending					(FALSE);
-		}break;
-	case eFlareDropping:
-		{
-			PlayHUDMotion				("anm_drop", TRUE, this, GetState());
+			PlayHUDMotion				("anm_hide", TRUE, GetState());
 			SetPending					(TRUE);
-		}break;
-	};
+		}
+		break;
+	case eFlareIdle:
+		light_lanim						= LALib.FindItem("flare_lanim_idle");
+		SetPending						(FALSE);
+		break;
+	case eFlareHidden:
+		SetPending						(FALSE);
+		break;
+	case eFlareDropping:
+		PlayHUDMotion					("anm_drop", TRUE, GetState());
+		SetPending						(TRUE);
+		break;
+	}
 }
 
 void CFlare::OnAnimationEnd(u32 state)
@@ -83,17 +78,15 @@ void CFlare::OnAnimationEnd(u32 state)
 	switch (state)
 	{
 	case eFlareShowing:
-		{
-			SwitchState					(eFlareIdle);
-			PlayAnimIdle				();
-		}break;
+		SwitchState						(eFlareIdle);
+		PlayAnimIdle					();
+		break;
 	case eFlareDropping:
-		{
-			SetDropManual				(TRUE);
-			SwitchState					(eFlareHidden);
-			processing_activate			();
-		}break;
-	};
+		SetDropManual					(TRUE);
+		SwitchState						(eFlareHidden);
+		processing_activate				();
+		break;
+	}
 }
 
 void CFlare::SwitchOn()

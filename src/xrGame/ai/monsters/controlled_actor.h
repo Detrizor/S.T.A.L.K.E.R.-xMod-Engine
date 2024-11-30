@@ -18,7 +18,7 @@ class CControlledActor : public CActorInputHandler {
 
 public:
 	virtual void	reinit				();
-	virtual	float	mouse_scale_factor	(){return flt_max;}
+	//virtual	float	mouse_scale_factor	(){return flt_max;}		--xd weird bug with zero horisontal camera movement after effector
 	virtual void	release				();
 	virtual void	install				(CActor *);
 	virtual void	install				();
@@ -37,4 +37,3 @@ private:
 			void	reset				();
 			void	update_turn			();
 };	
-

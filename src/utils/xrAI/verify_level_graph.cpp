@@ -112,7 +112,7 @@ void verify_level_graph	(LPCSTR name, bool verbose)
 		single_links.push_back		(0);
 
 	{
-		std::sort					(single_links.begin(),single_links.end());
+		single_links.sort			();
 		xr_vector<u32>::iterator	I = std::unique(single_links.begin(),single_links.end());
 		single_links.erase			(I,single_links.end());
 	}

@@ -102,8 +102,8 @@ float CActor::CameraHeight()
 
 IC float viewport_near(float& w, float& h)
 {
-	w = 2.f*VIEWPORT_NEAR*tan(deg2rad(Device.fFOV)/2.f);
-	h = w*Device.fASPECT;
+	w = 2.f*VIEWPORT_NEAR*tan(deg2rad(Device.camera.fov)/2.f);
+	h = w*Device.camera.aspect;
 	float	c	= _sqrt					(w*w + h*h);
 	return	_max(_max(VIEWPORT_NEAR,_max(w,h)),c);
 }
@@ -343,15 +343,7 @@ void CActor::cam_Update(float dt, float fFOV)
 
 	C->Update						(point,dangle);
 	C->f_fov						= fFOV;
-
-	//Alun: for third person zoom to first person
-	/*
-	if(eacFirstEye != cam_active)
-	{
-		cameras[eacFirstEye]->Update	(point,dangle);
-		cameras[eacFirstEye]->f_fov		= fFOV;
-	}
-	*/
+	C->m_Flags.set					(CCameraBase::flInterpolateFOV, fMoreOrEqual(fFOV, Device.aimFOV));
 
 	if (Level().CurrentEntity() == this)
 	{
@@ -371,6 +363,20 @@ void CActor::cam_Update(float dt, float fFOV)
 	fCurAVelocity			= vPrevCamDir.sub(cameras[eacFirstEye]->vDirection).magnitude()/Device.fTimeDelta;
 	vPrevCamDir				= cameras[eacFirstEye]->vDirection;
 
+	// Высчитываем разницу между предыдущим и текущим Yaw \ Pitch от 1-го лица //--#SM+ Begin#--
+	float& cam_yaw_cur = cameras[eacFirstEye]->yaw;
+	float& cam_pitch_cur = cameras[eacFirstEye]->pitch;
+
+	static float cam_yaw_prev = cam_yaw_cur;
+	static float cam_pitch_prev = cam_pitch_cur;
+
+	fFPCamYawMagnitude = angle_difference_signed(cam_yaw_prev, cam_yaw_cur) / Device.fTimeDelta; // L+ / R-
+	fFPCamPitchMagnitude = angle_difference_signed(cam_pitch_prev, cam_pitch_cur) / Device.fTimeDelta; //U+ / D-
+
+	cam_yaw_prev = cam_yaw_cur;
+	cam_pitch_prev = cam_pitch_cur;
+	//--#SM+ End#--
+
 #ifdef DEBUG
 	if( dbg_draw_camera_collision )
 	{
@@ -382,9 +388,8 @@ void CActor::cam_Update(float dt, float fFOV)
 	if (Level().CurrentEntity() == this)
 	{
 		Level().Cameras().UpdateFromCamera	(C);
-		if(eacFirstEye == cam_active && !Level().Cameras().GetCamEffector(cefDemo)){
-			Cameras().ApplyDevice	(_viewport_near);
-		}
+		if (eacFirstEye == cam_active && !Level().Cameras().GetCamEffector(cefDemo))
+			Cameras().ApplyDevice(_viewport_near);
 	}
 }
 
@@ -405,10 +410,11 @@ void CActor::update_camera (CCameraShotEffector* effector)
 			pACam->pitch -= PI_MUL_2;
 	}
 
-	effector->ChangeHP( &(pACam->pitch), &(pACam->yaw) );
+	effector->ChangeHP(pACam->pitch, pACam->yaw, pACam->roll);
 
 	if (pACam->bClampYaw)	clamp(pACam->yaw,pACam->lim_yaw[0],pACam->lim_yaw[1]);
 	if (pACam->bClampPitch)	clamp(pACam->pitch,pACam->lim_pitch[0],pACam->lim_pitch[1]);
+	if (pACam->bClampRoll)	clamp(pACam->roll, pACam->lim_roll[0], pACam->lim_roll[1]);
 
 	if (effector && !effector->IsActive())
 	{

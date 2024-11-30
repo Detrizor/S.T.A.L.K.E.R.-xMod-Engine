@@ -179,7 +179,7 @@ void CUIRankingWnd::add_achievement(CUIXml& xml, shared_str const& achiev_id)
 	achievement->SetHint(pSettings->r_string(achiev_id, "hint"));
 	achievement->SetIcon(pSettings->r_string(achiev_id, "icon"));
 	achievement->SetFunctor(pSettings->r_string(achiev_id, "functor"));
-	achievement->SetRepeatable(!!READ_IF_EXISTS(pSettings,r_bool,achiev_id,"repeatable",false));
+	achievement->SetRepeatable(!!READ_IF_EXISTS(pSettings,r_BOOL,achiev_id,"repeatable",false));
 
 	m_achieves_vec.push_back(achievement);
 }

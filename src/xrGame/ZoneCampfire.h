@@ -5,6 +5,7 @@ class CZoneCampfire :public CMosquitoBald
 {
 private:
 	typedef CMosquitoBald	inherited;
+
 protected:
 	CParticlesObject*		m_pEnablingParticles;
 	CParticlesObject*		m_pDisabledParticles;
@@ -14,7 +15,6 @@ protected:
 
 		virtual	void		PlayIdleParticles			(bool bIdleLight=true);
 		virtual	void		StopIdleParticles			(bool bIdleLight=true);
-		virtual BOOL		AlwaysTheCrow				();
 		virtual	void		UpdateWorkload				(u32 dt);
 
 public:
@@ -29,7 +29,11 @@ public:
 				bool		is_on						();
 	virtual		void		shedule_Update				(u32	dt	);
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+	
+protected:
+	bool								alwaysUpdate						O$	();
 };
+
 add_to_type_list(CZoneCampfire)
 #undef script_type_list
 #define script_type_list save_type_list(CZoneCampfire)

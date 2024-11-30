@@ -71,8 +71,3 @@ bool   CTorridZone::light_in_slow_mode ()
 {
 	return false;
 }
-
-BOOL   CTorridZone::AlwaysTheCrow ()
-{
-	return true;
-}

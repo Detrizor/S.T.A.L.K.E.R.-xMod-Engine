@@ -1,5 +1,4 @@
-#ifndef __V2D__
-#define __V2D__
+#pragma once
 
 template <class T>
 struct _vector2
@@ -112,8 +111,11 @@ public:
 typedef _vector2<float> Fvector2;
 typedef _vector2<double> Dvector2;
 typedef _vector2<int> Ivector2;
+typedef _vector2<u8> Uvector2;
 
 template <class T>
 BOOL _valid(const _vector2<T>& v) { return _valid((T)v.x) && _valid((T)v.y); }
 
-#endif
+constexpr Fvector2 vZero2 = { 0.f, 0.f };
+constexpr Fvector2 vUp2 = { 0.f, 1.f };
+constexpr Fvector2 vRight2 = { 1.f, 0.f };

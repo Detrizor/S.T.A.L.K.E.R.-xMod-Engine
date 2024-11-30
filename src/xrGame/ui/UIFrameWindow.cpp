@@ -15,29 +15,23 @@ CUIFrameWindow::CUIFrameWindow()
 
 void CUIFrameWindow::SetWndSize(const Fvector2& sz)
 {
-	Fvector2 size			= sz;
-	Fvector2 size_test		= sz;
-	UI().ClientToScreenScaled(size_test);
+	Fvector2 size				= sz;
+	Fvector2 size_test			= Fvector2().set(sz.x, sz.y);
+	UI().ClientToScreenScaled	(size_test);
 
-	if(m_bTextureVisible)
+	if (m_bTextureVisible)
 	{// fit to min size
 		Fvector2 min_size;
-		min_size.x			= m_tex_rect[fmLT].width() + m_tex_rect[fmRT].width();
-		min_size.y			= m_tex_rect[fmLT].height() + m_tex_rect[fmLB].height();
+		min_size.x				= m_tex_rect[fmLT].width() + m_tex_rect[fmRT].width();
+		min_size.y				= m_tex_rect[fmLT].height() + m_tex_rect[fmLB].height();
 
-		if(size_test.x<min_size.x)
-		{
-			UI().ClientToScreenScaledWidth(min_size.x);
-			size.x			= min_size.x;
-		}
-		if(size_test.y<min_size.y)
-		{
-			UI().ClientToScreenScaledHeight(min_size.y);
-			size.y			= min_size.y;
-		}
+		if (size_test.x < min_size.x)
+			size.x				= min_size.x;
+		if (size_test.y < min_size.y)
+			size.y				= min_size.y;
 	}
 
-	inherited::SetWndSize	(size);
+	inherited::SetWndSize		(size);
 }
 
 void  CUIFrameWindow::InitTextureEx(LPCSTR texture, LPCSTR  sh_name)
@@ -70,25 +64,6 @@ void  CUIFrameWindow::InitTextureEx(LPCSTR texture, LPCSTR  sh_name)
 
 	R_ASSERT2(fsimilar(m_tex_rect[fmRT].width(), m_tex_rect[fmR].width()),texture );
 	R_ASSERT2(fsimilar(m_tex_rect[fmRT].width(), m_tex_rect[fmRB].width()),texture );
-
-	Fvector2 pos				= GetWndPos();
-	Fvector2 size				= GetWndSize();
-	if (m_outer)
-	{
-		float dx				= UI_BASE_WIDTH / (float)Device.dwWidth;
-		float dy				= UI_BASE_HEIGHT / (float)Device.dwHeight;
-
-		float left_width		= m_tex_rect[fmL].width();
-		pos.x					-= left_width * dx;
-		float right_width		= m_tex_rect[fmR].width();
-		size.x					+= (left_width + right_width) * dx;
-		float top_height		= m_tex_rect[fmT].height();
-		pos.y					-= top_height * dy;
-		float bottom_height		= m_tex_rect[fmB].height();
-		size.y					+= (top_height + bottom_height) * dy;
-	}
-	SetWndPos					(pos);
-	SetWndSize					(size);
 }
 
 void CUIFrameWindow::InitTexture(LPCSTR texture)
@@ -110,11 +85,20 @@ void CUIFrameWindow::DrawElements()
 
 	Fvector2					ts;
 	UIRender->GetActiveTextureResolution(ts);
-
+	
 	Frect						rect;
 	GetAbsoluteRect				(rect);
+
 	UI().ClientToScreenScaled	(rect.lt);
 	UI().ClientToScreenScaled	(rect.rb);
+
+	if (m_outer)
+	{
+		rect.left				-= m_tex_rect[fmL].width();
+		rect.top				-= m_tex_rect[fmT].height();
+		rect.right				+= m_tex_rect[fmR].width();
+		rect.bottom				+= m_tex_rect[fmB].height();
+	}
 	
 	Fvector2 back_len			= {0.0f, 0.0f};
 	u32 rect_count				= 4; //lt+rt+lb+rb

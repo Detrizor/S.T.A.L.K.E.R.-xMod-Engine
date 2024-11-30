@@ -210,6 +210,13 @@ private:
 	mutable hit_bone_surface_areas_type	m_hit_bone_surface_areas;
 	mutable CRandom						m_hit_bones_random;
 	mutable bool						m_hit_bone_surface_areas_actual;
+
+public:
+	float							V$	getAccuracy							C$	()		{ return 1.f; }
+
+	float								GetProtection						C$	(CCustomOutfit*& outfit, CHelmet*& helmet, u16 bone_id, ALife::EHitType hit_type);
+	float								GetBoneArmor						C$	(u16 bone_id);
+
 };
 
 #include "entity_alive_inline.h"

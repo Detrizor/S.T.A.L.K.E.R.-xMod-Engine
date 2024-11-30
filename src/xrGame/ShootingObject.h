@@ -8,9 +8,8 @@
 
 #include "alife_space.h"
 #include "../xrEngine/render.h"
-#include "anticheat_dumpable_object.h"
+#include "WeaponAmmo.h"
 
-class CCartridge;
 class CParticlesObject;
 class IRender_Sector;
 
@@ -22,9 +21,7 @@ class CShootingObject : public IAnticheatDumpable
 {
 protected:
 			CShootingObject			();
-	virtual ~CShootingObject		();
 
-	void	reinit	();
 	void	reload	(LPCSTR section) {};
 	void	Load	(LPCSTR section);
 
@@ -48,28 +45,20 @@ protected:
 												const CCartridge& cartridge,
 												u16 parent_id,
 												u16 weapon_id,
-												bool send_hit,
-												int iShotNum = 0);
-	void					SetBulletSpeed(float new_speed) {m_fStartBulletSpeed = new_speed;}
-	float					GetBulletSpeed()				{return m_fStartBulletSpeed;}
+												bool send_hit);
 
 	virtual void			FireStart			();
 	virtual void			FireEnd				();
 public:
 	IC BOOL					IsWorking			()	const	{return bWorking;}
 	virtual BOOL			ParentMayHaveAimBullet()		{return FALSE;}
-	virtual BOOL			ParentIsActor()					{return FALSE;}
 
 protected:
 	// Weapon fires now
 	bool					bWorking;
-
 	float					fOneShotTime;
-	float					fModeShotTime;
-	bool					bCycleDown;
+	float					m_rpm;
 
-	//скорость вылета пули из ствола
-	float					m_fStartBulletSpeed;
 	//максимальное расстояние стрельбы
 	float					fireDistance;
 
@@ -79,26 +68,12 @@ protected:
 	//счетчик времени, затрачиваемого на выстрел
 	float					fShotTimeCounter;
 
-	struct SilencerKoeffs // value *= koef;
-	{
-		float	bullet_speed;
-		float	fire_dispersion;
-		float	cam_dispersion;
-		float	cam_disper_inc;
-
-		SilencerKoeffs() { Reset(); }
-		IC void Reset()
-		{
-			bullet_speed    = 1.0f;
-			fire_dispersion = 1.0f;
-			cam_dispersion  = 1.0f;
-			cam_disper_inc  = 1.0f;
-		}
-	};// SilencerKoeffs
-	SilencerKoeffs		m_silencer_koef;
-
 public:
-	SilencerKoeffs		cur_silencer_koef;
+	struct SMuzzleKoeffs
+	{
+		float	bullet_speed		= 1.f;
+		float	fire_dispersion		= 1.f;
+	} m_muzzle_koefs;
 
 protected:
 	//для сталкеров, чтоб они знали эффективные границы использования 
@@ -107,18 +82,12 @@ protected:
 	//float					m_fMaxRadius;
 
 protected:
-	Fcolor					light_base_color;
-	float					light_base_range;
 	Fcolor					light_build_color;
 	float					light_build_range;
 	ref_light				light_render;
-	float					light_var_color;
-	float					light_var_range;
-	float					light_lifetime;
 	u32						light_frame;
-	float					light_time;
-	//включение подсветки во время выстрела
-	bool					m_bLightShotEnabled;
+	float					light_time = -1.f;
+
 protected:
 	void					Light_Create		();
 	void					Light_Destroy		();
@@ -126,7 +95,6 @@ protected:
 	void					Light_Start			();
 	void					Light_Render		(const Fvector& P);
 
-	virtual	void			LoadLights			(LPCSTR section, LPCSTR prefix);
 	virtual void			RenderLight			();
 	virtual void			UpdateLight			();
 	virtual void			StopLight			();
@@ -145,9 +113,6 @@ protected:
 			void			StartParticles		(CParticlesObject*& pParticles, LPCSTR particles_name, const Fvector& pos, const Fvector& vel = zero_vel, bool auto_remove_flag = false);
 			void			StopParticles		(CParticlesObject*& pParticles);
 			void			UpdateParticles		(CParticlesObject*& pParticles, const Fvector& pos, const  Fvector& vel = zero_vel);
-
-			void			LoadShellParticles	(LPCSTR section, LPCSTR prefix);
-			void			LoadFlameParticles	(LPCSTR section, LPCSTR prefix);
 	
 	////////////////////////////////////////////////
 	//спецефические функции для партиклов
@@ -164,25 +129,12 @@ protected:
 
 	//партиклы гильз
 			void			OnShellDrop			(const Fvector& play_pos, const Fvector& parent_vel);
-protected:
-	//имя пратиклов для гильз
-	shared_str				m_sShellParticles;
-public:
-	Fvector					vLoadedShellPoint;
-protected:
-	//имя пратиклов для огня
-	shared_str				m_sFlameParticlesCurrent;
-	//для выстрела 1м и 2м видом стрельбы
-	shared_str				m_sFlameParticles;
-	//объект партиклов огня
-	CParticlesObject*		m_pFlameParticles;
 
-	//имя пратиклов для дыма
-	shared_str				m_sSmokeParticlesCurrent;
-	shared_str				m_sSmokeParticles;
-	
-	//имя партиклов следа от пули
-	shared_str				m_sShotParticles;
-public:
-	virtual void				DumpActiveParams		(shared_str const & section_name, CInifile & dst_ini) const;
+protected:
+	//объект партиклов огня
+	CParticlesObject*					m_flame_particles						= nullptr;
+	float								m_barrel_len							= 1.f;
+	bool								m_silencer								= false;
+	bool								m_flash_hider							= false;
+	CCartridge							m_cartridge;
 };

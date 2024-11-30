@@ -45,72 +45,73 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{200652A6-043E-4634-8837-87983B3BD5E0}</ProjectGuid>
     <RootNamespace>xrGame</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NEW|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_LuaJit_one|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -190,7 +191,6 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(xrGameDir)bin_rel\</OutDir>
     <IntDir>$(xrIntDir)$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
@@ -424,13 +424,9 @@
       <TypeLibraryName>$(OutDir)$(TargetName).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>.;$(SolutionDir);$(SolutionDir)xrServerEntities;$(xr3rdPartyDir)luajit-2\src\;$(SolutionDir)3rd party\luabind\;$(xrSdkDir)include;$(xrSdkDir)include\OpenAutomate;$(SolutionDir)3rd party\CxImage;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
@@ -843,9 +839,6 @@
     <ClInclude Include="..\xrServerEntities\ShapeData.h" />
     <ClInclude Include="..\xrServerEntities\shared_data.h" />
     <ClInclude Include="..\xrServerEntities\smart_cast.h" />
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl0.h" />
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl1.h" />
-    <ClInclude Include="..\xrServerEntities\smart_cast_impl2.h" />
     <ClInclude Include="..\xrServerEntities\specific_character.h" />
     <ClInclude Include="..\xrServerEntities\WaveForm.h" />
     <ClInclude Include="..\xrServerEntities\xml_str_id_loader.h" />
@@ -858,6 +851,7 @@
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_ALife_Items.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_ALife_Monsters.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Objects_Alife_Smartcovers.h" />
+    <ClInclude Include="..\xrServerEntities\xrServer_Objects_Modules.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Object_Base.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_script_macroses.h" />
     <ClInclude Include="..\xrServerEntities\xrServer_Space.h" />
@@ -1339,7 +1333,6 @@
     <ClInclude Include="animation_script_callback.h" />
     <ClInclude Include="animation_utils.h" />
     <ClInclude Include="anticheat_dumpable_object.h" />
-    <ClInclude Include="antirad.h" />
     <ClInclude Include="Artefact.h" />
     <ClInclude Include="artefact_activation.h" />
     <ClInclude Include="atlas_stalkercoppc_v1.h" />
@@ -1373,7 +1366,6 @@
     <ClInclude Include="CameraEffector.h" />
     <ClInclude Include="CameraFirstEye.h" />
     <ClInclude Include="cameralook.h" />
-    <ClInclude Include="CameraRecoil.h" />
     <ClInclude Include="CaptureBoneCallback.h" />
     <ClInclude Include="Car.h" />
     <ClInclude Include="CarDamageParticles.h" />
@@ -1409,6 +1401,11 @@
     <ClInclude Include="cover_point_inline.h" />
     <ClInclude Include="cta_game_artefact.h" />
     <ClInclude Include="cta_game_artefact_activation.h" />
+    <ClInclude Include="foldable.h" />
+    <ClInclude Include="module_owner.h" />
+    <ClInclude Include="signal_processor.h" />
+    <ClInclude Include="ui\CUIAddonInfo.h" />
+    <ClInclude Include="item_usable.h" />
     <ClInclude Include="CustomDetector.h" />
     <ClInclude Include="CustomMonster.h" />
     <ClInclude Include="CustomMonster_inline.h" />
@@ -1468,13 +1465,11 @@
     <ClInclude Include="dynamic_obstacles_avoider.h" />
     <ClInclude Include="dynamic_obstacles_avoider_inline.h" />
     <ClInclude Include="eatable_item.h" />
-    <ClInclude Include="eatable_item_object.h" />
     <ClInclude Include="edge_path.h" />
     <ClInclude Include="edge_path_inline.h" />
     <ClInclude Include="EffectorBobbing.h" />
     <ClInclude Include="EffectorFall.h" />
     <ClInclude Include="EffectorShot.h" />
-    <ClInclude Include="EffectorShotX.h" />
     <ClInclude Include="EffectorZoomInertion.h" />
     <ClInclude Include="ef_base.h" />
     <ClInclude Include="ef_pattern.h" />
@@ -1509,10 +1504,7 @@
     <ClInclude Include="filetransfer_common.h" />
     <ClInclude Include="filetransfer_node.h" />
     <ClInclude Include="file_transfer.h" />
-    <ClInclude Include="fire_disp_controller.h" />
-    <ClInclude Include="first_bullet_controller.h" />
     <ClInclude Include="flare.h" />
-    <ClInclude Include="FoodItem.h" />
     <ClInclude Include="FryupZone.h" />
     <ClInclude Include="fs_registrator.h" />
     <ClInclude Include="GalantineArtifact.h" />
@@ -1616,7 +1608,6 @@
     <ClInclude Include="HUDManager.h" />
     <ClInclude Include="HudSound.h" />
     <ClInclude Include="HUDTarget.h" />
-    <ClInclude Include="hud_item_object.h" />
     <ClInclude Include="id_generator.h" />
     <ClInclude Include="IKFoot.h" />
     <ClInclude Include="IKFoot_inl.h" />
@@ -1651,10 +1642,10 @@
     <ClInclude Include="InventoryBox.h" />
     <ClInclude Include="InventoryOwner.h" />
     <ClInclude Include="inventory_item.h" />
+    <ClInclude Include="inventory_item_amountable.h" />
     <ClInclude Include="inventory_item_impl.h" />
     <ClInclude Include="inventory_item_inline.h" />
     <ClInclude Include="inventory_item_object.h" />
-    <ClInclude Include="inventory_item_object_inline.h" />
     <ClInclude Include="inventory_owner_inline.h" />
     <ClInclude Include="inventory_upgrade.h" />
     <ClInclude Include="inventory_upgrade_base.h" />
@@ -1669,6 +1660,8 @@
     <ClInclude Include="inventory_upgrade_root.h" />
     <ClInclude Include="inventory_upgrade_root_inline.h" />
     <ClInclude Include="invincible_fury.h" />
+    <ClInclude Include="items_library.h" />
+    <ClInclude Include="item_container.h" />
     <ClInclude Include="item_manager.h" />
     <ClInclude Include="key_binding_registrator.h" />
     <ClInclude Include="killer_victim_velocity_angle.h" />
@@ -1693,6 +1686,7 @@
     <ClInclude Include="location_manager.h" />
     <ClInclude Include="location_manager_inline.h" />
     <ClInclude Include="login_manager.h" />
+    <ClInclude Include="magazine.h" />
     <ClInclude Include="magic_box3.h" />
     <ClInclude Include="magic_box3_inline.h" />
     <ClInclude Include="magic_minimize_1d.h" />
@@ -1708,7 +1702,6 @@
     <ClInclude Include="map_spot.h" />
     <ClInclude Include="material_manager.h" />
     <ClInclude Include="material_manager_inline.h" />
-    <ClInclude Include="medkit.h" />
     <ClInclude Include="member_corpse.h" />
     <ClInclude Include="member_corpse_inline.h" />
     <ClInclude Include="member_enemy.h" />
@@ -1725,6 +1718,7 @@
     <ClInclude Include="Missile.h" />
     <ClInclude Include="mixed_delegate.h" />
     <ClInclude Include="mixed_delegate_unique_tags.h" />
+    <ClInclude Include="module.h" />
     <ClInclude Include="monster_community.h" />
     <ClInclude Include="MosquitoBald.h" />
     <ClInclude Include="movement_manager.h" />
@@ -1740,6 +1734,7 @@
     <ClInclude Include="MPPlayersBag.h" />
     <ClInclude Include="mp_config_sections.h" />
     <ClInclude Include="mt_config.h" />
+    <ClInclude Include="muzzle.h" />
     <ClInclude Include="Needles.h" />
     <ClInclude Include="NET_Queue.h" />
     <ClInclude Include="NoGravityZone.h" />
@@ -1911,7 +1906,6 @@
     <ClInclude Include="safe_map_iterator_inline.h" />
     <ClInclude Include="saved_game_wrapper.h" />
     <ClInclude Include="saved_game_wrapper_inline.h" />
-    <ClInclude Include="Scope.h" />
     <ClInclude Include="screenshots_common.h" />
     <ClInclude Include="screenshots_writer.h" />
     <ClInclude Include="screenshot_manager.h" />
@@ -1997,7 +1991,6 @@
     <ClInclude Include="sight_manager.h" />
     <ClInclude Include="sight_manager_inline.h" />
     <ClInclude Include="sight_manager_space.h" />
-    <ClInclude Include="Silencer.h" />
     <ClInclude Include="silent_shots.h" />
     <ClInclude Include="SimpleDetector.h" />
     <ClInclude Include="smart_cover.h" />
@@ -2208,7 +2201,6 @@
     <ClInclude Include="ui\UICDkey.h" />
     <ClInclude Include="ui\UICellCustomItems.h" />
     <ClInclude Include="ui\UICellItem.h" />
-    <ClInclude Include="ui\UICellItemFactory.h" />
     <ClInclude Include="ui\UIChangeMap.h" />
     <ClInclude Include="ui\ChangeWeatherDialog.hpp" />
     <ClInclude Include="ui\UICharacterInfo.h" />
@@ -2365,10 +2357,8 @@
     <ClInclude Include="WeaponMagazinedWGrenade.h" />
     <ClInclude Include="WeaponPistol.h" />
     <ClInclude Include="WeaponPM.h" />
-    <ClInclude Include="WeaponRevolver.h" />
     <ClInclude Include="WeaponRG6.h" />
     <ClInclude Include="WeaponRPG7.h" />
-    <ClInclude Include="WeaponShotgun.h" />
     <ClInclude Include="WeaponStatMgun.h" />
     <ClInclude Include="HolderEntityObject.h" />
     <ClInclude Include="WeaponSVD.h" />
@@ -2377,9 +2367,15 @@
     <ClInclude Include="WeaponVal.h" />
     <ClInclude Include="WeaponVintorez.h" />
     <ClInclude Include="WeaponWalther.h" />
+    <ClInclude Include="weapon_chamber.h" />
     <ClInclude Include="Wound.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
+    <ClInclude Include="addon.h" />
+    <ClInclude Include="addon_owner.h" />
+    <ClInclude Include="scope.h" />
+    <ClInclude Include="silencer.h" />
+    <ClInclude Include="weapon_hud.h" />
     <ClInclude Include="xrClientsPool.h" />
     <ClInclude Include="xrGameSpyServer.h" />
     <ClInclude Include="xrGameSpyServer_callbacks.h" />
@@ -2516,8 +2512,6 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="..\xrServerEntities\smart_cast.cpp" />
-    <ClCompile Include="..\xrServerEntities\smart_cast_stats.cpp" />
     <ClCompile Include="..\xrServerEntities\specific_character.cpp" />
     <ClCompile Include="..\xrServerEntities\xrServer_Factory.cpp" />
     <ClCompile Include="..\xrServerEntities\xrServer_Objects.cpp" />
@@ -2573,6 +2567,7 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="..\xrServerEntities\xrServer_Objects_Modules.cpp" />
     <ClCompile Include="..\xrServerEntities\xrServer_Objects_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3030,11 +3025,6 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="animation_utils.cpp" />
-    <ClCompile Include="antirad.cpp" />
-    <ClCompile Include="antirad_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
     <ClCompile Include="Artefact.cpp" />
     <ClCompile Include="artefact_activation.cpp" />
     <ClCompile Include="artefact_script.cpp">
@@ -3123,6 +3113,9 @@
     </ClCompile>
     <ClCompile Include="cta_game_artefact.cpp" />
     <ClCompile Include="cta_game_artefact_activation.cpp" />
+    <ClCompile Include="foldable.cpp" />
+    <ClCompile Include="ui\CUIAddonInfo.cpp" />
+    <ClCompile Include="item_usable.cpp" />
     <ClCompile Include="CustomDetector.cpp" />
     <ClCompile Include="CustomMonster.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -3184,7 +3177,6 @@
     </ClCompile>
     <ClCompile Include="dynamic_obstacles_avoider.cpp" />
     <ClCompile Include="eatable_item.cpp" />
-    <ClCompile Include="eatable_item_object.cpp" />
     <ClCompile Include="eatable_item_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3192,7 +3184,6 @@
     <ClCompile Include="EffectorBobbing.cpp" />
     <ClCompile Include="EffectorFall.cpp" />
     <ClCompile Include="EffectorShot.cpp" />
-    <ClCompile Include="EffectorShotX.cpp" />
     <ClCompile Include="EffectorZoomInertion.cpp" />
     <ClCompile Include="ef_pattern.cpp" />
     <ClCompile Include="ef_primary.cpp" />
@@ -3231,14 +3222,7 @@
     <ClCompile Include="filereceiver_node.cpp" />
     <ClCompile Include="filetransfer_node.cpp" />
     <ClCompile Include="file_transfer.cpp" />
-    <ClCompile Include="fire_disp_controller.cpp" />
-    <ClCompile Include="first_bullet_controller.cpp" />
     <ClCompile Include="flare.cpp" />
-    <ClCompile Include="FoodItem.cpp" />
-    <ClCompile Include="FoodItem_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
     <ClCompile Include="FryupZone.cpp" />
     <ClCompile Include="fs_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -3392,7 +3376,6 @@
     <ClCompile Include="HUDManager.cpp" />
     <ClCompile Include="HudSound.cpp" />
     <ClCompile Include="HUDTarget.cpp" />
-    <ClCompile Include="hud_item_object.cpp" />
     <ClCompile Include="IKFoot.cpp" />
     <ClCompile Include="IKLimbsController.cpp" />
     <ClCompile Include="Ik\aint.cxx" />
@@ -3443,6 +3426,7 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="inventory_item_amountable.cpp" />
     <ClCompile Include="inventory_item_object.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3485,6 +3469,8 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="invincible_fury.cpp" />
+    <ClCompile Include="items_library.cpp" />
+    <ClCompile Include="item_container.cpp" />
     <ClCompile Include="item_manager.cpp" />
     <ClCompile Include="key_binding_registrator_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -3541,6 +3527,7 @@
     <ClCompile Include="location_manager.cpp" />
     <ClCompile Include="login_manager.cpp" />
     <ClCompile Include="login_manager_script.cpp" />
+    <ClCompile Include="magazine.cpp" />
     <ClCompile Include="magic_box3.cpp" />
     <ClCompile Include="magic_minimize_1d.cpp" />
     <ClCompile Include="MainMenu.cpp" />
@@ -3555,11 +3542,6 @@
     </ClCompile>
     <ClCompile Include="map_spot.cpp" />
     <ClCompile Include="material_manager.cpp" />
-    <ClCompile Include="medkit.cpp" />
-    <ClCompile Include="medkit_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
     <ClCompile Include="memory_manager.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -3577,6 +3559,7 @@
     </ClCompile>
     <ClCompile Include="min_obb.cpp" />
     <ClCompile Include="Missile.cpp" />
+    <ClCompile Include="module.cpp" />
     <ClCompile Include="monster_community.cpp" />
     <ClCompile Include="MosquitoBald.cpp" />
     <ClCompile Include="MosquitoBald_script.cpp">
@@ -3600,9 +3583,9 @@
     <ClCompile Include="moving_objects_dynamic.cpp" />
     <ClCompile Include="moving_objects_dynamic_collision.cpp" />
     <ClCompile Include="moving_objects_static.cpp" />
-    <ClCompile Include="mpactor_dump_impl.cpp" />
     <ClCompile Include="MPPlayersBag.cpp" />
     <ClCompile Include="mp_config_sections.cpp" />
+    <ClCompile Include="muzzle.cpp" />
     <ClCompile Include="Needles.cpp" />
     <ClCompile Include="NoGravityZone.cpp" />
     <ClCompile Include="object_actions.cpp" />
@@ -3785,10 +3768,6 @@
     <ClCompile Include="RustyHairArtifact.cpp" />
     <ClCompile Include="saved_game_wrapper.cpp" />
     <ClCompile Include="saved_game_wrapper_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="Scope.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
@@ -3997,11 +3976,9 @@
     <ClCompile Include="seniority_hierarchy_holder.cpp" />
     <ClCompile Include="server_entity_wrapper.cpp" />
     <ClCompile Include="ShootingObject.cpp" />
-    <ClCompile Include="shootingObject_dump_impl.cpp" />
     <ClCompile Include="sight_action.cpp" />
     <ClCompile Include="sight_manager.cpp" />
     <ClCompile Include="sight_manager_target.cpp" />
-    <ClCompile Include="Silencer.cpp" />
     <ClCompile Include="silent_shots.cpp" />
     <ClCompile Include="SimpleDetector.cpp" />
     <ClCompile Include="smart_cover.cpp">
@@ -4332,7 +4309,6 @@
     <ClCompile Include="ui\UICDkey.cpp" />
     <ClCompile Include="ui\UICellCustomItems.cpp" />
     <ClCompile Include="ui\UICellItem.cpp" />
-    <ClCompile Include="ui\UICellItemFactory.cpp" />
     <ClCompile Include="ui\UIChangeMap.cpp" />
     <ClCompile Include="ui\ChangeWeatherDialog.cpp" />
     <ClCompile Include="ui\UICharacterInfo.cpp" />
@@ -4584,6 +4560,10 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="WeaponAutomaticShotgun.cpp" />
+    <ClCompile Include="weaponautomaticshotgun_script.cpp">
+      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="WeaponBinoculars.cpp" />
     <ClCompile Include="WeaponBinocularsVision.cpp" />
     <ClCompile Include="WeaponBinoculars_script.cpp">
@@ -4633,12 +4613,10 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="WeaponMagazinedWGrenade.cpp" />
-    <ClCompile Include="WeaponPistol.cpp" />
     <ClCompile Include="WeaponPM.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="WeaponRevolver.cpp" />
     <ClCompile Include="WeaponRG6.cpp" />
     <ClCompile Include="WeaponRG6_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
@@ -4646,11 +4624,6 @@
     </ClCompile>
     <ClCompile Include="WeaponRPG7.cpp" />
     <ClCompile Include="WeaponRPG7_script.cpp">
-      <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="WeaponShotgun.cpp" />
-    <ClCompile Include="weaponshotgun_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
@@ -4683,9 +4656,14 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="weapon_ammo_dump_impl.cpp" />
-    <ClCompile Include="weapon_dump_impl.cpp" />
+    <ClCompile Include="weapon_animations.cpp" />
+    <ClCompile Include="weapon_chamber.cpp" />
     <ClCompile Include="Wound.cpp" />
+    <ClCompile Include="addon.cpp" />
+    <ClCompile Include="addon_owner.cpp" />
+    <ClCompile Include="scope.cpp" />
+    <ClCompile Include="silencer.cpp" />
+    <ClCompile Include="weapon_hud.cpp" />
     <ClCompile Include="xrClientsPool.cpp" />
     <ClCompile Include="xrGame.cpp" />
     <ClCompile Include="xrGameSpyServer.cpp" />
@@ -4778,6 +4756,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="Players.cd" />
     <None Include="Weapons.cd" />
   </ItemGroup>

@@ -152,6 +152,7 @@ void CMainMenu::ReadTextureInfo()
 
 extern ENGINE_API BOOL	bShowPauseString;
 
+#include "GamePersistent.h"
 void CMainMenu::Activate	(bool bActivate)
 {
 	if (	!!m_Flags.test(flActive) == bActivate)		return;
@@ -162,8 +163,10 @@ void CMainMenu::Activate	(bool bActivate)
 
 	if(g_dedicated_server && bActivate) return;
 
-	if(bActivate)
+	if (bActivate)
 	{
+		GamePersistent().SetEffectorDOF({ -1.f, -0.5f, 0.f });
+
 		b_shniaganeed_pp			= true;
 		Device.Pause				(TRUE, FALSE, TRUE, "mm_activate1");
 		m_Flags.set					(flActive|flNeedChangeCapture,TRUE);
@@ -192,7 +195,11 @@ void CMainMenu::Activate	(bool bActivate)
 		Device.seqRender.Add				(this, 4); // 1-console 2-cursor 3-tutorial
 
 		Console->Execute					("stat_memory");
-	}else{
+	}
+	else
+	{
+		GamePersistent().RestoreEffectorDOF	();
+
 		m_deactivated_frame					= Device.dwFrame;
 		m_Flags.set							(flActive,				FALSE);
 		m_Flags.set							(flNeedChangeCapture,	TRUE);
@@ -261,7 +268,7 @@ bool CMainMenu::ReloadUI()
 	m_startDialog->m_bWorkInPause= true;
 	m_startDialog->ShowDialog	(true);
 
-	m_activatedScreenRatio		= (float)Device.dwWidth/(float)Device.dwHeight > (UI_BASE_WIDTH/UI_BASE_HEIGHT+0.01f);
+	m_ScreenRatio				= (float)Device.dwWidth/(float)Device.dwHeight;
 	return true;
 }
 
@@ -272,7 +279,7 @@ bool CMainMenu::IsActive()
 
 bool CMainMenu::CanSkipSceneRendering()
 {
-	return IsActive() && !m_Flags.test(flGameSaveScreenshot);
+	return false;// IsActive() && !m_Flags.test(flGameSaveScreenshot);
 }
 
 //IInputReceiver
@@ -350,7 +357,7 @@ void CMainMenu::IR_OnMouseWheel(int direction)
 
 bool CMainMenu::OnRenderPPUI_query()
 {
-	return IsActive() && !m_Flags.test(flGameSaveScreenshot) && b_shniaganeed_pp;
+	return false;// IsActive() && !m_Flags.test(flGameSaveScreenshot) && b_shniaganeed_pp;
 }
 
 
@@ -449,8 +456,7 @@ void CMainMenu::OnFrame()
 	if(IsActive())
 	{
 		CheckForErrorDlg();
-		bool b_is_16_9	= (float)Device.dwWidth/(float)Device.dwHeight > (UI_BASE_WIDTH/UI_BASE_HEIGHT+0.01f);
-		if(b_is_16_9 !=m_activatedScreenRatio)
+		if (!fEqual((float)Device.dwWidth / (float)Device.dwHeight, m_ScreenRatio))
 		{
 			ReloadUI();
 			m_startDialog->SendMessage(m_startDialog, MAIN_MENU_RELOADED, NULL);

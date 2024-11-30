@@ -11,31 +11,32 @@ extern float		r_ssaLOD_B		;
 extern float		r_ssaHZBvsTEX	;
 extern float		r_ssaGLOD_start,	r_ssaGLOD_end;
 
-void CRender::Calculate		()
+void CRender::Calculate()
 {
 	// Transfer to global space to avoid deep pointer access
-	IRender_Target* T				=	getTarget	();
-	float	fov_factor				=	_sqr		(90.f / Device.fFOV);
-	g_fSCREEN						=	float(T->get_width()*T->get_height())*fov_factor*(EPS_S+ps_r__LOD);
-	r_ssaDISCARD					=	_sqr(ps_r__ssaDISCARD)		/g_fSCREEN;
-	r_ssaDONTSORT					=	_sqr(ps_r__ssaDONTSORT/3)	/g_fSCREEN;
-	r_ssaLOD_A						=	_sqr(ps_r2_ssaLOD_A/3)		/g_fSCREEN;
-	r_ssaLOD_B						=	_sqr(ps_r2_ssaLOD_B/3)		/g_fSCREEN;
-	r_ssaGLOD_start					=	_sqr(ps_r__GLOD_ssa_start/3)/g_fSCREEN;
-	r_ssaGLOD_end					=	_sqr(ps_r__GLOD_ssa_end/3)	/g_fSCREEN;
-	r_ssaHZBvsTEX					=	_sqr(ps_r__ssaHZBvsTEX/3)	/g_fSCREEN;
-	r_dtex_range					=	ps_r2_df_parallax_range * g_fSCREEN / (1024.f * 768.f);
+	IRender_Target* T					= getTarget();
+	float fov_factor					= _sqr(90.f / Device.camera.fov);
+	float lod_factor					= (Device.SVP.isRendering()) ? .2f : ps_r__LOD;
+	g_fSCREEN							= static_cast<float>(T->get_width() * T->get_height()) * fov_factor * lod_factor;
+	r_ssaDISCARD						= _sqr(ps_r__ssaDISCARD)		/ g_fSCREEN;
+	r_ssaDONTSORT						= _sqr(ps_r__ssaDONTSORT/3)		/ g_fSCREEN;
+	r_ssaLOD_A							= _sqr(ps_r2_ssaLOD_A/3)		/ g_fSCREEN;
+	r_ssaLOD_B							= _sqr(ps_r2_ssaLOD_B/3)		/ g_fSCREEN;
+	r_ssaGLOD_start						= _sqr(ps_r__GLOD_ssa_start/3)	/ g_fSCREEN;
+	r_ssaGLOD_end						= _sqr(ps_r__GLOD_ssa_end/3)	/ g_fSCREEN;
+	r_ssaHZBvsTEX						= _sqr(ps_r__ssaHZBvsTEX/3)		/ g_fSCREEN;
+	r_dtex_range						= ps_r2_df_parallax_range		* g_fSCREEN / (1024.f * 768.f);
 	
 	// Detect camera-sector
-	if (!vLastCameraPos.similar(Device.vCameraPosition,EPS_S)) 
+	if (!vLastCameraPos.similar(Device.camera.position,EPS_S)) 
 	{
-		CSector* pSector		= (CSector*)detectSector(Device.vCameraPosition);
+		CSector* pSector		= (CSector*)detectSector(Device.camera.position);
 		if (pSector && (pSector!=pLastSector))
 			g_pGamePersistent->OnSectorChanged( translateSector(pSector) );
 
 		if (0==pSector) pSector = pLastSector;
 		pLastSector = pSector;
-		vLastCameraPos.set(Device.vCameraPosition);
+		vLastCameraPos.set(Device.camera.position);
 	}
 
 	// Check if camera is too near to some portal - if so force DualRender
@@ -44,7 +45,7 @@ void CRender::Calculate		()
 		float	eps			= VIEWPORT_NEAR+EPS_L;
 		Fvector box_radius; box_radius.set(eps,eps,eps);
 		Sectors_xrc.box_options	(CDB::OPT_FULL_TEST);
-		Sectors_xrc.box_query	(rmPortals,Device.vCameraPosition,box_radius);
+		Sectors_xrc.box_query	(rmPortals,Device.camera.position,box_radius);
 		for (int K=0; K<Sectors_xrc.r_count(); K++)	{
 			CPortal*	pPortal		= (CPortal*) Portals[rmPortals->get_tris()[Sectors_xrc.r_begin()[K].id].dummy];
 			pPortal->bDualRender	= TRUE;
@@ -56,7 +57,7 @@ void CRender::Calculate		()
 
 	// Check if we touch some light even trough portal
 	lstRenderables.clear();
-	g_SpatialSpace->q_sphere(lstRenderables,0,STYPE_LIGHTSOURCE,Device.vCameraPosition,EPS_L);
+	g_SpatialSpace->q_sphere(lstRenderables,0,STYPE_LIGHTSOURCE,Device.camera.position,EPS_L);
 	for (u32 _it=0; _it<lstRenderables.size(); _it++)	{
 		ISpatial*	spatial		= lstRenderables[_it];		spatial->spatial_updatesector	();
 		CSector*	sector		= (CSector*)spatial->spatial.sector;

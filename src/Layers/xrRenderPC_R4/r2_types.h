@@ -49,6 +49,8 @@
 #define		r2_jitter_mipped	"$user$jitter_mipped"			// --- dither
 #define		r2_sunmask			"sunmask"
 
+#define		r2_RT_secondVP		"$user$viewport2"		// --#SM+#-- +SecondVP+ O?aíeo ea?oeíeó nî âoî?îaî âü?iî?oa
+
 #define		JITTER(a) r2_jitter #a
 
 const		float				SMAP_near_plane		= .1f	;
@@ -96,7 +98,11 @@ const		u32					LUMINANCE_size		= 16	;
 //	For rain R3 rendering
 #define		SE_SUN_RAIN_SMAP	5
 
-extern		float	ps_r2_gloss_factor;
-IC	float	u_diffuse2s	(float x, float y, float z)	{ float	v = (x+y+z)/3.f;	return ps_r2_gloss_factor * ((v<1)?powf(v,2.f/3.f):v); }
-IC	float	u_diffuse2s	(Fvector3& c)				{ return u_diffuse2s(c.x,c.y,c.z);					}
+extern float							ps_r2_gloss_factor;
+IC float								u_diffuse2s								(float x, float y, float z)
+{
+	float v								= (x + y + z) / 3.f;
+	return								ps_r2_gloss_factor * ((v < 1) ? powf(v, 2.f / 3.f) : v);
+}
 
+IC float								u_diffuse2s								(Fvector3 CR$ c)		{ return u_diffuse2s(c.x, c.y, c.z); }

@@ -83,11 +83,6 @@ public:
 			void __stdcall			OnChangeProfile				(PropValue* sender);
 
 #ifdef XRGAME_EXPORTS
-	virtual	void					add_online					(const bool &update_registries);
-	virtual	void					add_offline					(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
-#if 0//def DEBUG
-			bool					check_inventory_consistency	();
-#endif
 			void					vfInitInventory				();
 	virtual void					spawn_supplies				();
 #endif
@@ -108,8 +103,6 @@ SERVER_ENTITY_DECLARE_BEGIN2(CSE_ALifeTrader,CSE_ALifeDynamicObjectVisual,CSE_AL
 #ifdef XRGAME_EXPORTS
 			u32						dwfGetItemCost			(CSE_ALifeInventoryItem *tpALifeInventoryItem);
 	virtual void					spawn_supplies			();
-	virtual	void					add_online				(const bool &update_registries);
-	virtual	void					add_offline				(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
 #endif
 #ifdef DEBUG
 	virtual bool					match_configuration		() const;
@@ -354,8 +347,6 @@ SERVER_ENTITY_DECLARE_BEGIN3(CSE_ALifeCreatureActor,CSE_ALifeCreatureAbstract,CS
 	virtual bool					natural_detector		() const {return false;}
 #ifdef XRGAME_EXPORTS
 	virtual void					spawn_supplies			();
-	virtual	void					add_online				(const bool &update_registries);
-	virtual	void					add_offline				(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
 #endif
 #ifdef DEBUG
 	virtual bool					match_configuration		() const;
@@ -453,8 +444,6 @@ SERVER_ENTITY_DECLARE_BEGIN2(CSE_ALifeMonsterBase,CSE_ALifeMonsterAbstract,CSE_P
 	virtual void					spawn_supplies			(){}
 #ifdef XRGAME_EXPORTS
 	virtual void					on_spawn				();
-	virtual	void					add_online				(const bool &update_registries);
-	virtual	void					add_offline				(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
 #endif // XRGAME_EXPORTS
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeMonsterBase)
@@ -502,8 +491,6 @@ public:
 	virtual void					spawn_supplies			();
 	virtual void					on_register				();
 	virtual void					on_unregister			();
-	virtual	void					add_online				(const bool &update_registries);
-	virtual	void					add_offline				(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
 #endif
 
 private:

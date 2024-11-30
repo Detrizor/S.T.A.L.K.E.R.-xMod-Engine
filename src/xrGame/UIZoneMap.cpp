@@ -129,9 +129,9 @@ void CUIZoneMap::Update()
 		m_Counter_text.SetText( text_str );
 	}
 
-	UpdateRadar( Device.vCameraPosition );
+	UpdateRadar( Device.camera.position );
 	float h, p;
-	Device.vCameraDirection.getHP( h, p );
+	Device.camera.direction.getHP( h, p );
 	SetHeading( -h );
 
 	m_clock_wnd->TextItemControl()->SetText( InventoryUtilities::GetGameTimeAsString( InventoryUtilities::etpTimeToMinutes ).c_str() );

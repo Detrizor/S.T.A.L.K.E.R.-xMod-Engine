@@ -37,20 +37,27 @@ void xrServer::Perform_transfer(NET_Packet &PR, NET_Packet &PT,	CSE_Abstract* wh
 
 }
 
-void xrServer::Perform_reject(CSE_Abstract* what, CSE_Abstract* from, int delta)
+void xrServer::Perform_reject(u16 id_from, u16 id_what, EDestroyType destroy_type, bool straight)
 {
-	R_ASSERT				(what && from);
-	R_ASSERT				(what->ID_Parent == from->ID);
+	NET_Packet							packet;
+	packet.w_begin						(M_EVENT);
+	packet.w_u32						(0);
+	packet.w_u16						(GE_OWNERSHIP_REJECT);
+	packet.w_u16						(id_from);
+	packet.w_u16						(id_what);
+	packet.w_u8							(destroy_type);
 
-	NET_Packet				P;
-	u32						time = Device.dwTimeGlobal - delta;
+	Process_event_reject				(packet, id_from, id_what, straight);
+}
 
-	P.w_begin				(M_EVENT);
-	P.w_u32					(time);
-	P.w_u16					(GE_OWNERSHIP_REJECT);
-	P.w_u16					(from->ID);
-	P.w_u16					(what->ID);
-	P.w_u8					(1);
+void xrServer::Perform_release(u16 id, bool straight)
+{
+	NET_Packet							packet;
+	packet.w_begin						(M_EVENT);
+	packet.w_u32						(0);
+	packet.w_u16						(GE_DESTROY);
+	packet.w_u16						(id);
+	packet.w_u16						(release);
 
-	Process_event_reject	(P,BroadcastCID,time,from->ID,what->ID);
+	Process_event_destroy				(packet, id, straight);
 }

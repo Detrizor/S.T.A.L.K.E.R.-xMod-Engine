@@ -273,7 +273,7 @@ void CSpectator::IR_OnMouseMove(int dx, int dy)
 {
 	if (Remote())	return;
 	CCameraBase* C	= cameras	[cam_active];
-	float scale		= (C->f_fov/g_fov)*psMouseSens * psMouseSensScale/50.f;
+	float scale		= (C->f_fov / Device.gFOV) * psMouseSensScale / psMouseSens;
 	if (dx){
 		float d = float(dx)*scale;
 		cameras[cam_active]->Move((d<0)?kLEFT:kRIGHT, _abs(d));
@@ -291,35 +291,21 @@ void CSpectator::FirstEye_ToPlayer(CObject* pObject)
 	if (pCurViewEntity)
 	{
 		pOldActor = smart_cast<CActor*>(pCurViewEntity);
-		if (pOldActor)
-		{
-			pOldActor->inventory().Items_SetCurrentEntityHud(false);
-		};
 		if (smart_cast<CSpectator*>(pCurViewEntity))
 		{
 			Engine.Sheduler.Unregister	(pCurViewEntity);
 			Engine.Sheduler.Register	(pCurViewEntity, TRUE);
-		};
-	};
+		}
+	}
+
 	if (pObject)
 	{
 		Level().SetEntity(pObject);
 
 		Engine.Sheduler.Unregister	(pObject);
 		Engine.Sheduler.Register	(pObject, TRUE);
+	}
 
-		CActor* pActor = smart_cast<CActor*> (pObject);
-		if (pActor)
-		{
-			pActor->inventory().Items_SetCurrentEntityHud(true);
-
-/*			CHudItem* pHudItem = smart_cast<CHudItem*>(pActor->inventory().ActiveItem());
-			if (pHudItem) 
-			{
-				pHudItem->OnStateSwitch(pHudItem->GetState(), pHudItem->GetState());
-			}*/
-		}
-	};
 	if (Device.Paused() && pOldActor)
 	{
 #ifdef DEBUG

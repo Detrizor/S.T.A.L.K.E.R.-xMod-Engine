@@ -27,7 +27,7 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 
 	frame_render	= 0;
 
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= NULL;
 	s_point			= NULL;
@@ -36,24 +36,24 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	vis.query_order	= 0;
 	vis.visible		= true;
 	vis.pending		= false;
-#endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#endif
 }
 
 light::~light	()
 {
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 	for (int f=0; f<6; f++)	xr_delete(omnipart[f]);
-#endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#endif
 	set_active		(false);
 
 	// remove from Lights_LastFrame
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 	for (u32 it=0; it<RImplementation.Lights_LastFrame.size(); it++)
 		if (this==RImplementation.Lights_LastFrame[it])	RImplementation.Lights_LastFrame[it]=0;
-#endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#endif
 }
 
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 void light::set_texture		(LPCSTR name)
 {
 	if ((0==name) || (0==name[0]))
@@ -72,9 +72,6 @@ void light::set_texture		(LPCSTR name)
 	//strconcat(sizeof(temp),temp,"_nomsaa",name);
 	s_spot.create			(RImplementation.Target->b_accum_spot,temp,name);
 
-#if	(RENDER!=R_R3) && (RENDER!=R_R4)
-	s_volumetric.create		("accum_volumetric", name);
-#else	//	(RENDER!=R_R3) && (RENDER!=R_R4)
 	s_volumetric.create		("accum_volumetric_nomsaa", name);
 	if( RImplementation.o.dx10_msaa )
 	{
@@ -89,11 +86,10 @@ void light::set_texture		(LPCSTR name)
 			s_volumetric_msaa[i].create	(RImplementation.Target->b_accum_volumetric_msaa[i],strconcat(sizeof(temp),temp,"r2\\accum_volumetric_",name),name);
 		}
 	}
-#endif // (RENDER!=R_R3) || (RENDER!=R_R4)
 }
 #endif
 
-#if RENDER==R_R1
+#ifndef RENDER
 void light::set_texture		(LPCSTR name)
 {
 }
@@ -194,10 +190,10 @@ void	light::spatial_move			()
 	// update spatial DB
 	ISpatial::spatial_move			();
 
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 	if (flags.bActive) gi_generate	();
 	svis.invalidate					();
-#endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#endif
 }
 
 vis_data&	light::get_homdata		()
@@ -215,12 +211,12 @@ Fvector	light::spatial_sector_point	()
 }
 
 //////////////////////////////////////////////////////////////////////////
-#if (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#ifdef RENDER
 // Xforms
 void	light::xform_calc			()
 {
-	if	(Device.dwFrame == m_xform_frame)	return;
-	m_xform_frame	= Device.dwFrame;
+	if	(::Render->dwFrame() == m_xform_frame)	return;
+	m_xform_frame	= ::Render->dwFrame();
 
 	// build final rotation / translation
 	Fvector					L_dir,L_up,L_right;
@@ -287,7 +283,7 @@ void	light::xform_calc			()
 static	Fvector cmNorm[6]	= {{0.f,1.f,0.f}, {0.f,1.f,0.f}, {0.f,0.f,-1.f},{0.f,0.f,1.f}, {0.f,1.f,0.f}, {0.f,1.f,0.f}};
 static	Fvector cmDir[6]	= {{1.f,0.f,0.f}, {-1.f,0.f,0.f},{0.f,1.f,0.f}, {0.f,-1.f,0.f},{0.f,0.f,1.f}, {0.f,0.f,-1.f}};
 
-void	light::export		(light_Package& package)
+void	light::_export		(light_Package& package)
 {
 	if (flags.bShadow)			{
 		switch (flags.type)	{
@@ -311,7 +307,6 @@ void	light::export		(light_Package& package)
 						L->s_point			= s_point	;
 						
 						// Holger - do we need to export msaa stuff as well ?
-#if	(RENDER==R_R3) || (RENDER==R_R4)
 						if( RImplementation.o.dx10_msaa )
 						{
 							int bound = 1;
@@ -326,7 +321,6 @@ void	light::export		(light_Package& package)
 								//L->s_volumetric_msaa[i] = s_volumetric_msaa[i];
 							}
 						}
-#endif	//	(RENDER==R_R3) || (RENDER==R_R4)
 
 						//	Igor: add volumetric support
 						L->set_volumetric(flags.bVolumetric);
@@ -358,15 +352,19 @@ void	light::set_attenuation_params	(float a0, float a1, float a2, float fo)
 	falloff      = fo;
 }
 
-#endif // (RENDER==R_R2) || (RENDER==R_R3) || (RENDER==R_R4)
+#endif
 
-extern float		r_ssaGLOD_start,	r_ssaGLOD_end;
-extern float		ps_r2_slight_fade;
-float	light::get_LOD					()
+extern float r_ssaGLOD_start;
+extern float r_ssaGLOD_end;
+extern float ps_r2_slight_fade;
+
+float light::get_LOD()
 {
-	if	(!flags.bShadow)	return 1;
-	float	distSQ			= Device.vCameraPosition.distance_to_sqr(spatial.sphere.P)+EPS;
-	float	ssa				= ps_r2_slight_fade * spatial.sphere.R/distSQ;
-	float	lod				= _sqrt(clampr((ssa - r_ssaGLOD_end)/(r_ssaGLOD_start-r_ssaGLOD_end),0.f,1.f));
-	return	lod	;
+	if (!flags.bShadow)
+		return 1;
+
+	float distSQ						= Device.camera.position.distance_to_sqr(spatial.sphere.P) + EPS;
+	float fade							= (Device.SVP.isRendering()) ? .1f : ps_r2_slight_fade;
+	float ssa							= fade * spatial.sphere.R / distSQ;
+	return								_sqrt(clampr((ssa - r_ssaGLOD_end) / (r_ssaGLOD_start - r_ssaGLOD_end), 0.f, 1.f));
 }

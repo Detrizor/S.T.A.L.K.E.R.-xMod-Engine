@@ -1,21 +1,22 @@
 #pragma once
 
-#include "hud_item_object.h"
+#include "inventory_item_object.h"
 #include "hit_immunity.h"
 #include "../xrphysics/PHUpdateObject.h"
 #include "script_export_space.h"
 #include "patrol_path.h"
+#include "inventory_item_amountable.h"
 
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
-class CArtefact :	public CHudItemObject, 
-					public CPHUpdateObject 
+class CArtefact :	public CInventoryItemObject,
+	public CPHUpdateObject
 {
-	typedef			CHudItemObject	inherited;
+	typedef CInventoryItemObject inherited;
+
 public:
 									CArtefact						();
-	virtual							~CArtefact						();
 
 	virtual void					Load							(LPCSTR section);
 	virtual BOOL					net_Spawn						(CSE_Abstract* DC);
@@ -23,8 +24,6 @@ public:
 
 	virtual void					OnH_A_Chield					();
 	virtual void					OnH_B_Independent				(bool just_before_destroy);
-	virtual void					OnActiveItem					();
-	virtual void					OnHiddenItem					();
 	
 	virtual void					UpdateCL						();
 	virtual void					shedule_Update					(u32 dt);	
@@ -41,7 +40,7 @@ public:
 
 protected:
 	virtual void					UpdateCLChild					()		{};
-	virtual void					CreateArtefactActivation			();
+	virtual void					CreateArtefactActivation		();
 
 	SArtefactActivation*			m_activationObj;
 	SArtefactDetectorsSupport*		m_detectorObj;
@@ -55,8 +54,11 @@ protected:
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
 	float							m_fArmor;
+	float							m_fChargeThreshold;
+	bool							m_bActive;
 
 	virtual void					UpdateLights					();
+
 public:
 	IC u8							GetAfRank						() const		{return m_af_rank;}
 	IC bool							CanBeActivated					()				{return m_bCanSpawnZone;};
@@ -64,8 +66,6 @@ public:
 	void							FollowByPath					(LPCSTR path_name, int start_idx, Fvector magic_force);
 	bool							CanBeInvisible					();
 	void							SwitchVisibility				(bool);
-	float							GetArmor						()				{ return m_fArmor; };
-	bool							IsActivated						();
 
 	void							SwitchAfParticles				(bool bOn);
 	virtual void					StartLights();
@@ -75,9 +75,7 @@ public:
 	virtual void					PhTune							(float step)	{};
 	
 	bool							m_bCanSpawnZone;
-	float 							m_fRadiationRestoreSpeed;
-	float							m_fWeightDump;
-	CHitImmunity 					m_ArtefactHitImmunities;
+
 public:
 	enum EAFHudStates {
 		eActivating = eLastBaseState+1,
@@ -90,9 +88,6 @@ public:
 
 	virtual void					ForceTransform		(const Fmatrix& m);
 
-	virtual void					Hide				();
-	virtual void					Show				();
-	virtual	void					UpdateXForm			();
 	virtual bool					Action				(u16 cmd, u32 flags);
 	virtual void					OnStateSwitch		(u32 S, u32 oldState);
 	virtual void					OnAnimationEnd		(u32 state);
@@ -113,6 +108,25 @@ public:
 	}
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
+
+private:
+	float 								m_fRadiation;
+	float								m_fWeightDump;
+	float								m_fDrainFactor;
+	float								m_HitAbsorbation[ALife::eHitTypeMax];
+
+public:
+	float								WeightDump							C$	(bool for_ui = false)		{ return m_fWeightDump * Power(for_ui); }
+	float								DrainFactor							C$	(bool for_ui = false)		{ return m_fDrainFactor * Power(for_ui); }
+	float								GetArmor							C$	(bool for_ui = false)		{ return m_fArmor * Power(for_ui); }
+
+	float								Absorbation							C$	(int hit_type, bool for_ui = false)		{ return m_HitAbsorbation[hit_type] * Power(for_ui); }
+
+	float								Power								C$	(bool for_ui);
+	float								HitProtection						C$	(ALife::EHitType hit_type, bool for_ui = false);
+	float								getRadiation						C$	(bool for_ui = false);
+
+	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
 };
 
 struct SArtefactDetectorsSupport
@@ -137,4 +151,3 @@ struct SArtefactDetectorsSupport
 add_to_type_list(CArtefact)
 #undef script_type_list
 #define script_type_list save_type_list(CArtefact)
-

@@ -9,7 +9,7 @@
 
 #include "../Include/xrRender/UIRender.h"
 #include "../Include/xrRender/UIShader.h"
-
+#include "ui_base.h"
 
 //--------------------------------------------------------------------
 CHitMarker::CHitMarker()
@@ -48,7 +48,7 @@ CHitMarker::~CHitMarker()
 void CHitMarker::Render()
 {
 	float h1,p1;
-	Device.vCameraDirection.getHP( h1, p1 );
+	Device.camera.direction.getHP( h1, p1 );
 
 	while( m_HitMarks.size() && !m_HitMarks.front()->IsActive() )
 	{

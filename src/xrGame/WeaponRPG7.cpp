@@ -7,96 +7,28 @@
 #include "player_hud.h"
 #include "hudmanager.h"
 
-CWeaponRPG7::CWeaponRPG7()
-{
-}
-
-CWeaponRPG7::~CWeaponRPG7() 
-{
-}
-
 void CWeaponRPG7::Load	(LPCSTR section)
 {
 	inherited::Load						(section);
 	CRocketLauncher::Load				(section);
-
-	m_zoom_params.m_fScopeZoomFactor = 1.f;
-
 	m_sRocketSection					= pSettings->r_string	(section,"rocket_class");
-}
-
-bool CWeaponRPG7::AllowBore()
-{
-	return inherited::AllowBore() && 0!=iAmmoElapsed;
-}
-
-void CWeaponRPG7::FireTrace(const Fvector& P, const Fvector& D)
-{
-	inherited::FireTrace	(P, D);
-	UpdateMissileVisibility	();
-}
-
-void CWeaponRPG7::on_a_hud_attach()
-{
-	inherited::on_a_hud_attach		();
-	UpdateMissileVisibility			();
-}
-
-void CWeaponRPG7::UpdateMissileVisibility()
-{
-	bool vis_hud,vis_weap;
-	vis_hud		= (!!iAmmoElapsed || GetState()==eReload);
-	vis_weap	= !!iAmmoElapsed;
-
-	if(GetHUDmode())
-	{
-		HudItemData()->set_bone_visible("grenade",vis_hud,TRUE);
-	}
-
-	IKinematics* pWeaponVisual	= smart_cast<IKinematics*>(Visual()); 
-	VERIFY						(pWeaponVisual);
-	pWeaponVisual->LL_SetBoneVisible(pWeaponVisual->LL_BoneID("grenade"), vis_weap, TRUE);
 }
 
 BOOL CWeaponRPG7::net_Spawn(CSE_Abstract* DC) 
 {
 	BOOL l_res = inherited::net_Spawn(DC);
 
-	UpdateMissileVisibility();
-	if(iAmmoElapsed && !getCurrentRocket())
+	if (m_chamber.loaded() && !getCurrentRocket())
 		CRocketLauncher::SpawnRocket(m_sRocketSection, this);
 
 	return l_res;
 }
 
-void CWeaponRPG7::OnStateSwitch(u32 S, u32 oldState) 
-{
-	inherited::OnStateSwitch(S, oldState);
-	UpdateMissileVisibility();
-}
-
-void CWeaponRPG7::Discharge(bool spawn_ammo)
-{
-	inherited::Discharge		(spawn_ammo);
-	UpdateMissileVisibility		();
-}
-
 void CWeaponRPG7::ReloadMagazine() 
 {
 	inherited::ReloadMagazine();
-
-	if(iAmmoElapsed && !getRocketCount()) 
+	if (m_chamber.loaded() && !getRocketCount())
 		CRocketLauncher::SpawnRocket(m_sRocketSection.c_str(), this);
-}
-
-void CWeaponRPG7::SwitchState(u32 S) 
-{
-	inherited::SwitchState(S);
-}
-
-void CWeaponRPG7::FireStart()
-{
-	inherited::FireStart();
 }
 
 #include "inventory.h"
@@ -160,35 +92,23 @@ void CWeaponRPG7::switch2_Fire()
 	}
 }
 
-void CWeaponRPG7::PlayAnimReload()
-{
-	VERIFY(GetState()==eReload);
-	PlayHUDMotion("anm_reload", FALSE, this, GetState());
-}
-
 void CWeaponRPG7::OnEvent(NET_Packet& P, u16 type) 
 {
 	inherited::OnEvent(P,type);
 	u16 id;
-	switch (type) {
-		case GE_OWNERSHIP_TAKE : {
+	switch (type)
+	{
+		case GE_OWNERSHIP_TAKE:
 			P.r_u16(id);
 			CRocketLauncher::AttachRocket(id, this);
-		} break;
+			break;
 		case GE_OWNERSHIP_REJECT:
-		case GE_LAUNCH_ROCKET	: 
-			{
-			bool bLaunch = (type==GE_LAUNCH_ROCKET);
+		case GE_LAUNCH_ROCKET:
+		{
+			bool bLaunch = (type == GE_LAUNCH_ROCKET);
 			P.r_u16(id);
 			CRocketLauncher::DetachRocket(id, bLaunch);
-			if(bLaunch)
-				UpdateMissileVisibility();
-		} break;
+			break;
+		}
 	}
-}
-
-void CWeaponRPG7::net_Import( NET_Packet& P)
-{
-	inherited::net_Import		(P);
-	UpdateMissileVisibility		();
 }

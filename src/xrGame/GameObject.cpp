@@ -32,6 +32,9 @@
 #include "magic_box3.h"
 #include "animation_movement_controller.h"
 #include "../xrengine/xr_collide_form.h"
+#include "../../alife_simulator.h"
+#include "../../alife_object_registry.h"
+
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 #pragma warning(push)
@@ -46,7 +49,7 @@ extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
 ENGINE_API bool g_dedicated_server;
 
-CGameObject::CGameObject		()
+CGameObject::CGameObject		() : CModuleOwner(this)
 {
 	m_ai_obstacle				= 0;
 
@@ -154,88 +157,80 @@ void CGameObject::net_Destroy	()
 	m_spawned								= false;
 }
 
-void CGameObject::OnEvent		(NET_Packet& P, u16 type)
+void CGameObject::OnEvent(NET_Packet& P, u16 type)
 {
 	switch (type)
 	{
 	case GE_HIT:
 	case GE_HIT_STATISTIC:
-		{
-/*
-			u16				id,weapon_id;
-			Fvector			dir;
-			float			power, impulse;
-			s16				element;
-			Fvector			position_in_bone_space;
-			u16				hit_type;
-			float			ap = 0.0f;
-
-			P.r_u16			(id);
-			P.r_u16			(weapon_id);
-			P.r_dir			(dir);
-			P.r_float		(power);
-			P.r_s16			(element);
-			P.r_vec3		(position_in_bone_space);
-			P.r_float		(impulse);
-			P.r_u16			(hit_type);	//hit type
-			if ((ALife::EHitType)hit_type == ALife::eHitTypeFireWound)
-			{
-				P.r_float	(ap);
-			}
-
-			CObject*	Hitter = Level().Objects.net_Find(id);
-			CObject*	Weapon = Level().Objects.net_Find(weapon_id);
-
-			SHit	HDS = SHit(power, dir, Hitter, element, position_in_bone_space, impulse, (ALife::EHitType)hit_type, ap);
-*/
-			SHit	HDS;
-			HDS.PACKET_TYPE = type;
-			HDS.Read_Packet_Cont(P);
-//			Msg("Hit received: %d[%d,%d]", HDS.whoID, HDS.weaponID, HDS.BulletID);
-			CObject*	Hitter = Level().Objects.net_Find(HDS.whoID);
-			CObject*	Weapon = Level().Objects.net_Find(HDS.weaponID);
-			HDS.who		= Hitter;
-			if (!HDS.who)
-			{
-				Msg("! ERROR: hitter object [%d] is NULL on client.", HDS.whoID);
-			}
-			//-------------------------------------------------------
-			switch (HDS.PACKET_TYPE)
-			{
-			case GE_HIT_STATISTIC:
-				{
-				}break;
-			default:
-				{
-				}break;
-			}
-			SetHitInfo(Hitter, Weapon, HDS.bone(), HDS.p_in_bone_space, HDS.dir);
-			Hit				(&HDS);
-			//---------------------------------------------------------------------------
-			//---------------------------------------------------------------------------
-		}
+	{
+		SHit							HDS;
+		HDS.PACKET_TYPE					= type;
+		HDS.Read_Packet_Cont			(P);
+		CObject* Hitter					= Level().Objects.net_Find(HDS.whoID);
+		CObject* Weapon					= Level().Objects.net_Find(HDS.weaponID);
+		HDS.who							= Hitter;
+		if (!HDS.who)
+			Msg							("! ERROR: hitter object [%d] is NULL on client.", HDS.whoID);
+		SetHitInfo						(Hitter, Weapon, HDS.bone(), HDS.p_in_bone_space, HDS.dir);
+		Hit								(&HDS);
 		break;
+	}
 	case GE_DESTROY:
+		if (H_Parent())
 		{
-			if ( H_Parent() )
-			{
-				Msg( "! ERROR (GameObject): GE_DESTROY arrived to object[%d][%s], that has parent[%d][%s], frame[%d]",
-					ID(), cNameSect().c_str(),
-					H_Parent()->ID(), H_Parent()->cName().c_str(), Device.dwFrame );
-				
-				// This object will be destroy on call function <H_Parent::Destroy>
-				// or it will be call <H_Parent::Reject>  ==>  H_Parent = NULL
-				// !!! ___ it is necessary to be check!
-				break;
-			}
-#ifdef MP_LOGGING
-			Msg("--- Object: GE_DESTROY of [%d][%s]", ID(), cNameSect().c_str());
-#endif // MP_LOGGING
+			Msg							("! ERROR (GameObject): GE_DESTROY arrived to object[%d][%s], that has parent[%d][%s], frame[%d]",
+				ID(), cNameSect().c_str(), H_Parent()->ID(), H_Parent()->cName().c_str(), Device.dwFrame);
 
-			setDestroy		(TRUE);
-//			MakeMeCrow		();
+			// This object will be destroy on call function <H_Parent::Destroy>
+			// or it will be call <H_Parent::Reject>  ==>  H_Parent = NULL
+			// !!! ___ it is necessary to be check!
+			break;
 		}
+		setDestroy						(TRUE);
+
+		if (!P.r_eof() && P.r_u16() == xrServer::offline_switch)
+		{
+			auto se_obj					= ai().alife().objects().object(ID());
+			emitSignal					(sSyncData(se_obj, true));
+		}
+
 		break;
+	}
+
+	if (smart_cast<CInventoryOwner*>(this))
+		return;
+
+	switch(type)
+	{
+	case GE_TRADE_BUY:
+	case GE_OWNERSHIP_TAKE:
+	case GE_TRADE_SELL:
+	case GE_OWNERSHIP_REJECT:
+	{
+		u16 id							= P.r_u16();
+		auto obj						= Level().Objects.net_Find(id);
+
+		if (type == GE_TRADE_BUY || type == GE_OWNERSHIP_TAKE)
+		{
+			obj->H_SetParent			(this);
+			obj->setVisible				(FALSE);
+			obj->setEnabled				(FALSE);
+			emitSignal					(sOnChild(obj->scast<CGameObject*>(), true));
+			obj->processing_deactivate	();
+		}
+		else
+		{
+			u8 destroy_type				= (P.r_eof()) ? 0 : P.r_u8();
+			if (destroy_type != xrServer::sls_clear && destroy_type != xrServer::offline_switch)
+				emitSignal				(sOnChild(obj->scast<CGameObject*>(), false));
+
+			obj->H_SetParent			(nullptr, (type == GE_TRADE_SELL || destroy_type));
+			if (!destroy_type)
+				obj->processing_activate();
+		}
+	}
+	break;
 	}
 }
 
@@ -251,9 +246,47 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 	CSE_Abstract					*E = (CSE_Abstract*)DC;
 	VERIFY							(E);
 
-	const CSE_Visual				*visual	= smart_cast<const CSE_Visual*>(E);
-	if (visual) {
-		cNameVisual_set				(visual_name(E));
+	CSE_Visual* visual				= smart_cast<CSE_Visual*>(E);
+	if (visual)
+	{
+		shared_str vis_name			= visual_name(E);
+
+		/*--xd if (*vis_name && vis_name[0])
+		{
+			string_path				fn;
+			string_path				name;
+			if (!strext(*vis_name))
+				strconcat			(sizeof(name), name, *vis_name, ".ogf");
+			else
+				xr_strcpy			(name, sizeof(name), *vis_name);
+
+			if (!FS.exist(fn, "$level$", name) && !FS.exist(fn, "$game_meshes$", name))
+			{
+				vis_name			= pSettings->r_string(E->s_name, "visual");
+				if (visual_name(E) != vis_name)
+					visual->set_visual(*vis_name);
+			}
+		}
+
+		LPCSTR A = strstr(*vis_name, "actor\\");
+		if (A)
+		{
+			xr_string str = *vis_name;
+			str.replace(0, 6, "act\\");
+			vis_name = str.c_str();
+		}*/
+
+		if (smart_cast<CSE_ALifeInventoryItem*>(E))
+		{
+			LPCSTR s_vis_name		= pSettings->r_string(E->s_name, "visual");
+			if (vis_name != s_vis_name)
+			{
+				vis_name			= s_vis_name;
+				visual->set_visual	(s_vis_name);
+			}
+		}
+
+		cNameVisual_set				(vis_name);
 		if (visual->flags.test(CSE_Visual::flObstacle)) {
 			ISpatial				*self = smart_cast<ISpatial*>(this);
 			self->spatial.type		|=	STYPE_OBSTACLE;
@@ -404,6 +437,13 @@ BOOL CGameObject::net_Spawn		(CSE_Abstract*	DC)
 	m_bObjectRemoved			= false;
 
 	spawn_supplies				();
+
+	if (auto se_obj = smart_cast<CSE_ALifeDynamicObject*>(O))
+	{
+		emitSignal				(sSyncData(se_obj, false));
+		se_obj->clearModules	();
+	}
+
 #ifdef DEBUG
 	if(ph_dbg_draw_mask1.test(ph_m1_DbgTrackObject)&&stricmp(PH_DBG_ObjectTrackName(),*cName())==0)
 	{
@@ -450,6 +490,9 @@ void CGameObject::net_Save		(NET_Packet &net_packet)
 	// ----------------------------------------------------------
 
 	net_packet.w_chunk_close16	(position);
+
+	if (auto se_obj = ai().alife().objects().object(ID()))
+		emitSignal				(sSyncData(se_obj, true));
 }
 
 void CGameObject::net_Load		(IReader &ireader)
@@ -540,16 +583,6 @@ void CGameObject::spawn_supplies()
 					CSE_ALifeInventoryItem*	pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(A);
 					if (pSE_InventoryItem)
 						pSE_InventoryItem->m_fCondition = f_cond;
-
-					CSE_ALifeItemWeapon* W = smart_cast<CSE_ALifeItemWeapon*>(A);
-					if (W) {
-						if (W->m_scope_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonScope, bScope);
-						if (W->m_silencer_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonSilencer, bSilencer);
-						if (W->m_grenade_launcher_status == ALife::eAddonAttachable)
-							W->m_addon_flags.set(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, bLauncher);
-					}
 
 					NET_Packet					P;
 					A->Spawn_Write(P, TRUE);
@@ -692,6 +725,8 @@ void CGameObject::renderable_Render	()
 	::Render->set_Transform		(&XFORM());
 	::Render->add_Visual		(Visual());
 	Visual()->getVisData().hom_frame = Device.dwFrame;
+
+	emitSignal(sRenderableRender());
 }
 
 /*
@@ -720,13 +755,6 @@ void CGameObject::u_EventGen(NET_Packet& P, u32 type, u32 dest)
 void CGameObject::u_EventSend(NET_Packet& P, u32 dwFlags )
 {
 	Level().Send(P, dwFlags);
-}
-
-#include "bolt.h"
-void CGameObject::OnH_B_Chield()
-{
-	inherited::OnH_B_Chield();
-	///PHSetPushOut();????
 }
 
 void CGameObject::OnH_B_Independent(bool just_before_destroy)
@@ -808,19 +836,14 @@ bool CGameObject::NeedToDestroyObject()	const
 	return false;
 }
 
-void CGameObject::DestroyObject()			
+void CGameObject::DestroyObject(bool straight)
 {
-	
 	if(m_bObjectRemoved)	return;
 	m_bObjectRemoved		= true;
 	if (getDestroy())		return;
 
 	if (Local())
-	{	
-		NET_Packet		P;
-		u_EventGen		(P,GE_DESTROY,ID());
-		u_EventSend		(P);
-	}
+		sendEvent			(GE_DESTROY, ID(), xrServer::release, straight);
 }
 
 void CGameObject::shedule_Update	(u32 dt)
@@ -897,11 +920,11 @@ u32	CGameObject::ef_detector_type		() const
 	return		(u32(-1));
 }
 
-void CGameObject::net_Relcase			(CObject* O)
+void CGameObject::net_Relcase(CObject* O)
 {
-	inherited::net_Relcase		(O);
-	if(!g_dedicated_server)
-		CScriptBinder::net_Relcase	(O);
+	inherited::net_Relcase				(O);
+	CScriptBinder::net_Relcase			(O);
+	emitSignal							(sNetRelcase(O));
 }
 
 CGameObject::CScriptCallbackExVoid &CGameObject::callback(GameObject::ECallbackType type) const
@@ -1016,26 +1039,45 @@ IC	bool similar						(const Fmatrix &_0, const Fmatrix &_1, const float &epsilon
 	return							(true);
 }
 
-void CGameObject::UpdateCL			()
+void CGameObject::UpdateCL()
 {
-	inherited::UpdateCL				();
+	inherited::UpdateCL					();
 	
-//	if (!is_ai_obstacle())
-//		return;
-	
-	if (H_Parent())
-		return;
-
-	if (similar(XFORM(),m_previous_matrix,EPS))
-		return;
-
-	on_matrix_change				(m_previous_matrix);
-	m_previous_matrix				= XFORM();
+	if (!H_Parent() && !similar(XFORM(), m_previous_matrix, EPS))
+	{
+		on_matrix_change				(m_previous_matrix);
+		m_previous_matrix				= XFORM();
+	}
 }
 
 void CGameObject::on_matrix_change	(const Fmatrix &previous)
 {
 	obstacle().on_move				();
+}
+
+CSE_Abstract* CGameObject::giveItem(LPCSTR section, float condition, bool straight) const
+{
+	return const_cast<CALifeSimulator&>(ai().alife()).spawn_item(section,
+		Position(),
+		ai_location().level_vertex_id(),
+		ai_location().game_vertex_id(),
+		ID(),
+		condition,
+		straight
+	);
+}
+
+xr_vector<CSE_Abstract*> CGameObject::giveItems(LPCSTR section, u16 count, float condition, bool straight) const
+{
+	return const_cast<CALifeSimulator&>(ai().alife()).spawn_items(section,
+		Position(),
+		ai_location().level_vertex_id(),
+		ai_location().game_vertex_id(),
+		ID(),
+		count,
+		condition,
+		straight
+	);
 }
 
 #ifdef DEBUG
@@ -1148,3 +1190,60 @@ void CGameObject::OnRender			()
 	}
 }
 #endif // DEBUG
+
+void CGameObject::transfer(u16 id, bool straight) const
+{
+	transfer							((Parent) ? Parent->ID() : u16_max, ID(), id, straight);
+}
+
+void CGameObject::transfer(u16 id_from, u16 id_what, u16 id_to, bool straight)
+{
+	if (id_from == id_to)
+		return;
+
+	if (id_to == u16_max)
+		sendEvent						(GE_OWNERSHIP_REJECT, id_from, id_what, straight);
+	else if (id_from != u16_max)
+	{
+		sendEvent						(GE_TRADE_SELL, id_from, id_what, straight);
+		sendEvent						(GE_TRADE_BUY, id_to, id_what, straight);
+	}
+	else
+		sendEvent						(GE_OWNERSHIP_TAKE, id_to, id_what, straight);
+}
+
+void CGameObject::sendEvent(u16 type, u16 dest, u16 additional, bool straight)
+{
+	NET_Packet							packet;
+	packet.w_begin						(M_EVENT);
+	packet.w_u32						(0);
+	packet.w_u16						(type);
+	packet.w_u16						(dest);
+	packet.w_u16						(additional);
+	packet.r_u16						();
+	Level().Server->Process_event		(packet, ClientID(1), straight);
+}
+
+void CGameObject::update_bone_visibility(IKinematics* visual, shared_str CR$ bone_name, bool status)
+{
+	u16 bone_id							= visual->LL_BoneID(bone_name);
+	if (bone_id != BI_NONE)
+	{
+		if (status)
+		{
+			if (!visual->LL_GetBoneVisible(bone_id))
+				visual->LL_SetBoneVisible(bone_id, TRUE, TRUE);
+		}
+		else if (visual->LL_GetBoneVisible(bone_id))
+			visual->LL_SetBoneVisible	(bone_id, FALSE, TRUE);
+	}
+}
+
+void CGameObject::UpdateBoneVisibility(shared_str CR$ bone_name, bool status)
+{
+	auto visual							= smart_cast<IKinematics*>(Visual());
+	visual->CalculateBones_Invalidate	();
+	update_bone_visibility				(visual, bone_name, status);
+	visual->CalculateBones_Invalidate	();
+	visual->CalculateBones				(TRUE);
+}

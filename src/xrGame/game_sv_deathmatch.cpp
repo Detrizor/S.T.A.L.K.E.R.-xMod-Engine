@@ -11,7 +11,6 @@
 #include "xr_level_controller.h"
 #include "hudItem.h"
 #include "weapon.h"
-#include "eatable_item_object.h" 
 #include "Missile.h"
 #include "game_cl_base_weapon_usage_statistic.h"
 #include "clsid_game.h"
@@ -609,32 +608,10 @@ void	game_sv_Deathmatch::SM_SwitchOnPlayer(CObject* pNewObject)
 
 	Level().SetEntity					(pNewObject);
 
-	if (pNewObject != m_pSM_CurViewEntity)
-	{
-		CActor* pActor					= smart_cast<CActor*>(m_pSM_CurViewEntity);
-		
-		if (pActor)
-			pActor->inventory().Items_SetCurrentEntityHud(false);
-	}
-
-	CActor* pActor = smart_cast<CActor*> (pNewObject);
-	if (pActor)
-	{
-		pActor->inventory().Items_SetCurrentEntityHud(true);
-/*
-		CHudItem* pHudItem = smart_cast<CHudItem*>(pActor->inventory().ActiveItem());
-		if (pHudItem) 
-		{
-			pHudItem->OnStateSwitch(pHudItem->GetState());
-		};
-*/
-	}
-
 	m_pSM_CurViewEntity				= pNewObject;
 	m_dwSM_CurViewEntity			= pNewObject->ID();
 	m_dwSM_LastSwitchTime			= Level().timeServer() + m_dwSM_SwitchDelta;
 }
-
 
 BOOL	game_sv_Deathmatch::AllPlayers_Ready ()
 {
@@ -837,7 +814,7 @@ void game_sv_Deathmatch::assign_RP(CSE_Abstract* E, game_PlayerState* ps_who)
 		tmpPoints.push_back(RPointData(i, MinEnemyDist, false));
 	}
 	R_ASSERT(tmpPoints.size());
-	std::sort(tmpPoints.begin(), tmpPoints.end());
+	tmpPoints.sort();
 	u32 HalfList = tmpPoints.size()/(tmp_functor.pEnemies.empty() ? 1 : 2);
 	u32 NewPointID = (HalfList) ? (tmpPoints.size()-HalfList + ::Random.randI(HalfList)) : 0;
 	VERIFY2(NewPointID < tmpPoints.size(), "problem with random rpoints");
@@ -859,59 +836,7 @@ bool	game_sv_Deathmatch::IsBuyableItem			(LPCSTR	ItemName)
 
 void game_sv_Deathmatch::CheckItem(game_PlayerState* ps, PIItem pItem, xr_vector<s16> *pItemsDesired, xr_vector<u16> *pItemsToDelete, bool ExactMatch = false)
 {
-	if (!pItem || !pItemsDesired || !pItemsToDelete) return;
-
-	if (m_strWeaponsData->GetItemIdx(pItem->object().cNameSect()) == u32(-1)) return;
-	//-------------------------------------------
-	bool	found = false;
-	for (u32 it = 0; it < pItemsDesired->size(); it++)
-	{
-		s16 ItemID = (*pItemsDesired)[it];
-		if ((ItemID & 0x00ff) != u16(m_strWeaponsData->GetItemIdx(pItem->object().cNameSect()))) continue;
-
-		found = true;
-		CWeaponAmmo* pAmmo = 	smart_cast<CWeaponAmmo*>(pItem);
-		if (pAmmo)
-		{
-			if (pAmmo->m_boxCurr != pAmmo->m_boxSize) break;
-		};
-		//----- Check for Addon Changes ---------------------
-		CWeapon		*pWeapon	=	smart_cast<CWeapon*>(pItem);
-		if (pWeapon)
-		{
-			u8 OldAddons  = pWeapon->GetAddonsState();
-			u8 NewAddons  = u8((ItemID&0xff00)>>0x08)/*u8(ItemID&0x00ff)>>0x05*/;
-			if (ExactMatch)
-			{
-				if (OldAddons != NewAddons)
-				{
-					found = false;
-					continue;
-				}
-			}
-			if (OldAddons != NewAddons)
-			{
-				CSE_ALifeItemWeapon* pSWeapon = smart_cast<CSE_ALifeItemWeapon*>(get_entity_from_eid(pWeapon->ID()));
-				if (pSWeapon)
-				{
-					pSWeapon->m_addon_flags.zero();
-					pSWeapon->m_addon_flags.set(NewAddons, TRUE);
-				}
-
-				NET_Packet	P;
-				u_EventGen(P, GE_ADDON_CHANGE, pWeapon->ID());
-				P.w_u8(NewAddons);
-				u_EventSend(P);
-			}
-		};
-		//---------------------------------------------------
-		pItemsDesired->erase(pItemsDesired->begin()+it);
-		break;
-	};
-	if (found) return;
-	pItemsToDelete->push_back(pItem->object().ID());
 };
-
 
 void	game_sv_Deathmatch::OnPlayerBuyFinished		(ClientID id_who, NET_Packet& P)
 {
@@ -1654,7 +1579,7 @@ BOOL	game_sv_Deathmatch::OnTouch			(u16 eid_who, u16 eid_what, BOOL bForced)
 								u_EventGen			(P,GE_OWNERSHIP_REJECT,e_what->ID);
 								P.w_u16				(e_child_item->ID);
 
-								m_server->Process_event_reject	(P,m_server->GetServerClient()->ID,0,e_what->ID,e_child_item->ID);
+								m_server->Process_event_reject	(P, e_what->ID ,e_child_item->ID);
 								continue;
 							}
 						}

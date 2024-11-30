@@ -26,11 +26,13 @@ class CUICellItem :public CUIStatic
 {
 private:
 	typedef		CUIStatic	inherited;
+
 protected:
 	xr_vector<CUICellItem*> m_childs;
 
 	CUIDragDropListEx*		m_pParentList;
 	CUIProgressBar*			m_pConditionState;
+	CUIProgressBar*			m_fill_bar			= nullptr;
 	Ivector2				m_grid_size;
 	ICustomDrawCellItem*	m_custom_draw;
 	int						m_accelerator;
@@ -40,9 +42,11 @@ protected:
 
 	virtual void			UpdateItemText			();
 			void			init					();
+			
+							~CUICellItem			();
+
 public:
 							CUICellItem				();
-	virtual					~CUICellItem			();
 
 	virtual		bool		OnKeyboardAction				(int dik, EUIMessages keyboard_action);
 	virtual		bool		OnMouseAction					(float x, float y, EUIMessages mouse_action);
@@ -84,6 +88,28 @@ public:
 				bool		m_select_equipped;
 				bool		m_cur_mark;
 				bool		m_has_upgrade;
+
+protected:
+	CLASS_ID							m_class_id								= -1;
+	float								m_scale									= 1.f;
+
+public:
+	CLASS_ID							ClassID								C$	()		{ return m_class_id; }
+	float								getScale							C$	()		{ return m_scale; }
+
+	bool								destroy									(bool forced = false);
+};
+
+struct CUICIDeleter
+{
+	void operator()(CUICellItem*& ci) const
+	{
+		if (ci)
+		{
+			ci->destroy(true);
+			ci = nullptr;
+		}
+	}
 };
 
 class CUIDragItem: public CUIWindow, public pureRender, public pureFrame

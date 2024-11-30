@@ -34,7 +34,7 @@ int LoadBlenderList(LPSTRVec& lst)
 		*it=xr_strdup	(buf.c_str());
 	}
 	fs->close();
-	std::sort			(lst.begin(), lst.end(), str_pred);
+	lst.sort			(str_pred);
 	return lst.size();
 }
 
@@ -53,7 +53,7 @@ int LoadShaderLCList(LPSTRVec& lst)
 	for (Shader_xrLCIt l_it=LIB.Library().begin(); l_it!=LIB.Library().end(); l_it++,s_it++)
 		*s_it			= xr_strdup(l_it->Name);
 	LIB.Unload			();
-	std::sort			(lst.begin(), lst.end(), str_pred);
+	lst.sort			(str_pred);
 	return lst.size		();
 }
 
@@ -68,6 +68,6 @@ int LoadGameMtlList(LPSTRVec& lst)
 	for (GameMtlIt gm_it=GMLib.FirstMaterial(); gm_it!=GMLib.LastMaterial(); gm_it++,s_it++)
 		*s_it			= xr_strdup(*(*gm_it)->m_Name);
 	GMLib.Unload		();
-	std::sort			(lst.begin(), lst.end(), str_pred);
+	lst.sort			(str_pred);
 	return lst.size		();
 }

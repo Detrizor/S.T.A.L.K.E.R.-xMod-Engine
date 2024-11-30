@@ -16,7 +16,7 @@ void CRenderTarget::enable_dbt_bounds		(light* L)
 	if (!ps_r2_ls_flags.test(R2FLAG_USE_NVDBT))		return;
 
 	u32	mask		= 0xffffffff;
-	EFC_Visible vis	= RImplementation.ViewBase.testSphere(L->spatial.sphere.P,L->spatial.sphere.R*1.01f,mask);
+	EFC_Visible vis	= Device.camera.view_base.testSphere(L->spatial.sphere.P,L->spatial.sphere.R*1.01f,mask);
 	if (vis!=fcvFully)								return;
 
 	// xform BB
@@ -28,7 +28,7 @@ void CRenderTarget::enable_dbt_bounds		(light* L)
 	for (u32 i=0; i<8; i++)		{
 		Fvector		pt;
 		BB.getpoint	(i,pt);
-		Device.mFullTransform.transform	(pt);
+		Device.camera.full_transform.transform	(pt);
 		bbp.modify	(pt);
 	}
 	u_DBT_enable	(bbp.min.z,bbp.max.z);
@@ -60,12 +60,12 @@ void	CRenderTarget::u_DBT_disable	()
 
 BOOL CRenderTarget::enable_scissor		(light* L)		// true if intersects near plane
 {
-	// Msg	("%d: %x type(%d), pos(%f,%f,%f)",Device.dwFrame,u32(L),u32(L->flags.type),VPUSH(L->position));
+	// Msg	("%d: %x type(%d), pos(%f,%f,%f)",::Render->dwFrame(),u32(L),u32(L->flags.type),VPUSH(L->position));
 
 	// Near plane intersection
 	BOOL	near_intersect				= FALSE;
 	{
-		Fmatrix& M						= Device.mFullTransform;
+		Fmatrix& M						= Device.camera.full_transform;
 		Fvector4 plane;
 		plane.x							= -(M._14 + M._13);
 		plane.y							= -(M._24 + M._23);
@@ -121,7 +121,7 @@ BOOL CRenderTarget::enable_scissor		(light* L)		// true if intersects near plane
 
 		// 3. convert it into world space
 		Fvector3	s_points			[4];
-		Fmatrix&	iVP					= Device.mInvFullTransform;
+		Fmatrix&	iVP					= Device.camera.full_transform_inv;
 		iVP.transform	(s_points[0],s_points_pp[0]);
 		iVP.transform	(s_points[1],s_points_pp[1]);
 		iVP.transform	(s_points[2],s_points_pp[2]);

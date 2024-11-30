@@ -230,7 +230,8 @@ void CUITalkWnd::Update()
 
 void CUITalkWnd::Draw()
 {
-	inherited::Draw				();
+	if (GetHolder()->TopInputReceiver() == this)
+		inherited::Draw();
 }
 
 void CUITalkWnd::Show(bool status)
@@ -299,7 +300,6 @@ void CUITalkWnd::AskQuestion()
 
 void CUITalkWnd::SayPhrase(const shared_str& phrase_id)
 {
-
 	AddAnswer(m_pCurrentDialog->GetPhraseText(phrase_id), m_pOurInvOwner->Name());
 	m_pOurDialogManager->SayPhrase(m_pCurrentDialog, phrase_id);
 	//если диалог завершился, перейти в режим выбора темы
@@ -329,34 +329,15 @@ void CUITalkWnd::AddAnswer(const shared_str& text, LPCSTR SpeakerName)
 
 void CUITalkWnd::SwitchToTrade()
 {
-	if ( m_pOurInvOwner->IsTradeEnabled() && m_pOthersInvOwner->IsTradeEnabled() )
-	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>( CurrentGameUI() );
-		if ( pGameSP )
-		{
-/*			if ( pGameSP->MainInputReceiver() )
-			{
-				pGameSP->MainInputReceiver()->HideDialog();
-			}*/
-			pGameSP->StartTrade	(m_pOurInvOwner, m_pOthersInvOwner);
-		} // pGameSP
-	}
+	if (m_pOurInvOwner->IsTradeEnabled() && m_pOthersInvOwner->IsTradeEnabled())
+		if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
+			pGameSP->StartTrade(m_pOthersInvOwner);
 }
 
 void CUITalkWnd::SwitchToUpgrade()
 {
-	//if ( m_pOurInvOwner->IsInvUpgradeEnabled() && m_pOthersInvOwner->IsInvUpgradeEnabled() )
-	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI());
-		if ( pGameSP )
-		{
-/*			if ( pGameSP->MainInputReceiver() )
-			{
-				pGameSP->MainInputReceiver()->HideDialog();
-			}*/
-			pGameSP->StartUpgrade(m_pOurInvOwner, m_pOthersInvOwner);
-		}
-	}
+	if (auto pGameSP = smart_cast<CUIGameSP*>(CurrentGameUI()))
+		pGameSP->StartUpgrade(m_pOthersInvOwner);
 }
 
 bool CUITalkWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)

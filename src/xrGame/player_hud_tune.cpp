@@ -58,10 +58,10 @@ void tune_remap(const Ivector& in_values, Ivector& out_values)
 void calc_cam_diff_pos(Fmatrix item_transform, Fvector diff, Fvector& res)
 {
 	Fmatrix							cam_m;
-	cam_m.i.set						(Device.vCameraRight);
-	cam_m.j.set						(Device.vCameraTop);
-	cam_m.k.set						(Device.vCameraDirection);
-	cam_m.c.set						(Device.vCameraPosition);
+	cam_m.i.set						(Device.camera.right);
+	cam_m.j.set						(Device.camera.top);
+	cam_m.k.set						(Device.camera.direction);
+	cam_m.c.set						(Device.camera.position);
 
 
 	Fvector							res1;
@@ -75,10 +75,10 @@ void calc_cam_diff_pos(Fmatrix item_transform, Fvector diff, Fvector& res)
 void calc_cam_diff_rot(Fmatrix item_transform, Fvector diff, Fvector& res)
 {
 	Fmatrix							cam_m;
-	cam_m.i.set						(Device.vCameraRight);
-	cam_m.j.set						(Device.vCameraTop);
-	cam_m.k.set						(Device.vCameraDirection);
-	cam_m.c.set						(Device.vCameraPosition);
+	cam_m.i.set						(Device.camera.right);
+	cam_m.j.set						(Device.camera.top);
+	cam_m.k.set						(Device.camera.direction);
+	cam_m.c.set						(Device.camera.position);
 
 	Fmatrix							R;
 	R.identity						();
@@ -138,7 +138,7 @@ void attachable_hud_item::tune(Ivector values)
 			Fmatrix							ancor_m;
 			m_parent->calc_transform		(m_attach_place_idx, Fidentity, ancor_m);
 
-			calc_cam_diff_pos				(m_item_transform, diff, d);
+			calc_cam_diff_pos				(m_transform, diff, d);
 			m_measures.m_item_attach[1].add	(d);
 		}
 

@@ -60,7 +60,6 @@ void CObjectActionBase<_item_type>::stop_hiding_operation_if_any	( ) const
 	if ( !hud_item->IsHidden() ) {
 		hud_item->StopCurrentAnimWithoutCallback( );
 		hud_item->SetState						( CHUDState::eIdle);
-		hud_item->SetNextState					( CHUDState::eIdle);
 	}
 }
 

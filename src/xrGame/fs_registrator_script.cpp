@@ -128,12 +128,12 @@ FS_file_list_ex::FS_file_list_ex(LPCSTR path, u32 flags, LPCSTR mask)
 
 void FS_file_list_ex::Sort(u32 flags)
 {
-	if(flags==eSortByNameUp)		std::sort(m_file_items.begin(),m_file_items.end(),nameSorter<true>);
-	else if(flags==eSortByNameDown)	std::sort(m_file_items.begin(),m_file_items.end(),nameSorter<false>);
-	else if(flags==eSortBySizeUp)	std::sort(m_file_items.begin(),m_file_items.end(),sizeSorter<true>);
-	else if(flags==eSortBySizeDown)	std::sort(m_file_items.begin(),m_file_items.end(),sizeSorter<false>);
-	else if(flags==eSortByModifUp)	std::sort(m_file_items.begin(),m_file_items.end(),modifSorter<true>);
-	else if(flags==eSortByModifDown)std::sort(m_file_items.begin(),m_file_items.end(),modifSorter<false>);
+	if(flags==eSortByNameUp)		m_file_items.sort(nameSorter<true>);
+	else if(flags==eSortByNameDown)	m_file_items.sort(nameSorter<false>);
+	else if(flags==eSortBySizeUp)	m_file_items.sort(sizeSorter<true>);
+	else if(flags==eSortBySizeDown)	m_file_items.sort(sizeSorter<false>);
+	else if(flags==eSortByModifUp)	m_file_items.sort(modifSorter<true>);
+	else if(flags==eSortByModifDown)m_file_items.sort(modifSorter<false>);
 }
 
 FS_file_list_ex file_list_open_ex(CLocatorAPI* fs, LPCSTR path, u32 flags, LPCSTR mask)

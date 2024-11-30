@@ -6,11 +6,12 @@
 #include "xrMessages.h"
 #include "Level.h"
 #include "../xrphysics/mathutils.h"
-SHit::SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA, \
-	float impulseA, ALife::EHitType hit_typeA, float pierce_damageA, float pierce_damage_armorA, ALife::EHitType pierce_hit_typeA)
+
+SHit::SHit(float main_damageA, Fvector CR$ dirA, CObject *whoA, u16 elementA, Fvector p_in_bone_spaceA,
+	float impulseA, ALife::EHitType hit_typeA, float pierce_damageA, float armor_pierce_damageA, ALife::EHitType pierce_hit_typeA)
 {
 		main_damage				= main_damageA							;
-		dir						.set(dirA)								;
+		dir.set					(dirA)									;
 		who						= whoA									;
 		if (whoA)
 			whoID				= whoA->ID()							;
@@ -22,7 +23,7 @@ SHit::SHit(float main_damageA, Fvector &dirA, CObject *whoA, u16 elementA, Fvect
 
 		hit_type				= hit_typeA								;
 		pierce_damage			= pierce_damageA						;
-		pierce_damage_armor		= pierce_damage_armorA					;
+		armor_pierce_damage		= armor_pierce_damageA					;
 		pierce_hit_type			= pierce_hit_typeA						;
 		PACKET_TYPE				= 0										;
 		BulletID				= 0										;
@@ -53,7 +54,7 @@ void SHit::invalidate()
 	hit_type				=ALife::eHitTypeMax							;
 
 	pierce_damage			= 0.f										;
-	pierce_damage_armor		= 0.f										;
+	armor_pierce_damage		= 0.f										;
 	pierce_hit_type			= ALife::eHitTypeMax						;
 	BulletID				= 0											;
 	SenderID				= 0											;
@@ -97,7 +98,7 @@ void SHit::Read_Packet_Cont		(NET_Packet	Packet)
 	if (hit_type == ALife::eHitTypeFireWound)
 	{
 		Packet.r_float		(pierce_damage);
-		Packet.r_float		(pierce_damage_armor);
+		Packet.r_float		(armor_pierce_damage);
 	}
 	if (PACKET_TYPE == GE_HIT_STATISTIC)
 	{
@@ -119,7 +120,7 @@ void SHit::Write_Packet_Cont		(NET_Packet	&Packet)
 	if (hit_type == ALife::eHitTypeFireWound)
 	{
 		Packet.w_float	(pierce_damage);
-		Packet.w_float	(pierce_damage_armor);
+		Packet.w_float	(armor_pierce_damage);
 	}
 	if (PACKET_TYPE == GE_HIT_STATISTIC)
 	{
@@ -153,3 +154,24 @@ void SHit::_dump()
 	Msg("SHit::_dump()---end");
 }
 #endif
+
+int SHit::DamageType(ALife::EHitType hit_type)
+{
+	switch (hit_type)
+	{
+	case ALife::eHitTypeFireWound:
+	case ALife::eHitTypeWound:
+	case ALife::eHitTypeStrike:
+	case ALife::eHitTypeWound_2:
+	case ALife::eHitTypeRadiationGamma:
+		return 1;
+	case ALife::eHitTypeExplosion:
+		return 2;
+	}
+	return 0;
+}
+
+int SHit::DamageType() const
+{
+	return DamageType(hit_type);
+}

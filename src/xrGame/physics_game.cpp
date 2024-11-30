@@ -253,7 +253,7 @@ void  TContactShotMark(CDB::TRI* T,dContactGeom* c)
 		return;
 	//float vel_cret= GetVelCret(c);
 
-	Fvector to_camera;to_camera.sub(cast_fv(c->pos),Device.vCameraPosition);
+	Fvector to_camera;to_camera.sub(cast_fv(c->pos),Device.camera.position);
 	float square_cam_dist=to_camera.square_magnitude();
 	if(data)
 	{

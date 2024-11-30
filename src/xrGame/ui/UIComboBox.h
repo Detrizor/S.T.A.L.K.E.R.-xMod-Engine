@@ -35,7 +35,7 @@ public:
 			void		SetListLength			(int length);
 			void		SetVertScroll			(bool bVScroll = true){m_list_box.SetFixedScrollBar(bVScroll);};
 	CUIListBoxItem*		AddItem_				(LPCSTR str, int _data);
-			void		InitComboBox			(Fvector2 pos, float width);
+			void		InitComboBox			(Fvector2 pos, Fvector2 size);
 			void		SetItemIDX				(int idx);
 			void		SetItemToken			(int tok);
 			u32			GetSelectedIDX			();

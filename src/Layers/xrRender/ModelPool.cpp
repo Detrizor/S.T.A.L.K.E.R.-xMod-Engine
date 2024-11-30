@@ -5,25 +5,25 @@
 
 #ifndef _EDITOR
 	#include "../../xrEngine/IGame_Persistent.h"
-    #include "../../xrEngine/fmesh.h"
-    #include "fhierrarhyvisual.h"
-    #include "SkeletonAnimated.h"
+	#include "../../xrEngine/fmesh.h"
+	#include "fhierrarhyvisual.h"
+	#include "SkeletonAnimated.h"
 	#include "fvisual.h"
 	#include "fprogressive.h"
 	#include "fskinned.h"
 	#include "flod.h"
-    #include "ftreevisual.h"
-    #include "ParticleGroup.h"
-    #include "ParticleEffect.h"
+	#include "ftreevisual.h"
+	#include "ParticleGroup.h"
+	#include "ParticleEffect.h"
 #else
-    #include "fmesh.h"
-    #include "fvisual.h"
-    #include "fprogressive.h"
-    #include "ParticleEffect.h"
-    #include "ParticleGroup.h"
+	#include "fmesh.h"
+	#include "fvisual.h"
+	#include "fprogressive.h"
+	#include "ParticleEffect.h"
+	#include "ParticleGroup.h"
 	#include "fskinned.h"
-    #include "fhierrarhyvisual.h"
-    #include "SkeletonAnimated.h"
+	#include "fhierrarhyvisual.h"
+	#include "SkeletonAnimated.h"
 	#include "IGame_Persistent.h"
 #endif
 
@@ -86,7 +86,7 @@ dxRender_Visual*	CModelPool::Instance_Duplicate	(dxRender_Visual* V)
 	dxRender_Visual* N		= Instance_Create(V->Type);
 	N->Copy			(V);
 	N->Spawn		();
-    // inc ref counter
+	// inc ref counter
 	for (xr_vector<ModelDef>::iterator I=Models.begin(); I!=Models.end(); I++) 
 		if (I->model==V)
 		{ 
@@ -96,8 +96,16 @@ dxRender_Visual*	CModelPool::Instance_Duplicate	(dxRender_Visual* V)
 	return N;
 }
 
-dxRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
+dxRender_Visual* CModelPool::Instance_Load(xr_string _N, BOOL allow_register)
 {
+	bool ignore_motions = false;
+	if (_N.substr(0, 3) == "_w_")
+	{
+		_N = _N.substr(3);
+		ignore_motions = true;
+	}
+	LPCSTR N = _N.c_str();
+
 	dxRender_Visual	*V;
 	string_path		fn;
 	string_path		name;
@@ -107,35 +115,40 @@ dxRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
 	else				xr_strcpy	(name,sizeof(name),N);
 
 	// Load data from MESHES or LEVEL
-	if (!FS.exist(N))	{
+	if (!FS.exist(N))
+	{
 		if (!FS.exist(fn, "$level$", name))
-			if (!FS.exist(fn, "$game_meshes$", name)){
+			if (!FS.exist(fn, "$game_meshes$", name))
+			{
 #ifdef _EDITOR
 				Msg("!Can't find model file '%s'.",name);
-                return 0;
+				return 0;
 #else            
 				Debug.fatal(DEBUG_INFO,"Can't find model file '%s'.",name);
 #endif
 			}
-	} else {
-		xr_strcpy			(fn,N);
 	}
+	else
+		xr_strcpy(fn,N);
 	
 	// Actual loading
 #ifdef DEBUG
-	if (bLogging)		Msg		("- Uncached model loading: %s",fn);
+	if (bLogging)		Msg("- Uncached model loading: %s",fn);
 #endif // DEBUG
 
-	IReader*			data	= FS.r_open(fn);
+	IReader*			data = FS.r_open(fn);
 	ogf_header			H;
 	data->r_chunk_safe	(OGF_HEADER,&H,sizeof(H));
+	if (H.type == MT_SKELETON_ANIM && ignore_motions)
+		H.type = MT_SKELETON_RIGID;
 	V = Instance_Create (H.type);
 	V->Load				(N,data,0);
+	V->Type				= H.type;
 	FS.r_close			(data);
 	g_pGamePersistent->RegisterModel(V);
 
 	// Registration
-	if (allow_register) Instance_Register(N,V);
+	if (allow_register) Instance_Register(_N.c_str(), V);
 
 	return V;
 }
@@ -197,8 +210,8 @@ void CModelPool::Destroy()
 CModelPool::CModelPool()
 {
 	bLogging				= TRUE;
-    bForceDiscard 			= FALSE;
-    bAllowChildrenDuplicate	= TRUE; 
+	bForceDiscard 			= FALSE;
+	bAllowChildrenDuplicate	= TRUE; 
 	g_pMotionsContainer		= xr_new<motions_container>();
 }
 
@@ -222,7 +235,7 @@ dxRender_Visual* CModelPool::Instance_Find(LPCSTR N)
 	return Model;
 }
 
-dxRender_Visual* CModelPool::Create(const char* name, IReader* data)
+dxRender_Visual* CModelPool::Create(LPCSTR name, IReader* data)
 {
 #ifdef _EDITOR
 	if (!name||!name[0])	return 0;
@@ -237,7 +250,7 @@ dxRender_Visual* CModelPool::Create(const char* name, IReader* data)
 	if (it!=Pool.end())
 	{
 		// 1. Instance found
-        dxRender_Visual*		Model	= it->second;
+		dxRender_Visual*		Model	= it->second;
 		Model->Spawn		();
 		Pool.erase			(it);
 		return				Model;
@@ -249,16 +262,16 @@ dxRender_Visual* CModelPool::Create(const char* name, IReader* data)
 			// 2. If not found
 			bAllowChildrenDuplicate	= FALSE;
 			if (data)		Base = Instance_Load(low_name,data,TRUE);
-            else			Base = Instance_Load(low_name,TRUE);
+			else			Base = Instance_Load(low_name,TRUE);
 			bAllowChildrenDuplicate	= TRUE;
 #ifdef _EDITOR
 			if (!Base)		return 0;
 #endif
 		}
-        // 3. If found - return (cloned) reference
-        dxRender_Visual*		Model	= Instance_Duplicate(Base);
-        Registry.insert		( mk_pair(Model,low_name) );
-        return				Model;
+		// 3. If found - return (cloned) reference
+		dxRender_Visual*		Model	= Instance_Duplicate(Base);
+		Registry.insert		( mk_pair(Model,low_name) );
+		return				Model;
 	}
 }
 
@@ -277,18 +290,18 @@ dxRender_Visual* CModelPool::CreateChild(LPCSTR name, IReader* data)
 		else			Base = Instance_Load	(low_name,FALSE);
 	}
 
-    dxRender_Visual* Model	= bAllowChildrenDuplicate?Instance_Duplicate(Base):Base;
-    return					Model;
+	dxRender_Visual* Model	= bAllowChildrenDuplicate?Instance_Duplicate(Base):Base;
+	return					Model;
 }
 
 extern  BOOL ENGINE_API g_bRendering; 
 void	CModelPool::DeleteInternal	(dxRender_Visual* &V, BOOL bDiscard)
 {
 	VERIFY					(!g_bRendering);
-    if (!V)					return;
+	if (!V)					return;
 	V->Depart				();
 	if (bDiscard||bForceDiscard){
-    	Discard	(V, TRUE); 
+		Discard	(V, TRUE); 
 	}else{
 		//
 		REGISTRY_IT	it		= Registry.find	(V);
@@ -343,11 +356,11 @@ void	CModelPool::Discard	(dxRender_Visual* &V, BOOL b_complete)
 					if(b_complete || strchr(*name,'#'))
 					{
 						VERIFY(I->refs>0);
-            			I->refs--; 
+						I->refs--; 
 						if (0==I->refs)
 						{
-                			bForceDiscard		= TRUE;
-	            			I->model->Release	();
+							bForceDiscard		= TRUE;
+							I->model->Release	();
 							xr_delete			(I->model);	
 							Models.erase		(I);
 							bForceDiscard		= FALSE;
@@ -460,31 +473,7 @@ void CModelPool::memory_stats		( u32& vb_mem_video, u32& vb_mem_system, u32& ib_
 
 		if( vis_ptr == NULL )
 			continue;
-#if !defined(USE_DX10) && !defined(USE_DX11)
-		D3DINDEXBUFFER_DESC IB_desc;
-		D3DVERTEXBUFFER_DESC VB_desc;
 
-		vis_ptr->m_fast->p_rm_Indices->GetDesc( &IB_desc );
-
-		if( IB_desc.Pool == D3DPOOL_DEFAULT ||
-			IB_desc.Pool == D3DPOOL_MANAGED )
-			ib_mem_video += IB_desc.Size;
-
-		if( IB_desc.Pool == D3DPOOL_MANAGED ||
-			IB_desc.Pool == D3DPOOL_SCRATCH )
-			ib_mem_system += IB_desc.Size;
-
-		vis_ptr->m_fast->p_rm_Vertices->GetDesc( &VB_desc );
-
-		if( VB_desc.Pool == D3DPOOL_DEFAULT ||
-			VB_desc.Pool == D3DPOOL_MANAGED )
-			vb_mem_video += IB_desc.Size;
-
-		if( VB_desc.Pool == D3DPOOL_MANAGED ||
-			VB_desc.Pool == D3DPOOL_SCRATCH )
-			vb_mem_system += IB_desc.Size;
-
-#else
 		D3D_BUFFER_DESC IB_desc;
 		D3D_BUFFER_DESC VB_desc;
 
@@ -497,114 +486,106 @@ void CModelPool::memory_stats		( u32& vb_mem_video, u32& vb_mem_system, u32& ib_
 
 		vb_mem_video += IB_desc.ByteWidth;
 		vb_mem_system += IB_desc.ByteWidth;
-
-#endif
-
-
-
-
-
-
 	}
-} 
+}
 
 #ifdef _EDITOR
 IC bool	_IsBoxVisible(dxRender_Visual* visual, const Fmatrix& transform)
 {
-    Fbox 		bb; 
-    bb.xform	(visual->vis.box,transform);
-    return 		::Render->occ_visible(bb);
+	Fbox 		bb; 
+	bb.xform	(visual->vis.box,transform);
+	return 		::Render->occ_visible(bb);
 }
 IC bool	_IsValidShader(dxRender_Visual* visual, u32 priority, bool strictB2F)
 {
 	if (visual->shader)
-        return (priority==visual->shader->E[0]->flags.iPriority)&&(strictB2F==visual->shader->E[0]->flags.bStrictB2F);
-    return false;
+		return (priority==visual->shader->E[0]->flags.iPriority)&&(strictB2F==visual->shader->E[0]->flags.bStrictB2F);
+	return false;
 }
 
 void 	CModelPool::Render(dxRender_Visual* m_pVisual, const Fmatrix& mTransform, int priority, bool strictB2F, float m_fLOD)
 {
-    // render visual
-    xr_vector<dxRender_Visual*>::iterator I,E;
-    switch (m_pVisual->Type){
-    case MT_SKELETON_ANIM:
-    case MT_SKELETON_RIGID:{
-        if (_IsBoxVisible(m_pVisual,mTransform)){
-            CKinematics* pV		= dynamic_cast<CKinematics*>(m_pVisual); VERIFY(pV);
-            if (fis_zero(m_fLOD,EPS)&&pV->m_lod){
-		        if (_IsValidShader(pV->m_lod,priority,strictB2F)){
-	                RCache.set_Shader		(pV->m_lod->shader?pV->m_lod->shader:EDevice.m_WireShader);
-    	            RCache.set_xform_world	(mTransform);
-        	        pV->m_lod->Render		(1.f);
-                }
-            }else{
-                I = pV->children.begin		();
-                E = pV->children.end		();
-                for (; I!=E; I++){
-                    if (_IsValidShader(*I,priority,strictB2F)){
-                        RCache.set_Shader		((*I)->shader?(*I)->shader:EDevice.m_WireShader);
-                        RCache.set_xform_world	(mTransform);
-                        (*I)->Render		 	(m_fLOD);
-                    }
-                }
-            }
-        }
-    }break;
-    case MT_HIERRARHY:{
-        if (_IsBoxVisible(m_pVisual,mTransform)){
-            FHierrarhyVisual* pV		= dynamic_cast<FHierrarhyVisual*>(m_pVisual); VERIFY(pV);
-            I = pV->children.begin		();
-            E = pV->children.end		();
-            for (; I!=E; I++){
-		        if (_IsValidShader(*I,priority,strictB2F)){
-	                RCache.set_Shader		((*I)->shader?(*I)->shader:EDevice.m_WireShader);
-    	            RCache.set_xform_world	(mTransform);
-        	        (*I)->Render		 	(m_fLOD);
-                }
-            }
-        }
-    }break;
-    case MT_PARTICLE_GROUP:{
-        PS::CParticleGroup* pG			= dynamic_cast<PS::CParticleGroup*>(m_pVisual); VERIFY(pG);
+	// render visual
+	xr_vector<dxRender_Visual*>::iterator I,E;
+	switch (m_pVisual->Type){
+	case MT_SKELETON_ANIM:
+	case MT_SKELETON_RIGID:{
+		if (_IsBoxVisible(m_pVisual,mTransform)){
+			CKinematics* pV		= dynamic_cast<CKinematics*>(m_pVisual); VERIFY(pV);
+			if (fis_zero(m_fLOD,EPS)&&pV->m_lod){
+				if (_IsValidShader(pV->m_lod,priority,strictB2F)){
+					RCache.set_Shader		(pV->m_lod->shader?pV->m_lod->shader:EDevice.m_WireShader);
+					RCache.set_xform_world	(mTransform);
+					pV->m_lod->Render		(1.f);
+				}
+			}else{
+				I = pV->children.begin		();
+				E = pV->children.end		();
+				for (; I!=E; I++){
+					if (_IsValidShader(*I,priority,strictB2F)){
+						RCache.set_Shader		((*I)->shader?(*I)->shader:EDevice.m_WireShader);
+						RCache.set_xform_world	(mTransform);
+						(*I)->Render		 	(m_fLOD);
+					}
+				}
+			}
+		}
+	}break;
+	case MT_HIERRARHY:{
+		if (_IsBoxVisible(m_pVisual,mTransform)){
+			FHierrarhyVisual* pV		= dynamic_cast<FHierrarhyVisual*>(m_pVisual); VERIFY(pV);
+			I = pV->children.begin		();
+			E = pV->children.end		();
+			for (; I!=E; I++){
+				if (_IsValidShader(*I,priority,strictB2F)){
+					RCache.set_Shader		((*I)->shader?(*I)->shader:EDevice.m_WireShader);
+					RCache.set_xform_world	(mTransform);
+					(*I)->Render		 	(m_fLOD);
+				}
+			}
+		}
+	}break;
+	case MT_PARTICLE_GROUP:{
+		PS::CParticleGroup* pG			= dynamic_cast<PS::CParticleGroup*>(m_pVisual); VERIFY(pG);
 //		if (_IsBoxVisible(m_pVisual,mTransform))
-        {
-            RCache.set_xform_world	  		(mTransform);
-            for (PS::CParticleGroup::SItemVecIt i_it=pG->items.begin(); i_it!=pG->items.end(); i_it++){
-                xr_vector<dxRender_Visual*>	visuals;
-                i_it->GetVisuals			(visuals);
-                for (xr_vector<dxRender_Visual*>::iterator it=visuals.begin(); it!=visuals.end(); it++)
-                    Render					(*it,Fidentity,priority,strictB2F,m_fLOD);
-            }
-        }
-    }break;
-    case MT_PARTICLE_EFFECT:{
+		{
+			RCache.set_xform_world	  		(mTransform);
+			for (PS::CParticleGroup::SItemVecIt i_it=pG->items.begin(); i_it!=pG->items.end(); i_it++){
+				xr_vector<dxRender_Visual*>	visuals;
+				i_it->GetVisuals			(visuals);
+				for (xr_vector<dxRender_Visual*>::iterator it=visuals.begin(); it!=visuals.end(); it++)
+					Render					(*it,Fidentity,priority,strictB2F,m_fLOD);
+			}
+		}
+	}break;
+	case MT_PARTICLE_EFFECT:{
 //		if (_IsBoxVisible(m_pVisual,mTransform))
-        {
-            if (_IsValidShader(m_pVisual,priority,strictB2F)){
-                RCache.set_Shader			(m_pVisual->shader?m_pVisual->shader:EDevice.m_WireShader);
-                RCache.set_xform_world		(mTransform);
-                m_pVisual->Render		 	(m_fLOD);
-            }
-        }
-    }break;
-    default:
-        if (_IsBoxVisible(m_pVisual,mTransform)){
-            if (_IsValidShader(m_pVisual,priority,strictB2F)){
-                RCache.set_Shader			(m_pVisual->shader?m_pVisual->shader:EDevice.m_WireShader);
-                RCache.set_xform_world		(mTransform);
-                m_pVisual->Render		 	(m_fLOD);
-            }
-        }
-        break;
-    }
+		{
+			if (_IsValidShader(m_pVisual,priority,strictB2F)){
+				RCache.set_Shader			(m_pVisual->shader?m_pVisual->shader:EDevice.m_WireShader);
+				RCache.set_xform_world		(mTransform);
+				m_pVisual->Render		 	(m_fLOD);
+			}
+		}
+	}break;
+	default:
+		if (_IsBoxVisible(m_pVisual,mTransform)){
+			if (_IsValidShader(m_pVisual,priority,strictB2F)){
+				RCache.set_Shader			(m_pVisual->shader?m_pVisual->shader:EDevice.m_WireShader);
+				RCache.set_xform_world		(mTransform);
+				m_pVisual->Render		 	(m_fLOD);
+			}
+		}
+		break;
+	}
 }
 
 void 	CModelPool::RenderSingle(dxRender_Visual* m_pVisual, const Fmatrix& mTransform, float m_fLOD)
 {
 	for (int p=0; p<4; p++){
-    	Render(m_pVisual,mTransform,p,false,m_fLOD);
-    	Render(m_pVisual,mTransform,p,true,m_fLOD);
-    }
+		Render(m_pVisual,mTransform,p,false,m_fLOD);
+		Render(m_pVisual,mTransform,p,true,m_fLOD);
+	}
 }
 void CModelPool::OnDeviceDestroy()
 {

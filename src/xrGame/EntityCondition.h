@@ -51,7 +51,7 @@ struct SMedicineInfluenceValues{
 
 	SMedicineInfluenceValues():fTimeCurrent(-1.0f){}
 	bool InProcess (){return fTimeCurrent>0.0f;}
-	void Load(const shared_str& sect);
+	void Load(const shared_str& sect, float depletion_rate = 1.f);
 };
 
 class CEntityConditionSimple
@@ -136,9 +136,7 @@ public:
 	void					ClearWounds				();
 
 	typedef					xr_map<EBoostParams, SBooster> BOOSTER_MAP;
-	
-	float					GetArtefactArmor		();
-	float					GetBoneArmor			(u16 element);
+
 protected:
 	void					UpdateHealth			();
 	void					UpdatePower				();
@@ -153,10 +151,6 @@ protected:
 	CHelmet*				GetHelmet				();
 
 	void					HitProtectionEffect		(SHit* pHDS);
-	template<typename T>
-	bool					HitThroughGear			(SHit* pHDS, T pGear, u16 main_bone, bool armor_type);
-	void					HitThroughArmor			(SHit* pHDS, float bone_armor, CCustomOutfit* pOutfit = NULL, CHelmet* pHelmet = NULL);
-	void					ExplProcess				(float& damage, float& armor, CCustomOutfit* pOutfit, CHelmet* pHelmet, ALife::EHitType& hit_type);
 	//изменение потери сил в зависимости от надетого костюма
 	float					HitPowerEffect			(float power_loss);
 	
@@ -248,4 +242,28 @@ public:
 	IC float&						pierce_damage_bone_scale()			{return		(m_fPierceDamageBoneScale);	}
 	IC SConditionChangeV&			change_v				()			{return		(m_change_v);				}
 
+private:
+	static HitImmunity::HitTypeSVec		HitTypeHeadPart;
+	static HitImmunity::HitTypeSVec		HitTypeScale;
+
+	static float						m_fMeleeOnPierceDamageMultiplier;
+	static float						m_fMeleeOnPierceArmorDamageFactor;
+
+	static CPowerDependency				StrikeDamageThreshold;
+	static CPowerDependency				StrikeDamageResistance;
+	static CPowerDependency				ExplDamageResistance;
+	static CPowerDependency				ArmorDamageResistance;
+
+	static CPowerDependency				AnomalyDamageThreshold;
+	static CPowerDependency				AnomalyDamageResistance;
+	static CPowerDependency				ProtectionDamageResistance;
+
+	template <typename T>
+	float								GearProtectionEffect					(T gear, const ALife::EHitType& hit_type, float damage, bool head);
+	template <typename T>
+	float								GearExplEffect							(T gear, float damage, float protection, CInventoryOwner* io, bool head);
+
+
+public:
+	static void							loadStaticData							();
 };

@@ -58,8 +58,6 @@ public:
 
 	virtual bool		Action							(u16 cmd, u32 flags);
 
-	virtual bool		GetBriefInfo					(II_BriefInfo& info);
-
 #ifdef DEBUG
 	virtual void		OnRender						();
 #endif
@@ -184,6 +182,7 @@ private:
 	void		fill_shots_list			(victims_shapes_list_t & victims_shapres,
 										 Fsphere const & query,
 										 shot_targets_t & dest_shots);
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CWeaponKnife)

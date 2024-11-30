@@ -5,6 +5,7 @@
 #include "xrlc_globaldata.h"
 #include "file_compress.h"
 #include "xrdeflector.h"
+
 namespace lc_net
 {
 	bool cmp_weight( CDeflector* d0, CDeflector* d1)
@@ -19,7 +20,7 @@ namespace lc_net
 		FPU::m64r			();
 		Memory.mem_compact	();
 		//std::random_shuffle	(inlc_global_data()->g_deflectors().begin(),inlc_global_data()->g_deflectors().end());
-		std::sort( inlc_global_data()->g_deflectors().begin(),inlc_global_data()->g_deflectors().end(),cmp_weight );
+		inlc_global_data()->g_deflectors().sort(cmp_weight);
 		clMsg( "create_lm_data_write:  start" );
 		IWriter * file = FS.w_open(path);
 		inlc_global_data()->write_lm_data( *file );
@@ -44,6 +45,4 @@ namespace lc_net
 		Memory.mem_compact	();
 		return true;
 	}
-
 }
-

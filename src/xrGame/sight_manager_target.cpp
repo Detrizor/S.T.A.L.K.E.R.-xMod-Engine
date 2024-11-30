@@ -42,21 +42,28 @@ bool CSightManager::aim_target	(Fvector &my_position, Fvector &aim_target, const
 	if (!object)
 		return					(false);
 
-	if (m_object->aim_bone_id().size()) {
+	if (m_object->aim_bone_id().size())
+	{
 		m_object->aim_target	(aim_target, object);
 		return					(true);
 	}
 
-	extern CActor*	g_actor;
+	auto aim_human = [](Fvector& aim_target, const CGameObject* object)
+	{
+		::aim_target			((::Random.randF() < .2f) ? "bip01_head" : "bip01_spine1", aim_target, object);
+	};
 
-	if ( g_actor == object ) {
-		::aim_target			( "bip01_head", aim_target, object);
+	if (g_actor == object)
+	{
+		aim_human				(aim_target, object);
 		return					(true);
 	}
 
-	if ( CAI_Stalker const* stalker = smart_cast<CAI_Stalker const*>(object) ) {
-		if ( stalker->g_Alive() ) {
-			::aim_target		( "bip01_head", aim_target, object);
+	if (auto stalker = smart_cast<CAI_Stalker const*>(object))
+	{
+		if (stalker->g_Alive())
+		{
+			aim_human			(aim_target, object);
 			return				(true);
 		}
 	}
@@ -65,7 +72,6 @@ bool CSightManager::aim_target	(Fvector &my_position, Fvector &aim_target, const
 		return					(false);
 
 	m_object->Center			(my_position);
-#if 1
 	//. hack is here, just because our actor model is animated with 20cm shift
 	m_object->XFORM().transform_tiny	(
 		my_position,
@@ -75,13 +81,6 @@ bool CSightManager::aim_target	(Fvector &my_position, Fvector &aim_target, const
 			0.f
 		)
 	);
-#else
-	const CEntityAlive			*entity_alive = smart_cast<const CEntityAlive*>(object);
-	if (!entity_alive || entity_alive->g_Alive()) {
-		aim_target.x			= m_object->Position().x;
-		aim_target.z			= m_object->Position().z;
-	}
-#endif
 
 	return						(true);
 }

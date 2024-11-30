@@ -8,7 +8,6 @@
 #include "WeaponMagazinedWGrenade.h"
 #include "WeaponKnife.h"
 #include "xr_level_controller.h"
-#include "eatable_item_object.h"
 #include "Missile.h"
 #include "ui/UIMpTradeWnd.h"
 
@@ -169,14 +168,10 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 			if(pSettings->line_exist(GetBaseCostSect(), pItem->object().cNameSect()))
 			{
 				u8 Addons = 0;
-				CWeapon* pWeapon = smart_cast<CWeapon*> (pItem);
-				{
-					if (pWeapon) Addons = pWeapon->GetAddonsState();
-				}
 				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 				if (pAmmo)
 				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
+					if (pAmmo->GetAmmoCount() != pAmmo->m_boxSize) continue;
 				}
 				pCurBuyMenu->ItemToSlot(pItem->object().cNameSect(), Addons);
 			}
@@ -199,14 +194,10 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 			if(pSettings->line_exist(GetBaseCostSect(), pItem->object().cNameSect()))
 			{
 				u8 Addons = 0;
-				CWeapon* pWeapon = smart_cast<CWeapon*> (pItem);
-				{
-					if (pWeapon) Addons = pWeapon->GetAddonsState();
-				}
 				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 				if (pAmmo)
 				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
+					if (pAmmo->GetAmmoCount() != pAmmo->m_boxSize) continue;
 				}
 				pCurBuyMenu->ItemToRuck(pItem->object().cNameSect(), Addons);
 			}
@@ -239,98 +230,6 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 
 void game_cl_Deathmatch::CheckItem			(PIItem pItem, PRESET_ITEMS* pPresetItems, BOOL OnlyPreset)
 {
-	R_ASSERT					(pItem);
-	R_ASSERT					(pPresetItems);
-	if (pItem->IsInvalid())	return;
-
-	u8 SlotID, ItemID;
-	pCurBuyMenu->GetWeaponIndexByName(*pItem->object().cNameSect(), SlotID, ItemID);
-	if (SlotID == 0xff || ItemID == 0xff) return;
-	s16 BigID = GetBuyMenuItemIndex(SlotID, ItemID);
-	CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
-	if (pAmmo)
-	{
-		if (pAmmo->m_boxCurr != pAmmo->m_boxSize) return;
-	}
-	//-----------------------------------------------------	
-	PRESET_ITEMS_it PresetItemIt = std::find(pPresetItems->begin(), pPresetItems->end(), BigID);
-	if (OnlyPreset)
-	{		
-		if (PresetItemIt == pPresetItems->end()) return;
-	}
-
-	if (SlotID == PISTOL_SLOT)
-	{
-		PRESET_ITEMS_it DefPistolIt = std::find(PlayerDefItems.begin(), PlayerDefItems.end(), BigID);
-		if (DefPistolIt != PlayerDefItems.end() && PresetItemIt == pPresetItems->end()) return;
-	}
-	
-	pCurBuyMenu->SectionToSlot(SlotID, ItemID, true);
-	//-----------------------------------------------------	
-	s16 DesiredAddons = 0;	
-	if (PresetItemIt != pPresetItems->end())
-	{
-		DesiredAddons = (*PresetItemIt).ItemID >> 5;
-		pPresetItems->erase(PresetItemIt);
-	}
-	//-----------------------------------------------------
-	CWeapon* pWeapon = smart_cast<CWeapon*> (pItem);
-	if (pWeapon)
-	{
-		if (pWeapon->ScopeAttachable())
-		{
-			pCurBuyMenu->GetWeaponIndexByName(*pWeapon->GetScopeName(), SlotID, ItemID);
-			if (SlotID != 0xff && ItemID != 0xff)
-			{
-				if (pWeapon->IsScopeAttached())
-				{
-					if ((DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonScope) || !OnlyPreset)
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonScope, pWeapon->BaseSlot(), true);
-				}					
-				else
-				{
-					if (DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonScope)
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonScope, pWeapon->BaseSlot(), false);
-				}
-			}
-		};
-
-		if (pWeapon->GrenadeLauncherAttachable())
-		{
-			pCurBuyMenu->GetWeaponIndexByName(*pWeapon->GetGrenadeLauncherName(), SlotID, ItemID);
-			if (SlotID != 0xff && ItemID != 0xff)
-			{
-				if (pWeapon->IsGrenadeLauncherAttached())
-				{
-					if ((DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher) || !OnlyPreset)
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, pWeapon->BaseSlot(), true);
-				}
-				else
-				{
-					if (DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher)
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonGrenadeLauncher, pWeapon->BaseSlot(), false);
-				}
-			}
-		};
-
-		if (pWeapon->SilencerAttachable())
-		{
-			pCurBuyMenu->GetWeaponIndexByName(*pWeapon->GetSilencerName(), SlotID, ItemID);
-			if (SlotID != 0xff && ItemID != 0xff)
-			{
-				if (pWeapon->IsSilencerAttached())
-				{
-					if ((DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonSilencer) || !OnlyPreset)
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonSilencer, pWeapon->BaseSlot(), true);
-				}
-				else
-				{
-					if (DesiredAddons & CSE_ALifeItemWeapon::eWeaponAddonSilencer)						
-						pCurBuyMenu->AddonToSlot(CSE_ALifeItemWeapon::eWeaponAddonSilencer, pWeapon->BaseSlot(), false);
-				}
-			}
-		};
-	};
 };
 
 void	game_cl_Deathmatch::LoadTeamDefaultPresetItems	(const shared_str& caSection, IBuyWnd* pBuyMenu, PRESET_ITEMS* pPresetItems)
@@ -497,13 +396,13 @@ struct AmmoSearcherPredicate
 		if (!temp_ammo)
 			return false;
 		
-		if (temp_ammo->m_boxCurr >= temp_ammo->m_boxSize)
+		if (temp_ammo->GetAmmoCount() >= temp_ammo->m_boxSize)
 			return false;
 		
 		if (temp_ammo->cNameSect() != ammo_section)
 			return false;
 
-		if ((temp_ammo->m_boxCurr + additional_ammo_count) < temp_ammo->m_boxSize)
+		if ((temp_ammo->GetAmmoCount() + additional_ammo_count) < temp_ammo->m_boxSize)
 			return false;
 		
 		return true;

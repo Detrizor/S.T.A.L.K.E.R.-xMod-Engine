@@ -1,6 +1,3 @@
-#ifndef _CLSID_H
-#define _CLSID_H
-
 #pragma once
 
 //***** CLASS ID type
@@ -11,6 +8,15 @@ typedef u64 CLASS_ID;
 #define MK_CLSID_INV(a,b,c,d,e,f,g,h) MK_CLSID(h,g,f,e,d,c,b,a)
 
 extern XRCORE_API void __stdcall CLSID2TEXT(CLASS_ID id, LPSTR text);
-extern XRCORE_API CLASS_ID __stdcall TEXT2CLSID(LPCSTR text);
 
-#endif
+constexpr XRCORE_API CLASS_ID __stdcall TEXT2CLSID(LPCSTR text)
+{
+	char buf[8] = {};
+	for (int i = 0, e = 0; i < 8; i++)
+	{
+		if (!e && !text[i])
+			e = 1;
+		buf[i] = (e) ? ' ' : text[i];
+	}
+	return MK_CLSID(buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+}

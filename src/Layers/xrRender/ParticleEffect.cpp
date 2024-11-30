@@ -19,7 +19,6 @@ static void ApplyTexgen( const Fmatrix &mVP )
 {
 	Fmatrix mTexgen;
 
-#if defined(USE_DX10) || defined(USE_DX11)
 	Fmatrix			mTexelAdjust		= 
 	{
 		0.5f,				0.0f,				0.0f,			0.0f,
@@ -27,19 +26,6 @@ static void ApplyTexgen( const Fmatrix &mVP )
 		0.0f,				0.0f,				1.0f,			0.0f,
 		0.5f,				0.5f,				0.0f,			1.0f
 	};
-#else	//	USE_DX10
-	float	_w						= float(RDEVICE.dwWidth);
-	float	_h						= float(RDEVICE.dwHeight);
-	float	o_w						= (.5f / _w);
-	float	o_h						= (.5f / _h);
-	Fmatrix			mTexelAdjust		= 
-	{
-		0.5f,				0.0f,				0.0f,			0.0f,
-		0.0f,				-0.5f,				0.0f,			0.0f,
-		0.0f,				0.0f,				1.0f,			0.0f,
-		0.5f + o_w,			0.5f + o_h,			0.0f,			1.0f
-	};
-#endif	//	USE_DX10
 
 	mTexgen.mul(mTexelAdjust,mVP);
 	RCache.set_c( "mVPTexgen", mTexgen );
@@ -48,13 +34,13 @@ static void ApplyTexgen( const Fmatrix &mVP )
 void PS::OnEffectParticleBirth(void* owner, u32 , PAPI::Particle& m, u32 )
 {
 	CParticleEffect* PE = static_cast<CParticleEffect*>(owner); VERIFY(PE);
-    CPEDef* PED			= PE->GetDefinition(); 
-    if (PED){
-        if (PED->m_Flags.is(CPEDef::dfRandomFrame))
-            m.frame	= (u16)iFloor(Random.randI(PED->m_Frame.m_iFrameCount)*255.f);
-        if (PED->m_Flags.is(CPEDef::dfAnimated)&&PED->m_Flags.is(CPEDef::dfRandomPlayback)&&Random.randI(2))
-            m.flags.set(Particle::ANIMATE_CCW,TRUE);
-    }
+	CPEDef* PED			= PE->GetDefinition(); 
+	if (PED){
+		if (PED->m_Flags.is(CPEDef::dfRandomFrame))
+			m.frame	= (u16)iFloor(Random.randI(PED->m_Frame.m_iFrameCount)*255.f);
+		if (PED->m_Flags.is(CPEDef::dfAnimated)&&PED->m_Flags.is(CPEDef::dfRandomPlayback)&&Random.randI(2))
+			m.flags.set(Particle::ANIMATE_CCW,TRUE);
+	}
 }
 void PS::OnEffectParticleDead(void* , u32 , PAPI::Particle& , u32 )
 {
@@ -88,11 +74,11 @@ void CParticleEffect::Play()
 {
 	m_RT_Flags.set		(flRT_DefferedStop,FALSE);
 	m_RT_Flags.set		(flRT_Playing,TRUE);
-    ParticleManager()->PlayEffect(m_HandleEffect,m_HandleActionList);
+	ParticleManager()->PlayEffect(m_HandleEffect,m_HandleActionList);
 }
 void CParticleEffect::Stop(BOOL bDefferedStop)
 {
-    ParticleManager()->StopEffect(m_HandleEffect,m_HandleActionList,bDefferedStop);
+	ParticleManager()->StopEffect(m_HandleEffect,m_HandleActionList,bDefferedStop);
 	if (bDefferedStop){
 		m_RT_Flags.set	(flRT_DefferedStop,TRUE);
 	}else{
@@ -111,7 +97,7 @@ void CParticleEffect::UpdateParent(const Fmatrix& m, const Fvector& velocity, BO
 	if (bXFORM)				m_XFORM.set	(m);
 	else{
 		m_InitialPosition	= m.c;
-        ParticleManager()->Transform(m_HandleActionList,m,velocity);
+		ParticleManager()->Transform(m_HandleActionList,m,velocity);
 	}
 }
 
@@ -136,16 +122,16 @@ void CParticleEffect::OnFrame(u32 frame_dt)
 					if (m_fElapsedLimit<0.f){
 						m_fElapsedLimit = m_Def->m_fTimeLimit;
 						Stop		(true);
-                        break;
+						break;
 					}
 				}
 			}
-            ParticleManager()->Update(m_HandleEffect,m_HandleActionList,fDT_STEP);
+			ParticleManager()->Update(m_HandleEffect,m_HandleActionList,fDT_STEP);
 
-            PAPI::Particle* particles;
-            u32 p_cnt;
-            ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
-            
+			PAPI::Particle* particles;
+			u32 p_cnt;
+			ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
+			
 			// our actions
 			if (m_Def->m_Flags.is(CPEDef::dfFramed|CPEDef::dfAnimated))	m_Def->ExecuteAnimate	(particles,p_cnt,fDT_STEP);
 			if (m_Def->m_Flags.is(CPEDef::dfCollision)) 				m_Def->ExecuteCollision	(particles,p_cnt,fDT_STEP,this,m_CollisionCallback);
@@ -186,9 +172,9 @@ BOOL CParticleEffect::Compile(CPEDef* def)
 
 		// append actions
 		IReader F				(m_Def->m_Actions.pointer(),m_Def->m_Actions.size());
-        ParticleManager()->LoadActions		(m_HandleActionList,F);
-        ParticleManager()->SetMaxParticles	(m_HandleEffect,m_Def->m_MaxParticles);
-        ParticleManager()->SetCallback		(m_HandleEffect,OnEffectParticleBirth,OnEffectParticleDead,this,0);
+		ParticleManager()->LoadActions		(m_HandleActionList,F);
+		ParticleManager()->SetMaxParticles	(m_HandleEffect,m_Def->m_MaxParticles);
+		ParticleManager()->SetCallback		(m_HandleEffect,OnEffectParticleBirth,OnEffectParticleDead,this,0);
 		// time limit
 		if (m_Def->m_Flags.is(CPEDef::dfTimeLimit))
 			m_fElapsedLimit 	= m_Def->m_fTimeLimit;
@@ -199,7 +185,7 @@ BOOL CParticleEffect::Compile(CPEDef* def)
 
 void CParticleEffect::SetBirthDeadCB(PAPI::OnBirthParticleCB bc, PAPI::OnDeadParticleCB dc, void* owner, u32 p)
 {
-    ParticleManager()->SetCallback		(m_HandleEffect,bc,dc,owner,p);
+	ParticleManager()->SetCallback		(m_HandleEffect,bc,dc,owner,p);
 }
 
 u32 CParticleEffect::ParticlesCount()
@@ -268,12 +254,12 @@ IC void FillSprite_fpu	(FVF::LIT*& pv, const Fvector& T, const Fvector& R, const
 
 __forceinline void fsincos( const float angle , float &sine , float &cosine )
 { __asm {
-    fld			DWORD PTR [angle]
-    fsincos
-    mov			eax , DWORD PTR [cosine]
-    fstp		DWORD PTR [eax]
-    mov			eax , DWORD PTR [sine]
-    fstp		DWORD PTR [eax]
+	fld			DWORD PTR [angle]
+	fsincos
+	mov			eax , DWORD PTR [cosine]
+	fstp		DWORD PTR [eax]
+	mov			eax , DWORD PTR [sine]
+	fstp		DWORD PTR [eax]
 } }
 
 
@@ -346,7 +332,7 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	const Fvector& T 	= dir;
 	Fvector R; 	
 
-	// R.crossproduct(T,RDEVICE.vCameraDirection).normalize_safe();
+	// R.crossproduct(T,RDEVICE.camera.direction).normalize_safe();
 
 	__m128 _t , _t1 , _t2 , _r , _r1 , _r2 ;
 
@@ -355,8 +341,8 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	_t = _mm_load_ss( (float*) &T.x );
 	_t = _mm_loadh_pi( _t , (__m64*) &T.y );
 
-	_r = _mm_load_ss( (float*) &RDEVICE.vCameraDirection.x );
-	_r = _mm_loadh_pi( _r , (__m64*) &RDEVICE.vCameraDirection.y );
+	_r = _mm_load_ss( (float*) &RDEVICE.camera.direction.x );
+	_r = _mm_loadh_pi( _r , (__m64*) &RDEVICE.camera.direction.y );
 
 	_t1 = _mm_shuffle_ps( _t , _t , _MM_SHUFFLE( 0 , 3 , 1 , 2 ) );
 	_t2 = _mm_shuffle_ps( _t , _t , _MM_SHUFFLE( 2 , 0 , 1 , 3 ) );
@@ -390,8 +376,6 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 
 	FillSprite( pv , T , R , pos , lt , rb , r1 , r2 , clr , sina , cosa );
 }
-
-extern ENGINE_API float		psHUD_FOV;
 
 struct PRS_PARAMS {
 	FVF::LIT* pv;
@@ -474,56 +458,57 @@ void ParticleRenderStream( LPVOID lpvParams )
 				if (pPE.m_Def->m_Flags.is(CPEDef::dfAlignToPath)){
 					if ( ! speed_calculated )
 						magnitude_sse( m.vel , speed );
-                    if ((speed<EPS_S)&&pPE.m_Def->m_Flags.is(CPEDef::dfWorldAlign)){
-                    	Fmatrix	M;  	
-                        M.setXYZ			(pPE.m_Def->m_APDefaultRotation);
+					if ((speed<EPS_S)&&pPE.m_Def->m_Flags.is(CPEDef::dfWorldAlign)){
+						Fmatrix	M;  	
+						M.setXYZ			(pPE.m_Def->m_APDefaultRotation);
 						if (pPE.m_RT_Flags.is(CParticleEffect::flRT_XFORM)){
-                            Fvector p;
-                            pPE.m_XFORM.transform_tiny(p,m.pos);
-	                        M.mulA_43		(pPE.m_XFORM);
-                            FillSprite		(pv,M.k,M.i,p,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }else{
-                            FillSprite		(pv,M.k,M.i,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }
-                    }else if ((speed>=EPS_S)&&pPE.m_Def->m_Flags.is(CPEDef::dfFaceAlign)){
-                    	Fmatrix	M;  		M.identity();
-                        M.k.div				(m.vel,speed);            
-                        M.j.set 			(0,1,0);	if (_abs(M.j.dotproduct(M.k))>.99f)  M.j.set(0,0,1);
-                        M.i.crossproduct	(M.j,M.k);	M.i.normalize	();
-                        M.j.crossproduct   	(M.k,M.i);	M.j.normalize  ();
+							Fvector p;
+							pPE.m_XFORM.transform_tiny(p,m.pos);
+							M.mulA_43		(pPE.m_XFORM);
+							FillSprite		(pv,M.k,M.i,p,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}else{
+							FillSprite		(pv,M.k,M.i,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}
+					}else if ((speed>=EPS_S)&&pPE.m_Def->m_Flags.is(CPEDef::dfFaceAlign)){
+						Fmatrix	M;  		M.identity();
+						M.k.div				(m.vel,speed);            
+						M.j.set 			(0,1,0);	if (_abs(M.j.dotproduct(M.k))>.99f)  M.j.set(0,0,1);
+						M.i.crossproduct	(M.j,M.k);	M.i.normalize	();
+						M.j.crossproduct   	(M.k,M.i);	M.j.normalize  ();
 						if (pPE.m_RT_Flags.is(CParticleEffect::flRT_XFORM)){
-                            Fvector p;
-                            pPE.m_XFORM.transform_tiny(p,m.pos);
-	                        M.mulA_43		(pPE.m_XFORM);
-                            FillSprite		(pv,M.j,M.i,p,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }else{
-                            FillSprite		(pv,M.j,M.i,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }
-                    }else{
+							Fvector p;
+							pPE.m_XFORM.transform_tiny(p,m.pos);
+							M.mulA_43		(pPE.m_XFORM);
+							FillSprite		(pv,M.j,M.i,p,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}else{
+							FillSprite		(pv,M.j,M.i,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}
+					}else{
 						Fvector 			dir;
-                        if (speed>=EPS_S)	dir.div	(m.vel,speed);
-                        else				dir.setHP(-pPE.m_Def->m_APDefaultRotation.y,-pPE.m_Def->m_APDefaultRotation.x);
+						if (speed>=EPS_S)	dir.div	(m.vel,speed);
+						else				dir.setHP(-pPE.m_Def->m_APDefaultRotation.y,-pPE.m_Def->m_APDefaultRotation.x);
 						if (pPE.m_RT_Flags.is(CParticleEffect::flRT_XFORM)){
-                            Fvector p,d;
-                            pPE.m_XFORM.transform_tiny	(p,m.pos);
-                            pPE.m_XFORM.transform_dir	(d,dir);
-                            FillSprite	(pv,p,d,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }else{
-                            FillSprite	(pv,m.pos,dir,lt,rb,r_x,r_y,m.color,sina,cosa);
-                        }
-                    }
+							Fvector p,d;
+							pPE.m_XFORM.transform_tiny	(p,m.pos);
+							pPE.m_XFORM.transform_dir	(d,dir);
+							FillSprite	(pv,p,d,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}else{
+							FillSprite	(pv,m.pos,dir,lt,rb,r_x,r_y,m.color,sina,cosa);
+						}
+					}
 				}else{
 					if (pPE.m_RT_Flags.is(CParticleEffect::flRT_XFORM)){
 						Fvector p;
 						pPE.m_XFORM.transform_tiny	(p,m.pos);
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,p,lt,rb,r_x,r_y,m.color,sina,cosa);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,p,lt,rb,r_x,r_y,m.color,sina,cosa);
 					}else{
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,m.pos,lt,rb,r_x,r_y,m.color,sina,cosa);
 					}
 				}
 			}
 }
 
+extern ENGINE_API float VIEWPORT_NEAR_HUD;
 void CParticleEffect::Render(float )
 {
 	#ifdef _GPA_ENABLED	
@@ -532,9 +517,9 @@ void CParticleEffect::Render(float )
 
 	u32			dwOffset,dwCount;
 	// Get a pointer to the particles in gp memory
-    PAPI::Particle* particles;
-    u32 			p_cnt;
-    ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
+	PAPI::Particle* particles;
+	u32 			p_cnt;
+	ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
 
 	if(p_cnt>0){
 		if (m_Def&&m_Def->m_Flags.is(CPEDef::dfSprite)){
@@ -574,36 +559,36 @@ void CParticleEffect::Render(float )
 			if (dwCount)    
 			{
 #ifndef _EDITOR
-				Fmatrix Pold						= Device.mProject;
-				Fmatrix FTold						= Device.mFullTransform;
+				Fmatrix Pold						= Device.camera.project;
+				Fmatrix FTold						= Device.camera.full_transform;
 				if(GetHudMode())
 				{
-					RDEVICE.mProject.build_projection(	deg2rad(psHUD_FOV*Device.fFOV), 
-														Device.fASPECT, 
-														VIEWPORT_NEAR, 
+					RDEVICE.camera.project.build_projection(	deg2rad(Device.camera.hud_fov),
+														Device.camera.aspect, 
+														VIEWPORT_NEAR_HUD,
 														g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-					Device.mFullTransform.mul	(Device.mProject, Device.mView);
-					RCache.set_xform_project	(Device.mProject);
+					Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+					RCache.set_xform_project	(Device.camera.project);
 					RImplementation.rmNear		();
-					ApplyTexgen(Device.mFullTransform);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 
 				RCache.set_xform_world	(Fidentity);
 				RCache.set_Geometry		(geom);
 
-                RCache.set_CullMode		(m_Def->m_Flags.is(CPEDef::dfCulling)?(m_Def->m_Flags.is(CPEDef::dfCullCCW)?CULL_CCW:CULL_CW):CULL_NONE);
+				RCache.set_CullMode		(m_Def->m_Flags.is(CPEDef::dfCulling)?(m_Def->m_Flags.is(CPEDef::dfCullCCW)?CULL_CCW:CULL_CW):CULL_NONE);
 				RCache.Render	   		(D3DPT_TRIANGLELIST,dwOffset,0,dwCount,0,dwCount/2);
-                RCache.set_CullMode		(CULL_CCW	); 
+				RCache.set_CullMode		(CULL_CCW	); 
 #ifndef _EDITOR
 				if(GetHudMode())
 				{
 					RImplementation.rmNormal	();
-					Device.mProject				= Pold;
-					Device.mFullTransform		= FTold;
-					RCache.set_xform_project	(Device.mProject);
-					ApplyTexgen(Device.mFullTransform);
+					Device.camera.project				= Pold;
+					Device.camera.full_transform		= FTold;
+					RCache.set_xform_project	(Device.camera.project);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 			}
@@ -643,7 +628,7 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	float sa	= _sin(angle);  
 	float ca	= _cos(angle);  
 	const Fvector& T 	= dir;
-	Fvector R; 	R.crossproduct(T,RDEVICE.vCameraDirection).normalize_safe();
+	Fvector R; 	R.crossproduct(T,RDEVICE.camera.direction).normalize_safe();
 	Fvector Vr, Vt;
 	Vr.x 		= T.x*r1*sa+R.x*r1*ca;
 	Vr.y 		= T.y*r1*sa+R.y*r1*ca;
@@ -663,14 +648,13 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const
 	pv->set		(b.x+pos.x,b.y+pos.y,b.z+pos.z,	clr, rb.x,lt.y);	pv++;
 }
 
-extern ENGINE_API float		psHUD_FOV;
 void CParticleEffect::Render(float )
 {
 	u32			dwOffset,dwCount;
 	// Get a pointer to the particles in gp memory
-    PAPI::Particle* particles;
-    u32 			p_cnt;
-    ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
+	PAPI::Particle* particles;
+	u32 			p_cnt;
+	ParticleManager()->GetParticles(m_HandleEffect,particles,p_cnt);
 
 	if(p_cnt>0){
 		if (m_Def&&m_Def->m_Flags.is(CPEDef::dfSprite)){
@@ -693,51 +677,51 @@ void CParticleEffect::Render(float )
 				}
 				if (m_Def->m_Flags.is(CPEDef::dfAlignToPath)){
 					float speed	= m.vel.magnitude();
-                    if ((speed<EPS_S)&&m_Def->m_Flags.is(CPEDef::dfWorldAlign)){
-                    	Fmatrix	M;  	
-                        M.setXYZ			(m_Def->m_APDefaultRotation);
-                        if (m_RT_Flags.is(flRT_XFORM)){
-                            Fvector p;
-                            m_XFORM.transform_tiny(p,m.pos);
-	                        M.mulA_43		(m_XFORM);
-                            FillSprite		(pv,M.k,M.i,p,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }else{
-                            FillSprite		(pv,M.k,M.i,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }
-                    }else if ((speed>=EPS_S)&&m_Def->m_Flags.is(CPEDef::dfFaceAlign)){
-                    	Fmatrix	M;  		M.identity();
-                        M.k.div				(m.vel,speed);            
-                        M.j.set 			(0,1,0);	if (_abs(M.j.dotproduct(M.k))>.99f)  M.j.set(0,0,1);
-                        M.i.crossproduct	(M.j,M.k);	M.i.normalize	();
-                        M.j.crossproduct   	(M.k,M.i);	M.j.normalize  ();
-                        if (m_RT_Flags.is(flRT_XFORM)){
-                            Fvector p;
-                            m_XFORM.transform_tiny(p,m.pos);
-	                        M.mulA_43		(m_XFORM);
-                            FillSprite		(pv,M.j,M.i,p,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }else{
-                            FillSprite		(pv,M.j,M.i,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }
-                    }else{
+					if ((speed<EPS_S)&&m_Def->m_Flags.is(CPEDef::dfWorldAlign)){
+						Fmatrix	M;  	
+						M.setXYZ			(m_Def->m_APDefaultRotation);
+						if (m_RT_Flags.is(flRT_XFORM)){
+							Fvector p;
+							m_XFORM.transform_tiny(p,m.pos);
+							M.mulA_43		(m_XFORM);
+							FillSprite		(pv,M.k,M.i,p,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}else{
+							FillSprite		(pv,M.k,M.i,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}
+					}else if ((speed>=EPS_S)&&m_Def->m_Flags.is(CPEDef::dfFaceAlign)){
+						Fmatrix	M;  		M.identity();
+						M.k.div				(m.vel,speed);            
+						M.j.set 			(0,1,0);	if (_abs(M.j.dotproduct(M.k))>.99f)  M.j.set(0,0,1);
+						M.i.crossproduct	(M.j,M.k);	M.i.normalize	();
+						M.j.crossproduct   	(M.k,M.i);	M.j.normalize  ();
+						if (m_RT_Flags.is(flRT_XFORM)){
+							Fvector p;
+							m_XFORM.transform_tiny(p,m.pos);
+							M.mulA_43		(m_XFORM);
+							FillSprite		(pv,M.j,M.i,p,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}else{
+							FillSprite		(pv,M.j,M.i,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}
+					}else{
 						Fvector 			dir;
-                        if (speed>=EPS_S)	dir.div	(m.vel,speed);
-                        else				dir.setHP(-m_Def->m_APDefaultRotation.y,-m_Def->m_APDefaultRotation.x);
-                        if (m_RT_Flags.is(flRT_XFORM)){
-                            Fvector p,d;
-                            m_XFORM.transform_tiny	(p,m.pos);
-                            m_XFORM.transform_dir	(d,dir);
-                            FillSprite	(pv,p,d,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }else{
-                            FillSprite	(pv,m.pos,dir,lt,rb,r_x,r_y,m.color,m.rot.x);
-                        }
-                    }
+						if (speed>=EPS_S)	dir.div	(m.vel,speed);
+						else				dir.setHP(-m_Def->m_APDefaultRotation.y,-m_Def->m_APDefaultRotation.x);
+						if (m_RT_Flags.is(flRT_XFORM)){
+							Fvector p,d;
+							m_XFORM.transform_tiny	(p,m.pos);
+							m_XFORM.transform_dir	(d,dir);
+							FillSprite	(pv,p,d,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}else{
+							FillSprite	(pv,m.pos,dir,lt,rb,r_x,r_y,m.color,m.rot.x);
+						}
+					}
 				}else{
 					if (m_RT_Flags.is(flRT_XFORM)){
 						Fvector p;
 						m_XFORM.transform_tiny	(p,m.pos);
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,p,lt,rb,r_x,r_y,m.color,m.rot.x);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,p,lt,rb,r_x,r_y,m.color,m.rot.x);
 					}else{
-						FillSprite	(pv,RDEVICE.vCameraTop,RDEVICE.vCameraRight,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
+						FillSprite	(pv,RDEVICE.camera.top,RDEVICE.camera.right,m.pos,lt,rb,r_x,r_y,m.color,m.rot.x);
 					}
 				}
 			}
@@ -746,36 +730,36 @@ void CParticleEffect::Render(float )
 			if (dwCount)    
 			{
 #ifndef _EDITOR
-				Fmatrix Pold						= Device.mProject;
-				Fmatrix FTold						= Device.mFullTransform;
+				Fmatrix Pold						= Device.camera.project;
+				Fmatrix FTold						= Device.camera.full_transform;
 				if(GetHudMode())
 				{
-					RDEVICE.mProject.build_projection(	deg2rad(psHUD_FOV*Device.fFOV), 
-														Device.fASPECT, 
-														VIEWPORT_NEAR, 
+					RDEVICE.camera.project.build_projection(	deg2rad(Device.camera.hud_fov), 
+														Device.camera.aspect, 
+														VIEWPORT_NEAR_HUD, 
 														g_pGamePersistent->Environment().CurrentEnv->far_plane);
 
-					Device.mFullTransform.mul	(Device.mProject, Device.mView);
-					RCache.set_xform_project	(Device.mProject);
+					Device.camera.full_transform.mul	(Device.camera.project, Device.camera.view);
+					RCache.set_xform_project	(Device.camera.project);
 					RImplementation.rmNear		();
-					ApplyTexgen(Device.mFullTransform);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 
 				RCache.set_xform_world	(Fidentity);
 				RCache.set_Geometry		(geom);
 
-                RCache.set_CullMode		(m_Def->m_Flags.is(CPEDef::dfCulling)?(m_Def->m_Flags.is(CPEDef::dfCullCCW)?CULL_CCW:CULL_CW):CULL_NONE);
+				RCache.set_CullMode		(m_Def->m_Flags.is(CPEDef::dfCulling)?(m_Def->m_Flags.is(CPEDef::dfCullCCW)?CULL_CCW:CULL_CW):CULL_NONE);
 				RCache.Render	   		(D3DPT_TRIANGLELIST,dwOffset,0,dwCount,0,dwCount/2);
-                RCache.set_CullMode		(CULL_CCW	); 
+				RCache.set_CullMode		(CULL_CCW	); 
 #ifndef _EDITOR
 				if(GetHudMode())
 				{
 					RImplementation.rmNormal	();
-					Device.mProject				= Pold;
-					Device.mFullTransform		= FTold;
-					RCache.set_xform_project	(Device.mProject);
-					ApplyTexgen(Device.mFullTransform);
+					Device.camera.project				= Pold;
+					Device.camera.full_transform		= FTold;
+					RCache.set_xform_project	(Device.camera.project);
+					ApplyTexgen(Device.camera.full_transform);
 				}
 #endif
 			}

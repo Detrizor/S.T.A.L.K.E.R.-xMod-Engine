@@ -10,7 +10,6 @@
 #include "../UIGameCustom.h"
 
 #include "UIWindow.h"
-#include "UICellItemFactory.h"
 #include "UIDragDropListEx.h"
 #include "UIDragDropReferenceList.h"
 #include "UICellCustomItems.h"
@@ -28,7 +27,7 @@
 
 #include "../InventoryBox.h"
 
-using namespace luabind;
+using namespace ::luabind;
 
 CUIActorMenu* GetActorMenu()
 {
@@ -57,11 +56,6 @@ void ActorMenuSetInvbox_script(CUIActorMenu* menu, CScriptGameObject* GO)
 	CInventoryBox* inv_box = smart_cast<CInventoryBox*>(&GO->object());
 	if (inv_box)
 		menu->SetInvBox(inv_box);
-}
-
-void ActorMenuSetActor_script(CUIActorMenu* menu, CScriptGameObject* GO)
-{
-	menu->SetActor(Actor()->cast_inventory_owner());
 }
 
 CScriptGameObject* ActorMenuGetPartner_script(CUIActorMenu* menu)
@@ -100,29 +94,18 @@ void CUIActorMenu::TryRepairItem(CUIWindow* w, void* d)
 	PIItem item = get_upgrade_item();
 	if (!item)
 		return;
-	if (item->GetCondition() >= 0.8f)
-		return;
 	LPCSTR item_name = item->m_section_id.c_str();
-
-	CEatableItem* EItm = smart_cast<CEatableItem*>(item);
-	if (EItm)
-	{
-		bool allow_repair = !!READ_IF_EXISTS(pSettings, r_bool, item_name, "allow_repair", false);
-		if (!allow_repair)
-			return;
-	}
-
 
 	LPCSTR partner = m_pPartnerInvOwner->CharacterInfo().Profile().c_str();
 
-	luabind::functor<bool> funct;
+	functor<bool> funct;
 	R_ASSERT2(
 		ai().script_engine().functor( "inventory_upgrades.can_repair_item", funct ),
 		make_string( "Failed to get functor <inventory_upgrades.can_repair_item>, item = %s", item_name )
 		);
 	bool can_repair = funct( item_name, item->GetCondition(), partner );
 
-	luabind::functor<LPCSTR> funct2;
+	functor<LPCSTR> funct2;
 	R_ASSERT2(
 		ai().script_engine().functor( "inventory_upgrades.question_repair_item", funct2 ),
 		make_string( "Failed to get functor <inventory_upgrades.question_repair_item>, item = %s", item_name )
@@ -141,48 +124,39 @@ void CUIActorMenu::TryRepairItem(CUIWindow* w, void* d)
 void CUIActorMenu::RepairEffect_CurItem()
 {
 	PIItem item = CurrentIItem();
-	if ( !item )
-	{
-		return;	
-	}
+	if (!item)
+		return;
 	LPCSTR item_name = item->m_section_id.c_str();
 
-	luabind::functor<void>	funct;
+	functor<void>	funct;
 	R_ASSERT( ai().script_engine().functor( "inventory_upgrades.effect_repair_item", funct ) );
-	funct( item_name, item->GetCondition() );
+	funct(item_name, item->GetCondition());
 
-	item->SetCondition(0.8f);
-	UpdateConditionProgressBars();
+	item->SetCondition(CInventoryItem::s_max_repair_condition);
 	SeparateUpgradeItem();
-	CUICellItem* itm = CurrentItem();
-	if(itm)
-		itm->UpdateConditionProgressBar();
-
+	item->getIcon()->UpdateConditionProgressBar();
 }
 
 bool CUIActorMenu::CanUpgradeItem( PIItem item )
 {
 	VERIFY( item && m_pPartnerInvOwner );
 
-	if (item->GetCondition() <= 0.2f)
-		return false;
-
 	LPCSTR item_name = item->m_section_id.c_str();
 	LPCSTR partner = m_pPartnerInvOwner->CharacterInfo().Profile().c_str();
 		
-	luabind::functor<bool> funct;
+	functor<bool> funct;
 	R_ASSERT2(
 		ai().script_engine().functor( "inventory_upgrades.can_upgrade_item", funct ),
 		make_string( "Failed to get functor <inventory_upgrades.can_upgrade_item>, item = %s, mechanic = %s", item_name, partner )
 		);
 
-	return funct( item_name, partner );
+	return funct(item_name, partner, item->GetCondition());
 }
 
 void CUIActorMenu::CurModeToScript()
 {
 	int mode = (int)m_currMenuMode;
-	luabind::functor<void>	funct;
+	functor<void>	funct;
 	R_ASSERT( ai().script_engine().functor( "actor_menu.actor_menu_mode", funct ) );
 	funct( mode );
 }
@@ -235,8 +209,7 @@ void CUIActorMenu::HighlightSectionInSlot(LPCSTR section, u8 type, u16 slot_id)
 	m_highlight_clear = false;
 }
 
-
-void CUIActorMenu::HighlightForEachInSlot(const luabind::functor<bool> &functor, u8 type, u16 slot_id)
+void CUIActorMenu::HighlightForEachInSlot(const functor<bool> &functor, u8 type, u16 slot_id)
 {
 	if (!functor)
 		return;
@@ -311,17 +284,16 @@ void CUIActorMenu::script_register(lua_State *L)
 				.def("highlight_section_in_slot", &CUIActorMenu::HighlightSectionInSlot)
 				.def("highlight_for_each_in_slot", &CUIActorMenu::HighlightForEachInSlot)
 				.def("refresh_current_cell_item", &CUIActorMenu::RefreshCurrentItemCell)
+				.def("format_money", &CUIActorMenu::FormatMoney)
 				.def("IsShown", &CUIActorMenu::IsShown)
 				.def("ShowDialog", &CUIActorMenu::ShowDialog)
 				.def("HideDialog", &CUIActorMenu::HideDialog)
-				.def("ToSlot", &CUIActorMenu::ToSlotScript)
 				.def("SetMenuMode", &CUIActorMenu::SetMenuMode)
 				.def("GetMenuMode", &CUIActorMenu::GetMenuMode)
 				.def("GetPartner", &ActorMenuGetPartner_script)
 				.def("GetInvBox", &ActorMenuGetInvbox_script)
 				.def("SetPartner", &ActorMenuSetPartner_script)
-				.def("SetInvBox", &ActorMenuSetInvbox_script)
-				.def("SetActor", &ActorMenuSetActor_script),
+				.def("SetInvBox", &ActorMenuSetInvbox_script),
 				
 			class_< CUIPdaWnd, CUIDialogWnd>("CUIPdaWnd")
 				.def(constructor<>())
