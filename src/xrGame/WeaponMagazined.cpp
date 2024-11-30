@@ -994,7 +994,7 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 
 	if (auto cur_scope = m_selected_scopes[idx])
 	{
-		cur_scope->setSelection			(s8_max);
+		cur_scope->setSelection			(-1);
 		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
 		{
 			if (m_attached_scopes[i] == cur_scope)
