@@ -534,7 +534,7 @@ float CArtefact::Power(bool for_ui) const
 
 float CArtefact::getRadiation(bool for_ui) const
 {
-	float res							= m_fRadiation * Power(false);
+	float res							= m_fRadiation * Power(for_ui);
 	if (!for_ui && Parent)
 		if (auto cont = Parent->mcast<MContainer>())
 			res							*= cont->RadiationProtection();

@@ -309,8 +309,8 @@ void CScriptGameObject::IterateInventory(::luabind::functor<bool> functor, ::lua
 					return;
 		break;
 	case 4:
-		for (xr_vector<CArtefact*>::const_iterator I = inventory.m_artefacts.begin(), E = inventory.m_artefacts.end(); I != E; I++)
-			if (functor(object, (*I)->CInventoryItem::object().lua_game_object()) == true)
+		for (auto art : inventory.m_artefacts)
+			if (art->CurrPlace() != eItemPlaceTrade && functor(object, art->lua_game_object()) == true)
 				return;
 	}
 }
