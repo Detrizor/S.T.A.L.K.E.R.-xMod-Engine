@@ -382,13 +382,13 @@ float CEntityCondition::GearProtectionEffect(T gear, const ALife::EHitType& hit_
 
 void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 {
+	float main_damage[3]				= { pHDS->main_damage, pHDS->main_damage };
+	float pierce_damage[2]				= { pHDS->pierce_damage, pHDS->pierce_damage };
+
 	CCustomOutfit* outfit				= nullptr;
 	CHelmet* helmet						= nullptr;
 	float protection					= m_object->GetProtection(outfit, helmet, pHDS->boneID, pHDS->hit_type);
 	CInventoryOwner* io					= smart_cast<CInventoryOwner*>(m_object);
-
-	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd CEntityCondition::HitProtectionEffect frame [%d] main_damage [%.5f] pierce_damage [%.5f] protection [%.5f]",
-		Device.dwFrame, pHDS->main_damage, pHDS->pierce_damage, protection);		//--xd отладка
 
 	if (pHDS->DamageType() == 1)
 	{
@@ -428,6 +428,9 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 		
 			pHDS->main_damage			*= m_fArmorDamageBoneScale;
 			pHDS->pierce_damage			*= m_fPierceDamageBoneScale;
+
+			main_damage[1]				= pHDS->main_damage;
+			pierce_damage[1]			= pHDS->pierce_damage;
 		}
 
 		pHDS->main_damage				-= min(pHDS->main_damage, StrikeDamageThreshold.Calc(protection));
@@ -436,12 +439,14 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 	}
 	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{
-		if (smart_cast<const CBaseMonster*>(m_object))
+		if (m_object->scast<CBaseMonster*>())
 			pHDS->main_damage			*= ExplDamageResistance.Calc(protection);
 		else if (io)
 		{
 			float outfit_part			= GearExplEffect(outfit, pHDS->main_damage, protection, io, false);
-			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ? GearExplEffect(outfit, pHDS->main_damage, protection, io, true) : GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
+			float helmet_part			= (outfit && !outfit->bIsHelmetAvaliable) ?
+				GearExplEffect(outfit, pHDS->main_damage, protection, io, true) :
+				GearExplEffect(helmet, pHDS->main_damage, protection, io, true);
 			pHDS->main_damage			= outfit_part + helmet_part;
 		}
 	}
@@ -450,11 +455,9 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 		if (fMore(protection, 0.f))
 		{
 			io->HitArtefacts			(pHDS->main_damage * ProtectionDamageResistance.Calc(protection), pHDS->hit_type);
-			pHDS->main_damage			*= CEntityCondition::AnomalyDamageResistance.Calc(protection);
-			pHDS->main_damage			-= min(pHDS->main_damage, CEntityCondition::AnomalyDamageThreshold.Calc(protection));
+			pHDS->main_damage			*= AnomalyDamageResistance.Calc(protection);
+			pHDS->main_damage			-= min(pHDS->main_damage, AnomalyDamageThreshold.Calc(protection));
 		}
-
-		if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor())) Msg("--xd after anom arts main_damage [%.5f]", pHDS->main_damage);
 
 		if (fMore(pHDS->main_damage, 0.f))
 		{
@@ -463,6 +466,15 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 			pHDS->main_damage			= outfit_part + helmet_part;
 		}
 	}
+	main_damage[2]						= pHDS->main_damage;
+
+	pHDS->main_damage					*= GetHitImmunity(pHDS->hit_type) * m_fHealthHitPart;
+	if (pHDS->pierce_damage > 0.f)
+		pHDS->pierce_damage				*= GetHitImmunity(pHDS->pierce_hit_type) * m_fHealthHitPart;
+
+	if (Core.ParamFlags.test(Core.dbgcondfull) || Core.ParamFlags.test(Core.dbgcond) && (m_object->cast_actor() || m_pWho == Actor()))
+		Msg("--xd CEntityCondition::HitProtectionEffect health [%.4f] protection [%.4f] main_damage [%.4f-%.4f-%.4f-%.4f] pierce_damage [%.4f-%.4f-%.4f]",
+			GetHealth(), protection, main_damage[0], main_damage[1], main_damage[2], pHDS->main_damage, pierce_damage[0], pierce_damage[1], pHDS->pierce_damage);
 }
 
 float CEntityCondition::HitPowerEffect(float power_loss)
@@ -509,13 +521,12 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	m_iWhoID				= (m_pWho) ? m_pWho->ID() : 0;
 	if (!CanBeHarmed())
 		return				NULL;
-	
+
 	pHDS->main_damage		*= HitTypeScale[pHDS->hit_type];
 	HitProtectionEffect		(pHDS);
-	float main_damage		= pHDS->main_damage * GetHitImmunity(pHDS->hit_type) * m_fHealthHitPart;
 
 	float					d_neural, d_outer, d_inner, d_radiation;
-	d_neural = d_outer = d_inner = d_radiation = main_damage;
+	d_neural = d_outer = d_inner = d_radiation = pHDS->main_damage;
 
 	switch(pHDS->hit_type)
 	{
@@ -576,14 +587,10 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	float& pierce_damage	= pHDS->pierce_damage;
 	if (pierce_damage > 0.f)
 	{
-		pierce_damage		*= GetHitImmunity(pHDS->pierce_hit_type) * m_fHealthHitPart;
 		d_neural			+= pierce_damage;
 		d_outer				+= pierce_damage;
 		d_inner				+= pierce_damage;
 	}
-
-	if (m_object->cast_actor() || m_pWho == smart_cast<CObject*>(Actor()))
-		Msg("--xd CEntityCondition::ConditionHit health [%f] main_damage [%.5f] pierce_damage [%.5f]", GetHealth(), main_damage, pierce_damage);
 
 	if (m_object->cast_actor())
 	{

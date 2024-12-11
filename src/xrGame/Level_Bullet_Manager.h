@@ -222,8 +222,12 @@ private:
 	Fvector								m_gravity;
 	float								m_global_ap_scale;
 
-	float								calculate_hit_damage				C$	(float bullet_ap, float armor, float bone_density, SBullet_Hit& hit_res, SBullet* bullet,
-		float k_speed_in = 0.f, float k_speed_out = 0.f, bool inwards = true, bool log = false);
+	float								calculate_hit_damage
+	(
+		float bullet_ap, float armor, float bone_density,
+		SBullet_Hit& hit_res, SBullet* bullet,
+		float k_speed_in = 0.f, float k_speed_out = 0.f, bool inwards = true
+	) const;
 
 public:
 	float								m_fBulletAirResistanceScale;

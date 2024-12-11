@@ -46,20 +46,29 @@ void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, 
 		xr_strlwr(Params);
 
 
-		if (strstr(Params, "-x_dbg"))
+		if (strstr(Params, "-dbg"))
 			ParamFlags.set(ParamFlag::dbg, TRUE);
 
-		if (strstr(Params, "-x_dbgdev"))
+		if (strstr(Params, "-dbgdev"))
 			ParamFlags.set(ParamFlag::dbgdev, TRUE);
 
-		if (strstr(Params, "-x_dbgact"))
+		if (strstr(Params, "-dbgact"))
 			ParamFlags.set(ParamFlag::dbgact, TRUE);
 
-		if (strstr(Params, "-x_dbgbullet"))
-			ParamFlags.set(ParamFlag::dbgbullet, TRUE);
-		
-		if (strstr(Params, "-x_dbganim"))
+		if (strstr(Params, "-dbganim"))
 			ParamFlags.set(ParamFlag::dbganim, TRUE);
+
+		if (strstr(Params, "-dbgcond"))
+			ParamFlags.set(ParamFlag::dbgcond, TRUE);
+
+		if (strstr(Params, "-dbgcondfull"))
+			ParamFlags.set(ParamFlag::dbgcondfull, TRUE);
+
+		if (strstr(Params, "-dbgbullet"))
+			ParamFlags.set(ParamFlag::dbgbullet, TRUE);
+
+		if (strstr(Params, "-dbgbulletfull"))
+			ParamFlags.set(ParamFlag::dbgbulletfull, TRUE);
 
 		// Init COM so we can use CoCreateInstance
 		// HRESULT co_res =
