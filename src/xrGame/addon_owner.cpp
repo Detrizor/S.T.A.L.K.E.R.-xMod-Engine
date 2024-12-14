@@ -102,7 +102,7 @@ xoptional<CUICellItem*> MAddonOwner::sCreateIcon()
 void MAddonOwner::register_addon(MAddon PC$ addon, bool attach) const
 {
 	if (addon->getSlot()->getIconDraw())
-		O.scast<CInventoryItem*>()->invalidateIcon();
+		invalidateIcon					();
 
 	process_addon						(addon, attach);
 	if (auto self_addon = O.getModule<MAddon>())
@@ -176,6 +176,14 @@ void MAddonOwner::calcSlotsBoneOffset(attachable_hud_item* hi)
 	m_root_offset						= static_cast<Dmatrix>(hi->m_model->LL_GetTransform_R(0));
 	for (auto& s : m_slots)
 		s->calcBoneOffset				(hi);
+}
+
+void MAddonOwner::invalidateIcon() const
+{
+	O.scast<CInventoryItem*>()->invalidateIcon();
+	if (auto self_addon = O.getModule<MAddon>())
+		if (auto slot = self_addon->getSlot())
+			slot->parent_ao->invalidateIcon();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,7 +454,7 @@ void CAddonSlot::shiftAddon(MAddon* addon, int shift)
 	{
 		addon->setSlotPos				(pos);
 		update_addon_local_transform	(addon);
-		parent_ao->O.scast<CInventoryItem*>()->invalidateIcon();
+		parent_ao->invalidateIcon		();
 	}
 }
 

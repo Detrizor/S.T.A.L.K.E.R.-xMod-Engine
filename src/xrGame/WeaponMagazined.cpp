@@ -350,6 +350,9 @@ void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
 	if (auto scope = foldable->O.getModule<MScope>())
 		process_scope					(scope, !new_status);
 	process_align_front					(&foldable->O, !new_status);
+
+	if (auto ao = getModule<MAddonOwner>())
+		ao->invalidateIcon				();
 }
 
 void CWeaponMagazined::ReloadMagazine()

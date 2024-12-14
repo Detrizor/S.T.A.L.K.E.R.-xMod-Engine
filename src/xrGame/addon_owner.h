@@ -124,4 +124,5 @@ public:
 	bool								tryAttach							C$	(MAddon* addon, bool forced);
 	void								finishAttaching						C$	(MAddon* addon, CAddonSlot* slot = nullptr);
 	void								finishDetaching						C$	(MAddon* addon, bool transfer = true);
+	void								invalidateIcon						C$	();
 };
