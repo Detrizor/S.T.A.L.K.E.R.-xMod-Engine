@@ -927,6 +927,16 @@ CScriptGameObject* CScriptGameObject::lookingAt() const
 	return								nullptr;
 }
 
+void CScriptGameObject::setPosition(Fvector pos) const
+{
+	if (auto pi = object().scast<CPhysicItem*>())
+	{
+		pi->deactivate_physics_shell	();
+		pi->XFORM().translate_over		(pos);
+		pi->CPhysicsShellHolder::activate_physic_shell();
+	}
+}
+
 #define SPECIFIC_CAST(A,B)\
 B* A ()\
 {\

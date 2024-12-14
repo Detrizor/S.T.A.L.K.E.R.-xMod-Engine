@@ -503,6 +503,8 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("charge_magazine",				&CScriptGameObject::chargeMagazine)
 			
 		.def("looking_at",					&CScriptGameObject::lookingAt)
+			
+		.def("set_position",				&CScriptGameObject::setPosition)
 #endif
 
 
