@@ -5,15 +5,13 @@
 #include "../../../material_manager.h"
 #include "../../../level_debug.h"
 
-
-CPolterSpecialAbility::CPolterSpecialAbility(CPoltergeist *polter)
+CPolterSpecialAbility::CPolterSpecialAbility(CPoltergeist *polter) : m_object(polter)
 {
-	m_object					= polter;
-
-	m_particles_object			= 0;
-	m_particles_object_electro	= 0;
+	auto& vis_data						= m_object->Visual()->getVisData();
+	Fvector								box_size;
+	vis_data.box.getsize				(box_size);
+	m_particles_shift					= box_size.y * .5f;
 }
-
 
 CPolterSpecialAbility::~CPolterSpecialAbility()
 {
@@ -59,8 +57,13 @@ void CPolterSpecialAbility::on_show()
 
 void CPolterSpecialAbility::update_frame()
 {
-	if (m_particles_object)			m_particles_object->SetXFORM		(m_object->XFORM());
-	if (m_particles_object_electro)	m_particles_object_electro->SetXFORM(m_object->XFORM());
+	Fmatrix trans						= m_object->XFORM();
+	trans.c.y							+= m_particles_shift;
+
+	if (m_particles_object)
+		m_particles_object->SetXFORM	(trans);
+	if (m_particles_object_electro)
+		m_particles_object_electro->SetXFORM(trans);
 }
 
 void CPolterSpecialAbility::on_die()
@@ -94,11 +97,9 @@ void CPolterSpecialAbility::on_hit(SHit* pHDS)
 	m_last_hit_frame = Device.dwFrame;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // Other
 //////////////////////////////////////////////////////////////////////////
-
 
 #define IMPULSE					10.f
 #define IMPULSE_RADIUS			5.f
@@ -157,4 +158,3 @@ void CPoltergeist::StrangeSounds(const Fvector &position)
 		}
 	}
 }
-

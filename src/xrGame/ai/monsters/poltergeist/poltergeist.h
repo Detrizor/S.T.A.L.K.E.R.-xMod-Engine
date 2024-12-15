@@ -161,21 +161,22 @@ add_to_type_list(CPoltergeist)
 // Interface
 //////////////////////////////////////////////////////////////////////////
 
-class CPolterSpecialAbility {
+class CPolterSpecialAbility
+{
+	CParticlesObject*					m_particles_object						= nullptr;
+	CParticlesObject*					m_particles_object_electro				= nullptr;
+	float								m_particles_shift						= 0.f;
 
-	CParticlesObject	*m_particles_object;
-	CParticlesObject	*m_particles_object_electro;
+	LPCSTR								m_particles_hidden;
+	LPCSTR								m_particles_damage;
+	LPCSTR								m_particles_death;
+	LPCSTR								m_particles_idle;
 
-	LPCSTR				m_particles_hidden;
-	LPCSTR				m_particles_damage;
-	LPCSTR				m_particles_death;
-	LPCSTR				m_particles_idle;
-
-	ref_sound			m_sound_base;
-	u32					m_last_hit_frame;
+	ref_sound							m_sound_base;
+	u32									m_last_hit_frame;
 
 protected:
-	CPoltergeist		*m_object;	
+	CPoltergeist PC$					m_object;
 
 public:			
 					CPolterSpecialAbility		(CPoltergeist *polter);
@@ -190,8 +191,6 @@ public:
 	virtual void	on_die						();
 	virtual void	on_hit						(SHit* pHDS);
 };
-
-
 
 //////////////////////////////////////////////////////////////////////////
 // Flame
