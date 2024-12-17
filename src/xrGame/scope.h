@@ -97,8 +97,7 @@ private:
 	Fvector								m_objective_offset;
 	float								m_objective_diameter;
 	float								m_eye_relief;
-	shared_str							m_Reticle;
-	float								m_reticle_texture_size;
+	shared_str							m_reticle;
 	bool								m_is_FFP;
 	shared_str							m_AliveDetector;
 	shared_str							m_Nighvision;
