@@ -572,3 +572,8 @@ void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
 		//DepleteProtection		(d_damage);		--xd for future energy depletion system
 	}*/
 }
+
+void CArtefact::Hit(SHit* pHDS)
+{
+	CPhysicItem::Hit(pHDS);
+}

@@ -115,6 +115,9 @@ private:
 	float								m_fDrainFactor;
 	float								m_HitAbsorbation[ALife::eHitTypeMax];
 
+protected:
+	void								Hit									O$	(SHit* pHDS);
+
 public:
 	float								WeightDump							C$	(bool for_ui = false)		{ return m_fWeightDump * Power(for_ui); }
 	float								DrainFactor							C$	(bool for_ui = false)		{ return m_fDrainFactor * Power(for_ui); }
