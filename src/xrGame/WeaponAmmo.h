@@ -45,6 +45,8 @@ private:
 
 public:
 	static void							loadStaticData							();
+	static float						calcResist								(float d, float h);
+	static float						calcPenetrationShapeFactor				(float d, float h);
 
 	shared_str							m_ammoSect								= 0;
 	float								m_fCondition							= 1.f;

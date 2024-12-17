@@ -98,15 +98,17 @@ void CExplosive::Load(CInifile const *ini,LPCSTR section)
 	m_fBlastRadius			= ini->r_float(section,"blast_r");
 	m_fBlastHitImpulse		= ini->r_float(section,"blast_impulse");
 
-	m_iFragsNum				= ini->r_s32(section,"frags");
-
-	frag_fSpeed				= ini->r_float(section, "fragment_speed");
-	frag_fMass				= READ_IF_EXISTS(ini, r_float, section, "fragment_mass", 1.f);
-
-	float size				= READ_IF_EXISTS(ini, r_float, section, "fragment_size", 2.f);
-	float area				= PI * pow((size / 2.f), 2);
-	float sharpness			= READ_IF_EXISTS(ini, r_float, section, "fragment_sharpness", 1.f);
-	frag_fResist			= area / sharpness;
+	m_iFragsNum							= ini->r_s32(section,"frags");
+	if (m_iFragsNum)
+	{
+		m_frag_k_ap						= ini->r_float_ex(section, "fragment_k_ap", 1.f);
+		m_frag_mass						= ini->r_float_ex(section, "fragment_mass", 1.f) * .001f;
+		m_frag_speed					= ini->r_float_ex(section, "fragment_speed", 500.f);
+		float size						= ini->r_float_ex(section, "fragment_size", 1.f);
+		m_frag_resist					= CCartridge::calcResist(size, size);
+		m_frag_air_resist				= Level().BulletManager().m_fBulletAirResistanceScale * m_frag_resist * .000001f / m_frag_mass;
+		m_frag_penetration				= m_frag_mass * m_frag_k_ap * CCartridge::calcPenetrationShapeFactor(size, size);
+	}
 
 	m_eHitTypeBlast			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_blast"));
 	m_eHitTypeFrag			= ALife::g_tfString2HitType(ini->r_string(section, "hit_type_frag"));
@@ -158,7 +160,6 @@ void CExplosive::net_Destroy	()
 	StopLight					();
 	m_explosion_flags.assign	(0);
 }
-
 
 struct SExpQParams
 {
@@ -374,28 +375,32 @@ void CExplosive::Explode()
 	if (OnServer()) SendHits = true;
 	else SendHits = false;
 
-
-	for(int i = 0; i < m_iFragsNum; ++i){
+	for (int i = 0; i < m_iFragsNum; ++i)
+	{
 		frag_dir.random_dir	();
 		frag_dir.normalize	();
 		
-		CCartridge cartridge;
-		cartridge.param_s.fBulletMass		= frag_fMass;
+		CCartridge							cartridge;
+		cartridge.param_s.bullet_k_ap		= m_frag_k_ap;
+		cartridge.param_s.fBulletMass		= m_frag_mass;
+		cartridge.param_s.fBulletResist		= m_frag_resist;
+		cartridge.param_s.fAirResist		= m_frag_air_resist;
+		cartridge.param_s.penetration		= m_frag_penetration;
+		cartridge.param_s.buckShot			= m_iFragsNum;
 		cartridge.param_s.bullet_hollow_point = false;
-		cartridge.param_s.fBulletResist		= frag_fResist;
-		cartridge.param_s.fAirResist		= Level().BulletManager().m_fBulletAirResistanceScale * frag_fResist * .000001f / frag_fMass;
+
 		cartridge.bullet_material_idx		= GMLib.GetMaterialIdx(WEAPON_MATERIAL_NAME);
 		cartridge.m_flags.set				(CCartridge::cfTracer,FALSE);
 
-		Level().BulletManager().AddBullet(	pos, frag_dir, frag_fSpeed,
+		Level().BulletManager().AddBullet	(pos, frag_dir, m_frag_speed,
 											Initiator(), cast_game_object()->ID(),
 											m_eHitTypeFrag, 0.f,
 											cartridge, SendHits,
 											-1.f, -1.f);
-	}	
+	}
 
 	if (cast_game_object()->Remote()) return;
-	
+
 	/////////////////////////////////
 	//взрывная волна
 	////////////////////////////////

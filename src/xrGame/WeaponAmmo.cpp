@@ -32,6 +32,16 @@ void CCartridge::loadStaticData()
 	s_resist_power						= pSettings->r_float("bullet_manager", "resist_power");
 }
 
+float CCartridge::calcResist(float d, float h)
+{
+	return								s_resist_factor * _sqr(d) * pow(d / h, s_resist_power);
+}
+
+float CCartridge::calcPenetrationShapeFactor(float d, float h)
+{
+	return								d * d / (1.91f - .35f * h / d);
+}
+
 void CCartridge::Load(LPCSTR section, float condition)
 {
 	m_ammoSect							= section;
@@ -40,7 +50,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	VERIFY								(bullet_material_idx != u16_max);
 
 	param_s.kDisp						= pSettings->r_float(section, "k_disp");
-	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * 0.001f;
+	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * .001f;
 	param_s.bullet_hollow_point			= !!pSettings->r_BOOL(section, "hollow_point");
 	param_s.u8ColorID					= pSettings->r_u8(section, "tracer_color_ID");
 	float bullet_speed					= pSettings->r_float(section, "bullet_speed") * pSettings->r_float(section, "k_bullet_speed");
@@ -51,13 +61,13 @@ void CCartridge::Load(LPCSTR section, float condition)
 	
 	float d								= pSettings->r_float(section, "caliber");
 	float h								= pSettings->r_float(section, "tip_height");
-	param_s.fBulletResist				= s_resist_factor * _sqr(d) * pow(d / h, s_resist_power);
+	param_s.fBulletResist				= calcResist(d, h);
 	param_s.penetration					= param_s.fBulletMass * param_s.bullet_k_ap;
-	param_s.penetration					*= d * d / (1.91f - .35f * h / d);
+	param_s.penetration					*= calcPenetrationShapeFactor(d, h);
 
 	param_s.fAirResist					= Level().BulletManager().m_fBulletAirResistanceScale * param_s.fBulletResist * .000001f / param_s.fBulletMass;
 	param_s.fAirResistZeroingCorrection	= pow(Level().BulletManager().m_fZeroingAirResistCorrectionK1 * param_s.fAirResist, Level().BulletManager().m_fZeroingAirResistCorrectionK2);
-	param_s.buckShot					= pSettings->r_s32(  section, "buck_shot");
+	param_s.buckShot					= pSettings->r_s32(section, "buck_shot");
 	param_s.impair						= pSettings->r_float(section, "impair");
 
 	m_flags.set							(cfTracer, pSettings->r_BOOL(section, "tracer"));
