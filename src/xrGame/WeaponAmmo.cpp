@@ -50,7 +50,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	VERIFY								(bullet_material_idx != u16_max);
 
 	param_s.kDisp						= pSettings->r_float(section, "k_disp");
-	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * .001f;
+	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * .001f * pSettings->r_float(section, "k_bullet_mass");
 	param_s.bullet_hollow_point			= !!pSettings->r_BOOL(section, "hollow_point");
 	param_s.u8ColorID					= pSettings->r_u8(section, "tracer_color_ID");
 	float bullet_speed					= pSettings->r_float(section, "bullet_speed") * pSettings->r_float(section, "k_bullet_speed");
