@@ -937,6 +937,12 @@ void CScriptGameObject::setPosition(Fvector pos) const
 	}
 }
 
+void CScriptGameObject::reloadMagazine() const
+{
+	if (auto wpn = object().scast<CWeaponMagazined*>())
+		wpn->Reload						();
+}
+
 #define SPECIFIC_CAST(A,B)\
 B* A ()\
 {\

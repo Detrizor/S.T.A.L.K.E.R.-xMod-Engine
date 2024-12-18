@@ -991,8 +991,8 @@ public:
 	void								chargeMagazine						C$	(CScriptGameObject* obj);
 	
 	CScriptGameObject*					lookingAt							C$	();
-	
 	void								setPosition							C$	(Fvector pos);
+	void								reloadMagazine						C$	();
 };
 
 add_to_type_list(CScriptGameObject)
