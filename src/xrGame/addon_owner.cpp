@@ -171,11 +171,11 @@ CAddonSlot* MAddonOwner::find_available_slot(MAddon CPC addon, bool forced) cons
 	return								nullptr;
 }
 
-void MAddonOwner::calcSlotsBoneOffset(attachable_hud_item* hi)
+void MAddonOwner::calcSlotsBoneOffset(attachable_hud_item* hi, shared_str CP$ root_attach_bone)
 {
 	m_root_offset						= static_cast<Dmatrix>(hi->m_model->LL_GetTransform_R(0));
 	for (auto& s : m_slots)
-		s->calcBoneOffset				(hi);
+		s->calcBoneOffset				(hi, root_attach_bone);
 }
 
 void MAddonOwner::invalidateIcon() const
@@ -583,12 +583,13 @@ void CAddonSlot::updateAddonLocalTransform(MAddon* addon, Dmatrix CPC parent_tra
 				s->updateAddonLocalTransform(a, &addon->getLocalTransform());
 }
 
-void CAddonSlot::calcBoneOffset(attachable_hud_item* hi)
+void CAddonSlot::calcBoneOffset(attachable_hud_item* hi, shared_str CP$ root_attach_bone)
 {
-	if (!!m_attach_bone)
+	shared_str CR$ attach_bone			= (!!m_attach_bone) ? m_attach_bone : ((root_attach_bone) ? *root_attach_bone : m_attach_bone);
+	if (!!attach_bone)
 	{
 		shared_str						line;
-		line.printf						("%s_bone_name", m_attach_bone.c_str());
+		line.printf						("%s_bone_name", attach_bone.c_str());
 		if (pSettings->line_exist(hi->m_hud_section, line))
 		{
 			LPCSTR bone_name			= pSettings->r_string(hi->m_hud_section, line.c_str());
@@ -601,9 +602,9 @@ void CAddonSlot::calcBoneOffset(attachable_hud_item* hi)
 	{
 		a->updateHudOffset				(m_attach_bone_offset, parent_ao->getRootOffset());
 		if (auto ao = a->O.getModule<MAddonOwner>())
-			ao->calcSlotsBoneOffset		(hi);
-}
+			ao->calcSlotsBoneOffset		(hi, &attach_bone);
 	}
+}
 
 CAddonSlot::exceptions_list CAddonSlot::slot_exceptions{};
 CAddonSlot::exceptions_list CAddonSlot::addon_exceptions{};
