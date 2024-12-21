@@ -322,17 +322,16 @@ void CWeaponMagazined::prepare_cartridge_to_shoot()
 	if (m_chamber && !m_lock_state_shooting)
 		m_chamber.consume				();
 	else
-		get_cartridge_from_mag			();
+		m_cartridge						= get_cartridge_from_mag().get();
 }
 
-bool CWeaponMagazined::get_cartridge_from_mag()
+xoptional<CCartridge> CWeaponMagazined::get_cartridge_from_mag() const
 {
 	if (m_magazine)
 		if (auto ammo = m_magazine->getAmmo())
 			if (!m_chamber || m_chamber.getSlot()->isCompatible(ammo->getModule<MAddon>()->SlotType()))
-				if (m_magazine->getCartridge(m_cartridge))
-					return				true;
-	return								false;
+				return					m_magazine->getCartridge();
+	return								{};
 }
 
 void CWeaponMagazined::unloadChamber(MAddon* chamber)
@@ -342,7 +341,7 @@ void CWeaponMagazined::unloadChamber(MAddon* chamber)
 
 void CWeaponMagazined::loadChamber(CWeaponAmmo* ammo)
 {
-	m_chamber.load_from					(ammo);
+	m_chamber.load						(ammo);
 }
 
 void CWeaponMagazined::onFold(MFoldable CP$ foldable, bool new_status)
@@ -545,8 +544,7 @@ void CWeaponMagazined::state_Fire(float dt)
 				m_cocked = false;
 				if (m_lock_state_shooting)
 				{
-					get_cartridge_from_mag();
-					m_chamber.load();
+					m_chamber.load_from_mag();
 					m_locked = false;
 				}
 				StopShooting();

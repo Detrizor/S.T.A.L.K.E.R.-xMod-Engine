@@ -164,6 +164,14 @@ bool CWeaponAmmo::Get(CCartridge &cartridge, bool expend)
 	return								true;
 }
 
+xoptional<CCartridge> CWeaponAmmo::getCartridge(bool expend)
+{
+	CCartridge							res;
+	if (Get(res, expend))
+		return							res;
+	return								{};
+}
+
 void CWeaponAmmo::net_Export(NET_Packet& P) 
 {
 	inherited::net_Export				(P);

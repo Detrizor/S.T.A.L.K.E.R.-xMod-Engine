@@ -143,9 +143,9 @@ void CWeaponBM16::OnAnimationEnd(u32 state)
 	case eSubstateReloadAttach:
 	{
 		if (!m_loading_slot->empty())
-			m_chamber.load_from			(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
+			m_chamber.load				(m_loading_slot->addons.front()->O.scast<CWeaponAmmo*>());
 		if (!m_loading_slot_second->empty())
-			m_chamber_second.load_from	(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
+			m_chamber_second.load		(m_loading_slot_second->addons.front()->O.scast<CWeaponAmmo*>());
 		m_sub_state						= eSubstateReloadEnd;
 		PlayAnimReload					();
 		break;
@@ -183,8 +183,8 @@ void CWeaponBM16::StartReload(EWeaponSubStates substate)
 		substate						= eSubstateReloadBegin;
 		if (m_actor && m_actor->unlimited_ammo())
 		{
-			m_chamber.load				();
-			m_chamber_second.load		();
+			m_chamber.load				(m_cartridge);
+			m_chamber_second.load		(m_cartridge);
 		}
 	}
 	else if (m_reloading_chamber == -1)

@@ -89,6 +89,7 @@ public:
 			void			ChangeAmmoCount			(int val);
 
 			bool			Get						(CCartridge &cartridge, bool expend = true);
+	xoptional<CCartridge>	getCartridge			(bool expend = true);
 
 public:
 	virtual CInventoryItem*	can_make_killing		(const CInventory *inventory) const;

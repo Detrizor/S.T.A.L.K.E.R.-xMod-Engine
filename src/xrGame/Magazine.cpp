@@ -145,19 +145,20 @@ CWeaponAmmo const* MMagazine::getAmmo() const
 	return								get_ammo();
 }
 
-bool MMagazine::getCartridge(CCartridge& destination, bool expend)
+xoptional<CCartridge> MMagazine::getCartridge(bool expend)
 {
+	CCartridge							res;
 	auto ammo							= get_ammo();
-	if (!ammo || !ammo->Get(destination, expend))
-		return							false;
+	if (!ammo || !ammo->Get(res, expend))
+		return							{};
 
 	if (expend)
 	{
 		--m_amount;
-		m_weight						-= destination.weight;
+		m_weight						-= res.weight;
 	}
 
-	return								true;
+	return								res;
 }
 
 void MMagazine::setCondition(float val, bool recursive)

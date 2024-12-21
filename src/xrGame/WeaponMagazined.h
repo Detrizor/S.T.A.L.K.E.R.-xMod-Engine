@@ -198,7 +198,6 @@ private:
 	SScriptAnm							m_bolt_pull_anm;
 	SScriptAnm							m_firemode_anm;
 	
-	bool								get_cartridge_from_mag					();
 	void								load_firemodes							(LPCSTR str);
 	void								UpdateSndShot							();
 	void								cycle_scope								(int idx, bool up = true);
@@ -213,6 +212,7 @@ private:
 
 	bool								is_auto_bolt_allowed				C$	();
 	bool								need_loaded_anm						C$	();
+	xoptional<CCartridge>				get_cartridge_from_mag				C$	();
 
 	LPCSTR								anmType		 						CO$	();
 	u32									animation_slot						CO$	();
