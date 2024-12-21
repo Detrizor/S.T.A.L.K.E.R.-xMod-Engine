@@ -40,7 +40,7 @@ void SBoneProtections::reload(const shared_str& bone_sect, IKinematics* kinemati
 		BoneProtection			BP;
 
 		BP.level				= (float)atof(_GetItem(i->second.c_str(), 0, buffer));
-		BP.armor				= ComputeArmor(BP.level);
+		BP.armor				= computeArmor(BP.level);
 		
 		s16	bone_id				= kinematics->LL_BoneID(i->first);
 		R_ASSERT2				(BI_NONE != bone_id, i->first.c_str());			
@@ -60,22 +60,22 @@ void SBoneProtections::add(const shared_str& bone_sect, IKinematics* kinematics,
 		R_ASSERT2				(BI_NONE != bone_id, i->first.c_str());			
 		BoneProtection&	BP		= m_bones_koeff[bone_id];
 		BP.level				+= (value > 0.f) ? value : (float)atof(_GetItem(*i->second, 0, buffer));
-		BP.armor				= ComputeArmor(BP.level);
+		BP.armor				= computeArmor(BP.level);
 	}
 }
 
-float SBoneProtections::ComputeArmor(float level)
+float SBoneProtections::computeArmor(float level)
 {
 	if (level < 0.f)
-		return 0.f;
+		return							0.f;
 
-	int level_low			= iFloor(level);
-	int level_high			= iCeil(level);
-	float armor_low			= s_armor_levels[level_low];
-	float armor_high		= s_armor_levels[level_high];
-	float k_level			= level - (float)level_low;
+	int level_low						= iFloor(level);
+	int level_high						= iCeil(level);
+	float armor_low						= s_armor_levels[level_low];
+	float armor_high					= s_armor_levels[level_high];
+	float k_level						= level - (float)level_low;
 
-	return (armor_low + (armor_high - armor_low) * k_level);
+	return								(armor_low + (armor_high - armor_low) * k_level);
 }
 
 void SBoneProtections::loadStaticData()
