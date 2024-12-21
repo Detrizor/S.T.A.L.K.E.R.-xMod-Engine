@@ -441,10 +441,17 @@ class xoptional
 	T m_data;
 
 public:
-	xoptional() { m_status = false; }
+	xoptional() : m_status(false), m_data() {}
+
 	xoptional(T const& data) { m_data = data; m_status = true; }
 	xoptional(T&& data) { m_data = data; m_status = true; }
+	xoptional& operator=(T CR$ data) { m_data = data; m_status = true; return *this; }
+	xoptional& operator=(T&& data) { m_data = data; m_status = true; return *this; }
+
 	operator bool() const { return m_status; }
+	void drop() { VERIFY(m_status); m_status = false; }
+
 	T&& get() { R_ASSERT(m_status); m_status = false; return _STD move(m_data); }
-	T& getRef(bool set_status = false) { if (set_status) m_status = true; return m_data; }
+	T* operator->() { R_ASSERT(m_status); return &m_data; }
+	T& operator*() { R_ASSERT(m_status); return m_data; }
 };

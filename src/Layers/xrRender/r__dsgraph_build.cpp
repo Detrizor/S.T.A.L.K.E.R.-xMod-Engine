@@ -316,8 +316,11 @@ void CRender::add_Dynamic(dxRender_Visual* pVisual, u32 planes, u32 planes_lense
 	auto Tpos = [&]() -> Fvector CR$
 	{
 		if (!tpos)
-			val_pTransform->transform_tiny(tpos.getRef(true), pVisual->vis.sphere.P);
-		return							tpos.getRef();
+		{
+			tpos						= vZero;
+			val_pTransform->transform_tiny(*tpos, pVisual->vis.sphere.P);
+		}
+		return							*tpos;
 	};
 
 	if (planes != u32_max)
