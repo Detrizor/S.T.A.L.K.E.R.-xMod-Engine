@@ -64,3 +64,12 @@ void CInventoryItemObject::renderable_Render()
 	UpdateXForm							();
 	__super::renderable_Render			();
 }
+
+void CInventoryItemObject::shedule_Update(u32 T)
+{
+	core::shedule_Update				(T);
+	wrap::shedule_Update				(T);
+	if (auto parent = H_Parent())
+		if (dwXF_Frame < Device.dwFrame - 10)
+			XFORM().c					= parent->Position();
+}
