@@ -458,18 +458,15 @@ float CBulletManager::calculate_hit_damage(float bullet_ap, float armor, float b
 	float k_speed_bone					= 0.f;
 	float pierce						= 0.f;
 
-	if (fMoreOrEqual(bullet_ap, armor))
+	if (fIsZero(armor) || fMoreOrEqual(bullet_ap, armor) && !bullet->hollow_point)
 	{
 		k_speed_in						= sqrt(1.f - m_fBulletAPLossOnPierce * armor / bullet_ap);
 		bullet_ap						-= m_fBulletAPLossOnPierce * armor;
-		if (!bullet->flags.piercing_was)
+		if (bullet->hollow_point && !bullet->flags.piercing_was)
 		{
-			if (bullet->hollow_point)
-			{
-				bullet->resist			*= m_fBulletHollowPointResistFactor;
-				bullet_ap				*= m_fBulletHollowPointResistFactor;
-				bullet->penetration		/= m_fBulletHollowPointResistFactor;
-			}
+			bullet->resist				*= _sqr(m_fBulletHollowPointResistFactor);
+			bullet_ap					/= m_fBulletHollowPointResistFactor;
+			bullet->penetration			/= m_fBulletHollowPointResistFactor;
 			bullet->flags.piercing_was	= 1;
 		}
 

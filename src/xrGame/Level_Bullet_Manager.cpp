@@ -300,7 +300,7 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 	}
 	else
 		resistance						*= bullet.speed;
-	R_ASSERT							(!fIsZero(resistance));
+	R_ASSERT							(resistance > 0.f);
 
 	data.start_velocity					= Fvector(bullet.dir).mul(bullet.speed);
 	data.end_velocity					= Fvector(data.start_velocity).mul(1.f - resistance * data.dt).mad(m_gravity, data.dt);
