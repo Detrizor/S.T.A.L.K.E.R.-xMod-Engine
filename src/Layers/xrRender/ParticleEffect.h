@@ -1,8 +1,3 @@
-//---------------------------------------------------------------------------
-#ifndef ParticleEffectH
-#define ParticleEffectH
-//---------------------------------------------------------------------------
-
 #include "ParticleEffectDef.h"
 
 #ifdef _EDITOR
@@ -30,10 +25,10 @@ namespace PS
 		Fvector				m_InitialPosition;
 	public:
 		CPEDef*				m_Def;
-        Fmatrix				m_XFORM;
-    protected:
-    	DestroyCallback		m_DestroyCallback;
-        CollisionCallback	m_CollisionCallback;
+		Fmatrix				m_XFORM;
+	protected:
+		DestroyCallback		m_DestroyCallback;
+		CollisionCallback	m_CollisionCallback;
 	public:
 		enum{
 			flRT_Playing		= (1<<0),
@@ -79,17 +74,15 @@ namespace PS
 
 		virtual const shared_str	Name			(){VERIFY(m_Def); return m_Def->m_Name;}
 
-        void				SetDestroyCB		(DestroyCallback 	destroy_cb)		{m_DestroyCallback 	= destroy_cb;}
-        void				SetCollisionCB		(CollisionCallback	collision_cb)	{m_CollisionCallback= collision_cb;}
-        void				SetBirthDeadCB		(PAPI::OnBirthParticleCB bc, PAPI::OnDeadParticleCB dc, void* owner, u32 p);		
+		void				SetDestroyCB		(DestroyCallback 	destroy_cb)		{m_DestroyCallback 	= destroy_cb;}
+		void				SetCollisionCB		(CollisionCallback	collision_cb)	{m_CollisionCallback= collision_cb;}
+		void				SetBirthDeadCB		(PAPI::OnBirthParticleCB bc, PAPI::OnDeadParticleCB dc, void* owner, u32 p);		
 
-	    virtual u32			ParticlesCount		();
+		virtual u32			ParticlesCount		();
 	};
-    void OnEffectParticleBirth	(void* owner, u32 param, PAPI::Particle& m, u32 idx);
-    void OnEffectParticleDead	(void* owner, u32 param, PAPI::Particle& m, u32 idx);
+	void OnEffectParticleBirth	(void* owner, u32 param, PAPI::Particle& m, u32 idx);
+	void OnEffectParticleDead	(void* owner, u32 param, PAPI::Particle& m, u32 idx);
 
-    extern const u32		uDT_STEP;
-	extern const float		fDT_STEP;
+	extern u32				uDT_STEP;
+	extern float			fDT_STEP;
 }
-//---------------------------------------------------------------------------
-#endif

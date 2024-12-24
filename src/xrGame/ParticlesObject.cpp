@@ -125,7 +125,7 @@ void CParticlesObject::Play		(bool bHudMode)
 		V->SetHudMode			(bHudMode);
 
 	V->Play						();
-	dwLastTime					= Device.dwTimeGlobal-33ul;
+	dwLastTime					= Device.dwTimeGlobal - Device.dwTimeDelta;
 	mt_dt						= 0;
 	PerformAllTheWork			(0);
 	m_bStopping					= false;

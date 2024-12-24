@@ -12,8 +12,8 @@
 using namespace PAPI;
 using namespace PS;
 
-const u32	PS::uDT_STEP 	= 33;
-const float	PS::fDT_STEP 	= float(uDT_STEP)/1000.f;
+u32		PS::uDT_STEP;
+float	PS::fDT_STEP;
 
 static void ApplyTexgen( const Fmatrix &mVP )
 {
@@ -103,7 +103,12 @@ void CParticleEffect::UpdateParent(const Fmatrix& m, const Fvector& velocity, BO
 
 void CParticleEffect::OnFrame(u32 frame_dt)
 {
-	if (m_Def && m_RT_Flags.is(flRT_Playing)){
+	uDT_STEP = Device.dwTimeDelta;
+	clamp(uDT_STEP, 1u, 33u);
+	fDT_STEP = uDT_STEP * .001f;
+
+	if (m_Def && m_RT_Flags.is(flRT_Playing))
+	{
 		m_MemDT			+= frame_dt;
 
 		int	StepCount	= 0;
