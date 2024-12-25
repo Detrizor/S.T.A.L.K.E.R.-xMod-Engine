@@ -70,8 +70,7 @@ float   monster_aura::calculate () const
 										 max_power : 0;
 	}
 
-	float const power				=	linear_factor/distance + quadratic_factor/distance*distance;
-	
+	float const power				=	linear_factor / distance + quadratic_factor / _sqr(distance);
 	return								(power < max_power) ? power : max_power;
 }
 
