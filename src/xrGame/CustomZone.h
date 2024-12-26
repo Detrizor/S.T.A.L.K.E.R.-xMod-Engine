@@ -171,15 +171,14 @@ public:
 	EZoneState				ZoneState					() {return m_eZoneState;}
 
 protected:
-
-
 	//воздействие зоной на объект
 	virtual		void		Affect						(SZoneObjectInfo* O)  {}
 
 	//воздействовать на все объекты в зоне
 	void					AffectObjects				();
 
-	u32						m_dwAffectFrameNum;	
+	u32						m_dwAffectFrameNum			= 0;
+	float					m_affect_time				= 0.f;
 
 	//параметры для выброса, с какой задержкой 
 	//включать эффекты и логику

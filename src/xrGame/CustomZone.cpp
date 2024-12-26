@@ -34,14 +34,11 @@ CCustomZone::CCustomZone(void)
 	m_pLight					= NULL;
 	m_pIdleLight				= NULL;
 	m_pIdleLAnim				= NULL;
-	
 
 	m_StateTime.resize(eZoneStateMax);
 	for(int i=0; i<eZoneStateMax; i++)
 		m_StateTime[i] = 0;
 
-
-	m_dwAffectFrameNum			= 0;
 	m_fBlowoutWindPowerMax = m_fStoreWindPower = 0.f;
 	m_fDistanceToCurEntity		= flt_max;
 	m_ef_weapon_type			= u32(-1);
@@ -1117,7 +1114,8 @@ void CCustomZone::OnStateSwitch	(EZoneState new_state)
 
 	m_eZoneState			= new_state;
 	m_iPreviousStateTime	= m_iStateTime = 0;
-};
+	m_affect_time			= Device.fTimeGlobal;
+}
 
 void CCustomZone::SwitchZoneState(EZoneState new_state)
 {
