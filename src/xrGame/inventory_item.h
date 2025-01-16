@@ -340,8 +340,9 @@ public:
 	static const float					s_max_repair_condition;
 	static float						readBaseCost							(LPCSTR section, bool for_sale = false);
 	static void							readIcon								(Frect& destination, LPCSTR section, u8 type = 0, u8 idx = 0);
-	static LPCSTR						readName								(shared_str CR$ section);
-	static LPCSTR						readNameShort							(shared_str CR$ section);
+	static LPCSTR						readName								(LPCSTR section);
+	static LPCSTR						readNameShort							(LPCSTR section);
+	static LPCSTR						readDescription							(LPCSTR section);
 	
 	void								invalidateIcon							()		{ m_icon_valid = false; }
 

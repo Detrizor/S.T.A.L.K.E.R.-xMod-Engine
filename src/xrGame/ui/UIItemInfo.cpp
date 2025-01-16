@@ -194,7 +194,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 	string256							str;
 
 	if (UIName)
-		UIName->SetText					((pInvItem) ? pInvItem->getName() : CInventoryItem::readName(section));
+		UIName->SetText					((pInvItem) ? pInvItem->getName() : CInventoryItem::readName(section.c_str()));
 
 	if (UIWeight)
 	{
@@ -339,7 +339,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 			pItem->SetFont						(m_desc_info.pDescFont);
 			pItem->SetWidth						(UIDesc->GetDesiredChildWidth());
 			pItem->SetTextComplexMode			(true);
-			pItem->SetText						(*((pInvItem) ? pInvItem->ItemDescription() : CStringTable().translate(READ_IF_EXISTS(pSettings, r_string, section, "description", ""))));
+			pItem->SetText						((pInvItem) ? pInvItem->ItemDescription() : CInventoryItem::readDescription(section.c_str()));
 			pItem->AdjustHeightToText			();
 			UIDesc->AddWindow					(pItem, true);
 		}

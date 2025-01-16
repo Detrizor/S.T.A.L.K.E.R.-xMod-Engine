@@ -159,7 +159,8 @@ void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 
 	Fvector2							pos;
 	float								val, h;
-	if (pSettings->r_string_ex(section, "description", 0))
+	auto descr							= CInventoryItem::readDescription(section);
+	if (descr && descr[0])
 	{
 		AttachChild						(m_Prop_line);
 		h								= m_Prop_line->GetWndPos().y + m_Prop_line->GetWndSize().y;

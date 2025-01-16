@@ -153,7 +153,7 @@ void CInventoryItem::Load(LPCSTR section)
 	
 	m_name								= readName(section);
 	m_name_short						= readNameShort(section);
-	m_description						= (pSettings->line_exist(section, "description")) ? CStringTable().translate(pSettings->r_string(section, "description")) : "";
+	m_description						= readDescription(section);
 	m_weight							= pSettings->r_float(section, "inv_weight");
 	R_ASSERT							(m_weight >= 0.f);
 	m_volume							= pSettings->r_float(section, "inv_volume");
@@ -860,24 +860,34 @@ void CInventoryItem::readIcon(Frect& destination, LPCSTR section, u8 type, u8 id
 	destination.set						(icon_rect.x, icon_rect.y, icon_rect.x + icon_rect.z, icon_rect.y + icon_rect.w);
 }
 
-LPCSTR CInventoryItem::readName(shared_str CR$ section)
+LPCSTR CInventoryItem::readName(LPCSTR section)
 {
 	if (pSettings->line_exist(section, "inv_name"))
 		return							CStringTable().translate(pSettings->r_string(section, "inv_name")).c_str();
-	return								CStringTable().translate(shared_str().printf("st_%s_name", *section)).c_str();
+	return								CStringTable().translate(shared_str().printf("st_%s_name", section)).c_str();
 }
 
-LPCSTR CInventoryItem::readNameShort(shared_str CR$ section)
+LPCSTR CInventoryItem::readNameShort(LPCSTR section)
 {
 	if (pSettings->line_exist(section, "inv_name_short"))
 		return							CStringTable().translate(pSettings->r_string(section, "inv_name_short")).c_str();
 
 	shared_str							tmp;
-	tmp.printf							("st_%s_name_s", *section);
+	tmp.printf							("st_%s_name_s", section);
 	if (CStringTable().exists(tmp))
 		return							CStringTable().translate(tmp).c_str();
 
 	return								readName(section);
+}
+
+LPCSTR CInventoryItem::readDescription(LPCSTR section)
+{
+	if (pSettings->line_exist(section, "description"))
+		return							CStringTable().translate(pSettings->r_string(section, "description")).c_str();
+
+	shared_str							descr_str;
+	descr_str.printf					("st_%s_descr", section);
+	return								(CStringTable().exists(descr_str.c_str())) ? CStringTable().translate(descr_str.c_str()).c_str() : 0;
 }
 
 void CInventoryItem::swapIcon(PIItem item)
