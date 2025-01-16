@@ -119,11 +119,6 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_artefact_isolation->SetStrValue	("");
 	xml.SetLocalRoot					(base_node);
 
-	m_radiation_protection->Init		(xml, "radiation_protection");
-	name								= CStringTable().translate("ui_radiation_protection").c_str();
-	m_radiation_protection->SetCaption	(name);
-	xml.SetLocalRoot					(base_node);
-
 	m_radiation->Init					(xml, "radiation");
 	name								= CStringTable().translate("st_radiation").c_str();
 	m_radiation->SetCaption				(name);
@@ -362,17 +357,6 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 			m_artefact_isolation->SetWndPos(pos);
 			h							+= m_artefact_isolation->GetWndSize().y;
 			AttachChild					(m_artefact_isolation.get());
-		}
-
-		float radiation_protection		= (cont) ? cont->RadiationProtection(true) : pSettings->r_float(section, "radiation_protection");
-		if (fLess(radiation_protection, 1.f))
-		{
-			m_radiation_protection->SetValue(1.f - radiation_protection);
-			pos.set						(m_radiation_protection->GetWndPos());
-			pos.y						= h;
-			m_radiation_protection->SetWndPos(pos);
-			h							+= m_radiation_protection->GetWndSize().y;
-			AttachChild					(m_radiation_protection.get());
 		}
 
 		if (cont && !cont->ArtefactIsolation() && !cont->Empty())

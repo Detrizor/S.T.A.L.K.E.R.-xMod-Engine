@@ -19,14 +19,12 @@ private:
 	xoptional<float>					sGetBar								O$	();
 
 private:
-	TIItemContainer						m_Items;
-	float								m_Capacity;
-	float								m_Sum[eItemDataTypesSize];
-	bool								m_ArtefactIsolation;
-	float								m_RadiationProtection;
-	bool								m_content_volume_scale;
-
-	float&								Sum										(int type)		{ return m_Sum[type]; }
+	float								m_capacity								= 0.f;
+	bool								m_artefact_isolation					= false;
+	bool								m_content_volume_scale					= false;
+	
+	TIItemContainer						m_items									= {};
+	xoptional<float>					m_sum[eItemDataTypesSize]				= {};
 
 	void								InvalidateState							();
 	float								Get										(EItemDataTypes type);
@@ -37,14 +35,13 @@ public:
 
 	bool								CanTakeItem								(PIItem iitem);
 
-	void								SetCapacity								(float val)		{ m_Capacity = val; }
+	void								SetCapacity								(float val)		{ m_capacity = val; }
 
 	bool								ArtefactIsolation					C$	(bool own = false);
-	float								RadiationProtection					C$	(bool own = false);
 
-	TIItemContainer CR$					Items								C$	()		{ return m_Items; }
-	float								GetCapacity							C$	()		{ return m_Capacity; }
-	bool								Empty								C$	()		{ return m_Items.empty(); }
+	TIItemContainer CR$					Items								C$	()		{ return m_items; }
+	float								GetCapacity							C$	()		{ return m_capacity; }
+	bool								Empty								C$	()		{ return m_items.empty(); }
 
 	void								AddAvailableItems					C$	(TIItemContainer& items_container);
 	void								ParentCheck							C$	(PIItem item, bool add);

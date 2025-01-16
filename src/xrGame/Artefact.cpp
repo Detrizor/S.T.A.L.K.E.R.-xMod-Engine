@@ -534,11 +534,7 @@ float CArtefact::Power(bool for_ui) const
 
 float CArtefact::getRadiation(bool for_ui) const
 {
-	float res							= m_fRadiation * Power(for_ui);
-	if (!for_ui && Parent)
-		if (auto cont = Parent->mcast<MContainer>())
-			res							*= cont->RadiationProtection();
-	return								res;
+	return								m_fRadiation * Power(for_ui);
 }
 
 float CArtefact::HitProtection(ALife::EHitType hit_type, bool for_ui) const
