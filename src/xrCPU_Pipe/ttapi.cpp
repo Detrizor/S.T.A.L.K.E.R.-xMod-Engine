@@ -106,7 +106,7 @@ DWORD ttapi_Init( _processor_info* ID )
 	// System Info
 	ttapi_workers_count = ID->n_cores;
 
-	SetPriorityClass( GetCurrentProcess() , REALTIME_PRIORITY_CLASS );
+	//SetPriorityClass( GetCurrentProcess() , REALTIME_PRIORITY_CLASS );
 
 	DWORD i , dwNumIter;
 	volatile DWORD dwDummy = 1;
@@ -146,7 +146,7 @@ DWORD ttapi_Init( _processor_info* ID )
 	ttapi_dwSlowIter = (DWORD)(( dwNumIter * liFrequency.QuadPart ) / ( ( liEnd.QuadPart - liStart.QuadPart ) * 2 ));
 	//Msg( "slow spin-loop iterations : %u" , ttapi_dwSlowIter );
 
-	SetPriorityClass( GetCurrentProcess() , NORMAL_PRIORITY_CLASS );
+	//SetPriorityClass( GetCurrentProcess() , NORMAL_PRIORITY_CLASS );
 
 	// Check for override from command line
 	char szSearchFor[] = "-max-threads";
