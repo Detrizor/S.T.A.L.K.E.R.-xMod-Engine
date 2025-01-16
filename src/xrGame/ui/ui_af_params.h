@@ -38,7 +38,6 @@ public:
 protected:
 	UIArtefactParamItem*	m_absorbation_item[eAbsorbationTypeMax];
 	UIArtefactParamItem*	m_restore_item[eRestoreTypeMax];
-	UIArtefactParamItem*	m_drain_factor;
 	UIArtefactParamItem*	m_weight_dump;
 	UIArtefactParamItem*	m_armor;
 	UIArtefactParamItem*	m_radiation;

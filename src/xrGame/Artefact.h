@@ -53,8 +53,6 @@ protected:
 	float							m_fTrailLightRange;
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
-	float							m_fArmor;
-	float							m_fChargeThreshold;
 	bool							m_bActive;
 
 	virtual void					UpdateLights					();
@@ -111,23 +109,23 @@ public:
 
 private:
 	float 								m_fRadiation;
-	float								m_fWeightDump;
-	float								m_fDrainFactor;
-	float								m_HitAbsorbation[ALife::eHitTypeMax];
+	float								m_fChargeThreshold;
+
+	float								m_baseline_weight_dump					= 0.f;
+	float								m_armor									= 0.f;
+	float								m_HitAbsorbation[ALife::eHitTypeMax]	= {0};
 
 protected:
 	void								Hit									O$	(SHit* pHDS);
 
 public:
-	float								WeightDump							C$	(bool for_ui = false)		{ return m_fWeightDump * Power(for_ui); }
-	float								DrainFactor							C$	(bool for_ui = false)		{ return m_fDrainFactor * Power(for_ui); }
-	float								GetArmor							C$	(bool for_ui = false)		{ return m_fArmor * Power(for_ui); }
-
+	float								GetArmor							C$	(bool for_ui = false)					{ return m_armor * Power(for_ui); }
 	float								Absorbation							C$	(int hit_type, bool for_ui = false)		{ return m_HitAbsorbation[hit_type] * Power(for_ui); }
 
 	float								Power								C$	(bool for_ui);
 	float								HitProtection						C$	(ALife::EHitType hit_type, bool for_ui = false);
 	float								getRadiation						C$	(bool for_ui = false);
+	float								getWeightDump						C$	(bool for_ui = false);
 
 	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
 };

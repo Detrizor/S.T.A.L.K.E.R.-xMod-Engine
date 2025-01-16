@@ -488,7 +488,7 @@ float CScriptGameObject::GetWeightDump()
 	if (!outfit && !art)
 		return							0.f;
 
-	return								(outfit) ? outfit->m_fWeightDump : art->WeightDump();
+	return								(outfit) ? outfit->m_fWeightDump : art->getWeightDump();
 }
 
 float CScriptGameObject::GetRecuperationFactor()
@@ -503,12 +503,9 @@ float CScriptGameObject::GetRecuperationFactor()
 
 float CScriptGameObject::GetDrainFactor()
 {
-	CCustomOutfit* outfit				= object().scast<CCustomOutfit*>();
-	CArtefact* art						= object().scast<CArtefact*>();
-	if (!outfit && !art)
-		return							0.f;
-
-	return								(outfit) ? outfit->m_fDrainFactor : art->DrainFactor();
+	if (auto outfit = object().scast<CCustomOutfit*>())
+		return							outfit->m_fDrainFactor;
+	return								1.f;
 }
 
 float CScriptGameObject::GetPowerLoss()

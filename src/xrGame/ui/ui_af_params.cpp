@@ -26,7 +26,6 @@ CUIArtefactParams::CUIArtefactParams()
 		m_absorbation_item[i]	= NULL;
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 		m_restore_item[i]		= NULL;
-	m_drain_factor				= NULL;
 	m_weight_dump				= NULL;
 	m_armor						= NULL;
 	m_radiation					= NULL;
@@ -36,7 +35,6 @@ CUIArtefactParams::~CUIArtefactParams()
 {
 	delete_data		(m_absorbation_item);
 	delete_data		(m_restore_item);
-	xr_delete		(m_drain_factor);
 	xr_delete		(m_weight_dump);
 	xr_delete		(m_armor);
 	xr_delete		(m_radiation);
@@ -111,19 +109,13 @@ void CUIArtefactParams::InitFromXml( CUIXml& xml )
 		m_restore_item[i]->SetCaption	(name);
 		xml.SetLocalRoot				(base_node);
 	}
-	
-	m_drain_factor						= xr_new<UIArtefactParamItem>();
-	m_drain_factor->Init				(xml, "drain_factor");
-	m_drain_factor->SetAutoDelete		(false);
-	m_drain_factor->SetCaption			(*CStringTable().translate("st_drain_factor"));
-	xml.SetLocalRoot					(base_node);
-	
+
 	m_weight_dump						= xr_new<UIArtefactParamItem>();
 	m_weight_dump->Init					(xml, "weight_dump");
 	m_weight_dump->SetAutoDelete		(false);
 	m_weight_dump->SetCaption			(*CStringTable().translate("st_weight_dump"));
 	xml.SetLocalRoot					(base_node);
-	
+
 	m_armor								= xr_new<UIArtefactParamItem>();
 	m_armor->Init						(xml, "armor");
 	m_armor->SetAutoDelete				(false);
@@ -189,11 +181,7 @@ void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 		SetInfoItem						(m_restore_item[i], val, pos, h);
 	}
 
-	val									= (art) ? art->DrainFactor(true) : pSettings->r_float(section, "drain_factor");
-	if (!fis_zero(val))
-		SetInfoItem						(m_drain_factor, val, pos, h);
-
-	val									= (art) ? art->WeightDump(true) : pSettings->r_float(section, "weight_dump");
+	val									= (art) ? art->getWeightDump(true) : pSettings->r_float(section, "weight_dump");
 	if (!fis_zero(val))
 		SetInfoItem						(m_weight_dump, val, pos, h);
 

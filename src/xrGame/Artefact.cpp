@@ -35,7 +35,7 @@
 		if(y>z){inst_y;}\
 		else{inst_z;}
 
-CArtefact::CArtefact() 
+CArtefact::CArtefact()
 {
 	shedule.t_min				= 20;
 	shedule.t_max				= 50;
@@ -43,40 +43,37 @@ CArtefact::CArtefact()
 	m_pTrailLight				= NULL;
 	m_activationObj				= NULL;
 	m_detectorObj				= NULL;
-	m_fChargeThreshold			= .8f;
 	m_bActive					= true;
-
-	for (int i = 0; i < ALife::eHitTypeMax; i++)
-		m_HitAbsorbation[i]		= 0.f;
 }
 
 void CArtefact::Load(LPCSTR section) 
 {
-	inherited::Load									(section);
+	__super::Load						(section);
 
 	if (pSettings->line_exist(section, "particles"))
-		m_sParticlesName							= pSettings->r_string(section, "particles");
+		m_sParticlesName				= pSettings->r_string(section, "particles");
 
-	m_bLightsEnabled								= !!pSettings->r_BOOL(section, "lights_enabled");
+	m_bLightsEnabled					= !!pSettings->r_BOOL(section, "lights_enabled");
 	if (m_bLightsEnabled)
 	{
-		sscanf										(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
-		m_fTrailLightRange							= pSettings->r_float(section, "trail_light_range");
+		sscanf							(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
+		m_fTrailLightRange				= pSettings->r_float(section, "trail_light_range");
 	}
 
-	m_fRadiation									= pSettings->r_float(section, "radiation");
-	m_fWeightDump									= pSettings->r_float(section, "weight_dump");
-	m_fDrainFactor									= pSettings->r_float(section, "drain_factor") - 1.f;
-	m_fArmor										= pSettings->r_float(section, "armor");
+	m_bCanSpawnZone						= !!pSettings->line_exist("artefact_spawn_zones", section);
+	m_af_rank							= pSettings->r_u8(section, "af_rank");
 
-	m_bCanSpawnZone									= !!pSettings->line_exist("artefact_spawn_zones", section);
-	m_af_rank										= pSettings->r_u8(section, "af_rank");
-	m_fChargeThreshold								= pSettings->r_float(section, "power_decay_charge_threshold");
-	
-	extern LPCSTR									af_absorbation_names[];
+	m_fRadiation						= pSettings->r_float(section, "radiation");
+	m_fChargeThreshold					= pSettings->r_float(section, "power_decay_charge_threshold");
+
+	float weight_dump					= 1.f - pSettings->r_float(section, "weight_dump");
+	m_baseline_weight_dump				= (1.f / weight_dump) - 1.f;
+	m_armor								= pSettings->r_float(section, "armor");
+
+	extern LPCSTR						af_absorbation_names[];
 	for (int i = 0; i < eAbsorbationTypeMax; i++)
-		m_HitAbsorbation[i]							= pSettings->r_float(section, af_absorbation_names[i]);
-	m_HitAbsorbation[ALife::eHitTypeLightBurn]		= m_HitAbsorbation[ALife::eHitTypeBurn];
+		m_HitAbsorbation[i]				= pSettings->r_float(section, af_absorbation_names[i]);
+	m_HitAbsorbation[ALife::eHitTypeLightBurn] = m_HitAbsorbation[ALife::eHitTypeBurn];
 }
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
@@ -544,7 +541,8 @@ float CArtefact::HitProtection(ALife::EHitType hit_type, bool for_ui) const
 
 void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
 {
-	/*if (pAP && fMore(*pAP, 0.f))
+#if 0	//for future energy depletion system, gamedesign thoughts needed
+	if (pAP && fMore(*pAP, 0.f))
 	{
 		float armor				= GetArmor();
 		float d_ap				= min(*pAP, armor);
@@ -554,22 +552,29 @@ void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
 		if (pSpeed)
 			*pSpeed				*= sqrt(bullet_k_energy);
 		*pAP					-= bullet_d_ap;
-		//DepleteAP				(d_ap);		--xd for future energy depletion system
+		DepleteAP				(d_ap);
 	}
 	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
 	{
-		//pHDS->main_damage		*= CEntityCondition::ExplDamageResistance.Calc(GetArmor());
-		//DepleteResistance		(pHDS->main_damage);		--xd for future energy depletion system
+		pHDS->main_damage		*= CEntityCondition::ExplDamageResistance.Calc(GetArmor());
+		DepleteResistance		(pHDS->main_damage);
 	}
 	else
 	{
 		float d_damage			= min(pHDS->main_damage, m_HitAbsorbation[pHDS->hit_type] * Power());
 		pHDS->main_damage		-= d_damage;
-		//DepleteProtection		(d_damage);		--xd for future energy depletion system
-	}*/
+		DepleteProtection		(d_damage);
+	}
+#endif
 }
 
 void CArtefact::Hit(SHit* pHDS)
 {
+	//specifically ignoring CInventoryItemObject::Hit to prevent strange artefact condition decay in its parent anomaly before it's picked up
 	CPhysicItem::Hit(pHDS);
+}
+
+float CArtefact::getWeightDump(bool for_ui) const
+{
+	return 1.f - 1.f / (1.f + m_baseline_weight_dump * Power(for_ui));
 }
