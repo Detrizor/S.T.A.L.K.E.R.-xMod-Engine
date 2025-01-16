@@ -63,9 +63,12 @@ void CArtefact::Load(LPCSTR section)
 	m_bCanSpawnZone						= !!pSettings->line_exist("artefact_spawn_zones", section);
 	m_af_rank							= pSettings->r_u8(section, "af_rank");
 
-	m_fRadiation						= pSettings->r_float(section, "radiation");
-	m_fChargeThreshold					= pSettings->r_float(section, "power_decay_charge_threshold");
+	m_amountable_ptr					= getModule<MAmountable>();
+	R_ASSERT2							(m_amountable_ptr, "CArtefact requires MAmountable!");
 
+	m_baseline_charge					= pSettings->r_float(section, "baseline_charge");
+	m_charge_capacity					= m_amountable_ptr->getCapacity();
+	m_saturation_power					= m_charge_capacity / m_baseline_charge;
 	float weight_dump					= 1.f - pSettings->r_float(section, "weight_dump");
 	m_baseline_weight_dump				= (1.f / weight_dump) - 1.f;
 	m_armor								= pSettings->r_float(section, "armor");
@@ -515,28 +518,46 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 	}
 }
 
-float CArtefact::Power(bool for_ui) const
+void CArtefact::updatePower() const
 {
-	if (!for_ui && Parent)
-		if (auto cont = Parent->mcast<MContainer>())
-			if (cont->ArtefactIsolation())
-				return					0.f;
+	if (m_power_calc_frame == Device.dwFrame)
+		return;
+	m_power_calc_frame					= Device.dwFrame;
 
-	float dfill							= GetFill() / m_fChargeThreshold;
-	if (dfill > 1.f)
-		dfill							= 1.f;
+	float cont_limit					= 0.f;
+#if 0
+	if (Parent)
+		if (auto cont = Parent->mcast<MArtefactModule>())
+			cont_limit					= cont->getArtefactRadiationLimit();
+#endif
 
-	return								sqrt(dfill);
+	if (fIsZero(cont_limit))
+		m_power							= 0.f;
+	else
+	{
+		float charge					= m_amountable_ptr->getAmount();
+		bool overcharge					= (charge > m_charge_capacity);
+		if (overcharge)
+			charge						= m_charge_capacity * sqrt(charge / m_charge_capacity);
+		m_power							= charge / m_baseline_charge;
+
+		if (fLess(cont_limit, 1.f))
+		{
+			if (overcharge)
+				m_power					*= cont_limit;
+			else
+				clamp					(m_power, 0.f, cont_limit * m_saturation_power);
+		}
+	}
+	
+	m_radiation							= m_power / m_saturation_power;
+	if (m_radiation > cont_limit)
+		m_radiation						= cont_limit;
 }
 
-float CArtefact::getRadiation(bool for_ui) const
+float CArtefact::HitProtection(ALife::EHitType hit_type) const
 {
-	return								m_fRadiation * Power(for_ui);
-}
-
-float CArtefact::HitProtection(ALife::EHitType hit_type, bool for_ui) const
-{
-	return SHit::DamageType(hit_type) ? GetArmor(for_ui) : Absorbation(hit_type, for_ui);
+	return (SHit::DamageType(hit_type)) ? getArmor() : getAbsorbation(hit_type);
 }
 
 void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
@@ -574,7 +595,7 @@ void CArtefact::Hit(SHit* pHDS)
 	CPhysicItem::Hit(pHDS);
 }
 
-float CArtefact::getWeightDump(bool for_ui) const
+float CArtefact::getWeightDump() const
 {
-	return 1.f - 1.f / (1.f + m_baseline_weight_dump * Power(for_ui));
+	return 1.f - 1.f / (1.f + m_baseline_weight_dump * getPower());
 }

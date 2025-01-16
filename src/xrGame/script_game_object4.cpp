@@ -736,7 +736,7 @@ u8 CScriptGameObject::GetInvIconIndex() const
 float CScriptGameObject::Power() const
 {
 	CArtefact* artefact					= object().scast<CArtefact*>();
-	return								(artefact) ? artefact->Power(false) : 0.f;
+	return								(artefact) ? artefact->getPower() : 0.f;
 }
 
 float CScriptGameObject::Radiation() const
@@ -748,7 +748,7 @@ float CScriptGameObject::Radiation() const
 float CScriptGameObject::Absorbation C$(int hit_type)
 {
 	CArtefact* artefact					= object().scast<CArtefact*>();
-	return								(artefact) ? artefact->Absorbation(hit_type) : 0.f;
+	return								(artefact) ? artefact->getAbsorbation(hit_type) : 0.f;
 }
 
 bool CScriptGameObject::Aiming C$()

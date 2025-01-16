@@ -162,14 +162,14 @@ void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 
 	for (int i = 0; i < eAbsorbationTypeMax; ++i)
 	{
-		val								= (art) ? art->Absorbation(i, true) : pSettings->r_float(section, af_absorbation_names[i]);
+		val								= (art) ? art->getAbsorbation(i) : pSettings->r_float(section, af_absorbation_names[i]);
 		if (!fis_zero(val))
 			SetInfoItem					(m_absorbation_item[i], val, pos, h);
 	}
 
 	for (u32 i = 0; i < eRestoreTypeMax; ++i)
 	{
-		val								= pSettings->r_float(section, af_restore_section_names[i]) * ((art) ? art->Power(true) : 1.f);
+		val								= pSettings->r_float(section, af_restore_section_names[i]) * ((art) ? art->getPower() : 1.f);
 		if (fis_zero(val))
 			continue;
 
@@ -181,15 +181,15 @@ void CUIArtefactParams::SetInfo(LPCSTR section, CArtefact* art)
 		SetInfoItem						(m_restore_item[i], val, pos, h);
 	}
 
-	val									= (art) ? art->getWeightDump(true) : pSettings->r_float(section, "weight_dump");
+	val									= (art) ? art->getWeightDump() : pSettings->r_float(section, "weight_dump");
 	if (!fis_zero(val))
 		SetInfoItem						(m_weight_dump, val, pos, h);
 
-	val									= (art) ? art->GetArmor(true) : pSettings->r_float(section, "armor");
+	val									= (art) ? art->getArmor() : pSettings->r_float(section, "armor");
 	if (!fis_zero(val))
 		SetInfoItem						(m_armor, val, pos, h);
 
-	val									= (art) ? art->getRadiation(true) : pSettings->r_float(section, "radiation");
+	val									= (art) ? art->getRadiation() : pSettings->r_float(section, "radiation");
 	if (!fis_zero(val))
 		SetInfoItem						(m_radiation, val, pos, h);
 
