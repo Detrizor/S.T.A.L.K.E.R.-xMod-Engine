@@ -620,7 +620,7 @@ float CScriptGameObject::GetCapacity() const
 		return							cont->GetCapacity();
 
 	if (auto aiitem = object().getModule<MAmountable>())
-		return							aiitem->Capacity();
+		return							aiitem->getCapacity();
 
 	return								0.f;
 }
