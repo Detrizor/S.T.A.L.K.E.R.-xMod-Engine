@@ -507,6 +507,9 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("looking_at",					&CScriptGameObject::lookingAt)
 		.def("set_position",				&CScriptGameObject::setPosition)
 		.def("reload_magazine",				&CScriptGameObject::reloadMagazine)
+
+		.def("get_artefact_module_mode",	&CScriptGameObject::getArtefactModuleMode)
+		.def("set_artefact_module_mode",	&CScriptGameObject::setArtefactModuleMode)
 #endif
 
 

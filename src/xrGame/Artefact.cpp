@@ -23,7 +23,7 @@
 
 #include "Level_Bullet_Manager.h"
 #include "ui/ui_af_params.h"
-#include "item_container.h"
+#include "artefact_module.h"
 
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
 
@@ -525,11 +525,9 @@ void CArtefact::updatePower() const
 	m_power_calc_frame					= Device.dwFrame;
 
 	float cont_limit					= 0.f;
-#if 0
 	if (Parent)
 		if (auto cont = Parent->mcast<MArtefactModule>())
 			cont_limit					= cont->getArtefactRadiationLimit();
-#endif
 
 	if (fIsZero(cont_limit))
 		m_power							= 0.f;

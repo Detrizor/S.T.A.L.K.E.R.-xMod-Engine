@@ -993,6 +993,9 @@ public:
 	CScriptGameObject*					lookingAt							C$	();
 	void								setPosition							C$	(Fvector pos);
 	void								reloadMagazine						C$	();
+	
+	int									getArtefactModuleMode				C$	();
+	void								setArtefactModuleMode				C$	(int val);
 };
 
 add_to_type_list(CScriptGameObject)

@@ -40,6 +40,7 @@
 #include "item_usable.h"
 #include "foldable.h"
 #include "magazine.h"
+#include "artefact_module.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -181,6 +182,9 @@ void CInventoryItem::Load(LPCSTR section)
 
 	if (READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE))
 		O.addModule<MContainer>			();
+
+	if (pSettings->r_bool_ex(section, "artefact_module", false))
+		O.addModule<MArtefactModule>	();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -48,6 +48,7 @@
 #include "addon.h"
 #include "item_usable.h"
 #include "foldable.h"
+#include "artefact_module.h"
 
 class CWeapon;
 
@@ -938,6 +939,19 @@ void CScriptGameObject::reloadMagazine() const
 {
 	if (auto wpn = object().scast<CWeaponMagazined*>())
 		wpn->Reload						();
+}
+
+int CScriptGameObject::getArtefactModuleMode() const
+{
+	if (auto am = object().getModule<MArtefactModule>())
+		return							am->getMode();
+	return								-1;
+}
+
+void CScriptGameObject::setArtefactModuleMode(int val) const
+{
+	if (auto am = object().getModule<MArtefactModule>())
+		am->setMode						(val);
 }
 
 #define SPECIFIC_CAST(A,B)\
