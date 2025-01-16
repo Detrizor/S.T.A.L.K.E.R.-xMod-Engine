@@ -640,7 +640,7 @@ bool CInventoryOwner::discharge(MMagazine* mag) const
 {
 	if (auto cartridge = mag->getCartridge())
 	{
-		if (!pushCartridge(*cartridge))
+		if (!pushCartridge(cartridge.get()))
 			O->giveItem					(cartridge->m_ammoSect.c_str(), cartridge->m_fCondition);
 		return							true;
 	}
