@@ -305,8 +305,19 @@ void CInventory::Ruck(PIItem item)
 	switch (item->CurrPlace())
 	{
 	case eItemPlaceSlot:
-		if (GetActiveSlot() == item->CurrSlot())
+		if (m_bActors)
+		{
+			if (InHands(item))
+			{
+				ActivateItem			(item);
+				return;
+			}
+		}
+		else if (GetActiveSlot() == item->CurrSlot())
+		{
 			Activate					(NO_ACTIVE_SLOT);
+			return;
+		}
 		m_slots[item->CurrSlot()].m_pIItem = nullptr;
 		break;
 	case eItemPlacePocket:
@@ -493,8 +504,12 @@ bool CInventory::Action(u16 cmd, u32 flags)
 
 void CInventory::Activate(u16 slot, bool bForce)
 {
-	if (!OnServer() || m_bActors)
+	if (m_bActors)
+	{
+		ActivateItem(ItemFromSlot(slot));
 		return;
+	}
+
 	R_ASSERT2(slot <= LastSlot(), "wrong slot number");
 
 	PIItem tmp_item = nullptr;
