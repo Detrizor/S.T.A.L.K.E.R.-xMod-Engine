@@ -15,6 +15,7 @@
 #include "BoneProtections.h"
 #include "WeaponMagazined.h"
 #include "Artefact.h"
+#include "artefact_module.h"
 
 LPCSTR boost_influence_caption[] =
 {
@@ -117,6 +118,10 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	name								= CStringTable().translate("ui_artefact_isolation").c_str();
 	m_artefact_isolation->SetCaption	(name);
 	m_artefact_isolation->SetStrValue	("");
+	xml.SetLocalRoot					(base_node);
+
+	m_max_artefact_radiation_limit->Init(xml, "max_artefact_radiation_limit");
+	m_max_artefact_radiation_limit->SetCaption(CStringTable().translate("ui_max_artefact_radiation_limit").c_str());
 	xml.SetLocalRoot					(base_node);
 
 	m_radiation->Init					(xml, "radiation");
@@ -377,6 +382,25 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 				}
 			}
 		}
+	}
+
+	float max_artefact_radiation_limit	= 0.f;
+	if (item)
+	{
+		if (auto art_module = item->O.getModule<MArtefactModule>())
+			max_artefact_radiation_limit = art_module->getMaxArtefactRadiationLimit();
+	}
+	else
+		pSettings->w_float_ex			(max_artefact_radiation_limit, section, "max_artefact_radiation_limit");
+
+	if (max_artefact_radiation_limit > 0.f)
+	{
+		m_max_artefact_radiation_limit->SetValue(max_artefact_radiation_limit);
+		pos.set							(m_max_artefact_radiation_limit->GetWndPos());
+		pos.y							= h;
+		m_max_artefact_radiation_limit->SetWndPos(pos);
+		h								+= m_max_artefact_radiation_limit->GetWndSize().y;
+		AttachChild						(m_max_artefact_radiation_limit.get());
 	}
 
 	SetHeight							(h);

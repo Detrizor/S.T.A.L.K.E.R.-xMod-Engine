@@ -34,6 +34,7 @@ protected:
 
 	xptr<UIBoosterInfoItem>	m_capacity;
 	xptr<UIBoosterInfoItem>	m_artefact_isolation;
+	xptr<UIBoosterInfoItem>	m_max_artefact_radiation_limit;
 	xptr<UIBoosterInfoItem>	m_radiation;
 
 	xptr<CUIStatic>			m_Prop_line;
