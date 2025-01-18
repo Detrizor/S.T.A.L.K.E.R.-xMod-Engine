@@ -12,6 +12,7 @@ class CUICursor:	public pureRender,
 	bool			m_b_use_win_cursor;
 	CUIStatic*		m_static;
 	void			InitInternal				();
+
 public:
 					CUICursor					();
 	virtual			~CUICursor					();
@@ -27,4 +28,10 @@ public:
 	bool			IsVisible					() {return bVisible;}
 	void			Show						();
 	void			Hide						();
+
+private:
+	Fvector2 m_sys_metrics;
+
+public:
+	void resetCursorPosition();
 };

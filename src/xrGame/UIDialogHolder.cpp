@@ -199,12 +199,12 @@ void CDialogHolder::SetMainInputReceiver	(CUIDialogWnd* ir, bool _find_remove)
 	}else{
 		m_input_receivers.push_back(recvItem(ir));
 	}
-};
+}
 
 void CDialogHolder::StartDialog(CUIDialogWnd* pDialog, bool bDoHideIndicators)
 {
 	if (pDialog && pDialog->NeedCenterCursor())
-		GetUICursor().SetUICursorPosition	(Fvector2().set(UI_BASE_WIDTH/2.f,UI_BASE_HEIGHT/2.f));
+		GetUICursor().resetCursorPosition();
 	StartMenu(pDialog, bDoHideIndicators);
 }
 
