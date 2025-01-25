@@ -426,8 +426,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_inventory_capacity",		&CScriptGameObject::GetInventoryCapacity)
 		.def("give_item",					&CScriptGameObject::giveItem)
 		.def("give_item",					&CScriptGameObject::giveItem1)
+		.def("give_item",					&CScriptGameObject::giveItem2)
 		.def("give_items",					&CScriptGameObject::giveItems)
 		.def("give_items",					&CScriptGameObject::giveItems1)
+		.def("give_items",					&CScriptGameObject::giveItems2)
 		.def("category",					&CScriptGameObject::Category)
 		.def("category",					&CScriptGameObject::Category1)
 		.def("category",					&CScriptGameObject::Category2)
@@ -503,6 +505,8 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("charge_magazine",				&CScriptGameObject::chargeMagazine)
 			
 		.def("looking_at",					&CScriptGameObject::lookingAt)
+		.def("set_position",				&CScriptGameObject::setPosition)
+		.def("reload_magazine",				&CScriptGameObject::reloadMagazine)
 #endif
 
 

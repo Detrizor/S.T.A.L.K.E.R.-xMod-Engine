@@ -909,10 +909,12 @@ public:
 	void				ActorSetSprintBlock		(bool p);
 	void				ActorSetAccelBlock		(bool p);
 	float				GetInventoryCapacity	();
-	CSE_Abstract*		giveItem				(LPCSTR section, float condition);
-	CSE_Abstract*		giveItem1				(LPCSTR section)									{ return giveItem(section, 1.f); }
-	CSE_Abstract*		giveItems				(LPCSTR section, u16 count, float condition);
-	CSE_Abstract*		giveItems1				(LPCSTR section, u16 count)							{ return giveItems(section, count, 1.f); }
+	CSE_Abstract*		giveItem				(LPCSTR section, float condition, bool straight);
+	CSE_Abstract*		giveItem1				(LPCSTR section, float condition)					{ return giveItem(section, 1.f, false); }
+	CSE_Abstract*		giveItem2				(LPCSTR section)									{ return giveItem1(section, 1.f); }
+	CSE_Abstract*		giveItems				(LPCSTR section, u16 count, float condition, bool straight);
+	CSE_Abstract*		giveItems1				(LPCSTR section, u16 count, float condition)		{ return giveItems(section, count, 1.f, false); }
+	CSE_Abstract*		giveItems2				(LPCSTR section, u16 count)							{ return giveItems1(section, count, 1.f); }
 	bool				Category				(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd) const;
 	bool				Category1				(LPCSTR cmpc, LPCSTR cmps) const					{ return Category(cmpc, cmps, "*"); };
 	bool				Category2				(LPCSTR cmpc) const									{ return Category1(cmpc, "*"); };
@@ -989,6 +991,8 @@ public:
 	void								chargeMagazine						C$	(CScriptGameObject* obj);
 	
 	CScriptGameObject*					lookingAt							C$	();
+	void								setPosition							C$	(Fvector pos);
+	void								reloadMagazine						C$	();
 };
 
 add_to_type_list(CScriptGameObject)

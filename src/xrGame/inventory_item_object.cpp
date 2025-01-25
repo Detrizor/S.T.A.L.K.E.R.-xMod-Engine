@@ -64,3 +64,19 @@ void CInventoryItemObject::renderable_Render()
 	UpdateXForm							();
 	__super::renderable_Render			();
 }
+
+void CInventoryItemObject::shedule_Update(u32 T)
+{
+	core::shedule_Update				(T);
+	wrap::shedule_Update				(T);
+
+	if (auto parent = H_Parent())
+	{
+		if (!updatedThisFrame())
+		{
+			auto io = parent->scast<CInventoryOwner*>();
+			if (!io || !io->attached(this))
+				XFORM().c				= parent->Position();
+		}
+	}
+}

@@ -43,27 +43,27 @@ bool CWeaponChamber::empty() const
 	return								m_slot->empty();
 }
 
-void CWeaponChamber::load() const
+void CWeaponChamber::load(CCartridge CR$ cartridge) const
 {
 	if (!empty())
 		unload							(eInventory);
 
-	auto se_obj							= O.giveItem(O.m_cartridge.m_ammoSect.c_str(), O.m_cartridge.m_fCondition, true);
+	auto se_obj							= O.giveItem(cartridge.m_ammoSect.c_str(), cartridge.m_fCondition, true);
 	auto object							= Level().Objects.net_Find(se_obj->ID);
 	auto addon							= object->mcast<MAddon>();
 	m_slot->parent_ao->finishAttaching	(addon, m_slot);
 }
 
-void CWeaponChamber::load_from(CWeaponAmmo* ammo) const
+void CWeaponChamber::load(CWeaponAmmo* ammo) const
 {
-	if (ammo->Get(O.m_cartridge))
-		load							();
+	if (auto cartridge = ammo->getCartridge())
+		load							(cartridge.get());
 }
 
 void CWeaponChamber::load_from_mag() const
 {
-	if (O.get_cartridge_from_mag())
-		load							();
+	if (auto cartridge = O.get_cartridge_from_mag())
+		load							(cartridge.get());
 }
 
 void CWeaponChamber::reload(bool expended) const
@@ -75,29 +75,26 @@ void CWeaponChamber::reload(bool expended) const
 		O.m_locked						= true;
 
 	auto chamber						= get();
-	auto chamber_ammo					= (chamber) ? chamber->O.scast<CWeaponAmmo*>() : nullptr;
-	bool need_load						= false;
+	auto next_cartridge					= O.get_cartridge_from_mag();
 
-	if (O.get_cartridge_from_mag())
+	if (expended && next_cartridge)
 	{
-		if (expended && chamber_ammo &&
-			chamber_ammo->cNameSect() == O.m_cartridge.m_ammoSect &&
-			chamber_ammo->GetCondition() == O.m_cartridge.m_fCondition)
-			chamber						= nullptr;
-		else
-			need_load					= true;
+		auto chamber_ammo				= chamber->O.scast<CWeaponAmmo*>();
+		if (chamber_ammo->cNameSect() == next_cartridge->m_ammoSect &&
+			chamber_ammo->GetCondition() == next_cartridge->m_fCondition)
+			return;
 	}
 
 	if (chamber)
 	{
-		if (expended && chamber_ammo)
-			chamber_ammo->DestroyObject	(true);
+		if (expended)
+			chamber->O.DestroyObject	(true);
 		else
 			drop						(chamber);
 	}
 	
-	if (need_load)
-		load							();
+	if (next_cartridge)
+		load							(next_cartridge.get());
 }
 
 void CWeaponChamber::unload(EUnloadDestination destination) const

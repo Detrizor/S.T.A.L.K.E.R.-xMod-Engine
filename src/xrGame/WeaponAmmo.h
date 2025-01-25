@@ -45,6 +45,8 @@ private:
 
 public:
 	static void							loadStaticData							();
+	static float						calcResist								(float d, float h);
+	static float						calcPenetrationShapeFactor				(float d, float h);
 
 	shared_str							m_ammoSect								= 0;
 	float								m_fCondition							= 1.f;
@@ -87,6 +89,7 @@ public:
 			void			ChangeAmmoCount			(int val);
 
 			bool			Get						(CCartridge &cartridge, bool expend = true);
+	xoptional<CCartridge>	getCartridge			(bool expend = true);
 
 public:
 	virtual CInventoryItem*	can_make_killing		(const CInventory *inventory) const;

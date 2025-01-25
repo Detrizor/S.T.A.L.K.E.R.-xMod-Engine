@@ -130,7 +130,6 @@ MScope::MScope(CGameObject* obj, shared_str CR$ section) : CModule(obj),
 m_Type((eScopeType)pSettings->r_u8(section, "type")),
 m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 {
-	m_reticles_count					= pSettings->r_u8(section, "reticles_count");
 	m_sight_position					= pSettings->r_dvector3(section, (m_Type == eIS) ? "align_rear" : "sight_position");
 	m_Zeroing.Load						(pSettings->r_string(section, "zeroing"));
 	switch (m_Type)
@@ -140,9 +139,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 			m_objective_diameter		= pSettings->r_float(section, "objective_diameter") * 0.001f;
 			m_eye_relief				= pSettings->r_float(section, "eye_relief") * 0.001f;
 
-			m_Reticle					= pSettings->r_string(section, "reticle");
-			m_reticle_texture_size		= pSettings->r_float(section, "reticle_texture_size");
-			m_is_FFP					= !!pSettings->r_BOOL(section, "first_focal_plane");
+			m_reticle					= pSettings->r_string(section, "reticle");
 			m_AliveDetector				= pSettings->r_string(section, "alive_detector");
 			m_Nighvision				= pSettings->r_string(section, "nightvision");
 
@@ -155,6 +152,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 			break;
 
 		case eCollimator:
+			m_reticles_count			= pSettings->r_u8(section, "reticles_count");
 			m_Magnificaion.Load			(pSettings->r_string(section, "reticle_scale"));
 			if (m_Magnificaion.dynamic)
 				m_Magnificaion.current	= (m_Magnificaion.vmin + m_Magnificaion.vmax) / 2.f;
@@ -203,7 +201,7 @@ bool MScope::sInstallUpgrade(LPCSTR section, bool test)
 	bool result							= false;
 	if (Type() == eOptics)
 	{
-		result							|= CInventoryItem::process_if_exists(section, "reticle", m_Reticle, test);
+		result							|= CInventoryItem::process_if_exists(section, "reticle", m_reticle, test);
 		result							|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
 		result							|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
 		if (result)
@@ -217,13 +215,15 @@ bool MScope::sInstallUpgrade(LPCSTR section, bool test)
 void MScope::init_visors()
 {
 	xr_delete							(m_pUIReticle);
-	if (m_Reticle.size())
+	if (m_reticle.size())
 	{
-		shared_str texture				= "wpn\\reticle\\";
-		texture.printf					("%s%s", texture.c_str(), m_Reticle.c_str());
-		if (m_reticles_count > 1)
-			texture.printf				("%s_%d", texture.c_str(), m_current_reticle);
-		createStatic					(m_pUIReticle, texture.c_str(), m_reticle_texture_size);
+		CUIXml							xml;
+		xml.Load						(CONFIG_PATH, UI_PATH, "scopes.xml");
+		m_reticles_count				= xml.GetNodesNum("w", 0, m_reticle.c_str());
+		m_is_FFP						= !!xml.ReadAttribInt(m_reticle.c_str(), 0, "ffp", 0);
+
+		m_pUIReticle					= xr_new<CUIStatic>();
+		CUIXmlInit::InitStatic			(xml, m_reticle.c_str(), m_current_reticle, m_pUIReticle);
 		m_pUIReticle->EnableHeading		(true);
 	}
 

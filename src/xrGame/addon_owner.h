@@ -67,7 +67,7 @@ public:
 	void								loadingDetach							();
 	void								loadingAttach							();
 	void								finishLoading							(bool interrupted = false);
-	void								calcBoneOffset							(attachable_hud_item* hi);
+	void								calcBoneOffset							(attachable_hud_item* hi, shared_str CP$ root_attach_bone);
 	
 	bool								getIconDraw							C$	()		{ return m_icon_draw; }
 	bool								getBackgroundDraw					C$	()		{ return m_background_draw; }
@@ -115,7 +115,7 @@ private:
 public:
 	CAddonSlot*							emplaceSlot								()		{ return m_slots.emplace_back(m_slots.size(), this).get(); }
 
-	void								calcSlotsBoneOffset						(attachable_hud_item* hi);
+	void								calcSlotsBoneOffset						(attachable_hud_item* hi, shared_str CP$ root_attach_bone = nullptr);
 
 	VSlots CR$							AddonSlots							C$	()		{ return m_slots; }
 	bool								getBaseForegroundDraw				C$	()		{ return m_base_foreground_draw; }
@@ -124,4 +124,5 @@ public:
 	bool								tryAttach							C$	(MAddon* addon, bool forced);
 	void								finishAttaching						C$	(MAddon* addon, CAddonSlot* slot = nullptr);
 	void								finishDetaching						C$	(MAddon* addon, bool transfer = true);
+	void								invalidateIcon						C$	();
 };

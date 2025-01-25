@@ -24,6 +24,8 @@
 
 #include "UICellItem.h"
 
+#include "../inventory_item_amountable.h"
+
 #define BUY_MENU_TEXTURE "ui\\ui_mp_buy_menu"
 #define CHAR_ICONS		 "ui\\ui_icons_npc"
 #define MAP_ICONS		 "ui\\ui_icons_map"
@@ -106,34 +108,37 @@ bool InventoryUtilities::greaterRoomInRuck(CUICellItem* itm1, CUICellItem* itm2)
 {
 	auto& r1							= itm1->GetGridSize();
 	auto& r2							= itm2->GetGridSize();
-
-	if (r1.x > r2.x)
-		return							true;
-	
 	if (r1.x == r2.x)
 	{
-		if (r1.y > r2.y)
-			return						true;
-		
 		if (r1.y == r2.y)
 		{
 			if (itm1->m_section == itm2->m_section)
 			{
-				if (auto item1 = static_cast<PIItem>(itm1->m_pData))
-					if (auto item2 = static_cast<PIItem>(itm2->m_pData))
-						return			(item1->object().ID() > item2->object().ID());
-
+				auto item1				= static_cast<PIItem>(itm1->m_pData);
+				auto item2				= static_cast<PIItem>(itm2->m_pData);
+				if (item1 && item2)
+				{
+					if (item1->GetInvIconIndex() == item2->GetInvIconIndex())
+					{
+						float fill1		= item1->GetFill();
+						float fill2		= item2->GetFill();
+						if (fEqual(fill1, fill2))
+						{
+							if (fEqual(item1->GetCondition(), item2->GetCondition()))
+								return	(item1->object().ID() > item2->object().ID());
+							return		fMore(item1->GetCondition(), item2->GetCondition());
+						}
+						return			fMore(fill1, fill2);
+					}
+					return				(item1->GetInvIconIndex() > item2->GetInvIconIndex());
+				}
 				return					(itm1 > itm2);
 			}
-			else
-				return					(itm1->m_section > itm2->m_section);
-
+			return						(itm1->m_section > itm2->m_section);
 		}
-
-		return							false;
+		return							(r1.y > r2.y);
 	}
-
-	return								false;
+	return								(r1.x > r2.x);
 }
 
 const ui_shader& InventoryUtilities::GetBuyMenuShader()

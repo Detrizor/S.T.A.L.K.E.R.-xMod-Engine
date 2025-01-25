@@ -549,14 +549,14 @@ float CScriptGameObject::GetInventoryCapacity()
 	return				inventory_owner->InventoryCapacity();
 }
 
-CSE_Abstract* CScriptGameObject::giveItem(LPCSTR section, float condition)
+CSE_Abstract* CScriptGameObject::giveItem(LPCSTR section, float condition, bool straight)
 {
 	if (auto go = smart_cast<CGameObject*>(&object()))
-		return							go->giveItem(section, condition);
+		return							go->giveItem(section, condition, straight);
 	return								nullptr;
 }
 
-CSE_Abstract* CScriptGameObject::giveItems(LPCSTR section, u16 count, float condition)
+CSE_Abstract* CScriptGameObject::giveItems(LPCSTR section, u16 count, float condition, bool straight)
 {
 	if (auto go = smart_cast<CGameObject*>(&object()))
 		return							go->giveItems(section, count, condition).back();
@@ -925,6 +925,22 @@ CScriptGameObject* CScriptGameObject::lookingAt() const
 		if (auto obj = actor->ObjectWeLookingAt())
 			return						obj->lua_game_object();
 	return								nullptr;
+}
+
+void CScriptGameObject::setPosition(Fvector pos) const
+{
+	if (auto pi = object().scast<CPhysicItem*>())
+	{
+		pi->deactivate_physics_shell	();
+		pi->XFORM().translate_over		(pos);
+		pi->CPhysicsShellHolder::activate_physic_shell();
+	}
+}
+
+void CScriptGameObject::reloadMagazine() const
+{
+	if (auto wpn = object().scast<CWeaponMagazined*>())
+		wpn->Reload						();
 }
 
 #define SPECIFIC_CAST(A,B)\

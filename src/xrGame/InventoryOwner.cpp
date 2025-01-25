@@ -638,11 +638,10 @@ bool CInventoryOwner::pushCartridge(CCartridge& cartridge) const
 
 bool CInventoryOwner::discharge(MMagazine* mag) const
 {
-	CCartridge							cartridge;
-	if (mag->getCartridge(cartridge))
+	if (auto cartridge = mag->getCartridge())
 	{
-		if (!pushCartridge(cartridge))
-			O->giveItem					(cartridge.m_ammoSect.c_str(), cartridge.m_fCondition);
+		if (!pushCartridge(*cartridge))
+			O->giveItem					(cartridge->m_ammoSect.c_str(), cartridge->m_fCondition);
 		return							true;
 	}
 

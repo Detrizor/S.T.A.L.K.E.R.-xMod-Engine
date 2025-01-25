@@ -32,6 +32,7 @@
 #include "../control_animation_base.h"
 #include "../monster_velocity_space.h"
 #include "../anti_aim_ability.h"
+#include "../../../BoneProtections.h"
 
 namespace detail
 {
@@ -139,7 +140,7 @@ void CBaseMonster::Load(LPCSTR section)
 	//------------------------------------
 	// Protections
 	//------------------------------------
-	m_fSkinArmor							= READ_IF_EXISTS(pSettings, r_float, section, "skin_armor", 0.f);
+	m_fSkinArmor							= SBoneProtections::computeArmor(pSettings->r_float_ex(section, "skin_armor", 0.f));
 
 	m_force_anti_aim						=	false;
 }

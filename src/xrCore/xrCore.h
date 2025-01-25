@@ -324,13 +324,18 @@ public:
 	DWORD dwFrame;
 
 	Flags16 ParamFlags;				//Alun: TODO: Add all params
-	enum ParamFlag{
+	enum ParamFlag
+	{
 		dbg				= (1 << 0),
-		dbgact			= (1 << 1),
-		dbganim			= (1 << 2),
-		dbgdev			= (1 << 3),
-		dbgbullet		= (1 << 9),
+		dbgdev			= (1 << 1),
+		dbgact			= (1 << 2),
+		dbganim			= (1 << 3),
+		dbgcond			= (1 << 4),
+		dbgcondfull		= (1 << 5),
+		dbgbullet		= (1 << 6),
+		dbgbulletfull	= (1 << 7),
 	};
+
 public:
 	void _initialize(LPCSTR ApplicationName, LogCallback cb = 0, BOOL init_fs = TRUE, LPCSTR fs_fname = 0);
 	void _destroy();

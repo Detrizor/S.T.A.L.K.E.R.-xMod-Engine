@@ -48,9 +48,10 @@ bool CSightManager::aim_target	(Fvector &my_position, Fvector &aim_target, const
 		return					(true);
 	}
 
-	auto aim_human = [](Fvector& aim_target, const CGameObject* object)
+	auto aim_human = [this](Fvector& aim_target, const CGameObject* object)
 	{
-		::aim_target			((::Random.randF() < .2f) ? "bip01_head" : "bip01_spine1", aim_target, object);
+		bool head				= m_object->movement().path_completed() && (::Random.randF() < .3f);
+		::aim_target			((head) ? "bip01_head" : "bip01_spine1", aim_target, object);
 	};
 
 	if (g_actor == object)

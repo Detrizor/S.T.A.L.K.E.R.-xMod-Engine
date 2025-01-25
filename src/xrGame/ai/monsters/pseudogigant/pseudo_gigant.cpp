@@ -290,6 +290,9 @@ void CPseudoGigant::on_threaten_execute()
 
 	Actor()->lock_accel_for	(m_time_kick_actor_slow_down);
 	
+	if (Actor()->is_jump())
+		return;
+
 	// Нанести хит
 	NET_Packet	l_P;
 	SHit		HS;

@@ -224,6 +224,8 @@ protected:
 
 public:
 	static void							loadStaticData							();
+	
+	bool								updatedThisFrame						()		{ return m_last_update_frame == Device.dwFrame; }
 
 	bool								updateQuery								();
 	void								update									();

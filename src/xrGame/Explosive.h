@@ -103,9 +103,12 @@ protected:
 	//параметры и количество осколков
 	int	  						m_iFragsNum;
 
-	float						frag_fSpeed;
-	float						frag_fMass;
-	float						frag_fResist;
+	float						m_frag_k_ap;
+	float						m_frag_mass;
+	float						m_frag_speed;
+	float						m_frag_resist;
+	float						m_frag_air_resist;
+	float						m_frag_penetration;
 
 	//типы наносимых хитов
 	ALife::EHitType 			m_eHitTypeBlast;

@@ -38,8 +38,8 @@ public:
 	
 	CWeaponAmmo*						getAmmo								C$	();
 	bool								empty								C$	();
-	void								load								C$	();
-	void								load_from							C$	(CWeaponAmmo* ammo);
+	void								load								C$	(CCartridge CR$ cartridge);
+	void								load								C$	(CWeaponAmmo* ammo);
 	void								load_from_mag						C$	();
 	void								reload								C$	(bool expended);
 	void								unload								C$	(EUnloadDestination destination);

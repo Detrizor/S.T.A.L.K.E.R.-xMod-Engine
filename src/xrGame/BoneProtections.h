@@ -2,8 +2,10 @@
 
 class IKinematics;
 
-struct SBoneProtections{
-	struct BoneProtection {
+struct SBoneProtections
+{
+	struct BoneProtection
+	{
 		float		level;
 		float		armor;
 	};
@@ -17,8 +19,7 @@ struct SBoneProtections{
 	float				getBoneArmor		(s16 bone_id);
 	float				getBoneArmorLevel	(s16 bone_id);
 
-	float				ComputeArmor		(float level);
-	
-	xr_vector<float>				S$	s_armor_levels;
-	void							S$	loadStaticData							();
+	static xr_vector<float>				s_armor_levels;
+	static void							loadStaticData							();
+	static float						computeArmor							(float level);
 };
