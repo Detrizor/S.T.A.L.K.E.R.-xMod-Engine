@@ -242,7 +242,7 @@ bool CUIActorMenu::ToSlot(CUICellItem* itm, u16 slot_id, bool assume_alternative
 		}
 	}
 
-	if (m_pActorInv->InHands(item))
+	if (m_pActorInv->InHands(item) && item_in_slot)
 		m_pActorInv->ActivateItem		(item_in_slot, eItemPlaceSlot, slot_id);
 	else if (slot_id == item->HandSlot() && item_in_slot && item->CurrSlot() && item_in_slot->BaseSlot() == item->BaseSlot())
 		m_pActorInv->ActivateItem		(item, eItemPlaceSlot, item->CurrSlot());
@@ -422,7 +422,7 @@ void CUIActorMenu::PropertiesBoxForSlots(PIItem item, bool& b_show)
 		b_show							= true;
 	}
 
-	if ((item->CurrSlot() != NO_ACTIVE_SLOT || m_currMenuMode == mmDeadBodySearch) && !item->isGear(true))
+	if (item->CurrPlace() == eItemPlaceSlot && !item->isGear())
 	{
 		m_UIPropertiesBox->AddItem		("st_move_to_ruck", NULL, INVENTORY_TO_BAG_ACTION);
 		b_show							= true;
@@ -567,7 +567,10 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 		ToSlot							(cell_item, item->BaseSlot(), true);
 		break;
 	case INVENTORY_TO_BAG_ACTION:
-		ToRuck							(item);
+		if (item->InHands())
+			m_pActorInv->ActivateItem	(item);
+		else
+			ToRuck						(item);
 		break;
 	case INVENTORY_DONATE_ACTION:
 		DonateCurrentItem				(cell_item);

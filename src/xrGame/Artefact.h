@@ -53,8 +53,6 @@ protected:
 	float							m_fTrailLightRange;
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
-	float							m_fArmor;
-	float							m_fChargeThreshold;
 	bool							m_bActive;
 
 	virtual void					UpdateLights					();
@@ -110,24 +108,30 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float 								m_fRadiation;
-	float								m_fWeightDump;
-	float								m_fDrainFactor;
-	float								m_HitAbsorbation[ALife::eHitTypeMax];
+	float								m_baseline_charge						= 1.f;
+	float								m_charge_capacity						= 1.f;
+	float								m_saturation_power						= 1.f;
+	float								m_baseline_weight_dump					= 0.f;
+	float								m_armor									= 0.f;
+	float								m_HitAbsorbation[ALife::eHitTypeMax]	= {0};
+
+	MAmountable CP$						m_amountable_ptr						= nullptr;
+	mutable u32							m_power_calc_frame						= 0;
+	mutable float						m_power									= 1.f;
+	mutable float						m_radiation								= 1.f;
 
 protected:
 	void								Hit									O$	(SHit* pHDS);
 
 public:
-	float								WeightDump							C$	(bool for_ui = false)		{ return m_fWeightDump * Power(for_ui); }
-	float								DrainFactor							C$	(bool for_ui = false)		{ return m_fDrainFactor * Power(for_ui); }
-	float								GetArmor							C$	(bool for_ui = false)		{ return m_fArmor * Power(for_ui); }
+	float								getArmor							C$	()					{ return m_armor * getPower(); }
+	float								getAbsorbation						C$	(int hit_type)		{ return m_HitAbsorbation[hit_type] * getPower(); }
+	float								getPower							C$	()					{ updatePower(); return m_power; }
+	float								getRadiation						C$	()					{ updatePower(); return m_radiation; }
 
-	float								Absorbation							C$	(int hit_type, bool for_ui = false)		{ return m_HitAbsorbation[hit_type] * Power(for_ui); }
-
-	float								Power								C$	(bool for_ui);
-	float								HitProtection						C$	(ALife::EHitType hit_type, bool for_ui = false);
-	float								getRadiation						C$	(bool for_ui = false);
+	void								updatePower							C$	();
+	float								HitProtection						C$	(ALife::EHitType hit_type);
+	float								getWeightDump						C$	();
 
 	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
 };

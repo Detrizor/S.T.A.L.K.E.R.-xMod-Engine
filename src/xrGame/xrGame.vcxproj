@@ -1335,6 +1335,7 @@
     <ClInclude Include="anticheat_dumpable_object.h" />
     <ClInclude Include="Artefact.h" />
     <ClInclude Include="artefact_activation.h" />
+    <ClInclude Include="artefact_module.h" />
     <ClInclude Include="atlas_stalkercoppc_v1.h" />
     <ClInclude Include="atlas_submit_queue.h" />
     <ClInclude Include="attachable_item.h" />
@@ -3027,6 +3028,7 @@
     <ClCompile Include="animation_utils.cpp" />
     <ClCompile Include="Artefact.cpp" />
     <ClCompile Include="artefact_activation.cpp" />
+    <ClCompile Include="artefact_module.cpp" />
     <ClCompile Include="artefact_script.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>

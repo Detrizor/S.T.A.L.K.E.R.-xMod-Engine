@@ -15,6 +15,7 @@
 #include "BoneProtections.h"
 #include "WeaponMagazined.h"
 #include "Artefact.h"
+#include "artefact_module.h"
 
 LPCSTR boost_influence_caption[] =
 {
@@ -119,9 +120,8 @@ void CUIBoosterInfo::InitFromXml(CUIXml& xml)
 	m_artefact_isolation->SetStrValue	("");
 	xml.SetLocalRoot					(base_node);
 
-	m_radiation_protection->Init		(xml, "radiation_protection");
-	name								= CStringTable().translate("ui_radiation_protection").c_str();
-	m_radiation_protection->SetCaption	(name);
+	m_max_artefact_radiation_limit->Init(xml, "max_artefact_radiation_limit");
+	m_max_artefact_radiation_limit->SetCaption(CStringTable().translate("ui_max_artefact_radiation_limit").c_str());
 	xml.SetLocalRoot					(base_node);
 
 	m_radiation->Init					(xml, "radiation");
@@ -364,17 +364,6 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 			AttachChild					(m_artefact_isolation.get());
 		}
 
-		float radiation_protection		= (cont) ? cont->RadiationProtection(true) : pSettings->r_float(section, "radiation_protection");
-		if (fLess(radiation_protection, 1.f))
-		{
-			m_radiation_protection->SetValue(1.f - radiation_protection);
-			pos.set						(m_radiation_protection->GetWndPos());
-			pos.y						= h;
-			m_radiation_protection->SetWndPos(pos);
-			h							+= m_radiation_protection->GetWndSize().y;
-			AttachChild					(m_radiation_protection.get());
-		}
-
 		if (cont && !cont->ArtefactIsolation() && !cont->Empty())
 		{
 			auto artefact_it			= cont->Items().find_if([](auto&& item) { return item->O.scast<CArtefact*>(); });
@@ -393,6 +382,25 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 				}
 			}
 		}
+	}
+
+	float max_artefact_radiation_limit	= 0.f;
+	if (item)
+	{
+		if (auto art_module = item->O.getModule<MArtefactModule>())
+			max_artefact_radiation_limit = art_module->getMaxArtefactRadiationLimit();
+	}
+	else
+		pSettings->w_float_ex			(max_artefact_radiation_limit, section, "max_artefact_radiation_limit");
+
+	if (max_artefact_radiation_limit > 0.f)
+	{
+		m_max_artefact_radiation_limit->SetValue(max_artefact_radiation_limit);
+		pos.set							(m_max_artefact_radiation_limit->GetWndPos());
+		pos.y							= h;
+		m_max_artefact_radiation_limit->SetWndPos(pos);
+		h								+= m_max_artefact_radiation_limit->GetWndSize().y;
+		AttachChild						(m_max_artefact_radiation_limit.get());
 	}
 
 	SetHeight							(h);

@@ -6,9 +6,13 @@ CItemsLibrary::DATA CItemsLibrary::s_data;
 
 bool CItemsLibrary::validSection(shared_str CR$ section)
 {
-	if (READ_IF_EXISTS(pSettings, r_float, section, "inv_weight", 0.f) == 0.f || pSettings->line_exist(section, "pseudosection"))
+	if (pSettings->r_bool_ex(section, "pseudosection", false))
 		return							false;
-	return								pSettings->line_exist(section, "inv_name") || CStringTable().exists(shared_str().printf("st_%s_name", section.c_str()));
+
+	if (!pSettings->r_float_ex(section, "inv_weight", 0.f) && !pSettings->r_float_ex(section, "net_weight", 0.f))
+		return							false;
+
+	return								pSettings->r_string_ex(section, "inv_name", NULL) || CStringTable().exists(shared_str().printf("st_%s_name", section.c_str()));
 }
 
 void CItemsLibrary::loadStaticData()

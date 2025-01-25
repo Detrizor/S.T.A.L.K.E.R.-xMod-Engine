@@ -141,32 +141,33 @@ void CUIOutfitInfo::InitFromXml(CUIXml& xml_doc)
 
 void CUIOutfitInfo::UpdateInfoSuit(CUICellItem* itm)
 {
-	CActor* actor			= smart_cast<CActor*>(Level().CurrentViewEntity());
-	if (!actor)
+	if (!smart_cast<CActor*>(Level().CurrentViewEntity()))
 		return;
-	m_Prop_line->Show		(!!xr_strcmp(READ_IF_EXISTS(pSettings, r_string, itm->m_section, "description", ""), ""));
 	
-	PIItem item					= (PIItem)itm->m_pData;
-	CCustomOutfit* outfit		= smart_cast<CCustomOutfit*>(item);
+	auto descr							= CInventoryItem::readDescription(itm->m_section.c_str());
+	m_Prop_line->Show					(descr && descr[0]);
+	
+	PIItem item							= static_cast<PIItem>(itm->m_pData);
+	CCustomOutfit* outfit				= smart_cast<CCustomOutfit*>(item);
 
 	for (u32 i = 0; i < eProtectionTypeMax; ++i)
 	{
-		float val					= (outfit) ? outfit->GetHitTypeProtection((ALife::EHitType)i) : pSettings->r_float(itm->m_section, protection_sections[i]);
-		m_items[i]->SetValue		(val);
+		float val						= (outfit) ? outfit->GetHitTypeProtection((ALife::EHitType)i) : pSettings->r_float(itm->m_section, protection_sections[i]);
+		m_items[i]->SetValue			(val);
 	}
 
-	float armor_level						= (outfit) ? outfit->m_fArmorLevel : pSettings->r_float(itm->m_section, "armor_level");
+	float armor_level					= (outfit) ? outfit->m_fArmorLevel : pSettings->r_float(itm->m_section, "armor_level");
 	if (armor_level < 1.f)
 	{
-		m_textArmorClass->SetTextST			("ui_armor_clothes");
-		m_textArmorClassValue->SetText		("");
+		m_textArmorClass->SetTextST		("ui_armor_clothes");
+		m_textArmorClassValue->SetText	("");
 	}
 	else
 	{
-		m_textArmorClass->SetTextST			("ui_armor_level");
-		shared_str							str;
-		str.printf							("%.1f %s", armor_level, *CStringTable().translate("st_class"));
-		m_textArmorClassValue->SetText		(*str);
+		m_textArmorClass->SetTextST		("ui_armor_level");
+		shared_str						str;
+		str.printf						("%.1f %s", armor_level, *CStringTable().translate("st_class"));
+		m_textArmorClassValue->SetText	(*str);
 	}
 }
 

@@ -48,6 +48,7 @@
 #include "addon.h"
 #include "item_usable.h"
 #include "foldable.h"
+#include "artefact_module.h"
 
 class CWeapon;
 
@@ -488,7 +489,7 @@ float CScriptGameObject::GetWeightDump()
 	if (!outfit && !art)
 		return							0.f;
 
-	return								(outfit) ? outfit->m_fWeightDump : art->WeightDump();
+	return								(outfit) ? outfit->m_fWeightDump : art->getWeightDump();
 }
 
 float CScriptGameObject::GetRecuperationFactor()
@@ -503,12 +504,9 @@ float CScriptGameObject::GetRecuperationFactor()
 
 float CScriptGameObject::GetDrainFactor()
 {
-	CCustomOutfit* outfit				= object().scast<CCustomOutfit*>();
-	CArtefact* art						= object().scast<CArtefact*>();
-	if (!outfit && !art)
-		return							0.f;
-
-	return								(outfit) ? outfit->m_fDrainFactor : art->DrainFactor();
+	if (auto outfit = object().scast<CCustomOutfit*>())
+		return							outfit->m_fDrainFactor;
+	return								1.f;
 }
 
 float CScriptGameObject::GetPowerLoss()
@@ -620,7 +618,7 @@ float CScriptGameObject::GetCapacity() const
 		return							cont->GetCapacity();
 
 	if (auto aiitem = object().getModule<MAmountable>())
-		return							aiitem->Capacity();
+		return							aiitem->getCapacity();
 
 	return								0.f;
 }
@@ -739,7 +737,7 @@ u8 CScriptGameObject::GetInvIconIndex() const
 float CScriptGameObject::Power() const
 {
 	CArtefact* artefact					= object().scast<CArtefact*>();
-	return								(artefact) ? artefact->Power(false) : 0.f;
+	return								(artefact) ? artefact->getPower() : 0.f;
 }
 
 float CScriptGameObject::Radiation() const
@@ -751,7 +749,7 @@ float CScriptGameObject::Radiation() const
 float CScriptGameObject::Absorbation C$(int hit_type)
 {
 	CArtefact* artefact					= object().scast<CArtefact*>();
-	return								(artefact) ? artefact->Absorbation(hit_type) : 0.f;
+	return								(artefact) ? artefact->getAbsorbation(hit_type) : 0.f;
 }
 
 bool CScriptGameObject::Aiming C$()
@@ -941,6 +939,19 @@ void CScriptGameObject::reloadMagazine() const
 {
 	if (auto wpn = object().scast<CWeaponMagazined*>())
 		wpn->Reload						();
+}
+
+int CScriptGameObject::getArtefactModuleMode() const
+{
+	if (auto am = object().getModule<MArtefactModule>())
+		return							am->getMode();
+	return								-1;
+}
+
+void CScriptGameObject::setArtefactModuleMode(int val) const
+{
+	if (auto am = object().getModule<MArtefactModule>())
+		am->setMode						(val);
 }
 
 #define SPECIFIC_CAST(A,B)\

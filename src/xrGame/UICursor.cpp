@@ -55,9 +55,9 @@ void CUICursor::InitInternal()
 	m_static->SetWndSize		(Fvector2().set(24, 24));
 	m_static->SetStretchTexture	(true);
 
-	u32 screen_size_x	= GetSystemMetrics( SM_CXSCREEN );
-	u32 screen_size_y	= GetSystemMetrics( SM_CYSCREEN );
-	m_b_use_win_cursor	= (screen_size_y >=Device.dwHeight && screen_size_x>=Device.dwWidth);
+	m_sys_metrics.x = GetSystemMetrics(SM_CXSCREEN);
+	m_sys_metrics.y = GetSystemMetrics(SM_CYSCREEN);
+	m_b_use_win_cursor	= true;		//--xd shoud do proper user setting
 }
 
 //--------------------------------------------------------------------
@@ -105,19 +105,17 @@ Fvector2 CUICursor::GetCursorPositionDelta()
 
 void CUICursor::UpdateCursorPosition(int _dx, int _dy)
 {
-	Fvector2	p;
-	vPrevPos	= vPos;
+	vPrevPos							= vPos;
 	if (m_b_use_win_cursor)
 	{
-		Ivector2 pti;
+		Ivector2						pti;
 		IInputReceiver::IR_GetMousePosReal(pti);
-		p.x			= (float)pti.x;
-		p.y			= (float)pti.y;
-		vPos.x		= p.x * (UI_BASE_WIDTH/(float)Device.dwWidth);
-		vPos.y		= p.y * (UI_BASE_HEIGHT/(float)Device.dwHeight);
-	}else
+		vPos.x							= pti.x * (UI_BASE_WIDTH / m_sys_metrics.x);
+		vPos.y							= pti.y * (UI_BASE_HEIGHT / m_sys_metrics.y);
+	}
+	else
 	{
-		float sens = 1.0f;
+		float sens = 1.0f;		//--xd should implement real custom mouse sens for menus when not using system cursor
 		vPos.x		+= _dx*sens;
 		vPos.y		+= _dy*sens;
 	}
@@ -133,5 +131,12 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 	p.y			= iFloor(vPos.y / (UI_BASE_HEIGHT/(float)Device.dwHeight));
 	if (m_b_use_win_cursor)
 		ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
-	SetCursorPos(p.x, p.y);    
+	SetCursorPos(p.x, p.y);
+}
+
+void CUICursor::resetCursorPosition()
+{
+	Fvector2 pos = { m_sys_metrics.x / 2.f, m_sys_metrics.y / 2.f };
+	pos.div(UI().GetScaleFactor());
+	SetUICursorPosition(pos);
 }

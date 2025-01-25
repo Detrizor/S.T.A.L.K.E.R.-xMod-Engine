@@ -21,6 +21,7 @@ public:
 		mLauncher,
 		mMagazine,
 		mFoldable,
+		mArtefactModule,
 		mModuleTypesEnd
 	};
 

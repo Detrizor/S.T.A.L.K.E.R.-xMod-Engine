@@ -6,20 +6,11 @@
 
 MContainer::MContainer(CGameObject* obj) : CModule(obj)
 {
-	m_Capacity							= pSettings->r_float(O.cNameSect(), "capacity");
-	m_Items.clear						();
-	InvalidateState						();
-
+	m_capacity							= pSettings->r_float(O.cNameSect(), "capacity");
 	if (I)
 	{
-		m_content_volume_scale			= !!pSettings->r_BOOL(O.cNameSect(), "content_volume_scale");
-		m_ArtefactIsolation				= !!pSettings->r_BOOL(O.cNameSect(), "artefact_isolation");
-		m_RadiationProtection			= pSettings->r_float(O.cNameSect(), "radiation_protection");
-	}
-	else
-	{
-		m_ArtefactIsolation				= false;
-		m_RadiationProtection			= 1.f;
+		m_content_volume_scale			= pSettings->r_bool(O.cNameSect(), "content_volume_scale");
+		m_artefact_isolation			= pSettings->r_bool(O.cNameSect(), "artefact_isolation");
 	}
 }
 
@@ -30,9 +21,9 @@ void MContainer::sOnChild(CGameObject* obj, bool take)
 	if (auto item = obj->scast<CInventoryItem*>())
 	{
 		if (take)
-			m_Items.push_back			(item);
+			m_items.push_back			(item);
 		else
-			m_Items.erase_data			(item);
+			m_items.erase_data			(item);
 
 		InvalidateState					();
 		ParentCheck						(item, take);
@@ -65,17 +56,17 @@ float MContainer::sSumItemData(EItemDataTypes type)
 
 xoptional<float> MContainer::sGetAmount()
 {
-	return Get(eVolume);
+	return								Get(eVolume);
 }
 
 xoptional<float> MContainer::sGetFill()
 {
-	return Get(eVolume) / m_Capacity;
+	return								Get(eVolume) / m_capacity;
 }
 
 xoptional<float> MContainer::sGetBar()
 {
-	float fill							= Get(eVolume) / m_Capacity;
+	float fill							= Get(eVolume) / m_capacity;
 	return								(fLess(fill, 1.f)) ? fill : -1.f;
 }
 
@@ -83,19 +74,19 @@ xoptional<float> MContainer::sGetBar()
 
 void MContainer::InvalidateState()
 {
-	for (int i = eWeight; i <= eCost; i++)
-		Sum(i)							= flt_max;
+	for (auto& s : m_sum)
+		s.drop							();
 }
 
 float MContainer::Get(EItemDataTypes type)
 {
-	if (Sum(type) == flt_max)
+	if (!m_sum[type])
 	{
-		Sum(type)						= 0.f;
-		for (auto I : m_Items)
-			Sum(type)					+= I->getData(type);
+		m_sum[type]						= 0.f;
+		for (auto I : m_items)
+			m_sum[type].get()			+= I->getData(type);
 	}
-	return								Sum(type);
+	return								m_sum[type].get();
 }
 
 void MContainer::ParentCheck C$(PIItem item, bool add)
@@ -113,41 +104,26 @@ bool MContainer::CanTakeItem(PIItem item)
 {
 	if (item->O.getModule<MContainer>() == this)
 		return							false;
-	if (fEqual(m_Capacity, 0.f))
+	if (fEqual(m_capacity, 0.f))
 		return							true;
 	float vol							= Get(eVolume);
-	return								(fLessOrEqual(vol, m_Capacity) && fLessOrEqual(vol + item->Volume(), m_Capacity + 0.1f));
+	return								(fLessOrEqual(vol, m_capacity) && fLessOrEqual(vol + item->Volume(), m_capacity + .1f));
 }
 
 void MContainer::AddAvailableItems(TIItemContainer& items_container) const
 {
-	for (auto I : m_Items)
+	for (auto I : m_items)
 		items_container.push_back		(I);
 }
 
 bool MContainer::ArtefactIsolation(bool own) const
 {
-	if (m_ArtefactIsolation)
+	if (m_artefact_isolation)
 		return							true;
 
 	if (!own && O.H_Parent())
-	{
 		if (auto cont = O.H_Parent()->mcast<MContainer>())
 			return						cont->ArtefactIsolation();
-	}
 
 	return								false;
-}
-
-float MContainer::RadiationProtection(bool own) const
-{
-	float res							= m_RadiationProtection;
-
-	if (!own && O.H_Parent())
-	{
-		if (auto cont = O.H_Parent()->mcast<MContainer>())
-			res							*= cont->RadiationProtection();
-	}
-
-	return								res;
 }
