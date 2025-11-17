@@ -105,9 +105,9 @@ void dxRenderDeviceRender::OnDeviceCreate(LPCSTR shName)
 //#endif
 }
 
-void dxRenderDeviceRender::Create( HWND hWnd, u32 &dwWidth, u32 &dwHeight, float &fWidth_2, float &fHeight_2, bool move_window)
+void dxRenderDeviceRender::Create( HWND hWnd, u32 &dwWidth, u32 &dwHeight, float &fWidth_2, float &fHeight_2)
 {
-	HW.CreateDevice		(hWnd, move_window);
+	HW.CreateDevice		(hWnd);
 	dwWidth					= HW.m_ChainDesc.BufferDesc.Width;
 	dwHeight				= HW.m_ChainDesc.BufferDesc.Height;
 	fWidth_2			= float(dwWidth/2)			;
