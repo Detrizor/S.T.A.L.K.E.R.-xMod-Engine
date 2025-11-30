@@ -176,14 +176,14 @@ void MScope::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 	{
 		m->m_magnification				= m_Magnificaion.current;
 		m->m_zeroing					= m_Zeroing.current;
-		m->m_selection					= m_selection;
+		m->m_selection					= static_cast<s8>(m_selection);
 		m->m_current_reticle			= m_current_reticle;
 	}
 	else if (m)
 	{
 		m_Magnificaion.current			= m->m_magnification;
 		m_Zeroing.current				= m->m_zeroing;
-		m_selection						= m->m_selection;
+		m_selection						= static_cast<ScopeSelectionType>(m->m_selection);
 		m_current_reticle				= m->m_current_reticle;
 	}
 	if (!save)

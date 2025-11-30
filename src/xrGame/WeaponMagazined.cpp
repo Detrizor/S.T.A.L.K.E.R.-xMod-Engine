@@ -995,7 +995,7 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 
 	if (auto cur_scope = m_selected_scopes[idx])
 	{
-		cur_scope->setSelection			(-1);
+		cur_scope->setSelection			(MScope::ScopeSelectionType::None);
 		for (int i = 0, e = m_attached_scopes.size(); i < e; i++)
 		{
 			if (m_attached_scopes[i] == cur_scope)
@@ -1041,7 +1041,7 @@ void CWeaponMagazined::cycle_scope(int idx, bool up)
 	}
 
 	if (m_selected_scopes[idx])
-		m_selected_scopes[idx]->setSelection(idx);
+		m_selected_scopes[idx]->setSelection((idx == 0) ? MScope::ScopeSelectionType::Primary : MScope::ScopeSelectionType::Secondary);
 }
 
 void CWeaponMagazined::on_firemode_switch()
@@ -1168,20 +1168,20 @@ void CWeaponMagazined::process_scope(MScope* scope, bool attach)
 	if (attach)
 	{
 		m_attached_scopes.push_back		(scope);
-		if (scope->getSelection() == -1)
+		if (scope->getSelection() == MScope::ScopeSelectionType::Undefined)
 		{
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < 2; ++i)
 			{
 				if (!m_selected_scopes[i] || m_selected_scopes[i]->Type() == MScope::eIS && scope->Type() != MScope::eIS)
 				{
 					m_selected_scopes[i] = scope;
-					scope->setSelection	(i);
+					scope->setSelection	((i == 0) ? MScope::ScopeSelectionType::Primary : MScope::ScopeSelectionType::Secondary);
 					break;
 				}
 			}
 		}
-		else
-			m_selected_scopes[scope->getSelection()] = scope;
+		else if (scope->getSelection() != MScope::ScopeSelectionType::None)
+			m_selected_scopes[(scope->getSelection() == MScope::ScopeSelectionType::Primary) ? 0 : 1] = scope;
 	}
 	else
 	{

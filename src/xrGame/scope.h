@@ -48,6 +48,14 @@ public:
 		eIS
 	};
 
+	enum class ScopeSelectionType : s8
+	{
+		Undefined = -1,
+		Primary,
+		Secondary,
+		None
+	};
+
 private:
 	static float						s_eye_relief_magnification_shrink;
 	static float						s_shadow_pos_d_axis_factor;
@@ -80,7 +88,7 @@ private:
 	CNightVisionEffector*				m_pNight_vision							= nullptr;
 	float								m_camera_lense_distance					= 0.f;
 	Dvector								m_hud_offset[2]							= { dZero, dZero };
-	s8									m_selection								= -1;
+	ScopeSelectionType					m_selection								{ ScopeSelectionType::Undefined };
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
 	xptr<MScope>						m_backup_sight							= nullptr;
 	u8									m_current_reticle						= 0;
@@ -116,7 +124,7 @@ public:
 	void								setHudOffset							(Dvector CR$ pos, Dvector CR$ rot)		{ m_hud_offset[0] = pos; m_hud_offset[1] = rot; }
 	void								setMagnificaiton						(float val)								{ m_Magnificaion.current = val; }
 	void								setZeroing								(u16 val)								{ m_Zeroing.current = val; }
-	void								setSelection							(s8 val)								{ m_selection = val; }
+	void								setSelection							(ScopeSelectionType val)				{ m_selection = val; }
 
 	void								RenderUI								();
 	void								updateCameraLenseOffset					();
@@ -129,7 +137,7 @@ public:
 	Dvector CR$							getSightPosition					C$	()		{ return m_sight_position; }
 	float								getEyeRelief						C$	()		{ return m_eye_relief; }
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
-	s8									getSelection						C$	()		{ return m_selection; }
+	ScopeSelectionType					getSelection						C$	()		{ return m_selection; }
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
 	MScope*								getBackupSight						C$	()		{ return (m_backup_sight) ? m_backup_sight.get() : nullptr; }
 
