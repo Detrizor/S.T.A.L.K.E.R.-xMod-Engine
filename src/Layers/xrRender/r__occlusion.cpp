@@ -44,8 +44,13 @@ u32		R_occlusion::occq_begin		(u32&	ID		)
 	//	Igor: prevent release crash if we issue too many queries
 	if (pool.empty())
 	{
-		if ((::Render->dwFrame() % 40) == 0)
+		static float prev_time = Device.GetTimerGlobal()->GetElapsed_sec();
+		float cur_time = Device.GetTimerGlobal()->GetElapsed_sec();
+		if (cur_time - prev_time > 10.f)
+		{
 			Msg(" RENDER [Warning]: Too many occlusion queries were issued(>1536)!!!");
+			prev_time = cur_time;
+		}
 		ID = iInvalidHandle;
 		return 0;
 	}
