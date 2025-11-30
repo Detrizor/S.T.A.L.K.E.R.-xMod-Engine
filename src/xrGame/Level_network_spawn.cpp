@@ -134,13 +134,15 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 		}
 	}
 
-	if (0xffff != E->ID_Parent)	
+	if (0xffff != E->ID_Parent)
 	{
 		NET_Packet	GEN;
 		GEN.write_start();
 		GEN.read_start();
 		GEN.w_u16			(u16(O->ID()));
 		cl_Process_Event(E->ID_Parent, GE_OWNERSHIP_TAKE, GEN);
+		Server->game->OnDetach(E->ID_Parent, O->ID());
+		Server->game->OnTouch(E->ID_Parent, O->ID());
 	}
 
 	/*if (E->s_flags.is(M_SPAWN_UPDATE)) {
