@@ -36,7 +36,7 @@
 #include "item_container.h"
 #include "addon.h"
 #include "addon_owner.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 #include "item_usable.h"
 #include "foldable.h"
 #include "magazine.h"

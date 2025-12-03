@@ -5,7 +5,7 @@
 #include "../xrphysics/PHUpdateObject.h"
 #include "script_export_space.h"
 #include "patrol_path.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;

@@ -1643,7 +1643,7 @@
     <ClInclude Include="InventoryBox.h" />
     <ClInclude Include="InventoryOwner.h" />
     <ClInclude Include="inventory_item.h" />
-    <ClInclude Include="inventory_item_amountable.h" />
+    <ClInclude Include="item_amountable.h" />
     <ClInclude Include="inventory_item_impl.h" />
     <ClInclude Include="inventory_item_inline.h" />
     <ClInclude Include="inventory_item_object.h" />
@@ -3428,7 +3428,7 @@
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="inventory_item_amountable.cpp" />
+    <ClCompile Include="item_amountable.cpp" />
     <ClCompile Include="inventory_item_object.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>

@@ -28,7 +28,8 @@
 #include "UILogsWnd.h"
 
 #include "UIScriptWnd.h"
-#include "../inventory_item_amountable.h"
+
+#include "../item_amountable.h"
 
 #define PDA_XML		"pda.xml"
 

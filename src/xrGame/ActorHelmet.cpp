@@ -11,7 +11,7 @@
 #include "BoneProtections.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "ui/UIOutfitInfo.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 
 #define MAIN_BONE 15
 const float BASIC_HEALTH = pSettings->r_float("damage_manager", "helmet_basic_health");

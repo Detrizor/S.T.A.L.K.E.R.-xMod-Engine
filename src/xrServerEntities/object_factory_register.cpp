@@ -166,7 +166,7 @@
 #	include "smart_zone.h"
 #	include "InventoryBox.h"
 #	include "item_container.h"
-#	include "inventory_item_amountable.h"
+#	include "item_amountable.h"
 
 #	include "actor_mp_server.h"
 #	include "actor_mp_client.h"

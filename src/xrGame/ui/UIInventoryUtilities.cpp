@@ -24,7 +24,7 @@
 
 #include "UICellItem.h"
 
-#include "../inventory_item_amountable.h"
+#include "../item_amountable.h"
 
 #define BUY_MENU_TEXTURE "ui\\ui_mp_buy_menu"
 #define CHAR_ICONS		 "ui\\ui_icons_npc"

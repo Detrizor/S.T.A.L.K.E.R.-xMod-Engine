@@ -16,7 +16,7 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "player_hud.h"
 #include "ui/UIOutfitInfo.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 
 #define MAIN_BONE 11
 const float BASIC_HEALTH = pSettings->r_float("damage_manager", "armor_basic_health");

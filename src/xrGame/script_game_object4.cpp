@@ -39,7 +39,7 @@
 #include "grenade.h"
 #include "BottleItem.h"
 #include "WeaponAutomaticShotgun.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 #include "item_container.h"
 #include "Magazine.h"
 

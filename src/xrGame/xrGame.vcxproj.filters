@@ -7321,7 +7321,7 @@
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClInclude>
     <ClInclude Include="magazine.h" />
-    <ClInclude Include="inventory_item_amountable.h" />
+    <ClInclude Include="item_amountable.h" />
     <ClInclude Include="addon.h" />
     <ClInclude Include="addon_owner.h" />
     <ClInclude Include="scope.h" />
@@ -10964,7 +10964,7 @@
       <Filter>UI\Common\PDA\PDA Spot</Filter>
     </ClCompile>
     <ClCompile Include="magazine.cpp" />
-    <ClCompile Include="inventory_item_amountable.cpp" />
+    <ClCompile Include="item_amountable.cpp" />
     <ClCompile Include="addon.cpp" />
     <ClCompile Include="addon_owner.cpp" />
     <ClCompile Include="scope.cpp" />

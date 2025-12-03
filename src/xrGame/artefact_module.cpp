@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "artefact_module.h"
 #include "GameObject.h"
-#include "inventory_item_amountable.h"
+#include "item_amountable.h"
 
 MArtefactModule::MArtefactModule(CGameObject* obj) : CModule(obj),
 	m_amountable_ptr(O.getModule<MAmountable>()),
