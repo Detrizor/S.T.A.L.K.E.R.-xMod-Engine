@@ -8,28 +8,6 @@
 
 void CUIMpTradeWnd::OnBtnPistolAmmoClicked(CUIWindow* w, void* d)
 {
-	CheckDragItemToDestroy				();
-	CUIDragDropListEx*	res		= m_list[e_pistol];
-	CUICellItem* ci				= (res->ItemsCount())?res->GetItemIdx(0):NULL;
-	if(!ci)	
-		return;
-
-	CInventoryItem* ii			= (CInventoryItem*)ci->m_pData;
-	CWeapon*		wpn			= smart_cast<CWeapon*>(ii);
-	R_ASSERT		(wpn);
-
-	u32 ammo_idx				= (pInput->iGetAsyncKeyState(DIK_LSHIFT))?1:0;
-	
-	if(wpn->m_ammoTypes.size() < ammo_idx+1)	return;
-	const shared_str& ammo_name	= wpn->m_ammoTypes[ammo_idx];
-
-	if ( NULL==m_store_hierarchy->FindItem(ammo_name) )
-		return;
-
-	SBuyItemInfo* pitem			= CreateItem		(ammo_name, SBuyItemInfo::e_undefined, false);
-	bool b_res					= TryToBuyItem		(pitem, bf_normal, NULL );
-	if(!b_res)
-		DestroyItem				(pitem);
 }
 
 void CUIMpTradeWnd::OnBtnPistolSilencerClicked(CUIWindow* w, void* d)
@@ -61,29 +39,6 @@ void CUIMpTradeWnd::OnBtnPistolSilencerClicked(CUIWindow* w, void* d)
 
 void CUIMpTradeWnd::OnBtnRifleAmmoClicked(CUIWindow* w, void* d)
 {
-	CheckDragItemToDestroy				();
-	CUIDragDropListEx*	res		= m_list[e_rifle];
-	CUICellItem* ci				= (res->ItemsCount())?res->GetItemIdx(0):NULL;
-	if(!ci)	
-		return;
-
-	CInventoryItem* ii			= (CInventoryItem*)ci->m_pData;
-	CWeapon*		wpn			= smart_cast<CWeapon*>(ii);
-	R_ASSERT		(wpn);
-
-	u32 ammo_idx				= (pInput->iGetAsyncKeyState(DIK_LSHIFT))?1:0;
-	
-	if(wpn->m_ammoTypes.size() < ammo_idx+1)	return;
-
-	const shared_str& ammo_name	= wpn->m_ammoTypes[ammo_idx];
-
-	if ( NULL==m_store_hierarchy->FindItem(ammo_name) )
-		return;
-
-	SBuyItemInfo* pitem			= CreateItem		(ammo_name, SBuyItemInfo::e_undefined, false);
-	bool b_res					= TryToBuyItem		(pitem, bf_normal, NULL);
-	if(!b_res)
-		DestroyItem				(pitem);
 }
 
 void CUIMpTradeWnd::OnBtnRifleSilencerClicked(CUIWindow* w, void* d)

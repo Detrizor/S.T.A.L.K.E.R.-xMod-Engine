@@ -40,21 +40,6 @@ bool CWeapon::install_upgrade_impl( LPCSTR section, bool test )
 {
 	bool result							= inherited::install_upgrade_impl(section, test);
 
-	LPCSTR								str;
-	bool result2						= process_if_exists(section, "ammo_class", str, test);
-	if (result2 && !test)
-	{
-		m_ammoTypes.clear				();
-		string128						ammoItem;
-		int count						= _GetItemCount(str);
-		for (int i = 0; i < count; ++i)
-		{
-			_GetItem					(str, i, ammoItem);
-			m_ammoTypes.push_back		(ammoItem);
-		}
-	}
-	result								|= result2;
-
 	result		|= process_if_exists_deg2rad(section,	"fire_dispersion_base",			fireDispersionBase,					test);
 	result		|= process_if_exists		(section,	"condition_shot_dec",			conditionDecreasePerShot,			test);
 	result		|= process_if_exists		(section,	"condition_queue_shot_dec",		conditionDecreasePerQueueShot,		test);

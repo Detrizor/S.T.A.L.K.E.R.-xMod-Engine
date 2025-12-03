@@ -243,12 +243,14 @@ void CUIBoosterInfo::SetInfo	(CUICellItem* itm)
 		LPCSTR cartridge_section		= (ItemSubcategory(section, "box")) ? pSettings->r_string(section, "supplies") : *section;
 		auto cartridge					= CCartridge(cartridge_section);
 		
-		float barrel_len				= 0.f;
+		float barrel_len				{ 0.f };
+		auto slot_type					{ pSettings->r_string(cartridge_section, "slot_type") };
 		if (auto ai = Actor()->inventory().ActiveItem())
 			if (auto wpn = ai->O.scast<CWeaponMagazined*>())
-				for (auto& type : wpn->m_ammoTypes)
-					if (type == cartridge_section)
-						barrel_len		= wpn->getBarrelLen();
+				if (auto ao = ai->O.mcast<MAddonOwner>())
+					for (auto const& s : ao->AddonSlots())
+						if (CAddonSlot::isCompatible(s->type, slot_type))
+							barrel_len	= wpn->getBarrelLen();
 
 		if (barrel_len)
 			m_disclaimer->TextItemControl()->SetText(*CStringTable().translate("ui_disclaimer_active_weapon"));

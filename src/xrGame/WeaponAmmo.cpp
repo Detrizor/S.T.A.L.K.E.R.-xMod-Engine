@@ -188,16 +188,13 @@ CInventoryItem* CWeaponAmmo::can_make_killing(const CInventory *inventory) const
 {
 	R_ASSERT							(inventory);
 
-	for (auto item : inventory->m_all)
-	{
-		CWeapon* weapon					= item->O.scast<CWeapon*>();
-		if (!weapon)
-			continue;
-
-		auto i							= std::find(weapon->m_ammoTypes.begin(), weapon->m_ammoTypes.end(), cNameSect());
-		if (i != weapon->m_ammoTypes.end())
-			return						(weapon);
-	}
+	if (auto addon = mcast<MAddon>())
+		for (auto item : inventory->m_all)
+			if (auto weapon = item->O.scast<CWeapon*>())
+				if (auto ao = weapon->mcast<MAddonOwner>())
+					for (auto& s : ao->AddonSlots())
+						if (CAddonSlot::isCompatible(s->type, addon->SlotType()))
+							return		(weapon);
 
 	return								(nullptr);
 }
