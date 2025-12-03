@@ -20,6 +20,7 @@ struct SCartridgeParam
 	int									buckShot								= 1;
 	u8									u8ColorID								= 0;
 	bool								bullet_hollow_point						= false;
+	bool								bullet_pap								= false;
 };
 
 class CCartridge : public IAnticheatDumpable

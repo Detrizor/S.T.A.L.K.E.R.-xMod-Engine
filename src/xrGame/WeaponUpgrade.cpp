@@ -43,6 +43,7 @@ bool CWeapon::install_upgrade_impl( LPCSTR section, bool test )
 	result		|= process_if_exists_deg2rad(section,	"fire_dispersion_base",			fireDispersionBase,					test);
 	result		|= process_if_exists		(section,	"condition_shot_dec",			conditionDecreasePerShot,			test);
 	result		|= process_if_exists		(section,	"condition_queue_shot_dec",		conditionDecreasePerQueueShot,		test);
+	result		|= process_if_exists		(section,	"pap_hardened",					m_bPAPHardened,						test);
 
 	return		result;
 }

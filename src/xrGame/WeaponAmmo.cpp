@@ -13,6 +13,8 @@
 #include "WeaponMagazined.h"
 #include "ui\UICellCustomItems.h"
 
+#include "addon.h"
+
 CCartridge::CCartridge() 
 {
 	m_flags.assign						(cfTracer | cfRicochet);
@@ -52,6 +54,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 	param_s.kDisp						= pSettings->r_float(section, "k_disp");
 	param_s.fBulletMass					= pSettings->r_float(section, "bullet_mass") * .001f * pSettings->r_float(section, "k_bullet_mass");
 	param_s.bullet_hollow_point			= !!pSettings->r_BOOL(section, "hollow_point");
+	param_s.bullet_pap					= !!pSettings->r_BOOL(section, "pap");
 	param_s.u8ColorID					= pSettings->r_u8(section, "tracer_color_ID");
 	float bullet_speed					= pSettings->r_float(section, "bullet_speed") * pSettings->r_float(section, "k_bullet_speed");
 	param_s.barrel_length				= pSettings->r_float(section, "reference_barrel_length");

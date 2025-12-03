@@ -400,6 +400,7 @@ protected:
 	int									m_iADS									= 0;
 	bool								m_bHasAltAim							= true;
 	bool								m_bArmedRelaxedSwitch					= true;
+	bool								m_bPAPHardened							= false;
 	CActor*								m_actor									= nullptr;
 
 	float								m_grip_accuracy_modifier				= 1.f;

@@ -80,7 +80,17 @@ void CWeapon::FireTrace()
 	appendRecoil						(shot_speed * shot_mass);
 
 	if (!unlimited_ammo())
-		ChangeCondition					(-GetWeaponDeterioration() * m_cartridge.param_s.impair);
+	{
+		float deterioration				{ -GetWeaponDeterioration() * m_cartridge.param_s.impair };
+		if (m_cartridge.param_s.bullet_pap && !m_bPAPHardened)
+		{
+			FireEnd						();
+			bMisfire					= true;
+			SwitchState					(eMisfire);
+			deterioration				*= 100.f;
+		}
+		ChangeCondition					(deterioration);
+	}
 }
 
 void CWeapon::StopShooting()
