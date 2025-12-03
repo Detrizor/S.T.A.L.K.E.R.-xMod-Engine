@@ -9,7 +9,6 @@ MArtefactModule::MArtefactModule(CGameObject* obj) : CModule(obj),
 	m_modes_count(pSettings->r_u32(O.cNameSect(), "modes_count"))
 {
 	R_ASSERT2							(m_amountable_ptr, "MArtefactModule requires MAmountable!");
-	m_amountable_ptr->setCapacity		(m_max_artefact_radiation_limit);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -265,7 +265,6 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 				LPCSTR title					= *CStringTable().translate(pSettings->r_string(amount_display_type, "title"));
 				LPCSTR unit						= pSettings->r_string(amount_display_type, "unit");
 				bool empty_cont					= READ_IF_EXISTS(pSettings, r_BOOL, section, "container", FALSE) && (pSettings->r_u16(section, "supplies_count") == 0);
-				float amount					= (pInvItem)	? pInvItem->GetAmount()		: (empty_cont) ? 0.f : pSettings->r_float(section, "capacity");
 				float fill						= (pInvItem)	? pInvItem->GetFill()		: (empty_cont) ? 0.f : 1.f;
 				if (!xr_strcmp(unit, "percent"))
 					amount_str.printf			("%s: %i%%", title, (u32)floor(fill * 100.f));
@@ -290,6 +289,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, u32 item_price, LPCSTR trade_
 				}
 				else
 				{
+					float amount				{ (pInvItem) ? pInvItem->GetAmount() : ((empty_cont) ? 0.f : pSettings->r_float(section, "max_amount")) };
 					amount						*= pSettings->r_float(amount_display_type, "factor");
 					LPCSTR unit_str				= *CStringTable().translate(unit);
 					bool integer				= !!pSettings->r_BOOL(amount_display_type, "integer");

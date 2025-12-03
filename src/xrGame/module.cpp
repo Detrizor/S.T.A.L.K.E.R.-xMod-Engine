@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "module.h"
+
 #include "GameObject.h"
 #include "inventory_item_object.h"
 

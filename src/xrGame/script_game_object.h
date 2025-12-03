@@ -941,7 +941,8 @@ public:
 	float				GetDepletionRate		() const;
 	float				GetDepletionSpeed		() const;
 	void				SetDepletionSpeed		(float val);
-	float				GetCapacity				() const;
+	float				getCapacity				() const;
+	float				getMaxAmount			() const;
 	float				GetAmount				() const;
 	void				SetAmount				(float val);
 	void				ChangeAmount			(float val);

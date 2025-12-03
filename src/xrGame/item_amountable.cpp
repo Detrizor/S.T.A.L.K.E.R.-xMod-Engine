@@ -1,33 +1,32 @@
 #include "stdafx.h"
 #include "item_amountable.h"
 
-#include "inventory_item_object.h"
 #include "Level.h"
+#include "inventory_item_object.h"
 
-MAmountable::MAmountable(CGameObject* obj) : CModule(obj)
+MAmountable::MAmountable(CGameObject* obj) : CModule(obj),
+	m_bUnlimited(!!pSettings->r_BOOL(O.cNameSect(), "unlimited")),
+	m_fMaxAmount(pSettings->r_float(O.cNameSect(), "max_amount")),
+	m_fNetWeight(pSettings->r_float(O.cNameSect(), "net_weight")),
+	m_fNetVolume(pSettings->r_float(O.cNameSect(), "net_volume")),
+	m_fNetCost(pSettings->r_float(O.cNameSect(), "net_cost")),
+	m_fDepletionSpeed(pSettings->r_float(O.cNameSect(), "depletion_speed"))
 {
-	m_net_weight						= pSettings->r_float(O.cNameSect(), "net_weight");
-	m_net_volume						= pSettings->r_float(O.cNameSect(), "net_volume");
-	m_unlimited							= !!pSettings->r_BOOL(O.cNameSect(), "unlimited");
-	m_depletion_speed					= pSettings->r_float(O.cNameSect(), "depletion_speed");
-	m_capacity							= pSettings->r_float(O.cNameSect(), "capacity");
-
-	m_net_cost							= pSettings->r_float(O.cNameSect(), "net_cost");
-	if (m_net_cost <= 1.f)
-		m_net_cost						*= CInventoryItem::readBaseCost(*O.cNameSect());
+	if (fLessOrEqual(m_fNetCost, 1.F))
+		m_fNetCost *= CInventoryItem::readBaseCost(*O.cNameSect());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MAmountable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	auto m								= se_obj->getModule<CSE_ALifeModuleAmountable>(save);
+	auto m = se_obj->getModule<CSE_ALifeModuleAmountable>(save);
 	if (save)
-		m->m_amount						= m_amount;
+		m->m_amount = m_fAmount;
 	else if (m)
-		m_amount						= m->m_amount;
+		m_fAmount = m->m_amount;
 	else
-		get_base_amount					();
+		get_base_amount();
 }
 
 float MAmountable::sSumItemData(EItemDataTypes type)
@@ -35,79 +34,82 @@ float MAmountable::sSumItemData(EItemDataTypes type)
 	switch (type)
 	{
 	case eWeight:
-		return							m_net_weight * get_fill();
+		return m_fNetWeight * get_fill();
 	case eVolume:
-		return							m_net_volume * get_fill();
+		return m_fNetVolume * get_fill();
 	case eCost:
-		return							m_net_cost * (get_fill() - 1.f);
+		return m_fNetCost * (get_fill() - 1.F);
 	default:
-		FATAL							("wrong item data type");
+		FATAL("wrong item data type");
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MAmountable::OnAmountChange()
+bool MAmountable::is_useful() const
 {
-	if (m_amount < 0.f)
-		m_amount						= 0.f;
-	else if (!m_unlimited && m_amount > m_capacity)
-		m_amount						= m_capacity;
+	bool res = I->Useful();
+	res &= !Empty() || fMore(I->Weight(), 0.F) || fMore(I->Volume(), 0.F);
+	return res;
+}
 
-	if (!Useful() && O.Local() && OnServer())
+void MAmountable::on_amount_change()
+{
+	if (m_fAmount < 0.F)
+		m_fAmount = 0.F;
+	else if (!m_bUnlimited && m_fAmount > m_fMaxAmount)
+		m_fAmount = m_fMaxAmount;
+
+	if (!is_useful() && O.Local() && OnServer())
 	{
-		I->SetDropManual				(TRUE);
-		O.DestroyObject					();
+		I->SetDropManual(TRUE);
+		O.DestroyObject();
 	}
 }
 
 void MAmountable::get_base_amount()
 {
-	float								amount_mean;
+	float amount_mean{};
 	if (pSettings->line_exist(O.cNameSect(), "base_amount"))
-		amount_mean						= pSettings->r_float(O.cNameSect(), "base_amount");
+		amount_mean = pSettings->r_float(O.cNameSect(), "base_amount");
 	else if (pSettings->line_exist(O.cNameSect(), "base_fill"))
-		amount_mean						= m_capacity * pSettings->r_float(O.cNameSect(), "base_fill");
+		amount_mean = m_fMaxAmount * pSettings->r_float(O.cNameSect(), "base_fill");
 	else
-		amount_mean						= m_capacity;
+		amount_mean = m_fMaxAmount;
 
-	if (float amount_dispersion = pSettings->r_float_ex(O.cNameSect(), "base_amount_dispersion", 0.f))
+	float amount_dispersion{ pSettings->r_float_ex(O.cNameSect(), "base_amount_dispersion", 0.F) };
+	if (!fIsZero(amount_dispersion))
 	{
-		float min						= amount_mean * (1.f - amount_dispersion);
-		float max						= amount_mean * (1.f + amount_dispersion);
-		m_amount						= Random.randF(min, max);
+		const float min = amount_mean * (1.F - amount_dispersion);
+		const float max = amount_mean * (1.F + amount_dispersion);
+		m_fAmount = Random.randF(min, max);
 	}
 	else
-		m_amount						= amount_mean;
+		m_fAmount = amount_mean;
 }
 
-bool MAmountable::Useful() const
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MAmountable::setAmount(float val)
 {
-	bool res							= I->Useful();
-	res									&= !Empty() || fMore(I->Weight(), 0.f) || fMore(I->Volume(), 0.f);
-	return								res;
+	m_fAmount = val;
+	on_amount_change();
 }
 
-void MAmountable::SetAmount(float val)
+void MAmountable::changeAmount(float delta)
 {
-	m_amount							= val;
-	OnAmountChange						();
+	m_fAmount += delta;
+	on_amount_change();
 }
 
-void MAmountable::ChangeAmount(float delta)
+void MAmountable::setFill(float val)
 {
-	m_amount							+= delta;
-	OnAmountChange						();
+	m_fAmount = val * m_fMaxAmount;
+	on_amount_change();
 }
 
-void MAmountable::SetFill(float val)
+void MAmountable::changeFill(float delta)
 {
-	m_amount							= val * m_capacity;
-	OnAmountChange						();
-}
-
-void MAmountable::ChangeFill(float delta)
-{
-	m_amount							+= delta * m_capacity;
-	OnAmountChange						();
+	m_fAmount += delta * m_fMaxAmount;
+	on_amount_change();
 }

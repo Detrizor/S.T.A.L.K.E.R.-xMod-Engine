@@ -67,7 +67,7 @@ void CArtefact::Load(LPCSTR section)
 	R_ASSERT2							(m_amountable_ptr, "CArtefact requires MAmountable!");
 
 	m_baseline_charge					= pSettings->r_float(section, "baseline_charge");
-	m_charge_capacity					= m_amountable_ptr->getCapacity();
+	m_charge_capacity					= m_amountable_ptr->getMaxAmount();
 	m_saturation_power					= m_charge_capacity / m_baseline_charge;
 	float weight_dump					= 1.f - pSettings->r_float(section, "weight_dump");
 	m_baseline_weight_dump				= (1.f / weight_dump) - 1.f;
