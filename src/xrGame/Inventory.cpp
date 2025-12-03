@@ -1190,7 +1190,7 @@ bool CInventory::Eat(PIItem pIItem)
 			return false;
 
 	if (amt)
-		amt->Deplete			();
+		amt->deplete			();
 	else
 		pIItem->O.DestroyObject	();
 

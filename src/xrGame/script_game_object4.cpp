@@ -597,30 +597,33 @@ void CScriptGameObject::AmmoChangeCount(u16 val)
 float CScriptGameObject::GetDepletionRate() const
 {
 	MAmountable* aiitem				= object().getModule<MAmountable>();
-	return							(aiitem) ? aiitem->GetDepletionRate() : false;
+	return							(aiitem) ? aiitem->getDepletionRate() : false;
 }
 
 float CScriptGameObject::GetDepletionSpeed() const
 {
 	MAmountable* aiitem				= object().getModule<MAmountable>();
-	return							(aiitem) ? aiitem->GetDepletionSpeed() : false;
+	return							(aiitem) ? aiitem->getDepletionSpeed() : false;
 }
 
 void CScriptGameObject::SetDepletionSpeed(float val)
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->SetDepletionSpeed	(val);
+		aiitem->setDepletionSpeed	(val);
 }
 
-float CScriptGameObject::GetCapacity() const
+float CScriptGameObject::getCapacity() const
 {
 	if (auto cont = object().getModule<MContainer>())
-		return							cont->GetCapacity();
+		return cont->GetCapacity();
+	return 0.F;
+}
 
+float CScriptGameObject::getMaxAmount() const
+{
 	if (auto aiitem = object().getModule<MAmountable>())
-		return							aiitem->getCapacity();
-
-	return								0.f;
+		return aiitem->getMaxAmount();
+	return 0.F;
 }
 
 float CScriptGameObject::GetAmount() const
@@ -632,13 +635,13 @@ float CScriptGameObject::GetAmount() const
 void CScriptGameObject::SetAmount(float val)
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->SetAmount			(val);
+		aiitem->setAmount			(val);
 }
 
 void CScriptGameObject::ChangeAmount(float val)
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->ChangeAmount		(val);
+		aiitem->changeAmount		(val);
 }
 
 float CScriptGameObject::GetFill() const
@@ -650,19 +653,19 @@ float CScriptGameObject::GetFill() const
 void CScriptGameObject::SetFill(float val)
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->SetFill				(val);
+		aiitem->setFill				(val);
 }
 
 void CScriptGameObject::ChangeFill(float val)
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->ChangeFill			(val);
+		aiitem->changeFill			(val);
 }
 
 void CScriptGameObject::Deplete()
 {
 	if (auto aiitem = object().getModule<MAmountable>())
-		aiitem->Deplete				();
+		aiitem->deplete				();
 }
 
 bool CScriptGameObject::Empty() const

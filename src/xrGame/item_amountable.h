@@ -3,48 +3,52 @@
 class MAmountable : public CModule
 {
 public:
-	static EModuleTypes					mid										()		{ return mAmountable; }
+	static EModuleTypes mid() { return mAmountable; }
 
 public:
-										MAmountable								(CGameObject* obj);
+	explicit MAmountable(CGameObject* obj);
 
 private:
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
-	float								sSumItemData						O$	(EItemDataTypes type);
-	xoptional<float>					sGetAmount							O$	()		{ return m_amount; }
-	xoptional<float>					sGetFill							O$	()		{ return get_fill(); }
-	xoptional<float>					sGetBar								O$	()		{ return Full() ? -1.f : get_fill(); }
+	void	sSyncData		(CSE_ALifeDynamicObject* se_obj, bool save) override;
+	float	sSumItemData	(EItemDataTypes type) override;
+
+	xoptional<float> sGetAmount	() override		{ return m_fAmount; }
+	xoptional<float> sGetFill	() override		{ return get_fill(); }
+	xoptional<float> sGetBar	() override		{ return Full() ? -1.F : get_fill(); }
 
 private:
-	float								m_net_weight;
-	float								m_net_volume;
-	float								m_net_cost;
-	float								m_capacity;
-	bool								m_unlimited;
-	float								m_depletion_speed;
+	float get_fill() const { return m_fAmount / m_fMaxAmount; }
 
-	float								m_amount								= 0.f;
+	bool is_useful() const;
 
-	void								OnAmountChange							();
-	void								get_base_amount							();
-
-	float								get_fill							C$	()		{ return m_amount / m_capacity; }
-	bool								Useful								C$	();
+	void on_amount_change();
+	void get_base_amount();
 
 public:
-	void								setCapacity								(float val)		{ m_capacity = val; }
-	void								SetDepletionSpeed						(float val)		{ m_depletion_speed = val; }
-	void								Deplete									()				{ ChangeAmount(-m_depletion_speed); }
+	float getAmount			() const	{ return m_fAmount; }
+	float getMaxAmount		() const	{ return m_fMaxAmount; }
+	float getDepletionSpeed	() const	{ return m_fDepletionSpeed; }
+	float getDepletionRate	() const	{ return m_fDepletionSpeed / m_fMaxAmount; }
 
-	void								SetAmount								(float val);
-	void								ChangeAmount							(float delta);
-	void								SetFill									(float val);
-	void								ChangeFill								(float delta);
+	bool Empty	() const { return fIsZero(m_fAmount); }
+	bool Full	() const { return fEqual(m_fAmount, m_fMaxAmount) && !m_bUnlimited; }
 
-	float								getAmount							C$	()		{ return m_amount; }
-	float								getCapacity							C$	()		{ return m_capacity; }
-	float								GetDepletionSpeed					C$	()		{ return m_depletion_speed; }
-	float								GetDepletionRate					C$	()		{ return m_depletion_speed / m_capacity; }
-	bool								Empty								C$	()		{ return fIsZero(m_amount); }
-	bool								Full								C$	()		{ return fEqual(m_amount, m_capacity) && !m_unlimited; }
+	void setDepletionSpeed	(float val)		{ m_fDepletionSpeed = val; }
+	void deplete			()				{ changeAmount(-m_fDepletionSpeed); }
+
+	void setAmount		(float val);
+	void changeAmount	(float delta);
+	void setFill		(float val);
+	void changeFill		(float delta);
+
+private:
+	const bool m_bUnlimited;
+	const float m_fMaxAmount;
+	const float m_fNetWeight;
+	const float m_fNetVolume;
+
+	float m_fNetCost;
+	float m_fDepletionSpeed;
+
+	float m_fAmount{ 0.F };
 };

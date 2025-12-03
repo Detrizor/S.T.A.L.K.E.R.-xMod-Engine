@@ -25,9 +25,14 @@ public:
 		mModuleTypesEnd
 	};
 
-	CGameObject&						O;
-	CInventoryItemObject PC$			I;
-
 protected:
-										CModule									(CGameObject* obj);
+	explicit CModule(CGameObject* obj);
+
+public:
+	virtual ~CModule() = default;
+	CModule(CModule&&) = delete;
+
+public:
+	CGameObject& O;
+	CInventoryItemObject* const I;
 };
