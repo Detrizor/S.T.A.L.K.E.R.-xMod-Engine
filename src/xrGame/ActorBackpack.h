@@ -5,7 +5,7 @@
 class CBackpack : public CInventoryItemObject
 {
 private:
-	typedef CInventoryItemObject inherited;
+	typedef CInventoryItemObject _super;
 
 protected:
 	bool install_upgrade_impl(LPCSTR section, bool test) override;
