@@ -193,7 +193,7 @@ bool CInventoryItem::process_if_exists(LPCSTR section, LPCSTR name, float& value
 			else if (!xr_strcmp(c_str, "false") || !xr_strcmp(c_str, "off"))
 				value				= 0.f;
 			else
-				value				= (float)atof(c_str);
+				value				= static_cast<float>(atof(c_str));
 		}
 	}
 
@@ -261,12 +261,13 @@ bool CInventoryItem::process_if_exists(LPCSTR section, LPCSTR name, LPCSTR& valu
 
 bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 {
-	u32 tmp_cost						= m_cost;
-	bool result							= process_if_exists(section,	"cost",				tmp_cost,			test);
+	float base_cost{ readBaseCost(m_section_id.c_str(), true) };
+	float tmp_cost{ base_cost };
+	bool result{ process_if_exists(section, "cost", tmp_cost, test) };
 	if (result)
-		m_upgrades_cost					+= tmp_cost - m_cost;
-	result								|= process_if_exists(section,	"inv_weight",		m_weight,		test);
-	result								|= process_if_exists(section,	"inv_volume",		m_volume,		test);
+		m_upgrades_cost += tmp_cost - base_cost;
+	result |= process_if_exists(section, "inv_weight", m_weight, test);
+	result |= process_if_exists(section, "inv_volume", m_volume, test);
 
 	bool result2						= false;
 	if ( BaseSlot() != NO_ACTIVE_SLOT )
