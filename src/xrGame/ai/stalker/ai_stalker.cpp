@@ -253,15 +253,12 @@ void CAI_Stalker::reload			(LPCSTR section)
 	if (!already_dead())
 		movement().reload			(section);
 
-	m_disp_walk_stand				= pSettings->r_float(section,"disp_walk_stand");
-	m_disp_walk_crouch				= pSettings->r_float(section,"disp_walk_crouch");
-	m_disp_run_stand				= pSettings->r_float(section,"disp_run_stand");
-	m_disp_run_crouch				= pSettings->r_float(section,"disp_run_crouch");
-	m_disp_stand_stand				= pSettings->r_float(section,"disp_stand_stand");
-	m_disp_stand_crouch				= pSettings->r_float(section,"disp_stand_crouch");
-	m_disp_stand_stand_zoom			= pSettings->r_float(section,"disp_stand_stand_zoom");
-	m_disp_stand_crouch_zoom		= pSettings->r_float(section,"disp_stand_crouch_zoom");
-	m_accuracy_k					= pSettings->r_float(section,"accuracy_k");
+	m_fDispersion = deg2rad(pSettings->r_float(section, "dispersion"));
+	m_fAccuracyZoom = pSettings->r_float(section, "accuracy_zoom");
+	m_fAccuracyHeap = pSettings->r_float(section, "accuracy_heap");
+	m_fAccuracyCrouchFactor = pSettings->r_float(section, "accuracy_crouch_factor");
+	m_fAccuracyWalkFactor = pSettings->r_float(section, "accuracy_walk_factor");
+	m_fAccuracyRunFactor = pSettings->r_float(section, "accuracy_run_factor");
 
 	m_can_select_weapon				= true;
 
@@ -571,12 +568,17 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 	static float novice_rank_dispersion			= pSettings->r_float("ranks_properties", "dispersion_novice_k");
 	static float expirienced_rank_dispersion	= pSettings->r_float("ranks_properties", "dispersion_experienced_k");
 
+	static float novice_rank_accuracy			= pSettings->r_float("ranks_properties", "accuracy_novice_k");
+	static float expirienced_rank_accuracy		= pSettings->r_float("ranks_properties", "accuracy_experienced_k");
+
 	::luabind::functor<float>			func;
 	R_ASSERT							(ai().script_engine().functor("ranks.rank_factor", func));
 	float rank_factor					= func(this->lua_game_object());
+	float rank_factor_inversed			= 1.F - rank_factor;
 
 	m_fRankVisibility					= novice_rank_visibility + (expirienced_rank_visibility - novice_rank_visibility) * rank_factor;
-	m_fRankDisperison					= expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * (1.f - rank_factor);
+	m_fRankDispersion					= expirienced_rank_dispersion + (novice_rank_dispersion - expirienced_rank_dispersion) * rank_factor_inversed;
+	m_fRankAccuracy						= expirienced_rank_accuracy + (novice_rank_accuracy - expirienced_rank_accuracy) * rank_factor_inversed;
 
 	if (!fis_zero(SpecificCharacter().panic_threshold()))
 		m_panic_threshold				= SpecificCharacter().panic_threshold();
@@ -868,6 +870,8 @@ void CAI_Stalker::UpdateCL()
 		START_PROFILE("stalker/client_update/step_manager")
 		CStepManager::update		(false);
 		STOP_PROFILE
+
+		update_accuracy();
 
 		START_PROFILE("stalker/client_update/weapon_shot_effector")
 		if (weapon_shot_effector().IsActive())

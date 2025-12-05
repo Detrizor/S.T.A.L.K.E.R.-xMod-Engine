@@ -107,21 +107,19 @@ private:
 
 	// weapon dispersion
 private:
-	float							m_disp_walk_stand;
-	float							m_disp_walk_crouch;
-	float							m_disp_run_stand;
-	float							m_disp_run_crouch;
-	float							m_disp_stand_stand;
-	float							m_disp_stand_crouch;
-	float							m_disp_stand_stand_zoom;
-	float							m_disp_stand_crouch_zoom;
-	float							m_accuracy_k;
+	float m_fDispersion{ 1.f };
+	float m_fAccuracyZoom{ 1.f };
+	float m_fAccuracyHeap{ 1.f };
+	float m_fAccuracyCrouchFactor{ 1.f };
+	float m_fAccuracyWalkFactor{ 1.f };
+	float m_fAccuracyRunFactor{ 1.f };
 
 private:
 	float							m_power_fx_factor;
 
 private:
-	float							m_fRankDisperison;
+	float							m_fRankAccuracy;
+	float							m_fRankDispersion;
 	float							m_fRankVisibility;
 
 	// best item/ammo selection members
@@ -831,13 +829,17 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float mutable						m_weapon_accuracy						= 1.f;
-	bool								m_in_combat								= false;
+	void update_accuracy();
 
-	float								getAccuracy							CO$	()		{ return m_weapon_accuracy; }
-	
 protected:
-	bool								alwaysUpdate						O$	();
+	bool alwaysUpdate() override;
+
+public:
+	float getAccuracy() const override { return m_fAccuracy * m_fRankAccuracy; }
+
+private:
+	float	m_fAccuracy{ 1.f };
+	bool	m_in_combat{ false };
 };
 
 add_to_type_list(CAI_Stalker)
