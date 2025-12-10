@@ -17,32 +17,32 @@
 #include "game_base_space.h"
 #include "Artefact.h"
 
-static const float VEL_MAX		= 10.f;
-static const float VEL_A_MAX	= 10.f;
+static constexpr float fVelMax{ 10.f };
+static constexpr float fAVelMax{ 10.f };
 
 void CActor::update_accuracy()
 {
 	if (IsZoomADSMode())
-		m_accuracy						= m_accuracy_ads;
+		m_fAccuracy = m_accuracy_ads;
 	else if (IsZoomAimingMode())
-		m_accuracy						= m_accuracy_aim;
+		m_fAccuracy = m_accuracy_aim;
 	else
-		m_accuracy						= m_accuracy_heap;
+		m_fAccuracy = m_accuracy_heap;
 	
-	CEntity::SEntityState				state;
+	CEntity::SEntityState state{};
 	if (g_State(state))
 	{
-		m_accuracy						*= pow(m_accuracy_vel_factor, state.fAVelocity / VEL_A_MAX);
-		m_accuracy						*= pow(m_accuracy_vel_factor, state.fVelocity / VEL_MAX);
+		m_fAccuracy *= pow(m_accuracy_vel_factor, state.fAVelocity / fAVelMax);
+		m_fAccuracy *= pow(m_accuracy_vel_factor, state.fVelocity / fVelMax);
 		if (state.bCrouch)
-			m_accuracy					*= m_accuracy_crouch_factor;
+			m_fAccuracy *= m_accuracy_crouch_factor;
 	}
 }
 
 //возвращает текуший разброс стрельбы (в радианах)с учетом движения
 float CActor::getWeaponDispersion() const	
 {
-	return								m_dispersion / m_accuracy;
+	return m_dispersion / m_fAccuracy;
 }
 
 void CActor::g_fireParams	(const CHudItem* pHudItem, Fvector &fire_pos, Fvector &fire_dir)

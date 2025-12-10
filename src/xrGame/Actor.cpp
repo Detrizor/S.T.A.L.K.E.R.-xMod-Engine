@@ -1754,6 +1754,11 @@ bool CActor::CanPutInSlot(PIItem item, u32 slot)
 	return								!pSettings->r_bool_ex("inventory", slot_ai, false);
 }
 
+float CActor::getAccuracy() const
+{
+	return m_fAccuracy * getAccuracyModifier();
+}
+
 #include "items_library.h"
 #include "EntityCondition.h"
 #include "BoneProtections.h"

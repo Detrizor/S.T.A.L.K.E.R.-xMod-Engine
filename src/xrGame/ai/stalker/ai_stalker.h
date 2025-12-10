@@ -835,7 +835,7 @@ protected:
 	bool alwaysUpdate() override;
 
 public:
-	float getAccuracy() const override { return m_fAccuracy * m_fRankAccuracy; }
+	float getAccuracy() const override;
 
 private:
 	float	m_fAccuracy{ 1.f };

@@ -1305,6 +1305,11 @@ bool CAI_Stalker::alwaysUpdate()
 	return					(character_physics_support()->interactive_motion() || m_in_combat);
 }
 
+float CAI_Stalker::getAccuracy() const
+{
+	return m_fAccuracy * m_fRankAccuracy * getAccuracyModifier();
+}
+
 smart_cover::cover const* CAI_Stalker::get_current_smart_cover	( )
 {
 	if ( movement().current_params().cover_id() != movement().target_params().cover_id() )

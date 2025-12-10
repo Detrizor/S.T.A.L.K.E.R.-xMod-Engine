@@ -684,6 +684,13 @@ float CInventoryOwner::GetProtectionArtefacts(ALife::EHitType hit_type) const
 	return								res;
 }
 
+float CInventoryOwner::getAccuracyModifier() const
+{
+	if (auto outfit{ GetOutfit() })
+		return outfit->getAccuracyModifier();
+	return 1.f;
+}
+
 void CInventoryOwner::HitArtefacts(float d_damage, ALife::EHitType hit_type) const
 {
 	for (auto I : inventory().m_artefacts)

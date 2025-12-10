@@ -788,7 +788,6 @@ public:
 DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float 								m_accuracy								= 1.f;
 	void								update_accuracy							();
 	bool								m_armed_mode							= false;
 	TIItemContainer						m_vicinity								= {};
@@ -809,7 +808,10 @@ public:
 	void								VicinityUpdate							();
 	void								resetVicinity							();
 
-	float								getAccuracy							CO$	()		{ return m_accuracy; }
+	float getAccuracy() const override;
+
+private:
+	float m_fAccuracy{ 1.f };
 };
 
 add_to_type_list(CActor)

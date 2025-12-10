@@ -27,7 +27,6 @@ CCustomOutfit::CCustomOutfit()
 	m_boneProtection			= xr_new<SBoneProtections>();
 	m_artefact_count			= 0;
 	m_BonesProtectionSect		= NULL;
-	m_fHealth					= 0.f;
 	m_HitTypeProtection.resize	(ALife::eHitTypeMax);
 	for (int i = 0; i < ALife::eHitTypeMax; i++)
 		m_HitTypeProtection[i]	= 0.f;
@@ -79,7 +78,8 @@ void CCustomOutfit::Load(LPCSTR section)
 	// Added by Axel, to enable optional condition use on any item
 	m_flags.set					(FUsingCondition, READ_IF_EXISTS(pSettings, r_BOOL, section, "use_condition", TRUE));
 
-	m_fHealth					= pSettings->r_float(section, "health");
+	m_fHealth				= pSettings->r_float(section, "health");
+	m_fAccuracyModifier		= pSettings->r_float(section, "accuracy_modifier");
 }
 
 void CCustomOutfit::GetPockets(LPCSTR pockets)
