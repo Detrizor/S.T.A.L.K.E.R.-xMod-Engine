@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "scope.h"
+
 #include "player_hud.h"
 #include "ui/UIXmlInit.h"
 #include "ui/UIStatic.h"
@@ -10,6 +11,9 @@
 #include "addon.h"
 #include "ActorEffector.h"
 #include "ai_sounds.h"
+#include "HUDManager.h"
+
+constexpr auto range_text_color{ D3DCOLOR_RGBA(0xff,0xff,0xff,0x80) };
 
 CUIStatic* static_scope_shadow_far		= nullptr;
 CUIStatic* static_scope_shadow			= nullptr;
@@ -204,6 +208,7 @@ bool MScope::sInstallUpgrade(LPCSTR section, bool test)
 		result							|= CInventoryItem::process_if_exists(section, "reticle", m_reticle, test);
 		result							|= CInventoryItem::process_if_exists(section, "alive_detector", m_AliveDetector, test);
 		result							|= CInventoryItem::process_if_exists(section, "nightvision", m_Nighvision, test);
+		result							|= CInventoryItem::process_if_exists(section, "rangefinder_compatibility", m_bRangefinderCompatible, test);
 		if (result)
 			init_visors					();
 	}
@@ -303,7 +308,7 @@ float MScope::update_scope_shadow()
 	return								scale;
 }
 
-void MScope::RenderUI()
+void MScope::RenderUI(bool bRangefinder)
 {
 	bool svp							= Device.SVP.isRendering();
 	if (svp)
@@ -368,6 +373,15 @@ void MScope::RenderUI()
 		static_scope_shadow->SetScale	(s_shadow_scale_default);
 		static_scope_shadow->SetWndPos	({ 0.f, 0.f });
 		static_scope_shadow->Draw		();
+	}
+
+	if (bRangefinder && m_bRangefinderCompatible)
+	{
+		CGameFont* font{ UI().Font().pFontGraffiti19Russian };
+		font->SetAligment(CGameFont::alCenter);
+		font->OutSetI(0.F, .13F);
+		font->SetColor(range_text_color);
+		font->OutNext("%4.1f", HUD().GetCurrentRayQuery().range);
 	}
 
 	if (svp)

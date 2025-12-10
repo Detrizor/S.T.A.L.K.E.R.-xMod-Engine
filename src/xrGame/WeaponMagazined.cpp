@@ -977,7 +977,7 @@ bool CWeaponMagazined::render_item_ui_query()
 
 void CWeaponMagazined::render_item_ui()
 {
-	getActiveScope()->RenderUI();
+	getActiveScope()->RenderUI(m_bRangefiners > 0);
 }
 
 float CWeaponMagazined::getZoom() const
@@ -1129,6 +1129,9 @@ void CWeaponMagazined::process_addon_data(CGameObject& obj, shared_str CR$ secti
 		m_barrel_length					+= (attach) ? length : -length;
 		m_barrel_len					= pow(m_barrel_length, s_barrel_length_power);
 	}
+
+	if (READ_IF_EXISTS(pSettings, r_bool, section, "rangefinder", false))
+		m_bRangefiners += (attach) ? 1 : -1;
 
 	process_align_front					(&obj, attach);
 }

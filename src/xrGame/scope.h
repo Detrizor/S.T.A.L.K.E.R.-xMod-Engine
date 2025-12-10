@@ -126,7 +126,7 @@ public:
 	void								setZeroing								(u16 val)								{ m_Zeroing.current = val; }
 	void								setSelection							(ScopeSelectionType val)				{ m_selection = val; }
 
-	void								RenderUI								();
+	void								RenderUI								(bool bRangefinder);
 	void								updateCameraLenseOffset					();
 	void								updateSVP								(Dmatrix CR$ transform);
 
@@ -143,4 +143,7 @@ public:
 
 	void								modify_holder_params				C$	(float &range, float &fov);
 	bool								isPiP								C$	();
+
+private:
+	bool m_bRangefinderCompatible{ false };
 };
