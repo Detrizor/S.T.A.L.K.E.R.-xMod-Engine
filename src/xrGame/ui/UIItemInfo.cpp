@@ -21,6 +21,8 @@
 #include "uigamecustom.h"
 #include "clsid_game.h"
 #include "CUIAddonInfo.h"
+#include "CUIAmmoInfo.h"
+#include "CUIMiscInfo.h"
 #include "UICellCustomItems.h"
 
 #include "../Weapon.h"
@@ -61,7 +63,7 @@ namespace
 	};
 
 	const CTierChecker conditionTiers{
-		{ 1.F, "st_pristine" },
+		{ 1.F, "st_prestine" },
 		{ .8F, "st_almost_prestine" },
 		{ .6F, "st_worn" },
 		{ .4F, "st_damaged" },
@@ -129,11 +131,13 @@ void CUIItemInfo::init(LPCSTR strXmlName)
 	AttachChild(m_pUITradeTip.get());
 	CUIXmlInit::InitTextWnd(uiXml, "static_no_trade", 0, m_pUITradeTip.get());
 
+	m_pUIOutfitInfo->InitFromXml(uiXml);
 	m_pUIWpnParams->InitFromXml(uiXml);
 	m_pUIArtefactParams->InitFromXml(uiXml);
-	m_pUIBoosterInfo->InitFromXml(uiXml);
 	m_pUIAddonInfo->initFromXml(uiXml);
-	m_pUIOutfitInfo->InitFromXml(uiXml);
+	m_pUIAmmoInfo->initFromXml(uiXml);
+	m_pUIBoosterInfo->initFromXml(uiXml);
+	m_pUIMiscInfo->initFromXml(uiXml);
 	m_pUIInvUpgProperties->initFromXml(uiXml);
 
 	AttachChild(m_pUIDesc.get());
@@ -237,6 +241,16 @@ void CUIItemInfo::set_description_info(CUICellItem* pCellItem, CInventoryItem* p
 
 void CUIItemInfo::set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 {
+
+	if (ItemCategory(pCellItem->m_section, "outfit"))
+	{
+		if (ItemSubcategory(pCellItem->m_section, "helmet"))
+			m_pUIOutfitInfo->setInfoHelmet(pCellItem);
+		else
+			m_pUIOutfitInfo->setInfoSuit(pCellItem);
+		m_pUIDesc->AddWindow(m_pUIOutfitInfo.get(), false);
+	}
+
 	if (ItemCategory(pCellItem->m_section, "weapon") && !ItemSubcategory(pCellItem->m_section, "melee") && !ItemSubcategory(pCellItem->m_section, "grenade"))
 	{
 		m_pUIWpnParams->SetInfo(pCellItem);
@@ -249,23 +263,23 @@ void CUIItemInfo::set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 		m_pUIDesc->AddWindow(m_pUIArtefactParams.get(), false);
 	}
 
-	if (ItemCategory(pCellItem->m_section, "outfit"))
+	if (ItemCategory(pCellItem->m_section, "ammo") && (ItemSubcategory(pCellItem->m_section, "box") || ItemSubcategory(pCellItem->m_section, "cartridge")))
 	{
-		if (ItemSubcategory(pCellItem->m_section, "helmet"))
-			m_pUIOutfitInfo->setInfoHelmet(pCellItem);
-		else
-			m_pUIOutfitInfo->setInfoSuit(pCellItem);
-		m_pUIDesc->AddWindow(m_pUIOutfitInfo.get(), false);
+		m_pUIAmmoInfo->setInfo(pCellItem);
+		m_pUIDesc->AddWindow(m_pUIAmmoInfo.get(), false);
 	}
-
-	m_pUIBoosterInfo->SetInfo(pCellItem);
-	m_pUIDesc->AddWindow(m_pUIBoosterInfo.get(), false);
 
 	if (pSettings->r_bool_ex(pCellItem->m_section, "addon", false) || smart_cast<CUIAddonOwnerCellItem*>(pCellItem))
 	{
 		m_pUIAddonInfo->setInfo(pCellItem);
 		m_pUIDesc->AddWindow(m_pUIAddonInfo.get(), false);
 	}
+
+	m_pUIBoosterInfo->setInfo(pCellItem);
+	m_pUIDesc->AddWindow(m_pUIBoosterInfo.get(), false);
+
+	m_pUIMiscInfo->setInfo(pCellItem);
+	m_pUIDesc->AddWindow(m_pUIMiscInfo.get(), false);
 
 	if (pItem && pItem->upgardes().size())
 	{

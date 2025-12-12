@@ -1402,6 +1402,9 @@
     <ClInclude Include="cover_point_inline.h" />
     <ClInclude Include="cta_game_artefact.h" />
     <ClInclude Include="cta_game_artefact_activation.h" />
+    <ClInclude Include="ui\CUIMiscInfoItem.h" />
+    <ClInclude Include="ui\CUIMiscInfo.h" />
+    <ClInclude Include="ui\CUIAmmoInfo.h" />
     <ClInclude Include="foldable.h" />
     <ClInclude Include="module_owner.h" />
     <ClInclude Include="signal_processor.h" />
@@ -3115,6 +3118,9 @@
     </ClCompile>
     <ClCompile Include="cta_game_artefact.cpp" />
     <ClCompile Include="cta_game_artefact_activation.cpp" />
+    <ClCompile Include="ui\CUIMiscInfoItem.cpp" />
+    <ClCompile Include="ui\CUIMiscInfo.cpp" />
+    <ClCompile Include="ui\CUIAmmoInfo.cpp" />
     <ClCompile Include="foldable.cpp" />
     <ClCompile Include="ui\CUIAddonInfo.cpp" />
     <ClCompile Include="item_usable.cpp" />

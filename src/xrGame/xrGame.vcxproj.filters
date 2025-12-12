@@ -7346,6 +7346,15 @@
     <ClInclude Include="module_owner.h" />
     <ClInclude Include="signal_processor.h" />
     <ClInclude Include="artefact_module.h" />
+    <ClInclude Include="ui\CUIAmmoInfo.h">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\CUIMiscInfo.h">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\CUIMiscInfoItem.h">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -10993,6 +11002,15 @@
     <ClCompile Include="foldable.cpp" />
     <ClCompile Include="weapon_chamber.cpp" />
     <ClCompile Include="artefact_module.cpp" />
+    <ClCompile Include="ui\CUIAmmoInfo.cpp">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\CUIMiscInfo.cpp">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\CUIMiscInfoItem.cpp">
+      <Filter>UI\Common\ui-item-infos</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ai\monsters\chimera\chimera_attack_state.h">

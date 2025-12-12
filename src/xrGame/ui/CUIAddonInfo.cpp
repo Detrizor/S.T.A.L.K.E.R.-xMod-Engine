@@ -1,66 +1,77 @@
 #include "stdafx.h"
 #include "CUIAddonInfo.h"
+
 #include "UIXmlInit.h"
-#include "inventory_item.h"
-#include "addon_owner.h"
 #include "UICellCustomItems.h"
 
-void CUIAddonInfo::initFromXml(CUIXml& xml_doc)
-{
-	R_ASSERT							(xml_doc.NavigateToNode("addon_info", 0));
+#include "inventory_item.h"
+#include "addon_owner.h"
 
-	CUIXmlInit::InitWindow				(xml_doc, "addon_info",								0, this);
-	CUIXmlInit::InitStatic				(xml_doc, "addon_info:compatible_slots_cap",		0, &m_compatible_slots_cap);
-	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:compatible_slots_value",		0, &m_compatible_slots_value);
-	CUIXmlInit::InitStatic				(xml_doc, "addon_info:available_slots_cap",			0, &m_available_slots_cap);
-	CUIXmlInit::InitTextWnd				(xml_doc, "addon_info:available_slots_value",		0, &m_available_slots_value);
-	
-	AttachChild							(&m_compatible_slots_cap);
-	AttachChild							(&m_compatible_slots_value);
-	AttachChild							(&m_available_slots_cap);
-	AttachChild							(&m_available_slots_value);
+void CUIAddonInfo::initFromXml(CUIXml& xmlDoc)
+{
+	auto strBaseNode{ "addon_info" };
+	auto pBaseNode{ xmlDoc.NavigateToNode(strBaseNode, 0) };
+	R_ASSERT(pBaseNode);
+
+	CUIXmlInit::InitWindow(xmlDoc, strBaseNode, 0, this);
+	auto pStoredRoot{ xmlDoc.GetLocalRoot() };
+	xmlDoc.SetLocalRoot(pBaseNode);
+
+	AttachChild(&m_compatibleSlotsCap);
+	CUIXmlInit::InitStatic(xmlDoc, "compatible_slots_cap", 0, &m_compatibleSlotsCap);
+
+	AttachChild(&m_compatibleSlotsValue);
+	CUIXmlInit::InitTextWnd(xmlDoc, "compatible_slots_value", 0, &m_compatibleSlotsValue);
+
+	AttachChild(&m_availableSlotsCap);
+	CUIXmlInit::InitStatic(xmlDoc, "available_slots_cap", 0, &m_availableSlotsCap);
+
+	AttachChild(&m_availableSlotsValue);
+	CUIXmlInit::InitTextWnd(xmlDoc, "available_slots_value", 0, &m_availableSlotsValue);
+
+	xmlDoc.SetLocalRoot(pStoredRoot);
 }
 
 void CUIAddonInfo::setInfo(CUICellItem* itm)
 {
-	float h								= 5.f;
+	float h{ 5.F };
 
-	bool addon							= pSettings->r_bool_ex(itm->m_section, "addon", false);
-	m_compatible_slots_cap.SetVisible	(addon);
-	m_compatible_slots_value.SetVisible	(addon);
-	if (addon)
+	bool bAddon{ pSettings->r_bool_ex(itm->m_section, "addon", false) };
+	m_compatibleSlotsCap.SetVisible(bAddon);
+	m_compatibleSlotsValue.SetVisible(bAddon);
+	if (bAddon)
 	{
-		auto slot_type					= pSettings->r_string(itm->m_section, "slot_type");
-		if (slot_type && slot_type[0])
+		auto strSlotType{ pSettings->r_string(itm->m_section, "slot_type") };
+		if (strSlotType && strSlotType[0])
 		{
-			m_compatible_slots_cap.SetY	(h);
-			m_compatible_slots_value.SetY(h);
-			m_compatible_slots_value.SetText(CAddonSlot::getSlotName(slot_type));
-			m_compatible_slots_value.AdjustHeightToText();
-			h							+= m_compatible_slots_value.GetHeight();
+			m_compatibleSlotsCap.SetY(h);
+			m_compatibleSlotsValue.SetY(h);
+			m_compatibleSlotsValue.SetText(CAddonSlot::getSlotName(strSlotType));
+			m_compatibleSlotsValue.AdjustHeightToText();
+			h += m_compatibleSlotsValue.GetHeight();
 		}
 	}
 
-	auto uiao							= smart_cast<CUIAddonOwnerCellItem*>(itm);
-	m_available_slots_cap.SetVisible	(!!uiao);
-	m_available_slots_value.SetVisible	(!!uiao);
-	if (uiao)
+	auto pAOCellItem{ smart_cast<CUIAddonOwnerCellItem*>(itm) };
+	m_availableSlotsCap.SetVisible(!!pAOCellItem);
+	m_availableSlotsValue.SetVisible(!!pAOCellItem);
+	if (pAOCellItem)
 	{
-		shared_str str					= "";
-		for (auto& slot : uiao->Slots())
+		shared_str str{ "" };
+		for (auto const& slot : pAOCellItem->Slots())
 		{
 			if (str.size())
-				str.printf				("%s\\n", *str);
-			LPCSTR color				= (slot->addon_section.size()) ? "ui_2" : "ui_4";
-			str.printf					("%s%%c[%s]• %s", *str, color, *slot->name);
+				str.printf("%s\\n", str.c_str());
+			auto color{ (slot->addon_section.size()) ? "ui_2" : "ui_4" };
+			str.printf("%s%%c[%s]• %s", str.c_str(), color, slot->name.c_str());
 		}
-		
-		m_available_slots_cap.SetY		(h);
-		m_available_slots_value.SetY	(h);
-		m_available_slots_value.SetText	(*str);
-		m_available_slots_value.AdjustHeightToText();
-		h								+= m_available_slots_value.GetHeight();
+
+		m_availableSlotsCap.SetY(h);
+		m_availableSlotsValue.SetY(h);
+		m_availableSlotsValue.SetText(*str);
+		m_availableSlotsValue.AdjustHeightToText();
+		h += m_availableSlotsValue.GetHeight();
 	}
 
-	SetHeight							(h);
+	SetHeight(h);
 }

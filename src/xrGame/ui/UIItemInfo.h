@@ -2,20 +2,21 @@
 
 #include "uiwindow.h"
 
-class CInventoryItem;
 class CUIStatic;
 class CUITextWnd;
-class CUIScrollView;
-class CUIProgressBar;
-class CUIConditionParams;
-class CUIWpnParams;
-class CUIArtefactParams;
-class CUIFrameWindow;
-class UIInvUpgPropertiesWnd;
-class CUIOutfitInfo;
-class CUIBoosterInfo;
-class CUIAddonInfo;
+class CUIAmmoInfo;
+class CUIMiscInfo;
 class CUICellItem;
+class CUIWpnParams;
+class CUIAddonInfo;
+class CUIOutfitInfo;
+class CUIScrollView;
+class CUIBoosterInfo;
+class CUIFrameWindow;
+class CUIArtefactParams;
+class UIInvUpgPropertiesWnd;
+
+class CInventoryItem;
 
 extern LPCSTR const fieldsCaptionColor;
 
@@ -67,11 +68,13 @@ private:
 	xptr<CUIScrollView>		m_pUIDesc{};
 	_desc_info				m_descInfo{};
 
+	xptr<CUIOutfitInfo>				m_pUIOutfitInfo{};
 	xptr<CUIWpnParams>				m_pUIWpnParams{};
 	xptr<CUIArtefactParams>			m_pUIArtefactParams{};
-	xptr<CUIBoosterInfo>			m_pUIBoosterInfo{};
 	xptr<CUIAddonInfo>				m_pUIAddonInfo{};
-	xptr<CUIOutfitInfo>				m_pUIOutfitInfo{};
+	xptr<CUIAmmoInfo>				m_pUIAmmoInfo{};
+	xptr<CUIBoosterInfo>			m_pUIBoosterInfo{};
+	xptr<CUIMiscInfo>				m_pUIMiscInfo{};
 	xptr<UIInvUpgPropertiesWnd>		m_pUIInvUpgProperties{};
 
 	xptr<CUIStatic>		m_pUIItemImage{ nullptr };
