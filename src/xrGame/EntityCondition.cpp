@@ -517,79 +517,55 @@ CWound* CEntityCondition::AddWound(float hit_power, ALife::EHitType hit_type, u1
 
 CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 {
-	m_pWho					= pHDS->who;
-	m_iWhoID				= (m_pWho) ? m_pWho->ID() : 0;
+	m_pWho = pHDS->who;
+	m_iWhoID = (m_pWho) ? m_pWho->ID() : 0;
 	if (!CanBeHarmed())
-		return				NULL;
+		return nullptr;
 
-	pHDS->main_damage		*= HitTypeScale[pHDS->hit_type];
-	HitProtectionEffect		(pHDS);
+	pHDS->main_damage *= HitTypeScale[pHDS->hit_type];
+	HitProtectionEffect(pHDS);
 
-	float					d_neural, d_outer, d_inner, d_radiation;
-	d_neural = d_outer = d_inner = d_radiation = pHDS->main_damage;
+	float d_neural{ pHDS->main_damage };
+	float d_outer{ pHDS->main_damage }; 
+	float d_inner{ pHDS->main_damage };
+	float d_radiation{ 0.F };
 
 	switch(pHDS->hit_type)
 	{
 	case ALife::eHitTypeBurn:
-	case ALife::eHitTypeLightBurn:
-		d_neural			*= 1.f;
-		d_outer				*= 1.f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
-		break;
-	case ALife::eHitTypeShock:
-		d_neural *= 1.f;
-		d_outer *= 0.25f;
-		d_inner *= 1.f;
-		d_radiation *= 0.f;
-		break;
 	case ALife::eHitTypeChemicalBurn:
-		d_neural			*= 1.f;
-		d_outer				*= 0.75f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
+		d_outer *= 1.25F;
+		break;
+	case ALife::eHitTypeLightBurn:
+	case ALife::eHitTypeShock:
+		d_outer *= .25F;
 		break;
 	case ALife::eHitTypeRadiation:
-		d_neural			*= 0.f;
-		d_outer				*= 0.f;
-		d_inner				*= 0.f;
-		d_radiation			*= 1.f;
+		d_neural = d_outer = d_inner = 0.F;
+		d_radiation = pHDS->main_damage;
 		break;
 	case ALife::eHitTypeTelepatic:
-		d_neural *= 1.f;
-		d_outer *= 0.f;
-		d_inner *= 0.f;
-		d_radiation *= 0.f;
+		d_outer = d_inner = 0.F;
 		break;
 	case ALife::eHitTypeExplosion:
-		d_neural			*= 1.f;
-		d_outer				*= 0.5f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
+		d_outer *= .5F;
 		break;
 	case ALife::eHitTypeStrike:
-		d_neural			*= 1.f;
-		d_outer				*= 0.75f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
+		d_outer *= 0.75F;
 		break;
 	case ALife::eHitTypeRadiationGamma:
-		d_neural			*= 0.f;
-		d_outer				*= 0.f;
-		d_inner				*= 1.f;
-		d_radiation			*= 0.f;
+		d_neural = d_outer = 0.F;
 		break;
 	default:
-		R_ASSERT2			(0, "unknown hit type");
+		R_ASSERT2(0, "unknown hit type");
 		break;
 	}
 
-	float& pierce_damage	= pHDS->pierce_damage;
-	if (pierce_damage > 0.f)
+	if (fMore(pHDS->pierce_damage, 0.F))
 	{
-		d_neural			+= pierce_damage;
-		d_outer				+= pierce_damage;
-		d_inner				+= pierce_damage;
+		d_neural	+= pHDS->pierce_damage;
+		d_outer		+= pHDS->pierce_damage;
+		d_inner		+= pHDS->pierce_damage;
 	}
 
 	if (m_object->cast_actor())
@@ -600,8 +576,8 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 	}
 	else
 	{
-		m_fHealthLost		= d_neural;
-		m_fDeltaHealth		-= m_fHealthLost;
+		m_fHealthLost = d_neural;
+		m_fDeltaHealth -= m_fHealthLost;
 	}
 
 	//раны добавляются только живому
