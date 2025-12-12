@@ -40,7 +40,7 @@ IC BOOL feel_vision_callback(collide::rq_result& result, LPVOID params)
 		fp->item->Cache.verts[1].set(V[T->verts[1]]);
 		fp->item->Cache.verts[2].set(V[T->verts[2]]);
 	}
-	return (fp->vis > fp->vis_threshold);
+	return (fMore(fp->vis, fp->vis_threshold, EPS_L));
 }
 void Vision::o_new(CObject* O)
 {
@@ -250,7 +250,7 @@ void Vision::o_trace(Fvector& P, float dt, float vis_threshold)
 			if (collision_found)
 				feel_params.vis = 0.f;
 
-			if (feel_params.vis < feel_params.vis_threshold)
+			if (fLess(feel_params.vis, feel_params.vis_threshold, EPS_S))
 			{
 				// INVISIBLE, choose next point
 				I->fuzzy -= fuzzy_update_novis*dt;
