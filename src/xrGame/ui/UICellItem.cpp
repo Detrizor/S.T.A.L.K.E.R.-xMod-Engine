@@ -346,6 +346,11 @@ bool CUICellItem::destroy(bool force)
 	return false;
 }
 
+CInventoryItem* CUICellItem::getItem() const
+{
+	return static_cast<CInventoryItem*>(m_pData);
+}
+
 // -------------------------------------------------------------------------------------------------
 
 CUIDragItem::CUIDragItem(CUICellItem* parent)

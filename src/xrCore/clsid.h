@@ -7,6 +7,8 @@ typedef u64 CLASS_ID;
 
 #define MK_CLSID_INV(a,b,c,d,e,f,g,h) MK_CLSID(h,g,f,e,d,c,b,a)
 
+constexpr CLASS_ID no_id{ static_cast<CLASS_ID>(-1) };
+
 extern XRCORE_API void __stdcall CLSID2TEXT(CLASS_ID id, LPSTR text);
 
 constexpr XRCORE_API CLASS_ID __stdcall TEXT2CLSID(LPCSTR text)

@@ -30,8 +30,8 @@ CUIInventoryCellItem::CUIInventoryCellItem(shared_str section, Frect* rect)
 	inherited::SetTextureRect			(tex_rect);
 	inherited::SetStretchTexture		(true);
 	
-	m_scale								= pSettings->r_float(section, "icon_scale");
-	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_scale, m_TextureMargin);
+	m_fScale							= pSettings->r_float(section, "icon_scale");
+	m_grid_size							= InventoryUtilities::CalculateIconSize(tex_rect, m_fScale, m_TextureMargin);
 
 	//Alundaio; Layered icon
 	u8 itrNum = 1;
@@ -59,7 +59,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(shared_str section, Frect* rect)
 	}
 	//-Alundaio
 
-	m_class_id = TEXT2CLSID(pSettings->r_string(section, "class"));
+	m_nClassID = TEXT2CLSID(pSettings->r_string(section, "class"));
 }
 
 void CUIInventoryCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
@@ -361,7 +361,7 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 {
 	Frect res_rect						= GetTextureRect();
-	res_rect.mul						(m_scale, m_scale);
+	res_rect.mul						(m_fScale, m_fScale);
 	Frect tex_rect						= res_rect;
 
 	for (auto& s : m_slots)
@@ -373,8 +373,8 @@ void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 
 			Frect						addon_rect;
 			CInventoryItem::readIcon	(addon_rect, *s->addon_section, s->addon_type);
-			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + m_scale * addon_rect.width());
-			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + m_scale * addon_rect.height());
+			res_rect.right				= max(res_rect.right, tex_rect.left + s->icon_offset.x + m_fScale * addon_rect.width());
+			res_rect.bottom				= max(res_rect.bottom, tex_rect.top + s->icon_offset.y + m_fScale * addon_rect.height());
 		}
 	}
 
@@ -502,13 +502,13 @@ void CUIAddonOwnerCellItem::InitAddon(CUIStatic* s, LPCSTR section, u8 type, u8 
 		base_scale.x					= (1.f - m_TextureMargin.left - m_TextureMargin.right) * GetWidth() / GetTextureRect().width();
 		base_scale.y					= (1.f - m_TextureMargin.top - m_TextureMargin.bottom) * GetHeight() / GetTextureRect().height();
 	}
-	base_scale.div						(m_scale);
+	base_scale.div						(m_fScale);
 
 	CInventoryItem::readIcon			(tex_rect, section, type, index);
 	Fvector2							cell_size;
 	tex_rect.getsize					(cell_size);
 	cell_size.mul						(base_scale);
-	cell_size.mul						(m_scale);
+	cell_size.mul						(m_fScale);
 
 	if (b_rotate)
 	{

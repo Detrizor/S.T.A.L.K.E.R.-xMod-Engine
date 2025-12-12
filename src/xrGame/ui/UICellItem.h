@@ -7,6 +7,7 @@ class CUIDragItem;
 class CUIDragDropListEx;
 class CUICellItem;
 class CUIProgressBar;
+class CInventoryItem;
 
 class ICustomDrawCellItem
 {
@@ -86,15 +87,16 @@ public:
 				bool		m_cur_mark;
 				bool		m_has_upgrade;
 
-protected:
-	CLASS_ID							m_class_id								= -1;
-	float								m_scale									= 1.f;
-
 public:
-	CLASS_ID							ClassID								C$	()		{ return m_class_id; }
-	float								getScale							C$	()		{ return m_scale; }
+	CLASS_ID ClassID() const { return m_nClassID; }
+	float getScale() const { return m_fScale; }
 
-	bool								destroy									(bool forced = false);
+	bool destroy(bool forced = false);
+	CInventoryItem* getItem() const;
+
+protected:
+	CLASS_ID	m_nClassID{ no_id };
+	float		m_fScale{ 1.F };
 };
 
 struct CUICIDeleter
