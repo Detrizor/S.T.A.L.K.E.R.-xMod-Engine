@@ -148,41 +148,10 @@ LPCSTR _team_names[]=
 "green",
 "blue"
 };
+
 void CUIMpTradeWnd::SetCurrentItem(CUICellItem* itm)
 {
-	if(m_pCurrentCellItem == itm)		return;
-	m_pCurrentCellItem					= itm;
-	m_item_info->InitItem				(itm);
-	if (m_pCurrentCellItem)
-	{
-		const shared_str& current_sect_name = CurrentIItem()->object().cNameSect();
-		string256						str;
-		xr_sprintf							(str, "%d", GetItemPrice(CurrentIItem()));
-		m_item_info->UICost->SetText	(str);
-
-		m_item_info->UIName->SetText	(CurrentIItem()->getNameShort());
-
-		string64						tex_name;
-		string64						team;
-
-		if (m_store_hierarchy->FindItem(current_sect_name) )
-		{// our team
-			xr_strcpy						(team, _team_names[m_store_hierarchy->TeamIdx()]);
-		}else 
-		{
-			xr_strcpy						(team, _team_names[m_store_hierarchy->TeamIdx()%1]);
-		}
-		xr_sprintf							(tex_name, "ui_hud_status_%s_0%d", team, 1+get_rank(current_sect_name.c_str()) );
-				
-		m_static_item_rank->InitTexture		(tex_name);
-		m_static_item_rank->TextureOn		();
-	}
-	else
-	{
-		m_static_item_rank->TextureOff		();
-	}
 }
-
 
 int	CUIMpTradeWnd::GetItemPrice(CInventoryItem* itm)
 {

@@ -203,7 +203,7 @@ void CUIActorMenu::Construct()
 	uiXml.SetLocalRoot					(stored_root);
 
 	m_ItemInfo							= xr_new<CUIItemInfo>();
-	m_ItemInfo->InitItemInfo			("actor_menu_item.xml");
+	m_ItemInfo->init			("actor_menu_item.xml");
 
 	m_upgrade_info						= NULL;
 	if ( ai().get_alife() )

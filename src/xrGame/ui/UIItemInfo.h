@@ -1,6 +1,6 @@
 #pragma once
-#include "uiwindow.h"
 
+#include "uiwindow.h"
 
 class CInventoryItem;
 class CUIStatic;
@@ -17,63 +17,63 @@ class CUIBoosterInfo;
 class CUIAddonInfo;
 class CUICellItem;
 
-extern const char * const 		fieldsCaptionColor;
+extern LPCSTR const fieldsCaptionColor;
 
 class CUIItemInfo: public CUIWindow
 {
-private:
-	typedef CUIWindow inherited;
+	using _super = CUIWindow;
+
 	struct _desc_info
 	{
-		CGameFont*			pDescFont;
-		u32					uDescClr;
-		bool				bShowDescrText;
+		xptr<CUITextWnd>	text{ nullptr };
+		bool bFitToHeight	{ false };
+		CGameFont*			pDescFont{};
+		u32					uDescClr{};
 	};
-	_desc_info				m_desc_info;
-	CInventoryItem* m_pInvItem;
+
 public:
-						CUIItemInfo			();
-	virtual				~CUIItemInfo		();
-	CInventoryItem*		CurrentItem			() const {return m_pInvItem;}
-	void				InitItemInfo		(Fvector2 pos, Fvector2 size, LPCSTR xml_name);
-	void				InitItemInfo		(LPCSTR xml_name);
-	void				InitItem			(CUICellItem* pCellItem, u32 item_price = u32(-1), LPCSTR trade_tip = NULL);
+	CUIItemInfo();
+	~CUIItemInfo() override;
 
-	void				TryAddWpnInfo		(CUICellItem* item);
-	void				TryAddArtefactInfo	(CUICellItem* item);
-	void				TryAddOutfitInfo	(CUICellItem* item);
-	void				TryAddUpgradeInfo	(CUICellItem* item);
-	void				TryAddBoosterInfo	(CUICellItem* item);
-	void				tryAddAddonInfo		(CUICellItem* itm);
-	
-	virtual void		Draw				();
-	bool				m_b_FitToHeight;
-	u32					delay;
-	
-	CUITextWnd*			UIName;
-	CUITextWnd*			UIWeight;
-	CUITextWnd*			UIVolume;
-	CUITextWnd*			UICondition;
-	CUITextWnd*			UIAmount;
-	CUITextWnd*			UICost;
-	CUITextWnd*			UITradeTip;
-	CUIScrollView*		UIDesc;
-
-	CUIWpnParams*			UIWpnParams;
-	CUIArtefactParams*		UIArtefactParams;
-	UIInvUpgPropertiesWnd*	UIProperties;
-	CUIOutfitInfo*			UIOutfitInfo;
-	CUIBoosterInfo*			UIBoosterInfo;
-
-	Fvector2			UIItemImageSize; 
-	CUIStatic*			UIItemImage;
+	void init(Fvector2 pos, Fvector2 size, LPCSTR xml_name);
+	void init(LPCSTR strXmlName);
 
 private:
-	xptr<CUIFrameWindow>				m_frame									= {};
-	xptr<CUIStatic>						m_background							= {};
-	xptr<CUIAddonInfo>					m_addon_info							= {};
-	CUICellItem*						m_itm									= nullptr;
+	void set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem);
+	void set_description_info(CUICellItem* pCellItem, CInventoryItem* pItem, bool bTradeTip);
+	void set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem);
 
 public:
-	CUICellItem*						getItem								C$	()		{ return m_itm; }
+	CUICellItem* getCurItem() const { return m_pCurItem; }
+
+	void setItem(CUICellItem* pCellItem, u32 item_price = u32_max, LPCSTR trade_tip = nullptr);
+
+	void Draw() override;
+	
+private:
+	CUICellItem* m_pCurItem{ nullptr };
+
+	xptr<CUIFrameWindow>	m_pFrame{};
+	xptr<CUIStatic>			m_pBackground{};
+
+	xptr<CUITextWnd>	m_pUIName{};
+	xptr<CUITextWnd>	m_pUIWeight{};
+	xptr<CUITextWnd>	m_pUIVolume{};
+	xptr<CUITextWnd>	m_pUICondition{};
+	xptr<CUITextWnd>	m_pUIAmount{};
+	xptr<CUITextWnd>	m_pUICost{};
+	xptr<CUITextWnd>	m_pUITradeTip{};
+
+	xptr<CUIScrollView>		m_pUIDesc{};
+	_desc_info				m_descInfo{};
+
+	xptr<CUIWpnParams>				m_pUIWpnParams{};
+	xptr<CUIArtefactParams>			m_pUIArtefactParams{};
+	xptr<CUIBoosterInfo>			m_pUIBoosterInfo{};
+	xptr<CUIAddonInfo>				m_pUIAddonInfo{};
+	xptr<CUIOutfitInfo>				m_pUIOutfitInfo{};
+	xptr<UIInvUpgPropertiesWnd>		m_pUIInvUpgProperties{};
+
+	xptr<CUIStatic>		m_pUIItemImage{ nullptr };
+	Fvector2			m_UIItemImageSize{ 0.F, 0.F };
 };

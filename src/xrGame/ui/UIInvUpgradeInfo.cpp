@@ -35,7 +35,7 @@ UIInvUpgradeInfo::~UIInvUpgradeInfo()
 {
 }
 
-void UIInvUpgradeInfo::init_from_xml( LPCSTR xml_name )
+void UIInvUpgradeInfo::init_from_xml(LPCSTR xml_name)
 {
 	CUIXml ui_xml;
 	ui_xml.Load( CONFIG_PATH, UI_PATH, xml_name );
@@ -75,7 +75,7 @@ void UIInvUpgradeInfo::init_from_xml( LPCSTR xml_name )
 	m_properties_wnd = xr_new<UIInvUpgPropertiesWnd>();	 
 	AttachChild( m_properties_wnd );
 	m_properties_wnd->SetAutoDelete( true );
-	m_properties_wnd->init_from_xml( xml_name );
+	m_properties_wnd->initFromXml(xml_name);
 	
 	m_properties_wnd->Show( false );
 	ui_xml.SetLocalRoot( stored_root );

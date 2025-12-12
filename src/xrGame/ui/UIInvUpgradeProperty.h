@@ -6,17 +6,20 @@
 //	Description : inventory upgrade property UIWindow class
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef UI_INVENTORY_UPGRADE_PROPERTY_H_INCLUDED
-#define UI_INVENTORY_UPGRADE_PROPERTY_H_INCLUDED
+#pragma once
 
 #include "UIStatic.h"
 #include "inventory_item.h"
 #include "inventory_upgrade_property.h"
 
-namespace inventory { namespace upgrade {
-	class Upgrade;
-	class Property;
-} } // namespace upgrade, inventory
+namespace inventory
+{
+	namespace upgrade
+	{
+		class Upgrade;
+		class Property;
+	}
+}
 
 class UIProperty : public CUIWindow
 {
@@ -63,16 +66,16 @@ protected:
 	CUIStatic*			m_Upgr_line;
 
 public:
-					UIInvUpgPropertiesWnd();
-	virtual			~UIInvUpgPropertiesWnd();
-		void		init_from_xml( LPCSTR xml_name );
-		
-		void		set_upgrade_info( Upgrade_type& upgrade );
-		void		set_item_info(PIItem item);
+	UIInvUpgPropertiesWnd();
+	~UIInvUpgPropertiesWnd() override;
+
+	void initFromXml(CUIXml& xmlDoc);
+	void initFromXml(LPCSTR strXmlName);
 
 protected:
-		void		set_info( ItemUpgrades_type const& item_upgrades );
+	void set_info(ItemUpgrades_type const& item_upgrades);
 
-}; // class UIInvUpgPropertiesWnd
-
-#endif // UI_INVENTORY_UPGRADE_PROPERTY_H_INCLUDED
+public:
+	void set_upgrade_info(Upgrade_type& upgrade);
+	void setInfo(PIItem item);
+};

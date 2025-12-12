@@ -430,9 +430,9 @@ void CUIActorMenu::SetCurrentItem(CUICellItem* itm)
 
 void CUIActorMenu::InfoCurItem(CUICellItem* cell_item)
 {
-	if (!cell_item || cell_item == m_ItemInfo->getItem())
+	if (!cell_item || cell_item == m_ItemInfo->getCurItem())
 	{
-		m_ItemInfo->InitItem			(nullptr);
+		m_ItemInfo->setItem			(nullptr);
 		return;
 	}
 
@@ -444,15 +444,15 @@ void CUIActorMenu::InfoCurItem(CUICellItem* cell_item)
 		{
 			shared_str					reason;
 			if (CanMoveToPartner(current_item, &reason))
-				m_ItemInfo->InitItem	(cell_item, m_partner_trade->GetItemPrice(cell_item, true));
+				m_ItemInfo->setItem	(cell_item, m_partner_trade->GetItemPrice(cell_item, true));
 			else
-				m_ItemInfo->InitItem	(cell_item, u32(-1), *reason);
+				m_ItemInfo->setItem	(cell_item, u32(-1), *reason);
 		}
 		else
-			m_ItemInfo->InitItem		(cell_item, m_partner_trade->GetItemPrice(cell_item, false));
+			m_ItemInfo->setItem		(cell_item, m_partner_trade->GetItemPrice(cell_item, false));
 	}
 	else
-		m_ItemInfo->InitItem			(cell_item, u32(-1));
+		m_ItemInfo->setItem			(cell_item, u32(-1));
 
 	fit_in_rect							(m_ItemInfo, Frect().set( 0.0f, 0.0f, UI_BASE_WIDTH, UI_BASE_HEIGHT ), 10.f, 0.f);
 }

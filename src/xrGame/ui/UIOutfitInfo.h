@@ -42,8 +42,8 @@ public:
 	virtual			~CUIOutfitInfo		();
 
 			void 	InitFromXml			(CUIXml& xml_doc);
-			void 	UpdateInfoSuit		(CUICellItem* itm);	
-			void 	UpdateInfoHelmet	(CUICellItem* itm);	
+			void 	setInfoSuit		(CUICellItem* itm);	
+			void 	setInfoHelmet	(CUICellItem* itm);	
 protected:
 	CUIStatic*				m_Prop_line;
 	CUIOutfitProtection*	m_items[eProtectionTypeMax];

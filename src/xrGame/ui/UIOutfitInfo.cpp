@@ -139,7 +139,7 @@ void CUIOutfitInfo::InitFromXml(CUIXml& xml_doc)
 	SetWndSize	(pos);
 }
 
-void CUIOutfitInfo::UpdateInfoSuit(CUICellItem* itm)
+void CUIOutfitInfo::setInfoSuit(CUICellItem* itm)
 {
 	if (!smart_cast<CActor*>(Level().CurrentViewEntity()))
 		return;
@@ -171,7 +171,7 @@ void CUIOutfitInfo::UpdateInfoSuit(CUICellItem* itm)
 	}
 }
 
-void CUIOutfitInfo::UpdateInfoHelmet(CUICellItem* itm)
+void CUIOutfitInfo::setInfoHelmet(CUICellItem* itm)
 {
 	CActor* actor		= smart_cast<CActor*>(Level().CurrentViewEntity());
 	if (!actor)

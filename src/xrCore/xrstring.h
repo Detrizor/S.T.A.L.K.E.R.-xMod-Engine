@@ -83,7 +83,7 @@ public:
     shared_str& operator= (shared_str const& rhs) { _set(rhs); return (shared_str&)*this; }
     str_c operator* () const { return p_ ? p_->value : 0; }
     bool operator! () const { return p_ == 0; }
-    char operator[] (size_t id) { return p_->value[id]; }
+    char operator[] (size_t id) const { return p_->value[id]; }
     str_c c_str() const { return p_ ? p_->value : 0; }
 
     // misc func
