@@ -80,3 +80,11 @@ void CInventoryItemObject::shedule_Update(u32 T)
 		}
 	}
 }
+
+BOOL CInventoryItemObject::net_Spawn(CSE_Abstract* DC)
+{
+	if (auto pSE_InventoryItem{ smart_cast<CSE_ALifeInventoryItem*>(DC) })
+		net_Spawn_install_upgrades(pSE_InventoryItem->m_upgrades);
+
+	return core::net_Spawn(DC) && wrap::net_Spawn(DC);
+}

@@ -90,7 +90,6 @@ public:
 	WRAP_VIRTUAL_METHOD0				(void, OnH_B_Chield, , ;)
 	WRAP_VIRTUAL_METHOD0				(void, UpdateCL, , ;)
 	WRAP_VIRTUAL_METHOD2				(void, OnEvent, , ;, NET_Packet&, u16)
-	WRAP_VIRTUAL_METHOD1				(BOOL, net_Spawn, return, &&, CSE_Abstract*)
 	WRAP_VIRTUAL_METHOD0				(void, net_Destroy, , ;)
 	WRAP_VIRTUAL_METHOD1				(void, net_Import, , ;, NET_Packet&)
 	WRAP_VIRTUAL_METHOD1				(void, net_Export, , ;, NET_Packet&)
@@ -102,4 +101,7 @@ public:
 	WRAP_VIRTUAL_METHOD0				(void, PH_A_CrPr, , ;)
 	WRAP_VIRTUAL_METHOD1				(void, OnMoveToRuck, , ;, SInvItemPlace CR$)
 	WRAP_VIRTUAL_METHOD2				(void, sSyncData, , ;, CSE_ALifeDynamicObject*, bool)
+
+public:
+	BOOL net_Spawn(CSE_Abstract* DC) override;
 };

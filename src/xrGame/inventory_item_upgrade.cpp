@@ -20,6 +20,8 @@
 #include "Level.h"
 #include "WeaponMagazinedWGrenade.h"
 
+#include "item_amountable.h"
+
 bool CInventoryItem::has_upgrade_group( const shared_str& upgrade_group_id )
 {
 	Upgrades_type::iterator it	= m_upgrades.begin();
@@ -264,35 +266,46 @@ bool CInventoryItem::install_upgrade_impl(LPCSTR section, bool test)
 	float base_cost{ readBaseCost(m_section_id.c_str(), true) };
 	float tmp_cost{ base_cost };
 	bool result{ process_if_exists(section, "cost", tmp_cost, test) };
-	if (result)
+	if (result && !test)
 		m_upgrades_cost += tmp_cost - base_cost;
+
 	result |= process_if_exists(section, "inv_weight", m_weight, test);
 	result |= process_if_exists(section, "inv_volume", m_volume, test);
 
-	bool result2						= false;
-	if ( BaseSlot() != NO_ACTIVE_SLOT )
+	bool result2{ false };
+	if (BaseSlot() != NO_ACTIVE_SLOT)
 	{
-		BOOL value						= m_flags.test(FAllowSprint);
-		result2							= process_if_exists(section, "sprint_allowed", value, test);
+		auto value{ m_flags.test(FAllowSprint) };
+		result2 = process_if_exists(section, "sprint_allowed", value, test);
 		if (result2 && !test)
-			m_flags.set					(FAllowSprint, value);
-		result							|= result2;
+			m_flags.set(FAllowSprint, value);
+		result |= result2;
 
-		float inertion					= m_fControlInertionFactor - 1.f;
-		result2							|= process_if_exists(section, "control_inertion_factor", inertion, test);
-		if (result2)
-			m_fControlInertionFactor	= inertion + 1.f;
-		result							|= result2;
+		float inertion{ m_fControlInertionFactor - 1.F };
+		result2 = process_if_exists(section, "control_inertion_factor", inertion, test);
+		if (result2 && !test)
+			m_fControlInertionFactor = inertion + 1.f;
+		result |= result2;
 	}
 
-	LPCSTR								str;
-	result2								= process_if_exists(section, "immunities_sect", str, test);
+	LPCSTR str{};
+	result2 = process_if_exists(section, "immunities_sect", str, test);
 	if (result2 && !test)
-		CHitImmunity::LoadImmunities	(str, pSettings);
-	result2								= process_if_exists(section, "immunities_sect_add", str, test);
-	if (result2 && !test)
-		CHitImmunity::AddImmunities		(str, pSettings);
+		CHitImmunity::LoadImmunities(str, pSettings);
+	result |= result2;
 
-	result								|= O.emitSignalDis(sInstallUpgrade(section, test));
-	return								result;
+	result2 = process_if_exists(section, "immunities_sect_add", str, test);
+	if (result2 && !test)
+		CHitImmunity::AddImmunities(str, pSettings);
+	result |= result2;
+
+	bool bAmountable{ false };
+	result2 = process_if_exists(section, "amountable", bAmountable, test);
+	if (result2 && !test)
+		if (bAmountable)
+			O.addModule<MAmountable>();
+	result |= result2;
+
+	result |= O.emitSignalDis(sInstallUpgrade(section, test));
+	return result;
 }

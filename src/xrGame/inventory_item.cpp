@@ -320,35 +320,23 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 
 	m_flags.set(FInInterpolation, FALSE);
 	m_flags.set(FInInterpolate, FALSE);
-	//	m_bInInterpolation				= false;
-	//	m_bInterpolate					= false;
-
 	m_flags.set(Fuseful_for_NPC, TRUE);
-	CSE_Abstract					*e = (CSE_Abstract*)(DC);
-	CSE_ALifeObject					*alife_object = smart_cast<CSE_ALifeObject*>(e);
-	if (alife_object)	{
-		m_flags.set(Fuseful_for_NPC, alife_object->m_flags.test(CSE_ALifeObject::flUsefulForAI));
-	}
 
-	CSE_ALifeInventoryItem			*pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e);
-	if (!pSE_InventoryItem)			return TRUE;
-
-	net_Spawn_install_upgrades(pSE_InventoryItem->m_upgrades);
+	if (auto pAlifeObject{ smart_cast<CSE_ALifeObject*>(DC) })
+		m_flags.set(Fuseful_for_NPC, pAlifeObject->m_flags.test(CSE_ALifeObject::flUsefulForAI));
 
 	m_dwItemIndependencyTime = 0;
-
 	m_just_after_spawn = true;
 	m_activated = false;
 
-	LPCSTR s_vis_name					= pSettings->r_string(m_section_id, "visual");
-	if (xr_strcmp(s_vis_name, O.visual_name(e)))
+	LPCSTR strVisName{ pSettings->r_string(m_section_id, "visual") };
+	if (strcmp(strVisName, O.visual_name(DC)))
 	{
-		O.cNameVisual_set				(s_vis_name);
-		CSE_Visual* visual				= smart_cast<CSE_Visual*>(e);
-		visual->set_visual				(s_vis_name);
+		O.cNameVisual_set(strVisName);
+		smart_cast<CSE_Visual*>(DC)->set_visual(strVisName);
 	}
 
-	return							TRUE;
+	return TRUE;
 }
 
 void CInventoryItem::net_Destroy()
