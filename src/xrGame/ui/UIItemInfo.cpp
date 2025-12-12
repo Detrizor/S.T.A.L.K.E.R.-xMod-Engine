@@ -133,7 +133,7 @@ void CUIItemInfo::init(LPCSTR strXmlName)
 
 	m_pUIOutfitInfo->InitFromXml(uiXml);
 	m_pUIWpnParams->InitFromXml(uiXml);
-	m_pUIArtefactParams->InitFromXml(uiXml);
+	m_pUIArtefactParams->initFromXml(uiXml);
 	m_pUIAddonInfo->initFromXml(uiXml);
 	m_pUIAmmoInfo->initFromXml(uiXml);
 	m_pUIBoosterInfo->initFromXml(uiXml);
@@ -259,7 +259,7 @@ void CUIItemInfo::set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 
 	if (ItemCategory(pCellItem->m_section, "artefact"))
 	{
-		m_pUIArtefactParams->SetInfo(pCellItem->m_section.c_str(), smart_cast<CArtefact*>(pCellItem->getItem()));
+		m_pUIArtefactParams->setInfo(pCellItem->m_section.c_str(), smart_cast<CArtefact*>(pCellItem->getItem()));
 		m_pUIDesc->AddWindow(m_pUIArtefactParams.get(), false);
 	}
 

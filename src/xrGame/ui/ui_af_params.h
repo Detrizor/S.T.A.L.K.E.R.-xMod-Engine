@@ -1,13 +1,10 @@
 #pragma once
+
 #include "UIWindow.h"
-#include "..\..\xrServerEntities\alife_space.h"
 
 class CUIXml;
-class CUIStatic;
-class CUITextWnd;
-class UIArtefactParamItem;
-class CUICellItem;
 class CArtefact;
+class CUIMiscInfoItem;
 
 enum EAbsorbationTypes
 {
@@ -30,44 +27,21 @@ enum EConditionRestoreTypes {
 class CUIArtefactParams : public CUIWindow
 {
 public:
-					CUIArtefactParams		();
-	virtual			~CUIArtefactParams		();
-			void	InitFromXml				(CUIXml& xml);
-			void	SetInfo					(LPCSTR section, CArtefact* art);
+	CUIArtefactParams();
+	~CUIArtefactParams() override;
 
-protected:
-	UIArtefactParamItem*	m_absorbation_item[eAbsorbationTypeMax];
-	UIArtefactParamItem*	m_restore_item[eRestoreTypeMax];
-	UIArtefactParamItem*	m_weight_dump;
-	UIArtefactParamItem*	m_armor;
-	UIArtefactParamItem*	m_radiation;
-
-	CUIStatic*				m_Prop_line;
+	void initFromXml(CUIXml& xmlDoc);
 
 private:
-	void								SetInfoItem								(UIArtefactParamItem* item, float value, Fvector2& pos, float& h);
-}; // class CUIArtefactParams
+	void set_info_item(CUIMiscInfoItem* item, float value, float& h);
 
-// -----------------------------------
-
-class UIArtefactParamItem : public CUIWindow
-{
 public:
-				UIArtefactParamItem	();
-	virtual		~UIArtefactParamItem();
-		
-		void	Init				( CUIXml& xml, LPCSTR section );
-		void	SetCaption			( LPCSTR name );
-		void	SetValue			( float value );
-	
-private:
-	CUIStatic*	m_caption;
-	CUITextWnd*	m_value;
-	float		m_magnitude;
-	bool		m_sign_inverse;
-	bool		m_perc_unit;
-	shared_str	m_unit_str;
-	shared_str	m_texture_minus;
-	shared_str	m_texture_plus;
+	void setInfo(LPCSTR section, CArtefact* art);
 
-}; // class UIArtefactParamItem
+private:
+	xptr<CUIMiscInfoItem> m_radiation{};
+	xptr<CUIMiscInfoItem> m_absorbation_item[eAbsorbationTypeMax]{};
+	xptr<CUIMiscInfoItem> m_restore_item[eRestoreTypeMax]{};
+	xptr<CUIMiscInfoItem> m_weight_dump{};
+	xptr<CUIMiscInfoItem> m_armor{};
+};
