@@ -178,40 +178,6 @@ void CUIMpTradeWnd::DeleteHelperItems ()
 
 void CUIMpTradeWnd::DeleteHelperItems (CUIDragDropListEx* list)
 {
-	ITEMS_vec to_sell;
-
-	for ( ITEMS_vec::iterator it	=	m_all_items.begin();
-							  it	!=	m_all_items.end();
-							  ++it )
-	{
-		SBuyItemInfo*		  item			=	*it;
-
-		if ( item->m_cell_item->OwnerList() != list )
-		{
-			continue;
-		}
-
-		if ( item->GetState() != SBuyItemInfo::e_bought && item->GetState() != SBuyItemInfo::e_own )
-		{
-			continue;
-		}
-
-		if ( item->m_cell_item->IsHelper() )
-		{
-			if ( std::find(to_sell.begin(), to_sell.end(), item) == to_sell.end() )
-			{
-				to_sell.push_back(item);
-			}
-		}
-	}
-
-	for ( ITEMS_vec::iterator it	=	to_sell.begin();
-							  it	!=	to_sell.end();
-							  ++it )
-	{
-		SBuyItemInfo* tempo = NULL;
-		TryToSellItem(*it, true, tempo);
-	}
 }
 
 void CUIMpTradeWnd::UpdateHelperItems ()
@@ -228,54 +194,10 @@ void CUIMpTradeWnd::UpdateHelperItems ()
 
 void CUIMpTradeWnd::CreateHelperItems (xr_vector<shared_str>& ammo_types)
 {
-	for ( xr_vector<shared_str>::iterator it	=	ammo_types.begin(); 
-										  it   !=	ammo_types.end();
-										++it )
-	{
-		const shared_str&	ammo_name			=	*it;
-		if ( !m_store_hierarchy->FindItem			(ammo_name) )
-		{
-			continue;
-		}
-
-		SBuyItemInfo*		ammo_item			=	CreateItem(ammo_name, SBuyItemInfo::e_undefined, false);
-		ammo_item->m_cell_item->SetIsHelper			(true);
-		TryToBuyItem								(ammo_item, bf_normal, NULL);
-	}
 }
 
 void CUIMpTradeWnd::CreateHelperItems (CUIDragDropListEx* list, const CStoreHierarchy::item* shop_level)
 {
-	for ( xr_vector<shared_str>::const_iterator	
-										it		=	shop_level->m_items_in_group.begin();
-										it	   !=	shop_level->m_items_in_group.end();
-										++it )
-	{
-		shared_str item_name					=	*it;
-		CUIDragDropListEx*	match_list			=	GetMatchedListForItem(item_name);
-
-		if ( match_list == list )
-		{
-			SBuyItemInfo*	new_item			=	CreateItem(item_name, SBuyItemInfo::e_undefined, false);
-
-			CUIInventoryCellItem* inventory_cell_item;
-			if ( (inventory_cell_item = dynamic_cast<CUIInventoryCellItem*>(new_item->m_cell_item)) != NULL )
-			{
-				inventory_cell_item->SetIsHelper(true);
-				inventory_cell_item->UpdateItemText();
-
-				TryToBuyItem						(new_item, bf_normal, NULL);
-			}
-		}
-	}
-
-	for ( u32								i	=	0; 
-											i	<	shop_level->ChildCount(); 
-										  ++i )
-	{
-		const CStoreHierarchy::item* child		=	&shop_level->ChildAtIdx(i);
-		CreateHelperItems							(list, child);
-	}
 }
 
 void CUIMpTradeWnd::CreateHelperItems (CUIDragDropListEx* list)
@@ -425,12 +347,7 @@ struct eq_group_state_comparer
 	eq_group_state_comparer	(const shared_str& _group, SBuyItemInfo::EItmState _state):m_group(_group),m_state(_state){}
 	bool	operator	() (SBuyItemInfo* info)
 	{
-		if( !info->m_cell_item->IsHelper() && (info->GetState()==m_state))
-		{
-			const shared_str& _grp = g_mp_restrictions.GetItemGroup(info->m_name_sect);
-			return			(_grp==m_group);
-		}else
-			return			false;
+		return false;
 	}
 };
 
@@ -518,70 +435,6 @@ struct preset_eq
 
 void CUIMpTradeWnd::StorePreset(ETradePreset idx, bool bSilent, bool check_allowed_items, bool flush_helpers)
 {
-	if ( flush_helpers )
-	{
-		DeleteHelperItems();
-	}
-
-	if(!bSilent)
-	{
-		string512						buff;
-		xr_sprintf							(buff,	"%s [%d]",
-												CStringTable().translate("ui_st_preset_stored_to").c_str(), idx);
-		SetInfoString					(buff);
-	}
-	ITEMS_vec_cit it				= m_all_items.begin();
-	ITEMS_vec_cit it_e				= m_all_items.end();
-
-	preset_items&	v				= m_preset_storage[idx];
-	v.clear_not_free				();
-	for(;it!=it_e; ++it)
-	{
-		SBuyItemInfo* iinfo			= *it;
-		if(	!(iinfo->GetState()==SBuyItemInfo::e_bought || iinfo->GetState()==SBuyItemInfo::e_own)	)
-		continue;
-
-		if ( iinfo->m_cell_item->IsHelper() )
-		{
-			continue;
-		}
-
-		u8 addon_state				= GetItemAddonsState_ext(iinfo);
-
-		preset_items::iterator fit	= std::find_if(v.begin(), v.end(), preset_eq(iinfo->m_name_sect, addon_state) );
-		if(fit!=v.end())
-			continue;
-
-		u32 cnt						= GetItemCount(iinfo->m_name_sect, SBuyItemInfo::e_bought, addon_state);
-		cnt							+=GetItemCount(iinfo->m_name_sect, SBuyItemInfo::e_own, addon_state);
-		if(0==cnt)				
-			continue;
-
-		if(check_allowed_items)
-		{
-			if(NULL==m_store_hierarchy->FindItem(iinfo->m_name_sect,0))
-				continue;
-		}
-		v.resize					(v.size()+1);
-		_preset_item& _one			= v.back();
-		_one.sect_name				= iinfo->m_name_sect;
-		_one.count					= cnt;
-		_one.addon_state			= addon_state;
-
-		if(addon_state&at_scope)
-			_one.addon_names[0]			= GetAddonNameSect(iinfo, at_scope);
-
-		if(addon_state&at_glauncher)
-			_one.addon_names[1]			= GetAddonNameSect(iinfo, at_glauncher);
-
-		if(addon_state&at_silencer)
-			_one.addon_names[2]			= GetAddonNameSect(iinfo, at_silencer);
-	}
-
-	v.sort								(preset_sorter(m_item_mngr));
-
-	if (flush_helpers)
-		UpdateHelperItems				();
 }
 
 void CUIMpTradeWnd::ApplyPreset(ETradePreset idx)

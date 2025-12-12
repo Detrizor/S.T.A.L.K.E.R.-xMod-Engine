@@ -92,7 +92,6 @@ CInventoryItem::CInventoryItem(CGameObject* obj) : O(*obj)
 	m_ItemCurrPlace.slot_id = NO_ACTIVE_SLOT;
 
 	m_section_id = 0;
-	m_flags.set(FIsHelperItem, FALSE);
 	m_flags.set(FCanStack, TRUE);
 }
 

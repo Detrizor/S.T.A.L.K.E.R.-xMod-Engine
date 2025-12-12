@@ -84,9 +84,8 @@ protected:
 								FInInterpolation	=(1<<6),
 								FInInterpolate		=(1<<7),
 								FIsQuestItem		=(1<<8),
-								FIsHelperItem		=(1<<9),
-								FCanStack			=(1<<10),
-								FShowFullCondition	=(1<<11)
+								FCanStack			=(1<<9),
+								FShowFullCondition	=(1<<10)
 	};
 
 	Flags16						m_flags;
@@ -281,8 +280,6 @@ protected:
 	bool								m_activated;
 
 public:
-	IC bool	is_helper_item				()				 { return !!m_flags.test(FIsHelperItem); }
-	IC void	set_is_helper				(bool is_helper) { m_flags.set(FIsHelperItem,is_helper); }
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:

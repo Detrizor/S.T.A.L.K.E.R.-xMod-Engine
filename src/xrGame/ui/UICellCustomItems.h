@@ -25,9 +25,6 @@ public:
 	virtual		bool						EqualTo						(CUICellItem* itm);
 	virtual		void						UpdateItemText				();
 				CUIDragItem*				CreateDragItem				();
-	virtual		bool						IsHelper					();
-	virtual		void						SetIsHelper					(bool is_helper);
-				bool						IsHelperOrHasHelperChild	();
 				void						Update						();
 				CInventoryItem*				object						() {return (CInventoryItem*)m_pData;}
 				//Alundaio
@@ -48,10 +45,10 @@ protected:
 	virtual		void			 UpdateItemText				();
 public:
 								 CUIAmmoCellItem			(CWeaponAmmo* itm);
+								 CUIAmmoCellItem			(shared_str const& section);
 
-				u32				 CalculateAmmoCount			();
-	virtual		bool			 EqualTo						(CUICellItem* itm);
-	virtual		CUIDragItem*	 CreateDragItem				();
+				u32				 CalculateAmmoCount			(bool recursive);
+	virtual		bool			 EqualTo					(CUICellItem* itm);
 				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
 

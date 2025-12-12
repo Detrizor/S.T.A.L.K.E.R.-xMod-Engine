@@ -8,20 +8,6 @@
 #include "addon_owner.h"
 #include "addon.h"
 
-namespace detail 
-{
-
-struct is_helper_pred
-{
-	bool operator ()(CUICellItem* child)
-	{
-		return child->IsHelper();
-	}
-
-}; // struct is_helper_pred
-
-} //namespace detail 
-
 CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* item) : CUIInventoryCellItem(item->m_section_id, &item->GetIconRect())
 {
 	m_pData								= static_cast<void*>(item);
@@ -105,16 +91,8 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 	return				true;
 }
 
-bool CUIInventoryCellItem::IsHelperOrHasHelperChild()
-{
-	return std::count_if(m_childs.begin(), m_childs.end(), detail::is_helper_pred()) > 0 || IsHelper();
-}
-
 CUIDragItem* CUIInventoryCellItem::CreateDragItem()
 {
-	if (IsHelperOrHasHelperChild())
-		return NULL;
-
 	CUIDragItem* i = inherited::CreateDragItem();
 	CUIStatic* s = NULL;
 
@@ -139,17 +117,6 @@ void CUIInventoryCellItem::SetTextureColor(u32 color)
 		if ((*it)->m_icon)
 			(*it)->m_icon->SetTextureColor(color);
 	}
-}
-
-bool CUIInventoryCellItem::IsHelper ()
-{
-	PIItem item		= object();
-	return			(item) ? item->is_helper_item() : false;
-}
-
-void CUIInventoryCellItem::SetIsHelper (bool is_helper)
-{
-	object()->set_is_helper(is_helper);
 }
 
 //Alundaio
@@ -248,16 +215,7 @@ void CUIInventoryCellItem::Update()
 	UpdateConditionProgressBar(); //Alundaio
 	UpdateItemText();
 
-	u32 color = GetTextureColor();
-	if ( IsHelper() && !ChildsCount() )
-	{
-		color = 0xbbbbbbbb;
-	}
-	else if ( IsHelperOrHasHelperChild() )
-	{
-		color = 0xffffffff;
-	}
-
+	auto color{ GetTextureColor() };
 	SetTextureColor(color);
 
 	for (xr_vector<SIconLayer*>::iterator it = m_layers.begin(); m_layers.end() != it; ++it)
@@ -269,13 +227,10 @@ void CUIInventoryCellItem::Update()
 
 void CUIInventoryCellItem::UpdateItemText()
 {
-	const u32	helper_count	=  	(u32)std::count_if(m_childs.begin(), m_childs.end(), detail::is_helper_pred()) 
-									+ (u32)IsHelper();
-
-	const u32	count			=	ChildsCount() + 1 - helper_count;
+	const u32	count			=	ChildsCount() + 1;
 	string32	str;
 
-	if ( count > 1 || helper_count )
+	if ( count > 1)
 	{
 		xr_sprintf						( str, "x%d", count );
 		m_text->TextItemControl()->SetText	( str );
@@ -291,33 +246,32 @@ void CUIInventoryCellItem::UpdateItemText()
 	m_text->AdjustHeightToText			();
 }
 
-CUIAmmoCellItem::CUIAmmoCellItem(CWeaponAmmo* itm)
-:inherited(itm)
-{}
+CUIAmmoCellItem::CUIAmmoCellItem(CWeaponAmmo* itm) : inherited(itm)
+{
+}
+
+CUIAmmoCellItem::CUIAmmoCellItem(shared_str const& section) : inherited(section)
+{
+}
 
 bool CUIAmmoCellItem::EqualTo(CUICellItem* itm)
 {
-	if(!inherited::EqualTo(itm))	return false;
+	if (inherited::EqualTo(itm))
+		if (auto ci{ smart_cast<CUIAmmoCellItem*>(itm) })
+			return (m_section == ci->m_section);
 
-	CUIAmmoCellItem* ci				= smart_cast<CUIAmmoCellItem*>(itm);
-	if(!ci)							return false;
-
-	return					( (object()->cNameSect() == ci->object()->cNameSect()) );
+	return false;
 }
 
-CUIDragItem* CUIAmmoCellItem::CreateDragItem()
+u32 CUIAmmoCellItem::CalculateAmmoCount(bool recursive)
 {
-	return IsHelper() ? NULL : inherited::CreateDragItem();
-}
+	auto item{ object() };
+	auto total{ (item) ? item->GetAmmoCount() : CWeaponAmmo::readBoxSize(m_section.c_str()) };
 
-u32 CUIAmmoCellItem::CalculateAmmoCount()
-{
-	u32 total = IsHelper() ? 0 : object()->GetAmmoCount();
-	for (const auto child : m_childs)
-	{
-		if (!child->IsHelper())
-			total += ((CUIAmmoCellItem*)child)->object()->GetAmmoCount();
-	}
+	if (recursive)
+		for (const auto child : m_childs)
+			if (auto aci{ dynamic_cast<CUIAmmoCellItem*>(child) })
+				total += aci->CalculateAmmoCount(true);
 
 	return total;
 }
@@ -327,7 +281,7 @@ void CUIAmmoCellItem::UpdateItemText()
 	m_text->Show								(false);
 	if (!m_custom_draw)
 	{
-		const u32 total							= CalculateAmmoCount();
+		const u32 total							= CalculateAmmoCount(true);
 		if (1 < total)
 		{
 			string32							str;

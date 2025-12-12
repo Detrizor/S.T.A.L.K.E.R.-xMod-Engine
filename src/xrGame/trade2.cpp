@@ -1,5 +1,6 @@
 #include "pch_script.h"
 #include "trade.h"
+
 #include "actor.h"
 #include "ai/stalker/ai_stalker.h"
 #include "ai/trader/ai_trader.h"
@@ -15,7 +16,9 @@
 #include "trade_parameters.h"
 #include "gameobject.h"
 #include "ai_object_location.h"
-#include "ui\UICellItem.h"
+
+#include "ui/UICellItem.h"
+#include "ui/UICellCustomItems.h"
 
 bool CTrade::CanTrade()
 {
@@ -95,7 +98,12 @@ void CTrade::TransferItem(CUICellItem* itm, bool bBuying, bool bFree)
 	if (pItem)
 		pItem->O.transfer							((bBuying ? pThis.inv_owner : pPartner.inv_owner)->object_id());
 	else
-		pPartner.inv_owner->O->giveItem				(itm->m_section.c_str());
+	{
+		if (auto aci{ smart_cast<CUIAmmoCellItem*>(itm) })
+			pPartner.inv_owner->O->giveItems(itm->m_section.c_str(), aci->CalculateAmmoCount(false));
+		else
+			pPartner.inv_owner->O->giveItem(itm->m_section.c_str());
+	}
 
 	if (pItem && ((pPartner.type == TT_ACTOR) || (pThis.type == TT_ACTOR)))
 	{
@@ -163,7 +171,15 @@ u32	CTrade::GetItemPrice(CUICellItem* itm, bool b_buying, bool b_free)
 	clamp					(relation_factor, 0.f, 1.f);
 
 	// total price calculation
-	float price				= (pItem) ? pItem->Price() : CInventoryItem::readBaseCost(section.c_str(), true);
+	float price;
+	if (pItem)
+		price = pItem->Price();
+	else
+	{
+		price = CInventoryItem::readBaseCost(section.c_str(), true);
+		if (auto aci{ smart_cast<CUIAmmoCellItem*>(itm) })
+			price *= aci->CalculateAmmoCount(false);
+	}
 
 	// computing action factor
 	float					action_factor;

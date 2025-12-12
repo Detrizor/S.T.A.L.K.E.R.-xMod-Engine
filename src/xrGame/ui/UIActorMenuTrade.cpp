@@ -29,9 +29,13 @@
 
 static CUICellItem* create_cell_item_from_section(shared_str CR$ section)
 {
-	return								(pSettings->r_bool_ex(section, "addon_owner", false)) ?
-		xr_new<CUIAddonOwnerCellItem>(section) :
-		xr_new<CUIInventoryCellItem>(section);
+	if (pSettings->r_bool_ex(section, "addon_owner", false))
+		return xr_new<CUIAddonOwnerCellItem>(section);
+
+	if (ItemCategory(section, "ammo") && ItemSubcategory(section, "cartridge"))
+		return xr_new<CUIAmmoCellItem>(section);
+
+	return xr_new<CUIInventoryCellItem>(section);
 }
 
 // -------------------------------------------------
