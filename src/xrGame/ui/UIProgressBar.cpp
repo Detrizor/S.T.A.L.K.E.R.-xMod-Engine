@@ -112,11 +112,11 @@ void CUIProgressBar::Draw()
 		progress_rect.set	( 0, GetHeight() - m_CurrentLength, GetWidth(), GetHeight() );
 		break;
 	case om_back:
-		progress_rect.set	( GetWidth() - m_CurrentLength * 1.01f, 0, GetWidth(), GetHeight() );
-	    break;
+		progress_rect.set	( GetWidth() - m_CurrentLength, 0, GetWidth(), GetHeight() );
+		break;
 	case om_down:
 		progress_rect.set	( 0, 0, GetWidth(), m_CurrentLength );
-	    break;
+		break;
 	default:
 		NODEFAULT;
 		break;
