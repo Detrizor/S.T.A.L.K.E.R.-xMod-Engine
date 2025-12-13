@@ -10,10 +10,29 @@
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
 
-class CArtefact :	public CInventoryItemObject,
-	public CPHUpdateObject
+class CArtefact : public CInventoryItemObject, public CPHUpdateObject
 {
 	typedef CInventoryItemObject inherited;
+
+public:
+	enum EAbsorbationTypes
+	{
+		eBurnImmunity,
+		eShockImmunity,
+		eChemBurnImmunity,
+		eRadiationImmunity,
+		eTelepaticImmunity,
+		eAbsorbationTypeMax
+	};
+
+	enum EConditionRestoreTypes
+	{
+		eRadiationSpeed,
+		ePainkillSpeed,
+		eRegenerationSpeed,
+		eRecuperationSpeed,
+		eRestoreTypeMax
+	};
 
 public:
 									CArtefact						();
@@ -108,32 +127,40 @@ public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
 private:
-	float								m_baseline_charge						= 1.f;
-	float								m_charge_capacity						= 1.f;
-	float								m_saturation_power						= 1.f;
-	float								m_baseline_weight_dump					= 0.f;
-	float								m_armor									= 0.f;
-	float								m_HitAbsorbation[ALife::eHitTypeMax]	= {0};
-
-	MAmountable CP$						m_amountable_ptr						= nullptr;
-	mutable u32							m_power_calc_frame						= 0;
-	mutable float						m_power									= 1.f;
-	mutable float						m_radiation								= 1.f;
-
-protected:
-	void								Hit									O$	(SHit* pHDS);
+	void update_power() const;
 
 public:
-	float								getArmor							C$	()					{ return m_armor * getPower(); }
-	float								getAbsorbation						C$	(int hit_type)		{ return m_HitAbsorbation[hit_type] * getPower(); }
-	float								getPower							C$	()					{ updatePower(); return m_power; }
-	float								getRadiation						C$	()					{ updatePower(); return m_radiation; }
+	float getPower() const { update_power(); return m_fPower; }
+	float getRadiation() const { update_power(); return m_fRadiation; }
+	float getArmor() const { return m_fArmor * getPower(); }
+	float getAbsorbation(int hit_type) const { return m_fHitAbsorbations[hit_type] * getPower(); }
+	float getRestore(EConditionRestoreTypes type) const { return m_fRestores[type] * getPower(); }
+	float getMaxCharge() const { return m_fMaxCharge; }
 
-	void								updatePower							C$	();
-	float								HitProtection						C$	(ALife::EHitType hit_type);
-	float								getWeightDump						C$	();
+	float getHitProtection(ALife::EHitType hitType) const;
+	float getWeightDump() const;
 
-	void								ProcessHit								(float d_damage, ALife::EHitType hit_type);
+	void processHit(float fDamage, ALife::EHitType hitType);
+
+public:
+	void Hit(SHit* pHDS) override;
+
+private:
+	float m_fBaselineCharge{ 1.F };
+	float m_fMaxCharge{ 1.F };
+	float m_fBaselineWeightDump{ 0.F };
+	float m_fArmor{ 0.F };
+	float m_fHitAbsorbations[ALife::eHitTypeMax]{};
+	float m_fRestores[eRestoreTypeMax]{};
+
+	MAmountable const* m_pAmountable{ nullptr };
+	mutable u32 m_nPowerCalcFrame{ 0 };
+	mutable float m_fPower{ 0.F };
+	mutable float m_fRadiation{ 0.F };
+
+public:
+	static const LPCSTR strAbsorbationNames[eAbsorbationTypeMax];
+	static const LPCSTR strRestoreNames[eRestoreTypeMax];
 };
 
 struct SArtefactDetectorsSupport

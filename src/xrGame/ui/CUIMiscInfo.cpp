@@ -36,11 +36,8 @@ void CUIMiscInfo::initFromXml(CUIXml& xmlDoc)
 	m_pContainerArtefactIsolation->SetCaption(CStringTable().translate("ui_artefact_isolation").c_str());
 	m_pContainerArtefactIsolation->SetStrValue("");
 
-	m_pArtModuleMaxRadiationLimit->init(xmlDoc, "art_module_max_radiation_limit");
-	m_pArtModuleMaxRadiationLimit->SetCaption(CStringTable().translate("ui_max_artefact_radiation_limit").c_str());
-
-	m_pArtModuleRadiation->init(xmlDoc, "art_module_radiation");
-	m_pArtModuleRadiation->SetCaption(CStringTable().translate("st_radiation").c_str());
+	m_pArtModuleArtefactActivateCharge->init(xmlDoc, "art_module_artefact_activate_charge");
+	m_pArtModuleArtefactActivateCharge->SetCaption(CStringTable().translate("st_artefact_activate_charge").c_str());
 
 	xmlDoc.SetLocalRoot(pStoredRoot);
 }
@@ -67,7 +64,13 @@ void CUIMiscInfo::set_container_info(CUICellItem* pCellItem, float& h)
 {
 	auto pItem{ pCellItem->getItem() };
 	auto pContainer{ (pItem) ? pItem->O.getModule<MContainer>() : nullptr };
-	if (!pContainer && !(pSettings->r_bool_ex(pCellItem->m_section, "container", false) && !pSettings->r_string(pCellItem->m_section, "supplies")))
+	if (!pContainer && !pSettings->r_bool_ex(pCellItem->m_section, "container", false))
+		return;
+
+	if (pSettings->r_string(pCellItem->m_section, "supplies"))
+		return;
+
+	if (pItem->O.getModule<MArtefactModule>() || pSettings->r_bool_ex(pCellItem->m_section, "artefact_module", false))
 		return;
 
 	float fCapacity = (pContainer) ? pContainer->GetCapacity() : pSettings->r_float(pCellItem->m_section, "capacity");
@@ -82,43 +85,26 @@ void CUIMiscInfo::set_container_info(CUICellItem* pCellItem, float& h)
 		h += m_pContainerArtefactIsolation->GetWndSize().y;
 		AttachChild(m_pContainerArtefactIsolation.get());
 	}
-
-	if (pContainer && !pContainer->ArtefactIsolation() && !pContainer->Empty())
-	{
-		auto artefactIt{ pContainer->Items().find_if([](auto&& item) { return item->O.scast<CArtefact*>(); }) };
-		if (artefactIt != pContainer->Items().end())
-		{
-			auto pArtefact = (*artefactIt)->O.scast<CArtefact*>();
-			float fRadiation{ pArtefact->getRadiation() };
-			if (fMore(fRadiation, 0.F))
-			{
-				m_pArtModuleRadiation->SetValue(fRadiation);
-				m_pArtModuleRadiation->SetY(h);
-				h += m_pArtModuleRadiation->GetWndSize().y;
-				AttachChild(m_pArtModuleRadiation.get());
-			}
-		}
-	}
 }
 
 void CUIMiscInfo::set_artefact_module_info(CUICellItem* pCellItem, float& h)
 {
 	auto pItem{ pCellItem->getItem() };
-	float fMaxArtefactRadiationLimit{ 0.F };
+	float fArtefactActivateCharge{ 0.F };
 	if (pItem)
 	{
 		if (auto pArtModule{ pItem->O.getModule<MArtefactModule>() })
-			fMaxArtefactRadiationLimit = pArtModule->getMaxArtefactRadiationLimit();
+			fArtefactActivateCharge = pArtModule->getArtefactActivateCharge();
 	}
 	else
-		pSettings->w_float_ex(fMaxArtefactRadiationLimit, pCellItem->m_section, "max_artefact_radiation_limit");
+		pSettings->w_float_ex(fArtefactActivateCharge, pCellItem->m_section, "artefact_activate_charge");
 
-	if (fMaxArtefactRadiationLimit > 0.F)
+	if (fMore(fArtefactActivateCharge, 0.F))
 	{
-		m_pArtModuleMaxRadiationLimit->SetValue(fMaxArtefactRadiationLimit);
-		m_pArtModuleMaxRadiationLimit->SetY(h);
-		h += m_pArtModuleMaxRadiationLimit->GetWndSize().y;
-		AttachChild(m_pArtModuleMaxRadiationLimit.get());
+		m_pArtModuleArtefactActivateCharge->SetValue(fArtefactActivateCharge);
+		m_pArtModuleArtefactActivateCharge->SetY(h);
+		h += m_pArtModuleArtefactActivateCharge->GetWndSize().y;
+		AttachChild(m_pArtModuleArtefactActivateCharge.get());
 	}
 }
 

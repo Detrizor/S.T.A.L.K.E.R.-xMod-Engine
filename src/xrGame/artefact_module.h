@@ -1,30 +1,32 @@
 #pragma once
 #include "module.h"
 
+class CArtefact;
 class MAmountable;
 
 class MArtefactModule : public CModule
 {
 public:
-	static EModuleTypes					mid										()		{ return mArtefactModule; }
+	static EModuleTypes mid() { return mArtefactModule; }
 
 public:
-										MArtefactModule							(CGameObject* obj);
+	explicit MArtefactModule(CGameObject* obj);
 
 private:
-	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
-
-private:
-	MAmountable PC$						m_amountable_ptr;
-	const float							m_max_artefact_radiation_limit;
-	const int							m_modes_count;
-
-	int									m_cur_mode								= 0;
+	void sSyncData(CSE_ALifeDynamicObject* se_obj, bool save) override;
 
 public:
-	float								getMaxArtefactRadiationLimit		C$	()		{ return m_max_artefact_radiation_limit; }
-	int									getMode								C$	()		{ return m_cur_mode; }
-	float								getArtefactRadiationLimit			C$	();
+	float	getArtefactActivateCharge	() const	{ return m_fArtefactActivateCharge; }
+	int		getMode						() const	{ return m_nCurMode; }
 
-	void								setMode									(int val);
+	float getAllowedArtefactCharge(const CArtefact* artefact) const;
+
+	void setMode(int val);
+
+private:
+	MAmountable* const	m_pAmountable;
+	const float			m_fArtefactActivateCharge;
+	const int			m_nModesCount;
+
+	int m_nCurMode{ 0 };
 };

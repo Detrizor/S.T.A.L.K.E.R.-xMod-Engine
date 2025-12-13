@@ -35,6 +35,23 @@
 		if(y>z){inst_y;}\
 		else{inst_z;}
 
+const LPCSTR CArtefact::strAbsorbationNames[CArtefact::eAbsorbationTypeMax]
+{
+	"burn_absorbation",
+	"shock_absorbation",
+	"chemical_burn_absorbation",
+	"radiation_absorbation",
+	"telepatic_absorbation"
+};
+
+const LPCSTR CArtefact::strRestoreNames[CArtefact::eRestoreTypeMax]
+{
+	"radiation_speed",
+	"painkill_speed",
+	"regeneration_speed",
+	"recuperation_speed"
+};
+
 CArtefact::CArtefact()
 {
 	shedule.t_min				= 20;
@@ -63,20 +80,21 @@ void CArtefact::Load(LPCSTR section)
 	m_bCanSpawnZone						= !!pSettings->line_exist("artefact_spawn_zones", section);
 	m_af_rank							= pSettings->r_u8(section, "af_rank");
 
-	m_amountable_ptr					= getModule<MAmountable>();
-	R_ASSERT2							(m_amountable_ptr, "CArtefact requires MAmountable!");
+	m_pAmountable = getModule<MAmountable>();
+	R_ASSERT2(m_pAmountable, "CArtefact requires MAmountable!");
 
-	m_baseline_charge					= pSettings->r_float(section, "baseline_charge");
-	m_charge_capacity					= m_amountable_ptr->getMaxAmount();
-	m_saturation_power					= m_charge_capacity / m_baseline_charge;
-	float weight_dump					= 1.f - pSettings->r_float(section, "weight_dump");
-	m_baseline_weight_dump				= (1.f / weight_dump) - 1.f;
-	m_armor								= pSettings->r_float(section, "armor");
+	m_fBaselineCharge = pSettings->r_float(section, "baseline_charge");
+	m_fMaxCharge = m_pAmountable->getMaxAmount();
+	float weight_dump{ 1.F - pSettings->r_float(section, "weight_dump") };
+	m_fBaselineWeightDump = (1.F / weight_dump) - 1.F;
+	m_fArmor = pSettings->r_float(section, "armor");
 
-	extern LPCSTR						af_absorbation_names[];
-	for (int i = 0; i < eAbsorbationTypeMax; i++)
-		m_HitAbsorbation[i]				= pSettings->r_float(section, af_absorbation_names[i]);
-	m_HitAbsorbation[ALife::eHitTypeLightBurn] = m_HitAbsorbation[ALife::eHitTypeBurn];
+	for (size_t i = 0; i < eAbsorbationTypeMax; ++i)
+		m_fHitAbsorbations[i] = pSettings->r_float(section, strAbsorbationNames[i]);
+	m_fHitAbsorbations[ALife::eHitTypeLightBurn] = m_fHitAbsorbations[ALife::eHitTypeBurn];
+
+	for (size_t i = 0; i < eRestoreTypeMax; ++i)
+		m_fRestores[i] = pSettings->r_float(section, strRestoreNames[i]);
 }
 
 BOOL CArtefact::net_Spawn(CSE_Abstract* DC) 
@@ -518,47 +536,44 @@ void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fv
 	}
 }
 
-void CArtefact::updatePower() const
+void CArtefact::update_power() const
 {
-	if (m_power_calc_frame == Device.dwFrame)
+	if (m_nPowerCalcFrame == Device.dwFrame)
 		return;
-	m_power_calc_frame					= Device.dwFrame;
+	m_nPowerCalcFrame = Device.dwFrame;
 
-	float cont_limit					= 0.f;
-	if (Parent)
-		if (auto cont = Parent->mcast<MArtefactModule>())
-			cont_limit					= cont->getArtefactRadiationLimit();
+	m_fPower = 0.F;
+	m_fRadiation = 0.F;
 
-	if (fIsZero(cont_limit))
-		m_power							= 0.f;
-	else
+	if (auto pContainer{ (Parent) ? Parent->mcast<MArtefactModule>() : nullptr })
 	{
-		float charge					= m_amountable_ptr->getAmount();
-		bool overcharge					= (charge > m_charge_capacity);
-		if (overcharge)
-			charge						= m_charge_capacity * sqrt(charge / m_charge_capacity);
-		m_power							= charge / m_baseline_charge;
-
-		if (fLess(cont_limit, 1.f))
+		float fAllowedCharge{ pContainer->getAllowedArtefactCharge(this) };
+		if (!fIsZero(fAllowedCharge))
 		{
-			if (overcharge)
-				m_power					*= cont_limit;
-			else
-				clamp					(m_power, 0.f, cont_limit * m_saturation_power);
+			float fCharge{ m_pAmountable->getAmount() };
+
+			float fMainCharge{ std::min(fCharge, m_fMaxCharge) };
+			float fActiveCharge{ std::min(fMainCharge, fAllowedCharge) };
+			float fActivatedFraction{ fActiveCharge / m_fMaxCharge };
+
+			float fEfectiveCharge{ (fMore(fCharge, m_fMaxCharge)) ? sqrt(fCharge * m_fMaxCharge) : fCharge };
+			m_fPower = fActivatedFraction * fEfectiveCharge / m_fBaselineCharge;
+			m_fRadiation = fActivatedFraction;
 		}
 	}
-	
-	m_radiation							= m_power / m_saturation_power;
-	if (m_radiation > cont_limit)
-		m_radiation						= cont_limit;
 }
 
-float CArtefact::HitProtection(ALife::EHitType hit_type) const
+float CArtefact::getHitProtection(ALife::EHitType hitType) const
 {
-	return (SHit::DamageType(hit_type)) ? getArmor() : getAbsorbation(hit_type);
+	return (SHit::DamageType(hitType)) ? getArmor() : getAbsorbation(hitType);
 }
 
-void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
+float CArtefact::getWeightDump() const
+{
+	return 1.f - 1.f / (1.f + m_fBaselineWeightDump * getPower());
+}
+
+void CArtefact::processHit(float fDamage, ALife::EHitType hitType)
 {
 #if 0	//for future energy depletion system, gamedesign thoughts needed
 	if (pAP && fMore(*pAP, 0.f))
@@ -580,7 +595,7 @@ void CArtefact::ProcessHit(float d_damage, ALife::EHitType hit_type)
 	}
 	else
 	{
-		float d_damage			= min(pHDS->main_damage, m_HitAbsorbation[pHDS->hit_type] * Power());
+		float d_damage			= min(pHDS->main_damage, m_fHitAbsorbations[pHDS->hit_type] * Power());
 		pHDS->main_damage		-= d_damage;
 		DepleteProtection		(d_damage);
 	}
@@ -591,9 +606,4 @@ void CArtefact::Hit(SHit* pHDS)
 {
 	//specifically ignoring CInventoryItemObject::Hit to prevent strange artefact condition decay in its parent anomaly before it's picked up
 	CPhysicItem::Hit(pHDS);
-}
-
-float CArtefact::getWeightDump() const
-{
-	return 1.f - 1.f / (1.f + m_baseline_weight_dump * getPower());
 }

@@ -188,11 +188,23 @@ void CUIItemInfo::set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 
 		float fAmount{ (pItem) ? pItem->GetAmount() : ((bEmptyCont) ? 0.F : pSettings->r_float(pCellItem->m_section, "max_amount")) };
 		fAmount *= pSettings->r_float(strAmountDisplayType, "factor");
+		bool bInteger{ pSettings->r_bool(strAmountDisplayType, "integer") };
+
 		size_t len{ strlen(buffer) };
-		if (pSettings->r_bool(strAmountDisplayType, "integer"))
+		if (bInteger)
 			snprintf(buffer + len, sizeof(buffer) - len, " %d", static_cast<int>(round(fAmount)));
 		else
 			snprintf(buffer + len, sizeof(buffer) - len, " %.2f", fAmount);
+
+		if (pSettings->r_bool(strAmountDisplayType, "show_max"))
+		{
+			const float fMaxAmount{ (pItem) ? pItem->O.mcast<MAmountable>()->getMaxAmount() : pSettings->r_float(pCellItem->m_section, "max_amount") };
+			len = strlen(buffer);
+			if (bInteger)
+				snprintf(buffer + len, sizeof(buffer) - len, "/%d", static_cast<int>(round(fMaxAmount)));
+			else
+				snprintf(buffer + len, sizeof(buffer) - len, "/%.2f", fMaxAmount);
+		}
 
 		if (!!strcmp(strUnit, "none"))
 		{
@@ -259,7 +271,7 @@ void CUIItemInfo::set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 
 	if (ItemCategory(pCellItem->m_section, "artefact"))
 	{
-		m_pUIArtefactParams->setInfo(pCellItem->m_section.c_str(), smart_cast<CArtefact*>(pCellItem->getItem()));
+		m_pUIArtefactParams->setInfo(smart_cast<CArtefact*>(pCellItem->getItem()), pCellItem->m_section.c_str());
 		m_pUIDesc->AddWindow(m_pUIArtefactParams.get(), false);
 	}
 

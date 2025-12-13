@@ -680,7 +680,7 @@ float CInventoryOwner::GetProtectionArtefacts(ALife::EHitType hit_type) const
 {
 	float res							= 0.f;
 	for (auto I : inventory().m_artefacts)
-		res								+= I->HitProtection(hit_type);
+		res								+= I->getHitProtection(hit_type);
 	return								res;
 }
 
@@ -694,5 +694,5 @@ float CInventoryOwner::getAccuracyModifier() const
 void CInventoryOwner::HitArtefacts(float d_damage, ALife::EHitType hit_type) const
 {
 	for (auto I : inventory().m_artefacts)
-		I->ProcessHit					(d_damage, hit_type);
+		I->processHit					(d_damage, hit_type);
 }

@@ -1,40 +1,42 @@
 #include "stdafx.h"
 #include "artefact_module.h"
 
+#include "Artefact.h"
 #include "GameObject.h"
 #include "item_amountable.h"
 #include "inventory_item_object.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 MArtefactModule::MArtefactModule(CGameObject* obj) : CModule(obj),
-	m_amountable_ptr(O.getModule<MAmountable>()),
-	m_max_artefact_radiation_limit(pSettings->r_float(O.cNameSect(), "max_artefact_radiation_limit")),
-	m_modes_count(pSettings->r_u32(O.cNameSect(), "modes_count"))
+	m_pAmountable(O.getModule<MAmountable>()),
+	m_fArtefactActivateCharge(pSettings->r_float(O.cNameSect(), "artefact_activate_charge")),
+	m_nModesCount(pSettings->r_u32(O.cNameSect(), "modes_count"))
 {
-	R_ASSERT2							(m_amountable_ptr, "MArtefactModule requires MAmountable!");
+	R_ASSERT2(m_pAmountable, "MArtefactModule requires MAmountable!");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MArtefactModule::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
+void MArtefactModule::sSyncData(CSE_ALifeDynamicObject* /*se_obj*/, bool save)
 {
 	if (!save)
-	{
-		float amount					= m_amountable_ptr->getAmount();
-		setMode							(static_cast<int>(round(amount * m_modes_count)));
-	}
+		setMode(static_cast<int>(round(m_pAmountable->getAmount() * static_cast<float>(m_nModesCount))));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float MArtefactModule::getArtefactRadiationLimit() const
+float MArtefactModule::getAllowedArtefactCharge(const CArtefact* artefact) const
 {
-	return								m_amountable_ptr->getAmount();
+	const float target_radiation{ m_pAmountable->getAmount() };
+	const float target_charge{ target_radiation * artefact->getMaxCharge() };
+	return std::min(target_charge, m_fArtefactActivateCharge);
 }
 
 void MArtefactModule::setMode(int val)
 {
-	m_cur_mode							= val;
-	clamp								(m_cur_mode, 0, m_modes_count);
-	m_amountable_ptr->setAmount			(static_cast<float>(val) / static_cast<float>(m_modes_count));
-	I->SetInvIconType					(m_cur_mode);
+	m_nCurMode = val;
+	clamp(m_nCurMode, 0, m_nModesCount);
+	m_pAmountable->setAmount(static_cast<float>(val) / static_cast<float>(m_nModesCount));
+	I->SetInvIconType(m_nCurMode);
 }

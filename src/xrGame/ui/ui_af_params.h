@@ -1,28 +1,11 @@
 #pragma once
 
 #include "UIWindow.h"
+#include "Artefact.h"
 
 class CUIXml;
 class CArtefact;
 class CUIMiscInfoItem;
-
-enum EAbsorbationTypes
-{
-	eBurnImmunity,
-	eShockImmunity,
-	eChemBurnImmunity,
-	eRadiationImmunity,
-	eTelepaticImmunity,
-	eAbsorbationTypeMax
-};
-
-enum EConditionRestoreTypes {
-	eRadiationSpeed = 0,
-	ePainkillSpeed,
-	eRegenerationSpeed,
-	eRecuperationSpeed,
-	eRestoreTypeMax
-};
 
 class CUIArtefactParams : public CUIWindow
 {
@@ -36,12 +19,12 @@ private:
 	void set_info_item(CUIMiscInfoItem* item, float value, float& h);
 
 public:
-	void setInfo(LPCSTR section, CArtefact* art);
+	void setInfo(CArtefact* pArtefact, LPCSTR strSection);
 
 private:
-	xptr<CUIMiscInfoItem> m_radiation{};
-	xptr<CUIMiscInfoItem> m_absorbation_item[eAbsorbationTypeMax]{};
-	xptr<CUIMiscInfoItem> m_restore_item[eRestoreTypeMax]{};
-	xptr<CUIMiscInfoItem> m_weight_dump{};
-	xptr<CUIMiscInfoItem> m_armor{};
+	xptr<CUIMiscInfoItem> m_pRadiation{};
+	xptr<CUIMiscInfoItem> m_pAbsorbations[CArtefact::eAbsorbationTypeMax]{};
+	xptr<CUIMiscInfoItem> m_pRestores[CArtefact::eRestoreTypeMax]{};
+	xptr<CUIMiscInfoItem> m_pWeightDump{};
+	xptr<CUIMiscInfoItem> m_pArmor{};
 };

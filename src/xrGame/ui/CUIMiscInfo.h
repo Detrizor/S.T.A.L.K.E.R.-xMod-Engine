@@ -31,6 +31,5 @@ private:
 	xptr<CUIMiscInfoItem> m_pContainerCapacity{};
 	xptr<CUIMiscInfoItem> m_pContainerArtefactIsolation{};
 
-	xptr<CUIMiscInfoItem> m_pArtModuleMaxRadiationLimit{};
-	xptr<CUIMiscInfoItem> m_pArtModuleRadiation{};
+	xptr<CUIMiscInfoItem> m_pArtModuleArtefactActivateCharge{};
 };
