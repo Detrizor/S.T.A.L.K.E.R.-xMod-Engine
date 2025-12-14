@@ -23,21 +23,11 @@ void CUIMiscInfo::initFromXml(CUIXml& xmlDoc)
 	auto pStoredRoot{ xmlDoc.GetLocalRoot() };
 	xmlDoc.SetLocalRoot(xmlDoc.NavigateToNode(strBaseNode, 0));
 
-	m_pMagazineAmmoType->init(xmlDoc, "magazine_ammo_type");
-	m_pMagazineAmmoType->SetCaption(CStringTable().translate("ui_ammo_type").c_str());
-
-	m_pMagazineCapacity->init(xmlDoc, "magazine_capacity");
-	m_pMagazineCapacity->SetCaption(CStringTable().translate("ui_capacity").c_str());
-
-	m_pContainerCapacity->init(xmlDoc, "container_capacity");
-	m_pContainerCapacity->SetCaption(CStringTable().translate("ui_capacity").c_str());
-
-	m_pContainerArtefactIsolation->init(xmlDoc, "container_artefact_isolation");
-	m_pContainerArtefactIsolation->SetCaption(CStringTable().translate("ui_artefact_isolation").c_str());
-	m_pContainerArtefactIsolation->SetStrValue("");
-
-	m_pArtModuleArtefactActivateCharge->init(xmlDoc, "art_module_artefact_activate_charge");
-	m_pArtModuleArtefactActivateCharge->SetCaption(CStringTable().translate("st_artefact_activate_charge").c_str());
+	m_pMagazineAmmoType->init(xmlDoc, "magazine_ammo_type", false);
+	m_pMagazineCapacity->init(xmlDoc, "magazine_capacity", false);
+	m_pContainerCapacity->init(xmlDoc, "container_capacity", false);
+	m_pContainerArtefactIsolation->init(xmlDoc, "container_artefact_isolation", false);
+	m_pArtModuleArtefactActivateCharge->init(xmlDoc, "art_module_artefact_activate_charge", false);
 
 	xmlDoc.SetLocalRoot(pStoredRoot);
 }
@@ -49,15 +39,10 @@ void CUIMiscInfo::set_magaizine_info(CUICellItem* pCellItem, float& h)
 
 	auto strAmmoSlotType{ pSettings->r_string(pCellItem->m_section, "ammo_slot_type") };
 	auto strSlotName{ CAddonSlot::getSlotName(strAmmoSlotType) };
-	m_pMagazineAmmoType->SetStrValue(CStringTable().translate(strSlotName).c_str());
-	h += m_pMagazineAmmoType->GetWndSize().y;
-	AttachChild(m_pMagazineAmmoType.get());
+	m_pMagazineAmmoType->setStrValue(CStringTable().translate(strSlotName).c_str(), h);
 
 	float fCapacity{ pSettings->r_float(pCellItem->m_section, "capacity") };
-	m_pMagazineCapacity->SetValue(fCapacity);
-	m_pMagazineCapacity->SetY(h);
-	h += m_pMagazineCapacity->GetWndSize().y;
-	AttachChild(m_pMagazineCapacity.get());
+	m_pMagazineCapacity->setValue(fCapacity, h);
 }
 
 void CUIMiscInfo::set_container_info(CUICellItem* pCellItem, float& h)
@@ -70,21 +55,14 @@ void CUIMiscInfo::set_container_info(CUICellItem* pCellItem, float& h)
 	if (pSettings->r_string(pCellItem->m_section, "supplies"))
 		return;
 
-	if (pItem->O.getModule<MArtefactModule>() || pSettings->r_bool_ex(pCellItem->m_section, "artefact_module", false))
+	if (pItem && pItem->O.getModule<MArtefactModule>() || !pItem && pSettings->r_bool_ex(pCellItem->m_section, "artefact_module", false))
 		return;
 
 	float fCapacity = (pContainer) ? pContainer->GetCapacity() : pSettings->r_float(pCellItem->m_section, "capacity");
-	m_pContainerCapacity->SetValue(fCapacity);
-	m_pContainerCapacity->SetY(h);
-	h += m_pContainerCapacity->GetWndSize().y;
-	AttachChild(m_pContainerCapacity.get());
+	m_pContainerCapacity->setValue(fCapacity, h);
 
 	if ((pContainer) ? pContainer->ArtefactIsolation(true) : pSettings->r_bool(pCellItem->m_section, "artefact_isolation"))
-	{
-		m_pContainerArtefactIsolation->SetY(h);
-		h += m_pContainerArtefactIsolation->GetWndSize().y;
-		AttachChild(m_pContainerArtefactIsolation.get());
-	}
+		m_pContainerArtefactIsolation->setStrValue("", h);
 }
 
 void CUIMiscInfo::set_artefact_module_info(CUICellItem* pCellItem, float& h)
@@ -100,12 +78,7 @@ void CUIMiscInfo::set_artefact_module_info(CUICellItem* pCellItem, float& h)
 		pSettings->w_float_ex(fArtefactActivateCharge, pCellItem->m_section, "artefact_activate_charge");
 
 	if (fMore(fArtefactActivateCharge, 0.F))
-	{
-		m_pArtModuleArtefactActivateCharge->SetValue(fArtefactActivateCharge);
-		m_pArtModuleArtefactActivateCharge->SetY(h);
-		h += m_pArtModuleArtefactActivateCharge->GetWndSize().y;
-		AttachChild(m_pArtModuleArtefactActivateCharge.get());
-	}
+		m_pArtModuleArtefactActivateCharge->setValue(fArtefactActivateCharge, h);
 }
 
 void CUIMiscInfo::setInfo(CUICellItem* pCellItem)

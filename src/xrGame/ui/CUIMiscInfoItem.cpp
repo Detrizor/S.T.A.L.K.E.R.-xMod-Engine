@@ -7,41 +7,51 @@
 
 #include "string_table.h"
 
-void CUIMiscInfoItem::init(CUIXml& xmlDoc, LPCSTR strSection)
+CUIMiscInfoItem::CUIMiscInfoItem(CUIWindow* pParent) : m_pParent(pParent) {}
+CUIMiscInfoItem::~CUIMiscInfoItem() = default;
+
+void CUIMiscInfoItem::init(CUIXml& xmlDoc, LPCSTR strSection, bool bAttach)
 {
 	CUIXmlInit::InitWindow(xmlDoc, strSection, 0, this);
 	auto pStoredRoot{ xmlDoc.GetLocalRoot() };
 	xmlDoc.SetLocalRoot(xmlDoc.NavigateToNode(strSection));
 
+	if (bAttach)
+	{
+		m_pParent->AttachChild(this);
+		m_bAttaching = false;
+	}
+
 	m_fMagnitude = xmlDoc.ReadAttribFlt("value", 0, "magnitude", 1.F);
 	m_bShowSign = !!xmlDoc.ReadAttribInt("value", 0, "show_sign", 1);
 	m_bPercUnit = !!xmlDoc.ReadAttribInt("value", 0, "perc_unit", 0);
 
-	m_pCaption = UIHelper::CreateStatic(xmlDoc, "caption", this);
-	m_pValue = UIHelper::CreateTextWnd(xmlDoc, "value", this);
+	AttachChild(m_pIcon.get());
+	CUIXmlInit::InitStatic(xmlDoc, "icon", 0, m_pIcon.get());
+
+	AttachChild(m_pCaption.get());
+	CUIXmlInit::InitTextWnd(xmlDoc, "caption", 0, m_pCaption.get());
+	setCaption(m_pCaption->TextItemControl().GetText());
+
+	AttachChild(m_pValue.get());
+	CUIXmlInit::InitTextWnd(xmlDoc, "value", 0, m_pValue.get());
 
 	LPCSTR strUnit = xmlDoc.ReadAttrib("value", 0, "unit_str", "");
 	if (strUnit && strUnit[0])
 		m_strUnit._set(CStringTable().translate(strUnit));
 
-	auto strTextureMinus{ xmlDoc.Read("texture_minus", 0, "") };
-	if (strTextureMinus && strTextureMinus[0])
-	{
-		m_strTextureMinus._set(strTextureMinus);
-		auto strTexturePlus{ xmlDoc.Read("caption:texture", 0, "") };
-		VERIFY(strTexturePlus && strTexturePlus[0]);
-		m_strTexturePlus._set(strTexturePlus);
-	}
-
 	xmlDoc.SetLocalRoot(pStoredRoot);
 }
 
-void CUIMiscInfoItem::SetCaption(LPCSTR strCaption)
+void CUIMiscInfoItem::setCaption(LPCSTR strCaption)
 {
-	m_pCaption->TextItemControl()->SetText(strCaption);
+	std::string strCaptionTranslated{ CStringTable().translate(strCaption).c_str() };
+	strCaptionTranslated += ":";
+	m_pCaption->TextItemControl().SetTextST(strCaptionTranslated.c_str());
+	m_pCaption->AdjustWidthToText();
 }
 
-void CUIMiscInfoItem::SetValue(float fValue)
+void CUIMiscInfoItem::setValue(float fValue, float& h)
 {
 	fValue *= m_fMagnitude;
 
@@ -53,14 +63,16 @@ void CUIMiscInfoItem::SetValue(float fValue)
 		str.printf("%s%%", str.c_str());
 	else if (m_strUnit.size())
 		str.printf("%s %s", str.c_str(), m_strUnit.c_str());
-	m_pValue->SetText(str.c_str());
-
-	m_pValue->SetTextColor(color_rgba(170, 170, 170, 255));
-	if (m_strTextureMinus.size())
-		m_pCaption->InitTexture(fMoreOrEqual(fValue, 0.F) ? m_strTexturePlus.c_str() : m_strTextureMinus.c_str());
+	setStrValue(str.c_str(), h);
 }
 
-void CUIMiscInfoItem::SetStrValue(LPCSTR strValue)
+void CUIMiscInfoItem::setStrValue(LPCSTR strValue, float& h)
 {
-	m_pValue->SetText(strValue);
+	m_pValue->SetTextST(strValue);
+	m_pValue->AdjustHeightToText();
+	SetHeight(m_pValue->GetHeight());
+	SetY(h);
+	h += GetHeight();
+	if (m_bAttaching)
+		m_pParent->AttachChild(this);
 }

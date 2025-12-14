@@ -25,11 +25,11 @@ public:
 	void setInfo(CUICellItem* pCellItem);
 
 private:
-	xptr<CUIMiscInfoItem> m_pMagazineAmmoType{};
-	xptr<CUIMiscInfoItem> m_pMagazineCapacity{};
+	xptr<CUIMiscInfoItem> m_pMagazineAmmoType{ this };
+	xptr<CUIMiscInfoItem> m_pMagazineCapacity{ this };
 
-	xptr<CUIMiscInfoItem> m_pContainerCapacity{};
-	xptr<CUIMiscInfoItem> m_pContainerArtefactIsolation{};
+	xptr<CUIMiscInfoItem> m_pContainerCapacity{ this };
+	xptr<CUIMiscInfoItem> m_pContainerArtefactIsolation{ this };
 
-	xptr<CUIMiscInfoItem> m_pArtModuleArtefactActivateCharge{};
+	xptr<CUIMiscInfoItem> m_pArtModuleArtefactActivateCharge{ this };
 };

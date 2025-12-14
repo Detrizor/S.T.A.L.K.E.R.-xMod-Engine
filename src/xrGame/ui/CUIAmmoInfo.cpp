@@ -27,20 +27,10 @@ void CUIAmmoInfo::initFromXml(CUIXml& xmlDoc)
 	AttachChild(m_pDisclaimer.get());
 	CUIXmlInit::InitStatic(xmlDoc, "disclaimer", 0, m_pDisclaimer.get());
 
-	AttachChild(m_pBulletSpeed.get());
-	m_pBulletSpeed->init(xmlDoc, "bullet_speed");
-	m_pBulletSpeed->SetCaption(CStringTable().translate("ui_bullet_speed").c_str());
-
-	AttachChild(m_pBulletPulse.get());
-	m_pBulletPulse->init(xmlDoc, "bullet_pulse");
-	m_pBulletPulse->SetCaption(CStringTable().translate("ui_bullet_pulse").c_str());
-
-	AttachChild(m_pArmorPiercing.get());
-	m_pArmorPiercing->init(xmlDoc, "armor_piercing");
-
-	AttachChild(m_pImpair.get());
-	m_pImpair->init(xmlDoc, "impair");
-	m_pImpair->SetCaption(CStringTable().translate("ui_impair").c_str());
+	m_pBulletSpeed->init(xmlDoc, "bullet_speed", true);
+	m_pBulletPulse->init(xmlDoc, "bullet_pulse", true);
+	m_pArmorPiercing->init(xmlDoc, "armor_piercing", true);
+	m_pImpair->init(xmlDoc, "impair", true);
 
 	xmlDoc.SetLocalRoot(pStoredRoot);
 }
@@ -72,16 +62,11 @@ void CUIAmmoInfo::setInfo(CUICellItem* pCellItem)
 		m_pDisclaimer->TextItemControl()->SetText(str.c_str());
 		fBarrelLen = cartridge.param_s.barrel_len;
 	}
-	float h{ m_pDisclaimer->GetWndSize().y };
+	float h{ m_pDisclaimer->GetHeight() };
 
 	float fBulletSpeed{ cartridge.param_s.bullet_speed_per_barrel_len * fBarrelLen };
-	m_pBulletSpeed->SetValue(fBulletSpeed);
-	m_pBulletSpeed->SetY(h);
-	h += m_pBulletSpeed->GetWndSize().y;
-
-	m_pBulletPulse->SetValue(fBulletSpeed * cartridge.param_s.fBulletMass * cartridge.param_s.buckShot);
-	m_pBulletPulse->SetY(h);
-	h += m_pBulletPulse->GetWndSize().y;
+	m_pBulletSpeed->setValue(fBulletSpeed, h);
+	m_pBulletPulse->setValue(fBulletSpeed * cartridge.param_s.fBulletMass * cartridge.param_s.buckShot, h);
 
 	float fMuzzleAP{ Level().BulletManager().calculateAP(cartridge.param_s.penetration, fBulletSpeed) };
 	float fAPLevel{ flt_max };
@@ -103,20 +88,16 @@ void CUIAmmoInfo::setInfo(CUICellItem* pCellItem)
 
 	if (fAPLevel != flt_max)
 	{
-		m_pArmorPiercing->SetCaption(CStringTable().translate("ui_armor_piercing").c_str());
-		m_pArmorPiercing->SetValue(floor(fAPLevel * 10.F) * .1F);
+		m_pArmorPiercing->setCaption("ui_armor_piercing");
+		m_pArmorPiercing->setValue(floor(fAPLevel * 10.F) * .1F, h);
 	}
 	else
 	{
-		m_pArmorPiercing->SetCaption(CStringTable().translate("ui_armor_piercing_absent").c_str());
-		m_pArmorPiercing->SetStrValue("");
+		m_pArmorPiercing->setCaption("ui_armor_piercing_absent");
+		m_pArmorPiercing->setStrValue("", h);
 	}
-	m_pArmorPiercing->SetY(h);
-	h += m_pArmorPiercing->GetWndSize().y;
 
-	m_pImpair->SetValue(cartridge.param_s.impair);
-	m_pImpair->SetY(h);
-	h += m_pImpair->GetWndSize().y;
+	m_pImpair->setValue(cartridge.param_s.impair, h);
 
 	SetHeight(h);
 }

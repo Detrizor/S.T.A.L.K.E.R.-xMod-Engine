@@ -19,11 +19,12 @@ public:
 	void setInfo(CUICellItem* pCellItem);
 
 protected:
-	xptr<CUIMiscInfoItem> m_boosts[eBoostMaxCount]{};
-	xptr<CUIMiscInfoItem> m_need_hydration{};
-	xptr<CUIMiscInfoItem> m_need_satiety{};
-	xptr<CUIMiscInfoItem> m_health_outer{};
-	xptr<CUIMiscInfoItem> m_health_neural{};
-	xptr<CUIMiscInfoItem> m_power_short{};
-	xptr<CUIMiscInfoItem> m_booster_anabiotic{};
+	xarr<xptr<CUIMiscInfoItem>, eBoostMaxCount> m_pBoosts{ this };
+
+	xptr<CUIMiscInfoItem> m_pNeedHydration{ this };
+	xptr<CUIMiscInfoItem> m_pNeedSatiety{ this };
+	xptr<CUIMiscInfoItem> m_pHealthOuter{ this };
+	xptr<CUIMiscInfoItem> m_pHealthNeural{ this };
+	xptr<CUIMiscInfoItem> m_pPowerShort{ this };
+	xptr<CUIMiscInfoItem> m_pBoosterAnabiotic{ this };
 };

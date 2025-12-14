@@ -12,23 +12,6 @@ static const auto redClr{ color_argb(255, 210, 50, 50) };
 static const auto greenClr{ color_argb(255, 170, 170, 170) };
 static float maxRestores[]{ flt_min, flt_min, flt_min, flt_min };
 
-static const LPCSTR strAbsorbationCaptions[] =  // EImmunityTypes
-{
-	"ui_inv_outfit_burn_protection",
-	"ui_inv_outfit_shock_protection",
-	"ui_inv_outfit_chemical_burn_protection",
-	"ui_inv_outfit_radiation_protection",
-	"ui_inv_outfit_telepatic_protection",
-};
-
-static const LPCSTR strRestoreCaption[] =  // EConditionRestoreTypes
-{
-	"ui_inv_radiation",
-	"ui_inv_painkill",
-	"ui_inv_regeneration",
-	"ui_inv_recuperation"
-};
-
 static void InitMaxArtValues()
 {
 	for (auto const& sec : CItemsLibrary::getDivision("artefact", "active", "void"))
@@ -53,36 +36,18 @@ void CUIArtefactParams::initFromXml(CUIXml& xmlDoc)
 	auto pStoredRoot{ xmlDoc.GetLocalRoot() };
 	xmlDoc.SetLocalRoot(xmlDoc.NavigateToNode(strBaseNode, 0));
 
-	m_pRadiation->init(xmlDoc, "radiation");
-	m_pRadiation->SetCaption(CStringTable().translate("st_radiation").c_str());
+	m_pRadiation->init(xmlDoc, "radiation", false);
 
 	for (size_t i = 0; i < CArtefact::eAbsorbationTypeMax; ++i)
-	{
-		m_pAbsorbations[i]->init(xmlDoc, CArtefact::strAbsorbationNames[i]);
-		m_pAbsorbations[i]->SetCaption(CStringTable().translate(strAbsorbationCaptions[i]).c_str());
-	}
+		m_pAbsorbations[i]->init(xmlDoc, CArtefact::strAbsorbationNames[i], false);
 
 	for (size_t i = 0; i < CArtefact::eRestoreTypeMax; ++i)
-	{
-		m_pRestores[i]->init(xmlDoc, CArtefact::strRestoreNames[i]);
-		m_pRestores[i]->SetCaption(CStringTable().translate(strRestoreCaption[i]).c_str());
-	}
+		m_pRestores[i]->init(xmlDoc, CArtefact::strRestoreNames[i], false);
 
-	m_pWeightDump->init(xmlDoc, "weight_dump");
-	m_pWeightDump->SetCaption(CStringTable().translate("st_weight_dump").c_str());
-
-	m_pArmor->init(xmlDoc, "armor");
-	m_pArmor->SetCaption(CStringTable().translate("st_armor").c_str());
+	m_pWeightDump->init(xmlDoc, "weight_dump", false);
+	m_pArmor->init(xmlDoc, "armor", false);
 
 	xmlDoc.SetLocalRoot(pStoredRoot);
-}
-
-void CUIArtefactParams::set_info_item(CUIMiscInfoItem* item, float value, float& h)
-{
-	item->SetValue(value);
-	item->SetY(h);
-	h += item->GetWndSize().y;
-	AttachChild(item);
 }
 
 void CUIArtefactParams::setInfo(CArtefact* pArtefact, LPCSTR strSection)
@@ -93,13 +58,13 @@ void CUIArtefactParams::setInfo(CArtefact* pArtefact, LPCSTR strSection)
 
 	fValue = (pArtefact) ? pArtefact->getRadiation() : pSettings->r_float(strSection, "radiation");
 	if (!fIsZero(fValue))
-		set_info_item(m_pRadiation.get(), fValue, h);
+		m_pRadiation->setValue(fValue, h);
 
 	for (size_t i = 0; i < CArtefact::eAbsorbationTypeMax; ++i)
 	{
 		fValue = (pArtefact) ? pArtefact->getAbsorbation(i) : pSettings->r_float(strSection, CArtefact::strAbsorbationNames[i]);
 		if (!fIsZero(fValue))
-			set_info_item(m_pAbsorbations[i].get(), fValue, h);
+			m_pAbsorbations[i]->setValue(fValue, h);
 	}
 
 	for (size_t i = 0; i < CArtefact::eRestoreTypeMax; ++i)
@@ -112,16 +77,16 @@ void CUIArtefactParams::setInfo(CArtefact* pArtefact, LPCSTR strSection)
 			InitMaxArtValues();
 		fValue /= maxRestores[i];
 
-		set_info_item(m_pRestores[i].get(), fValue, h);
+		m_pRestores[i]->setValue(fValue, h);
 	}
 
 	fValue = (pArtefact) ? pArtefact->getWeightDump() : pSettings->r_float(strSection, "weight_dump");
 	if (!fIsZero(fValue))
-		set_info_item(m_pWeightDump.get(), fValue, h);
+		m_pWeightDump->setValue(fValue, h);
 
 	fValue = (pArtefact) ? pArtefact->getArmor() : pSettings->r_float(strSection, "armor");
 	if (!fIsZero(fValue))
-		set_info_item(m_pArmor.get(), fValue, h);
+		m_pArmor->setValue(fValue, h);
 
 	SetHeight(h);
 }

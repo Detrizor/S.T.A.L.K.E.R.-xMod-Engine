@@ -20,8 +20,8 @@ public:
 
 private:
 	xptr<CUIStatic>			m_pDisclaimer{};
-	xptr<CUIMiscInfoItem>	m_pBulletSpeed{};
-	xptr<CUIMiscInfoItem>	m_pBulletPulse{};
-	xptr<CUIMiscInfoItem>	m_pArmorPiercing{};
-	xptr<CUIMiscInfoItem>	m_pImpair{};
+	xptr<CUIMiscInfoItem>	m_pBulletSpeed{ this };
+	xptr<CUIMiscInfoItem>	m_pBulletPulse{ this };
+	xptr<CUIMiscInfoItem>	m_pArmorPiercing{ this };
+	xptr<CUIMiscInfoItem>	m_pImpair{ this };
 };

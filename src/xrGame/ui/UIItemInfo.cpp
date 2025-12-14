@@ -275,16 +275,16 @@ void CUIItemInfo::set_custom_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 		m_pUIDesc->AddWindow(m_pUIArtefactParams.get(), false);
 	}
 
-	if (ItemCategory(pCellItem->m_section, "ammo") && (ItemSubcategory(pCellItem->m_section, "box") || ItemSubcategory(pCellItem->m_section, "cartridge")))
-	{
-		m_pUIAmmoInfo->setInfo(pCellItem);
-		m_pUIDesc->AddWindow(m_pUIAmmoInfo.get(), false);
-	}
-
 	if (pSettings->r_bool_ex(pCellItem->m_section, "addon", false) || smart_cast<CUIAddonOwnerCellItem*>(pCellItem))
 	{
 		m_pUIAddonInfo->setInfo(pCellItem);
 		m_pUIDesc->AddWindow(m_pUIAddonInfo.get(), false);
+	}
+
+	if (ItemCategory(pCellItem->m_section, "ammo") && (ItemSubcategory(pCellItem->m_section, "box") || ItemSubcategory(pCellItem->m_section, "cartridge")))
+	{
+		m_pUIAmmoInfo->setInfo(pCellItem);
+		m_pUIDesc->AddWindow(m_pUIAmmoInfo.get(), false);
 	}
 
 	m_pUIBoosterInfo->setInfo(pCellItem);

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "artefact.h"
+
 #include "../xrphysics/PhysicsShell.h"
 #include "PhysicsShellHolder.h"
 #include "game_cl_base.h"
@@ -22,7 +23,6 @@
 #include "patrol_path_storage.h"
 
 #include "Level_Bullet_Manager.h"
-#include "ui/ui_af_params.h"
 #include "artefact_module.h"
 
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
