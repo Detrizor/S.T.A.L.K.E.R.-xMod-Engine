@@ -340,13 +340,13 @@ void CUIAddonOwnerCellItem::process_slots(VSlots CR$ slots, Fvector2 CR$ forward
 					s->icon_offset.sub	(addon->getIconOrigin(s->addon_type));
 					s->icon_offset.x	-= s->icon_step * static_cast<float>(addon->getSlotPos());
 
-					s->addon_icon.construct	();
-					AttachChild			(s->addon_icon.get());
-					s->addon_icon->SetTextureColor(GetTextureColor());
+					s->pAddonIcon.construct	();
+					AttachChild			(s->pAddonIcon.get());
+					s->pAddonIcon->SetTextureColor(GetTextureColor());
 					if (s->icon_background_draw || (hpb.z >= PI_DIV_4 && hpb.z < PI * .75f))
-						s->addon_icon->setBackgroundDraw(true);
+						s->pAddonIcon->setBackgroundDraw(true);
 					else if (s->icon_foreground_draw)
-						s->addon_icon->setForegroundDraw(true);
+						s->pAddonIcon->setForegroundDraw(true);
 				}
 
 				if (addon->slots)
@@ -366,7 +366,7 @@ void CUIAddonOwnerCellItem::calculate_grid(shared_str CR$ sect)
 
 	for (auto& s : m_slots)
 	{
-		if (s->addon_icon)
+		if (s->pAddonIcon)
 		{
 			res_rect.left				= min(res_rect.left, tex_rect.left + s->icon_offset.x);
 			res_rect.top				= min(res_rect.top, tex_rect.top + s->icon_offset.y);
@@ -460,8 +460,8 @@ void CUIAddonOwnerCellItem::Update()
 	{
 		for (auto& s : m_slots)
 		{
-			if (s->addon_icon)
-				InitAddon				(s->addon_icon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, Heading());
+			if (s->pAddonIcon)
+				InitAddon				(s->pAddonIcon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, Heading());
 		}
 	}
 }
@@ -471,8 +471,8 @@ void CUIAddonOwnerCellItem::SetTextureColor(u32 color)
 	inherited::SetTextureColor			(color);
 	for (auto& s : m_slots)
 	{
-		if (s->addon_icon)
-			s->addon_icon->SetTextureColor(color);
+		if (s->pAddonIcon)
+			s->pAddonIcon->SetTextureColor(color);
 	}
 }
 
@@ -480,8 +480,8 @@ void CUIAddonOwnerCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
 	for (auto& s : m_slots)
 	{
-		if (s->addon_icon)
-			InitAddon					(s->addon_icon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
+		if (s->pAddonIcon)
+			InitAddon					(s->pAddonIcon.get(), s->addon_section.c_str(), s->addon_type, s->addon_index, s->icon_offset, parent_list->GetVerticalPlacement());
 	}
 }
 
@@ -553,7 +553,7 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 
 	for (auto& s : m_slots)
 	{
-		if (s->addon_icon)
+		if (s->pAddonIcon)
 		{
 			st							= xr_new<CUIStatic>();
 			st->SetAutoDelete			(true);

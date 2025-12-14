@@ -324,8 +324,6 @@ private:
 	shared_str							m_name									= 0;
 	shared_str							m_name_short							= 0;
 	shared_str							m_description							= 0;
-	xptr<CUICellItem, CUICIDeleter>		m_icon									= nullptr;
-	bool								m_icon_valid							= false;
 	
 	void								set_inv_icon							();
 	void								setup_icon								();
@@ -341,7 +339,7 @@ public:
 	static LPCSTR						readNameShort							(LPCSTR section);
 	static LPCSTR						readDescription							(LPCSTR section);
 	
-	void								invalidateIcon							()		{ m_icon_valid = false; }
+	void								invalidateIcon							()		{ m_bIconValid = false; }
 
 	void								swapIcon								(PIItem item);
 	CUICellItem*						getIcon									();
@@ -366,6 +364,10 @@ public:
 	float								GetAmount							C$	();
 	float								GetFill								C$	();
 	float								getFillBar							C$	();
+
+private:
+	xptr<CUICellItem, CUICIDeleter> m_pIcon{ nullptr };
+	bool m_bIconValid{ false };
 };
 
 #include "inventory_item_inline.h"

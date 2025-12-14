@@ -199,7 +199,7 @@ bool CCustomDetector::IsWorking()
 void CCustomDetector::UpfateWork()
 {
 	UpdateAf				();
-	m_ui->update			();
+	m_pUI->update			();
 }
 
 void CCustomDetector::UpdateVisibility()

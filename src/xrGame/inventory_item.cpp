@@ -344,10 +344,10 @@ void CInventoryItem::net_Destroy()
 	if (m_pInventory)
 		VERIFY(!m_pInventory->m_all.contains(this));
 
-	if (m_icon)
+	if (m_pIcon)
 	{
 		auto& actor_menu = CurrentGameUI()->GetActorMenu();
-		if (actor_menu.CurrentItem() == m_icon.get())
+		if (actor_menu.CurrentItem() == m_pIcon.get())
 			actor_menu.SetCurrentItem(nullptr);
 	}
 }
@@ -885,8 +885,8 @@ void CInventoryItem::swapIcon(PIItem item)
 {
 	if (this)
 	{
-		_STD swap						(m_icon, item->m_icon);
-		_STD swap						(m_icon->m_pData, item->m_icon->m_pData);
+		_STD swap						(m_pIcon, item->m_pIcon);
+		_STD swap						(m_pIcon->m_pData, item->m_pIcon->m_pData);
 	}
 }
 
@@ -924,10 +924,10 @@ void CInventoryItem::set_inv_icon()
 void CInventoryItem::setup_icon()
 {
 	if (auto icon = O.emitSignalGet(sCreateIcon()))
-		m_icon.capture					(icon.get());
+		m_pIcon.capture					(icon.get());
 	else
-		m_icon.capture					(xr_new<CUIInventoryCellItem>(this));
-	m_icon_valid						= true;
+		m_pIcon.capture					(xr_new<CUIInventoryCellItem>(this));
+	m_bIconValid						= true;
 	onInventoryAction					();
 }
 
@@ -939,15 +939,15 @@ void CInventoryItem::onInventoryAction(const SInvItemPlace* prev)
 
 void CInventoryItem::shedule_Update(u32 T)
 {
-	if (!m_icon_valid)
+	if (!m_bIconValid)
 		setup_icon						();
 }
 
 CUICellItem* CInventoryItem::getIcon()
 {
-	if (!m_icon_valid)
+	if (!m_bIconValid)
 		setup_icon						();
-	return								m_icon.get();
+	return								m_pIcon.get();
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)

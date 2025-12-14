@@ -59,6 +59,8 @@ private:
 
 	struct SUIAddonSlot
 	{
+		SUIAddonSlot(xptr<CAddonSlot> const& slot);
+
 		shared_str						name;
 		shared_str						type;
 		Fvector2						icon_offset;
@@ -69,9 +71,8 @@ private:
 		shared_str						addon_section							= 0;
 		u8								addon_type								= 0;
 		u8								addon_index								= 0;
-		xptr<CUIStatic>					addon_icon								= nullptr;
 
-		SUIAddonSlot					(xptr<CAddonSlot> CR$ slot);
+		xptr<CUIStatic> pAddonIcon{ nullptr };
 	};
 
 	typedef xr_vector<xptr<SUIAddonSlot>> VUISlots;

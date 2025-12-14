@@ -12,14 +12,14 @@ CSimpleDetector::CSimpleDetector(void)
 
 void CSimpleDetector::CreateUI()
 {
-	R_ASSERT(NULL==m_ui);
-	m_ui.construct<CUIArtefactDetectorSimple>();
+	R_ASSERT(NULL==m_pUI);
+	m_pUI.construct<CUIArtefactDetectorSimple>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorSimple&  CSimpleDetector::ui()
 {
-	return *static_cast<CUIArtefactDetectorSimple*>(m_ui.get());
+	return *static_cast<CUIArtefactDetectorSimple*>(m_pUI.get());
 }
 
 void CSimpleDetector::UpdateAf()

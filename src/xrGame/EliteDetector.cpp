@@ -14,14 +14,14 @@ CEliteDetector::CEliteDetector()
 
 void CEliteDetector::CreateUI()
 {
-	R_ASSERT(NULL==m_ui);
-	m_ui.construct<CUIArtefactDetectorElite>();
+	R_ASSERT(NULL==m_pUI);
+	m_pUI.construct<CUIArtefactDetectorElite>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorElite&  CEliteDetector::ui()
 {
-	return *static_cast<CUIArtefactDetectorElite*>(m_ui.get());
+	return *static_cast<CUIArtefactDetectorElite*>(m_pUI.get());
 }
 
 void CEliteDetector::UpdateAf()
@@ -253,7 +253,7 @@ void CScientificDetector::UpfateWork()
 		}
 	}
 
-	m_ui->update();
+	m_pUI->update();
 }
 
 void CScientificDetector::shedule_Update(u32 dt) 

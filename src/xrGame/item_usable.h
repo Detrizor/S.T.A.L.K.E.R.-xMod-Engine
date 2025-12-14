@@ -22,15 +22,15 @@ struct SAction
 	shared_str							query_functor_str;
 	shared_str							action_functor_str;
 	shared_str							use_functor_str							= 0;
-	
-	xptr<::luabind::functor<bool>>		query_functor;
-	xptr<::luabind::functor<bool>>		action_functor;
-	xptr<::luabind::functor<bool>>		use_functor								= nullptr;
 
 	bool								performQueryFunctor						()		{ return perform(*query_functor); }
 	bool								performActionFunctor					()		{ return perform(*action_functor); }
 
 	bool								perform									(::luabind::functor<bool>& functor);
+
+	xptr<::luabind::functor<bool>> query_functor{};
+	xptr<::luabind::functor<bool>> action_functor{};
+	xptr<::luabind::functor<bool>> use_functor{ nullptr };
 };
 
 class MUsable : public CModule

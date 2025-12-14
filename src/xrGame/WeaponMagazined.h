@@ -225,7 +225,6 @@ private:
 protected:
 	CWeaponChamber						m_chamber;
 
-	xptr<CWeaponHud>					m_hud									= nullptr;
 	CWeaponAmmo*						m_current_ammo							= nullptr;
 	bool								m_locked								= false;
 	MMagazine*							m_magazine								= nullptr;
@@ -274,6 +273,9 @@ public:
 	void								OnTaken								O$	();
 
 	virtual	bool						tryTransfer								(MAddon* addon, bool attach);
+
+protected:
+	xptr<CWeaponHud> m_pHud{ nullptr };
 
 	friend class CWeaponHud;
 	friend class CWeaponChamber;

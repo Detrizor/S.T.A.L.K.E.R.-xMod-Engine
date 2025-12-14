@@ -83,7 +83,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 	if (pSettings->line_exist(section, "fire_modes"))
 		load_firemodes					(pSettings->r_string(section, "fire_modes"));
 
-	m_hud.construct						(this);
+	m_pHud.construct(this);
 
 	m_animation_slot_reloading			= READ_IF_EXISTS(pSettings, r_u32, section, "animation_slot_reloading", m_animation_slot);
 	m_lock_state_reload					= !!READ_IF_EXISTS(pSettings, r_BOOL, section, "lock_state_reload", FALSE);
@@ -711,7 +711,7 @@ bool CWeaponMagazined::Action(u16 cmd, u32 flags)
 	if (!m_grip)
 		return false;
 
-	if (m_hud->Action(cmd, flags))
+	if (m_pHud->Action(cmd, flags))
 		return true;
 
 	if (inherited::Action(cmd, flags))
@@ -1166,7 +1166,7 @@ void CWeaponMagazined::process_scope(MScope* scope, bool attach)
 			return;
 
 	if (attach)
-		m_hud->calculateScopeOffset		(scope);
+		m_pHud->calculateScopeOffset		(scope);
 
 	if (attach)
 	{
@@ -1237,7 +1237,7 @@ void CWeaponMagazined::process_align_front(CGameObject* obj, bool attach)
 
 	for (auto scope : m_attached_scopes)
 		if (scope->Type() == MScope::eIS)
-			m_hud->calculateScopeOffset	(scope);
+			m_pHud->calculateScopeOffset	(scope);
 }
 
 static MMuzzle* get_parent_muzzle(CObject* obj)
@@ -1258,7 +1258,7 @@ void CWeaponMagazined::process_muzzle(MMuzzle* muzzle, bool attach)
 		m_fire_point					= src->getFirePoint();
 		m_flash_hider					= src->isFlashHider();
 		m_muzzle_koefs.fire_dispersion	= src->getDispersionK();
-		m_hud->calculateAimOffsets		();
+		m_pHud->calculateAimOffsets		();
 	}
 }
 
@@ -1311,14 +1311,14 @@ void CWeaponMagazined::OnTaken()
 void CWeaponMagazined::UpdateHudAdditional(Dmatrix& trans)
 {
 	if (m_grip)
-		m_hud->UpdateHudAdditional(trans);
+		m_pHud->UpdateHudAdditional(trans);
 	else
 		inherited::UpdateHudAdditional(trans);
 }
 
 bool CWeaponMagazined::IsRotatingToZoom C$()
 {
-	return m_hud->IsRotatingToZoom();
+	return m_pHud->IsRotatingToZoom();
 }
 
 void CWeaponMagazined::updateSVP() const
@@ -1342,7 +1342,7 @@ Fvector CWeaponMagazined::getFullFireDirection(CCartridge CR$ c)
 		return							get_LastFD();
 
 	float distance						= Zeroing();
-	Fvector transference				= m_hud->getTransference(distance);
+	Fvector transference				= m_pHud->getTransference(distance);
 	static_cast<Fmatrix>(hi->m_transform).transform_dir(transference);
 
 	float air_resistance_correction		= Level().BulletManager().CalcZeroingCorrection(c.param_s.fAirResistZeroingCorrection, distance);

@@ -151,7 +151,7 @@ m_ads_speed_factor(pSettings->r_float(section, "ads_speed_factor"))
 			m_objective_offset			= pSettings->r_fvector3(section, "objective_offset");
 
 			if (pSettings->line_exist(section, "backup_sight"))
-				m_backup_sight.construct(obj, pSettings->r_string(section, "backup_sight"));
+				m_pBackupSight.construct(obj, pSettings->r_string(section, "backup_sight"));
 
 			break;
 

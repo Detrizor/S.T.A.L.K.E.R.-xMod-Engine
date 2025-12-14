@@ -117,7 +117,6 @@ class CCustomDetector : public CInventoryItemObject
 	typedef	CInventoryItemObject inherited;
 
 protected:
-	xptr<CUIArtefactDetectorBase>		m_ui = nullptr;
 	bool			m_bFastAnimMode;
 	bool			m_bNeedActivation;
 
@@ -166,6 +165,9 @@ private:
 	bool toggle(bool status, bool bFastMode);
 	void hide(bool bFastMode);
 	void show(bool bFastMode);
+
+protected:
+	xptr<CUIArtefactDetectorBase> m_pUI{ nullptr };
 };
 
 class CZoneList : public CDetectList<CCustomZone>

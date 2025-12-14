@@ -384,7 +384,7 @@ struct default_deleter
 {
 	void operator()(T* ptr) const
 	{
-		xr_delete(ptr);
+		delete ptr;
 	}
 };
 
@@ -393,36 +393,35 @@ template <typename T, typename D = default_deleter<T>>
 class xptr
 {
 public:
-										template <typename... Args>
-										xptr									(Args&&... args)	{ m_data = xr_new<T>(_STD forward<Args>(args)...); }
-										xptr									(nullptr_t)			{};
+	template <typename... Args>
+	explicit xptr(Args&&... args) noexcept { m_data = xr_new<T>(_STD forward<Args>(args)...); }
+	explicit xptr(nullptr_t) noexcept {};
+	~xptr() { reset(); }
 
-										xptr									(const xptr&)		= delete;
-										xptr									(xptr&& old)		{ m_data = old.release(); }
+	xptr(const xptr&) = delete;
+	xptr(xptr&& old) noexcept { m_data = old.release(); }
 
-										~xptr									()					{ reset(); }
-
-private:
-	T*									m_data									= nullptr;
+	xptr& operator=(const xptr&) = delete;
+	xptr& operator=(xptr&& old) noexcept { if (m_data != old.m_data) capture(old.release()); return *this; }
 
 public:
-	xptr&								operator=								(const xptr&)		= delete;
-	xptr&								operator=								(xptr&& old)		{ capture(old.release()); return *this; }
+	operator bool() const noexcept { return (m_data != nullptr); }
+	T* operator->() const noexcept { R_ASSERT(m_data); return m_data; }
+	T& operator*() const noexcept { R_ASSERT(m_data); return *m_data; }
 
-										operator bool							() const			{ return !!m_data; }
-	T*									operator->								() const			{ R_ASSERT(m_data); return m_data; }
-	T&									operator*								() const			{ R_ASSERT(m_data); return *m_data; }
-	T*									get										() const			{ R_ASSERT(m_data); return m_data; }
-
-	void								reset									()					{ D()(m_data); }
-	void								capture									(T* p)				{ reset(); m_data = p; }
-	T*									release									()					{ T* tmp = m_data; m_data = nullptr; return tmp; }
+	void reset() noexcept { if (m_data) { D()(m_data); m_data = nullptr; } }
+	void capture(T* p) noexcept { reset(); m_data = p; }
+	T* release() noexcept { T* tmp{ m_data }; m_data = nullptr; return tmp; }
+	T* get() const noexcept { R_ASSERT(m_data); return m_data; }
 	
 	template <typename... Args>
-	xptr&								construct								(Args&&... args)	{ return construct<T>(_STD forward<Args>(args)...); }
+	xptr& construct(Args&&... args)	{ return construct<T>(_STD forward<Args>(args)...); }
 
 	template <typename M, typename... Args>
-	xptr&								construct								(Args&&... args)	{ capture(xr_new<M>(_STD forward<Args>(args)...)); return *this; }
+	xptr& construct(Args&&... args)	{ R_ASSERT(!m_data); m_data = xr_new<M>(_STD forward<Args>(args)...); return *this; }
+
+private:
+	T* m_data{ nullptr };
 };
 
 #include <unordered_map>
@@ -431,7 +430,7 @@ class xr_umap : public _STD unordered_map<key_type, value_type, _STD hash<key_ty
 	xalloc<_STD pair<const key_type, value_type>>>
 {
 public:
-	bool								contains								(const key_type& key)		{ return find(key) != end(); }
+	bool contains(const key_type& key) const noexcept { return find(key) != end(); }
 };
 
 template <typename T>

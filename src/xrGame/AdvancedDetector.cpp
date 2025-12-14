@@ -12,14 +12,14 @@ CAdvancedDetector::CAdvancedDetector()
 
 void CAdvancedDetector::CreateUI()
 {
-	R_ASSERT			(NULL==m_ui);
-	m_ui.construct<CUIArtefactDetectorAdv>();
+	R_ASSERT			(NULL==m_pUI);
+	m_pUI.construct<CUIArtefactDetectorAdv>();
 	ui().construct		(this);
 }
 
 CUIArtefactDetectorAdv&  CAdvancedDetector::ui()
 {
-	return *static_cast<CUIArtefactDetectorAdv*>(m_ui.get());
+	return *static_cast<CUIArtefactDetectorAdv*>(m_pUI.get());
 }
 
 void CAdvancedDetector::UpdateAf()

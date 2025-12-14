@@ -299,7 +299,7 @@ void CWeaponMagazinedWGrenade::process_gl(MGrenadeLauncher* gl, bool attach)
 
 	if (attach)
 	{
-		m_hud->ProcessGL				(gl);
+		m_pHud->ProcessGL				(gl);
 		m_fLaunchSpeed					= gl->m_fGrenadeVel;
 		m_flame_particles_gl_name		= gl->m_sFlameParticles;
 		m_sounds.LoadSound				(*gl->O.cNameSect(), "snd_shoot_grenade", "sndShotG", true, m_eSoundShot);

@@ -90,7 +90,6 @@ private:
 	Dvector								m_hud_offset[2]							= { dZero, dZero };
 	ScopeSelectionType					m_selection								{ ScopeSelectionType::Undefined };
 	Dvector								m_cam_pos_d_sight_axis					= dZero;
-	xptr<MScope>						m_backup_sight							= nullptr;
 	u8									m_current_reticle						= 0;
 	float								m_lense_scale							= 1.f;
 	Fvector								m_camera_lense_offset					= vZero;
@@ -139,11 +138,12 @@ public:
 	Dvector CP$							getHudOffset						C$	()		{ return m_hud_offset; }
 	ScopeSelectionType					getSelection						C$	()		{ return m_selection; }
 	float								getAdsSpeedFactor					C$	()		{ return m_ads_speed_factor; }
-	MScope*								getBackupSight						C$	()		{ return (m_backup_sight) ? m_backup_sight.get() : nullptr; }
+	MScope*								getBackupSight						C$	()		{ return (m_pBackupSight) ? m_pBackupSight.get() : nullptr; }
 
 	void								modify_holder_params				C$	(float &range, float &fov);
 	bool								isPiP								C$	();
 
 private:
+	xptr<MScope> m_pBackupSight{ nullptr };
 	bool m_bRangefinderCompatible{ false };
 };
