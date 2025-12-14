@@ -459,3 +459,79 @@ public:
 	T& get_set() { m_status = true; return m_data; }
 	T&& release() { R_ASSERT(m_status); m_status = false; return _STD move(m_data); }
 };
+
+template <typename T, size_t Size>
+class xarr
+{
+	using Storage = typename std::aligned_storage<sizeof(T)* Size, alignof(T)>::type;
+
+public:
+	template <typename... Args>
+	xarr(Args&&... args)
+	{
+		for (size_t i = 0; i < Size; ++i)
+			new (get(i))T(_STD forward<Args>(args)...);
+	}
+
+	~xarr()
+	{
+		for (size_t i = 0; i < Size; ++i)
+			(get(i))->~T();
+	}
+
+	xarr(const xarr& other)
+	{
+		for (size_t i = 0; i < Size; ++i)
+			new (get(i))T(other[i]);
+	}
+
+	xarr(xarr&& other)
+	{
+		for (size_t i = 0; i < Size; ++i)
+			new (get(i))T(_STD move(other[i]));
+	}
+
+	xarr& operator=(const xarr& other)
+	{
+		if (this != other)
+		{
+			for (size_t i = 0; i < Size; ++i)
+			{
+				get(i)->~T();
+				new (get(i))T(other[i]);
+			}
+		}
+		return *this;
+	}
+
+	xarr& operator=(xarr&& other)
+	{
+		if (this != other)
+		{
+			for (size_t i = 0; i < Size; ++i)
+			{
+				get(i)->~T();
+				new (get(i))T(_STD move(other[i]));
+			}
+		}
+		return *this;
+	}
+
+private:
+	void check_range(size_t i) const noexcept { R_ASSERT2(i < Size, "Array out of range!"); }
+
+public:
+	T& operator[](size_t i) noexcept { check_range(i); return *get(i); }
+	const T& operator[](size_t i) const noexcept { check_range(i); return *get(i); }
+
+	constexpr size_t size() const noexcept { return Size; }
+
+	T* data() noexcept { return reinterpret_cast<T*>(&m_data); }
+	const T* data() const noexcept { return reinterpret_cast<const T*>(&m_data); }
+
+	T* get(size_t i) noexcept { return data() + i; }
+	const T* get(size_t i) const noexcept { return data() + i; }
+
+private:
+	Storage m_data;
+};
