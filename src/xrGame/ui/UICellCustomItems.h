@@ -2,8 +2,9 @@
 #include "UICellItem.h"
 #include "../Weapon.h"
 
-class MAddonOwner;
 class CAddonSlot;
+class MAddonOwner;
+class MArtefactModule;
 
 typedef xr_vector<xptr<CAddonSlot>> VSlots;
 
@@ -48,7 +49,6 @@ public:
 								 CUIAmmoCellItem			(shared_str const& section);
 
 				u32				 CalculateAmmoCount			(bool recursive);
-	virtual		bool			 EqualTo					(CUICellItem* itm);
 				CWeaponAmmo*	 object						() { return smart_cast<CWeaponAmmo*>((CInventoryItem*)m_pData); }
 };
 
@@ -98,6 +98,27 @@ public:
 	CUIDragItem*						CreateDragItem						O$	();
 	void								SetTextureColor						O$	(u32 color);
 	void								OnAfterChild						O$	(CUIDragDropListEx* parent_list);
+};
+
+class CUIArtefactModuleCellItem : public CUIInventoryCellItem
+{
+	typedef CUIInventoryCellItem super_;
+
+public:
+	CUIArtefactModuleCellItem(MArtefactModule* pItem);
+	CUIArtefactModuleCellItem(shared_str const& strSection) : CUIInventoryCellItem(strSection) {}
+
+public:
+	bool EqualTo(CUICellItem* pCellItem) override;
+	void UpdateItemText() override;
+
+public:
+	void setMode(float fMode);
+
+private:
+	MArtefactModule* const m_pItem{ nullptr };
+
+	bool m_bShowMode{ false };
 };
 
 class CBuyItemCustomDrawCell :public ICustomDrawCellItem

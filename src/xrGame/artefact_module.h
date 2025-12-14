@@ -3,6 +3,7 @@
 
 class CArtefact;
 class MAmountable;
+class CUIArtefactModuleCellItem;
 
 class MArtefactModule : public CModule
 {
@@ -14,19 +15,19 @@ public:
 
 private:
 	void sSyncData(CSE_ALifeDynamicObject* se_obj, bool save) override;
+	xptr<CUICellItem> sCreateIcon() override;
 
 public:
-	float	getArtefactActivateCharge	() const	{ return m_fArtefactActivateCharge; }
-	int		getMode						() const	{ return m_nCurMode; }
+	float getArtefactActivateCharge	() const { return m_fArtefactActivateCharge; }
+	float getMode					() const { return m_fMode; }
 
 	float getAllowedArtefactCharge(const CArtefact* artefact) const;
 
-	void setMode(int val);
+	void setMode(float fValue);
 
 private:
-	MAmountable* const	m_pAmountable;
-	const float			m_fArtefactActivateCharge;
-	const int			m_nModesCount;
+	const float m_fArtefactActivateCharge;
 
-	int m_nCurMode{ 0 };
+	float m_fMode{ 0.F };
+	CUIArtefactModuleCellItem* m_pIcon{ nullptr };
 };

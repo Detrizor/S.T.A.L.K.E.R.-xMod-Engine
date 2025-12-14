@@ -35,6 +35,9 @@ static CUICellItem* create_cell_item_from_section(shared_str CR$ section)
 	if (ItemCategory(section, "ammo") && ItemSubcategory(section, "cartridge"))
 		return xr_new<CUIAmmoCellItem>(section);
 
+	if (pSettings->r_bool_ex(section, "artefact_module", false))
+		return xr_new<CUIArtefactModuleCellItem>(section);
+
 	return xr_new<CUIInventoryCellItem>(section);
 }
 

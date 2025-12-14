@@ -13,6 +13,7 @@ public:
 		mAddon,
 		mScope,
 		mFoldable,
+		mArtefactModule,
 		mModuleTypesEnd
 	};
 
@@ -29,6 +30,8 @@ public:
 protected:
 	const u16 m_nVersion;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CSE_ALifeModuleInventoryItem : public CSE_ALifeModule
 {
@@ -47,6 +50,8 @@ private:
 	friend class CInventoryItem;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CSE_ALifeModuleAmountable : public CSE_ALifeModule
 {
 public:
@@ -63,6 +68,8 @@ private:
 
 	friend class MAmountable;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CSE_ALifeModuleAddon : public CSE_ALifeModule
 {
@@ -85,6 +92,8 @@ public:
 	friend class MAddon;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CSE_ALifeModuleScope : public CSE_ALifeModule
 {
 public:
@@ -105,6 +114,8 @@ private:
 	friend class MScope;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CSE_ALifeModuleFoldable : public CSE_ALifeModule
 {
 public:
@@ -120,4 +131,24 @@ private:
 	void								STATE_Read							O$	(NET_Packet& tNetPacket);
 
 	friend class MFoldable;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CSE_ALifeModuleArtefactModule : public CSE_ALifeModule
+{
+public:
+	static constexpr EAlifeModuleTypes mid() { return mArtefactModule; }
+
+public:
+	CSE_ALifeModuleArtefactModule(u16 nVersion) : CSE_ALifeModule(nVersion) {}
+
+public:
+	void STATE_Write(NET_Packet& tNetPacket) override;
+	void STATE_Read(NET_Packet& tNetPacket) override;
+
+private:
+	float m_fMode{ 0.F };
+
+	friend class MArtefactModule;
 };

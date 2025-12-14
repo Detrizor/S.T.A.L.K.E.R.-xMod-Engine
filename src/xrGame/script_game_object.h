@@ -995,8 +995,8 @@ public:
 	void								setPosition							C$	(Fvector pos);
 	void								reloadMagazine						C$	();
 	
-	int									getArtefactModuleMode				C$	();
-	void								setArtefactModuleMode				C$	(int val);
+	float								getArtefactModuleMode				C$	();
+	void								setArtefactModuleMode				C$	(float fValue);
 };
 
 add_to_type_list(CScriptGameObject)

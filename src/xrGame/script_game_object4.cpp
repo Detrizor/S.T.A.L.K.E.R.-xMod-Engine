@@ -944,17 +944,17 @@ void CScriptGameObject::reloadMagazine() const
 		wpn->Reload						();
 }
 
-int CScriptGameObject::getArtefactModuleMode() const
+float CScriptGameObject::getArtefactModuleMode() const
 {
-	if (auto am = object().getModule<MArtefactModule>())
-		return							am->getMode();
-	return								-1;
+	if (auto pAM{ object().getModule<MArtefactModule>() })
+		return pAM->getMode();
+	return flt_max;
 }
 
-void CScriptGameObject::setArtefactModuleMode(int val) const
+void CScriptGameObject::setArtefactModuleMode(float fValue) const
 {
-	if (auto am = object().getModule<MArtefactModule>())
-		am->setMode						(val);
+	if (auto pAM{ object().getModule<MArtefactModule>() })
+		pAM->setMode(fValue);
 }
 
 #define SPECIFIC_CAST(A,B)\

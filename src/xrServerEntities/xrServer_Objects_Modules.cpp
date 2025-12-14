@@ -86,3 +86,15 @@ void CSE_ALifeModuleFoldable::STATE_Read(NET_Packet& tNetPacket)
 {
 	tNetPacket.r_u8						(m_status);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CSE_ALifeModuleArtefactModule::STATE_Write(NET_Packet& tNetPacket)
+{
+	tNetPacket.w_float(m_fMode);
+}
+
+void CSE_ALifeModuleArtefactModule::STATE_Read(NET_Packet& tNetPacket)
+{
+	tNetPacket.r_float(m_fMode);
+}

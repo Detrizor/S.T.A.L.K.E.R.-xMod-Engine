@@ -6,37 +6,46 @@
 #include "item_amountable.h"
 #include "inventory_item_object.h"
 
+#include "ui/UICellCustomItems.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MArtefactModule::MArtefactModule(CGameObject* obj) : CModule(obj),
-	m_pAmountable(O.getModule<MAmountable>()),
-	m_fArtefactActivateCharge(pSettings->r_float(O.cNameSect(), "artefact_activate_charge")),
-	m_nModesCount(pSettings->r_u32(O.cNameSect(), "modes_count"))
+	m_fArtefactActivateCharge(pSettings->r_float(O.cNameSect(), "artefact_activate_charge"))
 {
-	R_ASSERT2(m_pAmountable, "MArtefactModule requires MAmountable!");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MArtefactModule::sSyncData(CSE_ALifeDynamicObject* /*se_obj*/, bool save)
+void MArtefactModule::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	if (!save)
-		setMode(static_cast<int>(round(m_pAmountable->getAmount() * static_cast<float>(m_nModesCount))));
+	auto pModule{ se_obj->getModule<CSE_ALifeModuleArtefactModule>(save) };
+	if (save)
+		pModule->m_fMode = m_fMode;
+	else if (pModule)
+		m_fMode = pModule->m_fMode;
+}
+
+xptr<CUICellItem> MArtefactModule::sCreateIcon()
+{
+	auto res{ xptr<CUICellItem>::create<CUIArtefactModuleCellItem>(this) };
+	m_pIcon = smart_cast<CUIArtefactModuleCellItem*>(res.get());
+	m_pIcon->setMode(m_fMode);
+	return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float MArtefactModule::getAllowedArtefactCharge(const CArtefact* artefact) const
 {
-	const float target_radiation{ m_pAmountable->getAmount() };
+	const float target_radiation{ m_fMode };
 	const float target_charge{ target_radiation * artefact->getMaxCharge() };
 	return std::min(target_charge, m_fArtefactActivateCharge);
 }
 
-void MArtefactModule::setMode(int val)
+void MArtefactModule::setMode(float fValue)
 {
-	m_nCurMode = val;
-	clamp(m_nCurMode, 0, m_nModesCount);
-	m_pAmountable->setAmount(static_cast<float>(val) / static_cast<float>(m_nModesCount));
-	I->SetInvIconType(m_nCurMode);
+	m_fMode = fValue;
+	clamp(m_fMode, 0.F, 1.F);
+	m_pIcon->setMode(m_fMode);
 }

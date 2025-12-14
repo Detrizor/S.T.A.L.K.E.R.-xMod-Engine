@@ -5,8 +5,9 @@
 #include "UIDragDropListEx.h"
 #include "UIProgressBar.h"
 
-#include "addon_owner.h"
 #include "addon.h"
+#include "addon_owner.h"
+#include "artefact_module.h"
 
 CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* item) : CUIInventoryCellItem(item->m_section_id, &item->GetIconRect())
 {
@@ -227,24 +228,19 @@ void CUIInventoryCellItem::Update()
 
 void CUIInventoryCellItem::UpdateItemText()
 {
-	const u32	count			=	ChildsCount() + 1;
-	string32	str;
-
-	if ( count > 1)
+	const u32 nCount{ ChildsCount() + 1 };
+	m_text->Show(nCount > 1);
+	if (m_text->IsShown())
 	{
-		xr_sprintf						( str, "x%d", count );
-		m_text->TextItemControl()->SetText	( str );
-		m_text->Show					( true );
+		string32 str;
+		xr_sprintf(str, "x%d", nCount);
+		m_text->TextItemControl()->SetText(str);
+		m_text->AdjustWidthToText();
+		m_text->AdjustHeightToText();
 	}
-	else
-	{
-		xr_sprintf						( str, "");
-		m_text->TextItemControl()->SetText	( str );
-		m_text->Show					( false );
-	}
-	m_text->AdjustWidthToText			();
-	m_text->AdjustHeightToText			();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 CUIAmmoCellItem::CUIAmmoCellItem(CWeaponAmmo* itm) : inherited(itm)
 {
@@ -252,15 +248,6 @@ CUIAmmoCellItem::CUIAmmoCellItem(CWeaponAmmo* itm) : inherited(itm)
 
 CUIAmmoCellItem::CUIAmmoCellItem(shared_str const& section) : inherited(section)
 {
-}
-
-bool CUIAmmoCellItem::EqualTo(CUICellItem* itm)
-{
-	if (inherited::EqualTo(itm))
-		if (auto ci{ smart_cast<CUIAmmoCellItem*>(itm) })
-			return (m_section == ci->m_section);
-
-	return false;
 }
 
 u32 CUIAmmoCellItem::CalculateAmmoCount(bool recursive)
@@ -293,6 +280,8 @@ void CUIAmmoCellItem::UpdateItemText()
 		}
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 CUIAddonOwnerCellItem::SUIAddonSlot::SUIAddonSlot(xptr<CAddonSlot> CR$ slot)
 {
@@ -565,6 +554,49 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 
 	return								i;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+CUIArtefactModuleCellItem::CUIArtefactModuleCellItem(MArtefactModule* pItem) :
+	CUIInventoryCellItem(pItem->O.scast<CInventoryItem*>()),
+	m_pItem(pItem)
+{
+}
+
+bool CUIArtefactModuleCellItem::EqualTo(CUICellItem* pCellItem)
+{
+	if (super_::EqualTo(pCellItem))
+		if (fIsZero(m_pItem->getMode()))
+			if (auto pAMCI{ smart_cast<CUIArtefactModuleCellItem*>(pCellItem) })
+				return fIsZero(pAMCI->m_pItem->getMode());
+
+	return false;
+}
+
+void CUIArtefactModuleCellItem::UpdateItemText()
+{
+	if (!m_bShowMode)
+		super_::UpdateItemText();
+}
+
+void CUIArtefactModuleCellItem::setMode(float fMode)
+{
+	m_bShowMode = !fIsZero(fMode);
+	m_text->Show(m_bShowMode);
+	if (m_bShowMode)
+	{
+		auto color{ color_rgba(sqrt(fMode) * 255, sqrt(1.F - fMode) * 255, 0, 255) };
+		m_text->TextItemControl()->SetTextColor(color);
+
+		string32 str;
+		xr_sprintf(str, "%.0f%%", round(fMode * 100.F));
+		m_text->TextItemControl()->SetText(str);
+		m_text->AdjustWidthToText();
+		m_text->AdjustHeightToText();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 CBuyItemCustomDrawCell::CBuyItemCustomDrawCell	(LPCSTR str, CGameFont* pFont)
 {
