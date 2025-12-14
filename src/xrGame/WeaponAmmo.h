@@ -76,8 +76,7 @@ public:
 
 class CWeaponAmmo :	public CInventoryItemObject
 {
-private:
-	typedef CInventoryItemObject inherited;
+	typedef CInventoryItemObject super_;
 
 public:
 	virtual CWeaponAmmo		*cast_weapon_ammo		()	{return this;}
@@ -100,7 +99,7 @@ public:
 protected:
 	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 	float								sSumItemData						O$	(EItemDataTypes type);
-	xoptional<CUICellItem*>				sCreateIcon							O$	();
+	xptr<CUICellItem>					sCreateIcon							O$	();
 
 private:
 	bool								m_can_heap								= false;

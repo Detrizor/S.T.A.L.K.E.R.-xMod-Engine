@@ -92,9 +92,9 @@ float MAddonOwner::sSumItemData(EItemDataTypes type)
 	return								res;
 }
 
-xoptional<CUICellItem*> MAddonOwner::sCreateIcon()
+xptr<CUICellItem> MAddonOwner::sCreateIcon()
 {
-	return								xr_new<CUIAddonOwnerCellItem>(this);
+	return xptr<CUICellItem>::create<CUIAddonOwnerCellItem>(this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

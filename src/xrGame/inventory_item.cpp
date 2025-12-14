@@ -924,11 +924,11 @@ void CInventoryItem::set_inv_icon()
 void CInventoryItem::setup_icon()
 {
 	if (auto icon = O.emitSignalGet(sCreateIcon()))
-		m_pIcon.capture					(icon.get());
+		m_pIcon = _STD move(icon);
 	else
-		m_pIcon.capture					(xr_new<CUIInventoryCellItem>(this));
-	m_bIconValid						= true;
-	onInventoryAction					();
+		m_pIcon.construct<CUIInventoryCellItem>(this);
+	m_bIconValid = true;
+	onInventoryAction();
 }
 
 void CInventoryItem::onInventoryAction(const SInvItemPlace* prev)
@@ -940,14 +940,14 @@ void CInventoryItem::onInventoryAction(const SInvItemPlace* prev)
 void CInventoryItem::shedule_Update(u32 T)
 {
 	if (!m_bIconValid)
-		setup_icon						();
+		setup_icon();
 }
 
 CUICellItem* CInventoryItem::getIcon()
 {
 	if (!m_bIconValid)
-		setup_icon						();
-	return								m_pIcon.get();
+		setup_icon();
+	return m_pIcon.get();
 }
 
 bool CInventoryItem::Category C$(LPCSTR cmpc, LPCSTR cmps, LPCSTR cmpd)

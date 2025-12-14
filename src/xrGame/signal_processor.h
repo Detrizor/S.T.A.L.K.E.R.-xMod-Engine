@@ -25,10 +25,10 @@ public:
 	virtual void						sRenderHudMode							()		{}
 
 	//CInventoryItem
-	virtual bool						sInstallUpgrade							(LPCSTR section, bool test)		{ return false;}
-	virtual float						sSumItemData							(EItemDataTypes type)			{ return 0.f; }
-	virtual xoptional<float>			sGetAmount								()								{ return {}; }
-	virtual xoptional<float>			sGetFill								()								{ return {}; }
-	virtual xoptional<float>			sGetBar									()								{ return {}; }
-	virtual xoptional<CUICellItem*>		sCreateIcon								()								{ return {}; }
+	virtual bool				sInstallUpgrade	(LPCSTR section, bool test)	{ return false;}
+	virtual float				sSumItemData	(EItemDataTypes type)		{ return 0.f; }
+	virtual xptr<CUICellItem>	sCreateIcon		()							{ return xptr<CUICellItem>{ nullptr }; }
+	virtual xoptional<float>	sGetAmount		()							{ return {}; }
+	virtual xoptional<float>	sGetFill		()							{ return {}; }
+	virtual xoptional<float>	sGetBar			()							{ return {}; }
 };

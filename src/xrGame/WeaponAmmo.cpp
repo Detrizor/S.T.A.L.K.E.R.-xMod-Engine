@@ -105,7 +105,7 @@ void CCartridge::Load(LPCSTR section, float condition)
 
 void CWeaponAmmo::Load(LPCSTR section) 
 {
-	inherited::Load						(section);
+	super_::Load						(section);
 	
 	m_cartridge.Load					(section);
 	m_boxSize							= readBoxSize(section);
@@ -118,29 +118,29 @@ void CWeaponAmmo::Load(LPCSTR section)
 
 void CWeaponAmmo::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 {
-	inherited::sSyncData				(se_obj, save);
-	auto se_ammo						= se_obj->cast_item_ammo();
+	super_::sSyncData(se_obj, save);
+	auto pSEAmmo{ se_obj->cast_item_ammo() };
 	if (save)
-		se_ammo->m_mag_pos				= m_mag_pos;
+		pSEAmmo->m_mag_pos = m_mag_pos;
 	else
-		m_mag_pos						= se_ammo->m_mag_pos;
+		m_mag_pos = pSEAmmo->m_mag_pos;
 }
 
 float CWeaponAmmo::sSumItemData(EItemDataTypes type)
 {
-	return								__super::sSumItemData(type) * static_cast<float>(m_boxCurr);
+	return super_::sSumItemData(type) * static_cast<float>(m_boxCurr);
 }
 
-xoptional<CUICellItem*> CWeaponAmmo::sCreateIcon()
+xptr<CUICellItem> CWeaponAmmo::sCreateIcon()
 {
-	return								xr_new<CUIAmmoCellItem>(this);
+	return xptr<CUICellItem>::create<CUIAmmoCellItem>(this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
 {
-	BOOL bResult						= inherited::net_Spawn(DC);
+	BOOL bResult						= super_::net_Spawn(DC);
 
 	CSE_ALifeItemAmmo* l_pW				= smart_cast<CSE_ALifeItemAmmo*>(DC);
 	
@@ -177,13 +177,13 @@ xoptional<CCartridge> CWeaponAmmo::getCartridge(bool expend)
 
 void CWeaponAmmo::net_Export(NET_Packet& P) 
 {
-	inherited::net_Export				(P);
+	super_::net_Export				(P);
 	P.w_u16								(m_boxCurr);
 }
 
 void CWeaponAmmo::net_Import(NET_Packet& P) 
 {
-	inherited::net_Import				(P);
+	super_::net_Import				(P);
 	SetAmmoCount						(P.r_u16());
 }
 
@@ -229,7 +229,7 @@ u16 CWeaponAmmo::readBoxSize(LPCSTR section)
 
 Frect CWeaponAmmo::GetIconRect() const
 {
-	Frect res							= inherited::GetIconRect();
+	Frect res							= super_::GetIconRect();
 	if (m_can_heap)
 	{
 		if (m_boxCurr == 2)
