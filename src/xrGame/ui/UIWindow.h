@@ -254,34 +254,35 @@ protected:
 public:
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 
-private:
-	u8									m_anchor;
-	u8									m_alignment;
-	shared_str							m_offsetTag;
-	shared_str							m_offset_wnd_name;
-
-	bool								m_background_draw						= false;
-	bool								m_foreground_draw						= false;
-
 public:
-	bool								getBackgroundDraw					C$	()			{ return m_background_draw; }
-	bool								getForegroundDraw					C$	()			{ return m_foreground_draw; }
-	void								setBackgroundDraw						(bool v)	{ m_background_draw = v; }
-	void								setForegroundDraw						(bool v)	{ m_foreground_draw = v; }
+	bool getBackgroundDraw() const { return m_bBackgroundDraw; }
+	bool getForegroundDraw() const { return m_bForegroundDraw; }
+	void setBackgroundDraw(bool v) { m_bBackgroundDraw = v; }
+	void setForegroundDraw(bool v) { m_bForegroundDraw = v; }
 
-			void			SetAnchor				(u8 val)								{ m_anchor = val; }
-			void			SetAlignment			(u8 val)								{ m_alignment = val; }
-			void			CopyAlignment			(const CUIWindow& from)					{ m_alignment = from.m_alignment; m_anchor = from.m_anchor; }
-			
-			void			SetOffsetTag			(LPCSTR val)							{ m_offsetTag = val; }
-			void			SetOffset				(LPCSTR val)							{ m_offset_wnd_name = val; }
-			void			CopyOffsetFrom			(CUIWindow& src)						{ m_offset_wnd_name = src.m_offset_wnd_name; }
-			CUIWindow*		GetOffsetWnd			()								const;
-	
-			void			GetWndRect				(Frect& res)					const;
-			Frect			GetWndRect				()								const	{ Frect r; GetWndRect(r); return r; }
+	void SetAnchor(EAlignment val) { m_anchor = val; }
+	void SetAlignment(EAlignment val) { m_alignment = val; }
+	void CopyAlignment(const CUIWindow& from) { m_alignment = from.m_alignment; m_anchor = from.m_anchor; }
 
-			void			SetScale				(float scale);
+	void SetOffsetTag(LPCSTR val) { m_strOffsetTag = val; }
+	void SetOffset(LPCSTR val) { m_strOffsetWndName = val; }
+	void CopyOffsetFrom(CUIWindow& src) { m_strOffsetWndName = src.m_strOffsetWndName; }
+
+	CUIWindow* GetOffsetWnd() const;
+
+	void GetWndRect(Frect& res) const;
+	Frect GetWndRect() const { Frect r; GetWndRect(r); return r; }
+
+	void SetScale(float scale);
+
+private:
+	EAlignment m_anchor{ aLeftTop };
+	EAlignment m_alignment{ aLeftTop };
+	shared_str m_strOffsetTag{ "" };
+	shared_str m_strOffsetWndName{ "" };
+
+	bool m_bBackgroundDraw{ false };
+	bool m_bForegroundDraw{ false };
 };
 
 bool fit_in_rect(CUIWindow* w, Frect const& vis_rect, float border = 0.0f, float dx16pos = 0.0f );

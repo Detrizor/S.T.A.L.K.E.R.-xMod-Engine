@@ -31,7 +31,9 @@ class CUITabButtonMP;
 class CUITrackBar;
 class CUILines;
 class CUITextWnd;
+
 enum EScaling;
+enum EAlignment;
 
 class CUIXmlInit
 {
@@ -91,6 +93,6 @@ public:
 	static	void			ReadPosSize				(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd, const LPCSTR param, const u8 idx);
 	static	void			ReadPosSize				(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd);
 	
-	static	u8				AlignmentStrToValue		(const shared_str str);
+	static	EAlignment		AlignmentStrToValue		(const shared_str str);
 	static	void			ReadAlignment			(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd);
 };

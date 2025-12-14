@@ -111,11 +111,7 @@ m_dwFocusReceiveTime(0),
 //dwHintDelay(1000),
 //bShowHint(false),
 //m_sHint(""),
-m_bCustomDraw(false),
-m_alignment(aLeftTop),
-m_anchor(aLeftTop),
-m_offsetTag(""),
-m_offset_wnd_name("")
+m_bCustomDraw(false)
 {
 	Show					(true);
 	Enable					(true);
@@ -654,105 +650,43 @@ bool fit_in_rect(CUIWindow* w, Frect const& vis_rect, float border, float dx16po
 
 CUIWindow* CUIWindow::GetOffsetWnd() const
 {
-	if (m_offset_wnd_name.size())
-	{
-		if (GetParent())
-		{
-			for (WINDOW_LIST::const_iterator it = GetParent()->m_ChildWndList.begin(), it_e = GetParent()->m_ChildWndList.end(); it != it_e; ++it)
-			{
-				if ((*it)->m_offsetTag == m_offset_wnd_name)
-					return	*it;
-			}
-		}
-		else
-		{
-			//--xd доделать
-		}
-	}
+	if (m_strOffsetWndName.size() && GetParent())
+		for (auto const& wnd : GetParent()->m_ChildWndList)
+			if (wnd->m_strOffsetTag == m_strOffsetWndName)
+				return wnd;
 	
-	return					GetParent();
+	return GetParent();
 }
 
 void CUIWindow::GetWndRect(Frect& res) const
 {
-	Fvector2 pos			= GetWndPos();
-	Fvector2 size			= GetWndSize();
+	auto pos{ GetWndPos() };
+	auto size{ GetWndSize() };
 	
-	CUIWindow* offset_wnd	= GetOffsetWnd();
-	float tmp				= (offset_wnd) ? offset_wnd->GetWidth() : 0.f;
+	auto pOffsetWnd{ GetOffsetWnd() };
+	float tmp{ (pOffsetWnd) ? pOffsetWnd->GetWidth() : 0.F };
 	if (fIsZero(tmp))
-		tmp					= UI_BASE_WIDTH;
-	pos.x					+= float(m_alignment % 3) * tmp / 2.f;
-	tmp						= (offset_wnd) ? offset_wnd->GetHeight() : 0.f;
+		tmp = UI_BASE_WIDTH;
+	pos.x += static_cast<float>(m_alignment % 3) * tmp / 2.F;
+	tmp = (pOffsetWnd) ? pOffsetWnd->GetHeight() : 0.F;
 	if (fIsZero(tmp))
-		tmp					= UI_BASE_HEIGHT;
-	pos.y					+= float(m_alignment / 3) * tmp / 2.f;
+		tmp = UI_BASE_HEIGHT;
+	pos.y += static_cast<float>(m_alignment / 3) * tmp / 2.F;
 
-	pos.x					-= float(m_anchor % 3) * size.x / 2.f;
-	pos.y					-= float(m_anchor / 3) * size.y / 2.f;
+	pos.x -= static_cast<float>(m_anchor % 3) * size.x / 2.F;
+	pos.y -= static_cast<float>(m_anchor / 3) * size.y / 2.F;
 
-	if (m_offset_wnd_name.size())
-		pos.add				(offset_wnd->GetWndRect().lt);
+	if (pOffsetWnd && m_strOffsetWndName.size())
+		pos.add(pOffsetWnd->GetWndRect().lt);
 
-	res.lt					= pos;
-	res.rb.set				(res.lt);
-	res.rb.add				(size);
+	res.lt = pos;
+	res.rb.set (res.lt);
+	res.rb.add (size);
 }
 
 void CUIWindow::SetScale(float scale)
 {
 	m_scale = scale;
-	for (WINDOW_LIST_it it = m_ChildWndList.begin(); m_ChildWndList.end() != it; ++it)
-		(*it)->SetScale(scale);
+	for (auto& pWnd : m_ChildWndList)
+		pWnd->SetScale(scale);
 }
-
-/*
-void CUIWindow::DisableHint()
-{
-	bShowHint = false;
-}
-
-void CUIWindow::EnableHint()
-{
-	bShowHint = true;
-}
-
-u32 CUIWindow::GetHintDelay()
-{
-	return dwHintDelay;
-}
-
-void CUIWindow::SetHintDelay(u32 val)
-{
-	dwHintDelay = val;
-}
-
-void CUIWindow::DrawHintWnd()
-{
-	if (m_pHint && bShowHint)
-	{
-		Frect r;
-		GetAbsoluteRect(r);
-		Fvector2 pos = UI().GetUICursor().GetCursorPosition();
-		if (r.in(pos))
-			m_pHint->Draw();
-	}
-}
-
-void CUIWindow::RemoveHint()
-{
-	if (m_pHint)
-		xr_delete(m_pHint);
-	m_pHint = NULL;
-}
-
-void CUIWindow::SetHintText(LPCSTR text)	
-{ 
-	m_sHint = text;
-}
-
-LPCSTR CUIWindow::GetHintText()
-{ 
-	return m_sHint;
-}
-*/

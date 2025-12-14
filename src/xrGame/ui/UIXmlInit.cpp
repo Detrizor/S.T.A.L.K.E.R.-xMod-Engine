@@ -1244,7 +1244,7 @@ void CUIXmlInit::ReadPosSize(CUIXml& xml_doc, const LPCSTR path, const int index
 	pWnd->SetClamp				(!!xml_doc.ReadAttribInt(path, index, "clamp", 0));
 }
 
-u8 CUIXmlInit::AlignmentStrToValue(const shared_str str)
+EAlignment CUIXmlInit::AlignmentStrToValue(const shared_str str)
 {
 	if (str == "lt")
 		return			aLeftTop;
@@ -1266,7 +1266,7 @@ u8 CUIXmlInit::AlignmentStrToValue(const shared_str str)
 		return			aRightBottom;
 
 	FATAL				("incorect alignment type");
-	return				false;
+	return				aLeftTop;
 }
 
 void CUIXmlInit::ReadAlignment(CUIXml& xml_doc, const LPCSTR path, const int index, CUIWindow* pWnd)
