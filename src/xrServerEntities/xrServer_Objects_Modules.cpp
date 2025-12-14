@@ -3,15 +3,16 @@
 
 #include "xrServer_Objects_ALife.h"
 
-xptr<CSE_ALifeModule>& CSE_ALifeDynamicObject::construct_module(CSE_ALifeModule::EAlifeModuleTypes eType)
+xptr<CSE_ALifeModule> CSE_ALifeModule::create(EAlifeModuleTypes eType, u16 nVersion)
 {
 	switch (eType)
 	{
-	case CSE_ALifeModule::mInventoryItem: return m_pModules[eType].construct<CSE_ALifeModuleInventoryItem>(m_wVersion);
-	case CSE_ALifeModule::mAmountable: return m_pModules[eType].construct<CSE_ALifeModuleAmountable>(m_wVersion);
-	case CSE_ALifeModule::mAddon: return m_pModules[eType].construct<CSE_ALifeModuleAddon>(m_wVersion);
-	case CSE_ALifeModule::mScope: return m_pModules[eType].construct<CSE_ALifeModuleScope>(m_wVersion);
-	case CSE_ALifeModule::mFoldable: return m_pModules[eType].construct<CSE_ALifeModuleFoldable>(m_wVersion);
+	case mInventoryItem: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleInventoryItem>(nVersion);
+	case mAmountable: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleAmountable>(nVersion);
+	case mAddon: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleAddon>(nVersion);
+	case mScope: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleScope>(nVersion);
+	case mFoldable: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleFoldable>(nVersion);
+	case mArtefactModule: return xptr<CSE_ALifeModule>::create<CSE_ALifeModuleArtefactModule>(nVersion);
 	default:
 		FATAL("wrong alife module type");
 	}

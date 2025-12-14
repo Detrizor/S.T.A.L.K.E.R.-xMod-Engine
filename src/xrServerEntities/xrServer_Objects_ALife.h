@@ -338,7 +338,7 @@ public:
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
 
 protected:
-	xptr<CSE_ALifeModule>& construct_module(CSE_ALifeModule::EAlifeModuleTypes eType);
+	CSE_ALifeModule* add_module(CSE_ALifeModule::EAlifeModuleTypes eType);
 
 public:
 	void clearModules();
@@ -348,7 +348,7 @@ public:
 	{
 		if (auto& pModule{ m_pModules[M::mid()] })
 			return static_cast<M*>(pModule.get());
-		return (bCreateIfAbsent) ? static_cast<M*>(construct_module(M::mid()).get()) : nullptr;
+		return (bCreateIfAbsent) ? static_cast<M*>(add_module(M::mid())) : nullptr;
 	}
 
 protected:

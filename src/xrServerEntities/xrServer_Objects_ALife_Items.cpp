@@ -249,7 +249,7 @@ void CSE_ALifeItem::STATE_Read(NET_Packet &tNetPacket, u16 size)
 	tNetPacket.r_u16(mask);
 	for (u16 t{ CSE_ALifeModule::mModuleTypesBegin }; t < CSE_ALifeModule::mModuleTypesEnd; ++t)
 		if (mask & (u16(1) << t))
-			construct_module(static_cast<CSE_ALifeModule::EAlifeModuleTypes>(t))->STATE_Read(tNetPacket);
+			add_module(static_cast<CSE_ALifeModule::EAlifeModuleTypes>(t))->STATE_Read(tNetPacket);
 }
 
 void CSE_ALifeItem::UPDATE_Write			(NET_Packet &tNetPacket)

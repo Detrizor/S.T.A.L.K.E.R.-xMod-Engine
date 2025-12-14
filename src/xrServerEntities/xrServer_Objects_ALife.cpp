@@ -671,6 +671,11 @@ CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
 }
 
+CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::EAlifeModuleTypes eType)
+{
+	return (m_pModules[eType] = CSE_ALifeModule::create(eType, m_wVersion)).get();
+}
+
 void CSE_ALifeDynamicObject::clearModules()
 {
 	m_pModules.clear();

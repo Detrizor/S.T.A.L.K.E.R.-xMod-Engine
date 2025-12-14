@@ -23,6 +23,9 @@ public:
 	virtual void STATE_Write(NET_Packet& tNetPacket) = 0;
 	virtual void STATE_Read(NET_Packet& tNetPacket) = 0;
 
+public:
+	static xptr<CSE_ALifeModule> create(EAlifeModuleTypes eType, u16 nVersion);
+
 protected:
 	const u16 m_nVersion;
 };
