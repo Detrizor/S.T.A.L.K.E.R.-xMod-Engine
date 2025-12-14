@@ -1,76 +1,76 @@
 #pragma once
+
 #include "module.h"
 
 class CModuleOwner : public CSignalProcessor
 {
-	CGameObject* const					obj;
+	CGameObject* const m_pObj;
 
 public:
-										CModuleOwner							(CGameObject* obj_) : obj(obj_)		{};
-										~CModuleOwner							()									{ for (auto& m : m_modules) xr_delete(m); }
+	CModuleOwner(CGameObject* pObj) : m_pObj(pObj) {};
 
 private:
-	CModule*							m_modules[CModule::mModuleTypesEnd]		= {};
+	xarr<xptr<CModule>, CModule::mModuleTypesEnd> m_pModules{ nullptr };
 
 public:
 	template <typename M, typename... Args>
-	void								addModule								(Args&&... args) { m_modules[M::mid()] = xr_new<M>(obj, _STD forward<Args>(args)...); }
+	void addModule(Args&&... args) { m_pModules[M::mid()].construct<M>(m_pObj, _STD forward<Args>(args)...); }
 
 	template <typename M>
-	M*									getModule							C$	()
+	M* getModule() const
 	{
-		if (auto& m = m_modules[M::mid()])
-			return						static_cast<M*>(m);
-		return							nullptr;
+		if (auto& m{ m_pModules[M::mid()] })
+			return static_cast<M*>(m.get());
+		return nullptr;
 	}
 	
 	template <typename T>
-	void								emitSignal_								(T&& functor)
+	void emitSignal_(T&& functor)
 	{
-		for (auto& m : m_modules)
+		for (auto& m : m_pModules)
 			if (m)
-				functor					(m);
-		functor							(this);
+				functor(m.get());
+		functor(this);
 	}
 
 	template <typename T>
-	auto								emitSignalSum_							(T&& functor)
+	auto emitSignalSum_(T&& functor)
 	{
-		auto res						= functor(this);
-		for (auto& m : m_modules)
+		auto res{ functor(this) };
+		for (auto& m : m_pModules)
 			if (m)
-				res						+= functor(m);
-		return							res;
+				res += functor(m.get());
+		return res;
 	}
 
 	template <typename T>
-	bool								emitSignalDis_							(T&& functor)
+	bool emitSignalDis_(T&& functor)
 	{
-		bool res						= functor(this);
-		for (auto& m : m_modules)
+		bool res{ functor(this) };
+		for (auto& m : m_pModules)
 			if (m)
-				res						|= functor(m);
-		return							res;
+				res |= functor(m.get());
+		return res;
 	}
 
 	template <typename T>
-	bool								emitSignalCon_							(T&& functor)
+	bool emitSignalCon_(T&& functor)
 	{
-		bool res						= functor(this);
-		for (auto& m : m_modules)
+		bool res{ functor(this) };
+		for (auto& m : m_pModules)
 			if (m)
-				res						&= functor(m);
-		return							res;
+				res &= functor(m.get());
+		return res;
 	}
 
 	template <typename T>
-	auto								emitSignalGet_							(T&& functor)
+	auto emitSignalGet_(T&& functor)
 	{
-		for (auto& m : m_modules)
+		for (auto& m : m_pModules)
 			if (m)
-				if (auto res = functor(m))
-					return				res;
-		return							functor(this);
+				if (auto res{ functor(m.get()) })
+					return res;
+		return functor(this);
 	}
 };
 

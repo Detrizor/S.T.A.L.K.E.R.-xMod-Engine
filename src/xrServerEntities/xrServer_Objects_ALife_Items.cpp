@@ -216,40 +216,40 @@ const CSE_Abstract *CSE_ALifeItem::base		() const
 
 void CSE_ALifeItem::STATE_Write(NET_Packet &tNetPacket)
 {
-	inherited1::STATE_Write				(tNetPacket);
-	inherited2::STATE_Write				(tNetPacket);
+	inherited1::STATE_Write(tNetPacket);
+	inherited2::STATE_Write(tNetPacket);
 
-	u16 mask							= 0;
-	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
-		if (m_modules[t])
-			mask						|= (u16(1) << t);
+	u16 mask{ 0 };
+	for (u16 t{ CSE_ALifeModule::mModuleTypesBegin }; t < CSE_ALifeModule::mModuleTypesEnd; ++t)
+		if (m_pModules[t])
+			mask |= (u16(1) << t);
 
-	tNetPacket.w_u16					(mask);
+	tNetPacket.w_u16(mask);
 
-	for (auto& m : m_modules)
+	for (auto& m : m_pModules)
 		if (m)
-			m->STATE_Write				(tNetPacket);
+			m->STATE_Write(tNetPacket);
 }
 
 void CSE_ALifeItem::STATE_Read(NET_Packet &tNetPacket, u16 size)
 {
-	inherited1::STATE_Read				(tNetPacket, size);
+	inherited1::STATE_Read(tNetPacket, size);
 	if ((m_tClassID == CLSID_OBJECT_W_BINOCULAR) && (m_wVersion < 37))
 	{
-		tNetPacket.r_u16				();
-		tNetPacket.r_u16				();
-		tNetPacket.r_u8					();
+		tNetPacket.r_u16();
+		tNetPacket.r_u16();
+		tNetPacket.r_u8();
 	}
-	inherited2::STATE_Read				(tNetPacket, size);
+	inherited2::STATE_Read(tNetPacket, size);
 	
 	if (m_wVersion < 129)
 		return;
 
-	u16									mask;
-	tNetPacket.r_u16					(mask);
-	for (u16 t = CSE_ALifeModule::mModuleTypesBegin; t < CSE_ALifeModule::mModuleTypesEnd; t++)
+	u16 mask;
+	tNetPacket.r_u16(mask);
+	for (u16 t{ CSE_ALifeModule::mModuleTypesBegin }; t < CSE_ALifeModule::mModuleTypesEnd; ++t)
 		if (mask & (u16(1) << t))
-			add_module(static_cast<CSE_ALifeModule::eAlifeModuleTypes>(t))->STATE_Read(tNetPacket);
+			construct_module(static_cast<CSE_ALifeModule::EAlifeModuleTypes>(t))->STATE_Read(tNetPacket);
 }
 
 void CSE_ALifeItem::UPDATE_Write			(NET_Packet &tNetPacket)

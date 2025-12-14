@@ -462,11 +462,34 @@ public:
 template <typename T, size_t Size>
 class xarr
 {
-	using Storage = typename std::aligned_storage<sizeof(T)* Size, alignof(T)>::type;
+	static_assert(Size > 0, "xarr size must be positive");
+
+public:
+	using iterator = T*;
+	using const_iterator = const T*;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+public:
+	iterator begin() noexcept { return get(0); }
+	const_iterator begin() const noexcept { return get(0); }
+	const_iterator cbegin() const noexcept { return begin(); }
+
+	iterator end() noexcept { return get(Size); }
+	const_iterator end() const noexcept { return get(Size); }
+	const_iterator cend() const noexcept { return end(); }
+
+	reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+	const_reverse_iterator ñrbegin() const noexcept { return rbegin(); }
+
+	reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+	const_reverse_iterator ñrend() const noexcept { return rend(); }
 
 public:
 	template <typename... Args>
-	xarr(Args&&... args)
+	explicit xarr(Args&&... args)
 	{
 		for (size_t i = 0; i < Size; ++i)
 			new (get(i))T(_STD forward<Args>(args)...);
@@ -475,7 +498,7 @@ public:
 	~xarr()
 	{
 		for (size_t i = 0; i < Size; ++i)
-			(get(i))->~T();
+			get(i)->~T();
 	}
 
 	xarr(const xarr& other)
@@ -517,20 +540,25 @@ public:
 	}
 
 private:
-	void check_range(size_t i) const noexcept { R_ASSERT2(i < Size, "Array out of range!"); }
+	void check_range(size_t i) const noexcept { R_ASSERT2(i < Size, "array out of range"); }
+
+	T* get(size_t i) noexcept { return data() + i; }
+	const T* get(size_t i) const noexcept { return data() + i; }
 
 public:
 	T& operator[](size_t i) noexcept { check_range(i); return *get(i); }
 	const T& operator[](size_t i) const noexcept { check_range(i); return *get(i); }
 
 	constexpr size_t size() const noexcept { return Size; }
+	constexpr void clear() noexcept { for (size_t i = 0; i < Size; ++i) get(i)->~T(); }
 
-	T* data() noexcept { return reinterpret_cast<T*>(&m_data); }
-	const T* data() const noexcept { return reinterpret_cast<const T*>(&m_data); }
-
-	T* get(size_t i) noexcept { return data() + i; }
-	const T* get(size_t i) const noexcept { return data() + i; }
+	T* data() noexcept { return reinterpret_cast<T*>(&m_raw); }
+	const T* data() const noexcept { return reinterpret_cast<const T*>(&m_raw); }
 
 private:
-	Storage m_data;
+	union
+	{
+		alignas(T) char m_raw[sizeof(T) * Size];
+		[[maybe_unused]] T m_view[Size]; // for viewing memory in debug
+	};
 };

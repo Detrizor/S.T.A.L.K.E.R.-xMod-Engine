@@ -338,20 +338,21 @@ public:
 	virtual CSE_ALifeDynamicObject	*cast_alife_dynamic_object	() {return this;}
 
 protected:
-	CSE_ALifeModule*					m_modules[CSE_ALifeModule::mModuleTypesEnd] = {};
-	
-	CSE_ALifeModule*					add_module								(CSE_ALifeModule::eAlifeModuleTypes type);
+	xptr<CSE_ALifeModule>& construct_module(CSE_ALifeModule::EAlifeModuleTypes eType);
 
 public:
-	void								clearModules							();
+	void clearModules();
 
 	template <typename M>
-	M*									getModule								(bool create_if_absent)
+	M* getModule(bool bCreateIfAbsent)
 	{
-		if (auto& m = m_modules[M::mid()])
-			return						static_cast<M*>(m);
-		return							(create_if_absent) ? static_cast<M*>(add_module(M::mid())) : nullptr;
+		if (auto& pModule{ m_pModules[M::mid()] })
+			return static_cast<M*>(pModule.get());
+		return (bCreateIfAbsent) ? static_cast<M*>(construct_module(M::mid()).get()) : nullptr;
 	}
+
+protected:
+	xarr<xptr<CSE_ALifeModule>, CSE_ALifeModule::mModuleTypesEnd> m_pModules{ nullptr };
 };
 
 add_to_type_list(CSE_ALifeDynamicObject)

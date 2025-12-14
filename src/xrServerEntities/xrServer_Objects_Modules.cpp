@@ -1,22 +1,19 @@
 #include "stdafx.h"
 #include "xrServer_Objects_Modules.h"
 
-CSE_ALifeModule* CSE_ALifeModule::createModule(eAlifeModuleTypes type, u16 version)
+#include "xrServer_Objects_ALife.h"
+
+xptr<CSE_ALifeModule>& CSE_ALifeDynamicObject::construct_module(CSE_ALifeModule::EAlifeModuleTypes eType)
 {
-	switch (type)
+	switch (eType)
 	{
-	case mInventoryItem:
-		return							xr_new<CSE_ALifeModuleInventoryItem>(version);
-	case mAmountable:
-		return							xr_new<CSE_ALifeModuleAmountable>(version);
-	case mAddon:
-		return							xr_new<CSE_ALifeModuleAddon>(version);
-	case mScope:
-		return							xr_new<CSE_ALifeModuleScope>(version);
-	case mFoldable:
-		return							xr_new<CSE_ALifeModuleFoldable>(version);
+	case CSE_ALifeModule::mInventoryItem: return m_pModules[eType].construct<CSE_ALifeModuleInventoryItem>(m_wVersion);
+	case CSE_ALifeModule::mAmountable: return m_pModules[eType].construct<CSE_ALifeModuleAmountable>(m_wVersion);
+	case CSE_ALifeModule::mAddon: return m_pModules[eType].construct<CSE_ALifeModuleAddon>(m_wVersion);
+	case CSE_ALifeModule::mScope: return m_pModules[eType].construct<CSE_ALifeModuleScope>(m_wVersion);
+	case CSE_ALifeModule::mFoldable: return m_pModules[eType].construct<CSE_ALifeModuleFoldable>(m_wVersion);
 	default:
-		FATAL							("wrong alife module type");
+		FATAL("wrong alife module type");
 	}
 }
 
@@ -73,7 +70,7 @@ void CSE_ALifeModuleScope::STATE_Read(NET_Packet& tNetPacket)
 	tNetPacket.r_float					(m_magnification);
 	tNetPacket.r_u16					(m_zeroing);
 	tNetPacket.r_s8						(m_selection);
-	if (m_version >= 131)
+	if (m_nVersion >= 131)
 		tNetPacket.r_u8					(m_current_reticle);
 }
 

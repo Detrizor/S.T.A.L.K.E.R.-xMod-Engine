@@ -663,24 +663,17 @@ void CSE_ALifeGroupAbstract::FillProps		(LPCSTR pref, PropItemVec& items)
 
 CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObject(caSection)
 {
-	m_tTimeID					= 0;
-	m_switch_counter			= u64(-1);
+	m_tTimeID = 0;
+	m_switch_counter = u64(-1);
 }
 
 CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
-	clearModules						();
-}
-
-CSE_ALifeModule* CSE_ALifeDynamicObject::add_module(CSE_ALifeModule::eAlifeModuleTypes type)
-{
-	return								(m_modules[type] = CSE_ALifeModule::createModule(type, m_wVersion));
 }
 
 void CSE_ALifeDynamicObject::clearModules()
 {
-	for (auto& m : m_modules)
-		xr_delete						(m);
+	m_pModules.clear();
 }
 
 #ifndef XRGAME_EXPORTS

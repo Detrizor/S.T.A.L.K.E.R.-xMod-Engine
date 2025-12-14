@@ -1,10 +1,11 @@
 #pragma once
+
 #include "..\xrEngine\device.h"
 
 class CSE_ALifeModule
 {
 public:
-	enum eAlifeModuleTypes
+	enum EAlifeModuleTypes
 	{
 		mModuleTypesBegin,
 		mInventoryItem = mModuleTypesBegin,
@@ -16,22 +17,20 @@ public:
 	};
 
 protected:
-										CSE_ALifeModule							(u16 version) : m_version(version) {}
-
-protected:
-	const u16							m_version;
+	CSE_ALifeModule(u16 nVersion) : m_nVersion(nVersion) {}
 
 public:
-	static CSE_ALifeModule*				createModule							(eAlifeModuleTypes type, u16 version);
+	virtual void STATE_Write(NET_Packet& tNetPacket) = 0;
+	virtual void STATE_Read(NET_Packet& tNetPacket) = 0;
 
-	void							V$	STATE_Write								(NET_Packet& tNetPacket) = 0;
-	void							V$	STATE_Read								(NET_Packet& tNetPacket) = 0;
+protected:
+	const u16 m_nVersion;
 };
 
 class CSE_ALifeModuleInventoryItem : public CSE_ALifeModule
 {
 public:
-	static eAlifeModuleTypes			mid										()		{ return mInventoryItem; }
+	static constexpr EAlifeModuleTypes mid() { return mInventoryItem; }
 
 public:
 										CSE_ALifeModuleInventoryItem			(u16 version) : CSE_ALifeModule(version) {}
@@ -48,7 +47,7 @@ private:
 class CSE_ALifeModuleAmountable : public CSE_ALifeModule
 {
 public:
-	static eAlifeModuleTypes			mid										()		{ return mAmountable; }
+	static EAlifeModuleTypes			mid										()		{ return mAmountable; }
 
 public:
 										CSE_ALifeModuleAmountable				(u16 version) : CSE_ALifeModule(version) {}
@@ -65,7 +64,7 @@ private:
 class CSE_ALifeModuleAddon : public CSE_ALifeModule
 {
 public:
-	static eAlifeModuleTypes			mid										()		{ return mAddon; }
+	static EAlifeModuleTypes			mid										()		{ return mAddon; }
 
 public:
 										CSE_ALifeModuleAddon					(u16 version) : CSE_ALifeModule(version) {}
@@ -86,7 +85,7 @@ public:
 class CSE_ALifeModuleScope : public CSE_ALifeModule
 {
 public:
-	static eAlifeModuleTypes			mid										()		{ return mScope; }
+	static EAlifeModuleTypes			mid										()		{ return mScope; }
 
 public:
 										CSE_ALifeModuleScope					(u16 version) : CSE_ALifeModule(version) {}
@@ -106,7 +105,7 @@ private:
 class CSE_ALifeModuleFoldable : public CSE_ALifeModule
 {
 public:
-	static eAlifeModuleTypes			mid										()		{ return mFoldable; }
+	static EAlifeModuleTypes			mid										()		{ return mFoldable; }
 
 public:
 										CSE_ALifeModuleFoldable					(u16 version) : CSE_ALifeModule(version) {}
