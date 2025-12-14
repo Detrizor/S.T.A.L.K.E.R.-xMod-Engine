@@ -6699,7 +6699,7 @@
     <ClInclude Include="ui\UINewsItemWnd.h">
       <Filter>UI\Common\PDA\logs\News</Filter>
     </ClInclude>
-    <ClInclude Include="ui\ui_af_params.h">
+    <ClInclude Include="ui\CUIArtefactParams.h">
       <Filter>UI\Common\ui-item-infos</Filter>
     </ClInclude>
     <ClInclude Include="ui\UIBoosterInfo.h">
@@ -10264,7 +10264,7 @@
     <ClCompile Include="ui\UINewsItemWnd.cpp">
       <Filter>UI\Common\PDA\logs\News</Filter>
     </ClCompile>
-    <ClCompile Include="ui\ui_af_params.cpp">
+    <ClCompile Include="ui\CUIArtefactParams.cpp">
       <Filter>UI\Common\ui-item-infos</Filter>
     </ClCompile>
     <ClCompile Include="ui\UIBoosterInfo.cpp">

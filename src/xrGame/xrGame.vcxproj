@@ -2321,7 +2321,7 @@
     <ClInclude Include="ui\UIWndCallback.h" />
     <ClInclude Include="ui\UIWpnParams.h" />
     <ClInclude Include="ui\UIXmlInit.h" />
-    <ClInclude Include="ui\ui_af_params.h" />
+    <ClInclude Include="ui\CUIArtefactParams.h" />
     <ClInclude Include="ui\ui_arrow.h" />
     <ClInclude Include="ui\UI_IB_Static.h" />
     <ClInclude Include="ui\xrUIXmlParser.h" />
@@ -4537,7 +4537,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="ui\UIXmlInit.cpp" />
-    <ClCompile Include="ui\ui_af_params.cpp" />
+    <ClCompile Include="ui\CUIArtefactParams.cpp" />
     <ClCompile Include="ui\ui_arrow.cpp" />
     <ClCompile Include="ui\UI_IB_Static.cpp" />
     <ClCompile Include="ui\xrUIXmlParser.cpp" />

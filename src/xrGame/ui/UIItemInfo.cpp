@@ -12,7 +12,7 @@
 #include "alife_simulator.h"
 #include "UIInventoryUtilities.h"
 #include "UIWpnParams.h"
-#include "ui_af_params.h"
+#include "CUIArtefactParams.h"
 #include "UIInvUpgradeProperty.h"
 #include "UIOutfitInfo.h"
 #include "UIBoosterInfo.h"
