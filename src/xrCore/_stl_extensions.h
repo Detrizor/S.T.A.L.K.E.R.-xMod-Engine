@@ -404,6 +404,15 @@ public:
 	xptr& operator=(const xptr&) = delete;
 	xptr& operator=(xptr&& old) noexcept { if (m_data != old.m_data) capture(old.release()); return *this; }
 
+	template <typename M, typename... Args>
+	static xptr create(Args&&... args) noexcept { xptr res{ nullptr }; res.construct<M>(_STD forward<Args>(args)...); return res; }
+
+	template <typename AnotherDeleter>
+	xptr(xptr<T, AnotherDeleter>&& old) noexcept { m_data = old.release(); }
+
+	template <typename AnotherDeleter>
+	xptr& operator=(xptr<T, AnotherDeleter>&& old) noexcept { capture(old.release()); return *this; }
+
 public:
 	operator bool() const noexcept { return (m_data != nullptr); }
 	T* operator->() const noexcept { R_ASSERT(m_data); return m_data; }
