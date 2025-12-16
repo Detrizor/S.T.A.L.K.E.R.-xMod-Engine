@@ -1,14 +1,17 @@
 #include "stdafx.h"
 #include "weapon_hud.h"
-#include "WeaponMagazined.h"
-#include "HUDManager.h"
-#include "xr_level_controller.h"
-#include "../../xrEngine/xr_input.h"
-#include "player_hud.h"
-#include "Level_Bullet_Manager.h"
+
 #include "addon.h"
 #include "scope.h"
 #include "weapon.h"
+#include "player_hud.h"
+#include "HUDManager.h"
+#include "WeaponMagazined.h"
+#include "xr_level_controller.h"
+#include "Level_Bullet_Manager.h"
+
+#include "ai/phantom/phantom.h"
+#include "../../xrEngine/xr_input.h"
 
 constexpr double rotation_eps = .01;
 
@@ -150,13 +153,17 @@ CWeaponHud::EHandsOffset CWeaponHud::get_target_hud_offset_idx() const
 
 Dvector CP$ CWeaponHud::get_target_hud_offset() const
 {
-	if (HUD().GetCurrentRayQuery().range < O.m_fire_point.z && !smart_cast<CEntityAlive*>(Actor()->ObjectWeLookingAt()))
-		return							m_hud_offset[eRelaxed];
+	if (HUD().GetCurrentRayQuery().range < O.m_fire_point.z)
+	{
+		auto pLookingAt{ Actor()->ObjectWeLookingAt() };
+		if (!smart_cast<CEntityAlive*>(pLookingAt) && !smart_cast<CPhantom*>(pLookingAt))
+			return m_hud_offset[eRelaxed];
+	}
 
 	if (auto active_scope = O.getActiveScope())
-		return							active_scope->getHudOffset();
+		return active_scope->getHudOffset();
 	else
-		return							m_hud_offset[get_target_hud_offset_idx()];
+		return m_hud_offset[get_target_hud_offset_idx()];
 }
 
 void CWeaponHud::UpdateHudAdditional(Dmatrix& trans)

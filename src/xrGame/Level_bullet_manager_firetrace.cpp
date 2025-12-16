@@ -22,6 +22,7 @@
 #include "ik/math3d.h"
 #include "actor.h"
 #include "ai/monsters/basemonster/base_monster.h"
+#include "ai/phantom/phantom.h"
 
 #define BULLET_MANAGER_SECTION						"bullet_manager"
 
@@ -388,18 +389,18 @@ void CBulletManager::ObjectHit(_event& E, SBullet* bullet, const Fvector& end_po
 	}
 	else
 	{
-		float d_density					= 2000.f * _sqr(mtl->fShootFactor);
-		bone_armor						= d_density * .25f;
+		float fDDensity{ (smart_cast<CPhantom*>(R.O)) ? 0.F : 2000.F * _sqr(mtl->fShootFactor) };
+		bone_armor = fDDensity * .25F;
 		
 		if (E.dynamic)
 		{
-			bullet->targetID			= R.O->ID();
-			bone_density				= bone_armor;
+			bullet->targetID = R.O->ID();
+			bone_density = bone_armor;
 		}
 		else
 		{
-			bullet->density				+= (inwards) ? d_density : -d_density;
-			k_speed_out = k_speed_in	= 1.f;
+			bullet->density += (inwards) ? fDDensity : -fDDensity;
+			k_speed_out = k_speed_in = 1.f;
 		}
 	}
 
