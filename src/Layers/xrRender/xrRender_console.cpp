@@ -245,8 +245,8 @@ u32			dm_current_cache_line = 49;	//dm_current_size+1+dm_current_size
 u32			dm_current_cache_size = 2401;	//dm_current_cache_line*dm_current_cache_line
 float		dm_current_fade = 47.5;	//float(2*dm_current_size)-.5f;
 #endif
-float		ps_current_detail_density = .3f;
-float		ps_current_detail_scale = 1.f;
+float		ps_current_detail_density{.3f };
+float		ps_current_detail_scale{ .5f };
 
 xr_token							ext_quality_token[] = {
 	{"qt_off", 0},
@@ -903,7 +903,7 @@ void		xrRender_initconsole	()
 #ifdef DETAIL_RADIUS
 	CMD4(CCC_detail_radius, "r__detail_radius", &ps_r__detail_radius, 50, 500);
 	CMD4(CCC_Float, "r__detail_density", &ps_current_detail_density, 0, 10);
-	CMD4(CCC_Float, "r__detail_scale", &ps_current_detail_scale, 0, 10);
+	//CMD4(CCC_Float, "r__detail_scale", &ps_current_detail_scale, 0, 10);
 	CMD4(CCC_Integer, "r__clear_models_on_unload", &ps_clear_models_on_unload, 0, 1); //Alundaio
 	CMD4(CCC_Integer, "r__no_scale_on_fade", &ps_no_scale_on_fade, 0, 1); //Alundaio
 #endif
