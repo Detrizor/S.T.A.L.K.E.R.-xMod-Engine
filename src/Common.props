@@ -20,7 +20,7 @@
     <DxLibDir>$(SolutionDir)..\sdk\libraries\</DxLibDir>
   </PropertyGroup>
   <PropertyGroup>
-    <IncludePath>$(IncludePath);$(xrSdkDir)include;</IncludePath>
+    <IncludePath>$(IncludePath);$(xrSdkDir)include;$(SolutionDir)</IncludePath>
     <OutDir>$(xrGameDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
