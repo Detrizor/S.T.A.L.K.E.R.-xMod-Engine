@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "weapon_chamber.h"
+
+#include "addon.h"
 #include "addon_owner.h"
 #include "WeaponMagazined.h"
-#include "addon.h"
 
 MAddon* CWeaponChamber::get() const
 {
@@ -116,7 +117,7 @@ void CWeaponChamber::unload(EUnloadDestination destination) const
 		break;
 	case eInventory:
 	{
-		auto owner						= O.H_Parent()->scast<CInventoryOwner>();
+		auto owner						= O.H_Parent()->scast<CInventoryOwner*>();
 		auto ammo						= chamber->O.scast<CWeaponAmmo*>();
 		if (ammo)
 		{

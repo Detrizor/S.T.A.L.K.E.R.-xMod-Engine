@@ -1,5 +1,4 @@
-#ifndef STREAM_READER_H
-#define STREAM_READER_H
+#pragma once
 
 class XRCORE_API CStreamReader : public IReaderBase < CStreamReader >
 {
@@ -52,7 +51,6 @@ public:
     void advance(const int& offset);
     void r(void* buffer, u32 buffer_size);
     CStreamReader* open_chunk(const u32& chunk_id);
-    u32 find_chunk(u32 ID, BOOL* bCompressed = 0);
     //. CStreamReader*open_chunk_iterator(const u32 &chunk_id, CStreamReader *previous = 0); // 0 means first
 
 public:
@@ -67,5 +65,3 @@ private:
 };
 
 #include "stream_reader_inline.h"
-
-#endif // STREAM_READER_H

@@ -19,7 +19,6 @@
 
 // must be defined before include of FS_impl.h
 #define INCLUDE_FROM_ENGINE
-#include "../xrCore/FS_impl.h"
 
 #ifdef INGAME_EDITOR
 # include "../include/editor/ide.hpp"
