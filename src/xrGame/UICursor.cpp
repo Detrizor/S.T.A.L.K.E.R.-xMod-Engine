@@ -137,6 +137,6 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 void CUICursor::resetCursorPosition()
 {
 	Fvector2 pos = { m_sys_metrics.x / 2.f, m_sys_metrics.y / 2.f };
-	pos.div(UI().GetScaleFactor());
+	pos.div(UI().getScaleBasic());
 	SetUICursorPosition(pos);
 }

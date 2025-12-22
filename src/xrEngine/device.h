@@ -309,6 +309,11 @@ public:
 	bool								isGameLoaded						C$	();
 	bool _BCL							isActiveMain						CO$	();
 	bool _BCL							isGameProcess						CO$	();
+
+	void processResolutionChanged() noexcept;
+
+public:
+	float fontScale{ 1.F };
 };
 
 extern ENGINE_API CRenderDevice Device;

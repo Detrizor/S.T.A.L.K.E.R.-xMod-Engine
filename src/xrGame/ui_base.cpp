@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "ui_base.h"
+
 #include "GamePersistent.h"
 #include "UICursor.h"
 #include "ui/UIWindow.h"
 
-extern	ENGINE_API	float			psUI_SCALE;
+#include "xrEngine/XR_IOConsole.h"
 
 CUICursor&	GetUICursor				()	{return UI().GetUICursor();};
 ui_core&	UI						()	{return *GamePersistent().m_pUI_core;};
@@ -100,22 +101,33 @@ sPoly2D* C2DFrustum::ClipPoly	(sPoly2D& S, sPoly2D& D) const
 
 void ui_core::OnDeviceReset()
 {
-	m_2DFrustum.CreateFromRect		(Frect().set(
-									0.0f,
-									0.0f,
-									float(Device.dwWidth),
-									float(Device.dwHeight)
-									));
+	m_2DFrustum.CreateFromRect({
+		0.F,
+		0.F,
+		static_cast<float>(Device.dwWidth),
+		static_cast<float>(Device.dwHeight)
+	});
+
+	float uiScaleLayout{ Console->uiScaleFactor * _scaleFactor * static_cast<float>(Device.dwHeight) };
+	_scaleBasic = uiScaleLayout / _layoutUnit;
+	Device.fontScale = _textScaleFactor * _scaleBasic;
+
+	_scaleInversed = 1.F / _scaleBasic;
+
+	_scale[sScreenHeight] = .01F * static_cast<float>(Device.dwHeight) / _scaleBasic;
+	_scale[sScreenWidth] = .01F * static_cast<float>(Device.dwWidth) / _scaleBasic;
+	_scale[sScreenHeightLayout] = static_cast<float>(Device.dwHeight) / (uiScaleLayout);
+	_scale[sScreenWidthLayout] = static_cast<float>(Device.dwWidth) / (uiScaleLayout);
 }
 
 float ui_core::ClientToScreenScaledX(float left)	const
 {
-	return							left * GetScaleFactor();
+	return left * getScaleBasic();
 }
 
 float ui_core::ClientToScreenScaledY(float top)		const
 {
-	return							top * GetScaleFactor();
+	return top * getScaleBasic();
 }
 
 void ui_core::ClientToScreenScaled(Fvector2& dest, float left, float top)	const
@@ -196,31 +208,20 @@ void ui_core::PopScissor()
 	}
 }
 
-ui_core::ui_core()
+ui_core::ui_core() noexcept
 {
-	m_layout_unit					= pSettings->r_float("miscellaneous", "layout_unit");
-	m_layout_factor					= pSettings->r_float("miscellaneous", "basic_layout_height") / m_layout_unit;
-	m_text_scale_factor				= 1.f / GetScaleFactor();
-	OnDeviceReset					();
-
-	if (!g_dedicated_server)
-	{
-		m_pUICursor					= xr_new<CUICursor>();
-		m_pFontManager				= xr_new<CFontManager>();
-	}
-	else
-	{
-		m_pUICursor					= NULL;
-		m_pFontManager				= NULL;
-	}
-	m_bPostprocess					= false;
-	m_currentPointType				= IUIRender::pttTL;
 }
 
-ui_core::~ui_core()
+void ui_core::initialize() noexcept
 {
-	xr_delete						(m_pFontManager);
-	xr_delete						(m_pUICursor);
+	_layoutUnit = pSettings->r_float("miscellaneous", "layout_unit");
+	_scaleFactor = pSettings->r_float("miscellaneous", "ui_scale_factor");
+	_textScaleFactor = pSettings->r_float("miscellaneous", "text_scale_factor");
+
+	OnDeviceReset();
+
+	m_pUICursor.construct();
+	m_pFontManager.construct();
 }
 
 void ui_core::pp_start()
@@ -261,32 +262,4 @@ shared_str	ui_core::get_xml_name(LPCSTR fn)
 	if (!strext(fn))
 		xr_strcat					(str, ".xml");
 	return							str;
-}
-
-float ui_core::GetScale(EScaling scaling) const
-{
-	if (!this)
-		return						1.f;
-
-	switch (scaling)
-	{
-	case sAbsolute:
-		return						1.f;
-	case sScreenHeight:
-		return						.01f * float(Device.dwHeight) / GetScaleFactor();
-	case sScreenWidth:
-		return						.01f * float(Device.dwWidth) / GetScaleFactor();
-	case sScreenHeightLayout:
-		return						float(Device.dwHeight) / (m_layout_unit * GetScaleFactor());
-	case sScreenWidthLayout:
-		return						float(Device.dwWidth) / (m_layout_unit * GetScaleFactor());
-	default:
-		FATAL						(shared_str().printf("incorrect scaling [%d]", scaling).c_str());
-		return						false;
-	}
-}
-
-float ui_core::GetScaleFactor() const
-{
-	return							psUI_SCALE * m_layout_factor;
 }

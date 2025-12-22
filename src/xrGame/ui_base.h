@@ -49,16 +49,17 @@ class ui_core: public CDeviceResetNotifier
 	C2DFrustum		m_2DFrustumPP;
 	C2DFrustum		m_FrustumLIT;
 
-	bool			m_bPostprocess;
+	bool			m_bPostprocess{ false };
 
-	CFontManager*	m_pFontManager;
-	CUICursor*		m_pUICursor;
+	xptr<CFontManager>	m_pFontManager{ nullptr };
+	xptr<CUICursor>		m_pUICursor{ nullptr };
 
 public:
 	xr_stack<Frect> m_Scissors;
-	
-					ui_core							();
-					~ui_core						();
+
+	ui_core() noexcept;
+	void initialize() noexcept;
+
 	CFontManager&	Font							()								{return *m_pFontManager;}
 	CUICursor&		GetUICursor						()								{return *m_pUICursor;}
 
@@ -82,18 +83,21 @@ public:
 	static	float	get_current_kx					();
 	shared_str		get_xml_name					(LPCSTR fn);
 	
-	IUIRender::ePointType		m_currentPointType;
-
-private:
-			float			m_layout_unit;
-			float			m_layout_factor;
-			float			m_text_scale_factor;
+	IUIRender::ePointType		m_currentPointType{ IUIRender::pttTL };
 
 public:
-	float								GetTextScaleFactor					C$	()		{ return m_text_scale_factor; }
+	float getScaleBasic() const noexcept { return _scaleBasic; }
+	float getScaleInversed() const noexcept { return _scaleInversed; }
+	float GetScale(EScaling scaling) const noexcept { return _scale[scaling]; }
 
-	float								GetScale							C$	(EScaling scaling);
-	float								GetScaleFactor						C$	();
+private:
+	float _layoutUnit{};
+	float _scaleFactor{};
+	float _textScaleFactor{};
+
+	float _scaleBasic{};
+	float _scaleInversed{};
+	xarr<float, EScaling::sCount> _scale{ 1.F };
 };
 
 extern CUICursor&		GetUICursor				();

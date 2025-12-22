@@ -586,3 +586,8 @@ void CRenderDevice::CSVP::setLenseDir(Fvector CR$ val)
 	m_lense_dir.set						(val);
 	m_lense_dir.normalize				();
 }
+
+void CRenderDevice::processResolutionChanged() noexcept
+{
+	seqResolutionChanged.Process(rp_ScreenResolutionChanged);
+}

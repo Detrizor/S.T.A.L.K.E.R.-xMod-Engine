@@ -6,23 +6,6 @@
 #include "../ui_base.h"
 #include <boost/noncopyable.hpp>
 
-typedef CGameFont::EAligment ETextAlignment;
-
-typedef enum {
-	valTop = 0,
-	valCenter,
-	valBotton
-} EVTextAlignment;
-
-enum EScaling
-{
-	sAbsolute,
-	sScreenHeight,
-	sScreenWidth,
-	sScreenHeightLayout,
-	sScreenWidthLayout
-};
-
 class ITextureOwner
 {
 public:

@@ -126,7 +126,7 @@ void CUILine::Draw(CGameFont* pFont, float x, float y) const
 	for (int i=0; i < size; i++)
 	{
 		m_subLines[i].Draw	(pFont, x+length, y);
-		length				+= pFont->SizeOf_(m_subLines[i].m_text.c_str()) * UI().GetTextScaleFactor(); //. all ok
+		length				+= pFont->SizeOf_(m_subLines[i].m_text.c_str()) * UI().getScaleInversed(); //. all ok
 	}
 }
 

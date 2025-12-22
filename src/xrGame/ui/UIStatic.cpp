@@ -246,7 +246,7 @@ void CUIStatic::AdjustWidthToText()
 {
 	if (!m_pTextControl)
 		return;
-	SetWidth(m_pTextControl->GetFont()->SizeOf_(m_pTextControl->GetText()) * UI().GetTextScaleFactor());
+	SetWidth(m_pTextControl->GetFont()->SizeOf_(m_pTextControl->GetText()) * UI().getScaleInversed());
 }
 
 void CUIStatic::ColorAnimationSetTextureColor(u32 color, bool only_alpha)
@@ -285,7 +285,7 @@ void CUITextWnd::AdjustHeightToText()
 
 void CUITextWnd::AdjustWidthToText()
 {
-	SetWidth(TextItemControl().GetFont()->SizeOf_(TextItemControl().GetText()) * UI().GetTextScaleFactor());
+	SetWidth(TextItemControl().GetFont()->SizeOf_(TextItemControl().GetText()) * UI().getScaleInversed());
 }
 
 void CUITextWnd::Draw()

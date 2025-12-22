@@ -46,7 +46,7 @@ void CRenderDevice::_Create(LPCSTR shName)
 	_SetupStates();
 
 	m_pRender->OnDeviceCreate(shName);
-	pInput->OnScreenResolutionChanged();
+	processResolutionChanged();
 
 	dwFrame = 0;
 }

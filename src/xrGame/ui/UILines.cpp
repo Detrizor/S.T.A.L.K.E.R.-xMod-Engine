@@ -102,7 +102,7 @@ void CUILines::Reset()
 
 float get_str_width(CGameFont*pFont, char ch)
 {
-	return pFont->SizeOf_(ch) * UI().GetTextScaleFactor();
+	return pFont->SizeOf_(ch) * UI().getScaleInversed();
 }
 
 void CUILines::ParseText(bool force)
@@ -166,7 +166,7 @@ void CUILines::ParseText(bool force)
         u16	aMarkers[ UBUFFER_SIZE ];
 		CUILine tmp_line;
 		char szTempLine[ MAX_MB_CHARS ];
-		float fTargetWidth = m_parent_wnd->GetWidth() / UI().GetTextScaleFactor();
+		float fTargetWidth = m_parent_wnd->GetWidth() / UI().getScaleInversed();
 		int vsz = line->m_subLines.size();
 		VERIFY( vsz );
 		if ( ( vsz > 1 ) && ( ! bNewLines ) ) { // only colored line, pizdets
@@ -278,7 +278,7 @@ float CUILines::GetVisibleHeight()
 	else
 		res				= m_pFont->GetHeight();
 
-	return				res * UI().GetTextScaleFactor();
+	return				res * UI().getScaleInversed();
 }
 
 void CUILines::SetTextColor(u32 color)
@@ -299,7 +299,7 @@ void CUILines::SetFont(CGameFont* pFont)
 
 LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR buff, int buff_len)
 {
-	float text_len					= pFont->SizeOf_(source_text) * UI().GetTextScaleFactor();
+	float text_len					= pFont->SizeOf_(source_text) * UI().getScaleInversed();
 
 	if(text_len<width)
 	{
@@ -307,14 +307,14 @@ LPCSTR GetElipsisText(CGameFont* pFont, float width, LPCSTR source_text, LPSTR b
 	}else
 	{
 		buff[0]							= 0;
-		float el_len					= pFont->SizeOf_("..") * UI().GetTextScaleFactor();
+		float el_len					= pFont->SizeOf_("..") * UI().getScaleInversed();
 		float total						= 0.0f;
 		u16		pos						= 0;
 		
 		while(total+el_len < width)
 		{
 			const char c					= *(source_text+pos);
-			float ch_len					= pFont->SizeOf_(c) * UI().GetTextScaleFactor();
+			float ch_len					= pFont->SizeOf_(c) * UI().getScaleInversed();
 		
 			if(total+ch_len+el_len < width)
 				buff[pos]				= c;
@@ -379,7 +379,7 @@ void CUILines::Draw(float x, float y)
 		m_pFont->SetAligment		((CGameFont::EAligment)m_eTextAlign);
 
 		Fvector2 pos				= { x + GetIndentByAlign(), y + GetVIndentByAlign() };
-		float height				= m_pFont->CurrentHeight_() * UI().GetTextScaleFactor();
+		float height				= m_pFont->CurrentHeight_() * UI().getScaleInversed();
 		for (int i = 0, i_e = m_lines.size(); i < i_e; i++)
 		{
 			m_lines[i].Draw			(m_pFont, pos.x, pos.y);

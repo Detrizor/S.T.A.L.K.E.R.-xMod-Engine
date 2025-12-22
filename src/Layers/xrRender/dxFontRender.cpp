@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "dxFontRender.h"
 
-#include "../../xrEngine/GameFont.h"
+#include "xrEngine/GameFont.h"
+#include "xrEngine/XR_IOConsole.h"
 
 extern ENGINE_API BOOL		g_bRendering;
-extern ENGINE_API float		psUI_SCALE;
 
 dxFontRender::dxFontRender()
 {
@@ -68,7 +68,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 			if (len) {
 				float	X	= float(iFloor(PS.x));
 				float	Y	= float(iFloor(PS.y));
-				float	S	= floor(PS.height * psUI_SCALE);
+				float	S	= floor(PS.height * Device.fontScale);
 				float	Y2	= Y+S;
 				float fSize = 0;
 
@@ -106,7 +106,7 @@ void dxFontRender::OnRender(CGameFont &owner)
 
 					l = owner.IsMultibyte() ? owner.GetCharTC( wsStr[ 1 + j ] ) : owner.GetCharTC( ( u16 ) ( u8 ) PS.string[j] );
 
-					float scw		= floor(l.z * psUI_SCALE);
+					float scw		= floor(l.z * Device.fontScale);
 					float fTCWidth	= l.z/owner.vTS.x;
 
 					if (!fis_zero(l.z))

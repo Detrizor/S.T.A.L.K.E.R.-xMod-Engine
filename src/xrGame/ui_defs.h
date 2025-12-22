@@ -3,10 +3,28 @@
 #include "../Include/xrRender/FactoryPtr.h"
 #include "../Include/xrRender/UIRender.h"
 #include "../Include/xrRender/UIShader.h"
-typedef	FactoryPtr<IUIShader>	ui_shader;
 
-#define UI_BASE_HEIGHT	((float)Device.dwHeight / UI().GetScaleFactor())
-#define UI_BASE_WIDTH	((float)Device.dwWidth / UI().GetScaleFactor())
+typedef	FactoryPtr<IUIShader> ui_shader;
+typedef CGameFont::EAligment ETextAlignment;
+
+typedef enum {
+	valTop = 0,
+	valCenter,
+	valBotton
+} EVTextAlignment;
+
+enum EScaling
+{
+	sAbsolute,
+	sScreenHeight,
+	sScreenWidth,
+	sScreenHeightLayout,
+	sScreenWidthLayout,
+	sCount
+};
+
+#define UI_BASE_HEIGHT	((float)Device.dwHeight / UI().getScaleBasic())
+#define UI_BASE_WIDTH	((float)Device.dwWidth / UI().getScaleBasic())
 
 enum EUIItemAlign{
 	alNone	= 0x0000,

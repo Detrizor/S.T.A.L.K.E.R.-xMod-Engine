@@ -17,9 +17,7 @@
 
 //#include "securom_api.h"
 
-extern ENGINE_API float psUI_SCALE;
-
-#define LDIST (psUI_SCALE * 36.f / Device.dwHeight)
+#define LDIST (Device.fontScale * 36.f / Device.dwHeight)
 static u32 const cmd_history_max = 64;
 
 static u32 const prompt_font_color = color_rgba(228, 228, 255, 255);

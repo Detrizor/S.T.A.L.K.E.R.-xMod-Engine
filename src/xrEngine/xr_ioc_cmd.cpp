@@ -600,8 +600,6 @@ extern int g_ErrorLineCount;
 
 ENGINE_API int ps_r__Supersample = 1;
 
-ENGINE_API float psUI_SCALE = 1.f;
-
 void CCC_Register()
 {
 	// General
@@ -673,6 +671,7 @@ void CCC_Register()
 
 	// General video control
 	CMD1(CCC_VidMode, "vid_mode");
+	Console->uiScaleFactor = sqrt(1080.F / psCurrentVidMode[1]);
 
 #ifdef DEBUG
 	CMD3(CCC_Token, "vid_bpp", &psCurrentBPP, vid_bpp_token);
@@ -753,7 +752,19 @@ void CCC_Register()
 	CMD4(CCC_Integer, "debug_destroy", &debug_destroy, FALSE, TRUE);
 #endif
 
-	CMD4(CCC_Float, "ui_scale", &psUI_SCALE, 0.1f, 10.0f);
+	class ÑÑÑ_UIScale : public CCC_Float
+	{
+	public:
+		ÑÑÑ_UIScale(LPCSTR N, float* V, float _min, float _max) : CCC_Float(N, V, _min, _max) {}
+		void Execute(pcstr args) override
+		{
+			CCC_Float::Execute(args);
+			if (Device.dwHeight != 0)
+				Device.Reset();
+		}
+	};
+
+	CMD4(ÑÑÑ_UIScale, "ui_scale", &Console->uiScaleFactor, .1f, 1.F);
 
 	class CCC_Stats : public CCC_Mask
 	{

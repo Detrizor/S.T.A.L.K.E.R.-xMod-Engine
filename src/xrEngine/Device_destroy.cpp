@@ -78,5 +78,5 @@ void CRenderDevice::Reset(bool precache)
 	seqDeviceReset.Process(rp_DeviceReset);
 
 	if (dwWidth_before != dwWidth || dwHeight_before != dwHeight)
-		seqResolutionChanged.Process(rp_ScreenResolutionChanged);
+		processResolutionChanged();
 }

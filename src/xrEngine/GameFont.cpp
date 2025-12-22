@@ -10,11 +10,11 @@ unsigned short int mbhMulti2Wide
 ( wide_char* WideStr , wide_char* WidePos , const unsigned short int WideStrSize , const char* MultiStr ) {return 0;};
 #endif
 
-#include "../Include/xrAPI/xrAPI.h"
-#include "../Include/xrRender/RenderFactory.h"
-#include "../Include/xrRender/FontRender.h"
+#include "Include/xrAPI/xrAPI.h"
+#include "Include/xrRender/RenderFactory.h"
+#include "Include/xrRender/FontRender.h"
 
-extern ENGINE_API float psUI_SCALE;
+#include "xrEngine/XR_IOConsole.h"
 
 CGameFont::CGameFont(LPCSTR section, u32 flags)
 {
@@ -348,7 +348,7 @@ void CGameFont::OutSkip(float val)
 
 float CGameFont::SizeOf_(const char cChar)
 {
-	return psUI_SCALE * (GetCharTC((u16)(u8)(((IsMultibyte() && cChar == ' ')) ? 0 : cChar)).z * vInterval.x);
+	return Device.fontScale * (GetCharTC((u16)(u8)(((IsMultibyte() && cChar == ' ')) ? 0 : cChar)).z * vInterval.x);
 }
 
 float CGameFont::SizeOf_(LPCSTR s)
@@ -371,7 +371,7 @@ float CGameFont::SizeOf_(LPCSTR s)
 		for (int j = 0; j < len; j++)
 			X += GetCharTC((u16)(u8)s[j]).z;
 
-	return psUI_SCALE * (X*vInterval.x);
+	return Device.fontScale * (X*vInterval.x);
 }
 
 float CGameFont::SizeOf_(const wide_char* wsStr)
@@ -391,17 +391,17 @@ float CGameFont::SizeOf_(const wide_char* wsStr)
 		X += fDelta;
 		}
 
-	return psUI_SCALE * (X * vInterval.x);
+	return Device.fontScale * (X * vInterval.x);
 }
 
 float CGameFont::GetHeight()
 {
-	return psUI_SCALE * fCurrentHeight;
+	return Device.fontScale * fCurrentHeight;
 }
 
 float CGameFont::CurrentHeight_()
 {
-	return psUI_SCALE * fCurrentHeight * vInterval.y;
+	return Device.fontScale * fCurrentHeight * vInterval.y;
 }
 
 void CGameFont::SetHeightI(float S)
