@@ -442,7 +442,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_recuperation_factor",		&CScriptGameObject::GetRecuperationFactor)
 		.def("get_drain_factor",			&CScriptGameObject::GetDrainFactor)
 		.def("get_power_loss",				&CScriptGameObject::GetPowerLoss)
-		.def("get_inertion",				&CScriptGameObject::GetInertion)
+		.def("get_control_inertion_factor",	&CScriptGameObject::getControlInertionFactor)
 		.def("set_money",					&CScriptGameObject::SetMoney)
 		.def("left_item",					&CScriptGameObject::GetLeftItem)
 		.def("activate_item",				&CScriptGameObject::ActivateItem)

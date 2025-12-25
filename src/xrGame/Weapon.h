@@ -372,7 +372,6 @@ protected:
 	void								sSyncData							O$	(CSE_ALifeDynamicObject* se_obj, bool save);
 
 private:
-	static float						s_inertion_baseline_weight;
 	static float						s_inertion_ads_factor;
 	static float						s_inertion_aim_factor;
 	static float						s_inertion_armed_factor;
@@ -451,10 +450,11 @@ public:
 	
 	bool								isCamRecoilRelaxed					C$	();
 	bool								ArmedMode							C$	();
-
-	float								GetControlInertionFactor			CO$	(bool full = false);
 	
 	int								V$	ADS									C$	()		{ return m_iADS; }
+
+protected:
+	float getInertionFactor(bool full) const noexcept override;
 
 protected:
 	bool	m_bPAPHardened	{ false };

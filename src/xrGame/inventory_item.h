@@ -192,7 +192,7 @@ public:
 
 	virtual	bool				IsSprintAllowed				() const		{return !!m_flags.test(FAllowSprint);} ;
 
-	virtual	float				GetControlInertionFactor	(bool full = false) const		{ return m_fControlInertionFactor; }
+	float						GetControlInertionFactor	(bool full = false) const noexcept;
 
 	virtual void				UpdateXForm	();
 			
@@ -364,6 +364,9 @@ public:
 	float								GetAmount							C$	();
 	float								GetFill								C$	();
 	float								getFillBar							C$	();
+
+protected:
+	virtual float getInertionFactor(bool full) const noexcept { return 1.F; }
 
 private:
 	xptr<CUICellItem, CUICIDeleter> m_pIcon{ nullptr };

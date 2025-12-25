@@ -518,11 +518,11 @@ float CScriptGameObject::GetPowerLoss()
 	return outfit->m_fPowerLoss;
 }
 
-float CScriptGameObject::GetInertion(bool full)
+float CScriptGameObject::getControlInertionFactor(bool full) const
 {
-	if (auto item = smart_cast<PIItem>(&object()))
-		return							item->GetControlInertionFactor(full);
-	return								1.f;
+	if (auto item{ smart_cast<PIItem>(&object()) })
+		return item->GetControlInertionFactor(full);
+	return 1.F;
 }
 
 float CScriptGameObject::GetTotalVolume() const

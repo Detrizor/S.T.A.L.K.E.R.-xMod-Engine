@@ -926,7 +926,7 @@ public:
 	float				GetRecuperationFactor	();
 	float				GetDrainFactor			();
 	float				GetPowerLoss			();
-	float				GetInertion				(bool full);
+	float				getControlInertionFactor(bool full) const;
 	void				ChangeCondition			(float val);
 	CScriptGameObject*	GetLeftItem				();
 	void				ActivateItem			(CScriptGameObject* obj, u16 return_place = 0, u16 return_slot = 0);

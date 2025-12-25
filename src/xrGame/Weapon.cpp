@@ -877,12 +877,9 @@ void CWeapon::SwitchArmedMode()
 		playBlendAnm(m_safemode_anm[m_actor->switchArmedMode()]);
 }
 
-float CWeapon::GetControlInertionFactor C$(bool full)
+float CWeapon::getInertionFactor(bool full) const noexcept
 {
-	float inertion						= sqrt((Weight() + s_inertion_baseline_weight) / s_inertion_baseline_weight) - 1.f;
-	if (full)
-		inertion						*= get_wpn_pos_inertion_factor();
-	return								1.f + inherited::GetControlInertionFactor(full) * inertion;
+	return (full) ? get_wpn_pos_inertion_factor() : 1.f;
 }
 
 float CWeapon::getZoom() const
@@ -898,7 +895,6 @@ bool CWeapon::ArmedMode() const
 }
 
 
-float CWeapon::s_inertion_baseline_weight;
 float CWeapon::s_inertion_ads_factor;
 float CWeapon::s_inertion_aim_factor;
 float CWeapon::s_inertion_armed_factor;
@@ -917,7 +913,6 @@ Fvector CWeapon::m_stock_recoil_pattern_absent;
 
 void CWeapon::loadStaticData()
 {
-	s_inertion_baseline_weight			= pSettings->r_float("weapon_manager", "inertion_baseline_weight");
 	s_inertion_ads_factor				= pSettings->r_float("weapon_manager", "inertion_ads_factor");
 	s_inertion_aim_factor				= pSettings->r_float("weapon_manager", "inertion_aim_factor");
 	s_inertion_armed_factor				= pSettings->r_float("weapon_manager", "inertion_armed_factor");

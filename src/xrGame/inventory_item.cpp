@@ -611,6 +611,13 @@ bool CInventoryItem::ready_to_kill() const
 	return				(false);
 }
 
+float CInventoryItem::GetControlInertionFactor(bool full) const noexcept
+{
+	float inertion{ sqrt(1.F + Weight()) - 1.F };
+	inertion *= getInertionFactor(full);
+	return 1.F + inertion * m_fControlInertionFactor;
+}
+
 void CInventoryItem::UpdateXForm()
 {
 	if (0 == object().H_Parent())	return;
