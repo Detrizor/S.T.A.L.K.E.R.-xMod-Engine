@@ -473,7 +473,7 @@ void CExplosive::GetExplVelocity(Fvector &v)
 	smart_cast<CPhysicsShellHolder*>(cast_game_object())->PHGetLinearVell(v);
 }
 
-void CExplosive::UpdateCL() 
+void CExplosive::UpdateCL(float timeDelta)
 {
 	//VERIFY(!this->getDestroy());
 	VERIFY(!physics_world()->Processing());
@@ -500,7 +500,7 @@ void CExplosive::UpdateCL()
 	} 
 	else
 	{		
-		m_fExplodeDuration -= Device.fTimeDelta;
+		m_fExplodeDuration -= timeDelta;
 		if (!m_bHideInExplosion && !m_bAlreadyHidden)
 		{
 			if (m_fExplodeHideDurationMax <= (m_fExplodeDurationMax - m_fExplodeDuration))

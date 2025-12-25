@@ -67,7 +67,7 @@ void CExplosiveRocket::UpdateCL()
 {
 	if(eCollide == m_eState)
 	{
-		CExplosive::UpdateCL();
+		CExplosive::UpdateCL(time_delta());
 		inherited::UpdateCL();
 	}
 	else

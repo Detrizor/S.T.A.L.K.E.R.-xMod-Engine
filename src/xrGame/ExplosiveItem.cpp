@@ -67,7 +67,7 @@ void  CExplosiveItem::OnEvent (NET_Packet& P, u16 type)
 }
 void CExplosiveItem::UpdateCL()
 {
-	CExplosive::UpdateCL();
+	CExplosive::UpdateCL(time_delta());
 	inherited::UpdateCL();
 }
 void CExplosiveItem::shedule_Update(u32 dt)

@@ -31,7 +31,7 @@ public:
 
 	virtual void 				net_Destroy		();
 	virtual void				net_Relcase		(CObject* O);
-	virtual void 				UpdateCL();
+	virtual void 				UpdateCL(float timeDelta);
 
 private:
 	virtual void 				Explode();

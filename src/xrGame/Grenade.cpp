@@ -218,7 +218,7 @@ void CGrenade::OnAnimationEnd(u32 state)
 void CGrenade::UpdateCL() 
 {
 	inherited::UpdateCL			();
-	CExplosive::UpdateCL		();
+	CExplosive::UpdateCL		(time_delta());
 }
 
 ALife::_TIME_ID	 CGrenade::TimePassedAfterIndependant()	const

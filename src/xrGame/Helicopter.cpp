@@ -419,7 +419,7 @@ void CHelicopter::MoveStep()
 void CHelicopter::UpdateCL()
 {
 	inherited::UpdateCL	();
-	CExplosive::UpdateCL();
+	CExplosive::UpdateCL(time_delta());
 	if(PPhysicsShell() && (state() == CHelicopter::eDead) ){
 
 		PPhysicsShell()->InterpolateGlobalTransform(&XFORM());

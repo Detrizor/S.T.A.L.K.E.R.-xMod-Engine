@@ -428,7 +428,7 @@ bool CCar::alwaysUpdate()
 void CCar::UpdateCL				( )
 {
 	inherited::UpdateCL();
-	CExplosive::UpdateCL();
+	CExplosive::UpdateCL(time_delta());
 	if(m_car_weapon)
 	{
 		m_car_weapon->UpdateCL();
