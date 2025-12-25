@@ -102,23 +102,21 @@ public:
 
 class CUIArtefactModuleCellItem : public CUIInventoryCellItem
 {
-	typedef CUIInventoryCellItem super_;
+	typedef CUIInventoryCellItem super;
 
 public:
-	CUIArtefactModuleCellItem(MArtefactModule* pItem);
+	CUIArtefactModuleCellItem(MArtefactModule* itemModule);
 	CUIArtefactModuleCellItem(shared_str const& strSection) : CUIInventoryCellItem(strSection) {}
 
 public:
-	bool EqualTo(CUICellItem* pCellItem) override;
-	void UpdateItemText() override;
+	bool EqualTo(CUICellItem* cellItem) override;
 
 public:
-	void setMode(float fMode);
+	void setMode(float mode);
 
 private:
-	MArtefactModule* const m_pItem{ nullptr };
-
-	bool m_bShowMode{ false };
+	MArtefactModule* const _itemModule{ nullptr };
+	xptr<CUIStatic> _text{};
 };
 
 class CBuyItemCustomDrawCell :public ICustomDrawCellItem

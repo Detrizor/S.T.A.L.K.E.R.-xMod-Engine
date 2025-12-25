@@ -4,6 +4,7 @@
 #include "../Weapon.h"
 #include "UIDragDropListEx.h"
 #include "UIProgressBar.h"
+#include "UIXmlInit.h"
 
 #include "addon.h"
 #include "addon_owner.h"
@@ -557,42 +558,44 @@ CUIDragItem* CUIAddonOwnerCellItem::CreateDragItem()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUIArtefactModuleCellItem::CUIArtefactModuleCellItem(MArtefactModule* pItem) :
-	CUIInventoryCellItem(pItem->O.scast<CInventoryItem*>()),
-	m_pItem(pItem)
+CUIArtefactModuleCellItem::CUIArtefactModuleCellItem(MArtefactModule* itemModule) :
+	CUIInventoryCellItem(itemModule->O.scast<CInventoryItem*>()),
+	_itemModule(itemModule)
 {
+	CUIXml uiXml{};
+	uiXml.Load(CONFIG_PATH, UI_PATH, "actor_menu_item.xml");
+
+	AttachChild(_text.get());
+	CUIXmlInit::InitStatic(uiXml, "cell_item_text", 0, _text.get());
+	_text->SetAlignment(aRightTop);
+	_text->SetAnchor(aRightTop);
 }
 
-bool CUIArtefactModuleCellItem::EqualTo(CUICellItem* pCellItem)
+bool CUIArtefactModuleCellItem::EqualTo(CUICellItem* cellItem)
 {
-	if (super_::EqualTo(pCellItem))
-		if (fIsZero(m_pItem->getMode()))
-			if (auto pAMCI{ smart_cast<CUIArtefactModuleCellItem*>(pCellItem) })
-				return fIsZero(pAMCI->m_pItem->getMode());
+	if (super::EqualTo(cellItem))
+		if (auto cellItemModule{ smart_cast<CUIArtefactModuleCellItem*>(cellItem) })
+			return (_itemModule || cellItemModule->_itemModule)
+				? (_itemModule && cellItemModule->_itemModule && fIsZero(_itemModule->getMode()) && fIsZero(cellItemModule->_itemModule->getMode()))
+				: true;
 
 	return false;
 }
 
-void CUIArtefactModuleCellItem::UpdateItemText()
+void CUIArtefactModuleCellItem::setMode(float mode)
 {
-	if (!m_bShowMode)
-		super_::UpdateItemText();
-}
-
-void CUIArtefactModuleCellItem::setMode(float fMode)
-{
-	m_bShowMode = !fIsZero(fMode);
-	m_text->Show(m_bShowMode);
-	if (m_bShowMode)
+	bool showMode{ !fIsZero(mode) };
+	_text->Show(showMode);
+	if (showMode)
 	{
-		auto color{ color_rgba(sqrt(fMode) * 255, sqrt(1.F - fMode) * 255, 0, 255) };
-		m_text->TextItemControl()->SetTextColor(color);
+		auto color{ color_rgba(sqrt(mode) * 255, sqrt(1.F - mode) * 255, 0, 255) };
+		_text->TextItemControl()->SetTextColor(color);
 
 		string32 str;
-		xr_sprintf(str, "%.0f%%", round(fMode * 100.F));
-		m_text->TextItemControl()->SetText(str);
-		m_text->AdjustWidthToText();
-		m_text->AdjustHeightToText();
+		xr_sprintf(str, "%.0f%%", round(mode * 100.F));
+		_text->TextItemControl()->SetText(str);
+		_text->AdjustWidthToText();
+		_text->AdjustHeightToText();
 	}
 }
 
