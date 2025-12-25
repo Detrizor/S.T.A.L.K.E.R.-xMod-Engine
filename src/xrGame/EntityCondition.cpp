@@ -472,9 +472,10 @@ void CEntityCondition::HitProtectionEffect(SHit* pHDS)
 	if (pHDS->pierce_damage > 0.f)
 		pHDS->pierce_damage				*= GetHitImmunity(pHDS->pierce_hit_type) * m_fHealthHitPart;
 
-	if (Core.ParamFlags.test(Core.dbgcondfull) || Core.ParamFlags.test(Core.dbgcond) && (m_object->cast_actor() || m_pWho == Actor()))
-		Msg("--xd CEntityCondition::HitProtectionEffect health [%.4f] protection [%.4f] main_damage [%.4f-%.4f-%.4f-%.4f] pierce_damage [%.4f-%.4f-%.4f]",
-			GetHealth(), protection, main_damage[0], main_damage[1], main_damage[2], pHDS->main_damage, pierce_damage[0], pierce_damage[1], pHDS->pierce_damage);
+	if (pHDS->hit_type != ALife::eHitTypeRadiation)
+		if (Core.ParamFlags.test(Core.dbgcondfull) || Core.ParamFlags.test(Core.dbgcond) && (m_object->cast_actor() || m_pWho == Actor()))
+			Msg("--xd CEntityCondition::HitProtectionEffect actor [%d] health [%.4f] protection [%.4f] main_damage [%.4f-%.4f-%.4f-%.4f] pierce_damage [%.4f-%.4f-%.4f]",
+				!!m_object->cast_actor(), GetHealth(), protection, main_damage[0], main_damage[1], main_damage[2], pHDS->main_damage, pierce_damage[0], pierce_damage[1], pHDS->pierce_damage);
 }
 
 float CEntityCondition::HitPowerEffect(float power_loss)

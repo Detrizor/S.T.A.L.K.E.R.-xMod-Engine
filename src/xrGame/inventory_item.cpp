@@ -325,15 +325,18 @@ BOOL CInventoryItem::net_Spawn(CSE_Abstract* DC)
 	if (auto pAlifeObject{ smart_cast<CSE_ALifeObject*>(DC) })
 		m_flags.set(Fuseful_for_NPC, pAlifeObject->m_flags.test(CSE_ALifeObject::flUsefulForAI));
 
-	m_dwItemIndependencyTime = 0;
-	m_just_after_spawn = true;
-	m_activated = false;
-
-	LPCSTR strVisName{ pSettings->r_string(m_section_id, "visual") };
-	if (strcmp(strVisName, O.visual_name(DC)))
+	if (smart_cast<CSE_ALifeInventoryItem*>(DC))
 	{
-		O.cNameVisual_set(strVisName);
-		smart_cast<CSE_Visual*>(DC)->set_visual(strVisName);
+		m_dwItemIndependencyTime = 0;
+		m_just_after_spawn = true;
+		m_activated = false;
+
+		LPCSTR strVisName{ pSettings->r_string(m_section_id, "visual") };
+		if (strcmp(strVisName, O.visual_name(DC)))
+		{
+			O.cNameVisual_set(strVisName);
+			smart_cast<CSE_Visual*>(DC)->set_visual(strVisName);
+		}
 	}
 
 	return TRUE;
@@ -930,7 +933,8 @@ void CInventoryItem::set_inv_icon()
 
 void CInventoryItem::setup_icon()
 {
-	if (auto icon = O.emitSignalGet(sCreateIcon()))
+	m_pIcon.reset();
+	if (auto icon{ O.emitSignalGet(sCreateIcon()) })
 		m_pIcon = _STD move(icon);
 	else
 		m_pIcon.construct<CUIInventoryCellItem>(this);
