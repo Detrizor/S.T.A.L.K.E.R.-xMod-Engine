@@ -23,7 +23,6 @@ protected:
 protected:
 	void								net_Destroy							O$	();
 	void								UpdateCL							O$	();
-	void								OnEvent								O$	(NET_Packet& P, u16 type);
 	bool								Action								O$	(u16 cmd, u32 flags);
 	
 	void								OnStateSwitch						O$	(u32 S, u32 oldState);

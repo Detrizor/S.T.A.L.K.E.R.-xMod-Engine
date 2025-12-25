@@ -40,7 +40,7 @@ void CWeaponMagazinedWGrenade::sOnChild(CGameObject* obj, bool take)
 		if (take)
 			AttachRocket				(obj->ID(), this);
 		else
-			DetachRocket				(obj->ID(), false);
+			DetachRocket				(obj->ID());
 	}
 }
 
@@ -131,25 +131,6 @@ bool CWeaponMagazinedWGrenade::Action(u16 cmd, u32 flags)
 	return								false;
 }
 
-void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
-{
-	inherited::OnEvent					(P, type);
-	if (type == GE_LAUNCH_ROCKET)
-	{
-		u16								id;
-		P.r_u16							(id);
-		DetachRocket					(id, true);
-		
-		PlayAnimShoot();
-		PlaySound("sndShotG", fire_point_gl());
-		AddShotEffector();
-		start_flame_particles_gl();
-		CCartridge l_cartridge;
-		m_grenade->Get(l_cartridge);
-		appendRecoil(m_fLaunchSpeed * l_cartridge.param_s.fBulletMass);
-	}
-}
-
 void CWeaponMagazinedWGrenade::launch_grenade()
 {
 	Fvector p1, d;
@@ -195,17 +176,21 @@ void CWeaponMagazinedWGrenade::launch_grenade()
 	VERIFY2(_valid(launch_matrix), "CWeaponMagazinedWGrenade::SwitchState. Invalid launch_matrix!");
 	CRocketLauncher::LaunchRocket(launch_matrix, d, zero_vel);
 
-	CExplosiveRocket* pGrenade = smart_cast<CExplosiveRocket*>(getCurrentRocket());
-	VERIFY(pGrenade);
-	pGrenade->SetInitiator(H_Parent()->ID());
+	auto grenade{ smart_cast<CExplosiveRocket*>(getCurrentRocket()) };
+	VERIFY(grenade);
+	grenade->SetInitiator(H_Parent()->ID());
 
-	if (Local() && OnServer())
-	{
-		NET_Packet					P;
-		u_EventGen(P, GE_LAUNCH_ROCKET, ID());
-		P.w_u16(getCurrentRocket()->ID());
-		u_EventSend(P);
-	}
+	grenade->m_bLaunched = true;
+	grenade->transfer();
+
+	PlayAnimShoot();
+	PlaySound("sndShotG", fire_point_gl());
+	AddShotEffector();
+	start_flame_particles_gl();
+
+	CCartridge l_cartridge;
+	m_grenade->Get(l_cartridge);
+	appendRecoil(m_fLaunchSpeed * l_cartridge.param_s.fBulletMass);
 }
 
 void CWeaponMagazinedWGrenade::OnStateSwitch(u32 S, u32 oldState)
