@@ -34,6 +34,23 @@ public:
 		eRestoreTypeMax
 	};
 
+	static constexpr LPCSTR strAbsorbationNames[eAbsorbationTypeMax]
+	{
+		"burn_absorbation",
+		"shock_absorbation",
+		"chemical_burn_absorbation",
+		"radiation_absorbation",
+		"telepatic_absorbation"
+	};
+
+	static constexpr LPCSTR strRestoreNames[eRestoreTypeMax]
+	{
+		"radiation_speed",
+		"painkill_speed",
+		"regeneration_speed",
+		"recuperation_speed"
+	};
+
 public:
 									CArtefact						();
 
@@ -132,10 +149,10 @@ private:
 public:
 	float getPower() const { update_power(); return m_fPower; }
 	float getRadiation() const { update_power(); return m_fRadiation; }
-	float getArmor() const { return m_fArmor * getPower(); }
-	float getAbsorbation(int hit_type) const { return m_fHitAbsorbations[hit_type] * getPower(); }
-	float getRestore(EConditionRestoreTypes type) const { return m_fRestores[type] * getPower(); }
-	float getMaxCharge() const { return m_fMaxCharge; }
+	float getArmor() const { return _armor * getPower(); }
+	float getAbsorbation(int hit_type) const { return _fHitAbsorbations[hit_type] * getPower(); }
+	float getRestore(EConditionRestoreTypes type) const { return _fRestores[type] * getPower(); }
+	float getMaxCharge() const { return _maxCharge; }
 
 	float getHitProtection(ALife::EHitType hitType) const;
 	float getWeightDump() const;
@@ -146,21 +163,20 @@ public:
 	void Hit(SHit* pHDS) override;
 
 private:
-	float m_fBaselineCharge{ 1.F };
-	float m_fMaxCharge{ 1.F };
-	float m_fBaselineWeightDump{ 0.F };
-	float m_fArmor{ 0.F };
-	float m_fHitAbsorbations[ALife::eHitTypeMax]{};
-	float m_fRestores[eRestoreTypeMax]{};
+	float _baselineCharge{ 1.F };
+	float _weightPart{ 1.F };
+	float _maxCharge{ 1.F };
+	float _armor{ 0.F };
+
+	bool _overcharge{ false };
+
+	xarr<float, ALife::eHitTypeMax> _fHitAbsorbations{};
+	xarr<float, eRestoreTypeMax> _fRestores{};
 
 	MAmountable const* m_pAmountable{ nullptr };
 	mutable u32 m_nPowerCalcFrame{ 0 };
 	mutable float m_fPower{ 0.F };
 	mutable float m_fRadiation{ 0.F };
-
-public:
-	static const LPCSTR strAbsorbationNames[eAbsorbationTypeMax];
-	static const LPCSTR strRestoreNames[eRestoreTypeMax];
 };
 
 struct SArtefactDetectorsSupport
