@@ -213,60 +213,25 @@ public:
 	// Set file pointer to start of chunk data (0 for root chunk)
 	IC void rewind() { impl().seek(0); }
 
-	u32 find_chunk(u32 ID, BOOL* bCompressed = nullptr)
+	inline u32 find_chunk(u32 ID, BOOL* bCompressed = nullptr)
 	{
 		u32 dwSize, dwType;
 
-		bool success = false;
-
-		if (m_last_pos != 0)
+		rewind();
+		while (!eof())
 		{
-			impl().seek(m_last_pos);
 			dwType = r_u32();
 			dwSize = r_u32();
-
 			if ((dwType & (~CFS_CompressMark)) == ID)
 			{
-				success = true;
+				VERIFY((u32)impl().tell() + dwSize <= (u32)impl().length());
+				if (bCompressed) *bCompressed = dwType & CFS_CompressMark;
+				return dwSize;
 			}
+			else impl().advance(dwSize);
 		}
 
-		if (!success)
-		{
-			rewind();
-			while (!eof())
-			{
-				dwType = r_u32();
-				dwSize = r_u32();
-				if ((dwType & (~CFS_CompressMark)) == ID)
-				{
-					success = true;
-					break;
-				}
-				else
-				{
-					impl().advance(dwSize);
-				}
-			}
-
-			if (!success)
-			{
-				m_last_pos = 0;
-				return 0;
-			}
-		}
-#ifdef DEBUG
-		VERIFY((u32)impl().tell() + dwSize < (u32)impl().length());
-#endif
-		if (bCompressed) *bCompressed = dwType & CFS_CompressMark;
-
-		const int dwPos = impl().tell();
-		if (dwPos + dwSize < (u32)impl().length())
-			m_last_pos = dwPos + dwSize;
-		else
-			m_last_pos = 0;
-
-		return dwSize;
+		return 0;
 	}
 
 	IC BOOL r_chunk(u32 ID, void* dest) // чтение XR Chunk'ов (4b-ID,4b-size,??b-data)
