@@ -277,8 +277,8 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 		bullet.fly_time > m_max_bullet_fly_time)
 		return							false;
 
-	bool dbg_log						= Core.ParamFlags.test(Core.dbgbulletfull);
-	if (dbg_log && bullet.fly_time >= bullet.flush_time)
+	auto dbgBulletFull{ Core.ParamFlags.test(Core.dbgbulletfull) };
+	if (dbgBulletFull && bullet.fly_time >= bullet.flush_time)
 	{
 		Msg("--xd update_bullet id [%d] speed [%.3f] dir [%.2f,%.2f,%.2f] dist [%.3f] time [%.3f] resist [%.3f]",
 			bullet.id, bullet.speed, bullet.dir.x, bullet.dir.y, bullet.dir.z, bullet.fly_dist, bullet.fly_time, bullet.resist);
@@ -300,7 +300,9 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 	}
 	else
 		resistance						*= bullet.speed;
-	R_ASSERT							(resistance > 0.f);
+
+	if (!VERIFY2(fMore(resistance, 0.F), "bullet resistance should be more than zero"))
+		return false;
 
 	data.start_velocity					= Fvector(bullet.dir).mul(bullet.speed);
 	data.end_velocity					= Fvector(data.start_velocity).mul(1.f - resistance * data.dt).mad(m_gravity, data.dt);
@@ -315,10 +317,12 @@ bool CBulletManager::update_bullet(collide::rq_results& storage, SBullet& bullet
 	if (Level().ObjectSpace.RayQuery(storage, RD, CBulletManager::firetrace_callback, &data, CBulletManager::test_callback, NULL))
 	{
 		++bullet.updates;
-		if (dbg_log)
+		if (dbgBulletFull)
 			Msg("--xd after firetrace_callback id [%d] updates [%d] speed [%.3f] fly_dist [%.3f] fly_time [%.3f] resist [.%3f]",
 				bullet.id, bullet.updates, bullet.speed, bullet.fly_dist, bullet.fly_time, bullet.resist);
-		R_ASSERT						(bullet.updates < 1000);
+
+		if (!VERIFY2(bullet.updates < 1000, "bullet updated 1000 times"))
+			return false;
 
 		float d_pos						= .01f;
 		bullet.pos.mad					(bullet.dir, d_pos);
