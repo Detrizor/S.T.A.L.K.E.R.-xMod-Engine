@@ -51,19 +51,16 @@
 # endif // NON_FATAL_VERIFY
 //-AVO
 # else // DEBUG
+
+# define CHK_DX(a) a
 # define NODEFAULT FATAL("NODEFAULT reached!"); __assume(0)
 # define NODEFAULT2(info) FATAL(info); __assume(0)
-/*
-# define VERIFY(expr) do {} while (0)
-# define VERIFY2(expr, e2) do {} while (0)
-# define VERIFY3(expr, e2, e3) do {} while (0)
-# define VERIFY4(expr, e2, e3, e4)do {} while (0)
-*/
-# define VERIFY(expr) do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.soft_fail(#expr,DEBUG_INFO);} while(0)
-# define VERIFY2(expr,e2) do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.soft_fail(#expr,e2,DEBUG_INFO);} while(0)
-# define VERIFY3(expr,e2,e3) do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.soft_fail(#expr,e2,e3,DEBUG_INFO);} while(0)
-# define VERIFY4(expr,e2,e3,e4)do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.soft_fail(#expr,e2,e3,e4,DEBUG_INFO);} while(0)
-# define CHK_DX(a) a
+
+# define VERIFY(expr) [&](auto file, auto line, auto fun) { auto condition_{ static_cast<bool>(expr) }; if (!condition_) ::Debug.soft_fail(#expr, file, line, fun); return condition_; }(DEBUG_INFO)
+# define VERIFY2(expr,e2) [&](auto file, auto line, auto fun) { auto condition_{ static_cast<bool>(expr) }; if (!condition_) ::Debug.soft_fail(#expr, e2, file, line, fun); return condition_; }(DEBUG_INFO)
+# define VERIFY3(expr,e2,e3) [&](auto file, auto line, auto fun) { auto condition_{ static_cast<bool>(expr) }; if (!condition_) ::Debug.soft_fail(#expr, e2, e3, file, line, fun); return condition_; }(DEBUG_INFO)
+# define VERIFY4(expr,e2,e3,e4) [&](auto file, auto line, auto fun) { auto condition_{ static_cast<bool>(expr) }; if (!condition_) ::Debug.soft_fail(#expr, e2, e3, e4, file, line, fun); return condition_; }(DEBUG_INFO)
+
 # endif // DEBUG
 
 //---------------------------------------------------------------------------------------------
