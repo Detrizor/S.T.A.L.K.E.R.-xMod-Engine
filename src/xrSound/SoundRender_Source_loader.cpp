@@ -115,7 +115,7 @@ void CSoundRender_Source::LoadWave	(LPCSTR pName)
 			m_uGameType		= F.r_u32	();
 			m_fMaxAIDist	= F.r_float	();
 		}else{
-			Log				("! Invalid ogg-comment version, file: ",pName);
+			//--xd bloat Log				("! Invalid ogg-comment version, file: ",pName);
 		}
 	}else{
 		Log					("! Missing ogg-comment, file: ",pName);
