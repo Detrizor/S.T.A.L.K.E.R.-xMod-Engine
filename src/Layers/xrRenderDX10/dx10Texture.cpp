@@ -14,8 +14,7 @@
 #include "../xrRender/dxRenderDeviceRender.h"
 #include <D3DX11.h>
 
-// #include "std_classes.h"
-// #include "xr_avi.h"
+#include <fstream>
 
 void fix_texture_name(LPSTR fn)
 {
@@ -203,6 +202,49 @@ ID3DBaseTexture*	CRender::texture_load(LPCSTR fRName, u32& ret_msize, bool bStag
 	ELog.Msg(mtError,"Can't find texture '%s'",fname);
 	return 0;
 #else
+
+	if (Core.ParamFlags.test(Core.dbg))
+	{
+		auto loadIfExists = []()
+		{
+			std::set<std::string> res{};
+
+			std::string exe_path{};
+			char buffer[MAX_PATH];
+			GetModuleFileNameA(NULL, buffer, MAX_PATH);
+			exe_path = buffer;
+
+			size_t last_slash = exe_path.find_last_of("\\/");
+			if (last_slash != std::string::npos)
+			{
+				// Директория исполняемого файла
+				std::string exe_dir = exe_path.substr(0, last_slash);
+
+				// Находим разделитель для родительской директории
+				size_t parent_slash = exe_dir.find_last_of("\\/");
+				if (parent_slash != std::string::npos)
+				{
+					// Родительская директория
+					std::string parent_dir = exe_dir.substr(0, parent_slash);
+
+					// Формируем путь к файлу
+					std::string file_path = parent_dir + "/not_found_textures.txt";
+
+					if (std::ifstream file{ file_path })
+					{
+						std::string line;
+						while (std::getline(file, line))
+							res.insert(line);
+					}
+				}
+			}
+
+			return res;
+		};
+
+		static auto notFoundTextrues{ loadIfExists() };
+		notFoundTextrues.insert(fname);
+	}
 
 	Msg("! Can't find texture '%s'",fname);
 	R_ASSERT(FS.exist(fn,"$game_textures$",	"ed\\ed_not_existing_texture",".dds"));
