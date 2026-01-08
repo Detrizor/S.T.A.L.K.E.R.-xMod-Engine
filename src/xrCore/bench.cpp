@@ -40,6 +40,7 @@ aBench::measures* aBench::createMeasures(LPCSTR tag)
 	return								statistics.emplace_back(tag).get();
 }
 
+#include <fstream>
 void aBench::flushStatistics()
 {
 	for (auto& data : statistics)
@@ -57,6 +58,10 @@ void aBench::flushStatistics()
 			data->tag.c_str(), sum_time, data->cnt, data->frames, calls_per_frame, time_per_call, time_per_frame
 		);
 	}
+
+	std::ofstream out{ "D:\\cur.txt" };
+	for (const auto& tex : device->aboba)
+		out << tex << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

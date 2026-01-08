@@ -314,6 +314,8 @@ public:
 
 public:
 	float fontScale{ 1.F };
+
+	std::set<std::string> aboba{};
 };
 
 extern ENGINE_API CRenderDevice Device;

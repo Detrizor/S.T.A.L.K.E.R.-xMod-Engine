@@ -37,8 +37,15 @@ void CRenderDevice::_SetupStates()
 	m_pRender->SetupStates();
 }
 
+#include <fstream>
+
 void CRenderDevice::_Create(LPCSTR shName)
 {
+	std::ifstream in{ "D:\\cur.txt" };
+	std::string line;
+	while (std::getline(in, line))
+		aboba.insert(line);
+
 	Memory.mem_compact();
 
 	// after creation

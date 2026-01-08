@@ -566,6 +566,8 @@ CTexture* CResourceManager::_CreateTexture(LPCSTR _Name)
 	R_ASSERT		(_Name && _Name[0]);
 	string_path		Name;
 	xr_strcpy			(Name,_Name); //. andy if (strext(Name)) *strext(Name)=0;
+	Device.aboba.erase(shared_str{}.printf("%s.dds", Name).c_str());
+	Device.aboba.erase(shared_str{}.printf("%s.thm", Name).c_str());
 	fix_texture_name (Name);
 	// ***** first pass - search already loaded texture
 
