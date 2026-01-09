@@ -5,10 +5,12 @@
 #include "inventory_item_object.h"
 
 MAmountable::MAmountable(CGameObject* obj) : CModule(obj),
-	m_bUnlimited(!!pSettings->r_BOOL(O.cNameSect(), "unlimited")),
+	m_bUnlimited(pSettings->r_bool(O.cNameSect(), "unlimited")),
+	m_bNetCostAdditive(pSettings->r_bool(O.cNameSect(), "net_cost_additive")),
 	m_fMaxAmount(pSettings->r_float(O.cNameSect(), "max_amount")),
 	m_fNetWeight(pSettings->r_float(O.cNameSect(), "net_weight")),
 	m_fNetVolume(pSettings->r_float(O.cNameSect(), "net_volume")),
+	m_fAmountCost(pSettings->r_float(O.cNameSect(), "amount_cost")),
 	m_fNetCost(pSettings->r_float(O.cNameSect(), "net_cost")),
 	m_fDepletionSpeed(pSettings->r_float(O.cNameSect(), "depletion_speed"))
 {
@@ -26,7 +28,7 @@ void MAmountable::sSyncData(CSE_ALifeDynamicObject* se_obj, bool save)
 	else if (m)
 		m_fAmount = m->m_amount;
 	else
-		get_base_amount();
+		m_fAmount = getBaseAmount(O.cNameSect());
 }
 
 float MAmountable::sSumItemData(EItemDataTypes type)
@@ -38,7 +40,11 @@ float MAmountable::sSumItemData(EItemDataTypes type)
 	case eVolume:
 		return m_fNetVolume * get_fill();
 	case eCost:
-		return m_fNetCost * (get_fill() - 1.F);
+		if (!fIsZero(m_fAmountCost))
+			return m_fAmountCost * ((m_bNetCostAdditive) ? m_fAmount : m_fAmount - m_fMaxAmount);
+		if (!fIsZero(m_fNetCost))
+			return m_fNetCost * ((m_bNetCostAdditive) ? get_fill() : get_fill() - 1.F);
+		return 0.F;
 	default:
 		FATAL("wrong item data type");
 	}
@@ -67,28 +73,28 @@ void MAmountable::on_amount_change()
 	}
 }
 
-void MAmountable::get_base_amount()
-{
-	float amount_mean{};
-	if (pSettings->line_exist(O.cNameSect(), "base_amount"))
-		amount_mean = pSettings->r_float(O.cNameSect(), "base_amount");
-	else if (pSettings->line_exist(O.cNameSect(), "base_fill"))
-		amount_mean = m_fMaxAmount * pSettings->r_float(O.cNameSect(), "base_fill");
-	else
-		amount_mean = m_fMaxAmount;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	float amount_dispersion{ pSettings->r_float_ex(O.cNameSect(), "base_amount_dispersion", 0.F) };
+float MAmountable::getBaseAmount(const shared_str& section)
+{
+	float amount_mean;
+	if (pSettings->line_exist(section, "base_amount"))
+		amount_mean = pSettings->r_float(section, "base_amount");
+	else if (pSettings->line_exist(section, "base_fill"))
+		amount_mean = pSettings->r_float(section, "max_amount") * pSettings->r_float(section, "base_fill");
+	else
+		amount_mean = (pSettings->r_bool(section, "net_cost_additive")) ? 0.F : pSettings->r_float(section, "max_amount");
+
+	float amount_dispersion{ pSettings->r_float_ex(section, "base_amount_dispersion", 0.F) };
 	if (!fIsZero(amount_dispersion))
 	{
 		const float min = amount_mean * (1.F - amount_dispersion);
 		const float max = amount_mean * (1.F + amount_dispersion);
-		m_fAmount = Random.randF(min, max);
+		return Random.randF(min, max);
 	}
-	else
-		m_fAmount = amount_mean;
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	return amount_mean;
+}
 
 void MAmountable::setAmount(float val)
 {

@@ -22,9 +22,10 @@ private:
 	bool is_useful() const;
 
 	void on_amount_change();
-	void get_base_amount();
 
 public:
+	static float getBaseAmount(const shared_str& section);
+
 	float getAmount			() const	{ return m_fAmount; }
 	float getMaxAmount		() const	{ return m_fMaxAmount; }
 	float getDepletionSpeed	() const	{ return m_fDepletionSpeed; }
@@ -43,9 +44,12 @@ public:
 
 private:
 	const bool m_bUnlimited;
+	const bool m_bNetCostAdditive;
+
 	const float m_fMaxAmount;
 	const float m_fNetWeight;
 	const float m_fNetVolume;
+	const float m_fAmountCost;
 
 	float m_fNetCost;
 	float m_fDepletionSpeed;
