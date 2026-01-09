@@ -306,6 +306,8 @@ void CWeapon::Load(LPCSTR section)
 	m_shell_point						= pSettings->r_fvector3(section, "shell_point");
 	m_grip_point						= pSettings->r_fvector3(section, "grip_point");
 	m_Offset.translate_sub				(m_grip_point);
+
+	pSettings->w_float_ex(_triggerCooldown, section, "trigger_cooldown");
 }
 
 BOOL CWeapon::net_Spawn(CSE_Abstract* DC)
@@ -419,6 +421,9 @@ void CWeapon::UpdateCL()
 			}
 		}
 	}
+
+	if (_triggerCooldownCurrent > 0.F)
+		_triggerCooldownCurrent -= time_delta();
 }
 
 void CWeapon::renderable_Render()
@@ -466,8 +471,14 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 		if (IsPending() && GetState() != eFire)
 			return false;
 
-		if (flags&CMD_START)
-			FireStart();
+		if (flags & CMD_START)
+		{
+			if (_triggerCooldownCurrent <= 0.F)
+			{
+				FireStart();
+				_triggerCooldownCurrent = _triggerCooldown;
+			}
+		}
 		else
 			FireEnd();
 		return true;
