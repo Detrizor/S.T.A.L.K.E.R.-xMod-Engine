@@ -163,6 +163,51 @@ void CUIItemInfo::init(LPCSTR strXmlName)
 
 void CUIItemInfo::set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 {
+	auto getAmount = [pItem, pCellItem]()
+	{
+		if (pItem)
+			return pItem->GetAmount();
+
+		if (pSettings->r_bool_ex(pCellItem->m_section, "container", false))
+		{
+			auto count{ pSettings->r_u16(pCellItem->m_section, "supplies_count") };
+			if (count > 0)
+			{
+				auto suppliesSect{ pSettings->r_string(pCellItem->m_section, "supplies") };
+				return static_cast<float>(count) * pSettings->r_float(suppliesSect, "inv_volume");
+			}
+			return 0.F;
+		}
+
+		if (pSettings->r_bool_ex(pCellItem->m_section, "magazine", false))
+			return 0.F;
+
+		return MAmountable::getBaseAmount(pCellItem->m_section);
+	};
+
+	auto getMaxAmount = [pItem, pCellItem]()
+	{
+		if (pItem)
+		{
+			if (auto amountable{ pItem->O.mcast<MAmountable>() })
+				return amountable->getMaxAmount();
+
+			if (auto container{ pItem->O.mcast<MContainer>() })
+				return container->GetCapacity();
+
+			if (auto magazine{ pItem->O.mcast<MMagazine>() })
+				return static_cast<float>(magazine->Capacity());
+
+			FATAL("no proper module for amount evaluation");
+			return 0.F;
+		}
+
+		if (pSettings->r_bool_ex(pCellItem->m_section, "container", false) || pSettings->r_bool_ex(pCellItem->m_section, "magazine", false))
+			return pSettings->r_float(pCellItem->m_section, "capacity");
+
+		return pSettings->r_float(pCellItem->m_section, "max_amount");
+	};
+
 	auto strAmountDisplayType{ pSettings->r_string(pCellItem->m_section, "amount_display_type") };
 	if (!strcmp(strAmountDisplayType, "hide"))
 	{
@@ -172,8 +217,10 @@ void CUIItemInfo::set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 
 	auto strTitle{ CStringTable().translate(pSettings->r_string(strAmountDisplayType, "title")) };
 	auto strUnit{ pSettings->r_string(strAmountDisplayType, "unit") };
-	const bool bEmptyCont{ pSettings->r_bool_ex(pCellItem->m_section, "container", false) && !pSettings->r_u16(pCellItem->m_section, "supplies_count") };
-	const float fFill{ (pItem) ? pItem->GetFill() : (bEmptyCont) ? 0.F : 1.F };
+
+	float fAmount{ getAmount() };
+	const float fMaxAmount{ getMaxAmount() };
+	const float fFill{ fAmount / fMaxAmount };
 
 	if (!strcmp(strUnit, "percent"))
 		xr_sprintf(buffer, "%s: %i%%", strTitle.c_str(), iFloor(fFill * 100.F));
@@ -186,7 +233,6 @@ void CUIItemInfo::set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 	{
 		xr_sprintf(buffer, "%s:", strTitle.c_str());
 
-		float fAmount{ (pItem) ? pItem->GetAmount() : ((bEmptyCont) ? 0.F : pSettings->r_float(pCellItem->m_section, "max_amount")) };
 		fAmount *= pSettings->r_float(strAmountDisplayType, "factor");
 		bool bInteger{ pSettings->r_bool(strAmountDisplayType, "integer") };
 
@@ -198,7 +244,6 @@ void CUIItemInfo::set_amount_info(CUICellItem* pCellItem, CInventoryItem* pItem)
 
 		if (pSettings->r_bool(strAmountDisplayType, "show_max"))
 		{
-			const float fMaxAmount{ (pItem) ? pItem->O.mcast<MAmountable>()->getMaxAmount() : pSettings->r_float(pCellItem->m_section, "max_amount") };
 			len = strlen(buffer);
 			if (bInteger)
 				snprintf(buffer + len, sizeof(buffer) - len, "/%d", static_cast<int>(round(fMaxAmount)));
@@ -340,7 +385,12 @@ void CUIItemInfo::setItem(CUICellItem* pCellItem, u32 nItemPrice, LPCSTR strTrad
 		m_pUICondition->SetText(buffer);
 	}
 
-	m_pUIAmount->Show((pItem) ? !!pItem->O.mcast<MAmountable>() : pSettings->r_bool_ex(pCellItem->m_section, "amountable", false));
+	if (pItem)
+		m_pUIAmount->Show(pItem->O.mcast<MAmountable>() || pItem->O.mcast<MContainer>() || pItem->O.mcast<MMagazine>());
+	else
+		m_pUIAmount->Show(pSettings->r_bool_ex(pCellItem->m_section, "amountable", false) ||
+			pSettings->r_bool_ex(pCellItem->m_section, "container", false) ||
+			pSettings->r_bool_ex(pCellItem->m_section, "magazine", false));
 	if (m_pUIAmount->IsShown())
 		set_amount_info(pCellItem, pItem);
 
