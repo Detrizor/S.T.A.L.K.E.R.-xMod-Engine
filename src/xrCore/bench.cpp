@@ -2,6 +2,8 @@
 #include "bench.h"
 #include "../xrengine/device.h"
 
+#include <fstream>
+
 CRenderDevice* xBench::device = nullptr;
 
 xBench::xBench(bool init) : m_start_time((init) ? device->GetTimerGlobal()->GetElapsed_sec() : -1.f)
@@ -56,6 +58,13 @@ void aBench::flushStatistics()
 			"--benchmark [%s] sum [%.3f] cnt [%d] frames [%d] calls per frame [%.3f] time per call [%.3f] time per frame [%.3f]",
 			data->tag.c_str(), sum_time, data->cnt, data->frames, calls_per_frame, time_per_call, time_per_frame
 		);
+	}
+
+	if (Core.ParamFlags.test(Core.dbg))
+	{
+		std::ofstream out{ device->notFoundTexturesFilePath };
+		for (const auto& tex : device->notFoundTextures)
+			out << tex << std::endl;
 	}
 }
 

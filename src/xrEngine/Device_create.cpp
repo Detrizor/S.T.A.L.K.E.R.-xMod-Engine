@@ -8,7 +8,7 @@
 #include "../xrcdb/xrxrc.h"
 #include "xr_input.h"
 
-//#include "securom_api.h"
+#include <fstream>
 
 extern XRCDB_API BOOL* cdb_bDebug;
 
@@ -39,6 +39,38 @@ void CRenderDevice::_SetupStates()
 
 void CRenderDevice::_Create(LPCSTR shName)
 {
+	if (Core.ParamFlags.test(Core.dbg))
+	{
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		std::string exePath{ buffer };
+
+		auto lastSlash{ exePath.find_last_of("\\/") };
+		if (lastSlash != std::string::npos)
+		{
+			// Директория исполняемого файла
+			auto exeDir{ exePath.substr(0, lastSlash) };
+
+			// Находим разделитель для родительской директории
+			auto parent_slash{ exeDir.find_last_of("\\/") };
+			if (parent_slash != std::string::npos)
+			{
+				// Родительская директория
+				auto parent_dir{ exeDir.substr(0, parent_slash) };
+
+				// Формируем путь к файлу
+				notFoundTexturesFilePath = parent_dir + "/not_found_textures.txt";
+			}
+		}
+
+		if (std::ifstream file{ notFoundTexturesFilePath })
+		{
+			std::string line;
+			while (std::getline(file, line))
+				notFoundTextures.insert(line);
+		}
+	}
+
 	Memory.mem_compact();
 
 	// after creation

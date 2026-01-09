@@ -313,6 +313,9 @@ public:
 	void processResolutionChanged() noexcept;
 
 public:
+	std::set<std::string> notFoundTextures{};
+	std::string notFoundTexturesFilePath{};
+
 	float fontScale{ 1.F };
 };
 
