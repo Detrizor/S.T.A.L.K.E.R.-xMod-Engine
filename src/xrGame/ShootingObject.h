@@ -20,17 +20,17 @@ extern const Fvector zero_vel;
 class CShootingObject : public IAnticheatDumpable
 {
 protected:
-			CShootingObject			();
+	CShootingObject() noexcept = default;
 
 	void	reload	(LPCSTR section) {};
 	void	Load	(LPCSTR section);
 
-	Fvector		m_vCurrentShootDir;
-	Fvector		m_vCurrentShootPos;
+	Fvector		m_vCurrentShootDir{ vZero };
+	Fvector		m_vCurrentShootPos{ vZero };
 
 protected:
 	//ID персонажа который иницировал действие
-	u16			m_iCurrentParentID;
+	u16			m_iCurrentParentID{ 0xFFFF };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,8 +55,8 @@ public:
 
 protected:
 	// Weapon fires now
-	bool					bWorking;
-	float					fOneShotTime;
+	bool					bWorking{ false };
+	float					fOneShotTime{ 0.F };
 	float					m_rpm;
 
 	//максимальное расстояние стрельбы
@@ -66,7 +66,7 @@ protected:
 	float					fireDispersionBase;
 
 	//счетчик времени, затрачиваемого на выстрел
-	float					fShotTimeCounter;
+	float					fShotTimeCounter{ 0.F };
 
 public:
 	struct SMuzzleKoeffs
@@ -84,7 +84,7 @@ protected:
 protected:
 	Fcolor					light_build_color;
 	float					light_build_range;
-	ref_light				light_render;
+	ref_light				light_render{ 0 };
 	u32						light_frame;
 	float					light_time = -1.f;
 

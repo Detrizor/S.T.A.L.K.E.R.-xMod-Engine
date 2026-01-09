@@ -277,6 +277,9 @@ public:
 protected:
 	xptr<CWeaponHud> m_pHud{ nullptr };
 
+private:
+	bool _selfLoading{ true };
+
 	friend class CWeaponHud;
 	friend class CWeaponChamber;
 };

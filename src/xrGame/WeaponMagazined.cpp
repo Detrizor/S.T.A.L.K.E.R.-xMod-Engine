@@ -107,6 +107,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	m_firemode_anm.load					(hud_sect, "firemode_anm");
 	
 	hud_sect							= pSettings->r_string(section, (m_grip) ? "hud" : "hud_unusable");
+
+	pSettings->w_bool_ex(_selfLoading, section, "self_loading");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

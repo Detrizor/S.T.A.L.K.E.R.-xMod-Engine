@@ -20,25 +20,11 @@
 constexpr float HIT_POWER_EPSILON = .05f;
 constexpr float WALLMARK_SIZE = .04f;
 
-CShootingObject::CShootingObject(void)
-{
-	fShotTimeCounter				= 0;
- 	fOneShotTime					= 0;
-
-	m_vCurrentShootDir.set			(0,0,0);
-	m_vCurrentShootPos.set			(0,0,0);
-	m_iCurrentParentID				= 0xFFFF;
-	
-	bWorking						= false;
-
-	light_render					= 0;
-}
-
 void CShootingObject::Load(LPCSTR section)
 {
 	//время затрачиваемое на выстрел
 	m_rpm								= pSettings->r_float(section, "rpm");
-	fOneShotTime						= (m_rpm) ? 60.f / m_rpm : 0.f;
+	fOneShotTime						= 60.F / m_rpm;
 	LoadFireParams						(section);
 }
 

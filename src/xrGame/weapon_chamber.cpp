@@ -137,13 +137,13 @@ void CWeaponChamber::unload(EUnloadDestination destination) const
 
 void CWeaponChamber::consume() const
 {
-	auto heap							= getAmmo();
-	heap->Get							(O.m_cartridge, false);
-	if (O.fOneShotTime == 0.f)
-	{
-		O.m_cocked						= false;
-		create_shell					(heap);
-	}
+	auto heap{ getAmmo() };
+	heap->Get(O.m_cartridge, false);
+	if (O._selfLoading)
+		reload(true);
 	else
-		reload							(true);
+	{
+		O.m_cocked = false;
+		create_shell(heap);
+	}
 }
