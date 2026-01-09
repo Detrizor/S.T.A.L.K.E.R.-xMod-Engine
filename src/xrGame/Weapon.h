@@ -459,4 +459,8 @@ protected:
 protected:
 	bool	m_bPAPHardened	{ false };
 	u8		m_bRangefiners	{ 0 };
+
+private:
+	float _triggerCooldown{ 0.F };
+	float _triggerCooldownCurrent{ 0.F };
 };
