@@ -163,6 +163,8 @@ public:
 
 	void processHit(float fDamage, ALife::EHitType hitType);
 
+	bool canBeDetected() const noexcept;
+
 public:
 	void Hit(SHit* pHDS) override;
 

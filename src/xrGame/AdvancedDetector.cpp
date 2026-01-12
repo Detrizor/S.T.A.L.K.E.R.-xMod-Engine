@@ -32,24 +32,20 @@ void CAdvancedDetector::UpdateAf()
 	CAfList::ItemsMapIt it		= it_b;
 	float min_dist				= flt_max;
 
-	Fvector						detector_pos = Position();
-	for(;it_b!=it_e;++it_b)//only nearest
+	for(;it_b!=it_e;++it_b)
 	{
-		CArtefact *pAf			= it_b->first;
-		if(pAf->H_Parent())		
-			continue;
+		auto artefact{ it_b->first };
+		if (artefact->canBeDetected())
+		{
+			float distance{ Position().distance_to(artefact->Position()) };
+			if (distance < min_dist)
+			{
+				min_dist = distance;
+				it = it_b;
+			}
 
-		float d					= detector_pos.distance_to(pAf->Position());
-		if( d < min_dist)
-		{
-			min_dist	= d;
-			it			= it_b;
-		}
-		
-		if(pAf->CanBeInvisible())
-		{
-			if(d<m_fAfVisRadius)
-				pAf->SwitchVisibility(true);
+			if (artefact->CanBeInvisible() && distance < m_fAfVisRadius)
+				artefact->SwitchVisibility(true);
 		}
 	}
 		

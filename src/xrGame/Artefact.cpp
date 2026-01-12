@@ -661,6 +661,11 @@ void CArtefact::processHit(float fDamage, ALife::EHitType hitType)
 #endif
 }
 
+bool CArtefact::canBeDetected() const noexcept
+{
+	return !H_Parent() && !_amountable->Empty();
+}
+
 void CArtefact::Hit(SHit* pHDS)
 {
 	//specifically ignoring CInventoryItemObject::Hit to prevent strange artefact condition decay in its parent anomaly before it's picked up
