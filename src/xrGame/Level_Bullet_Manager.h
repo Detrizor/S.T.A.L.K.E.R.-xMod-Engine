@@ -28,7 +28,6 @@ struct SBullet
 			u16			allow_ricochet	: 1	;			//разрешить рикошет
 			u16			allow_sendhit	: 1	;			//statistics
 			u16			magnetic_beam	: 1 ;			//магнитный луч (нет отклонения после пробивания, не падает скорость после пробивания)
-			u16			piercing_was	: 1	;
 		};
 		u16				_storage			;
 	}				flags				;
@@ -226,7 +225,7 @@ private:
 	(
 		float bullet_ap, float armor, float bone_density,
 		SBullet_Hit& hit_res, SBullet* bullet,
-		float k_speed_in = 0.f, float k_speed_out = 0.f, bool inwards = true
+		float k_speed_in = 0.f, float k_speed_out = 0.f, bool ricoshet = false
 	) const;
 
 public:

@@ -93,9 +93,6 @@ void SBullet::Init(const Fvector& position,
 	flags.explosive			= !!cartridge.m_flags.test(CCartridge::cfExplosive);
 	flags.magnetic_beam		= !!cartridge.m_flags.test(CCartridge::cfMagneticBeam);
 
-	flags.piercing_was = 0;
-//	flags.skipped_frame		= 0;
-
 	init_frame_num			= Device.dwFrame;
 
 	targetID				= u16(-1);

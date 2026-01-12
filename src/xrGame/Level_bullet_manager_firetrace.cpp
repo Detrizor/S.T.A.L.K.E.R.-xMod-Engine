@@ -442,7 +442,7 @@ void CBulletManager::ObjectHit(_event& E, SBullet* bullet, const Fvector& end_po
 	{
 		k_speed_out						= calculate_hit_damage(bullet_ap, bone_armor, bone_density,
 			E.hit_result, bullet,
-			k_speed_in, k_speed_out, inwards
+			k_speed_in, k_speed_out, ricoshet
 		);
 		if (Core.ParamFlags.test(Core.dbgbulletfull) || Core.ParamFlags.test(Core.dbgbullet) && (!bullet->parent_id || !R.O->ID()))
 			Msg("--xd CBulletManager::ObjectHit bullet mass [%.2f] speed [%.2f] bullet_ap [%.2f] armor [%.2f] bone_density [%.2f] main_damage [%.3f] pierce_damage [%.3f] bone [%s]",
@@ -454,51 +454,53 @@ void CBulletManager::ObjectHit(_event& E, SBullet* bullet, const Fvector& end_po
 
 float CBulletManager::calculate_hit_damage(float bullet_ap, float armor, float bone_density,
 	SBullet_Hit& hit_res, SBullet* bullet,
-	float k_speed_in, float k_speed_out, bool inwards) const
+	float k_speed_in, float k_speed_out, bool ricoshet) const
 {
 	float k_speed_bone					= 0.f;
 	float pierce						= 0.f;
 
-	if (fIsZero(armor) || fMoreOrEqual(bullet_ap, armor) && !bullet->hollow_point)
+	if (!ricoshet)
 	{
-		k_speed_in						= sqrt(1.f - m_fBulletAPLossOnPierce * armor / bullet_ap);
-		bullet_ap						-= m_fBulletAPLossOnPierce * armor;
-		if (bullet->hollow_point && !bullet->flags.piercing_was)
+		if (!bullet->hollow_point && fMoreOrEqual(bullet_ap, armor) || bullet->hollow_point && fIsZero(armor))
 		{
-			bullet->resist				*= _sqr(m_fBulletHollowPointResistFactor);
-			bullet_ap					/= m_fBulletHollowPointResistFactor;
-			bullet->penetration			/= m_fBulletHollowPointResistFactor;
-			bullet->flags.piercing_was	= 1;
+			k_speed_in					= sqrt(1.f - m_fBulletAPLossOnPierce * armor / bullet_ap);
+			bullet_ap					-= m_fBulletAPLossOnPierce * armor;
+			if (bullet->hollow_point)
+			{
+				bullet->resist			*= _sqr(m_fBulletHollowPointResistFactor);
+				bullet_ap				/= m_fBulletHollowPointResistFactor;
+				bullet->penetration		/= m_fBulletHollowPointResistFactor;
+			}
+
+			if (fMoreOrEqual(bullet_ap, bone_density))
+			{
+				k_speed_bone			= k_speed_in * sqrt(1.f - m_fBulletAPLossOnPierce * bone_density / bullet_ap);
+				bullet_ap				-= m_fBulletAPLossOnPierce * bone_density;
+				if (!bullet->hollow_point && fMoreOrEqual(bullet_ap, armor))
+					k_speed_out			= k_speed_bone * sqrt(1.f - m_fBulletAPLossOnPierce * armor / bullet_ap);
+				pierce					= 1.f;
+			}
+			else
+				pierce					= bullet_ap / bone_density;
 		}
 
-		if (fMoreOrEqual(bullet_ap, bone_density))
+		if (pierce)
 		{
-			k_speed_bone				= k_speed_in * sqrt(1.f - m_fBulletAPLossOnPierce * bone_density / bullet_ap);
-			bullet_ap					-= m_fBulletAPLossOnPierce * bone_density;
-			if (fMoreOrEqual(bullet_ap, armor))
-				k_speed_out				= k_speed_bone * sqrt(1.f - m_fBulletAPLossOnPierce * armor / bullet_ap);
-			pierce						= 1.f;
+			float speed					= bullet->speed * k_speed_in;
+			float resist_factor			= m_fBulletPierceDamageFromResist.Calc(bullet->resist);
+			float kap_factor			= m_fBulletPierceDamageFromKAP.Calc(bullet->k_ap);
+			float speed_factor			= m_fBulletPierceDamageFromSpeed.Calc(speed);
+
+			float speed_scale_factor	= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
+			float stability_factor		= m_fBulletPierceDamageFromStability.Calc(bullet->mass);
+			float pierce_factor			= m_fBulletPierceDamageFromPierce.Calc(pierce);
+
+			float base_pierce_damage	= resist_factor * kap_factor * speed_factor;
+			float flesh_pierce_damage	= speed_scale_factor * stability_factor * pierce_factor;
+
+			hit_res.pierce_damage		= m_fBulletPierceDamageScale * base_pierce_damage * flesh_pierce_damage;
+			hit_res.armor_pierce_damage	= m_fBulletArmorPierceDamageScale * base_pierce_damage;
 		}
-		else
-			pierce						= bullet_ap / bone_density;
-	}
-
-	if (pierce)
-	{
-		float speed						= bullet->speed * k_speed_in;
-		float resist_factor				= m_fBulletPierceDamageFromResist.Calc(bullet->resist);
-		float kap_factor				= m_fBulletPierceDamageFromKAP.Calc(bullet->k_ap);
-		float speed_factor				= m_fBulletPierceDamageFromSpeed.Calc(speed);
-
-		float speed_scale_factor		= m_fBulletPierceDamageFromSpeedScale.Calc((k_speed_in + k_speed_bone) / 2.f);
-		float stability_factor			= m_fBulletPierceDamageFromStability.Calc(bullet->mass);
-		float pierce_factor				= m_fBulletPierceDamageFromPierce.Calc(pierce);
-
-		float base_pierce_damage		= resist_factor * kap_factor * speed_factor;
-		float flesh_pierce_damage		= speed_scale_factor * stability_factor * pierce_factor;
-
-		hit_res.pierce_damage			= m_fBulletPierceDamageScale * base_pierce_damage * flesh_pierce_damage;
-		hit_res.armor_pierce_damage		= m_fBulletArmorPierceDamageScale * base_pierce_damage;
 	}
 
 	hit_res.impulse						= m_fBulletHitImpulseScale * bullet->mass * bullet->speed * (1.f - k_speed_out);
