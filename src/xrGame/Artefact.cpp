@@ -48,27 +48,40 @@ CArtefact::CArtefact()
 
 void CArtefact::Load(LPCSTR section) 
 {
-	__super::Load						(section);
+	inherited::Load(section);
 
 	if (pSettings->line_exist(section, "particles"))
-		m_sParticlesName				= pSettings->r_string(section, "particles");
+		m_sParticlesName = pSettings->r_string(section, "particles");
 
-	m_bLightsEnabled					= !!pSettings->r_BOOL(section, "lights_enabled");
-	if (m_bLightsEnabled)
+	_amountable = getModule<MAmountable>();
+	R_ASSERT2(_amountable, "CArtefact requires MAmountable module");
+
+	if (m_bLightsEnabled = pSettings->r_bool(section, "lights_enabled"))
 	{
-		sscanf							(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
-		m_fTrailLightRange				= pSettings->r_float(section, "trail_light_range");
+		if (_trailLightColorAmountDependant = pSettings->r_bool(section, "trail_light_color_amount_dependant"))
+		{
+			_trailLightColorAmountEmpty = pSettings->r_float(section, "trail_light_color_amount_empty");
+			_trailLightColorAmountMin = pSettings->r_float(section, "trail_light_color_amount_min");
+			_trailLightColorAmountMax = pSettings->r_float(section, "trail_light_color_amount_max");
+			if (!VERIFY(fMore(_trailLightColorAmountMin, _trailLightColorAmountEmpty),
+				"trail_light_color_amount_min must be more than trail_light_color_amount_empty") ||
+				!VERIFY(fMore(_trailLightColorAmountMax, _trailLightColorAmountMin),
+					"trail_light_color_amount_max must be more than trail_light_color_amount_min"))
+				m_bLightsEnabled = false;
+			else
+				_amountable->addOnAmountChangeCallback([this]() { if (m_pTrailLight) { update_trail_light_color(); m_pTrailLight->set_color(m_TrailLightColor); } });
+		}
+		else if (sscanf(pSettings->r_string(section, "trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b) != 3)
+			m_bLightsEnabled = false;
+		m_fTrailLightRange = pSettings->r_float(section, "trail_light_range");
 	}
 
 	m_bCanSpawnZone						= !!pSettings->line_exist("artefact_spawn_zones", section);
 	m_af_rank							= pSettings->r_u8(section, "af_rank");
 
-	m_pAmountable = getModule<MAmountable>();
-	R_ASSERT2(m_pAmountable, "CArtefact requires MAmountable!");
-
 	_baselineCharge = pSettings->r_float(section, "baseline_charge");
 	_weightPart = 1.F - pSettings->r_float(section, "weight_dump");
-	_maxCharge = m_pAmountable->getMaxAmount();
+	_maxCharge = _amountable->getMaxAmount();
 	_armor = pSettings->r_float(section, "armor");
 
 	pSettings->w_bool_ex(_overcharge, section, "overcharge");
@@ -115,6 +128,18 @@ void CArtefact::net_Destroy()
 	xr_delete						(m_detectorObj);
 }
 
+bool CArtefact::ActivateItem(u16 prev_slot)
+{
+	StartLights();
+	return inherited::ActivateItem(prev_slot);
+}
+
+void CArtefact::OnMoveToRuck(const SInvItemPlace& prev)
+{
+	StopLights();
+	inherited::OnMoveToRuck(prev);
+}
+
 void CArtefact::OnH_A_Chield() 
 {
 	inherited::OnH_A_Chield		();
@@ -132,7 +157,8 @@ void CArtefact::OnH_B_Independent(bool just_before_destroy)
 	VERIFY(!physics_world()->Processing());
 	inherited::OnH_B_Independent(just_before_destroy);
 
-	StartLights();
+	if (!m_pTrailLight)
+		StartLights();
 	SwitchAfParticles	(true);
 }
 
@@ -247,7 +273,10 @@ void CArtefact::StartLights()
 
 	m_pTrailLight->set_shadow	(b_light_shadow);
 
-	m_pTrailLight->set_color	(m_TrailLightColor); 
+	if (_trailLightColorAmountDependant)
+		update_trail_light_color();
+
+	m_pTrailLight->set_color	(m_TrailLightColor);
 	m_pTrailLight->set_range	(m_fTrailLightRange);
 	m_pTrailLight->set_position	(Position()); 
 	m_pTrailLight->set_active	(true);
@@ -534,7 +563,7 @@ void CArtefact::update_power() const
 		float allowedCharge{ container->getAllowedArtefactCharge(this) };
 		if (!fIsZero(allowedCharge))
 		{
-			float charge{ m_pAmountable->getAmount() };
+			float charge{ _amountable->getAmount() };
 			float mainCharge{ std::min(charge, _maxCharge) };
 			float activeCharge{ std::min(mainCharge, allowedCharge) };
 			float effectiveCharge{ (_overcharge && fMore(charge, _maxCharge)) ? sqrt(charge * _maxCharge) : mainCharge };
@@ -542,6 +571,54 @@ void CArtefact::update_power() const
 			m_fPower = (activeCharge / mainCharge) * (effectiveCharge / _baselineCharge);
 			m_fRadiation = activeCharge / _maxCharge;
 		}
+	}
+}
+
+void CArtefact::update_trail_light_color()
+{
+	const float amount{ _amountable->getAmount() };
+	if (fLess(amount, _trailLightColorAmountMin))
+	{
+		float amountPerc{ std::max((amount - _trailLightColorAmountEmpty) / (_trailLightColorAmountMin - _trailLightColorAmountEmpty), 0.F) };
+		m_TrailLightColor.r = amountPerc;
+		m_TrailLightColor.g = 0.F;
+		m_TrailLightColor.b = 0.F;
+		return;
+	}
+
+	float amountPerc{ (amount - _trailLightColorAmountMin) / (_trailLightColorAmountMax - _trailLightColorAmountMin) };
+	clamp(amountPerc, 0.F, 1.F);
+	amountPerc *= 5.F;
+	size_t tier{ static_cast<size_t>(amountPerc) };
+	float tierPerc{ amountPerc - floor(amountPerc) };
+
+	switch (tier)
+	{
+	case 0:
+		m_TrailLightColor.r = 1.F;
+		m_TrailLightColor.g = tierPerc;
+		m_TrailLightColor.b = 0.F;
+		break;
+	case 1:
+		m_TrailLightColor.r = 1.F - tierPerc;
+		m_TrailLightColor.g = 1.F;
+		m_TrailLightColor.b = 0.F;
+		break;
+	case 2:
+		m_TrailLightColor.r = 0.F;
+		m_TrailLightColor.g = 1.F;
+		m_TrailLightColor.b = tierPerc;
+		break;
+	case 3:
+		m_TrailLightColor.r = 0.F;
+		m_TrailLightColor.g = 1.F - tierPerc;
+		m_TrailLightColor.b = 1.F;
+		break;
+	case 4:
+		m_TrailLightColor.r = tierPerc;
+		m_TrailLightColor.g = 0.F;
+		m_TrailLightColor.b = 1.F;
+		break;
 	}
 }
 

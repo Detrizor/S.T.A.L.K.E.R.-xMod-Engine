@@ -58,6 +58,9 @@ public:
 	virtual BOOL					net_Spawn						(CSE_Abstract* DC);
 	virtual void					net_Destroy						();
 
+	bool ActivateItem(u16 prev_slot) override;
+	void OnMoveToRuck(const SInvItemPlace& prev) override;
+
 	virtual void					OnH_A_Chield					();
 	virtual void					OnH_B_Independent				(bool just_before_destroy);
 	
@@ -145,6 +148,7 @@ public:
 
 private:
 	void update_power() const;
+	void update_trail_light_color();
 
 public:
 	float getPower() const { update_power(); return m_fPower; }
@@ -163,6 +167,8 @@ public:
 	void Hit(SHit* pHDS) override;
 
 private:
+	MAmountable* _amountable{};
+
 	float _baselineCharge{ 1.F };
 	float _weightPart{ 1.F };
 	float _maxCharge{ 1.F };
@@ -170,10 +176,14 @@ private:
 
 	bool _overcharge{ false };
 
+	bool _trailLightColorAmountDependant{ false };
+	float _trailLightColorAmountEmpty{ 0.F };
+	float _trailLightColorAmountMin{ 0.F };
+	float _trailLightColorAmountMax{ 0.F };
+
 	xarr<float, ALife::eHitTypeMax> _fHitAbsorbations{};
 	xarr<float, eRestoreTypeMax> _fRestores{};
 
-	MAmountable const* m_pAmountable{ nullptr };
 	mutable u32 m_nPowerCalcFrame{ 0 };
 	mutable float m_fPower{ 0.F };
 	mutable float m_fRadiation{ 0.F };
