@@ -5,6 +5,8 @@ class MAmountable : public CModule
 public:
 	static EModuleTypes mid() { return mAmountable; }
 
+	using CallbackType = _STD function<void()>;
+
 public:
 	explicit MAmountable(CGameObject* obj);
 
@@ -37,12 +39,16 @@ public:
 	void setDepletionSpeed	(float val)		{ m_fDepletionSpeed = val; }
 	void deplete			()				{ changeAmount(-m_fDepletionSpeed); }
 
+	void addOnAmountChangeCallback(CallbackType&& callback) { _onAmountChangeCallbacks.push_back(_STD move(callback)); }
+
 	void setAmount		(float val);
 	void changeAmount	(float delta);
 	void setFill		(float val);
 	void changeFill		(float delta);
 
 private:
+	xr_vector<CallbackType> _onAmountChangeCallbacks{};
+
 	const bool m_bUnlimited;
 	const bool m_bNetCostAdditive;
 

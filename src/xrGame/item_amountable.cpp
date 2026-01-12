@@ -71,6 +71,9 @@ void MAmountable::on_amount_change()
 		I->SetDropManual(TRUE);
 		O.DestroyObject();
 	}
+	else
+		for (const auto& callback : _onAmountChangeCallbacks)
+			callback();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
