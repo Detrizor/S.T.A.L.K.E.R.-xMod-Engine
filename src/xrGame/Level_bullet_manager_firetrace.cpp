@@ -509,5 +509,10 @@ float CBulletManager::calculate_hit_damage(float bullet_ap, float armor, float b
 	if (pierce)
 		hit_res.pierce_damage			+= damage * (k_speed_in - k_speed_bone);
 
-	return								k_speed_out;
+	float bulletEnergy{ bullet->mass * _sqr(bullet->speed) * .5F };
+	float armorEnergyTheshold{ armor * 10.F };
+	if (fMore(armorEnergyTheshold, bulletEnergy))
+		hit_res.main_damage *= sqrt(bulletEnergy / armorEnergyTheshold);
+
+	return k_speed_out;
 }
