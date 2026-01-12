@@ -106,7 +106,7 @@ public:
 	//игровое имя 
 	virtual LPCSTR	Name        () const;
 	LPCSTR				IconName		() const;
-	u32					get_money		() const								{return m_money;}
+	u32					get_money		() const								{ return (InfinitiveMoney()) ? u32_max : m_money; }
 	void				set_money		(u32 amount, bool bSendEvent);
 	void				GiveMoney		(int amount, bool bSendEvent = true)	{ set_money(m_money + amount, bSendEvent); }
 	bool				is_alive		();
@@ -169,7 +169,7 @@ public:
 public:
 	CCharacterInfo&						CharacterInfo		() const {VERIFY(m_pCharacterInfo); return *m_pCharacterInfo;}
 	IC const CSpecificCharacter&		SpecificCharacter	() const {return CharacterInfo().m_SpecificCharacter;};
-	bool								InfinitiveMoney		()	{return CharacterInfo().m_SpecificCharacter.MoneyDef().inf_money;}
+	bool								InfinitiveMoney		() const {return CharacterInfo().m_SpecificCharacter.MoneyDef().inf_money;}
 
 	//установка группировки на клиентском и серверном объкте
 	virtual void			SetCommunity	(CHARACTER_COMMUNITY_INDEX);
