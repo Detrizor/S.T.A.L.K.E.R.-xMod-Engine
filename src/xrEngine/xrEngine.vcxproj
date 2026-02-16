@@ -611,6 +611,12 @@
     <Manifest>
       <AdditionalManifestFiles>as-invoker-manifest-part.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>if not exist "$(xrGameDir)bin\eax.dll" if exist "$(xrSdkDir)binaries\eax.dll" copy /Y "$(xrSdkDir)binaries\eax.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\wrap_oal.dll" if exist "$(xrSdkDir)binaries\wrap_oal.dll" copy /Y "$(xrSdkDir)binaries\wrap_oal.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\one_tbb.dll" if exist "$(xrSdkDir)binaries\one_tbb.dll" copy /Y "$(xrSdkDir)binaries\one_tbb.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\lua51.dll" if exist "$(SolutionDir)3rd party\luajit-2\bin\x86\lua51.dll" copy /Y "$(SolutionDir)3rd party\luajit-2\bin\x86\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|Win32'">
     <ClCompile>
@@ -666,6 +672,12 @@
     <Manifest>
       <AdditionalManifestFiles>as-invoker-manifest-part.xml;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>if not exist "$(xrGameDir)bin\eax.dll" if exist "$(xrSdkDir)binaries\eax.dll" copy /Y "$(xrSdkDir)binaries\eax.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\wrap_oal.dll" if exist "$(xrSdkDir)binaries\wrap_oal.dll" copy /Y "$(xrSdkDir)binaries\wrap_oal.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\one_tbb.dll" if exist "$(xrSdkDir)binaries\one_tbb.dll" copy /Y "$(xrSdkDir)binaries\one_tbb.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\lua51.dll" if exist "$(SolutionDir)3rd party\luajit-2\bin\x86\lua51.dll" copy /Y "$(SolutionDir)3rd party\luajit-2\bin\x86\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -1674,6 +1686,12 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="DeleteCopiedBinDlls" AfterTargets="Clean">
+    <Delete Condition="Exists('$(xrGameDir)bin\eax.dll')" Files="$(xrGameDir)bin\eax.dll" />
+    <Delete Condition="Exists('$(xrGameDir)bin\wrap_oal.dll')" Files="$(xrGameDir)bin\wrap_oal.dll" />
+    <Delete Condition="Exists('$(xrGameDir)bin\one_tbb.dll')" Files="$(xrGameDir)bin\one_tbb.dll" />
+    <Delete Condition="Exists('$(xrGameDir)bin\lua51.dll')" Files="$(xrGameDir)bin\lua51.dll" />
+  </Target>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>

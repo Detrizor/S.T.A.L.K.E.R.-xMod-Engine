@@ -116,6 +116,39 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\lua51.dll" if exist "$(ProjectDir)..\bin\x86\lua51.dll" copy /Y "$(ProjectDir)..\bin\x86\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|Win32'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\lua51.dll" if exist "$(ProjectDir)..\bin\x86\lua51.dll" copy /Y "$(ProjectDir)..\bin\x86\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|x64'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"
+if not exist "$(xrGameDir)bin\lua51.dll" if exist "$(ProjectDir)..\bin\x86\lua51.dll" copy /Y "$(ProjectDir)..\bin\x86\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" copy /Y "$(ProjectDir)..\bin\$(PlatformShortName)\lua51.dll" "$(xrGameDir)bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
