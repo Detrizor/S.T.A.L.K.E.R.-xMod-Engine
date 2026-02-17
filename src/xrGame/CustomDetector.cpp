@@ -190,7 +190,6 @@ void CCustomDetector::shedule_Update(u32 dt)
 	m_artefacts.feel_touch_update(P,m_fAfDetectRadius);
 }
 
-
 bool CCustomDetector::IsWorking()
 {
 	return m_bWorking && H_Parent() && H_Parent()==Level().CurrentViewEntity();
@@ -255,19 +254,16 @@ void CCustomDetector::OnH_B_Independent(bool just_before_destroy)
 	TurnDetectorInternal		(false);
 }
 
-bool CAfList::feel_touch_contact	(CObject* O)
+bool CAfList::feel_touch_contact(CObject* O)
 {
-	TypesMapIt it				= m_TypesMap.find(O->cNameSect());
+	if (m_TypesMap.find(O->cNameSect()) == m_TypesMap.end())
+		return false;
 
-	bool res					 = (it!=m_TypesMap.end());
-	if(res)
-	{
-		CArtefact*	pAf				= smart_cast<CArtefact*>(O);
-		
-		if(pAf->GetAfRank()>m_af_rank)
-			res = false;
-	}
-	return						res;
+	auto artefact{ smart_cast<CArtefact*>(O) };
+	if (artefact->GetAfRank() > m_af_rank)
+		return false;
+
+	return artefact->canBeDetected();
 }
 
 bool CCustomDetector::install_upgrade_impl(LPCSTR section, bool test)

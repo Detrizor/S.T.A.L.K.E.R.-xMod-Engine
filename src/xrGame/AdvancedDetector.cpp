@@ -24,31 +24,26 @@ CUIArtefactDetectorAdv&  CAdvancedDetector::ui()
 
 void CAdvancedDetector::UpdateAf()
 {
-	ui().SetValue				(0.0f,Fvector().set(0,0,0));
-	if(m_artefacts.m_ItemInfos.size()==0)	return;
+	ui().SetValue(0.0f, Fvector().set(0, 0, 0));
+	if (m_artefacts.m_ItemInfos.size() == 0)
+		return;
 
-	CAfList::ItemsMapIt it_b	= m_artefacts.m_ItemInfos.begin();
-	CAfList::ItemsMapIt it_e	= m_artefacts.m_ItemInfos.end();
-	CAfList::ItemsMapIt it		= it_b;
-	float min_dist				= flt_max;
-
-	for(;it_b!=it_e;++it_b)
+	float min_dist{ flt_max };
+	for(auto it_b = m_artefacts.m_ItemInfos.begin(), it_e = m_artefacts.m_ItemInfos.end(), it = it_b;it_b!=it_e;++it_b)
 	{
 		auto artefact{ it_b->first };
-		if (artefact->canBeDetected())
-		{
-			float distance{ Position().distance_to(artefact->Position()) };
-			if (distance < min_dist)
-			{
-				min_dist = distance;
-				it = it_b;
-			}
+		float distance{ Position().distance_to(artefact->Position()) };
 
-			if (artefact->CanBeInvisible() && distance < m_fAfVisRadius)
-				artefact->SwitchVisibility(true);
+		if (distance < min_dist)
+		{
+			min_dist = distance;
+			it = it_b;
 		}
+
+		if (artefact->CanBeInvisible() && distance < m_fAfVisRadius)
+			artefact->SwitchVisibility(true);
 	}
-		
+
 	ITEM_INFO& af_info		= it->second;
 	ITEM_TYPE* item_type	= af_info.curr_ref;
 	CArtefact *pCurrentAf	= it->first;
