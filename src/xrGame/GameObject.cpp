@@ -32,8 +32,8 @@
 #include "magic_box3.h"
 #include "animation_movement_controller.h"
 #include "../xrengine/xr_collide_form.h"
-#include "../../alife_simulator.h"
-#include "../../alife_object_registry.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
