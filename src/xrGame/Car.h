@@ -197,6 +197,7 @@ virtual void ApplyDamage			(u16 level);
 		float	pos_fvd;
 		float	gear_factor;
 		void	Init		()						;
+		void	UpdateDriveSign()					;
 		void	Drive		()						;
 		void	Neutral		()						;
 		void	UpdatePower	()						;
@@ -622,6 +623,7 @@ protected:
 			void					SaveNetState						(NET_Packet& P)																	;
 	virtual	void					RestoreNetState						(CSE_PHSkeleton* po)															;
 			void					SetDefaultNetState					(CSE_PHSkeleton* po)															;
+			void					RefreshDriveWheelSigns				()																				;
 
 	virtual bool					IsHudModeNow		(){return false;};
 	

@@ -199,6 +199,20 @@ void CCar::SWheel::RestoreNetState(const CSE_ALifeCar::SWheelState& a_state)
 	RestoreEffect();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CCar::SWheelDrive::UpdateDriveSign()
+{
+	auto boneIt{ bone_map.find(pwheel->bone_id) };
+	VERIFY(boneIt != bone_map.end());
+	VERIFY(boneIt->second.element);
+
+	const auto& wheelK{ boneIt->second.element->mXFORM.k };
+	const float dot{ wheelK.dotproduct(pwheel->car->m_root_transform.k) };
+	if (std::abs(dot) > EPS_S)
+		pos_fvd = dot > 0.f ? 1.f : -1.f;
+	else
+		pos_fvd = wheelK.x > 0.f ? -1.f : 1.f;
+}
+
 void CCar::SWheelDrive::Init()
 {
 	pwheel->Init();
@@ -207,13 +221,11 @@ void CCar::SWheelDrive::Init()
 	switch(bone_data.IK_data.type)
 	{
 	case jtWheel:
-		pos_fvd=bone_map.find(pwheel->bone_id)->second.element->mXFORM.k.x;
+		UpdateDriveSign();
 		break;
 
 	default: NODEFAULT;
 	}
-
-	pos_fvd=pos_fvd>0.f ? -1.f : 1.f;
 
 }
 void CCar::SWheelDrive::Drive()
