@@ -627,10 +627,6 @@ private:
 	CActorInputHandler		*m_input_external_handler;
 	u32						m_time_lock_accel;
 
-	u32						m_state_last_tg;
-	u32						m_state_toggle_tg;
-	u32						m_state_toggle_delay;
-
 	/////////////////////////////////////////
 	// DEBUG INFO
 protected:
@@ -811,7 +807,13 @@ public:
 	float getAccuracy() const override;
 
 private:
+	u32 _doubleTapWindow;
+
 	float m_fAccuracy{ 1.f };
+
+	u32	 _sprintDoubleTapTg{ 0U };
+	u32	 _crouchDoubleTapTg{ 0U };
+	bool _sprintToggle{ false };
 };
 
 add_to_type_list(CActor)

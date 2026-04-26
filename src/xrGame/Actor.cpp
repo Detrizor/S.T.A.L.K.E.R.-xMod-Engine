@@ -221,9 +221,7 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 	m_fSprintBlock = false;
 	m_fAccelBlock = false;
 
-	m_state_last_tg = 0;
-	m_state_toggle_tg = 0;
-	m_state_toggle_delay = pSettings->r_u32("actor", "state_toggle_delay");
+	_doubleTapWindow = pSettings->r_u32("actor", "double_tap_window");
 
 	fFPCamYawMagnitude = 0.0f; //--#SM+#--
 	fFPCamPitchMagnitude = 0.0f; //--#SM+#--
@@ -1127,11 +1125,8 @@ void CActor::shedule_Update(u32 DT)
 		}
 		if (!Level().IsDemoPlay())
 		{
-			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
-			{
-				mstate_wishful &= ~mcSprint;
-				mstate_wishful &= ~mcCrouchLow;
-			}
+			mstate_wishful &= ~mcAccel;
+			mstate_wishful &= ~mcSprint;
 			mstate_wishful &= ~mcLStrafe;
 			mstate_wishful &= ~mcRStrafe;
 			mstate_wishful &= ~mcLLookout;

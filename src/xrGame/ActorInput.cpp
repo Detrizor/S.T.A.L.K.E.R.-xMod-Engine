@@ -86,13 +86,36 @@ void CActor::IR_OnKeyboardPress(int cmd)
 #endif //DEBUG
 	switch(cmd)
 	{
-	case kJUMP:		
-		{
-			mstate_wishful |= mcJump;
-		}break;
+	case kJUMP:
+		mstate_wishful |= mcJump;
+		break;
 	case kSPRINT_TOGGLE:
+		if (Device.dwTimeGlobal - _sprintDoubleTapTg < _doubleTapWindow)
+		{
+			_sprintDoubleTapTg = 0U;
+			_sprintToggle	   = true;
+		}
+		else
+		{
+			_sprintDoubleTapTg = Device.dwTimeGlobal;
+			_sprintToggle	   = false;
+		}
+		break;
 	case kCROUCH:
-		m_state_toggle_tg = Device.dwTimeGlobal;
+		if (Device.dwTimeGlobal - _crouchDoubleTapTg < _doubleTapWindow)
+		{
+			_crouchDoubleTapTg	= 0U;
+			mstate_wishful	   |= mcCrouch;
+			mstate_wishful	   |= mcCrouchLow;
+		}
+		else
+		{
+			_crouchDoubleTapTg = Device.dwTimeGlobal;
+			if (mstate_wishful & mcCrouchLow)
+				mstate_wishful &= ~mcCrouchLow;
+			else
+				mstate_wishful ^= mcCrouch;
+		}
 		break;
 	case kCAM_1:	cam_Set			(eacFirstEye);				break;
 	case kCAM_2:	cam_Set			(eacLookAt);				break;
@@ -202,14 +225,6 @@ void CActor::IR_OnKeyboardRelease(int cmd)
 		{
 		case kJUMP:		mstate_wishful &=~mcJump;		break;
 		case kDROP:		if(GAME_PHASE_INPROGRESS == Game().Phase()) g_PerformDrop();				break;
-		case kSPRINT_TOGGLE:{
-			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
-				mstate_wishful ^= mcAccel;
-			}break;
-		case kCROUCH:{
-			if (Device.dwTimeGlobal - m_state_last_tg > m_state_toggle_delay)
-				mstate_wishful ^= mcCrouch;
-			}break;
 		}
 	}
 }
@@ -253,32 +268,19 @@ void CActor::IR_OnKeyboardHold(int cmd)
 	case kRIGHT:
 		if (eacFreeLook!=cam_active) cam_Active()->Move(cmd, 0, LookFactor);	break;
 
-	case kSPRINT_TOGGLE:{
-		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
-		{
-			if (!isActorAccelerated(mstate_wishful, IsZoomADSMode()))
-				mstate_wishful ^= mcAccel;
-			if (mstate_wishful&mcCrouch && AnyMove())
-				mstate_wishful ^= mcCrouch;
+	case kSPRINT_TOGGLE:
+	{
+		mstate_wishful |= mcAccel;
+		if (_sprintToggle)
 			mstate_wishful |= mcSprint;
-			m_state_last_tg = Device.dwTimeGlobal;
-		}
-		}break;
+		break;
+	}
 	case kL_STRAFE:		mstate_wishful |= mcLStrafe;								break;
 	case kR_STRAFE:		mstate_wishful |= mcRStrafe;								break;
 	case kL_LOOKOUT:	mstate_wishful |= mcLLookout;								break;
 	case kR_LOOKOUT:	mstate_wishful |= mcRLookout;								break;
 	case kFWD:			mstate_wishful |= mcFwd;									break;
 	case kBACK:			mstate_wishful |= mcBack;									break;
-	case kCROUCH:
-		if (Device.dwTimeGlobal - m_state_toggle_tg > m_state_toggle_delay)
-		{
-			if (!(mstate_wishful&mcCrouch))
-				mstate_wishful ^= mcCrouch;
-			mstate_wishful |= mcCrouchLow;
-			m_state_last_tg = Device.dwTimeGlobal;
-		}
-		break;
 	}
 }
 
